@@ -248,19 +248,22 @@ unsafe fn rust_gfni_avx2_mul_impl<const XOR: bool>(c: u8, input: &[u8], out: &mu
     let (simd_input, tail_input) = input.split_at(bytes_done);
     let (simd_out, tail_out) = out.split_at_mut(bytes_done);
 
-    for (input_chunk, out_chunk) in simd_input
-        .chunks_exact(32)
-        .zip(simd_out.chunks_exact_mut(32))
-    {
-        // SAFETY: `chunks_exact(32)` guarantees 32 valid bytes for load/store.
+    let (simd_input_chunks, []) = simd_input.as_chunks::<32>() else {
+        unreachable!("GFNI AVX2 input is split on a 32-byte boundary");
+    };
+    let (simd_out_chunks, []) = simd_out.as_chunks_mut::<32>() else {
+        unreachable!("GFNI AVX2 output is split on a 32-byte boundary");
+    };
+    for (input_chunk, out_chunk) in simd_input_chunks.iter().zip(simd_out_chunks.iter_mut()) {
+        // SAFETY: `as_chunks::<32>()` guarantees 32 valid bytes for load/store.
         let input_vec = unsafe { _mm256_loadu_si256(input_chunk.as_ptr().cast()) };
         let mapped_input = _mm256_gf2p8affine_epi64_epi8(input_vec, iso256, 0);
         let product = _mm256_gf2p8mul_epi8(mapped_input, coeff_mapped);
         let restored = _mm256_gf2p8affine_epi64_epi8(product, iso256, 0);
         if XOR {
-            // SAFETY: `chunks_exact(32)` guarantees 32 valid bytes for load/store.
+            // SAFETY: `as_chunks_mut::<32>()` guarantees 32 valid bytes for load/store.
             let out_vec = unsafe { _mm256_loadu_si256(out_chunk.as_ptr().cast()) };
-            // SAFETY: `chunks_exact_mut(32)` guarantees 32 valid bytes for this unaligned store.
+            // SAFETY: `as_chunks_mut::<32>()` guarantees 32 valid bytes for this unaligned store.
             unsafe {
                 _mm256_storeu_si256(
                     out_chunk.as_mut_ptr().cast(),
@@ -268,7 +271,7 @@ unsafe fn rust_gfni_avx2_mul_impl<const XOR: bool>(c: u8, input: &[u8], out: &mu
                 )
             };
         } else {
-            // SAFETY: `chunks_exact(32)` guarantees 32 valid bytes for the store.
+            // SAFETY: `as_chunks_mut::<32>()` guarantees 32 valid bytes for the store.
             unsafe { _mm256_storeu_si256(out_chunk.as_mut_ptr().cast(), restored) };
         }
     }
@@ -301,19 +304,22 @@ unsafe fn rust_gfni_avx512_mul_impl<const XOR: bool>(c: u8, input: &[u8], out: &
     let (simd_input, tail_input) = input.split_at(bytes_done);
     let (simd_out, tail_out) = out.split_at_mut(bytes_done);
 
-    for (input_chunk, out_chunk) in simd_input
-        .chunks_exact(64)
-        .zip(simd_out.chunks_exact_mut(64))
-    {
-        // SAFETY: `chunks_exact(64)` guarantees 64 valid bytes for load/store.
+    let (simd_input_chunks, []) = simd_input.as_chunks::<64>() else {
+        unreachable!("GFNI AVX-512 input is split on a 64-byte boundary");
+    };
+    let (simd_out_chunks, []) = simd_out.as_chunks_mut::<64>() else {
+        unreachable!("GFNI AVX-512 output is split on a 64-byte boundary");
+    };
+    for (input_chunk, out_chunk) in simd_input_chunks.iter().zip(simd_out_chunks.iter_mut()) {
+        // SAFETY: `as_chunks::<64>()` guarantees 64 valid bytes for load/store.
         let input_vec = unsafe { _mm512_loadu_si512(input_chunk.as_ptr().cast()) };
         let mapped_input = _mm512_gf2p8affine_epi64_epi8::<0>(input_vec, iso512);
         let product = _mm512_gf2p8mul_epi8(mapped_input, coeff_mapped);
         let restored = _mm512_gf2p8affine_epi64_epi8::<0>(product, iso512);
         if XOR {
-            // SAFETY: `chunks_exact(64)` guarantees 64 valid bytes for load/store.
+            // SAFETY: `as_chunks_mut::<64>()` guarantees 64 valid bytes for load/store.
             let out_vec = unsafe { _mm512_loadu_si512(out_chunk.as_ptr().cast()) };
-            // SAFETY: `chunks_exact_mut(64)` guarantees 64 valid bytes for this unaligned store.
+            // SAFETY: `as_chunks_mut::<64>()` guarantees 64 valid bytes for this unaligned store.
             unsafe {
                 _mm512_storeu_si512(
                     out_chunk.as_mut_ptr().cast(),
@@ -321,7 +327,7 @@ unsafe fn rust_gfni_avx512_mul_impl<const XOR: bool>(c: u8, input: &[u8], out: &
                 )
             };
         } else {
-            // SAFETY: `chunks_exact(64)` guarantees 64 valid bytes for the store.
+            // SAFETY: `as_chunks_mut::<64>()` guarantees 64 valid bytes for the store.
             unsafe { _mm512_storeu_si512(out_chunk.as_mut_ptr().cast(), restored) };
         }
     }

@@ -75,11 +75,14 @@ unsafe fn rust_ssse3_mul_impl<const XOR: bool>(c: u8, input: &[u8], out: &mut [u
     let (simd_input, tail_input) = input.split_at(bytes_done);
     let (simd_out, tail_out) = out.split_at_mut(bytes_done);
 
-    for (input_chunk, out_chunk) in simd_input
-        .chunks_exact(16)
-        .zip(simd_out.chunks_exact_mut(16))
-    {
-        // SAFETY: `chunks_exact(16)` yields exactly 16 valid bytes for this unaligned load.
+    let (simd_input_chunks, []) = simd_input.as_chunks::<16>() else {
+        unreachable!("SSSE3 input is split on a 16-byte boundary");
+    };
+    let (simd_out_chunks, []) = simd_out.as_chunks_mut::<16>() else {
+        unreachable!("SSSE3 output is split on a 16-byte boundary");
+    };
+    for (input_chunk, out_chunk) in simd_input_chunks.iter().zip(simd_out_chunks.iter_mut()) {
+        // SAFETY: `as_chunks::<16>()` yields exactly 16 valid bytes for this unaligned load.
         let input_vec = unsafe { _mm_loadu_si128(input_chunk.as_ptr().cast()) };
         let low = _mm_and_si128(input_vec, nibble_mask);
         let high = _mm_and_si128(_mm_srli_epi64::<4>(input_vec), nibble_mask);
@@ -88,9 +91,9 @@ unsafe fn rust_ssse3_mul_impl<const XOR: bool>(c: u8, input: &[u8], out: &mut [u
             _mm_shuffle_epi8(high_tbl, high),
         );
         if XOR {
-            // SAFETY: `chunks_exact_mut(16)` yields exactly 16 valid bytes for this unaligned load of the current output.
+            // SAFETY: `as_chunks_mut::<16>()` yields exactly 16 valid bytes for this unaligned load of the current output.
             let out_vec = unsafe { _mm_loadu_si128(out_chunk.as_ptr().cast()) };
-            // SAFETY: `chunks_exact_mut(16)` yields exactly 16 valid bytes for this unaligned store.
+            // SAFETY: `as_chunks_mut::<16>()` yields exactly 16 valid bytes for this unaligned store.
             unsafe {
                 _mm_storeu_si128(
                     out_chunk.as_mut_ptr().cast(),
@@ -98,7 +101,7 @@ unsafe fn rust_ssse3_mul_impl<const XOR: bool>(c: u8, input: &[u8], out: &mut [u
                 )
             };
         } else {
-            // SAFETY: `chunks_exact_mut(16)` yields exactly 16 valid bytes for this unaligned store.
+            // SAFETY: `as_chunks_mut::<16>()` yields exactly 16 valid bytes for this unaligned store.
             unsafe { _mm_storeu_si128(out_chunk.as_mut_ptr().cast(), product) };
         }
     }
