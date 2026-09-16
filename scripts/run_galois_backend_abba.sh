@@ -136,18 +136,24 @@ run_stage() {
   RSE_STRICT_BACKEND_OVERRIDE=1 \
     "${command[@]}" 2>&1 | tee "${OUT_DIR}/${stage}-${commit}.log"
 
-  local header_args=()
   if [[ "${write_header}" == "yes" ]]; then
-    header_args=(--write-header)
+    python3 "${EXTRACT_HELPER}" \
+      --stage "${stage}" \
+      --commit "${commit}" \
+      --backend-override "${BACKEND}" \
+      --csv "${CSV_PATH}" \
+      --jsonl "${JSONL_PATH}" \
+      --updated-after-epoch "${stage_start}" \
+      --write-header
+  else
+    python3 "${EXTRACT_HELPER}" \
+      --stage "${stage}" \
+      --commit "${commit}" \
+      --backend-override "${BACKEND}" \
+      --csv "${CSV_PATH}" \
+      --jsonl "${JSONL_PATH}" \
+      --updated-after-epoch "${stage_start}"
   fi
-  python3 "${EXTRACT_HELPER}" \
-    --stage "${stage}" \
-    --commit "${commit}" \
-    --backend-override "${BACKEND}" \
-    --csv "${CSV_PATH}" \
-    --jsonl "${JSONL_PATH}" \
-    --updated-after-epoch "${stage_start}" \
-    "${header_args[@]}"
 }
 
 cooldown() {
