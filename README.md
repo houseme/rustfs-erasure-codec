@@ -1,9 +1,9 @@
 # rustfs-erasure-codec
 
-[![CI](https://github.com/houseme/reed-solomon-erasure/actions/workflows/ci.yml/badge.svg)](https://github.com/houseme/reed-solomon-erasure/actions/workflows/ci.yml)
+[![CI](https://github.com/houseme/rustfs-erasure-codec/actions/workflows/ci.yml/badge.svg)](https://github.com/houseme/rustfs-erasure-codec/actions/workflows/ci.yml)
 [![Crates](https://img.shields.io/crates/v/rustfs-erasure-codec.svg)](https://crates.io/crates/rustfs-erasure-codec)
 [![Documentation](https://docs.rs/rustfs-erasure-codec/badge.svg)](https://docs.rs/rustfs-erasure-codec)
-[![dependency status](https://deps.rs/repo/github/houseme/reed-solomon-erasure/status.svg)](https://deps.rs/repo/github/houseme/reed-solomon-erasure)
+[![dependency status](https://deps.rs/repo/github/houseme/rustfs-erasure-codec/status.svg)](https://deps.rs/repo/github/houseme/rustfs-erasure-codec)
 [![Crates.io Total Downloads](https://img.shields.io/crates/d/rustfs-erasure-codec)](https://crates.io/crates/rustfs-erasure-codec)
 [![Crates.io License](https://img.shields.io/crates/l/rustfs-erasure-codec)](https://crates.io/crates/rustfs-erasure-codec)
 
@@ -325,7 +325,7 @@ Versions `0.9.0` through `6.0.0` were originally created by
 [rust-rse](https://github.com/rust-rse) community.
 
 The current `8.0.1` line in this repository is maintained under
-[houseme/reed-solomon-erasure](https://github.com/houseme/reed-solomon-erasure)
+[houseme/rustfs-erasure-codec](https://github.com/houseme/rustfs-erasure-codec)
 and reflects the Rust 2024 rewrite, runtime SIMD architecture, and Leopard work.
 
 ## Contributing

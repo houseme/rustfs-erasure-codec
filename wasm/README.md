@@ -3,7 +3,7 @@
 WebAssembly build of the [rustfs-erasure-codec](../README.md) library, exposing `encode` and `reconstruct` operations for use in browsers and Node.js.
 
 This package lives inside the current
-[houseme/reed-solomon-erasure](https://github.com/houseme/reed-solomon-erasure)
+[houseme/rustfs-erasure-codec](https://github.com/houseme/rustfs-erasure-codec)
 repository and tracks the main Rust codebase in this checkout.
 
 **Package:** `rustfs-erasure-codec-wasm` v0.2.5
@@ -109,4 +109,4 @@ console.assert(reconstructResult === ReedSolomonErasure.RESULT_OK);
 ## Maintenance
 
 The WASM package is now maintained as part of the main repository workflow in
-`houseme/reed-solomon-erasure`.
+`houseme/rustfs-erasure-codec`.

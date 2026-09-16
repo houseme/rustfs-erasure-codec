@@ -1,9 +1,9 @@
 # rustfs-erasure-codec
 
-[![CI](https://github.com/houseme/reed-solomon-erasure/actions/workflows/ci.yml/badge.svg)](https://github.com/houseme/reed-solomon-erasure/actions/workflows/ci.yml)
+[![CI](https://github.com/houseme/rustfs-erasure-codec/actions/workflows/ci.yml/badge.svg)](https://github.com/houseme/rustfs-erasure-codec/actions/workflows/ci.yml)
 [![Crates](https://img.shields.io/crates/v/rustfs-erasure-codec.svg)](https://crates.io/crates/rustfs-erasure-codec)
 [![Documentation](https://docs.rs/rustfs-erasure-codec/badge.svg)](https://docs.rs/rustfs-erasure-codec)
-[![dependency status](https://deps.rs/repo/github/houseme/reed-solomon-erasure/status.svg)](https://deps.rs/repo/github/houseme/reed-solomon-erasure)
+[![dependency status](https://deps.rs/repo/github/houseme/rustfs-erasure-codec/status.svg)](https://deps.rs/repo/github/houseme/rustfs-erasure-codec)
 [![Crates.io Total Downloads](https://img.shields.io/crates/d/rustfs-erasure-codec)](https://crates.io/crates/rustfs-erasure-codec)
 [![Crates.io License](https://img.shields.io/crates/l/rustfs-erasure-codec)](https://crates.io/crates/rustfs-erasure-codec)
 
@@ -301,7 +301,7 @@ bash scripts/collect_x86_simd_benchmarks.sh
 [rust-rse](https://github.com/rust-rse) 社区继续维护。
 
 当前仓库中的 `8.0.1` 主线由
-[houseme/reed-solomon-erasure](https://github.com/houseme/reed-solomon-erasure)
+[houseme/rustfs-erasure-codec](https://github.com/houseme/rustfs-erasure-codec)
 维护，代表了 Rust 2024 重构、运行时 SIMD 架构与 Leopard 相关工作的最新状态。
 
 ## 贡献
