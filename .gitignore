@@ -1,4 +1,17 @@
 /target/
+
+# Local editor/agent state
+/.claude/
+/.idea/
+
+# OS/editor noise
+.DS_Store
+*.swp
+*~
+
+# Python/script byproducts
 scripts/__pycache__/
 *.pyc
+
+# Profiling byproducts
 perf.data

@@ -46,7 +46,7 @@ cargo fuzz run fuzz_encode_verify -- corpus/
 
 ## Crash Artifacts
 
-Crash artifacts from past fuzz runs are preserved in this directory (e.g., `crash-f620377ed9c81e34bc8393f75940861f9c0d286f`). These have been investigated and the corresponding issues resolved.
+`cargo-fuzz` writes runtime corpora and crash artifacts under ignored local directories such as `corpus/`, `artifacts/`, and `target/`. Investigated crash artifacts should be minimized into regression tests or kept outside version control.
 
 ## Authors
 
