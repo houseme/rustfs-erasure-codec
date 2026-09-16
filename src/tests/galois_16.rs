@@ -95,7 +95,8 @@ fn correct_field_order_restriction() {
     assert!(ReedSolomon::new(ORDER, 1).is_err());
     assert!(ReedSolomon::new(1, ORDER).is_err());
 
-    // way too slow, because it needs to build a 65536*65536 vandermonde matrix
+    // Disabled here because constructing the 65535 x 65535 Vandermonde matrix
+    // is prohibitively expensive for the unit test suite.
     // assert!(ReedSolomon::new(ORDER - 1, 1).is_ok());
     assert!(ReedSolomon::new(1, ORDER - 1).is_ok());
 }

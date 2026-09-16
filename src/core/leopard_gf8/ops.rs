@@ -173,7 +173,7 @@ pub(super) fn slice_xor(input: &[u8], out: &mut [u8]) {
     slice_xor_u64(input, out);
 }
 
-/// u64-block XOR fallback (also used on aarch64 and non-AVX2 x86_64).
+/// Portable u64-block XOR fallback used when no wider SIMD path was selected.
 fn slice_xor_u64(input: &[u8], out: &mut [u8]) {
     // Process 64 bytes per iteration using u64 blocks.
     // Uses unaligned reads to avoid UB on sub-slice pointers.
@@ -220,7 +220,7 @@ unsafe fn slice_xor_avx2(input: &[u8], out: &mut [u8]) {
     let (out32, out_tail) = out.as_chunks_mut::<32>();
 
     for (src, dst) in in32.iter().zip(out32.iter_mut()) {
-        // SAFETY: chunks_exact(32) guarantees 32 valid bytes for load/store.
+        // SAFETY: as_chunks::<32>() guarantees 32 valid bytes for load/store.
         let s = unsafe { _mm256_loadu_si256(src.as_ptr().cast()) };
         // SAFETY: as_chunks_mut::<32>() guarantees 32 valid bytes for load.
         let d = unsafe { _mm256_loadu_si256(dst.as_ptr().cast()) };
@@ -246,7 +246,7 @@ unsafe fn slice_xor_neon(input: &[u8], out: &mut [u8]) {
     let (out64, out_tail) = out.as_chunks_mut::<64>();
 
     for (src, dst) in in64.iter().zip(out64.iter_mut()) {
-        // SAFETY: chunks_exact(64) guarantees 64 valid bytes for load/store.
+        // SAFETY: as_chunks::<64>() guarantees 64 valid bytes for load/store.
         let s = unsafe { vld1q_u8_x4(src.as_ptr()) };
         // SAFETY: as_chunks_mut::<64>() guarantees 64 valid bytes for load.
         let d = unsafe { vld1q_u8_x4(dst.as_ptr()) };
@@ -268,7 +268,7 @@ unsafe fn slice_xor_neon(input: &[u8], out: &mut [u8]) {
     let (in16, in_scalar) = in_tail.as_chunks::<16>();
     let (out16, out_scalar) = out_tail.as_chunks_mut::<16>();
     for (src, dst) in in16.iter().zip(out16.iter_mut()) {
-        // SAFETY: chunks_exact(16) guarantees 16 valid bytes.
+        // SAFETY: as_chunks::<16>() guarantees 16 valid bytes.
         let s = unsafe { vld1q_u8(src.as_ptr()) };
         // SAFETY: as_chunks_mut::<16>() guarantees 16 valid bytes for load.
         let d = unsafe { vld1q_u8(dst.as_ptr()) };
@@ -285,8 +285,8 @@ unsafe fn slice_xor_neon(input: &[u8], out: &mut [u8]) {
 /// SIMD-accelerated LUT-XOR with pre-split nibble tables.
 ///
 /// Same as `lut_xor` but accepts pre-computed nibble halves to avoid
-/// rebuilding them on every call. `low[i] = lut[i]` for i in 0..16,
-/// `high[i] = lut[i * 16]` for i in 0..16.
+/// rebuilding them on every call. `low[i] = lut[i]` for `i in 0..16`,
+/// `high[i] = lut[i * 16]` for `i in 0..16`.
 #[inline]
 fn lut_xor_prebuilt(dst: &mut [u8], src: &[u8], low: &[u8; 16], high: &[u8; 16], lut: &[u8; 256]) {
     lut_xor_impl(dst, src, low, high, lut)
@@ -370,7 +370,7 @@ unsafe fn lut_xor_avx2_prebuilt(
     let (dst32, dst_tail) = dst.as_chunks_mut::<32>();
 
     for (s_chunk, d_chunk) in src32.iter().zip(dst32.iter_mut()) {
-        // SAFETY: chunks_exact(32) guarantees 32 valid bytes for load/store.
+        // SAFETY: as_chunks::<32>() guarantees 32 valid bytes for load/store.
         let sv = unsafe { _mm256_loadu_si256(s_chunk.as_ptr().cast()) };
         // SAFETY: as_chunks_mut::<32>() guarantees 32 valid bytes for load.
         let dv = unsafe { _mm256_loadu_si256(d_chunk.as_ptr().cast()) };
@@ -599,7 +599,7 @@ unsafe fn lut_xor_neon_prebuilt(
     let (dst16, dst_tail) = dst.as_chunks_mut::<16>();
 
     for (s_chunk, d_chunk) in src16.iter().zip(dst16.iter_mut()) {
-        // SAFETY: chunks_exact(16) guarantees 16 valid bytes.
+        // SAFETY: as_chunks::<16>() guarantees 16 valid bytes.
         let sv = unsafe { vld1q_u8(s_chunk.as_ptr()) };
         // SAFETY: as_chunks_mut::<16>() guarantees 16 valid bytes for load.
         let dv = unsafe { vld1q_u8(d_chunk.as_ptr()) };

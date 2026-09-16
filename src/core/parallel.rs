@@ -312,8 +312,8 @@ mod tests {
             ..Default::default()
         };
         let decision = policy.decide(1024 * 1024, 10, 4, 8);
-        // With 64K L2 / 14 active shards ≈ 4.5K per chunk
-        // 1MB / 4.5K ≈ 227 chunks → many parallel jobs
+        // With 64 KiB L2 / 14 active shards, each chunk is about 4.5 KiB.
+        // 1 MiB / 4.5 KiB is roughly 227 chunks, yielding many parallel jobs.
         assert!(decision.jobs > 1, "should parallelize with small cache");
     }
 

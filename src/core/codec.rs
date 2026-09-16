@@ -300,7 +300,8 @@ impl<F: Field> ReedSolomon<F> {
             // `encode_leopard_sep_inner` / `leopard_gf16_reconstruct`). Building a
             // Vandermonde here would call `Field::nth` past the 256-element
             // GF(2^8) range for total > 256, and would needlessly allocate a
-            // total×data matrix (up to ~65536 rows). Use an empty placeholder.
+            // total-by-data matrix (up to about 65536 rows). Use an empty
+            // sentinel instead.
             CodecFamily::LeopardGF16 => Matrix::new(0, 0),
         };
         let family_state = super::leopard::build_family_state(

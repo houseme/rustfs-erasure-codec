@@ -149,38 +149,10 @@ pub(crate) fn build_fft_decode_dit16_plan(
     n: usize,
     skew_lut: &[u16; MODULUS16],
 ) -> FftDit16Plan {
-    // Go: skewLUT := fftSkew[m-1:]
-    // skewLUT[i] = fftSkew[m-1+i], so we need base = n/2 - 1 (= m-1 in Go)
-    // Actually, the caller passes n (the FFT size), but Go uses m = n/2 for the base.
-    // Wait - let me check: Go's fftDIT is called with m=n for the decode path.
-    // Actually no, Go passes `fftSkew[:]` (full table) and `m=n` to fftDIT.
-    // Inside fftDIT: skewLUT = fftSkew[:] and m=n.
-    // skewLUT[iend-1] = fftSkew[0 + iend - 1] = fft_skew[iend-1].
-    // Wait, that can't be right - let me re-check.
-    // Go: fftDIT(work, outputCount, n, fftSkew[:], &r.o)
-    //   → mtrunc=outputCount, m=n, skewLUT=fftSkew[:]
-    //   → skewLUT[iend-1] = fftSkew[iend-1]
-    // So for the decode FFT, skew_lut IS the full table, and no base offset is needed!
-    // But wait, the stage4 loop: dist4=m=n; dist=m>>2=n>>2.
-    //   inner: for r=0; r<mtrunc; r+=dist4: iend=r+dist; skewLUT[iend-1]...
-    // This is just fft_skew[iend-1]. So our original code was correct for stage4.
-    // But what about the final stage? skewLUT[r] = fft_skew[r].
-    // Hmm, but the test trace shows the wrong values...
-
-    // Actually, let me re-examine: in the DECODE path, Go calls:
-    //   fftDIT(work, outputCount, n, fftSkew[:], &r.o)
-    // where outputCount = m + r.dataShards and n = ceilPow2(m + dataShards).
-    // So mparam = n, skewLUT = fftSkew[:], mtrunc = outputCount.
-    // Inside fftDIT: dist4 = mparam = n; dist = mparam >> 2 = n >> 2.
-    // Final stage: skewLUT[r] = fftSkew[r]. Since mparam = n (not m), this is just fft_skew[r].
-    //
-    // But wait - for the ENCODER path, Go calls:
-    //   fftDIT(work, parityShards, m, fftSkew[m-1:], &r.o)
-    // So mparam = m, skewLUT = fftSkew[m-1:], mtrunc = parityShards.
-    // Final stage: skewLUT[r] = fftSkew[m-1+r].
-    //
-    // The key difference: decode passes the FULL fftSkew table, encode passes fftSkew[m-1:].
-    // So for the decode FFT plan, we use fft_skew[i] directly (no base offset).
+    // Decode follows Go's `fftDIT(work, outputCount, n, fftSkew[:], ...)`.
+    // Unlike the encoder path, which passes `fftSkew[m - 1..]`, decode uses
+    // the full skew table with no base offset. Stage4 therefore reads
+    // `skew_lut[i_end - 1]` and the final stage reads `skew_lut[r]` directly.
 
     let mut stage4_blocks = Vec::new();
     let mut dist4 = n;

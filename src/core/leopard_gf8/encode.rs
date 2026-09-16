@@ -341,7 +341,7 @@ fn dit4_at_decomposed<W: AsMut<[u8]>>(
     }
 }
 
-/// Strategy B: direct 4-lane butterfly with unsafe fast path.
+/// Strategy B: direct 4-lane butterfly with a raw-pointer fast path.
 /// Uses raw pointer arithmetic for the common case (all 4 lanes in bounds),
 /// falls back to safe pairwise decomposition for boundary cases.
 /// Uses pre-allocated `scratch` buffer and pre-split nibble tables.
