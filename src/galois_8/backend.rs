@@ -723,7 +723,7 @@ mod tests {
 
     #[cfg(all(rse_aarch64_neon, feature = "std"))]
     #[test]
-    fn test_select_aarch64_backend_sve_placeholder_does_not_change_current_priority() {
+    fn test_select_aarch64_backend_sve_flag_does_not_change_current_priority() {
         assert_eq!(
             BackendId::RustNeon,
             select_aarch64_backend(Aarch64FeatureSet {

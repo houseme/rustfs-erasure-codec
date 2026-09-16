@@ -21,7 +21,7 @@ thread_local! {
         const { std::cell::RefCell::new(None) };
 }
 
-// Thread-local scratch buffer for zero-copy FFT butterflies.
+// Thread-local scratch buffer reused by allocation-free FFT butterflies.
 // Avoids per-butterfly `to_vec()` heap allocations by reusing a single buffer
 // across all radix-4 butterfly operations within an encode call.
 #[cfg(feature = "std")]
@@ -44,15 +44,17 @@ use super::{
 enum Dit4Strategy {
     /// Safe pairwise decomposition: 4x fft_dit2 per radix-4 group.
     Decomposed,
-    /// Direct 4-lane butterfly with unsafe fast path + safe boundary fallback.
+    /// Direct 4-lane butterfly with a raw-pointer fast path and safe boundary fallback.
     Direct,
-    /// Direct 4-lane butterfly, fully safe via split_at_mut + fft_dit4_full_lut.
+    /// Direct 4-lane butterfly using safe split_at_mut access.
     DirectSafe,
-    /// Auto-select based on shard_size: < 64K → Decomposed, >= 64K → Direct.
+    /// Auto-select based on shard size: < 64 KiB uses Decomposed, otherwise Direct.
     Auto,
 }
 
-/// Resolve user-configured mode (cached in OnceLock for process lifetime).
+/// Resolve the process-wide DIT4 strategy override when `std` is available.
+///
+/// `no_std` builds always use `Auto`.
 fn configured_dit4_mode() -> Dit4Strategy {
     #[cfg(feature = "std")]
     {
@@ -74,11 +76,11 @@ fn configured_dit4_mode() -> Dit4Strategy {
     Dit4Strategy::Auto
 }
 
-/// Resolve the final strategy based on shard_size.
+/// Resolve the requested DIT4 strategy for this shard size.
 ///
-/// For `Auto` mode: shard_size < 64K uses `Decomposed` (cache-friendly for small
-/// data, zero unsafe), shard_size >= 64K uses `Direct` (single-pass optimal).
-/// For explicit modes: returns the user's choice regardless of shard_size.
+/// For `Auto` mode, shard sizes below 64 KiB use `Decomposed` for small-input
+/// cache locality; larger shards use `Direct` to minimize per-byte passes. For
+/// explicit modes, this returns the user's choice regardless of shard size.
 fn active_dit4_strategy(shard_size: usize) -> Dit4Strategy {
     match configured_dit4_mode() {
         Dit4Strategy::Auto => {
@@ -173,7 +175,7 @@ pub(super) fn encode_with_tables<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
     let mut flat_work = FlatWork::new(needed_lanes, needed_lane_len);
     let mut offset = 0usize;
 
-    // Pre-allocate scratch buffer for zero-copy FFT butterflies.
+    // Pre-allocate scratch buffer for allocation-free FFT butterflies.
     // Reused across all chunks and encode calls (via thread-local on std).
     // The scratch avoids per-butterfly `to_vec()` heap allocations.
     #[cfg(feature = "std")]
@@ -805,7 +807,7 @@ pub(super) fn fft_dit8<W: AsRef<[u8]> + AsMut<[u8]>>(
     tables: &LeopardGf8Tables,
 ) {
     let plan = build_fft_dit8_plan(mtrunc, m, skew_lut);
-    // Allocate scratch for zero-copy butterfly (not in hot path, so alloc is fine).
+    // Allocate butterfly scratch here; this path is not performance-critical.
     let lane_len = work.first().map_or(0, |w| w.as_ref().len());
     let mut scratch = vec![0u8; lane_len];
     fft_dit8_with_plan(work, &plan, tables, 0, &mut scratch);

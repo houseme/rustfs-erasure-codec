@@ -29,10 +29,10 @@ const WORK_SIZE8_HIGH_FANOUT: usize = 128 << 10;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct Mul8Lut {
     pub(super) value: [u8; 256],
-    /// Pre-split low nibble table: `low[i] = value[i]` for i in 0..16.
+    /// Pre-split low nibble table: `low[i] = value[i]` for `i in 0..16`.
     /// Used by SIMD nibble-lookup to avoid per-call table construction.
     pub(super) low: [u8; 16],
-    /// Pre-split high nibble table: `high[i] = value[i * 16]` for i in 0..16.
+    /// Pre-split high nibble table: `high[i] = value[i * 16]` for `i in 0..16`.
     /// Used by SIMD nibble-lookup to avoid per-call table construction.
     pub(super) high: [u8; 16],
 }
