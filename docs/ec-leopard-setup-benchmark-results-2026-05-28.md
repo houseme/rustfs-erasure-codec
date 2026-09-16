@@ -29,12 +29,12 @@ It does **not** measure:
 
 ## Current Artifact
 
-- [target/benchmark-smoke/leopard-setup-32x16_1m.csv](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/target/benchmark-smoke/leopard-setup-32x16_1m.csv)
-- [target/benchmark-smoke/leopard-setup-32x16_1m.json](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/target/benchmark-smoke/leopard-setup-32x16_1m.json)
-- [target/benchmark-smoke/leopard-setup-64x32_1m.csv](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/target/benchmark-smoke/leopard-setup-64x32_1m.csv)
-- [target/benchmark-smoke/leopard-setup-64x32_4m.csv](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/target/benchmark-smoke/leopard-setup-64x32_4m.csv)
-- [target/benchmark-smoke/leopard-encode-64x32_1m.csv](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/target/benchmark-smoke/leopard-encode-64x32_1m.csv)
-- [target/benchmark-smoke/leopard-encode-64x32_4m.csv](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/target/benchmark-smoke/leopard-encode-64x32_4m.csv)
+- `target/benchmark-smoke/leopard-setup-32x16_1m.csv`
+- `target/benchmark-smoke/leopard-setup-32x16_1m.json`
+- `target/benchmark-smoke/leopard-setup-64x32_1m.csv`
+- `target/benchmark-smoke/leopard-setup-64x32_4m.csv`
+- `target/benchmark-smoke/leopard-encode-64x32_1m.csv`
+- `target/benchmark-smoke/leopard-encode-64x32_4m.csv`
 
 ## Current Result
 

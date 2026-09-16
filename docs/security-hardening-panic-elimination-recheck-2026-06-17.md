@@ -2,7 +2,7 @@
 
 ## 基础信息
 
-- 仓库：`/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure`
+- 仓库：本仓库根目录
 - 审计场景：panic 风险回归（matrix / reconstruct / codec / GF(8)/GF(16)）
 - 上一次 scanner artifact：`/tmp/codex-security-scans/reed-solomon-erasure/7f8ba69_20260617T004738Z`
 - 本次复核时间：`2026-06-17`

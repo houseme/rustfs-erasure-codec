@@ -67,7 +67,7 @@ gh variable set RSE_STREAM_PATH_BASELINE "artifacts/benchmarks/${VER}/stream-pat
 ### 3.1 现场命令
 
 ```bash
-cd /Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure
+cd <repo-root>
 
 # 前置：仓库变量已按 2.1 配置
 git tag -a v7.0.0 -m "release: v7.0.0"
@@ -77,7 +77,7 @@ git push origin v7.0.0
 ### 3.2 发布预检
 
 ```bash
-cd /Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure
+cd <repo-root>
 export VALIDATION_PROFILE=release
 export RSE_SMOKE_BASELINE=/path/to/smoke-results.json
 export RSE_SMALL_FILE_BASELINE=/path/to/small-file-results.json

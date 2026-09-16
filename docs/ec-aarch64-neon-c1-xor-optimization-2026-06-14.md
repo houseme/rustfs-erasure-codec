@@ -19,7 +19,7 @@
   - `cargo test --features "std simd-accel" test_rust_neon_`
   - `RSE_SMALL_FILE_PROFILE=extended bash scripts/run_small_file_benchmark_matrix.sh`
   - `python3 scripts/check_benchmark_regression.py --baseline benchmarks/small-file/2026-05-27-aarch64-apple-silicon-extended.csv --current target/benchmark-smoke/small-file-results.json --metric ns_per_iter --threshold encode=0.12 --threshold verify=0.12 --threshold verify_with_buffer=0.12 --threshold reconstruct=0.18 --threshold reconstruct_data=0.18 --require-case encode:4:2:1024 --require-case verify_with_buffer:4:2:4096 --require-case reconstruct:4:2:16384 --require-case reconstruct_data:10:4:65536`
-  - `VALIDATION_PROFILE=extended RUN_SIMD_ACCEL_TESTS=1 RUN_SMALL_FILE_GATE=1 RSE_SMALL_FILE_PROFILE=extended RSE_SMALL_FILE_BASELINE=/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/benchmarks/small-file/2026-05-27-aarch64-apple-silicon-extended.csv ./scripts/release-check.sh`
+  - `VALIDATION_PROFILE=extended RUN_SIMD_ACCEL_TESTS=1 RUN_SMALL_FILE_GATE=1 RSE_SMALL_FILE_PROFILE=extended RSE_SMALL_FILE_BASELINE=benchmarks/small-file/2026-05-27-aarch64-apple-silicon-extended.csv ./scripts/release-check.sh`
 
 ## 3. 复测结果（核心）
 
