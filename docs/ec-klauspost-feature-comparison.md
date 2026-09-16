@@ -1,8 +1,8 @@
 # rustfs-erasure-codec vs klauspost/reedsolomon 功能对比分析
 
-> 文档日期：2026-06-16  
-> Rust 项目版本：7.0.2<br>
-> Go 参考来源：`klauspost/reedsolomon` 默认分支 README（2026-06-16 核查）
+> 文档日期：2026-09-16
+> Rust 项目版本：8.0.2（MSRV 1.96）<br>
+> Go 参考来源：`klauspost/reedsolomon` v1.14.2 / `af9e2b1`
 
 ---
 
@@ -33,8 +33,10 @@
 
 3. 当前真正的差距已经从“核心功能缺失”转移到“接口形态、平台覆盖和工程化细节”：
    - Go 的 `NewStream` 体系更成熟，配置项更完整
+   - Go 默认 `New` 在 total shards > 256 时自动选择 Leopard GF16；Rust 默认保持 Classic，需要显式 `LeopardMode`
    - Go 在 `ppc64le`、`nopshufb`、生成式 SIMD 内核等方面仍有工程积累
    - Rust 在矩阵模式、自定义矩阵、WASM、`no_std`、运行时后端覆盖、低分配辅助 API 上有明显差异化
+   - Rust 已补齐 Leopard shard combination 构造期 hardening、`decode_idx` Leopard family 拒绝，以及 `reconstruct_some` 的 DataShards 长度 required mask 兼容
 
 ---
 
@@ -44,7 +46,7 @@
 
 | 维度 | `klauspost/reedsolomon` (Go) | `rustfs-erasure-codec` (Rust) | 结论 |
 |---|---|---|---|
-| 语言/运行时 | Go | Rust 2024 / MSRV 1.95 | 不同技术路线 |
+| 语言/运行时 | Go | Rust 2024 / MSRV 1.96 | 不同技术路线 |
 | 许可证 | MIT | MIT | 等价 |
 | Classic GF(2^8) | ✅ | ✅ | 等价 |
 | Classic GF(2^16) | ✅ | ✅ | 等价 |
@@ -67,7 +69,7 @@
 | 更新 parity | ✅ `Update` | ✅ `update` | Classic 路径等价 |
 | 全量重建 | ✅ `Reconstruct` | ✅ `reconstruct` | 等价 |
 | 仅数据重建 | ✅ `ReconstructData` | ✅ `reconstruct_data` | 等价 |
-| 定向重建 | ✅ `ReconstructSome` | ✅ `reconstruct_some` | 等价 |
+| 定向重建 | ✅ `ReconstructSome` | ✅ `reconstruct_some` | required mask 支持 DataShards 或 TotalShards 长度 |
 | 渐进式解码 | ✅ `DecodeIdx` | ✅ `decode_idx` | Rust 当前为 Classic-only |
 | Split/Join | ✅ | ✅ | 等价 |
 | 对齐分配 | ✅ `AllocAligned` | ✅ `alloc_aligned*` / `AlignedShard` | 等价 |
@@ -95,6 +97,7 @@
 | Leopard GF16 verify | ✅ | ✅ | Rust 已支持 |
 | Leopard GF16 reconstruct | ✅ | ✅ | Rust 已支持 |
 | Leopard GF16 total shard scale | ✅ 到 65536 | ✅ 到 65536 | 等价 |
+| Leopard shard combination | ✅ `leopardFits` 构造期拒绝不可承载组合 | ✅ 构造期拒绝不可承载组合 | 等价 |
 
 ### 2.5 SIMD / 平台优化
 

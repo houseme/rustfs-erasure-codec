@@ -807,9 +807,19 @@ impl crate::ReedSolomon<super::Field> {
         if self.is_leopard_family() {
             return self.reconstruct_some(shards, required);
         }
-        if required.len() != self.total_shard_count() {
+        let normalized_required;
+        let required = if required.len() == self.total_shard_count() {
+            required
+        } else if required.len() == self.data_shard_count() {
+            normalized_required = {
+                let mut flags = vec![false; self.total_shard_count()];
+                flags[..self.data_shard_count()].copy_from_slice(required);
+                flags
+            };
+            normalized_required.as_slice()
+        } else {
             return Err(crate::Error::InvalidShardFlags);
-        }
+        };
 
         let data_only = required
             .iter()
@@ -836,7 +846,7 @@ impl crate::ReedSolomon<super::Field> {
         expect_input: Option<&[bool]>,
         input: &[Option<Vec<u8>>],
     ) -> Result<(), crate::Error> {
-        if self.is_leopard_gf8_family() {
+        if self.is_leopard_family() {
             return Err(crate::Error::UnsupportedCodecFamily);
         }
         self.ensure_classic_family_execution()?;

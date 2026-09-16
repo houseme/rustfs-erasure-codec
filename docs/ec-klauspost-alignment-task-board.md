@@ -11,7 +11,7 @@
 
 ### T1. Add aligned allocation helpers
 
-- Status: `todo`
+- Status: `done`
 - Task doc:
   - `docs/task-08-classic-aligned-allocation.md`
 - Target files:
@@ -29,7 +29,7 @@
 
 ### T2. Implement real matrix modes
 
-- Status: `todo`
+- Status: `done`
 - Task doc:
   - `docs/task-09-real-matrix-modes.md`
 - Target files:
@@ -48,7 +48,7 @@
 
 ### T3. Update public docs for compatibility classes
 
-- Status: `todo`
+- Status: `done`
 - Target files:
   - `README.md`
   - `docs/ec-minio-compatibility-checklist.md`
@@ -62,7 +62,7 @@
 
 ### T4. Add parity update API
 
-- Status: `todo`
+- Status: `done`
 - Task doc:
   - `docs/task-10-classic-parity-update-api.md`
 - Target files:
@@ -81,7 +81,7 @@
 
 ### T5. Add progressive decode API
 
-- Status: `todo`
+- Status: `done`
 - Task doc:
   - `docs/task-13-progressive-decode-idx.md`
 - Target files:
@@ -100,7 +100,7 @@
 
 ### T6. Introduce reconstruct planning helper
 
-- Status: `todo`
+- Status: `done`
 - Task doc:
   - `docs/task-12-reconstruct-plan-unification.md`
 - Target files:
@@ -114,7 +114,7 @@
 
 ### T7. Remove unnecessary copying in required-only reconstruct
 
-- Status: `todo`
+- Status: `done`
 - Task doc:
   - `docs/task-11-required-only-reconstruct-copy-elision.md`
 - Target files:
@@ -129,7 +129,7 @@
 
 ### T8. Evaluate one-pass unified output reconstruction
 
-- Status: `todo`
+- Status: `defer`
 - Target files:
   - `src/core.rs`
 - Deliverables:
@@ -143,7 +143,7 @@
 
 ### T9. Design explicit codec-family selection
 
-- Status: `todo`
+- Status: `done`
 - Task doc:
   - `docs/task-14-leopard-codec-family-boundary.md`
 - Target files:
@@ -158,7 +158,7 @@
 
 ### T10. Prototype Leopard GF8
 
-- Status: `defer`
+- Status: `done`
 - Target files:
   - new modules under `src/`
   - dedicated benchmark docs under `docs/`
@@ -170,7 +170,7 @@
 
 ### T11. Evaluate Leopard GF16
 
-- Status: `defer`
+- Status: `done`
 - Deliverables:
   - feasibility report
   - explicit statement on compatibility tradeoffs
@@ -188,14 +188,10 @@ Every change that touches hot paths should be validated with the smallest releva
 
 ## Recommended Implementation Order
 
-1. T1 add aligned allocation helpers
-2. T2 implement real matrix modes
-3. T4 add parity update API
-4. T7 remove required-only reconstruct copying
-5. T6 introduce reconstruct planning helper
-6. T8 evaluate one-pass unified reconstruction
-7. T5 add progressive decode API
-8. T9-T11 alternative codec family work
+1. Track backlog issue `rustfs/backlog#2571` for klauspost v1.14.2 hardening and validation status.
+2. Keep P0 hardening complete: Leopard shard combination validation, Leopard family rejection in `decode_idx`, and regression tests.
+3. Keep P1 compatibility complete: `reconstruct_some` / `reconstruct_some_opt` DataShards-length required mask support and current Clippy compatibility.
+4. Defer T8/P2 one-pass reconstruct, stream reader/writer shape, and allocator/workspace experiments until benchmark evidence justifies the extra API or complexity.
 
 ## Merge Guidance
 

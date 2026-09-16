@@ -325,23 +325,32 @@ pub(crate) fn resolve_codec_family(
     }
 }
 
-// These validators check only family/field *preconditions*. The total-shard cap
-// is owned by `max_total_shards_for_family` and enforced in the constructors
-// (returning `Error::TooManyShards`) before any validator runs, so re-checking
-// `total > MAX` here would be unreachable and would return a different error for
-// the same failure — the cap lives in exactly one place.
-fn validate_leopard_gf8<F: Field>(_data_shards: usize, _parity_shards: usize) -> Result<(), Error> {
+fn leopard_shard_combo_fits(data_shards: usize, parity_shards: usize, order: usize) -> bool {
+    let Some(m) = parity_shards.checked_next_power_of_two() else {
+        return false;
+    };
+    if data_shards == 0 || parity_shards == 0 || m == 0 || m > order {
+        return false;
+    }
+
+    let Some(rounded_data) = data_shards.div_ceil(m).checked_mul(m) else {
+        return false;
+    };
+    rounded_data <= order.saturating_sub(m)
+}
+
+fn validate_leopard_gf8<F: Field>(data_shards: usize, parity_shards: usize) -> Result<(), Error> {
     // Soundness gate: Leopard reinterprets `F::Elem` as raw bytes.
     if !is_byte_field::<F>() {
         return Err(Error::UnsupportedCodecFamily);
     }
+    if !leopard_shard_combo_fits(data_shards, parity_shards, LEOPARD_GF8_MAX_SHARDS) {
+        return Err(Error::TooManyShards);
+    }
     Ok(())
 }
 
-fn validate_leopard_gf16<F: Field>(
-    _data_shards: usize,
-    _parity_shards: usize,
-) -> Result<(), Error> {
+fn validate_leopard_gf16<F: Field>(data_shards: usize, parity_shards: usize) -> Result<(), Error> {
     // Soundness gate: Leopard reinterprets `F::Elem` as raw bytes.
     if !is_byte_field::<F>() {
         return Err(Error::UnsupportedCodecFamily);
@@ -354,6 +363,10 @@ fn validate_leopard_gf16<F: Field>(
     // byte-oriented and endian-agnostic, so it is not gated here.
     if cfg!(target_endian = "big") {
         return Err(Error::UnsupportedCodecFamily);
+    }
+
+    if !leopard_shard_combo_fits(data_shards, parity_shards, LEOPARD_GF16_MAX_SHARDS) {
+        return Err(Error::TooManyShards);
     }
 
     Ok(())

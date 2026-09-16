@@ -132,6 +132,24 @@ Backend kernels:
 cargo bench --bench galois_backend --features std
 ```
 
+Backend kernel A/B/B/A gate:
+
+```bash
+RSE_ABBA_BACKEND=auto \
+RSE_ABBA_SAMPLE_SIZE=20 \
+RSE_ABBA_WARMUP_TIME=2 \
+RSE_ABBA_MEASUREMENT_TIME=2 \
+RSE_ABBA_COOLDOWN_SECONDS=20 \
+bash scripts/run_galois_backend_abba.sh <baseline-ref> <candidate-ref>
+```
+
+The script switches refs in `A1 / B1 / B2 / A2` order, extracts raw Criterion
+mean estimates immediately after every stage, and writes `estimates.csv`,
+`summary.json`, `summary.md`, logs, and run metadata under
+`target/benchmark-smoke/galois-backend-abba-*`. Treat the performance conclusion
+as invalid when the A1→A2 baseline drift gate fails; in that case report only
+the validation status and rerun under better resource isolation.
+
 SIMD smoke (when available):
 
 ```bash
