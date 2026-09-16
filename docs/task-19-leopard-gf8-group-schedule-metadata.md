@@ -45,15 +45,15 @@ Target surfaces:
 
 ## 4. Current Code Anchors
 
-- [src/core/leopard_gf8/encode.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8/encode.rs:1)
+- [src/core/leopard_gf8/encode.rs](../src/core/leopard_gf8/encode.rs:1)
   - `encode_with_tables(...)`
   - `ifft_dit_encoder8_with_plan(...)`
-- [src/core/leopard_gf8/mod.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8/mod.rs:1)
+- [src/core/leopard_gf8/mod.rs](../src/core/leopard_gf8/mod.rs:1)
   - `IfftDit8Plan`
   - `FftDit8Plan`
-- [src/core/leopard_gf8/driver.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8/driver.rs:1)
+- [src/core/leopard_gf8/driver.rs](../src/core/leopard_gf8/driver.rs:1)
   - retained driver shape for `m`, `mtrunc`, `last_count`, `chunk_size`
-- [tests/benchmark_smoke.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/tests/benchmark_smoke.rs:1)
+- [tests/benchmark_smoke.rs](../tests/benchmark_smoke.rs:1)
   - `benchmark_leopard_encode_profile_128x64_1m_exports_results`
   - `benchmark_leopard_encode_128x64_1m_exports_results`
   - `benchmark_leopard_encode_64x32_1m_exports_results`

@@ -22,7 +22,7 @@ However, `128x64_1m` still showed a severe scaling cliff before the current roun
 
 The current profile artifact after the accepted work:
 
-- [target/benchmark-smoke/leopard-encode-profile-128x64_1m.csv](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/target/benchmark-smoke/leopard-encode-profile-128x64_1m.csv)
+- `target/benchmark-smoke/leopard-encode-profile-128x64_1m.csv`
 
 shows:
 
@@ -64,14 +64,14 @@ Current retained point:
 
 ## 5. Current Code Anchors
 
-- [src/core/leopard_gf8.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8.rs:1)
+- [src/core/leopard_gf8/mod.rs](../src/core/leopard_gf8/mod.rs:1)
   - `build_fft_dit8_plan(...)`
   - `build_ifft_dit8_plan(...)`
   - `fft_dit8(...)`
   - `ifft_dit_encoder8(...)`
   - `encode_with_tables(...)`
 
-- [tests/benchmark_smoke.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/tests/benchmark_smoke.rs:1)
+- [tests/benchmark_smoke.rs](../tests/benchmark_smoke.rs:1)
   - `benchmark_leopard_encode_profile_128x64_1m_exports_results`
   - `benchmark_leopard_encode_128x64_1m_exports_results`
   - `benchmark_leopard_encode_64x32_1m_exports_results`
@@ -128,7 +128,7 @@ Keep only the best measured butterfly implementation after reuse lands.
 
 Accepted follow-up outcome:
 
-- retain the fused `4x` butterfly helper in `src/core/leopard_gf8.rs`
+- retain the fused `4x` butterfly helper in `src/core/leopard_gf8/ops.rs`
 - do not keep the later `16-byte` chunking variant
 - do not keep the experimental aarch64 NEON fast path, because it did not beat the retained scalar `4x` version on
   `128x64_1m`

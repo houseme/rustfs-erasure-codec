@@ -42,13 +42,13 @@ The first question is:
 
 ## 4. Current Code Anchors
 
-- [benches/common/mod.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/benches/common/mod.rs:1)
+- [benches/common/mod.rs](../benches/common/mod.rs:1)
   - `FULL_CASES`
-- [tests/benchmark_smoke.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/tests/benchmark_smoke.rs:1)
+- [tests/benchmark_smoke.rs](../tests/benchmark_smoke.rs:1)
   - retained Leopard encode/profile exporters
-- [src/core/leopard_gf8/mod.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8/mod.rs:1)
+- [src/core/leopard_gf8/mod.rs](../src/core/leopard_gf8/mod.rs:1)
   - current retained LeopardGF8 profile counters
-- [src/core/leopard_gf8/driver.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8/driver.rs:1)
+- [src/core/leopard_gf8/driver.rs](../src/core/leopard_gf8/driver.rs:1)
   - `m`, `mtrunc`, `last_count`, `chunk_size`, `work_slices`
 
 ## 5. Core Hypothesis

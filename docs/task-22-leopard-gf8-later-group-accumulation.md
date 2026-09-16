@@ -57,12 +57,12 @@ The intent is to reduce real later-group work while preserving the retained glob
 
 ## 5. Current Code Anchors
 
-- [src/core/leopard_gf8/encode.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8/encode.rs:1)
+- [src/core/leopard_gf8/encode.rs](../src/core/leopard_gf8/encode.rs:1)
   - `encode_with_tables(...)`
   - `ifft_dit_encoder8_with_plan(...)`
-- [src/core/leopard_gf8/ops.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8/ops.rs:1)
+- [src/core/leopard_gf8/ops.rs](../src/core/leopard_gf8/ops.rs:1)
   - retained `slice_xor(...)`
-- [tests/benchmark_smoke.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/tests/benchmark_smoke.rs:1)
+- [tests/benchmark_smoke.rs](../tests/benchmark_smoke.rs:1)
   - `benchmark_leopard_encode_profile_128x64_1m_exports_results`
   - `benchmark_leopard_encode_128x64_1m_exports_results`
   - `benchmark_leopard_encode_64x32_1m_exports_results`

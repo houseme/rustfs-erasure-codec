@@ -15,7 +15,7 @@ The remaining large cost center is the shape of the working memory itself.
 
 ## 2. Current Situation
 
-Current state in [src/core/leopard_gf8.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8.rs:1):
+Current GF8 module state in [src/core/leopard_gf8/mod.rs](../src/core/leopard_gf8/mod.rs:1):
 
 - `FlatWork` now exists as a structural scaffold
 - the active encode path still executes on `Vec<Vec<u8>>`
@@ -54,7 +54,7 @@ optimize the existing helper stack.
 
 ## 5. Current Code Anchors
 
-- [src/core/leopard_gf8.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8.rs:1)
+- [src/core/leopard_gf8/mod.rs](../src/core/leopard_gf8/mod.rs:1)
   - `FlatWork`
   - `encode_with_tables(...)`
   - `ifft_dit_encoder8(...)`
@@ -62,10 +62,10 @@ optimize the existing helper stack.
   - `fft_dit4_at(...)`
   - `ifft_dit4_at(...)`
 
-- [src/galois_8/policy.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/galois_8/policy.rs:1)
+- [src/galois_8/policy.rs](../src/galois_8/policy.rs:1)
   - specialized `encode_opt(...)` route for `LeopardGF8`
 
-- [tests/benchmark_smoke.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/tests/benchmark_smoke.rs:1)
+- [tests/benchmark_smoke.rs](../tests/benchmark_smoke.rs:1)
   - dedicated Leopard encode smoke exporters
 
 ## 6. Migration Strategy

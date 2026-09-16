@@ -47,16 +47,16 @@ That means:
 
 ## 4. Current Code Anchors
 
-- [src/core/leopard_gf8/driver.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8/driver.rs:1)
+- [src/core/leopard_gf8/driver.rs](../src/core/leopard_gf8/driver.rs:1)
   - `build_leopard_gf8_encode_driver(...)`
-- [src/core/leopard_gf8/mod.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8/mod.rs:1)
+- [src/core/leopard_gf8/mod.rs](../src/core/leopard_gf8/mod.rs:1)
   - `WORK_SIZE8`
   - `WORK_SIZE8_HIGH_FANOUT`
-- [src/core/leopard_gf8/work.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8/work.rs:1)
+- [src/core/leopard_gf8/work.rs](../src/core/leopard_gf8/work.rs:1)
   - `FlatWork`
-- [src/core/leopard_gf8/encode.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8/encode.rs:1)
+- [src/core/leopard_gf8/encode.rs](../src/core/leopard_gf8/encode.rs:1)
   - `encode_with_tables(...)`
-- [tests/benchmark_smoke.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/tests/benchmark_smoke.rs:1)
+- [tests/benchmark_smoke.rs](../tests/benchmark_smoke.rs:1)
   - retained Leopard encode/profile exporters
 
 ## 5. Core Hypothesis

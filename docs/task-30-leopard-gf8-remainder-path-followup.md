@@ -46,12 +46,12 @@ The new scope is:
 
 ## 4. Current Code Anchors
 
-- [src/core/leopard_gf8/driver.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8/driver.rs:1)
+- [src/core/leopard_gf8/driver.rs](../src/core/leopard_gf8/driver.rs:1)
   - retained remainder-topology threshold refinement
-- [src/core/leopard_gf8/encode.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8/encode.rs:1)
+- [src/core/leopard_gf8/encode.rs](../src/core/leopard_gf8/encode.rs:1)
   - `encode_with_tables(...)`
   - `ifft_dit_encoder8_with_plan(...)`
-- [tests/benchmark_smoke.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/tests/benchmark_smoke.rs:1)
+- [tests/benchmark_smoke.rs](../tests/benchmark_smoke.rs:1)
   - `benchmark_leopard_encode_profile_96x48_1m_exports_results`
   - `benchmark_leopard_encode_96x48_1m_exports_results`
   - `benchmark_leopard_encode_96x48_4m_exports_results`

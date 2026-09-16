@@ -5,7 +5,7 @@
 在**不改变行为**、不改变公开 API 语义的前提下，对当前代码目录做一轮最小侵入重排，降低后续维护成本，重点解决以下两个“巨石点”：
 
 1. `src/galois_8/mod.rs` 体量过大，且混合了主逻辑与大量测试实现。
-2. `src/core/leopard_gf8.rs` 职责过多（表、driver、work buffer、编码流程聚合在一个文件）。
+2. 原单文件 `src/core/leopard_gf8.rs` 职责过多；当前实现已拆分到 `src/core/leopard_gf8/`。
 
 ## 2. 约束与非目标
 
@@ -61,7 +61,7 @@ src/
 ### 变更
 
 1. 新建目录 `src/core/leopard_gf8/`。
-2. 将原 `src/core/leopard_gf8.rs` 内容按职责拆入：
+2. 将原单文件内容按职责拆入：
    - `tables.rs`：`LeopardGf8Tables`、LUT 初始化相关函数。
    - `driver.rs`：`LeopardGf8EncodeDriver`、`build_*driver`。
    - `work.rs`：`FlatWork` 与 lane 视图辅助。
@@ -118,4 +118,3 @@ src/
 1. 降低单文件心智负担，提高定位速度。
 2. 为后续性能优化与后端扩展提供更清晰边界。
 3. 在不触碰行为的前提下提升代码评审可读性。
-

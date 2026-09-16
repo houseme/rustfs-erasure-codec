@@ -34,13 +34,13 @@ The strongest remaining suspect is bulk lane copy / zero / xor / parity writebac
 
 ## 3. Current Situation
 
-Current retained implementation anchors in [src/core/leopard_gf8.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8.rs:1):
+Current retained implementation anchors in [src/core/leopard_gf8/](../src/core/leopard_gf8/mod.rs:1):
 
-- [encode_with_tables(...)](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8.rs:361)
-- [ifft_dit_encoder8_with_plan(...)](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8.rs:1021)
-- [fft_dit8_with_plan(...)](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8.rs:988)
-- [fft_dit4_full_lut(...)](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8.rs:745)
-- [ifft_dit4_full_lut(...)](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8.rs:797)
+- [encode_with_tables(...)](../src/core/leopard_gf8/encode.rs:112)
+- [ifft_dit_encoder8_with_plan(...)](../src/core/leopard_gf8/encode.rs:698)
+- [fft_dit8_with_plan(...)](../src/core/leopard_gf8/encode.rs:666)
+- [fft_dit4_full_lut_scratch(...)](../src/core/leopard_gf8/ops.rs:502)
+- [ifft_dit4_full_lut_scratch(...)](../src/core/leopard_gf8/ops.rs:540)
 
 The current code still performs several large memory-moving operations per chunk:
 
@@ -88,17 +88,15 @@ then:
 
 Current data-movement hotspots visible directly in code:
 
-- [src/core/leopard_gf8.rs:472](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8.rs:472)
+- [src/core/leopard_gf8/encode.rs:270](../src/core/leopard_gf8/encode.rs:270)
   - final parity writeback copies `work[idx][..size]` into every output shard slice
-- [src/core/leopard_gf8.rs:1047](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8.rs:1047)
+- [src/core/leopard_gf8/encode.rs:717](../src/core/leopard_gf8/encode.rs:717)
   - initial shard lane materialization into `work`
-- [src/core/leopard_gf8.rs:1058](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8.rs:1058)
+- [src/core/leopard_gf8/encode.rs:730](../src/core/leopard_gf8/encode.rs:730)
   - partial-group materialization via additional `copy_from_slice(...)`
-- [src/core/leopard_gf8.rs:1065](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8.rs:1065)
-  - explicit zero padding using `copy_from_slice(&zero[..size])`
-- [src/core/leopard_gf8.rs:1080](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8.rs:1080)
+- [src/core/leopard_gf8/encode.rs:739](../src/core/leopard_gf8/encode.rs:739)
   - lane clearing with `fill(0)`
-- [src/core/leopard_gf8.rs:1115](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/src/core/leopard_gf8.rs:1115)
+- [src/core/leopard_gf8/encode.rs:794](../src/core/leopard_gf8/encode.rs:794)
   - xor accumulation over every lane via `slice_xor(...)`
 
 These are now stronger suspects than the butterfly helper itself because Task 16 already retained the best local

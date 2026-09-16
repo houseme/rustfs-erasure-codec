@@ -76,14 +76,14 @@ The benchmark output should support a decision such as:
 
 ## 5. Current Code Anchors
 
-- [benches/common/mod.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/benches/common/mod.rs:1)
+- [benches/common/mod.rs](../benches/common/mod.rs:1)
   - `BenchCase`
   - `FULL_CASES`
-- [tests/benchmark_smoke.rs](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/tests/benchmark_smoke.rs:1)
+- [tests/benchmark_smoke.rs](../tests/benchmark_smoke.rs:1)
   - retained Leopard encode/profile exporters
-- [docs/task-17-leopard-gf8-copy-traffic-reduction.md](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/docs/task-17-leopard-gf8-copy-traffic-reduction.md:1)
+- [docs/task-17-leopard-gf8-copy-traffic-reduction.md](../docs/task-17-leopard-gf8-copy-traffic-reduction.md:1)
   - retained implementation baseline
-- [docs/task-26-leopard-gf8-route-options.md](/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure/docs/task-26-leopard-gf8-route-options.md:1)
+- [docs/task-26-leopard-gf8-route-options.md](../docs/task-26-leopard-gf8-route-options.md:1)
   - route decision leading to this task
 
 ## 6. In Scope
