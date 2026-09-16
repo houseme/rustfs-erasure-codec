@@ -308,7 +308,7 @@ Versions `0.9.0` through `6.0.0` were originally created by
 [Darren Ldl](https://github.com/darrenldl) and later maintained by the
 [rust-rse](https://github.com/rust-rse) community.
 
-The current `9.0.0` line is maintained under
+The current `7.0.0` line is maintained under
 [houseme/rustfs-erasure-codec](https://github.com/houseme/rustfs-erasure-codec)
 and reflects the Rust 2024 rewrite, runtime SIMD architecture, Leopard codec
 families, and RustFS compatibility hardening.

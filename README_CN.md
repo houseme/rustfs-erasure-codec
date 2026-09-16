@@ -296,7 +296,7 @@ bash scripts/run_galois_backend_abba.sh <baseline-ref> <candidate-ref>
 [Darren Ldl](https://github.com/darrenldl) 创建，并由
 [rust-rse](https://github.com/rust-rse) 社区继续维护。
 
-当前 `9.0.0` 主线由
+当前 `7.0.0` 主线由
 [houseme/rustfs-erasure-codec](https://github.com/houseme/rustfs-erasure-codec)
 维护，包含 Rust 2024 重构、运行时 SIMD 架构、Leopard 编解码器族和 RustFS 兼容性加固。
 
