@@ -366,7 +366,7 @@ fn generate_encode_parity_fn_avx2(f: &mut File, d: usize, p: usize, pi: usize) {
             f,
             "                (_mm256_broadcastsi128_si256(low128), _mm256_broadcastsi128_si256(high128))"
         )
-        .unwrap();
+            .unwrap();
         writeln!(f, "            }};").unwrap();
     }
     writeln!(f).unwrap();
@@ -377,7 +377,7 @@ fn generate_encode_parity_fn_avx2(f: &mut File, d: usize, p: usize, pi: usize) {
         f,
         "                let data_vec: __m256i = _mm256_loadu_si256(data[0][offset..].as_ptr().cast());"
     )
-    .unwrap();
+        .unwrap();
     writeln!(
         f,
         "                let low = _mm256_and_si256(data_vec, nibble_mask);"
@@ -387,7 +387,7 @@ fn generate_encode_parity_fn_avx2(f: &mut File, d: usize, p: usize, pi: usize) {
         f,
         "                let high = _mm256_and_si256(_mm256_srli_epi64::<4>(data_vec), nibble_mask);"
     )
-    .unwrap();
+        .unwrap();
     writeln!(
         f,
         "                let mut acc: __m256i = _mm256_xor_si256("
@@ -409,7 +409,7 @@ fn generate_encode_parity_fn_avx2(f: &mut File, d: usize, p: usize, pi: usize) {
             f,
             "                let data_vec: __m256i = _mm256_loadu_si256(data[{di}][offset..].as_ptr().cast());"
         )
-        .unwrap();
+            .unwrap();
         writeln!(
             f,
             "                let low = _mm256_and_si256(data_vec, nibble_mask);"
@@ -419,7 +419,7 @@ fn generate_encode_parity_fn_avx2(f: &mut File, d: usize, p: usize, pi: usize) {
             f,
             "                let high = _mm256_and_si256(_mm256_srli_epi64::<4>(data_vec), nibble_mask);"
         )
-        .unwrap();
+            .unwrap();
         writeln!(
             f,
             "                acc = _mm256_xor_si256(acc, _mm256_xor_si256("
@@ -512,9 +512,9 @@ fn generate_encode_codegen_neon(f: &mut File, configs: &[(usize, usize)]) {
     for &(d, p) in configs {
         writeln!(
             f,
-            "        // SAFETY: 运行时特性检测已确认 ISA 可用后才分发到此臂。"
+            "        // SAFETY: runtime feature detection dispatches here only after confirming the ISA is available."
         )
-        .unwrap();
+            .unwrap();
         writeln!(f, "        ({d}, {p}) => unsafe {{").unwrap();
         writeln!(
             f,
@@ -565,9 +565,9 @@ fn generate_encode_fn_neon(f: &mut File, d: usize, p: usize) {
         for di in 0..d {
             writeln!(
                 f,
-                "        // SAFETY: 所在 fn 是 #[target_feature] 且 aarch64 上 NEON 恒可用;vld1q_u8 对 16 字节乘法表行做非对齐 load。"
+                "        // SAFETY: this function has #[target_feature] enabled, NEON is always available on aarch64, and vld1q_u8 performs an unaligned load from a 16-byte multiplication-table row."
             )
-            .unwrap();
+                .unwrap();
             writeln!(f, "        let (coef_low_{pi}_{di}, coef_high_{pi}_{di}): (uint8x16_t, uint8x16_t) = unsafe {{").unwrap();
             writeln!(f, "            let c = parity_rows[{pi}][{di}];").unwrap();
             writeln!(
@@ -596,9 +596,9 @@ fn generate_encode_fn_neon(f: &mut File, d: usize, p: usize) {
     writeln!(f, "        while offset < bytes_done {{").unwrap();
     writeln!(
         f,
-        "        // SAFETY: 所在 fn 是 #[target_feature],调用方保证 ISA 可用(见 # Safety 文档),所有指针均为非对齐 load 且访问在 shard_len 界内。"
+        "        // SAFETY: this function has #[target_feature] enabled, the caller guarantees ISA availability (see # Safety), and every pointer uses unaligned loads/stores within shard_len bounds."
     )
-    .unwrap();
+        .unwrap();
     writeln!(f, "        unsafe {{").unwrap();
 
     // Load all data shards
