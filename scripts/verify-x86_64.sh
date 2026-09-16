@@ -58,7 +58,7 @@ pass "Release 编译通过"
 
 if grep -q "simd-accel" Cargo.toml; then
     info "cargo build --features std,simd-accel"
-    cargo build --features std,simd-accel 2>&1 || info "simd-accel 编译失败 (可能需要 C 编译器)"
+    cargo build --features std,simd-accel 2>&1 || info "simd-accel 编译失败"
 fi
 echo ""
 

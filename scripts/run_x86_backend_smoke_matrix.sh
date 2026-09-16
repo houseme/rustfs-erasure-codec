@@ -19,9 +19,6 @@ BACKENDS=(auto scalar)
 if has_flag ssse3; then
   BACKENDS+=(rust-ssse3)
 fi
-if command -v cc &>/dev/null; then
-  BACKENDS+=(simd-c)
-fi
 if has_flag avx2; then
   BACKENDS+=(rust-avx2)
 fi

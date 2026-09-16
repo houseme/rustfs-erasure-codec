@@ -12,7 +12,6 @@ KNOWN_BACKENDS = {
     "auto",
     "scalar",
     "rust-ssse3",
-    "simd-c",
     "rust-avx2",
     "rust-avx512",
     "rust-gfni-avx2",
@@ -25,7 +24,6 @@ DEFAULT_POLICY_ELIGIBLE_BACKENDS_X86 = {
     "rust-avx2",
     "rust-avx512",
     "rust-ssse3",
-    "simd-c",
     "scalar",
 }
 
@@ -33,7 +31,6 @@ SUPPORTED_RELEASE_SMOKE_FILES = {
     "smoke-results-release-auto.csv",
     "smoke-results-release-scalar.csv",
     "smoke-results-release-rust-ssse3.csv",
-    "smoke-results-release-simd-c.csv",
     "smoke-results-release-rust-avx2.csv",
     "smoke-results-release-rust-avx512.csv",
     "smoke-results-release-rust-gfni-avx2.csv",
@@ -46,7 +43,6 @@ CURRENT_RUNTIME_PRIORITY_X86 = [
     "rust-avx2",
     "rust-avx512",
     "rust-ssse3",
-    "simd-c",
     "scalar",
 ]
 

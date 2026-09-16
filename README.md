@@ -13,7 +13,7 @@ English | [Chinese](README_CN.md)
 memory-resident shards, targeted recovery, progressive recovery, and block-based
 streaming workloads.
 
-The current `8.0.3` line provides:
+The current `9.0.0` line provides:
 
 - classic Reed-Solomon over `GF(2^8)` and `GF(2^16)`
 - Leopard GF8 and Leopard GF16 codec families
@@ -31,26 +31,26 @@ Default `std` build:
 
 ```toml
 [dependencies]
-rustfs-erasure-codec = "8.0.3"
+rustfs-erasure-codec = "9.0.0"
 ```
 
 Enable all supported SIMD backends:
 
 ```toml
 [dependencies]
-rustfs-erasure-codec = { version = "8.0.3", features = ["simd-accel"] }
+rustfs-erasure-codec = { version = "9.0.0", features = ["simd-accel"] }
 ```
 
 Enable only the backend family you deploy:
 
 ```toml
 [dependencies]
-rustfs-erasure-codec = { version = "8.0.3", features = ["simd-neon"] }   # aarch64
-# rustfs-erasure-codec = { version = "8.0.3", features = ["simd-ssse3"] } # x86_64
-# rustfs-erasure-codec = { version = "8.0.3", features = ["simd-avx2"] }  # x86_64
-# rustfs-erasure-codec = { version = "8.0.3", features = ["simd-avx512"] }# x86_64
-# rustfs-erasure-codec = { version = "8.0.3", features = ["simd-gfni"] }  # x86_64
-# rustfs-erasure-codec = { version = "8.0.3", features = ["simd-vsx"] }   # powerpc64
+rustfs-erasure-codec = { version = "9.0.0", features = ["simd-neon"] }   # aarch64
+# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-ssse3"] } # x86_64
+# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-avx2"] }  # x86_64
+# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-avx512"] }# x86_64
+# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-gfni"] }  # x86_64
+# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-vsx"] }   # powerpc64
 ```
 
 Runtime dispatch is guarded. Unsupported ISAs fall back to scalar execution.
@@ -234,11 +234,13 @@ Environment variables:
 
 - `RSE_BACKEND_OVERRIDE`
 - `RSE_STRICT_BACKEND_OVERRIDE=1`
-- `RUST_REED_SOLOMON_ERASURE_ARCH`
 
 An unset or `auto` `RSE_BACKEND_OVERRIDE` allows generated SIMD encode code when
 the platform supports it. Any recognised explicit override, including `scalar`,
 uses the selected generic backend and bypasses generated SIMD codegen.
+Recognised explicit backend names are `scalar`, `rust-neon`, `rust-ssse3`,
+`rust-avx2`, `rust-avx512`, `rust-gfni-avx2`, `rust-gfni-avx512`, and
+`rust-vsx`.
 
 Inspection helpers:
 
@@ -306,7 +308,7 @@ Versions `0.9.0` through `6.0.0` were originally created by
 [Darren Ldl](https://github.com/darrenldl) and later maintained by the
 [rust-rse](https://github.com/rust-rse) community.
 
-The current `8.0.3` line is maintained under
+The current `9.0.0` line is maintained under
 [houseme/rustfs-erasure-codec](https://github.com/houseme/rustfs-erasure-codec)
 and reflects the Rust 2024 rewrite, runtime SIMD architecture, Leopard codec
 families, and RustFS compatibility hardening.
@@ -319,7 +321,3 @@ codec-family work, include focused validation where possible.
 ## License
 
 This project is released under the MIT License. See [LICENSE](LICENSE).
-
-The bundled `simd_c` sources derive from
-[Nicolas Trangez's Haskell implementation](https://github.com/NicolasT/reedsolomon)
-and remain under the MIT License as well.

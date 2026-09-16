@@ -10,6 +10,39 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+## 9.0.0 (2026-09-16)
+
+> Major release: remove the bundled C SIMD backend and make the GF(2^8) SIMD
+> stack pure Rust across the supported backend families.
+
+### Breaking
+- Removed the bundled `simd_c` backend and its `simd_c/reedsolomon.c` /
+  `simd_c/reedsolomon.h` sources from the crate.
+- Removed `RSE_BACKEND_OVERRIDE=simd-c`; `simd-c` is no longer a recognised
+  runtime backend override.
+- Removed `BackendKind::SimdC` and `BackendId::SimdC`. Public backend
+  inspection can now report only `Scalar` or `RustSimd` backend kinds.
+- Removed the `RUST_REED_SOLOMON_ERASURE_ARCH` C-backend build control.
+
+### Changed
+- `simd-neon`, `simd-ssse3`, `simd-avx2`, `simd-avx512`, and `simd-gfni` no
+  longer pull in the optional `cc` build dependency or the optional `libc`
+  runtime dependency.
+- x86_64 fallback selection now drops directly from available Rust SIMD
+  backends to `scalar-rust`.
+- Backend smoke and benchmark scripts no longer include `simd-c` in strict
+  override matrices or summary ordering.
+- Strict backend validation now reports unknown override names as not honoured
+  instead of treating them like `auto`.
+
+### Validation
+- `cargo check --no-default-features`
+- `cargo check --features "std simd-accel"`
+- `cargo test --workspace --features "simd-accel benchmark-metrics"`
+- `cargo fmt --all --check`
+- `git diff --check`
+- `cargo package --allow-dirty --no-verify`
+
 ## 8.0.3 (2026-09-16)
 
 > Patch release: klauspost/reedsolomon compatibility hardening, SIMD loop cleanup, and reproducible backend benchmark governance.

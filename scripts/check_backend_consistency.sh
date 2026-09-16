@@ -22,7 +22,7 @@ run_test() {
 BACKENDS=()
 case "$(uname -m)" in
   x86_64)
-    BACKENDS=(auto scalar simd-c rust-ssse3 rust-avx2 rust-avx512 rust-gfni-avx2 rust-gfni-avx512)
+    BACKENDS=(auto scalar rust-ssse3 rust-avx2 rust-avx512 rust-gfni-avx2 rust-gfni-avx512)
     ;;
   arm64|aarch64)
     BACKENDS=(auto scalar rust-neon)

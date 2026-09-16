@@ -123,10 +123,6 @@ collect_hwinfo() {
     cargo --version
     echo ""
 
-    echo "=== Compiler ==="
-    cc --version 2>/dev/null | head -1 || echo "N/A"
-    echo ""
-
     echo "=== System Load ==="
     uptime
     echo ""

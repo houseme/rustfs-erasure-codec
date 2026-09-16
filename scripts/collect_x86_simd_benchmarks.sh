@@ -28,7 +28,6 @@ BACKENDS=(
   auto
   scalar
   rust-ssse3
-  simd-c
   rust-avx2
   rust-avx512
   rust-gfni-avx2

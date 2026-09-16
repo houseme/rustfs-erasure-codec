@@ -11,7 +11,7 @@
 
 `rustfs-erasure-codec` 是一个 Rust 2024 Reed-Solomon 纠删码库，覆盖内存分片、定向恢复、渐进式恢复以及按块流式处理场景。
 
-当前 `8.0.3` 主线提供：
+当前 `9.0.0` 主线提供：
 
 - Classic `GF(2^8)` 与 `GF(2^16)` Reed-Solomon
 - Leopard GF8 与 Leopard GF16 编解码器族
@@ -29,26 +29,26 @@ WASM 绑定见 [wasm/README.md](wasm/README.md)。
 
 ```toml
 [dependencies]
-rustfs-erasure-codec = "8.0.3"
+rustfs-erasure-codec = "9.0.0"
 ```
 
 启用全部支持的 SIMD 后端：
 
 ```toml
 [dependencies]
-rustfs-erasure-codec = { version = "8.0.3", features = ["simd-accel"] }
+rustfs-erasure-codec = { version = "9.0.0", features = ["simd-accel"] }
 ```
 
 也可以只启用部署平台需要的后端：
 
 ```toml
 [dependencies]
-rustfs-erasure-codec = { version = "8.0.3", features = ["simd-neon"] }   # aarch64
-# rustfs-erasure-codec = { version = "8.0.3", features = ["simd-ssse3"] } # x86_64
-# rustfs-erasure-codec = { version = "8.0.3", features = ["simd-avx2"] }  # x86_64
-# rustfs-erasure-codec = { version = "8.0.3", features = ["simd-avx512"] }# x86_64
-# rustfs-erasure-codec = { version = "8.0.3", features = ["simd-gfni"] }  # x86_64
-# rustfs-erasure-codec = { version = "8.0.3", features = ["simd-vsx"] }   # powerpc64
+rustfs-erasure-codec = { version = "9.0.0", features = ["simd-neon"] }   # aarch64
+# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-ssse3"] } # x86_64
+# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-avx2"] }  # x86_64
+# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-avx512"] }# x86_64
+# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-gfni"] }  # x86_64
+# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-vsx"] }   # powerpc64
 ```
 
 运行时后端分发带有保护；目标 CPU 不支持的 ISA 会安全回退到标量路径。
@@ -227,9 +227,9 @@ assert!(slots[5].is_present());
 
 - `RSE_BACKEND_OVERRIDE`
 - `RSE_STRICT_BACKEND_OVERRIDE=1`
-- `RUST_REED_SOLOMON_ERASURE_ARCH`
 
 未设置或设置为 `auto` 的 `RSE_BACKEND_OVERRIDE` 会在平台支持时允许 generated SIMD encode code。任何已识别的显式 override（包括 `scalar`）都会使用所选 generic backend，并绕过 generated SIMD codegen。
+已识别的显式后端名包括 `scalar`、`rust-neon`、`rust-ssse3`、`rust-avx2`、`rust-avx512`、`rust-gfni-avx2`、`rust-gfni-avx512` 和 `rust-vsx`。
 
 检查当前后端：
 
@@ -296,7 +296,7 @@ bash scripts/run_galois_backend_abba.sh <baseline-ref> <candidate-ref>
 [Darren Ldl](https://github.com/darrenldl) 创建，并由
 [rust-rse](https://github.com/rust-rse) 社区继续维护。
 
-当前 `8.0.3` 主线由
+当前 `9.0.0` 主线由
 [houseme/rustfs-erasure-codec](https://github.com/houseme/rustfs-erasure-codec)
 维护，包含 Rust 2024 重构、运行时 SIMD 架构、Leopard 编解码器族和 RustFS 兼容性加固。
 
@@ -307,6 +307,3 @@ bash scripts/run_galois_backend_abba.sh <baseline-ref> <candidate-ref>
 ## 许可证
 
 本项目采用 MIT License，详见 [LICENSE](LICENSE)。
-
-仓库内打包的 `simd_c` 源码派生自
-[Nicolas Trangez 的 Haskell 实现](https://github.com/NicolasT/reedsolomon)，同样遵循 MIT License。
