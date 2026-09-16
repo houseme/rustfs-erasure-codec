@@ -467,9 +467,20 @@ impl<F: Field> ReedSolomon<F> {
             return Ok(());
         }
         self.ensure_classic_family_execution()?;
-        if required.len() != self.total_shard_count {
+
+        let normalized_required;
+        let required = if required.len() == self.total_shard_count {
+            required
+        } else if required.len() == self.data_shard_count {
+            normalized_required = {
+                let mut flags = vec![false; self.total_shard_count];
+                flags[..self.data_shard_count].copy_from_slice(required);
+                flags
+            };
+            normalized_required.as_slice()
+        } else {
             return Err(Error::InvalidShardFlags);
-        }
+        };
 
         check_piece_count!(all => self, shards);
 

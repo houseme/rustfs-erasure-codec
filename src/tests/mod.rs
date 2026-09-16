@@ -704,6 +704,70 @@ fn test_leopard_gf8_encode_opt_populates_parity() {
 }
 
 #[test]
+fn test_leopard_gf8_shard_combo_matches_leopard_bounds() {
+    for (data, parity, should_construct) in [
+        (200, 32, true),
+        (200, 33, false),
+        (100, 156, false),
+        (128, 128, true),
+        (127, 129, false),
+    ] {
+        let result = ReedSolomon::with_options(
+            data,
+            parity,
+            CodecOptions {
+                codec_family: CodecFamily::LeopardGF8,
+                ..CodecOptions::default()
+            },
+        );
+        if should_construct {
+            assert!(
+                result.is_ok(),
+                "LeopardGF8 {data},{parity} should construct"
+            );
+        } else {
+            assert_eq!(
+                Error::TooManyShards,
+                result.unwrap_err(),
+                "LeopardGF8 {data},{parity} should be rejected"
+            );
+        }
+    }
+}
+
+#[test]
+fn test_leopard_gf16_shard_combo_matches_leopard_bounds() {
+    for (data, parity, should_construct) in [
+        (65024, 300, true),
+        (65100, 300, false),
+        (32768, 32768, true),
+        (32767, 32769, false),
+        (300, 33, true),
+    ] {
+        let result = ReedSolomon::with_options(
+            data,
+            parity,
+            CodecOptions {
+                codec_family: CodecFamily::LeopardGF16,
+                ..CodecOptions::default()
+            },
+        );
+        if should_construct {
+            assert!(
+                result.is_ok(),
+                "LeopardGF16 {data},{parity} should construct"
+            );
+        } else {
+            assert_eq!(
+                Error::TooManyShards,
+                result.unwrap_err(),
+                "LeopardGF16 {data},{parity} should be rejected"
+            );
+        }
+    }
+}
+
+#[test]
 fn test_leopard_gf8_encode_rejects_non_64_byte_shard_size() {
     let codec = ReedSolomon::with_options(
         32,
@@ -3632,6 +3696,51 @@ fn test_galois_8_reconstruct_some_opt_rejects_invalid_flags_length() {
     );
 }
 
+#[test]
+fn test_reconstruct_some_accepts_data_shard_required_mask() {
+    let r = ReedSolomon::new(5, 3).unwrap();
+    let mut shards = make_random_shards!(4096, 8);
+    r.encode(&mut shards).unwrap();
+    let expected = shards[1].clone();
+
+    let mut missing = shards_to_option_shards(&shards);
+    missing[1] = None;
+    missing[6] = None;
+
+    let mut required = vec![false; 5];
+    required[1] = true;
+    r.reconstruct_some(&mut missing, &required).unwrap();
+
+    assert_eq!(Some(&expected), missing[1].as_ref());
+    assert!(
+        missing[6].is_none(),
+        "short required mask must not request parity"
+    );
+}
+
+#[cfg(feature = "std")]
+#[test]
+fn test_galois_8_reconstruct_some_opt_accepts_data_shard_required_mask() {
+    let r = ReedSolomon::new(5, 3).unwrap();
+    let mut shards = make_random_shards!(4096, 8);
+    r.encode(&mut shards).unwrap();
+    let expected = shards[2].clone();
+
+    let mut missing = shards_to_option_shards(&shards);
+    missing[2] = None;
+    missing[7] = None;
+
+    let mut required = vec![false; 5];
+    required[2] = true;
+    r.reconstruct_some_opt(&mut missing, &required).unwrap();
+
+    assert_eq!(Some(&expected), missing[2].as_ref());
+    assert!(
+        missing[7].is_none(),
+        "short required mask must not request parity"
+    );
+}
+
 #[cfg(feature = "std")]
 #[test]
 fn test_galois_8_decode_idx_progressive_matches_reconstruct_some() {
@@ -3752,6 +3861,43 @@ fn test_galois_8_decode_idx_rejects_incorrect_input_len() {
     assert_eq!(
         Error::TooFewShards,
         r.decode_idx(&mut dst, Some(&expect_input), &input)
+            .unwrap_err()
+    );
+}
+
+#[cfg(feature = "std")]
+#[test]
+fn test_galois_8_decode_idx_rejects_leopard_families() {
+    let gf8 = ReedSolomon::with_options(
+        32,
+        16,
+        CodecOptions {
+            codec_family: CodecFamily::LeopardGF8,
+            ..CodecOptions::default()
+        },
+    )
+    .unwrap();
+    let mut gf8_dst = vec![None; gf8.total_shard_count()];
+    let gf8_input = vec![None; gf8.total_shard_count()];
+    assert_eq!(
+        Error::UnsupportedCodecFamily,
+        gf8.decode_idx(&mut gf8_dst, None, &gf8_input).unwrap_err()
+    );
+
+    let gf16 = ReedSolomon::with_options(
+        254,
+        3,
+        CodecOptions::builder()
+            .leopard_mode(LeopardMode::AsNeeded)
+            .build(),
+    )
+    .unwrap();
+    assert_eq!(CodecFamily::LeopardGF16, gf16.codec_family());
+    let mut gf16_dst = vec![None; gf16.total_shard_count()];
+    let gf16_input = vec![None; gf16.total_shard_count()];
+    assert_eq!(
+        Error::UnsupportedCodecFamily,
+        gf16.decode_idx(&mut gf16_dst, None, &gf16_input)
             .unwrap_err()
     );
 }
