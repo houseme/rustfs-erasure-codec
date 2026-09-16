@@ -6,11 +6,8 @@
 use crate::galois_8;
 use core::ops::{Add, Div, Mul, Sub};
 
-// the irreducible polynomial used as a modulus for the field.
-// print R.irreducible_element(2,algorithm="first_lexicographic" )
-// x^2 + a*x + a^7
-//
-// hopefully it is a fast polynomial
+// Irreducible extension polynomial over GF(2^8):
+// X^2 + a*X + a^7, where `a` is the GF(2^8) generator.
 const EXT_POLY: [u8; 3] = [1, 2, 128];
 
 /// The field GF(2^16).

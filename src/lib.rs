@@ -105,10 +105,14 @@ pub trait Field: Sized {
     /// Multiply two elements together.
     fn mul(a: Self::Elem, b: Self::Elem) -> Self::Elem;
 
-    /// Divide a by b. Panics is b is zero.
+    /// Divide `a` by `b`.
+    ///
+    /// Field implementations in this crate return zero for division by zero.
+    /// Callers that need strict arithmetic should reject a zero divisor before
+    /// calling this method.
     fn div(a: Self::Elem, b: Self::Elem) -> Self::Elem;
 
-    /// Raise `a` to the n'th power.
+    /// Raise `a` to the nth power.
     fn exp(a: Self::Elem, n: usize) -> Self::Elem;
 
     /// The "zero" element or additive identity.
@@ -240,7 +244,7 @@ impl<T> ShardSlot<T> {
     }
 }
 
-/// Something which might hold a shard.
+/// Container that may hold a shard.
 ///
 /// This trait is used in reconstruction, where some of the shards
 /// may be unknown.

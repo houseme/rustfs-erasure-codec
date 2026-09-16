@@ -38,8 +38,9 @@ pub fn flatten<T>(m: Vec<Vec<T>>) -> Vec<T> {
 pub struct Matrix<F: Field> {
     row_count: usize,
     col_count: usize,
-    data: SmallVec<[F::Elem; 1024]>, // store in flattened structure
-                                     // the smallvec can hold a matrix of size up to 32x32 in stack
+    // Row-major flattened storage. The inline SmallVec capacity keeps matrices
+    // up to 32x32 on the stack before spilling to the heap.
+    data: SmallVec<[F::Elem; 1024]>,
 }
 
 fn calc_matrix_row_start_end(col_count: usize, row: usize) -> (usize, usize) {
