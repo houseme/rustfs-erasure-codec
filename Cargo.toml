@@ -9,22 +9,21 @@ license = "MIT"
 repository = "https://github.com/houseme/reed-solomon-erasure"
 
 [workspace.dependencies]
-cc = "1.3.0"
-cfg_aliases = "0.2"
+cc = "1.4.6"
+cfg_aliases = "0.2.2"
 criterion = { version = "0.8.2", features = ["html_reports"] }
 hashlink = { version = "0.12", default-features = false }
-libc = "0.2"
+libc = "0.2.189"
 libfuzzer-sys = "0.4"
 libm = "0.2.16"
 parking_lot = "0.12.5"
 quickcheck = "1.1.0"
 rand = "0.10.2"
-rayon = "1.12"
+rayon = "1.12.0"
 rustfs-erasure-codec = { version = "8.0.2", path = "." }
-smallvec = "1.15"
-spin = { version = "0.12.2", default-features = false, features = ["once", "spin_mutex"] }
-wasm-bindgen = "0.2.126"
-wee_alloc = "0.4"
+smallvec = "1.16.1"
+spin = { version = "0.12.3", default-features = false, features = ["once", "spin_mutex"] }
+wasm-bindgen = "0.2.128"
 
 # CI lint baseline (rustfs/backlog#1237, #1243). Members opt in via `[lints] workspace = true`.
 # `undocumented_unsafe_blocks` is enabled (#1243); `missing_docs` is still staged.

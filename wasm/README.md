@@ -7,7 +7,7 @@ This package lives inside the current
 repository and tracks the main Rust codebase in this checkout.
 
 **Package:** `rustfs-erasure-codec-wasm` v0.2.5
-**Dependencies:** [`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen), [`wee_alloc`](https://github.com/rustwasm/wee_alloc)
+**Dependencies:** [`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen)
 
 ## Building
 

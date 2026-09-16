@@ -1,9 +1,6 @@
 use rustfs_erasure_codec::{Error, galois_8::ReedSolomon};
 use wasm_bindgen::prelude::*;
 
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
 pub const RESULT_OK: u8 = 0;
 pub const RESULT_ERROR_TOO_FEW_SHARDS: u8 = 1;
 pub const RESULT_ERROR_TOO_MANY_SHARDS: u8 = 2;
