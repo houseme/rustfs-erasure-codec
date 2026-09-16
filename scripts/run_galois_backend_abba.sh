@@ -28,6 +28,8 @@ JSONL_PATH="${OUT_DIR}/estimates.jsonl"
 SUMMARY_JSON="${OUT_DIR}/summary.json"
 SUMMARY_MD="${OUT_DIR}/summary.md"
 META_JSON="${OUT_DIR}/run-meta.json"
+EXTRACT_HELPER="${OUT_DIR}/extract_galois_backend_criterion.py"
+ANALYZE_HELPER="${OUT_DIR}/analyze_galois_backend_abba.py"
 
 if ! git diff --quiet || ! git diff --cached --quiet; then
   echo "working tree must be clean before ABBA switching" >&2
@@ -46,6 +48,8 @@ cleanup() {
 trap cleanup EXIT
 
 mkdir -p "${OUT_DIR}"
+cp scripts/extract_galois_backend_criterion.py "${EXTRACT_HELPER}"
+cp scripts/analyze_galois_backend_abba.py "${ANALYZE_HELPER}"
 
 python3 - "${META_JSON}" \
   "${BASELINE_REF}" \
@@ -136,7 +140,7 @@ run_stage() {
   if [[ "${write_header}" == "yes" ]]; then
     header_args=(--write-header)
   fi
-  python3 scripts/extract_galois_backend_criterion.py \
+  python3 "${EXTRACT_HELPER}" \
     --stage "${stage}" \
     --commit "${commit}" \
     --backend-override "${BACKEND}" \
@@ -161,7 +165,7 @@ run_stage B2 "${CANDIDATE_REF}" no
 cooldown
 run_stage A2 "${BASELINE_REF}" no
 
-python3 scripts/analyze_galois_backend_abba.py \
+python3 "${ANALYZE_HELPER}" \
   --csv "${CSV_PATH}" \
   --summary-json "${SUMMARY_JSON}" \
   --summary-md "${SUMMARY_MD}" \
