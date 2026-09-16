@@ -2,18 +2,25 @@
 use rustfs_erasure_codec::galois_8::active_backend_name;
 
 #[cfg(test)]
-fn expected_backend_name(override_value: &str) -> Option<&str> {
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+enum ExpectedBackend<'a> {
+    Auto,
+    Name(&'a str),
+    Unknown,
+}
+
+#[cfg(test)]
+fn expected_backend_name(override_value: &str) -> ExpectedBackend<'_> {
     match override_value {
-        "auto" => None,
-        "scalar" | "scalar-rust" => Some("scalar-rust"),
-        "simd-c" => Some("simd-c"),
-        "rust-neon" => Some("rust-neon"),
-        "rust-ssse3" => Some("rust-ssse3"),
-        "rust-avx2" => Some("rust-avx2"),
-        "rust-avx512" => Some("rust-avx512"),
-        "rust-gfni-avx2" => Some("rust-gfni-avx2"),
-        "rust-gfni-avx512" => Some("rust-gfni-avx512"),
-        _ => None,
+        "auto" => ExpectedBackend::Auto,
+        "scalar" | "scalar-rust" => ExpectedBackend::Name("scalar-rust"),
+        "rust-neon" => ExpectedBackend::Name("rust-neon"),
+        "rust-ssse3" => ExpectedBackend::Name("rust-ssse3"),
+        "rust-avx2" => ExpectedBackend::Name("rust-avx2"),
+        "rust-avx512" => ExpectedBackend::Name("rust-avx512"),
+        "rust-gfni-avx2" => ExpectedBackend::Name("rust-gfni-avx2"),
+        "rust-gfni-avx512" => ExpectedBackend::Name("rust-gfni-avx512"),
+        _ => ExpectedBackend::Unknown,
     }
 }
 
@@ -23,8 +30,9 @@ pub fn override_honored() -> bool {
     let override_value =
         std::env::var("RSE_BACKEND_OVERRIDE").unwrap_or_else(|_| "auto".to_string());
     match expected_backend_name(override_value.trim()) {
-        Some(expected) => active_backend_name() == expected,
-        None => true,
+        ExpectedBackend::Auto => true,
+        ExpectedBackend::Name(expected) => active_backend_name() == expected,
+        ExpectedBackend::Unknown => false,
     }
 }
 
@@ -36,12 +44,21 @@ pub fn assert_backend_override_honored_if_strict() {
 
     let override_value =
         std::env::var("RSE_BACKEND_OVERRIDE").unwrap_or_else(|_| "auto".to_string());
-    if let Some(expected) = expected_backend_name(override_value.trim()) {
-        let actual = active_backend_name();
-        assert_eq!(
-            expected, actual,
-            "requested backend override '{}' was not honored; actual backend was '{}'",
-            override_value, actual
-        );
+    match expected_backend_name(override_value.trim()) {
+        ExpectedBackend::Auto => {}
+        ExpectedBackend::Name(expected) => {
+            let actual = active_backend_name();
+            assert_eq!(
+                expected, actual,
+                "requested backend override '{}' was not honored; actual backend was '{}'",
+                override_value, actual
+            );
+        }
+        ExpectedBackend::Unknown => {
+            panic!(
+                "requested backend override '{}' is not a recognised backend",
+                override_value
+            );
+        }
     }
 }

@@ -276,97 +276,29 @@ fn test_div_b_is_0() {
 }
 
 #[test]
-fn test_same_as_maybe_ffi() {
-    let len = 10_003;
-    for _ in 0..100 {
-        let c = rand::random::<u8>();
-        let mut input = vec![0; len];
-        fill_random(&mut input);
-        {
-            let mut output = vec![0; len];
-            fill_random(&mut output);
-            let mut output_copy = output.clone();
-
-            mul_slice(c, &input, &mut output);
-            mul_slice(c, &input, &mut output_copy);
-
-            assert_eq!(output, output_copy);
-        }
-        {
-            let mut output = vec![0; len];
-            fill_random(&mut output);
-            let mut output_copy = output.clone();
-
-            mul_slice_xor(c, &input, &mut output);
-            mul_slice_xor(c, &input, &mut output_copy);
-
-            assert_eq!(output, output_copy);
-        }
-    }
-}
-
-#[cfg(all(
-    any(
-        feature = "simd-neon",
-        feature = "simd-ssse3",
-        feature = "simd-avx2",
-        feature = "simd-avx512",
-        feature = "simd-gfni"
-    ),
-    any(target_arch = "x86_64", target_arch = "aarch64"),
-    not(target_env = "msvc"),
-    not(any(target_os = "android", target_os = "ios")),
-    feature = "std"
-))]
-#[test]
-fn test_simd_c_matches_scalar_mul_slice() {
+fn test_active_backend_matches_scalar_reference() {
     let lengths = [0usize, 1, 15, 16, 17, 31, 32, 33, 255, 1024, 10_003];
     for &len in &lengths {
         for _ in 0..16 {
             let c = rand::random::<u8>();
             let mut input = vec![0; len];
             fill_random(&mut input);
-            let mut scalar = vec![0; len];
-            let mut simd = vec![0; len];
 
+            let mut scalar = vec![0; len];
+            let mut active = vec![0; len];
             mul_slice_scalar_for_test(c, &input, &mut scalar);
-            legacy::simd_c::simd_c_mul_slice(c, &input, &mut simd);
+            mul_slice(c, &input, &mut active);
+            assert_eq!(scalar, active, "mul_slice mismatch len={len} coeff={c}");
 
-            assert_eq!(scalar, simd);
-        }
-    }
-}
-
-#[cfg(all(
-    any(
-        feature = "simd-neon",
-        feature = "simd-ssse3",
-        feature = "simd-avx2",
-        feature = "simd-avx512",
-        feature = "simd-gfni"
-    ),
-    any(target_arch = "x86_64", target_arch = "aarch64"),
-    not(target_env = "msvc"),
-    not(any(target_os = "android", target_os = "ios")),
-    feature = "std"
-))]
-#[test]
-fn test_simd_c_matches_scalar_mul_slice_xor() {
-    let lengths = [0usize, 1, 15, 16, 17, 31, 32, 33, 255, 1024, 10_003];
-    for &len in &lengths {
-        for _ in 0..16 {
-            let c = rand::random::<u8>();
-            let mut input = vec![0; len];
-            fill_random(&mut input);
-            let mut scalar = vec![0; len];
-            let mut simd = vec![0; len];
             fill_random(&mut scalar);
-            simd.copy_from_slice(&scalar);
-
+            let seed = scalar.clone();
+            let mut active_xor = seed.clone();
             mul_slice_xor_scalar_for_test(c, &input, &mut scalar);
-            legacy::simd_c::simd_c_mul_slice_xor(c, &input, &mut simd);
-
-            assert_eq!(scalar, simd);
+            mul_slice_xor(c, &input, &mut active_xor);
+            assert_eq!(
+                scalar, active_xor,
+                "mul_slice_xor mismatch len={len} coeff={c}"
+            );
         }
     }
 }
@@ -447,32 +379,6 @@ fn test_rust_neon_matches_scalar_mul_slice_xor() {
             aarch64::neon::rust_neon_mul_slice_xor(c, &input, &mut neon);
 
             assert_eq!(scalar, neon);
-        }
-    }
-}
-
-#[cfg(all(
-    feature = "simd-neon",
-    target_arch = "aarch64",
-    not(target_env = "msvc"),
-    not(any(target_os = "android", target_os = "ios")),
-    feature = "std"
-))]
-#[test]
-fn test_rust_neon_matches_simd_c() {
-    let lengths = [0usize, 1, 15, 16, 17, 31, 32, 33, 255, 1024, 10_003];
-    for &len in &lengths {
-        for _ in 0..16 {
-            let c = rand::random::<u8>();
-            let mut input = vec![0; len];
-            fill_random(&mut input);
-            let mut simd_c = vec![0; len];
-            let mut neon = vec![0; len];
-
-            legacy::simd_c::simd_c_mul_slice(c, &input, &mut simd_c);
-            aarch64::neon::rust_neon_mul_slice(c, &input, &mut neon);
-
-            assert_eq!(simd_c, neon);
         }
     }
 }
@@ -567,9 +473,6 @@ fn test_active_backend_metadata() {
             } else if std::is_x86_feature_detected!("ssse3") {
                 assert_eq!(active_backend_name(), "rust-ssse3");
                 assert_eq!(active_backend_kind(), BackendKind::RustSimd);
-            } else if cfg!(rse_simd_c_build_baseline) && std::is_x86_feature_detected!("sse2") {
-                assert_eq!(active_backend_name(), "simd-c");
-                assert_eq!(active_backend_kind(), BackendKind::SimdC);
             } else {
                 assert_eq!(active_backend_name(), "scalar-rust");
                 assert_eq!(active_backend_kind(), BackendKind::Scalar);
@@ -805,7 +708,6 @@ fn test_aarch64_backend_override_metadata_matches_expected_ids() {
 ))]
 #[test]
 fn test_x86_cross_backend_conformance_matrix() {
-    let has_sse2 = std::is_x86_feature_detected!("sse2");
     let has_ssse3 = std::is_x86_feature_detected!("ssse3");
     let has_avx2 = std::is_x86_feature_detected!("avx2");
     let has_avx512 =
@@ -829,19 +731,6 @@ fn test_x86_cross_backend_conformance_matrix() {
             fill_random(&mut scalar_xor);
             let xor_seed = scalar_xor.clone();
             mul_slice_xor_scalar_for_test(c, &input, &mut scalar_xor);
-
-            if cfg!(rse_simd_c_build_baseline) && has_sse2 {
-                let mut simd_c = vec![0; len];
-                legacy::simd_c::simd_c_mul_slice(c, &input, &mut simd_c);
-                assert_eq!(scalar, simd_c, "simd-c mismatch len={len} coeff={c}");
-
-                let mut simd_c_xor = xor_seed.clone();
-                legacy::simd_c::simd_c_mul_slice_xor(c, &input, &mut simd_c_xor);
-                assert_eq!(
-                    scalar_xor, simd_c_xor,
-                    "simd-c xor mismatch len={len} coeff={c}"
-                );
-            }
 
             if has_ssse3 {
                 let mut ssse3 = vec![0; len];

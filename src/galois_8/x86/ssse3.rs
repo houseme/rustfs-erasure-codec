@@ -125,7 +125,7 @@ mod tests {
     use alloc::vec;
 
     use super::*;
-    use crate::galois_8::{legacy, mul_slice_scalar_for_test, mul_slice_xor_scalar_for_test};
+    use crate::galois_8::{mul_slice_scalar_for_test, mul_slice_xor_scalar_for_test};
     use crate::tests::fill_random;
     use rand;
 
@@ -171,27 +171,6 @@ mod tests {
                 rust_ssse3_mul_slice_xor(c, &input, &mut ssse3);
 
                 assert_eq!(scalar, ssse3);
-            }
-        }
-    }
-
-    #[test]
-    fn ssse3_matches_simd_c_mul_slice() {
-        if !std::is_x86_feature_detected!("ssse3") {
-            return;
-        }
-        for &len in &LENGTHS {
-            for _ in 0..16 {
-                let c = rand::random::<u8>();
-                let mut input = vec![0; len];
-                fill_random(&mut input);
-                let mut simd_c = vec![0; len];
-                let mut ssse3 = vec![0; len];
-
-                legacy::simd_c::simd_c_mul_slice(c, &input, &mut simd_c);
-                rust_ssse3_mul_slice(c, &input, &mut ssse3);
-
-                assert_eq!(simd_c, ssse3);
             }
         }
     }

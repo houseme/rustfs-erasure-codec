@@ -6,14 +6,12 @@ pub type MulSliceFn = fn(u8, &[u8], &mut [u8]);
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum BackendKind {
     Scalar,
-    SimdC,
     RustSimd,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum BackendId {
     ScalarRust,
-    SimdC,
     RustNeon,
     RustSsse3,
     RustAvx2,
@@ -108,27 +106,11 @@ static ACTIVE_BACKEND: Once<GaloisBackend> = Once::new();
 #[cfg(feature = "std")]
 static GENERATED_ENCODE_ALLOWED: Once<bool> = Once::new();
 
-// The C SIMD backend is only compiled where `super::legacy::simd_c` itself is
-// (see galois_8/legacy/mod.rs): the ssse3/avx2/avx512/gfni/neon families on
-// x86_64/aarch64. It is deliberately NOT gated on `simd-vsx`/`powerpc64` — the
-// ppc64 path dispatches to RUST_VSX_BACKEND, and `legacy::simd_c` has no VSX
-// implementation, so including those here would reference a module that does
-// not exist for that target and break the ppc64 build.
-#[cfg(rse_simd_any_arch)]
-const SIMD_C_BACKEND: GaloisBackend = GaloisBackend {
-    id: BackendId::SimdC,
-    mul_slice: super::legacy::simd_c::simd_c_mul_slice,
-    mul_slice_xor: super::legacy::simd_c::simd_c_mul_slice_xor,
-    name: "simd-c",
-    kind: BackendKind::SimdC,
-};
-
 #[cfg(feature = "std")]
 #[derive(Copy, Clone)]
 enum BackendOverride {
     Auto,
     Scalar,
-    SimdC,
     RustNeon,
     RustSsse3,
     RustAvx2,
@@ -141,7 +123,6 @@ enum BackendOverride {
 #[cfg(all(rse_x86_simd, feature = "std"))]
 #[derive(Debug, Copy, Clone, Default, PartialEq, Eq)]
 struct X86FeatureSet {
-    sse2: bool,
     ssse3: bool,
     avx2: bool,
     avx512f: bool,
@@ -171,7 +152,6 @@ fn parse_backend_override(value: &str) -> Option<BackendOverride> {
     match value {
         "auto" => Some(BackendOverride::Auto),
         "scalar" | "scalar-rust" => Some(BackendOverride::Scalar),
-        "simd-c" => Some(BackendOverride::SimdC),
         "rust-neon" => Some(BackendOverride::RustNeon),
         "rust-ssse3" => Some(BackendOverride::RustSsse3),
         "rust-avx2" => Some(BackendOverride::RustAvx2),
@@ -235,7 +215,6 @@ fn auto_select_backend() -> GaloisBackend {
 #[cfg(all(rse_x86_simd, feature = "std"))]
 fn detect_x86_features() -> X86FeatureSet {
     X86FeatureSet {
-        sse2: std::is_x86_feature_detected!("sse2"),
         ssse3: std::is_x86_feature_detected!("ssse3"),
         avx2: std::is_x86_feature_detected!("avx2"),
         avx512f: std::is_x86_feature_detected!("avx512f"),
@@ -272,14 +251,6 @@ fn supports_rust_gfni_avx512(features: X86FeatureSet) -> bool {
 #[cfg(all(rse_x86_simd, feature = "std"))]
 fn supports_rust_ssse3(features: X86FeatureSet) -> bool {
     features.ssse3
-}
-
-#[cfg(all(rse_x86_simd, feature = "std"))]
-fn supports_simd_c_x86(features: X86FeatureSet) -> bool {
-    if cfg!(rse_simd_c_build_baseline) {
-        return features.sse2;
-    }
-    false
 }
 
 #[cfg(all(rse_x86_simd, feature = "std", rse_x86_ssse3))]
@@ -340,7 +311,6 @@ fn select_x86_override_backend(
     match backend_override {
         BackendOverride::Auto => None,
         BackendOverride::Scalar => Some(SCALAR_BACKEND),
-        BackendOverride::SimdC => supports_simd_c_x86(features).then_some(SIMD_C_BACKEND),
         BackendOverride::RustSsse3 => rust_ssse3_backend(features),
         BackendOverride::RustAvx2 => rust_avx2_backend(features),
         BackendOverride::RustAvx512 => rust_avx512_backend(features),
@@ -354,7 +324,7 @@ fn select_x86_override_backend(
 #[cfg(all(rse_x86_simd, feature = "std"))]
 /// Selects the best available x86_64 backend via runtime feature detection.
 ///
-/// **Priority order**: GFNI+AVX-512 > GFNI+AVX2 > AVX2 > AVX-512 > SSSE3 > SIMD-C > Scalar.
+/// **Priority order**: GFNI+AVX-512 > GFNI+AVX2 > AVX2 > AVX-512 > SSSE3 > Scalar.
 ///
 /// GFNI backends are preferred when available (Ice Lake+) because they provide
 /// native GF(2^8) multiplication via `_gf2p8mul`, eliminating the nibble-lookup
@@ -376,9 +346,6 @@ fn select_x86_backend(features: X86FeatureSet) -> GaloisBackend {
     if let Some(backend) = rust_ssse3_backend(features) {
         return backend;
     }
-    if supports_simd_c_x86(features) {
-        return SIMD_C_BACKEND;
-    }
     SCALAR_BACKEND
 }
 
@@ -397,11 +364,6 @@ fn supports_rust_neon(features: Aarch64FeatureSet) -> bool {
 }
 
 #[cfg(all(rse_aarch64_neon, feature = "std"))]
-fn supports_simd_c_aarch64(features: Aarch64FeatureSet) -> bool {
-    !cfg!(rse_simd_c_build_unknown) && features.neon
-}
-
-#[cfg(all(rse_aarch64_neon, feature = "std"))]
 fn select_aarch64_override_backend(
     backend_override: BackendOverride,
     features: Aarch64FeatureSet,
@@ -409,7 +371,6 @@ fn select_aarch64_override_backend(
     match backend_override {
         BackendOverride::Auto => None,
         BackendOverride::Scalar => Some(SCALAR_BACKEND),
-        BackendOverride::SimdC => supports_simd_c_aarch64(features).then_some(SIMD_C_BACKEND),
         BackendOverride::RustNeon => supports_rust_neon(features).then_some(RUST_NEON_BACKEND),
         BackendOverride::RustSsse3
         | BackendOverride::RustAvx2
@@ -426,9 +387,6 @@ fn select_aarch64_backend(features: Aarch64FeatureSet) -> GaloisBackend {
     let _sve = features.sve;
     if supports_rust_neon(features) {
         return RUST_NEON_BACKEND;
-    }
-    if supports_simd_c_aarch64(features) {
-        return SIMD_C_BACKEND;
     }
     SCALAR_BACKEND
 }
@@ -473,8 +431,7 @@ fn select_powerpc_override_backend(
         BackendOverride::Auto => None,
         BackendOverride::Scalar => Some(SCALAR_BACKEND),
         BackendOverride::RustVsx => supports_rust_vsx(features).then_some(RUST_VSX_BACKEND),
-        BackendOverride::SimdC
-        | BackendOverride::RustNeon
+        BackendOverride::RustNeon
         | BackendOverride::RustSsse3
         | BackendOverride::RustAvx2
         | BackendOverride::RustAvx512
@@ -512,8 +469,7 @@ fn select_override_backend(backend_override: BackendOverride) -> Option<GaloisBa
     match backend_override {
         BackendOverride::Auto => None,
         BackendOverride::Scalar => Some(SCALAR_BACKEND),
-        BackendOverride::SimdC
-        | BackendOverride::RustNeon
+        BackendOverride::RustNeon
         | BackendOverride::RustSsse3
         | BackendOverride::RustAvx2
         | BackendOverride::RustAvx512
@@ -569,10 +525,7 @@ mod tests {
             parse_backend_override("scalar-rust"),
             Some(BackendOverride::Scalar)
         ));
-        assert!(matches!(
-            parse_backend_override("simd-c"),
-            Some(BackendOverride::SimdC)
-        ));
+        assert!(parse_backend_override("simd-c").is_none());
         assert!(matches!(
             parse_backend_override("rust-neon"),
             Some(BackendOverride::RustNeon)
@@ -614,7 +567,6 @@ mod tests {
 
         for backend_override in [
             BackendOverride::Scalar,
-            BackendOverride::SimdC,
             BackendOverride::RustNeon,
             BackendOverride::RustSsse3,
             BackendOverride::RustAvx2,
@@ -633,7 +585,7 @@ mod tests {
     #[test]
     fn test_select_x86_backend_priority() {
         // GFNI backends are preferred when available (native GF multiplication).
-        // Priority: GFNI+AVX-512 > GFNI+AVX2 > AVX2 > AVX-512 > SSSE3 > SIMD-C > Scalar.
+        // Priority: GFNI+AVX-512 > GFNI+AVX2 > AVX2 > AVX-512 > SSSE3 > Scalar.
         #[cfg(rse_x86_gfni)]
         {
             assert_eq!(
@@ -685,17 +637,14 @@ mod tests {
         }
 
         #[cfg(rse_x86_ssse3)]
-        if cfg!(rse_simd_c_build_baseline) {
-            assert_eq!(
-                BackendId::RustSsse3,
-                select_x86_backend(X86FeatureSet {
-                    ssse3: true,
-                    sse2: true,
-                    ..X86FeatureSet::default()
-                })
-                .id
-            );
-        }
+        assert_eq!(
+            BackendId::RustSsse3,
+            select_x86_backend(X86FeatureSet {
+                ssse3: true,
+                ..X86FeatureSet::default()
+            })
+            .id
+        );
 
         assert_eq!(
             BackendId::ScalarRust,
@@ -703,12 +652,8 @@ mod tests {
         );
 
         assert_eq!(
-            BackendId::SimdC,
-            select_x86_backend(X86FeatureSet {
-                sse2: true,
-                ..X86FeatureSet::default()
-            })
-            .id
+            BackendId::ScalarRust,
+            select_x86_backend(X86FeatureSet::default()).id
         );
     }
 

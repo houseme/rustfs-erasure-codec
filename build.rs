@@ -3,35 +3,9 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
-// Only the x86_64/aarch64 C-SIMD backends need the `cc` compiler crate; the
-// pure-Rust `simd-vsx` backend does not (it declares no `cc`/`libc` deps).
-#[cfg(any(
-    feature = "simd-neon",
-    feature = "simd-ssse3",
-    feature = "simd-avx2",
-    feature = "simd-avx512",
-    feature = "simd-gfni",
-))]
-extern crate cc;
-
 const FIELD_SIZE: usize = 256;
 
 const GENERATING_POLYNOMIAL: usize = 29;
-
-// The C-SIMD build only ever targets x86_64/aarch64 (see `compile_simd_c`);
-// `simd-vsx` is a pure-Rust backend and must NOT drag in the `cc` build path.
-#[cfg(any(
-    feature = "simd-neon",
-    feature = "simd-ssse3",
-    feature = "simd-avx2",
-    feature = "simd-avx512",
-    feature = "simd-gfni",
-))]
-#[derive(Copy, Clone)]
-enum SimdCBuildTarget {
-    Baseline,
-    ExplicitArch,
-}
 
 fn gen_log_table(polynomial: usize) -> [u8; FIELD_SIZE] {
     let mut result: [u8; FIELD_SIZE] = [0; FIELD_SIZE];
@@ -180,121 +154,6 @@ fn write_tables() {
         write_table!(2D => f, mul_table_high, "MUL_TABLE_HIGH", "u8");
     }
 }
-
-#[cfg(any(
-    feature = "simd-neon",
-    feature = "simd-ssse3",
-    feature = "simd-avx2",
-    feature = "simd-avx512",
-    feature = "simd-gfni"
-))]
-fn target_cfg(name: &str) -> String {
-    env::var(name).unwrap_or_default()
-}
-
-#[cfg(any(
-    feature = "simd-neon",
-    feature = "simd-ssse3",
-    feature = "simd-avx2",
-    feature = "simd-avx512",
-    feature = "simd-gfni"
-))]
-fn should_compile_simd_c_for_target() -> bool {
-    let target_arch = target_cfg("CARGO_CFG_TARGET_ARCH");
-    let target_env = target_cfg("CARGO_CFG_TARGET_ENV");
-    let target_os = target_cfg("CARGO_CFG_TARGET_OS");
-
-    // The bundled `simd_c/reedsolomon.c` only implements x86 (SSSE3/AVX) and
-    // aarch64 (NEON) kernels — never PowerPC. On ppc64 the VSX path is pure Rust
-    // and `SIMD_C_BACKEND` is never selected, so compiling the C file there would
-    // be both pointless and liable to fail.
-    let arch_supported = matches!(target_arch.as_str(), "x86_64" | "aarch64");
-    let env_supported = target_env != "msvc";
-    let os_supported = !matches!(target_os.as_str(), "android" | "ios");
-
-    arch_supported && env_supported && os_supported
-}
-
-#[cfg(any(
-    feature = "simd-neon",
-    feature = "simd-ssse3",
-    feature = "simd-avx2",
-    feature = "simd-avx512",
-    feature = "simd-gfni"
-))]
-fn is_valid_march_value(arch: &str) -> bool {
-    !arch.is_empty()
-        && arch
-            .bytes()
-            .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'_' | b'-' | b'.' | b'+'))
-}
-
-#[cfg(any(
-    feature = "simd-neon",
-    feature = "simd-ssse3",
-    feature = "simd-avx2",
-    feature = "simd-avx512",
-    feature = "simd-gfni"
-))]
-fn compile_simd_c() {
-    if !should_compile_simd_c_for_target() {
-        if let Ok(arch) = env::var("RUST_REED_SOLOMON_ERASURE_ARCH") {
-            println!(
-                "cargo:warning=ignoring RUST_REED_SOLOMON_ERASURE_ARCH={arch} because simd-c is disabled for this target"
-            );
-        }
-        return;
-    }
-
-    let mut build = cc::Build::new();
-    build.opt_level(3);
-
-    let mut build_target = SimdCBuildTarget::Baseline;
-
-    match env::var("RUST_REED_SOLOMON_ERASURE_ARCH") {
-        Ok(arch) => {
-            if is_valid_march_value(&arch) {
-                // Use explicitly specified environment variable as architecture.
-                build.flag(format!("-march={arch}"));
-                println!("cargo:rustc-env=RSE_SIMD_C_ARCH={arch}");
-                println!("cargo:rustc-cfg=rse_simd_c_build_unknown");
-                build_target = SimdCBuildTarget::ExplicitArch;
-            } else {
-                println!(
-                    "cargo:warning=invalid RUST_REED_SOLOMON_ERASURE_ARCH value '{arch}', expected [A-Za-z0-9_.+-]+; falling back to baseline simd-c build"
-                );
-            }
-        }
-        Err(_error) => {}
-    }
-
-    match build_target {
-        SimdCBuildTarget::Baseline => {
-            println!("cargo:rustc-cfg=rse_simd_c_build_baseline");
-            println!("cargo:rustc-env=RSE_SIMD_C_ARCH=baseline");
-        }
-        SimdCBuildTarget::ExplicitArch => {}
-    }
-
-    build
-        .flag("-std=c11")
-        .file("simd_c/reedsolomon.c")
-        .compile("reedsolomon");
-}
-
-// Fallback stub for every build that does NOT compile the C SIMD backend. This
-// must be the exact negation of the real `compile_simd_c` cfg above (the five
-// x86_64/aarch64 features) — `simd-vsx` is deliberately excluded, otherwise a
-// `simd-vsx`-only build would match neither definition and `main` would call an
-// undefined `compile_simd_c`.
-#[cfg(not(any(
-    feature = "simd-neon",
-    feature = "simd-ssse3",
-    feature = "simd-avx2",
-    feature = "simd-avx512",
-    feature = "simd-gfni"
-)))]
-fn compile_simd_c() {}
 
 /// Generate specialized encode functions for common (data_shards, parity_shards) configurations.
 ///
@@ -810,7 +669,7 @@ fn main() {
     // `all(rse_*, feature = "std")` at the use site.
     cfg_aliases::cfg_aliases! {
         // Per-family x86_64 backends (each needs SSSE3/AVX2/AVX512/GFNI and a
-        // non-MSVC, non-android/ios platform for the C-ABI intrinsics path).
+        // non-MSVC, non-android/ios platform for the Rust intrinsics path).
         rse_x86_ssse3: { all(feature = "simd-ssse3", target_arch = "x86_64", not(target_env = "msvc"), not(any(target_os = "android", target_os = "ios"))) },
         rse_x86_avx2: { all(feature = "simd-avx2", target_arch = "x86_64", not(target_env = "msvc"), not(any(target_os = "android", target_os = "ios"))) },
         rse_x86_avx512: { all(feature = "simd-avx512", target_arch = "x86_64", not(target_env = "msvc"), not(any(target_os = "android", target_os = "ios"))) },
@@ -820,18 +679,10 @@ fn main() {
         // aarch64 NEON and ppc64 VSX backends.
         rse_aarch64_neon: { all(feature = "simd-neon", target_arch = "aarch64", not(target_env = "msvc"), not(any(target_os = "android", target_os = "ios"))) },
         rse_ppc64_vsx: { all(feature = "simd-vsx", target_arch = "powerpc64") },
-        // The five rust-SIMD families across x86_64 + aarch64 (table-generation gate).
-        rse_simd_any_arch: { all(any(feature = "simd-neon", feature = "simd-ssse3", feature = "simd-avx2", feature = "simd-avx512", feature = "simd-gfni"), any(target_arch = "x86_64", target_arch = "aarch64"), not(target_env = "msvc"), not(any(target_os = "android", target_os = "ios"))) },
         // Any rust-SIMD backend on any supported architecture (the 3-arm block).
         rse_rust_simd: { any(rse_x86_simd, rse_aarch64_neon, rse_ppc64_vsx) },
     }
 
-    println!("cargo:rerun-if-env-changed=RUST_REED_SOLOMON_ERASURE_ARCH");
-    println!("cargo:rerun-if-changed=simd_c/reedsolomon.c");
-    println!("cargo:rerun-if-changed=simd_c/reedsolomon.h");
-    println!("cargo:rustc-check-cfg=cfg(rse_simd_c_build_baseline)");
-    println!("cargo:rustc-check-cfg=cfg(rse_simd_c_build_unknown)");
-    compile_simd_c();
     write_tables();
     generate_encode_codegen();
 }

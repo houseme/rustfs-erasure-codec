@@ -28,15 +28,6 @@ extern crate rand;
 
 extern crate smallvec;
 
-#[cfg(any(
-    feature = "simd-neon",
-    feature = "simd-ssse3",
-    feature = "simd-avx2",
-    feature = "simd-avx512",
-    feature = "simd-gfni",
-))]
-extern crate libc;
-
 use ::core::iter::FromIterator;
 
 #[macro_use]

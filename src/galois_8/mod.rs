@@ -5,7 +5,6 @@ include!(concat!(env!("OUT_DIR"), "/table.rs"));
 pub(crate) mod aarch64;
 mod aligned;
 mod backend;
-mod legacy;
 mod policy;
 mod ppc64;
 mod profile;
@@ -139,7 +138,7 @@ pub fn active_backend_name() -> &'static str {
     backend::active_backend().name
 }
 
-/// Returns the kind (Scalar, SimdC, RustSimd) of the active backend.
+/// Returns the kind (Scalar or RustSimd) of the active backend.
 pub fn active_backend_kind() -> BackendKind {
     backend::active_backend().kind
 }
