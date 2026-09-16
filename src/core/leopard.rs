@@ -134,16 +134,15 @@ pub(crate) fn validate_leopard_shard_len(shard_len: usize) -> Result<(), Error> 
 
 /// Required byte multiple (and cache-line alignment) of every Leopard shard.
 ///
-/// Leopard shards must be a non-zero multiple of this value; see
-/// [`validate_leopard_shard_len`]. Equal to
+/// Leopard shards must be a non-zero multiple of this value. Equal to
 /// [`SHARD_ALIGNMENT`](crate::galois_8::SHARD_ALIGNMENT).
 pub const LEOPARD_SHARD_MULTIPLE: usize = 64;
 
 /// Computes a per-shard length, in bytes, that Leopard will accept for a payload
 /// of `data_len` bytes spread across `data_shards` data shards.
 ///
-/// The result is **always a non-zero multiple of [`LEOPARD_SHARD_MULTIPLE`]**, so
-/// it is guaranteed to pass [`validate_leopard_shard_len`], for every input:
+/// The result is **always a non-zero multiple of [`LEOPARD_SHARD_MULTIPLE`]**,
+/// matching Leopard's shard-size validation rule for every input:
 ///
 /// * `data_len == 0` (or any payload smaller than one block) clamps up to
 ///   [`LEOPARD_SHARD_MULTIPLE`].
