@@ -3,16 +3,37 @@
 All notable changes to this project are documented in this file.
 
 - **Versions 0.9.0 – 6.0.0**: originally authored by [Darren Ldl](https://github.com/darrenldl), with later maintenance by the [rust-rse](https://github.com/rust-rse) community (2021–2022).
-- **Current mainline repository**: maintained under [houseme/reed-solomon-erasure](https://github.com/houseme/reed-solomon-erasure).
+- **Current mainline repository**: maintained under [houseme/rustfs-erasure-codec](https://github.com/houseme/rustfs-erasure-codec).
 - Format follows [Keep a Changelog](https://keepachangelog.com/) for recent versions; older entries keep their simpler historical flat-list format.
 
 ---
 
 ## Unreleased
 
+## 8.0.3 (2026-09-16)
+
+> Patch release: klauspost/reedsolomon compatibility hardening, SIMD loop cleanup, and reproducible backend benchmark governance.
+
 ### Fixed
+- Hardened Leopard shard-combination validation so `LeopardGF8` and `LeopardGF16` reject invalid data/parity totals at construction time instead of relying on later codec-path failures.
+- Rejected Leopard families from the classic `decode_idx` path with explicit unsupported-family errors.
+- Accepted data-shard-length required masks in `reconstruct_some` and `reconstruct_some_opt`, matching the common klauspost/reedsolomon selective-recovery calling pattern.
 - Reworked the x86_64 generated AVX2 full-encode dispatch into stack-bounded per-parity kernels after downstream RustFS e2e coverage exposed stack overflows on small worker-thread stacks.
 - Fixed x86_64 backend selection when only a single SIMD feature such as `simd-avx2` is enabled.
+
+### Changed
+- Switched aarch64 NEON and x86 SIMD hot loops to fixed-size chunk views for clearer backend kernels without changing the public API or encoded data format.
+- Refreshed the English and Chinese README structure around installation, codec families, memory reuse, streaming, backend overrides, and release validation.
+
+### Added
+- Added a dedicated `galois_backend` A/B/B/A benchmark gate that captures raw Criterion estimates per stage and rejects performance conclusions when A1/A2 baseline drift fails.
+- Documented the backend benchmark drift gate in `docs/benchmark-methodology.md`.
+
+### Validation
+- Local validation covered formatting, workspace tests, SIMD/metrics tests, Clippy with `-D warnings`, backend consistency, and aarch64 backend smoke coverage.
+- aarch64 `auto` backend ABBA validation passed 3 consecutive drift-gated runs.
+- x86_64 remote ABBA validation remained intentionally inconclusive because repeated runs showed unstable A1/A2 baseline drift; no x86_64 performance improvement or regression is claimed for this release.
+- Pull request CI passed Linux, Windows, macOS ARM64, Linux ARM64, ppc64le VSX, ASan, cargo-audit, typos, and backend override regression jobs before merge.
 
 ## 8.0.1 (2026-07-23)
 
