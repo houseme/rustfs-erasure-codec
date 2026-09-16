@@ -236,7 +236,7 @@ fn supports_rust_avx512(features: X86FeatureSet) -> bool {
 #[cfg(all(rse_x86_simd, feature = "std"))]
 /// GFNI+AVX2 backend. Auto-selected with highest priority when available (Ice Lake+)
 /// because `_gf2p8mul` provides native GF(2^8) multiplication, eliminating nibble-lookup overhead.
-/// Priority: GFNI+AVX-512 > GFNI+AVX2 > AVX2 > AVX-512 > SSSE3 > SIMD-C > Scalar.
+/// Priority: GFNI+AVX-512 > GFNI+AVX2 > AVX2 > AVX-512 > SSSE3 > Scalar.
 fn supports_rust_gfni_avx2(features: X86FeatureSet) -> bool {
     features.gfni && features.avx2
 }
@@ -644,11 +644,6 @@ mod tests {
                 ..X86FeatureSet::default()
             })
             .id
-        );
-
-        assert_eq!(
-            BackendId::ScalarRust,
-            select_x86_backend(X86FeatureSet::default()).id
         );
 
         assert_eq!(

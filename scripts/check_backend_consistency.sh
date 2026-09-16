@@ -27,6 +27,9 @@ case "$(uname -m)" in
   arm64|aarch64)
     BACKENDS=(auto scalar rust-neon)
     ;;
+  ppc64le|powerpc64le)
+    BACKENDS=(auto scalar rust-vsx)
+    ;;
   *)
     BACKENDS=(auto scalar)
     ;;

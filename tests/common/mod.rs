@@ -20,6 +20,7 @@ fn expected_backend_name(override_value: &str) -> ExpectedBackend<'_> {
         "rust-avx512" => ExpectedBackend::Name("rust-avx512"),
         "rust-gfni-avx2" => ExpectedBackend::Name("rust-gfni-avx2"),
         "rust-gfni-avx512" => ExpectedBackend::Name("rust-gfni-avx512"),
+        "rust-vsx" => ExpectedBackend::Name("rust-vsx"),
         _ => ExpectedBackend::Unknown,
     }
 }
