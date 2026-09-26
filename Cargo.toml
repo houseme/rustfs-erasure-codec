@@ -16,12 +16,12 @@ libfuzzer-sys = "0.4"
 libm = "0.2.16"
 parking_lot = "0.12.5"
 quickcheck = "1.1.0"
-rand = "0.10.2"
+rand = "0.10.3"
 rayon = "1.12.0"
 rustfs-erasure-codec = { version = "9.0.0", path = "." }
-smallvec = "1.16.1"
+smallvec = "1.16.2"
 spin = { version = "0.12.3", default-features = false, features = ["once", "spin_mutex"] }
-wasm-bindgen = "0.2.128"
+wasm-bindgen = "0.2.129"
 
 # CI lint baseline (rustfs/backlog#1237, #1243). Members opt in via `[lints] workspace = true`.
 # `undocumented_unsafe_blocks` is enabled (#1243); `missing_docs` is still staged.
