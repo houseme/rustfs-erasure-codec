@@ -24,6 +24,8 @@ All notable changes to this project are documented in this file.
 - Add opt-in safe GF8 byte views to `Field`, replacing element-size-based reinterpretation in specialized kernels while preserving generic field arithmetic and the default encoded format.
 - Share immutable codec matrices and Leopard setup state; retain independent reconstruction caches for cloned codecs.
 - Correct public builder examples for non-exhaustive codec options.
+- Make benchmark gates reject empty comparisons, duplicate/dropped cases, invalid metrics, and conflicting provenance; deliberate partial profiles and asymmetric missing provenance require explicit opt-in and remain visible in reports.
+
 
 ### Performance
 - Apply cache-line-aligned L2 budgets to parallel chunks, cache hardware cache-size detection, and reuse generated SIMD in the parallel entry point's serial fallback.
@@ -31,6 +33,13 @@ All notable changes to this project are documented in this file.
 - Cache one bounded GF8/GF16 FFT encoding plan per thread and convert GF16 input directly into initialized work lanes instead of allocating complete converted shards.
 - Warmed 10+4 encodes with 32 KiB shards now allocate no heap memory for either Leopard family; `no_std` retains local plan construction.
 - Reuse stream verification scratch, parallel read-length metadata, and missing-shard buffers across blocks; use optimized encoding dispatch and inline common shard views.
+
+### Validation
+- Workspace tests with SIMD and metrics, production SIMD tests, `no_std` tests, all-feature Clippy (including fuzz targets), and Rust 1.98.1 library compilation passed.
+- x86_64 and wasm32 cross-compilation passed; 120 Classic/GF8/GF16 parity fixtures matched the previous revision byte for byte.
+- AddressSanitizer passed 22 field/Leopard regression tests; 11 original release reproducers, 18 Python gate tests, and 6 JavaScript wrapper tests passed.
+- For warmed 10+4 / 32 KiB shards, all-present Leopard reconstruction now performs zero allocations; requested-one-data recovery reduced cumulative allocation bytes from 1,017,342 to 590,672 (GF8) and from 1,476,060 to 1,049,390 (GF16).
+- Local small-output parallel A/B/B/A checks included baseline drift in some cases; no general throughput, x86 runtime, browser integration, or downstream RustFS performance claim is made.
 
 
 ## 9.0.0 (2026-09-16)

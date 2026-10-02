@@ -37,6 +37,14 @@ run() {
   "$@"
 }
 
+run_benchmark_regression_gate() {
+  if [[ "${RSE_BENCHMARK_ALLOW_MISSING_CASES:-0}" == "1" ]]; then
+    run python3 scripts/check_benchmark_regression.py --allow-missing-cases "$@"
+  else
+    run python3 scripts/check_benchmark_regression.py "$@"
+  fi
+}
+
 run_smoke_profile() {
   local profile="$1"
   shift
@@ -111,7 +119,7 @@ run_small_file_gate() {
     benchmark_small_file_matrix_runs_and_exports_results -- --ignored --nocapture
 
   if [[ -n "${RSE_SMALL_FILE_BASELINE:-}" ]]; then
-    run python3 scripts/check_benchmark_regression.py \
+    run_benchmark_regression_gate \
       --baseline "${RSE_SMALL_FILE_BASELINE}" \
       --current target/benchmark-smoke/small-file-results.json \
       --metric "${RSE_SMALL_FILE_METRIC:-ns_per_iter}" \
@@ -146,7 +154,7 @@ run_stream_path_gate() {
     benchmark_stream_path_matrix_runs_and_exports_results -- --ignored --nocapture
 
   if [[ -n "${RSE_STREAM_PATH_BASELINE:-}" ]]; then
-    run python3 scripts/check_benchmark_regression.py \
+    run_benchmark_regression_gate \
       --baseline "${RSE_STREAM_PATH_BASELINE}" \
       --current target/benchmark-smoke/stream-path-results.json \
       --metric "${RSE_STREAM_PATH_METRIC:-ns_per_block}" \
@@ -174,7 +182,7 @@ run_fast_checks() {
 
 run_extended_checks() {
   if [[ -n "${RSE_SMOKE_BASELINE:-}" ]]; then
-    run python3 scripts/check_benchmark_regression.py \
+    run_benchmark_regression_gate \
       --baseline "${RSE_SMOKE_BASELINE}" \
       --current target/benchmark-smoke/smoke-results.json \
       --require-case encode:4:2:65536 \
