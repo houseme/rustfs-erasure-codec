@@ -745,7 +745,7 @@ impl<F: Field> ReedSolomon<F> {
 
         let mut present: SmallVec<[bool; 32]> = SmallVec::with_capacity(slices.len());
         let mut input_data: SmallVec<[Option<&[u8]>; 32]> = SmallVec::with_capacity(slices.len());
-        let mut recovered: Vec<Vec<u8>> = Vec::with_capacity(slices.len());
+        let mut recovered: SmallVec<[Vec<u8>; 32]> = SmallVec::with_capacity(slices.len());
         for (index, shard) in slices.iter_mut().enumerate() {
             let data = shard.get();
             let is_present = data.is_some();
