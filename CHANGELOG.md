@@ -33,6 +33,8 @@ All notable changes to this project are documented in this file.
 - Cache one bounded GF8/GF16 FFT encoding plan per thread and convert GF16 input directly into initialized work lanes instead of allocating complete converted shards.
 - Warmed 10+4 encodes with 32 KiB shards now allocate no heap memory for either Leopard family; `no_std` retains local plan construction.
 - Reuse stream verification scratch, parallel read-length metadata, and missing-shard buffers across blocks; use optimized encoding dispatch and inline common shard views.
+- Reuse owned GF8 error-locator/FFT decode plans and initialized working buffers across matching erasure patterns, with per-thread retention capped at 64 KiB of plans and 4 MiB of work. Inline common recovery output metadata and limit tail transforms to active bytes.
+
 
 ### Validation
 - Workspace tests with SIMD and metrics, production SIMD tests, `no_std` tests, all-feature Clippy (including fuzz targets), and Rust 1.98.1 library compilation passed.
