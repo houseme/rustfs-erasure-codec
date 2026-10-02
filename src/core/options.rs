@@ -21,9 +21,9 @@ pub enum CodecFamily {
 /// Controls optional automatic selection of a Leopard codec when the requested
 /// [`CodecFamily`] is [`Classic`](CodecFamily::Classic).
 ///
-/// Auto-selection only takes effect on a byte-oriented field (where
-/// `size_of::<Field::Elem>() == 1`, i.e. the GF(2^8) field the Leopard codecs
-/// are built on); on any other field the mode is ignored and the codec stays
+/// Auto-selection only takes effect on a field that explicitly supports the
+/// built-in GF(2^8) byte kernels through [`crate::Field::as_gf8_slice`] and
+/// [`crate::Field::as_gf8_slice_mut`]; otherwise the mode is ignored and the codec stays
 /// Classic. When the caller sets an explicit non-Classic `codec_family`, this
 /// mode is likewise ignored — the explicit family wins.
 ///
@@ -80,8 +80,8 @@ pub enum MatrixMode {
 ///
 /// Use `CodecOptions::default()` for sensible defaults, or the builder methods:
 ///
-/// ```ignore
-/// use rustfs_erasure_codec::core::{CodecOptions, CodecFamily};
+/// ```rust
+/// use rustfs_erasure_codec::{CodecOptions, CodecFamily};
 ///
 /// let opts = CodecOptions::builder()
 ///     .codec_family(CodecFamily::LeopardGF8)
@@ -90,15 +90,18 @@ pub enum MatrixMode {
 /// ```
 ///
 /// `CodecOptions` is `#[non_exhaustive]`: construct it from
-/// [`CodecOptions::default()`] (optionally with `..Default::default()` in a
-/// struct-update expression) or via the [`builder`](CodecOptions::builder), not
-/// with an exhaustive struct literal. This lets future fields be added without a
+/// [`CodecOptions::default()`] followed by field assignments, or via the
+/// [`builder`](CodecOptions::builder). Downstream struct literals, including
+/// struct-update expressions, are not supported. This lets future fields be added without a
 /// breaking change.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
 pub struct CodecOptions {
-    /// When `true` and parity shard count is 1, use XOR-only fast path instead of
-    /// full matrix multiplication. Default: `false`.
+    /// When `true`, Classic codecs with one parity shard use an all-ones parity
+    /// row, enabling the XOR-only fast path. This changes the coding format for
+    /// matrix modes whose usual parity row is not all ones. Custom matrices
+    /// must already supply an all-ones row. Ignored by Leopard and when there
+    /// is more than one parity shard. Default: `false`.
     pub fast_one_parity: bool,
     /// When `true`, cache the inverted decode matrix for repeated reconstruction
     /// with the same erasure pattern. Default: `true`.
@@ -160,7 +163,7 @@ impl CodecOptionsBuilder {
 
     /// Set the optional automatic Leopard selection mode (see [`LeopardMode`]).
     /// Only takes effect when [`codec_family`](CodecOptionsBuilder::codec_family)
-    /// is [`CodecFamily::Classic`] and the field is byte-oriented.
+    /// is [`CodecFamily::Classic`] and the field supports the GF(2^8) byte kernels.
     pub fn leopard_mode(mut self, mode: LeopardMode) -> Self {
         self.options.leopard_mode = mode;
         self

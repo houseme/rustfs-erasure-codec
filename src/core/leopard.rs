@@ -1,5 +1,6 @@
 extern crate alloc;
 
+use alloc::sync::Arc;
 use alloc::vec::Vec;
 
 use crate::Field;
@@ -23,42 +24,32 @@ pub(crate) const LEOPARD_GF16_MAX_SHARDS: usize = 65536;
 /// encoded, so resolution falls back to GF(2^16).
 const LEOPARD_GF8_MAX_PARITY: usize = 128;
 
-/// Whether `F` is a byte-oriented field, i.e. `F::Elem` is exactly one byte.
+/// Whether the field explicitly supports the built-in GF(2^8) byte kernels.
 ///
-/// This is the soundness precondition for every Leopard codec: they reinterpret
-/// `F::Elem` slices as raw `u8` bytes (see [`AsLeopardU8`]). Gating on the
-/// element size — rather than `F::ORDER == 256` — is the precise condition and
-/// also rejects any hypothetical field whose order is 256 but whose element has
-/// a wider representation.
+/// Execution paths still validate every returned view: a safe external Field
+/// implementation may return inconsistent views, so this check must never
+/// justify an unchecked pointer conversion.
 pub(crate) fn is_byte_field<F: Field>() -> bool {
-    core::mem::size_of::<F::Elem>() == 1
+    F::ORDER == 256
+        && F::as_gf8_slice(&[]).is_some_and(|slice| slice.is_empty())
+        && F::as_gf8_slice_mut(&mut []).is_some_and(|slice| slice.is_empty())
 }
 
-/// Trait for safely reinterpreting `F::Elem` as `u8` for leopard encode.
-///
-/// Only implemented for `u8` (i.e., `galois_8::Field`). This enables the generic
-/// `encode_sep` to call the `u8`-specific leopard FFT engine without `unsafe`.
-pub(crate) trait AsLeopardU8: Sized {
-    fn slice_to_u8(slice: &[Self]) -> &[u8];
-    fn slice_to_u8_mut(slice: &mut [Self]) -> &mut [u8];
-}
-
-impl AsLeopardU8 for u8 {
-    #[inline]
-    fn slice_to_u8(slice: &[u8]) -> &[u8] {
-        slice
-    }
-    #[inline]
-    fn slice_to_u8_mut(slice: &mut [u8]) -> &mut [u8] {
-        slice
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub(crate) enum FamilyState<F: Field> {
     Classic,
-    LeopardGF8(LeopardGF8Codec<F>),
+    LeopardGF8(Arc<LeopardGF8Codec<F>>),
     LeopardGF16,
+}
+
+impl<F: Field> Clone for FamilyState<F> {
+    fn clone(&self) -> Self {
+        match self {
+            Self::Classic => Self::Classic,
+            Self::LeopardGF8(codec) => Self::LeopardGF8(Arc::clone(codec)),
+            Self::LeopardGF16 => Self::LeopardGF16,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -76,7 +67,7 @@ impl<F: Field> LeopardGF8Codec<F> {
     pub(crate) fn new(
         data_shards: usize,
         parity_shards: usize,
-        setup_matrix: Matrix<F>,
+        setup_matrix: &Matrix<F>,
     ) -> Result<Self, Error> {
         validate_leopard_gf8::<F>(data_shards, parity_shards)?;
 
@@ -228,19 +219,11 @@ pub(crate) fn build_family_state<F: Field>(
 ) -> Result<FamilyState<F>, Error> {
     match codec_family {
         CodecFamily::Classic => Ok(FamilyState::Classic),
-        CodecFamily::LeopardGF8 => Ok(FamilyState::LeopardGF8(LeopardGF8Codec::new(
+        CodecFamily::LeopardGF8 => Ok(FamilyState::LeopardGF8(Arc::new(LeopardGF8Codec::new(
             data_shards,
             parity_shards,
-            {
-                let mut matrix = Matrix::new(setup_matrix.row_count(), setup_matrix.col_count());
-                for row in 0..setup_matrix.row_count() {
-                    for col in 0..setup_matrix.col_count() {
-                        matrix.set(row, col, setup_matrix.get(row, col));
-                    }
-                }
-                matrix
-            },
-        )?)),
+            setup_matrix,
+        )?))),
         CodecFamily::LeopardGF16 => Ok(FamilyState::LeopardGF16),
     }
 }
@@ -277,8 +260,8 @@ pub(crate) fn max_total_shards_for_family<F: Field>(codec_family: CodecFamily) -
 ///
 /// Returns the family the codec should actually build. Auto-selection is only
 /// eligible when the caller left `codec_family` at [`CodecFamily::Classic`] on a
-/// byte-oriented field (`is_byte_field`, i.e. the GF(2^8) field the Leopard
-/// codecs require); otherwise the requested family is returned unchanged. Once
+/// field that explicitly supports the built-in GF(2^8) byte kernels;
+/// otherwise the requested family is returned unchanged. Once
 /// eligible, `mode` alone decides — [`LeopardMode::Disabled`] maps back to
 /// `Classic`, so the default is preserved byte-for-byte.
 ///
@@ -339,7 +322,7 @@ fn leopard_shard_combo_fits(data_shards: usize, parity_shards: usize, order: usi
 }
 
 fn validate_leopard_gf8<F: Field>(data_shards: usize, parity_shards: usize) -> Result<(), Error> {
-    // Soundness gate: Leopard reinterprets `F::Elem` as raw bytes.
+    // Only fields explicitly providing compatible, safe byte views support Leopard.
     if !is_byte_field::<F>() {
         return Err(Error::UnsupportedCodecFamily);
     }
@@ -350,7 +333,7 @@ fn validate_leopard_gf8<F: Field>(data_shards: usize, parity_shards: usize) -> R
 }
 
 fn validate_leopard_gf16<F: Field>(data_shards: usize, parity_shards: usize) -> Result<(), Error> {
-    // Soundness gate: Leopard reinterprets `F::Elem` as raw bytes.
+    // Only fields explicitly providing compatible, safe byte views support Leopard.
     if !is_byte_field::<F>() {
         return Err(Error::UnsupportedCodecFamily);
     }
@@ -404,15 +387,17 @@ pub(crate) fn leopard_gf16_reconstruct(
     input_data: &[Option<&[u8]>],
     data_shards: usize,
     parity_shards: usize,
+    max_parallel_jobs: usize,
 ) -> Result<(), Error> {
     let tables = super::leopard_gf16::init_leopard_gf16_tables();
-    super::leopard_gf16::decode::reconstruct_with_tables16(
+    super::leopard_gf16::decode::reconstruct_with_tables16_with_options(
         present,
         outputs,
         input_data,
         data_shards,
         parity_shards,
         tables,
+        max_parallel_jobs,
     )
 }
 

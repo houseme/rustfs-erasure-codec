@@ -38,11 +38,11 @@ pub(crate) fn build_leopard_gf8_decode_driver(
     if m > MODULUS8 {
         return Err(Error::TooManyShards);
     }
-    let work_size = m + data_shards;
-    let n = ceil_pow2(work_size);
-    if n > MODULUS8 {
+    let work_size = m.checked_add(data_shards).ok_or(Error::TooManyShards)?;
+    if work_size > super::ORDER8 {
         return Err(Error::TooManyShards);
     }
+    let n = ceil_pow2(work_size);
 
     Ok(LeopardGf8DecodeDriver {
         data_shards,
@@ -122,9 +122,8 @@ fn compute_error_locs(
 /// * `present` - Slice indicating which shards are present (true = present, false = missing).
 ///   Length must be `data_shards + parity_shards`.
 ///   Parity shards at indices `data_shards..total`, data at `0..data_shards`.
-/// * `outputs` - Mutable slice of output buffers, one per shard. All must be the same length.
-///   Present shards are overwritten with their input (no-op for correctness).
-///   Missing shards are recovered and written here.
+/// * `outputs` - One output buffer per shard. Empty buffers skip publication for
+///   present or unrequested shards; nonempty buffers must match the input length.
 /// * `input_data` - Slice of input shard data for present shards. Only present shard
 ///   data is read; missing shard entries are ignored.
 #[allow(clippy::needless_range_loop)]
@@ -136,26 +135,18 @@ pub(crate) fn reconstruct_with_tables(
     parity_shards: usize,
     tables: &LeopardGf8Tables,
 ) -> Result<(), Error> {
+    let shard_size = super::super::reconstruct::validate_leopard_decode_buffers(
+        present,
+        outputs,
+        input_data,
+        data_shards,
+        parity_shards,
+    )?;
     let total_shards = data_shards + parity_shards;
-    if present.len() != total_shards
-        || outputs.len() != total_shards
-        || input_data.len() != total_shards
+    if present.iter().all(|is_present| *is_present)
+        || outputs.iter().all(|output| output.is_empty())
     {
-        return Err(Error::IncorrectShardSize);
-    }
-
-    // Find shard size from first present shard.
-    let shard_size = outputs.first().map(|s| s.len()).unwrap_or(0);
-    if shard_size == 0 || !shard_size.is_multiple_of(64) {
-        return Err(Error::IncorrectShardSize);
-    }
-
-    let number_present = present.iter().filter(|&&p| p).count();
-    if number_present == total_shards {
         return Ok(());
-    }
-    if number_present < data_shards {
-        return Err(Error::TooFewShardsPresent);
     }
 
     let driver = build_leopard_gf8_decode_driver(data_shards, parity_shards, shard_size)?;
@@ -219,7 +210,7 @@ pub(crate) fn reconstruct_with_tables(
             if present[i] {
                 let data = input_data[i].as_ref().ok_or(Error::TooFewShardsPresent)?;
                 mulgf8(
-                    work.lane_mut(work_idx),
+                    &mut work.lane_mut(work_idx)[..size],
                     &data[offset..end],
                     err_locs[work_idx],
                     tables,
@@ -234,7 +225,12 @@ pub(crate) fn reconstruct_with_tables(
                 let data = input_data[shard_idx]
                     .as_ref()
                     .ok_or(Error::TooFewShardsPresent)?;
-                mulgf8(work.lane_mut(i), &data[offset..end], err_locs[i], tables);
+                mulgf8(
+                    &mut work.lane_mut(i)[..size],
+                    &data[offset..end],
+                    err_locs[i],
+                    tables,
+                );
             } else {
                 work.lane_mut(i)[..size].fill(0);
             }
@@ -259,7 +255,7 @@ pub(crate) fn reconstruct_with_tables(
 
         // Step 5: Recover missing shards.
         for i in 0..total_shards {
-            if present[i] {
+            if present[i] || outputs[i].is_empty() {
                 continue;
             }
             let (work_idx, err_idx) = if i >= data_shards {
@@ -270,7 +266,7 @@ pub(crate) fn reconstruct_with_tables(
             let inv_err = (MODULUS8 as u8).wrapping_sub(err_locs[err_idx]);
             mulgf8(
                 &mut outputs[i][offset..end],
-                work.lane(work_idx),
+                &work.lane(work_idx)[..size],
                 inv_err,
                 tables,
             );
@@ -610,5 +606,19 @@ fn dit4_decode_pairwise_one(
                 ifft_dit2(r1, r2, log_m02, tables);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod decode_driver_boundary_tests {
+    #[test]
+    fn permits_the_full_field_transform_order() {
+        let driver =
+            super::build_leopard_gf8_decode_driver(super::super::ORDER8 - 4, 4, 64).unwrap();
+        assert_eq!(driver.n, super::super::ORDER8);
+        assert_eq!(
+            super::build_leopard_gf8_decode_driver(super::super::ORDER8 - 3, 4, 64),
+            Err(crate::Error::TooManyShards),
+        );
     }
 }

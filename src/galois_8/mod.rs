@@ -34,6 +34,16 @@ impl crate::Field for Field {
     const ORDER: usize = 256;
     type Elem = u8;
 
+    #[inline]
+    fn as_gf8_slice(slice: &[u8]) -> Option<&[u8]> {
+        Some(slice)
+    }
+
+    #[inline]
+    fn as_gf8_slice_mut(slice: &mut [u8]) -> Option<&mut [u8]> {
+        Some(slice)
+    }
+
     fn add(a: u8, b: u8) -> u8 {
         add(a, b)
     }

@@ -19,6 +19,56 @@ use super::ReedSolomon;
 #[cfg(feature = "std")]
 use super::{ParallelPolicy, ReedSolomon};
 
+/// Validate native decoder buffers before any FFT work or output mutation.
+/// An empty output denotes a present or unrequested shard; it remains part of
+/// the erasure pattern even when no recovered bytes are requested for it.
+pub(super) fn validate_leopard_decode_buffers(
+    present: &[bool],
+    outputs: &[&mut [u8]],
+    input_data: &[Option<&[u8]>],
+    data_shards: usize,
+    parity_shards: usize,
+) -> Result<usize, Error> {
+    if data_shards == 0 {
+        return Err(Error::TooFewDataShards);
+    }
+    if parity_shards == 0 {
+        return Err(Error::TooFewParityShards);
+    }
+    let total = data_shards
+        .checked_add(parity_shards)
+        .ok_or(Error::TooManyShards)?;
+    if present.len() != total || outputs.len() != total || input_data.len() != total {
+        return Err(Error::IncorrectShardSize);
+    }
+    let mut shard_size = None;
+    let mut number_present = 0;
+    for (is_present, input) in present.iter().zip(input_data) {
+        if *is_present {
+            let data = input.ok_or(Error::TooFewShardsPresent)?;
+            if data.is_empty() {
+                return Err(Error::EmptyShard);
+            }
+            if !data.len().is_multiple_of(64) || shard_size.is_some_and(|len| len != data.len()) {
+                return Err(Error::IncorrectShardSize);
+            }
+            shard_size = Some(data.len());
+            number_present += 1;
+        }
+    }
+    if number_present < data_shards {
+        return Err(Error::TooFewShardsPresent);
+    }
+    let shard_size = shard_size.ok_or(Error::TooFewShardsPresent)?;
+    if outputs
+        .iter()
+        .any(|output| !output.is_empty() && output.len() != shard_size)
+    {
+        return Err(Error::IncorrectShardSize);
+    }
+    Ok(shard_size)
+}
+
 impl<F: Field> ReedSolomon<F> {
     #[cfg(feature = "std")]
     pub(crate) fn code_some_slices_par_raw(
@@ -456,18 +506,6 @@ impl<F: Field> ReedSolomon<F> {
         shards: &mut [T],
         required: &[bool],
     ) -> Result<(), Error> {
-        if self.is_leopard_gf8_family() {
-            // For leopard, reconstruct_some delegates to reconstruct (leopard always
-            // recovers all shards, then the caller picks which ones they needed).
-            self.reconstruct_leopard_gf8(shards, false)?;
-            return Ok(());
-        }
-        if self.is_leopard_gf16_family() {
-            self.reconstruct_leopard_gf16(shards, false)?;
-            return Ok(());
-        }
-        self.ensure_classic_family_execution()?;
-
         let normalized_required;
         let required = if required.len() == self.total_shard_count {
             required
@@ -481,6 +519,31 @@ impl<F: Field> ReedSolomon<F> {
         } else {
             return Err(Error::InvalidShardFlags);
         };
+
+        if self.is_leopard_gf8_family() {
+            return self.reconstruct_leopard_impl(
+                shards,
+                |index| required[index],
+                super::leopard_gf8::reconstruct_with_tables,
+            );
+        }
+        if self.is_leopard_gf16_family() {
+            return self.reconstruct_leopard_impl(
+                shards,
+                |index| required[index],
+                |present, outputs, inputs, data, parity| {
+                    super::leopard::leopard_gf16_reconstruct(
+                        present,
+                        outputs,
+                        inputs,
+                        data,
+                        parity,
+                        self.options.max_parallel_jobs,
+                    )
+                },
+            );
+        }
+        self.ensure_classic_family_execution()?;
 
         check_piece_count!(all => self, shards);
 
@@ -623,20 +686,14 @@ impl<F: Field> ReedSolomon<F> {
         Ok(())
     }
 
-    /// Shared implementation for Leopard GF8/GF16 reconstruction.
-    ///
-    /// Builds the `present`, `outputs`, and `input_data` arrays required by
-    /// the Forney-based FFT decoder, calls the provided `reconstruct_fn`,
-    /// then writes recovered data back into the original shard objects.
-    ///
-    /// Only copies present shard data into output buffers for missing shards
-    /// (the Leopard decoder skips present positions). This avoids the overhead
-    /// of copying all present shard data into temporary buffers.
-    #[allow(clippy::needless_range_loop, clippy::type_complexity)]
+    /// Validate every present shard before initializing recovery destinations.
+    /// Missing, unrequested shards remain erasures in the FFT decoder but have
+    /// no output buffer, so only requested shards are allocated or published.
     fn reconstruct_leopard_impl<T: ReconstructShard<F>>(
         &self,
         slices: &mut [T],
-        reconstruct_fn: fn(
+        required: impl Fn(usize) -> bool,
+        reconstruct_fn: impl FnOnce(
             &[bool],
             &mut [&mut [u8]],
             &[Option<&[u8]>],
@@ -646,45 +703,68 @@ impl<F: Field> ReedSolomon<F> {
     ) -> Result<(), Error> {
         check_piece_count!(all => self, slices);
 
-        let total = self.total_shard_count;
-        let shard_len_opt: Option<usize> = slices.iter().find_map(|s| s.len());
-        let Some(shard_len) = shard_len_opt else {
-            return Err(Error::EmptyShard);
-        };
-
-        // SAFETY: F::Elem = u8 for all leopard codec families.
-        let mut present = vec![false; total];
-        let mut raw_data: Vec<Option<*const u8>> = vec![None; total];
-        for i in 0..total {
-            if let Some(data) = slices[i].get() {
-                present[i] = true;
-                raw_data[i] = Some(data as *const [F::Elem] as *const u8);
+        let mut shard_len = None;
+        let mut number_present = 0;
+        let mut has_required_missing = false;
+        for (index, shard) in slices.iter_mut().enumerate() {
+            let declared_len = shard.len();
+            if let Some(data) = shard.get() {
+                let len = data.len();
+                if len == 0 {
+                    return Err(Error::EmptyShard);
+                }
+                if declared_len != Some(len)
+                    || shard_len.is_some_and(|previous| previous != len)
+                    || !len.is_multiple_of(64)
+                {
+                    return Err(Error::IncorrectShardSize);
+                }
+                let bytes = F::as_gf8_slice(data).ok_or(Error::UnsupportedCodecFamily)?;
+                if bytes.len() != len {
+                    return Err(Error::IncorrectShardSize);
+                }
+                shard_len = Some(len);
+                number_present += 1;
+            } else {
+                if declared_len.is_some() {
+                    return Err(Error::IncorrectShardSize);
+                }
+                has_required_missing |= required(index);
             }
         }
+        if number_present < self.data_shard_count {
+            return Err(Error::TooFewShardsPresent);
+        }
+        if !has_required_missing {
+            return Ok(());
+        }
+        let shard_len = shard_len.ok_or(Error::TooFewShardsPresent)?;
 
-        // Allocate output buffers. Present shards get zeroed buffers (the decoder
-        // skips them via `if present[i] { continue; }`). Missing shards also get
-        // zeroed buffers which the decoder writes recovered data into.
-        let mut output_bufs: Vec<Vec<u8>> = (0..total).map(|_| vec![0u8; shard_len]).collect();
-
-        let mut outputs: Vec<&mut [u8]> = output_bufs
-            .iter_mut()
-            .map(|buf| buf.as_mut_slice())
-            .collect();
-
-        let mut input_data: Vec<Option<&[u8]>> = Vec::with_capacity(total);
-        for i in 0..total {
-            if let Some(ptr) = raw_data[i] {
-                // SAFETY: `ptr` was captured from a present shard `slices[i].get()`
-                // whose length equals `shard_len` (all present shards share it);
-                // F::Elem = u8 for leopard, and the shard storage outlives `src`.
-                let src: &[u8] = unsafe { core::slice::from_raw_parts(ptr, shard_len) };
-                input_data.push(Some(src));
+        let mut present: SmallVec<[bool; 32]> = SmallVec::with_capacity(slices.len());
+        let mut input_data: SmallVec<[Option<&[u8]>; 32]> = SmallVec::with_capacity(slices.len());
+        let mut recovered: Vec<Vec<u8>> = Vec::with_capacity(slices.len());
+        for (index, shard) in slices.iter_mut().enumerate() {
+            let data = shard.get();
+            let is_present = data.is_some();
+            present.push(is_present);
+            if let Some(data) = data {
+                let bytes = F::as_gf8_slice(data).ok_or(Error::UnsupportedCodecFamily)?;
+                if data.len() != shard_len || bytes.len() != shard_len {
+                    return Err(Error::IncorrectShardSize);
+                }
+                input_data.push(Some(bytes));
+                recovered.push(Vec::new());
             } else {
                 input_data.push(None);
+                recovered.push(if required(index) {
+                    vec![0; shard_len]
+                } else {
+                    Vec::new()
+                });
             }
         }
-
+        let mut outputs: SmallVec<[&mut [u8]; 32]> =
+            recovered.iter_mut().map(Vec::as_mut_slice).collect();
         reconstruct_fn(
             &present,
             &mut outputs,
@@ -692,38 +772,64 @@ impl<F: Field> ReedSolomon<F> {
             self.data_shard_count,
             self.parity_shard_count,
         )?;
+        drop(outputs);
+        drop(input_data);
 
-        for i in 0..total {
-            if present[i] {
+        // A destination can reject initialization (for example a short fixed
+        // buffer). Decode first so that every slot marked present during
+        // publication immediately receives valid bytes, even if a later slot
+        // rejects its buffer. Unrequested shards are never initialized.
+        for (shard, bytes) in slices.iter_mut().zip(recovered) {
+            if bytes.is_empty() {
                 continue;
             }
-            // SAFETY: F::Elem = u8 for all leopard codec families, so `[u8]` and
-            // `[F::Elem]` have identical layout and the reinterpret cast is valid.
-            let elem_slice: &[F::Elem] =
-                unsafe { &*(output_bufs[i].as_slice() as *const [u8] as *const [F::Elem]) };
-            match slices[i].get_or_initialize(shard_len) {
-                Ok(dst) | Err(Ok(dst)) => dst.copy_from_slice(elem_slice),
-                Err(Err(err)) => return Err(err),
+            let data = match shard.get_or_initialize(shard_len) {
+                Ok(data) | Err(Ok(data)) => data,
+                Err(Err(error)) => return Err(error),
+            };
+            if data.len() != shard_len {
+                return Err(Error::IncorrectShardSize);
             }
+            let destination = F::as_gf8_slice_mut(data).ok_or(Error::UnsupportedCodecFamily)?;
+            if destination.len() != shard_len {
+                return Err(Error::IncorrectShardSize);
+            }
+            destination.copy_from_slice(&bytes);
         }
-
         Ok(())
     }
 
     fn reconstruct_leopard_gf8<T: ReconstructShard<F>>(
         &self,
         slices: &mut [T],
-        _data_only: bool,
+        data_only: bool,
     ) -> Result<(), Error> {
-        self.reconstruct_leopard_impl(slices, super::leopard_gf8::reconstruct_with_tables)
+        self.reconstruct_leopard_impl(
+            slices,
+            |index| !data_only || index < self.data_shard_count,
+            super::leopard_gf8::reconstruct_with_tables,
+        )
     }
 
     fn reconstruct_leopard_gf16<T: ReconstructShard<F>>(
         &self,
         slices: &mut [T],
-        _data_only: bool,
+        data_only: bool,
     ) -> Result<(), Error> {
-        self.reconstruct_leopard_impl(slices, super::leopard::leopard_gf16_reconstruct)
+        self.reconstruct_leopard_impl(
+            slices,
+            |index| !data_only || index < self.data_shard_count,
+            |present, outputs, inputs, data, parity| {
+                super::leopard::leopard_gf16_reconstruct(
+                    present,
+                    outputs,
+                    inputs,
+                    data,
+                    parity,
+                    self.options.max_parallel_jobs,
+                )
+            },
+        )
     }
 
     pub(crate) fn get_data_decode_matrix(

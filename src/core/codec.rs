@@ -1,5 +1,6 @@
 extern crate alloc;
 
+use alloc::sync::Arc;
 use alloc::vec;
 use alloc::vec::Vec;
 
@@ -226,6 +227,20 @@ impl<F: Field> ReedSolomon<F> {
             return Err(Error::UnsupportedCodecFamily);
         }
 
+        // Single-parity fast mode is a coding format: every operation must use
+        // the same all-ones row, including reconstruction and incremental updates.
+        if options.fast_one_parity
+            && total_shards == data_shards + 1
+            && options.matrix_mode != MatrixMode::Custom
+        {
+            let mut matrix = Matrix::new(total_shards, data_shards);
+            for col in 0..data_shards {
+                matrix.set(col, col, F::one());
+                matrix.set(data_shards, col, F::one());
+            }
+            return Ok(matrix);
+        }
+
         match options.matrix_mode {
             MatrixMode::Vandermonde => Self::build_matrix(data_shards, total_shards),
             MatrixMode::Cauchy => Self::build_cauchy_matrix(data_shards, total_shards),
@@ -319,7 +334,7 @@ impl<F: Field> ReedSolomon<F> {
             total_shard_count: total_shards,
             codec_family: options.codec_family,
             family_state,
-            matrix,
+            matrix: Arc::new(matrix),
             options,
             #[cfg(feature = "std")]
             policy_cache,
@@ -492,6 +507,11 @@ impl<F: Field> ReedSolomon<F> {
     }
 
     /// Create a codec with a user-provided encoding matrix.
+    ///
+    /// With `fast_one_parity` enabled and a single parity shard, the supplied
+    /// parity row must contain only ones; otherwise returns
+    /// [`Error::InvalidCustomMatrix`]. Custom matrices always use Classic,
+    /// regardless of the automatic Leopard selection mode.
     pub fn with_custom_matrix(
         data_shards: usize,
         parity_shards: usize,
@@ -527,6 +547,15 @@ impl<F: Field> ReedSolomon<F> {
         );
 
         let matrix = Self::build_custom_matrix(data_shards, total_shards, custom_matrix)?;
+        if options.fast_one_parity
+            && parity_shards == 1
+            && matrix
+                .get_row(data_shards)
+                .iter()
+                .any(|value| *value != F::one())
+        {
+            return Err(Error::InvalidCustomMatrix);
+        }
         let family_state = super::leopard::build_family_state(
             options.codec_family,
             data_shards,
@@ -542,7 +571,7 @@ impl<F: Field> ReedSolomon<F> {
             total_shard_count: total_shards,
             codec_family: options.codec_family,
             family_state,
-            matrix,
+            matrix: Arc::new(matrix),
             options,
             #[cfg(feature = "std")]
             policy_cache,

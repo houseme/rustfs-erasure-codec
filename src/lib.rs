@@ -99,6 +99,27 @@ pub trait Field: Sized {
     /// The representational type of the field.
     type Elem: Default + Clone + Copy + PartialEq + ::core::fmt::Debug;
 
+    /// Expose elements as bytes for the built-in GF(2^8) kernels.
+    ///
+    /// The default disables specialized byte kernels. Implementations that opt
+    /// in must use the same element representation and arithmetic as
+    /// [`galois_8::Field`]: polynomial-basis bytes, XOR addition, and
+    /// multiplication modulo the irreducible polynomial `0x11d`. Return a view
+    /// of the complete input slice, without changing its element order.
+    /// Implement both this method and [`Field::as_gf8_slice_mut`] to enable
+    /// Leopard codecs. Element size alone does not identify a finite field.
+    fn as_gf8_slice(_slice: &[Self::Elem]) -> Option<&[u8]> {
+        None
+    }
+
+    /// Expose mutable elements as bytes for the built-in GF(2^8) kernels.
+    ///
+    /// This has the same representation and arithmetic requirements as
+    /// [`Field::as_gf8_slice`]. Return a view of the complete input slice.
+    fn as_gf8_slice_mut(_slice: &mut [Self::Elem]) -> Option<&mut [u8]> {
+        None
+    }
+
     /// Add two elements together.
     fn add(a: Self::Elem, b: Self::Elem) -> Self::Elem;
 
