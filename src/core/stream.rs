@@ -28,7 +28,10 @@
 //! ```
 
 use std::io::Error;
-use std::mem;
+
+use smallvec::SmallVec;
+
+use crate::ShardSlot;
 
 /// Lower bound for the read/write block size (1 KiB).
 const MIN_BLOCK_SIZE_BYTES: usize = 1024;
@@ -220,7 +223,7 @@ fn read_block_with_mode<R: std::io::Read + Send>(
     read_lengths: &mut Vec<(usize, usize)>,
 ) -> Result<(bool, usize), StreamError> {
     if use_parallel_io {
-        read_block_par(readers, buffers, max_len)
+        read_block_par(readers, buffers, max_len, read_lengths)
     } else {
         read_block(readers, buffers, max_len, read_lengths)
     }
@@ -322,18 +325,23 @@ fn read_present_cursors_with_mode(
     if use_parallel_io {
         use rayon::prelude::*;
 
-        *read_lengths = shards
+        read_lengths.resize(shards.len(), (0, 0));
+        shards
             .par_iter_mut()
             .zip(buffers.par_iter_mut())
+            .zip(read_lengths.par_iter_mut())
             .enumerate()
-            .filter_map(|(i, item)| present[i].then_some((i, item)))
-            .map(|(i, (shard, buf))| {
-                let total =
-                    read_one_stream(shard, buf, max_len).map_err(|e| StreamError::read(i, e))?;
-                buf.truncate(total);
-                Ok::<_, StreamError>((i, total))
-            })
-            .collect::<Result<Vec<_>, _>>()?;
+            .try_for_each(|(i, ((shard, buf), read_length))| {
+                *read_length = (i, 0);
+                if present[i] {
+                    let total = read_one_stream(shard, buf, max_len)
+                        .map_err(|e| StreamError::read(i, e))?;
+                    buf.truncate(total);
+                    read_length.1 = total;
+                }
+                Ok::<_, StreamError>(())
+            })?;
+        read_lengths.retain(|&(i, _)| present[i]);
     } else {
         for &i in present_indices {
             let total = read_one_stream(&mut shards[i], &mut buffers[i], max_len)
@@ -398,26 +406,29 @@ fn read_block_par<R: std::io::Read + Send>(
     readers: &mut [R],
     buffers: &mut [Vec<u8>],
     max_len: usize,
+    read_lengths: &mut Vec<(usize, usize)>,
 ) -> Result<(bool, usize), StreamError> {
     use rayon::prelude::*;
 
-    let read_lengths: Vec<(usize, usize)> = readers
+    read_lengths.resize(readers.len(), (0, 0));
+    readers
         .par_iter_mut()
         .zip(buffers.par_iter_mut())
+        .zip(read_lengths.par_iter_mut())
         .enumerate()
-        .map(|(i, (reader, buf))| {
-            read_one_stream(reader, buf, max_len)
-                .map(|total| (i, total))
-                .map_err(|e| StreamError::read(i, e))
-        })
-        .collect::<Result<Vec<_>, _>>()?;
+        .try_for_each(|(i, ((reader, buf), read_length))| {
+            let total =
+                read_one_stream(reader, buf, max_len).map_err(|e| StreamError::read(i, e))?;
+            *read_length = (i, total);
+            Ok::<_, StreamError>(())
+        })?;
 
     let actual_len = read_lengths
         .iter()
         .map(|(_, total)| *total)
         .max()
         .unwrap_or(0);
-    zero_pad_short_buffers(buffers, &read_lengths, actual_len);
+    zero_pad_short_buffers(buffers, read_lengths, actual_len);
 
     Ok((actual_len == 0, actual_len))
 }
@@ -489,12 +500,10 @@ impl super::ReedSolomon<crate::galois_8::Field> {
     ///
     /// All data streams should supply the same number of bytes. When they do
     /// not, shorter streams are zero-padded to the longest stream's length for
-    /// each block, and no original-length metadata is persisted. The generated
-    /// parity therefore only round-trips within this streaming API; interop
-    /// with the in-memory API (which rejects unequal lengths with
-    /// [`crate::Error::IncorrectShardSize`]) or with other Reed-Solomon
-    /// implementations requires the caller to track the original shard lengths
-    /// out of band.
+    /// each block, and no original-length metadata is persisted. Verification
+    /// and reconstruction require those zero-padded, equal-length shards;
+    /// callers must track the original shard lengths out of band to remove
+    /// padding after recovery.
     ///
     /// # Errors
     ///
@@ -571,15 +580,16 @@ impl super::ReedSolomon<crate::galois_8::Field> {
                 buf.resize(actual_len, 0);
             }
 
-            // Encode (parallel codec).
-            let data_refs: Vec<&[u8]> = data_bufs.iter().map(|b| &b[..actual_len]).collect();
-            let mut parity_refs: Vec<&mut [u8]> = parity_bufs
+            let data_refs: SmallVec<[&[u8]; 32]> =
+                data_bufs.iter().map(|b| &b[..actual_len]).collect();
+            let mut parity_refs: SmallVec<[&mut [u8]; 32]> = parity_bufs
                 .iter_mut()
                 .map(|b| &mut b[..actual_len])
                 .collect();
 
-            self.encode_sep_par(&data_refs, &mut parity_refs)
+            self.encode_sep_opt(&data_refs, &mut parity_refs)
                 .map_err(|e| StreamError::codec(0, e))?;
+            drop(parity_refs);
 
             // Write parity using the selected stream I/O mode.
             write_block_with_mode(
@@ -598,7 +608,8 @@ impl super::ReedSolomon<crate::galois_8::Field> {
     ///
     /// Reads all shards in blocks, verifying each block independently.
     /// Returns `Ok(true)` if every block is valid, `Ok(false)` if any block
-    /// fails verification.
+    /// fails verification. All shard streams must have the same length;
+    /// truncated streams return [`crate::Error::IncorrectShardSize`].
     ///
     /// # Limitations
     ///
@@ -632,6 +643,8 @@ impl super::ReedSolomon<crate::galois_8::Field> {
         }
 
         let mut bufs: Vec<Vec<u8>> = (0..total).map(|_| Vec::with_capacity(block_size)).collect();
+        let mut verify_bufs: Vec<Vec<u8>> =
+            (0..self.parity_shard_count).map(|_| Vec::new()).collect();
         let mut read_lengths = Vec::with_capacity(total);
 
         loop {
@@ -646,10 +659,17 @@ impl super::ReedSolomon<crate::galois_8::Field> {
                 break;
             }
 
-            let refs: Vec<&[u8]> = bufs.iter().map(|b| &b[..actual_len]).collect();
+            if let Some(&(bad, _)) = read_lengths.iter().find(|(_, len)| *len != actual_len) {
+                return Err(StreamError::codec(bad, crate::Error::IncorrectShardSize));
+            }
+
+            let refs: SmallVec<[&[u8]; 32]> = bufs.iter().map(|b| &b[..actual_len]).collect();
+            for buf in &mut verify_bufs {
+                buf.resize(actual_len, 0);
+            }
 
             let valid = self
-                .verify_par(&refs)
+                .verify_with_buffer_opt(&refs, &mut verify_bufs)
                 .map_err(|e| StreamError::codec(0, e))?;
             if !valid {
                 return Ok(false);
@@ -747,9 +767,8 @@ impl super::ReedSolomon<crate::galois_8::Field> {
         // Strategy: read present shards into buffers per block, reconstruct,
         // then write recovered data into missing shards' cursors.
 
-        // Pre-allocate read buffers and the reconstruct container once. Present
-        // shard buffers are moved into the reconstruct call and then moved back
-        // after each block so their allocations survive across iterations.
+        // Retain both present and missing buffers between blocks. ShardSlot
+        // views mark missing data without relinquishing its backing storage.
         let mut bufs: Vec<Vec<u8>> = (0..total)
             .map(|i| {
                 if present[i] {
@@ -759,7 +778,6 @@ impl super::ReedSolomon<crate::galois_8::Field> {
                 }
             })
             .collect();
-        let mut reconstruct_bufs: Vec<Option<Vec<u8>>> = (0..total).map(|_| None).collect();
         let mut read_lengths = Vec::with_capacity(total);
 
         loop {
@@ -776,34 +794,30 @@ impl super::ReedSolomon<crate::galois_8::Field> {
                 break;
             }
 
-            // Zero-pad present shards to actual_len and reuse the outer
-            // Option<Vec<_>> container for reconstructing this block.
-            for &idx in &present_indices {
-                bufs[idx].resize(actual_len, 0);
-                reconstruct_bufs[idx] = Some(mem::take(&mut bufs[idx]));
-            }
+            // Resize the retained missing buffers for the final partial block.
+            // Present buffers already have their validated read length.
             for &idx in &missing_indices {
-                reconstruct_bufs[idx] = None;
+                bufs[idx].resize(actual_len, 0);
             }
 
-            self.reconstruct(&mut reconstruct_bufs)
-                .map_err(|e| StreamError::codec(0, e))?;
+            {
+                let mut slots: SmallVec<[ShardSlot<&mut [u8]>; 32]> = bufs
+                    .iter_mut()
+                    .zip(&present)
+                    .map(|(buf, &is_present)| {
+                        ShardSlot::with_present(buf.as_mut_slice(), is_present)
+                    })
+                    .collect();
+                self.reconstruct(&mut slots)
+                    .map_err(|e| StreamError::codec(0, e))?;
+            }
 
             // Write recovered data into missing shards' cursors.
             // (reconstruct fills in all missing shards — data and parity)
             for &idx in &missing_indices {
-                let recovered = reconstruct_bufs[idx]
-                    .as_ref()
-                    .expect("missing shard buffer");
                 shards[idx]
                     .get_mut()
-                    .extend_from_slice(&recovered[..actual_len]);
-            }
-
-            for idx in 0..total {
-                if let Some(buf) = reconstruct_bufs[idx].take() {
-                    bufs[idx] = buf;
-                }
+                    .extend_from_slice(&bufs[idx][..actual_len]);
             }
         }
 
