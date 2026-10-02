@@ -817,3 +817,63 @@ Before a future `rust-sve` backend is considered usable, it should add:
 3. override metadata validation
 4. smoke metadata verification
 5. workload and kernel benchmark evidence
+
+## 16. Warm Recovery And Parallel Encode Probe
+
+`benches/recovery_paths.rs` provides a small stable-Rust probe without additional
+dependencies. It keeps deterministic fixtures and measures these cases:
+
+- GF8 and GF16 Leopard recovery: `10+4` with 1 KiB, 32 KiB, and 128 KiB + 64-byte
+  shards, plus `32+16` with 32 KiB shards. The 32 KiB `10+4` cases separately
+  remove one and two data shards; `32+16` removes two.
+- Classic stream recovery: 1 MiB shards, `10+4` with 4 KiB and 64 KiB blocks, and
+  `32+16` with 4 KiB blocks. Each case removes data shard 0 and parity shard 0
+  and uses serial in-memory stream I/O.
+- Classic parallel encode: `4+2` and `10+4` with 256 KiB shards, and `10+4` with
+  1 MiB shards. Enable the SIMD feature appropriate to the comparison host.
+
+For example, on an ARM64 host:
+
+```bash
+RSE_RECOVERY_SAMPLE_MS=100 \
+cargo bench --bench recovery_paths --features "std simd-neon" \
+  > target/recovery-paths.jsonl
+
+RSE_RECOVERY_CASE_FILTER=gf16.reconstruct \
+RSE_RECOVERY_SAMPLE_MS=500 \
+cargo bench --bench recovery_paths --features "std simd-neon" \
+  > target/recovery-gf16.jsonl
+```
+
+`RSE_RECOVERY_SAMPLE_MS` is a positive per-sample duration in milliseconds
+(default 100). `RSE_RECOVERY_CASE_FILTER` optionally selects a substring of the
+reported `case_id`; a filter matching no cases fails. Each case performs 20
+warmup iterations, counts allocations for one further operation, then collects
+three `std::time::Instant` latency samples in batches of eight operations. The
+codec, erasure pattern, and caller buffers are reused. Stream buffers retain
+their capacity when marked missing. Initialization and fixture allocation are
+excluded; invalid reconstructed bytes fail before that case is reported.
+
+Each JSONL row records shard dimensions, missing data/parity counts, stream
+block size, allocation calls, `allocated_bytes`, all three `samples_ns`, their
+iteration counts, and `median_ns_per_iter`. Allocation calls include `alloc`,
+`alloc_zeroed`, and `realloc`; bytes are cumulative requested sizes, including
+the full requested size of each reallocation, **not peak or retained memory**.
+Counting is process-wide for that one warmed operation, including worker
+threads, and disabled for the latency samples. Rows also include architecture,
+OS, active backend, requested `backend_override`, feature flags, metrics mode,
+and thread counts. Before measurements, the probe records `git_revision` and
+`git_dirty` from its source checkout; untracked files count as dirty, and
+unavailable Git metadata is represented as `"unknown"` / `null`. `target_triple`
+uses the existing benchmark `ARCH-OS-ENV` convention, with `unknown` when Cargo's
+target environment is unavailable; it is not necessarily a canonical Rust
+target triple. Record the compiler alongside the output, preserve the tested
+diff for dirty runs, and compare matching `case_id` values under the same
+configuration and resource isolation.
+
+This JSONL schema includes distinct missing-shard patterns; it is not direct
+input to `check_benchmark_regression.py`, whose case key omits that dimension.
+These short samples help identify allocation changes and local regressions.
+They do not establish cold-start cost, broad throughput claims, cross-machine
+speedups, or application-level performance; use repeated controlled runs for
+those conclusions.

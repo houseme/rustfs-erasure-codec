@@ -46,6 +46,12 @@ All notable changes to this project are documented in this file.
 - AddressSanitizer passed 22 field/Leopard regression tests; 11 original release reproducers, 18 Python gate tests, and 6 JavaScript wrapper tests passed.
 - For warmed 10+4 / 32 KiB shards, all-present Leopard reconstruction now performs zero allocations; requested-one-data recovery reduced cumulative allocation bytes from 1,017,342 to 590,672 (GF8) and from 1,476,060 to 1,049,390 (GF16).
 - Local small-output parallel A/B/B/A checks included baseline drift in some cases; no general throughput, x86 runtime, browser integration, or downstream RustFS performance claim is made.
+- Follow-up recovery/stream/SIMD changes passed workspace SIMD+metrics tests, no_std tests, all-feature Clippy, focused AddressSanitizer regressions, Rust 1.98.1 compilation, and x86 cross-compilation.
+- Archive all follow-up A/B/B/A observations, including rejected unstable/broader NEON trials. Only the measured 10+4/1 MiB/small-budget NEON route is enabled; local latency observations are not cross-machine or downstream RustFS guarantees.
+
+
+### Added
+- Add the `recovery_paths` JSONL benchmark with deterministic warm fixtures, cumulative allocation counts, latency samples, backend/features/revision provenance, and documented measurement limits.
 
 
 ## 9.0.0 (2026-09-16)

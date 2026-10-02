@@ -1,0 +1,2994 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "recovery-path-abba-evidence",
+  "baseline_revision": "a101de8a07968e876a50bcf7a56d5d41116deee0",
+  "retained_runtime_revision": "d41a86b8832abc5d1a0aa9c45aa442d0853a2c57",
+  "target": "aarch64-apple-darwin",
+  "compiler": "rustc 1.99.0",
+  "profile": "release",
+  "features": [
+    "std",
+    "simd-accel"
+  ],
+  "benchmark_metrics_enabled": false,
+  "backend": "rust-neon",
+  "fixture_seed": "817abdef76492104",
+  "warmup_iterations": 20,
+  "allocation_iterations": 1,
+  "latency_samples_per_case": 3,
+  "iterations_per_batch": 8,
+  "drift_limits": {
+    "baseline_a1_a2": 0.05,
+    "candidate_b1_b2": 0.05
+  },
+  "notes": [
+    "Local warm microbenchmarks; unrelated desktop activity was not reserved or excluded. No cross-machine or downstream performance claim.",
+    "The probe uses the same cases, fixtures and timed operations now preserved in benches/recovery_paths.rs. Allocation bytes are cumulative requested sizes, not peak or retained memory.",
+    "Decode and stream code is unchanged from the measured candidate to retained_runtime_revision. NEON dispatch was narrowed after the measurements to 10+4, shards at least 1 MiB, and 2-4 jobs; its generated kernel and job execution are unchanged.",
+    "Earlier broad NEON eligibility and automatic-budget trials are retained here as rejected exploration, not as measurements of final dispatch at those unsupported cases.",
+    "Only final-fixed-four rows passing both drift gates are used for recovery/stream latency observations. Only the long-encode 10+4/1MiB row passing both gates is used for the retained NEON latency observation.",
+    "All intermediate/rejected observations remain visible to avoid selecting only favorable samples."
+  ],
+  "runs": [
+    {
+      "name": "initial-fixed-four",
+      "sample_ms": 150,
+      "rayon_threads": 4,
+      "parallel_policy_max_jobs": 4,
+      "raw": {
+        "A1": [
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1024,
+            "extra": 1,
+            "allocations": 9,
+            "allocated_bytes": 19280,
+            "samples_ns": [
+              5121.280755051885,
+              4941.740777338603,
+              4908.505104712042
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 1,
+            "allocations": 9,
+            "allocated_bytes": 590672,
+            "samples_ns": [
+              157511.71875,
+              158065.91386554623,
+              160274.4391025641
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 10,
+            "allocated_bytes": 623440,
+            "samples_ns": [
+              156807.465625,
+              159021.5836864407,
+              157346.83229166668
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 131136,
+            "extra": 1,
+            "allocations": 9,
+            "allocated_bytes": 689040,
+            "samples_ns": [
+              691026.2276785715,
+              693374.2544642857,
+              694922.4537037037
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 16,
+            "allocated_bytes": 2199920,
+            "samples_ns": [
+              693372.5803571428,
+              691509.4866071428,
+              687368.1160714285
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1024,
+            "extra": 1,
+            "allocations": 22,
+            "allocated_bytes": 33582,
+            "samples_ns": [
+              4883.3984375,
+              4925.203572366693,
+              4899.442546380978
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 1,
+            "allocations": 22,
+            "allocated_bytes": 1049390,
+            "samples_ns": [
+              125053.26333333334,
+              125580.24333333333,
+              125312.29166666667
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 22,
+            "allocated_bytes": 1049390,
+            "samples_ns": [
+              124545.21937086093,
+              124507.72599337748,
+              124848.6821192053
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 131136,
+            "extra": 1,
+            "allocations": 33,
+            "allocated_bytes": 5245022,
+            "samples_ns": [
+              329300.07236842107,
+              329304.0021929825,
+              330442.79824561405
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 59,
+            "allocated_bytes": 3739872,
+            "samples_ns": [
+              647936.9612068966,
+              644568.75,
+              648356.1422413794
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 4096,
+            "allocations": 21,
+            "allocated_bytes": 58174,
+            "samples_ns": [
+              708405.4768518518,
+              701641.3935185185,
+              700475.5046296297
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 65536,
+            "allocations": 21,
+            "allocated_bytes": 918334,
+            "samples_ns": [
+              609017.9798387097,
+              603316.89453125,
+              604403.484375
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 1048576,
+            "extra": 4096,
+            "allocations": 313,
+            "allocated_bytes": 592816,
+            "samples_ns": [
+              2690537.1964285714,
+              2780567.714285714,
+              2782861.6071428573
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 4,
+            "m": 2,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              25385.226319350473,
+              25450.46777476255,
+              25646.33862704918
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              76932.24897540984,
+              75742.92288306452,
+              75426.3514056225
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              288896.0730769231,
+              288095.80303030304,
+              286854.2462121212
+            ]
+          }
+        ],
+        "B1": [
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1024,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 1024,
+            "samples_ns": [
+              5268.038974719101,
+              4499.052813099808,
+              4522.0754461056185
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 32768,
+            "samples_ns": [
+              152221.47983870967,
+              152518.1656504065,
+              154755.50717213115
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 2,
+            "allocated_bytes": 65536,
+            "samples_ns": [
+              155536.5444214876,
+              155257.48966942148,
+              156296.484375
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 131136,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 131136,
+            "samples_ns": [
+              636352.6041666666,
+              625794.0958333333,
+              623485.5483870967
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 6,
+            "allocated_bytes": 68528,
+            "samples_ns": [
+              679731.0267857143,
+              679706.2901785715,
+              673661.2723214285
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1024,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 1024,
+            "samples_ns": [
+              4511.7989653513,
+              4775.662337662337,
+              4458.13394555397
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 32768,
+            "samples_ns": [
+              119799.32961783439,
+              120449.21875,
+              120125.16560509554
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 2,
+            "allocated_bytes": 65536,
+            "samples_ns": [
+              120445.77964743589,
+              120780.84935897436,
+              120301.8157051282
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 131136,
+            "extra": 1,
+            "allocations": 6,
+            "allocated_bytes": 131440,
+            "samples_ns": [
+              286601.48295454547,
+              287337.98863636365,
+              288123.9734848485
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 6,
+            "allocated_bytes": 68528,
+            "samples_ns": [
+              623633.7379032258,
+              622831.4838709678,
+              626344.2708333334
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 4096,
+            "allocations": 21,
+            "allocated_bytes": 58174,
+            "samples_ns": [
+              669952.5669642857,
+              666369.6120689656,
+              665226.474137931
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 65536,
+            "allocations": 21,
+            "allocated_bytes": 918334,
+            "samples_ns": [
+              608520.3306451613,
+              610028.3951612903,
+              613067.7056451613
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 1048576,
+            "extra": 4096,
+            "allocations": 57,
+            "allocated_bytes": 199600,
+            "samples_ns": [
+              2587464.84375,
+              2731025.285714286,
+              2641322.921875
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 4,
+            "m": 2,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              17142.762568555758,
+              17424.326833797586,
+              17468.226256983242
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              67042.05758928572,
+              66209.72711267606,
+              67004.8736607143
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              202879.2002688172,
+              203725.07795698923,
+              217822.55747126436
+            ]
+          }
+        ],
+        "B2": [
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1024,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 1024,
+            "samples_ns": [
+              4598.315933055419,
+              4552.114924739014,
+              4595.667401960784
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 32768,
+            "samples_ns": [
+              154196.33709016393,
+              153188.55792682926,
+              153552.08333333334
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 2,
+            "allocated_bytes": 65536,
+            "samples_ns": [
+              156375.91145833334,
+              155551.0506198347,
+              155923.2097107438
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 131136,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 131136,
+            "samples_ns": [
+              630253.9916666667,
+              627512.85,
+              627596.875
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 6,
+            "allocated_bytes": 68528,
+            "samples_ns": [
+              685048.5491071428,
+              685615.1428571428,
+              678903.6473214285
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1024,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 1024,
+            "samples_ns": [
+              4515.759210209487,
+              4487.870482288176,
+              4469.873599523242
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 32768,
+            "samples_ns": [
+              120592.71474358975,
+              120641.89342948717,
+              120450.38701923077
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 2,
+            "allocated_bytes": 65536,
+            "samples_ns": [
+              123072.37173202615,
+              122631.29738562091,
+              120930.05448717948
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 131136,
+            "extra": 1,
+            "allocations": 6,
+            "allocated_bytes": 131440,
+            "samples_ns": [
+              288104.48295454547,
+              289842.54807692306,
+              287707.38636363635
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 6,
+            "allocated_bytes": 68528,
+            "samples_ns": [
+              629015.4541666667,
+              629663.7166666667,
+              626013.5416666666
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 4096,
+            "allocations": 21,
+            "allocated_bytes": 58174,
+            "samples_ns": [
+              671213.5446428572,
+              675539.9910714285,
+              673095.6116071428
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 65536,
+            "allocations": 21,
+            "allocated_bytes": 918334,
+            "samples_ns": [
+              608387.4314516129,
+              613642.1370967742,
+              619985.5483870967
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 1048576,
+            "extra": 4096,
+            "allocations": 57,
+            "allocated_bytes": 199600,
+            "samples_ns": [
+              2662453.78125,
+              2719837.0535714286,
+              2698761.160714286
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 4,
+            "m": 2,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              17505.985657649253,
+              17891.663764312976,
+              17443.77418604651
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              66340.58436395759,
+              67024.49776785714,
+              67043.97321428571
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              208920.54444444444,
+              213798.94602272726,
+              212123.9466292135
+            ]
+          }
+        ],
+        "A2": [
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1024,
+            "extra": 1,
+            "allocations": 9,
+            "allocated_bytes": 19280,
+            "samples_ns": [
+              5060.52121559633,
+              5054.8840296495955,
+              5046.207851184069
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 1,
+            "allocations": 9,
+            "allocated_bytes": 590672,
+            "samples_ns": [
+              158822.34768907563,
+              159675.4502118644,
+              160211.64406779662
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 10,
+            "allocated_bytes": 623440,
+            "samples_ns": [
+              160998.84188034188,
+              159641.59533898305,
+              159869.57097457626
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 131136,
+            "extra": 1,
+            "allocations": 9,
+            "allocated_bytes": 689040,
+            "samples_ns": [
+              717961.9953703703,
+              711880.0138888889,
+              711500.3888888889
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 16,
+            "allocated_bytes": 2199920,
+            "samples_ns": [
+              702657.7962962963,
+              700846.2592592592,
+              699755.4027777778
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1024,
+            "extra": 1,
+            "allocations": 22,
+            "allocated_bytes": 33582,
+            "samples_ns": [
+              5054.854582210242,
+              5006.593132674853,
+              5009.5316590969815
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 1,
+            "allocations": 22,
+            "allocated_bytes": 1049390,
+            "samples_ns": [
+              128356.04421768707,
+              126298.90268456376,
+              126740.11148648648
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 22,
+            "allocated_bytes": 1049390,
+            "samples_ns": [
+              127699.08588435374,
+              127195.3125,
+              126580.50167785234
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 131136,
+            "extra": 1,
+            "allocations": 33,
+            "allocated_bytes": 5245022,
+            "samples_ns": [
+              330414.2916666667,
+              329647.2960526316,
+              328165.8599137931
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 59,
+            "allocated_bytes": 3739872,
+            "samples_ns": [
+              657480.426724138,
+              655184.448275862,
+              650916.125
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 4096,
+            "allocations": 21,
+            "allocated_bytes": 58174,
+            "samples_ns": [
+              713369.4074074074,
+              709635.0277777778,
+              712697.5324074074
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 65536,
+            "allocations": 21,
+            "allocated_bytes": 918334,
+            "samples_ns": [
+              609104.3346774194,
+              610628.5282258064,
+              611626.6774193548
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 1048576,
+            "extra": 4096,
+            "allocations": 313,
+            "allocated_bytes": 592816,
+            "samples_ns": [
+              2766018.6071428573,
+              2771569.1964285714,
+              2717879.464285714
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 4,
+            "m": 2,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              25914.0625,
+              25801.675034387896,
+              25184.591610738255
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              76906.86885245901,
+              73729.90196078431,
+              73533.82352941176
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              288050.6628787879,
+              289398.7192307692,
+              285265.2310606061
+            ]
+          }
+        ]
+      },
+      "summary": [
+        {
+          "case": [
+            "gf8.reconstruct",
+            10,
+            4,
+            1024,
+            1
+          ],
+          "median_ns_by_stage": [
+            4941.740777338603,
+            4522.0754461056185,
+            4595.667401960784,
+            5054.8840296495955
+          ],
+          "a1_a2_drift": 0.02289542438766401,
+          "b1_b2_drift": 0.01627393366878538,
+          "drift_gate_passed": true,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.08791786987017947
+        },
+        {
+          "case": [
+            "gf8.reconstruct",
+            10,
+            4,
+            32768,
+            1
+          ],
+          "median_ns_by_stage": [
+            158065.91386554623,
+            152518.1656504065,
+            153552.08333333334,
+            159675.4502118644
+          ],
+          "a1_a2_drift": 0.01018269092277091,
+          "b1_b2_drift": 0.006778980579249305,
+          "drift_gate_passed": true,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.036731494269116816
+        },
+        {
+          "case": [
+            "gf8.reconstruct",
+            10,
+            4,
+            32768,
+            2
+          ],
+          "median_ns_by_stage": [
+            157346.83229166668,
+            155536.5444214876,
+            155923.2097107438,
+            159869.57097457626
+          ],
+          "a1_a2_drift": 0.016032980430348287,
+          "b1_b2_drift": 0.0024860092571452608,
+          "drift_gate_passed": true,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.01814738794948101
+        },
+        {
+          "case": [
+            "gf8.reconstruct",
+            10,
+            4,
+            131136,
+            1
+          ],
+          "median_ns_by_stage": [
+            693374.2544642857,
+            625794.0958333333,
+            627596.875,
+            711880.0138888889
+          ],
+          "a1_a2_drift": 0.02668942393729501,
+          "b1_b2_drift": 0.0028807864738098488,
+          "drift_gate_passed": true,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.10806819871667117
+        },
+        {
+          "case": [
+            "gf8.reconstruct",
+            32,
+            16,
+            32768,
+            2
+          ],
+          "median_ns_by_stage": [
+            691509.4866071428,
+            679706.2901785715,
+            685048.5491071428,
+            700846.2592592592
+          ],
+          "a1_a2_drift": 0.013502016722759302,
+          "b1_b2_drift": 0.007859657922494545,
+          "drift_gate_passed": true,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.01982317138606904
+        },
+        {
+          "case": [
+            "gf16.reconstruct",
+            10,
+            4,
+            1024,
+            1
+          ],
+          "median_ns_by_stage": [
+            4899.442546380978,
+            4511.7989653513,
+            4487.870482288176,
+            5009.5316590969815
+          ],
+          "a1_a2_drift": 0.022469722151823746,
+          "b1_b2_drift": 0.005303534853144831,
+          "drift_gate_passed": true,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.09176578109727984
+        },
+        {
+          "case": [
+            "gf16.reconstruct",
+            10,
+            4,
+            32768,
+            1
+          ],
+          "median_ns_by_stage": [
+            125312.29166666667,
+            120125.16560509554,
+            120592.71474358975,
+            126740.11148648648
+          ],
+          "a1_a2_drift": 0.011394092317917437,
+          "b1_b2_drift": 0.003892183092019552,
+          "drift_gate_passed": true,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.04496891385550772
+        },
+        {
+          "case": [
+            "gf16.reconstruct",
+            10,
+            4,
+            32768,
+            2
+          ],
+          "median_ns_by_stage": [
+            124545.21937086093,
+            120445.77964743589,
+            122631.29738562091,
+            127195.3125
+          ],
+          "a1_a2_drift": 0.021278160193751283,
+          "b1_b2_drift": 0.018145241324207362,
+          "drift_gate_passed": true,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.034414223142455014
+        },
+        {
+          "case": [
+            "gf16.reconstruct",
+            10,
+            4,
+            131136,
+            1
+          ],
+          "median_ns_by_stage": [
+            329304.0021929825,
+            287337.98863636365,
+            288104.48295454547,
+            329647.2960526316
+          ],
+          "a1_a2_drift": 0.0010424831078972296,
+          "b1_b2_drift": 0.0026675704170529,
+          "drift_gate_passed": true,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.1267298916885633
+        },
+        {
+          "case": [
+            "gf16.reconstruct",
+            32,
+            16,
+            32768,
+            2
+          ],
+          "median_ns_by_stage": [
+            647936.9612068966,
+            623633.7379032258,
+            629015.4541666667,
+            655184.448275862
+          ],
+          "a1_a2_drift": 0.011185481771970096,
+          "b1_b2_drift": 0.008629610517120634,
+          "drift_gate_passed": true,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.03873178434916491
+        },
+        {
+          "case": [
+            "stream.reconstruct",
+            10,
+            4,
+            1048576,
+            4096
+          ],
+          "median_ns_by_stage": [
+            701641.3935185185,
+            666369.6120689656,
+            673095.6116071428,
+            712697.5324074074
+          ],
+          "a1_a2_drift": 0.01575753510414435,
+          "b1_b2_drift": 0.010093496786707012,
+          "drift_gate_passed": true,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.05293900979271993
+        },
+        {
+          "case": [
+            "stream.reconstruct",
+            10,
+            4,
+            1048576,
+            65536
+          ],
+          "median_ns_by_stage": [
+            604403.484375,
+            610028.3951612903,
+            613642.1370967742,
+            610628.5282258064
+          ],
+          "a1_a2_drift": 0.0102994837252528,
+          "b1_b2_drift": 0.005923891353497357,
+          "drift_gate_passed": true,
+          "latency_observation_used": false,
+          "candidate_latency_change": 0.007109705396787902
+        },
+        {
+          "case": [
+            "stream.reconstruct",
+            32,
+            16,
+            1048576,
+            4096
+          ],
+          "median_ns_by_stage": [
+            2780567.714285714,
+            2641322.921875,
+            2698761.160714286,
+            2766018.6071428573
+          ],
+          "a1_a2_drift": 0.0052324232451193,
+          "b1_b2_drift": 0.021746011577604474,
+          "drift_gate_passed": true,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.037230510240413794
+        },
+        {
+          "case": [
+            "encode.parallel",
+            4,
+            2,
+            262144,
+            0
+          ],
+          "median_ns_by_stage": [
+            25450.46777476255,
+            17424.326833797586,
+            17505.985657649253,
+            25801.675034387896
+          ],
+          "a1_a2_drift": 0.013799638683797077,
+          "b1_b2_drift": 0.0046864837092746026,
+          "drift_gate_passed": true,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.31846142274444666
+        },
+        {
+          "case": [
+            "encode.parallel",
+            10,
+            4,
+            262144,
+            0
+          ],
+          "median_ns_by_stage": [
+            75742.92288306452,
+            67004.8736607143,
+            67024.49776785714,
+            73729.90196078431
+          ],
+          "a1_a2_drift": 0.026577016646004092,
+          "b1_b2_drift": 0.00029287581739523283,
+          "drift_gate_passed": true,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.103319472495491
+        },
+        {
+          "case": [
+            "encode.parallel",
+            10,
+            4,
+            1048576,
+            0
+          ],
+          "median_ns_by_stage": [
+            288095.80303030304,
+            203725.07795698923,
+            212123.9466292135,
+            288050.6628787879
+          ],
+          "a1_a2_drift": 0.00015668451619332835,
+          "b1_b2_drift": 0.04122648402666185,
+          "drift_gate_passed": true,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.27822342200773176
+        }
+      ]
+    },
+    {
+      "name": "final-fixed-four",
+      "sample_ms": 200,
+      "rayon_threads": 4,
+      "parallel_policy_max_jobs": 4,
+      "raw": {
+        "A1": [
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1024,
+            "extra": 1,
+            "allocations": 9,
+            "allocated_bytes": 19280,
+            "samples_ns": [
+              5159.3539259182835,
+              5103.65424066136,
+              5110.282980788882
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 1,
+            "allocations": 9,
+            "allocated_bytes": 590672,
+            "samples_ns": [
+              165917.0455298013,
+              164057.83578431373,
+              163058.8133116883
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 10,
+            "allocated_bytes": 623440,
+            "samples_ns": [
+              162056.0483870968,
+              161949.93306451614,
+              161355.74596774194
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 131136,
+            "extra": 1,
+            "allocations": 9,
+            "allocated_bytes": 689040,
+            "samples_ns": [
+              716168.3035714285,
+              708633.1006944445,
+              705191.8402777778
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 16,
+            "allocated_bytes": 2199920,
+            "samples_ns": [
+              698816.8402777778,
+              699106.1909722222,
+              700905.2361111111
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1024,
+            "extra": 1,
+            "allocations": 22,
+            "allocated_bytes": 33582,
+            "samples_ns": [
+              5047.586917019988,
+              4987.470077797726,
+              5009.620441795231
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 1,
+            "allocations": 22,
+            "allocated_bytes": 1049390,
+            "samples_ns": [
+              128106.1862244898,
+              128710.92371794872,
+              128636.08461538462
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 22,
+            "allocated_bytes": 1049390,
+            "samples_ns": [
+              129456.856314433,
+              130275.22786458333,
+              129553.21696891192
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 131136,
+            "extra": 1,
+            "allocations": 33,
+            "allocated_bytes": 5245022,
+            "samples_ns": [
+              329853.61842105264,
+              329363.0756578947,
+              328755.5470779221
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 59,
+            "allocated_bytes": 3739872,
+            "samples_ns": [
+              657145.9647435897,
+              653495.9935897436,
+              659689.4177631579
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 4096,
+            "allocations": 21,
+            "allocated_bytes": 58174,
+            "samples_ns": [
+              721667.5571428571,
+              725389.1357142857,
+              721775.4464285715
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 65536,
+            "allocations": 21,
+            "allocated_bytes": 918334,
+            "samples_ns": [
+              610468.6219512195,
+              622261.5609756098,
+              611519.3079268293
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 1048576,
+            "extra": 4096,
+            "allocations": 313,
+            "allocated_bytes": 592816,
+            "samples_ns": [
+              2901545.722222222,
+              2907586.236111111,
+              3022561.3333333335
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 4,
+            "m": 2,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              25147.000628140704,
+              25255.566035353535,
+              25161.24346076459
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              75926.45189393939,
+              74606.19754464286,
+              74574.74590773809
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              283071.51264044945,
+              286178.02982954547,
+              286866.71448863635
+            ]
+          }
+        ],
+        "B1": [
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1024,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 1024,
+            "samples_ns": [
+              5130.329109378206,
+              4589.648724302497,
+              4606.156733603537
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 32768,
+            "samples_ns": [
+              157849.6462264151,
+              157284.62421383648,
+              158692.54351265822
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 2,
+            "allocated_bytes": 65536,
+            "samples_ns": [
+              158534.81012658228,
+              158531.01898734178,
+              157483.8176100629
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 131136,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 131136,
+            "samples_ns": [
+              643740.25,
+              641297.2756410256,
+              637145.3125
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 6,
+            "allocated_bytes": 68528,
+            "samples_ns": [
+              693857.6858108108,
+              687685.1047297297,
+              689645.1283783783
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1024,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 1024,
+            "samples_ns": [
+              4520.392627915386,
+              5678.141774523161,
+              7340.806371109807
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 32768,
+            "samples_ns": [
+              165888.55546357617,
+              122104.82743902439,
+              121472.56735436893
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 2,
+            "allocated_bytes": 65536,
+            "samples_ns": [
+              122402.89634146342,
+              122941.07475490196,
+              122281.88536585365
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 131136,
+            "extra": 1,
+            "allocations": 6,
+            "allocated_bytes": 131440,
+            "samples_ns": [
+              286291.31107954547,
+              286734.4928977273,
+              286504.49857954547
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 6,
+            "allocated_bytes": 68528,
+            "samples_ns": [
+              631363.93125,
+              626665.8875,
+              627235.80625
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 4096,
+            "allocations": 21,
+            "allocated_bytes": 58174,
+            "samples_ns": [
+              738755.9742647059,
+              838257.6375,
+              678012.9493243244
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 65536,
+            "allocations": 21,
+            "allocated_bytes": 918334,
+            "samples_ns": [
+              610418.8262195121,
+              615758.1280487805,
+              611402.6920731707
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 1048576,
+            "extra": 4096,
+            "allocations": 57,
+            "allocated_bytes": 199600,
+            "samples_ns": [
+              2705808.85,
+              2695708.325,
+              2766381.7625
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 4,
+            "m": 2,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              17475.206673654786,
+              17808.641915954417,
+              17610.299295774646
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              56003.5187360179,
+              56509.75818284424,
+              56572.45701357466
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              218434.4195652174,
+              221307.10730088496,
+              214843.70512820513
+            ]
+          }
+        ],
+        "B2": [
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1024,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 1024,
+            "samples_ns": [
+              4681.873244382023,
+              4624.235181246532,
+              4647.601068773234
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 32768,
+            "samples_ns": [
+              155918.28416149068,
+              156779.42734375,
+              157521.65251572328
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 2,
+            "allocated_bytes": 65536,
+            "samples_ns": [
+              158457.54272151898,
+              158884.29588607594,
+              158397.74525316455
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 131136,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 131136,
+            "samples_ns": [
+              645059.1602564103,
+              716262.2035714285,
+              643340.0096153846
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 6,
+            "allocated_bytes": 68528,
+            "samples_ns": [
+              708893.8090277778,
+              711417.2465277778,
+              704595.4861111111
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1024,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 1024,
+            "samples_ns": [
+              4567.636029411765,
+              4542.316769622093,
+              4519.810873101952
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 1,
+            "allocations": 1,
+            "allocated_bytes": 32768,
+            "samples_ns": [
+              120878.9752415459,
+              120866.49577294686,
+              120760.44170673077
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 2,
+            "allocated_bytes": 65536,
+            "samples_ns": [
+              121854.79915048544,
+              121648.53822815535,
+              121693.77002427184
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 131136,
+            "extra": 1,
+            "allocations": 6,
+            "allocated_bytes": 131440,
+            "samples_ns": [
+              286259.47017045453,
+              286269.9460227273,
+              287556.7528735632
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 6,
+            "allocated_bytes": 68528,
+            "samples_ns": [
+              630397.396875,
+              628331.25,
+              627613.8
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 4096,
+            "allocations": 21,
+            "allocated_bytes": 58174,
+            "samples_ns": [
+              674914.884868421,
+              680060.5304054054,
+              679769.7094594594
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 65536,
+            "allocations": 21,
+            "allocated_bytes": 918334,
+            "samples_ns": [
+              624668.9542682926,
+              605926.9583333334,
+              603756.5714285715
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 1048576,
+            "extra": 4096,
+            "allocations": 57,
+            "allocated_bytes": 199600,
+            "samples_ns": [
+              2585637.5,
+              2556826.5625,
+              2556178.65
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 4,
+            "m": 2,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              17216.00421541638,
+              17272.18577348066,
+              17125.06421232877
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              68503.38695355192,
+              67875.42344173441,
+              68811.82760989011
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              242843.85072815535,
+              238608.72976190477,
+              238319.74285714285
+            ]
+          }
+        ],
+        "A2": [
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1024,
+            "extra": 1,
+            "allocations": 9,
+            "allocated_bytes": 19280,
+            "samples_ns": [
+              5075.234292529436,
+              5070.360550598256,
+              5053.805766120881
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 1,
+            "allocations": 9,
+            "allocated_bytes": 590672,
+            "samples_ns": [
+              160217.0581210191,
+              159568.47133757963,
+              159394.6393312102
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 10,
+            "allocated_bytes": 623440,
+            "samples_ns": [
+              160903.2451923077,
+              161372.81612903226,
+              160667.23397435897
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 131136,
+            "extra": 1,
+            "allocations": 9,
+            "allocated_bytes": 689040,
+            "samples_ns": [
+              711403.6458333334,
+              709800.4930555555,
+              713368.1979166666
+            ]
+          },
+          {
+            "operation": "gf8.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 16,
+            "allocated_bytes": 2199920,
+            "samples_ns": [
+              703776.3333333334,
+              701595.9201388889,
+              705787.3263888889
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1024,
+            "extra": 1,
+            "allocations": 22,
+            "allocated_bytes": 33582,
+            "samples_ns": [
+              5034.511754933548,
+              5041.097530241936,
+              5029.9539328103
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 1,
+            "allocations": 22,
+            "allocated_bytes": 1049390,
+            "samples_ns": [
+              129405.14884020618,
+              128588.43525641026,
+              128236.67243589743
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 22,
+            "allocated_bytes": 1049390,
+            "samples_ns": [
+              130761.63736979167,
+              130691.54231770833,
+              130939.73625654451
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 131136,
+            "extra": 1,
+            "allocations": 33,
+            "allocated_bytes": 5245022,
+            "samples_ns": [
+              327614.3133116883,
+              327239.44805194804,
+              328331.8441558442
+            ]
+          },
+          {
+            "operation": "gf16.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 32768,
+            "extra": 2,
+            "allocations": 59,
+            "allocated_bytes": 3739872,
+            "samples_ns": [
+              655974.358974359,
+              653745.8621794871,
+              670747.8059210526
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 4096,
+            "allocations": 21,
+            "allocated_bytes": 58174,
+            "samples_ns": [
+              719672.1714285715,
+              718427.2321428572,
+              718605.2071428571
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 65536,
+            "allocations": 21,
+            "allocated_bytes": 918334,
+            "samples_ns": [
+              608325.7678571428,
+              609659.9702380953,
+              608058.7797619047
+            ]
+          },
+          {
+            "operation": "stream.reconstruct",
+            "k": 32,
+            "m": 16,
+            "shard_bytes": 1048576,
+            "extra": 4096,
+            "allocations": 313,
+            "allocated_bytes": 592816,
+            "samples_ns": [
+              2766945.3125,
+              2877538.777777778,
+              2748630.2125
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 4,
+            "m": 2,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 1,
+            "allocated_bytes": 1520,
+            "samples_ns": [
+              25422.197916666668,
+              24950.367647058825,
+              24892.091542288556
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              73804.67994100295,
+              73090.77405247814,
+              73384.69868035191
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              290484.3146551724,
+              291412.18459302327,
+              292753.0886627907
+            ]
+          }
+        ]
+      },
+      "summary": [
+        {
+          "case": [
+            "gf8.reconstruct",
+            10,
+            4,
+            1024,
+            1
+          ],
+          "median_ns_by_stage": [
+            5110.282980788882,
+            4606.156733603537,
+            4647.601068773234,
+            5070.360550598256
+          ],
+          "a1_a2_drift": 0.007812176026397499,
+          "b1_b2_drift": 0.008997595515442658,
+          "drift_gate_passed": true,
+          "latency_observation_used": true,
+          "candidate_latency_change": -0.09104392331906697
+        },
+        {
+          "case": [
+            "gf8.reconstruct",
+            10,
+            4,
+            32768,
+            1
+          ],
+          "median_ns_by_stage": [
+            164057.83578431373,
+            157849.6462264151,
+            156779.42734375,
+            159568.47133757963
+          ],
+          "a1_a2_drift": 0.02736452315899285,
+          "b1_b2_drift": 0.0067799891114738164,
+          "drift_gate_passed": true,
+          "latency_observation_used": true,
+          "candidate_latency_change": -0.027801304633555346
+        },
+        {
+          "case": [
+            "gf8.reconstruct",
+            10,
+            4,
+            32768,
+            2
+          ],
+          "median_ns_by_stage": [
+            161949.93306451614,
+            158531.01898734178,
+            158457.54272151898,
+            160903.2451923077
+          ],
+          "a1_a2_drift": 0.006463033682091668,
+          "b1_b2_drift": 0.00046348195004453085,
+          "drift_gate_passed": true,
+          "latency_observation_used": true,
+          "candidate_latency_change": -0.01816496458119987
+        },
+        {
+          "case": [
+            "gf8.reconstruct",
+            10,
+            4,
+            131136,
+            1
+          ],
+          "median_ns_by_stage": [
+            708633.1006944445,
+            641297.2756410256,
+            645059.1602564103,
+            711403.6458333334
+          ],
+          "a1_a2_drift": 0.003909703252887642,
+          "b1_b2_drift": 0.0058660542595074805,
+          "drift_gate_passed": true,
+          "latency_observation_used": true,
+          "candidate_latency_change": -0.09413862772017145
+        },
+        {
+          "case": [
+            "gf8.reconstruct",
+            32,
+            16,
+            32768,
+            2
+          ],
+          "median_ns_by_stage": [
+            699106.1909722222,
+            689645.1283783783,
+            708893.8090277778,
+            703776.3333333334
+          ],
+          "a1_a2_drift": 0.00668016164270635,
+          "b1_b2_drift": 0.02791099343318848,
+          "drift_gate_passed": true,
+          "latency_observation_used": true,
+          "candidate_latency_change": -0.003096187188980415
+        },
+        {
+          "case": [
+            "gf16.reconstruct",
+            10,
+            4,
+            1024,
+            1
+          ],
+          "median_ns_by_stage": [
+            5009.620441795231,
+            5678.141774523161,
+            4542.316769622093,
+            5034.511754933548
+          ],
+          "a1_a2_drift": 0.00496870240520586,
+          "b1_b2_drift": 0.20003463280845124,
+          "drift_gate_passed": false,
+          "latency_observation_used": false,
+          "candidate_latency_change": 0.017555159964332212
+        },
+        {
+          "case": [
+            "gf16.reconstruct",
+            10,
+            4,
+            32768,
+            1
+          ],
+          "median_ns_by_stage": [
+            128636.08461538462,
+            122104.82743902439,
+            120866.49577294686,
+            128588.43525641026
+          ],
+          "a1_a2_drift": 0.0003704198484960619,
+          "b1_b2_drift": 0.010141545523217887,
+          "drift_gate_passed": true,
+          "latency_observation_used": true,
+          "candidate_latency_change": -0.05541150068791134
+        },
+        {
+          "case": [
+            "gf16.reconstruct",
+            10,
+            4,
+            32768,
+            2
+          ],
+          "median_ns_by_stage": [
+            129553.21696891192,
+            122402.89634146342,
+            121693.77002427184,
+            130761.63736979167
+          ],
+          "a1_a2_drift": 0.009327598566461814,
+          "b1_b2_drift": 0.00579337857507356,
+          "drift_gate_passed": true,
+          "latency_observation_used": true,
+          "candidate_latency_change": -0.06230219944293436
+        },
+        {
+          "case": [
+            "gf16.reconstruct",
+            10,
+            4,
+            131136,
+            1
+          ],
+          "median_ns_by_stage": [
+            329363.0756578947,
+            286504.49857954547,
+            286269.9460227273,
+            327614.3133116883
+          ],
+          "a1_a2_drift": 0.0053095276169415895,
+          "b1_b2_drift": 0.0008186697171634894,
+          "drift_gate_passed": true,
+          "latency_observation_used": true,
+          "candidate_latency_change": -0.1281671877617827
+        },
+        {
+          "case": [
+            "gf16.reconstruct",
+            32,
+            16,
+            32768,
+            2
+          ],
+          "median_ns_by_stage": [
+            657145.9647435897,
+            627235.80625,
+            628331.25,
+            655974.358974359
+          ],
+          "a1_a2_drift": 0.0017828699133652925,
+          "b1_b2_drift": 0.0017464623975298466,
+          "drift_gate_passed": true,
+          "latency_observation_used": true,
+          "candidate_latency_change": -0.04382939356615345
+        },
+        {
+          "case": [
+            "stream.reconstruct",
+            10,
+            4,
+            1048576,
+            4096
+          ],
+          "median_ns_by_stage": [
+            721775.4464285715,
+            738755.9742647059,
+            679769.7094594594,
+            718605.2071428571
+          ],
+          "a1_a2_drift": 0.004392279207336647,
+          "b1_b2_drift": 0.07984539802057955,
+          "drift_gate_passed": false,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.015173051507651025
+        },
+        {
+          "case": [
+            "stream.reconstruct",
+            10,
+            4,
+            1048576,
+            65536
+          ],
+          "median_ns_by_stage": [
+            611519.3079268293,
+            611402.6920731707,
+            605926.9583333334,
+            608325.7678571428
+          ],
+          "a1_a2_drift": 0.005222304558973323,
+          "b1_b2_drift": 0.008956018366994667,
+          "drift_gate_passed": true,
+          "latency_observation_used": true,
+          "candidate_latency_change": -0.0020620859381274004
+        },
+        {
+          "case": [
+            "stream.reconstruct",
+            32,
+            16,
+            1048576,
+            4096
+          ],
+          "median_ns_by_stage": [
+            2907586.236111111,
+            2705808.85,
+            2556826.5625,
+            2766945.3125
+          ],
+          "a1_a2_drift": 0.04837033614494535,
+          "b1_b2_drift": 0.05506016712895301,
+          "drift_gate_passed": false,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.07258680872290268
+        },
+        {
+          "case": [
+            "encode.parallel",
+            4,
+            2,
+            262144,
+            0
+          ],
+          "median_ns_by_stage": [
+            25161.24346076459,
+            17610.299295774646,
+            17216.00421541638,
+            24950.367647058825
+          ],
+          "a1_a2_drift": 0.008380977435975878,
+          "b1_b2_drift": 0.022390027207139784,
+          "drift_gate_passed": true,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.30502526777164507
+        },
+        {
+          "case": [
+            "encode.parallel",
+            10,
+            4,
+            262144,
+            0
+          ],
+          "median_ns_by_stage": [
+            74606.19754464286,
+            56509.75818284424,
+            68503.38695355192,
+            73384.69868035191
+          ],
+          "a1_a2_drift": 0.016372619225903162,
+          "b1_b2_drift": 0.212239959192549,
+          "drift_gate_passed": false,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.15526462555956733
+        },
+        {
+          "case": [
+            "encode.parallel",
+            10,
+            4,
+            1048576,
+            0
+          ],
+          "median_ns_by_stage": [
+            286178.02982954547,
+            218434.4195652174,
+            238608.72976190477,
+            291412.18459302327
+          ],
+          "a1_a2_drift": 0.018289855327452642,
+          "b1_b2_drift": 0.09235865957775014,
+          "drift_gate_passed": false,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.20870690341587672
+        }
+      ]
+    },
+    {
+      "name": "rejected-auto-prototype",
+      "sample_ms": 200,
+      "rayon_threads": "automatic",
+      "parallel_policy_max_jobs": "automatic",
+      "raw": {
+        "A1": [
+          {
+            "operation": "encode.parallel",
+            "k": 4,
+            "m": 2,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              98908.92588932806,
+              98236.39705882352,
+              79138.8943829114
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              130361.70833333333,
+              130320.013671875,
+              140554.61522346368
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              265230.59210526315,
+              272445.76630434784,
+              263998.95789473684
+            ]
+          }
+        ],
+        "B1": [
+          {
+            "operation": "encode.parallel",
+            "k": 4,
+            "m": 2,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              108931.6347826087,
+              114645.73858447488,
+              115886.98379629629
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              146571.85087719298,
+              148646.60428994082,
+              146100.59302325582
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              237310.14150943398,
+              234423.28738317758,
+              240584.98677884616
+            ]
+          }
+        ],
+        "B2": [
+          {
+            "operation": "encode.parallel",
+            "k": 4,
+            "m": 2,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              107886.24730603448,
+              105582.32225738396,
+              106603.14734042554
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              125865.39510050252,
+              128632.61217948717,
+              128689.66346153847
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              222769.12831858406,
+              222175.2400442478,
+              218840.08152173914
+            ]
+          }
+        ],
+        "A2": [
+          {
+            "operation": "encode.parallel",
+            "k": 4,
+            "m": 2,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              99223.02827380953,
+              95643.34875954199,
+              42677.590017064846
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              134160.817513369,
+              105729.91402953587,
+              115387.6008064516
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              312888.60625,
+              330611.5405844156,
+              342104.5878378378
+            ]
+          }
+        ]
+      },
+      "summary": [
+        {
+          "case": [
+            "encode.parallel",
+            4,
+            2,
+            262144,
+            0
+          ],
+          "median_ns_by_stage": [
+            98236.39705882352,
+            114645.73858447488,
+            106603.14734042554,
+            95643.34875954199
+          ],
+          "a1_a2_drift": 0.026396003690249636,
+          "b1_b2_drift": 0.07015168067606181,
+          "drift_gate_passed": false,
+          "latency_observation_used": false,
+          "candidate_latency_change": 0.14116554563763173
+        },
+        {
+          "case": [
+            "encode.parallel",
+            10,
+            4,
+            262144,
+            0
+          ],
+          "median_ns_by_stage": [
+            130361.70833333333,
+            146571.85087719298,
+            128632.61217948717,
+            115387.6008064516
+          ],
+          "a1_a2_drift": 0.11486584303262659,
+          "b1_b2_drift": 0.12239211410884354,
+          "drift_gate_passed": false,
+          "latency_observation_used": false,
+          "candidate_latency_change": 0.11985854210536484
+        },
+        {
+          "case": [
+            "encode.parallel",
+            10,
+            4,
+            1048576,
+            0
+          ],
+          "median_ns_by_stage": [
+            265230.59210526315,
+            237310.14150943398,
+            222175.2400442478,
+            330611.5405844156
+          ],
+          "a1_a2_drift": 0.2465060608589391,
+          "b1_b2_drift": 0.06377688441344809,
+          "drift_gate_passed": false,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.22884711176846761
+        }
+      ]
+    },
+    {
+      "name": "long-encode",
+      "sample_ms": 750,
+      "rayon_threads": 4,
+      "parallel_policy_max_jobs": 4,
+      "raw": {
+        "A1": [
+          {
+            "operation": "encode.parallel",
+            "k": 4,
+            "m": 2,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              40507.76862850972,
+              64473.66486254296,
+              40947.32762008734
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              91572.90649414062,
+              94475.57905337361,
+              95743.18137755102
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              368095.4862745098,
+              331094.28169014084,
+              304020.1759708738
+            ]
+          }
+        ],
+        "B1": [
+          {
+            "operation": "encode.parallel",
+            "k": 4,
+            "m": 2,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              60080.90767136451,
+              36412.30378640777,
+              25033.026895355044
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              102600.0181892779,
+              103949.62001108647,
+              122575.67401960785
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              275532.82294721407,
+              261506.89136490252,
+              264823.6940140845
+            ]
+          }
+        ],
+        "B2": [
+          {
+            "operation": "encode.parallel",
+            "k": 4,
+            "m": 2,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              40983.883304195806,
+              41302.58122246696,
+              40712.57598784195
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              80574.67064003437,
+              63448.38887009472,
+              64509.148555708394
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              267056.4630681818,
+              265177.5833333333,
+              269108.3155444126
+            ]
+          }
+        ],
+        "A2": [
+          {
+            "operation": "encode.parallel",
+            "k": 4,
+            "m": 2,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              27416.934685672513,
+              34965.91671327368,
+              38997.99381239601
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 262144,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              144485.09726502313,
+              142986.97903963414,
+              141203.9721385542
+            ]
+          },
+          {
+            "operation": "encode.parallel",
+            "k": 10,
+            "m": 4,
+            "shard_bytes": 1048576,
+            "extra": 0,
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              317704.3568412162,
+              317054.37077702704,
+              315471.05704697984
+            ]
+          }
+        ]
+      },
+      "summary": [
+        {
+          "case": [
+            "encode.parallel",
+            4,
+            2,
+            262144,
+            0
+          ],
+          "median_ns_by_stage": [
+            40947.32762008734,
+            36412.30378640777,
+            40983.883304195806,
+            34965.91671327368
+          ],
+          "a1_a2_drift": 0.14607573325198853,
+          "b1_b2_drift": 0.12555040583547328,
+          "drift_gate_passed": false,
+          "latency_observation_used": false,
+          "candidate_latency_change": 0.01953470399355428
+        },
+        {
+          "case": [
+            "encode.parallel",
+            10,
+            4,
+            262144,
+            0
+          ],
+          "median_ns_by_stage": [
+            94475.57905337361,
+            103949.62001108647,
+            64509.148555708394,
+            142986.97903963414
+          ],
+          "a1_a2_drift": 0.5134808431166555,
+          "b1_b2_drift": 0.37941910178384164,
+          "drift_gate_passed": false,
+          "latency_observation_used": false,
+          "candidate_latency_change": -0.29058808293973637
+        },
+        {
+          "case": [
+            "encode.parallel",
+            10,
+            4,
+            1048576,
+            0
+          ],
+          "median_ns_by_stage": [
+            331094.28169014084,
+            264823.6940140845,
+            267056.4630681818,
+            317054.37077702704
+          ],
+          "a1_a2_drift": 0.042404570811202524,
+          "b1_b2_drift": 0.008431152893662697,
+          "drift_gate_passed": true,
+          "latency_observation_used": true,
+          "candidate_latency_change": -0.17938553901535903
+        }
+      ]
+    }
+  ]
+}
