@@ -25,6 +25,7 @@ All notable changes to this project are documented in this file.
 
 ### Performance
 - Apply cache-line-aligned L2 budgets to parallel chunks, cache hardware cache-size detection, and reuse generated SIMD in the parallel entry point's serial fallback.
+- Disable shared Leopard GF8 atomic profiling updates unless `benchmark-metrics` is enabled.
 
 
 ## 9.0.0 (2026-09-16)
