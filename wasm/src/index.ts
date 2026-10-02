@@ -29,6 +29,9 @@ export class ReedSolomonErasure {
     public static readonly RESULT_ERROR_EMPTY_SHARD = 11;
     public static readonly RESULT_ERROR_INVALID_SHARD_FLAGS = 12;
     public static readonly RESULT_ERROR_INVALID_INDEX = 13;
+    public static readonly RESULT_ERROR_INVALID_CUSTOM_MATRIX = 14;
+    public static readonly RESULT_ERROR_UNSUPPORTED_CODEC_FAMILY = 15;
+    public static readonly RESULT_ERROR_UNSUPPORTED_LEOPARD_PROTOTYPE = 16;
 
     /**
      * Automagical method that will try to detect environment (Node.js or browser) and load *.wasm file from current directory
@@ -62,7 +65,32 @@ export class ReedSolomonErasure {
 
     private memoryCache: Uint8Array | null = null;
 
-    private constructor(private readonly exports: IWasm) {
+    private readonly exports: IWasm;
+
+    private constructor(exports: IWasm) {
+        this.exports = exports;
+    }
+
+    private static validateInputs(shards: Uint8Array, dataShards: number, parityShards: number): number {
+        // Validate before wasm32 coerces numbers to integers; copy-back must use
+        // exactly the same shard counts as the Rust encoder.
+        if (!Number.isSafeInteger(dataShards) || dataShards < 1) {
+            return ReedSolomonErasure.RESULT_ERROR_TOO_FEW_DATA_SHARDS;
+        }
+        if (!Number.isSafeInteger(parityShards) || parityShards < 1) {
+            return ReedSolomonErasure.RESULT_ERROR_TOO_FEW_PARITY_SHARDS;
+        }
+        const totalShards = dataShards + parityShards;
+        if (totalShards > 256) {
+            return ReedSolomonErasure.RESULT_ERROR_TOO_MANY_SHARDS;
+        }
+        if (shards.length === 0) {
+            return ReedSolomonErasure.RESULT_ERROR_EMPTY_SHARD;
+        }
+        if (shards.length < totalShards || shards.length % totalShards !== 0) {
+            return ReedSolomonErasure.RESULT_ERROR_INCORRECT_SHARD_SIZE;
+        }
+        return ReedSolomonErasure.RESULT_OK;
     }
 
     /**
@@ -76,6 +104,10 @@ export class ReedSolomonErasure {
      * @returns One of `RESULT_*` constants; if `RESULT_OK` then parity shards were updated in `shards` in-place
      */
     public encode(shards: Uint8Array, dataShards: number, parityShards: number): number {
+        const validation = ReedSolomonErasure.validateInputs(shards, dataShards, parityShards);
+        if (validation !== ReedSolomonErasure.RESULT_OK) {
+            return validation;
+        }
         const exports = this.exports;
 
         const shardsLength = shards.length;
@@ -110,6 +142,18 @@ export class ReedSolomonErasure {
      * @returns One of `RESULT_*` constants; if `RESULT_OK` then data shards were reconstructed in `shards` in-place
      */
     public reconstruct(shards: Uint8Array, dataShards: number, parityShards: number, shardsAvailable: boolean[]): number {
+        const validation = ReedSolomonErasure.validateInputs(shards, dataShards, parityShards);
+        if (validation !== ReedSolomonErasure.RESULT_OK) {
+            return validation;
+        }
+        if (shardsAvailable.length !== dataShards + parityShards) {
+            return ReedSolomonErasure.RESULT_ERROR_INVALID_SHARD_FLAGS;
+        }
+        for (const flag of shardsAvailable) {
+            if (typeof flag !== "boolean") {
+                return ReedSolomonErasure.RESULT_ERROR_INVALID_SHARD_FLAGS;
+            }
+        }
         const exports = this.exports;
 
         const shardsLength = shards.length;

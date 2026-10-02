@@ -17,6 +17,7 @@ All notable changes to this project are documented in this file.
 - Reject malformed optimized/workspace inputs and preserve selective parity recovery without restoring unrequested shards.
 - Bound full and incremental Classic encoding/reconstruction by the configured parallel job limit, and account for field element width in byte budgets.
 - Reject unequal verification-stream lengths while retaining documented zero-padding for encoding, including short reads and partial final blocks.
+- Return stable WASM errors for invalid counts, buffer shapes, and availability flags; validate JavaScript integers before wasm32 coercion and copy-back, preserving existing error codes and data-only reconstruction.
 
 
 ### Changed
