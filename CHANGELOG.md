@@ -36,6 +36,7 @@ All notable changes to this project are documented in this file.
 - Reuse stream verification scratch, parallel read-length metadata, and missing-shard buffers across blocks; use optimized encoding dispatch and inline common shard views.
 - Reuse owned GF8 error-locator/FFT decode plans and initialized working buffers across matching erasure patterns, with per-thread retention capped at 64 KiB of plans and 4 MiB of work. Inline common recovery output metadata and limit tail transforms to active bytes.
 - Convert GF16 recovery inputs one chunk at a time, reuse at most 4 MiB of decode work per calling/Rayon worker thread, and avoid whole-capacity tail transforms. Warmed 10+4 recovery of one 32 KiB data shard now allocates only the 32 KiB temporary output for either Leopard family.
+- Prepare a stream recovery matrix and ordered survivor/output rows once after the first validated block; reuse them across blocks and short tails, including with the inversion cache disabled.
 
 
 ### Validation
