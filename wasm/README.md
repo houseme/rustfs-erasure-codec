@@ -68,6 +68,23 @@ const rs = ReedSolomonErasure.fromBytes(bytes);
 | 11 | `RESULT_ERROR_EMPTY_SHARD` | Empty shard encountered |
 | 12 | `RESULT_ERROR_INVALID_SHARD_FLAGS` | Invalid shard flags |
 | 13 | `RESULT_ERROR_INVALID_INDEX` | Invalid shard index |
+| 14 | `RESULT_ERROR_INVALID_CUSTOM_MATRIX` | Invalid custom encoding matrix |
+| 15 | `RESULT_ERROR_UNSUPPORTED_CODEC_FAMILY` | Unsupported codec family |
+| 16 | `RESULT_ERROR_UNSUPPORTED_LEOPARD_PROTOTYPE` | Unsupported Leopard configuration |
+
+Both shard counts must be positive, and their sum must not exceed 256. The byte
+buffer must contain exactly that many equally sized, nonempty shards. Empty
+buffers return code 11; short buffers and lengths not divisible by the total
+shard count return code 9. Invalid input is rejected before modifying the buffer.
+The TypeScript wrapper rejects non-finite, fractional, unsafe, or nonpositive
+counts before allocating WASM memory (code 3 for data, code 5 for parity).
+Positive safe integers whose total exceeds 256 return code 2, including values
+that would otherwise wrap when converted to wasm32 integers.
+
+Reconstruction requires exactly one availability flag per shard. The raw WASM
+function accepts only bytes `0` (missing) and `1` (present); invalid values or flag
+counts return code 12. The TypeScript wrapper accepts booleans. `reconstruct`
+restores data shards only, so missing parity shards remain unchanged.
 
 ## Usage Example
 
@@ -98,7 +115,7 @@ const shardsAvailable = [false, true, true, true, false];
 const reconstructResult = rs.reconstruct(shards, dataShards, parityShards, shardsAvailable);
 console.assert(reconstructResult === ReedSolomonErasure.RESULT_OK);
 
-// shards[0..4] and shards[16..20] are now restored
+// shards[0..4] is restored; missing parity shard 4 is unchanged
 ```
 
 ## Authors
@@ -107,6 +124,14 @@ console.assert(reconstructResult === ReedSolomonErasure.RESULT_OK);
 - **Darren Ldl** ([@darrenldl](https://github.com/darrenldl)) — subsequent modifications
 
 ## Maintenance
+
+Run `cargo test -p rustfs-erasure-codec-wasm --lib` from the repository root for
+host tests of encoding, recovery, and malformed input handling. These tests do
+not exercise browser loading or JavaScript/WASM integration; validate those
+separately with the generated package.
+With Node.js supporting built-in TypeScript stripping, run
+`node --test wasm/tests/index.test.mjs` for wrapper validation and copy-back tests
+using mocked WASM exports. These also do not replace generated-package tests.
 
 The WASM package is now maintained as part of the main repository workflow in
 `houseme/rustfs-erasure-codec`.
