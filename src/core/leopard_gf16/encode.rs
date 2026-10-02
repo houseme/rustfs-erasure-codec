@@ -26,6 +26,87 @@ thread_local! {
         const { std::cell::RefCell::new(None) };
 }
 
+// Keep only one immutable schedule per thread. Large configurations are built
+// locally instead of retaining unbounded plan memory in long-lived worker threads.
+#[cfg(feature = "std")]
+const MAX_CACHED_PLAN_BYTES: usize = 1024 * 1024;
+
+struct EncodePlans {
+    #[cfg(feature = "std")]
+    data_shards: usize,
+    #[cfg(feature = "std")]
+    parity_shards: usize,
+    first_ifft_plan: IfftDit16Plan,
+    fft_plan: FftDit16Plan,
+    later_ifft_plans: Vec<IfftDit16Plan>,
+    remainder_ifft_plan: Option<IfftDit16Plan>,
+}
+
+impl EncodePlans {
+    fn new(
+        data_shards: usize,
+        parity_shards: usize,
+        driver: &LeopardGf16EncodeDriver,
+        tables: &LeopardGf16Tables,
+    ) -> Self {
+        let skew = &tables.fft_skew[driver.skew_offset..];
+        let first_ifft_plan = build_ifft_dit16_plan(driver.mtrunc, driver.m, skew);
+        let fft_plan = build_fft_dit16_plan(parity_shards, driver.m, &tables.fft_skew);
+        let mut later_ifft_plans = Vec::new();
+        let mut remainder_ifft_plan = None;
+        if driver.m < data_shards {
+            let mut group_offset = driver.m;
+            let mut skew_offset = driver.m;
+            while group_offset + driver.m <= data_shards {
+                later_ifft_plans.push(build_ifft_dit16_plan(
+                    driver.m,
+                    driver.m,
+                    &skew[skew_offset..],
+                ));
+                group_offset += driver.m;
+                skew_offset += driver.m;
+            }
+            if driver.last_count != 0 {
+                remainder_ifft_plan = Some(build_ifft_dit16_plan(
+                    driver.last_count,
+                    driver.m,
+                    &skew[skew_offset..],
+                ));
+            }
+        }
+        Self {
+            #[cfg(feature = "std")]
+            data_shards,
+            #[cfg(feature = "std")]
+            parity_shards,
+            first_ifft_plan,
+            fft_plan,
+            later_ifft_plans,
+            remainder_ifft_plan,
+        }
+    }
+
+    #[cfg(feature = "std")]
+    fn retained_bytes(&self) -> usize {
+        fn ifft_bytes(plan: &IfftDit16Plan) -> usize {
+            (plan.initial_blocks.capacity() + plan.later_blocks.capacity())
+                * core::mem::size_of::<super::Stage4Block>()
+        }
+        self.fft_plan.stage4_blocks.capacity() * core::mem::size_of::<super::Stage4Block>()
+            + self.fft_plan.final_stage.capacity() * core::mem::size_of::<super::Stage2Block>()
+            + ifft_bytes(&self.first_ifft_plan)
+            + self.later_ifft_plans.capacity() * core::mem::size_of::<IfftDit16Plan>()
+            + self.later_ifft_plans.iter().map(ifft_bytes).sum::<usize>()
+            + self.remainder_ifft_plan.as_ref().map_or(0, ifft_bytes)
+    }
+}
+
+#[cfg(feature = "std")]
+thread_local! {
+    static ENCODE_PLAN_CACHE: std::cell::RefCell<Option<EncodePlans>> =
+        const { std::cell::RefCell::new(None) };
+}
+
 pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
     data_shards: usize,
     parity_shards: usize,
@@ -44,31 +125,15 @@ pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>
 
     let shard_u16_len = shard_size / 2;
 
-    let skew = &tables.fft_skew[driver.skew_offset..];
-    let first_ifft_plan = build_ifft_dit16_plan(driver.mtrunc, driver.m, skew);
-    let fft_plan = build_fft_dit16_plan(parity_shards, driver.m, &tables.fft_skew);
-    let mut later_ifft_plans = Vec::new();
-    let mut remainder_ifft_plan = None;
-    if driver.m < data_shards {
-        let mut group_offset = driver.m;
-        let mut skew_offset = driver.m;
-        while group_offset + driver.m <= data_shards {
-            later_ifft_plans.push(build_ifft_dit16_plan(
-                driver.m,
-                driver.m,
-                &skew[skew_offset..],
-            ));
-            group_offset += driver.m;
-            skew_offset += driver.m;
-        }
-        if driver.last_count != 0 {
-            remainder_ifft_plan = Some(build_ifft_dit16_plan(
-                driver.last_count,
-                driver.m,
-                &skew[skew_offset..],
-            ));
-        }
-    }
+    #[cfg(feature = "std")]
+    let plans = ENCODE_PLAN_CACHE.with(|cache| {
+        cache
+            .take()
+            .filter(|plan| plan.data_shards == data_shards && plan.parity_shards == parity_shards)
+            .unwrap_or_else(|| EncodePlans::new(data_shards, parity_shards, &driver, tables))
+    });
+    #[cfg(not(feature = "std"))]
+    let plans = EncodePlans::new(data_shards, parity_shards, &driver, tables);
 
     let chunk_cap = core::cmp::min(shard_u16_len, driver.chunk_size);
     let needed_lanes = driver.work_slices;
@@ -93,22 +158,10 @@ pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>
     #[cfg(not(feature = "std"))]
     let mut scratch: Vec<u16> = Vec::new();
 
-    // Zero all work lanes to prevent stale data from previous encode calls.
-    for i in 0..flat_work.lanes() {
-        flat_work.lane_mut(i).fill(0);
-    }
-
-    // Convert data from user byte layout to Go's GF16 split layout.
-    // Go interprets each 64-byte chunk as: element i = byte[i] | (byte[i+32] << 8).
-    // We rearrange bytes so that `as u16 LE` gives the same elements.
-    // Convert each shard from user byte layout into aligned split-layout `u16`
-    // elements (alignment- and endian-safe; see `user_bytes_to_work_u16`).
-    let converted_data: Vec<Vec<u16>> = data
-        .iter()
-        .map(|d| super::ops::user_bytes_to_work_u16(d.as_ref()))
-        .collect();
-
-    let data_u16: Vec<&[u16]> = converted_data.iter().map(|d| d.as_slice()).collect();
+    // Each IFFT group initializes every active lane: input lanes are converted
+    // directly from bytes, partial radix-4 groups and trailing lanes are zeroed.
+    // All chunk boundaries are multiples of 32 elements (64 user bytes), so the
+    // per-chunk conversion preserves the split layout without full-shard copies.
 
     let mut offset = 0usize;
     while offset < shard_u16_len {
@@ -123,8 +176,8 @@ pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>
         // Build mutable views into flat work using with_lane_views.
         flat_work.with_lane_views(work_size, size, |work_views| {
             ifft_dit_encoder16_with_plan(
-                &data_u16,
-                &first_ifft_plan,
+                data,
+                &plans.first_ifft_plan,
                 &mut work_views[..driver.m],
                 None,
                 offset,
@@ -134,10 +187,10 @@ pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>
             );
 
             let mut group_offset = driver.m;
-            for plan in &later_ifft_plans {
+            for plan in &plans.later_ifft_plans {
                 let (xor_dst, temp_work) = work_views[..work_size].split_at_mut(driver.m);
                 ifft_dit_encoder16_with_plan(
-                    &data_u16[group_offset..],
+                    &data[group_offset..],
                     plan,
                     temp_work,
                     Some(xor_dst),
@@ -149,10 +202,10 @@ pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>
                 group_offset += driver.m;
             }
 
-            if let Some(plan) = remainder_ifft_plan.as_ref() {
+            if let Some(plan) = plans.remainder_ifft_plan.as_ref() {
                 let (xor_dst, temp_work) = work_views[..work_size].split_at_mut(driver.m);
                 ifft_dit_encoder16_with_plan(
-                    &data_u16[group_offset..],
+                    &data[group_offset..],
                     plan,
                     temp_work,
                     Some(xor_dst),
@@ -163,7 +216,12 @@ pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>
                 );
             }
 
-            fft_dit16_with_plan(&mut work_views[..driver.m], &fft_plan, tables, &mut scratch);
+            fft_dit16_with_plan(
+                &mut work_views[..driver.m],
+                &plans.fft_plan,
+                tables,
+                &mut scratch,
+            );
 
             // Write parity shards straight into user byte layout: the fused
             // de-interleave skips the intermediate split-byte buffer and the
@@ -187,6 +245,13 @@ pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>
     FLAT_WORK16_CACHE.with(|cache| {
         *cache.borrow_mut() = Some(flat_work);
     });
+
+    #[cfg(feature = "std")]
+    if plans.retained_bytes() <= MAX_CACHED_PLAN_BYTES {
+        ENCODE_PLAN_CACHE.with(|cache| {
+            *cache.borrow_mut() = Some(plans);
+        });
+    }
 
     Ok(driver)
 }
@@ -229,7 +294,7 @@ fn fft_dit16_with_plan(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn ifft_dit_encoder16_with_plan<T: AsRef<[u16]>>(
+fn ifft_dit_encoder16_with_plan<T: AsRef<[u8]>>(
     data: &[T],
     plan: &IfftDit16Plan,
     work: &mut [&mut [u16]],
@@ -243,14 +308,20 @@ fn ifft_dit_encoder16_with_plan<T: AsRef<[u16]>>(
 
     if plan.initial_blocks.is_empty() {
         for (idx, slot) in work.iter_mut().take(plan.mtrunc).enumerate() {
-            slot[..size].copy_from_slice(&data[idx].as_ref()[start..end]);
+            super::ops::user_bytes_to_work_u16_into(
+                &data[idx].as_ref()[start * 2..end * 2],
+                &mut slot[..size],
+            );
         }
         zero_trailing_lanes_16(work, plan.mtrunc, plan.m - plan.mtrunc);
     } else {
         for block in &plan.initial_blocks {
             let available = core::cmp::min(plan.mtrunc.saturating_sub(block.r), 4);
             for i in 0..available {
-                work[block.r + i][..size].copy_from_slice(&data[block.r + i].as_ref()[start..end]);
+                super::ops::user_bytes_to_work_u16_into(
+                    &data[block.r + i].as_ref()[start * 2..end * 2],
+                    &mut work[block.r + i][..size],
+                );
             }
             for slot in work
                 .iter_mut()

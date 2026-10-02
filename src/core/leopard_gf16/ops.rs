@@ -701,6 +701,16 @@ unsafe fn work_bytes_to_user_bytes_neon(src: &[u8], dst: &mut [u8]) {
 pub(super) fn user_bytes_to_work_u16(user: &[u8]) -> Vec<u16> {
     debug_assert!(user.len().is_multiple_of(2));
     let mut out = vec![0u16; user.len() / 2];
+    user_bytes_to_work_u16_into(user, &mut out);
+    out
+}
+
+/// Convert whole 64-byte user-layout blocks directly into existing work lanes.
+/// Both slices must describe the same number of elements. Chunk boundaries must
+/// preserve the 64-byte split layout used on the wire.
+pub(super) fn user_bytes_to_work_u16_into(user: &[u8], out: &mut [u16]) {
+    assert_eq!(user.len(), out.len() * 2);
+    assert!(user.len().is_multiple_of(64));
 
     #[cfg(target_endian = "little")]
     {
@@ -715,13 +725,12 @@ pub(super) fn user_bytes_to_work_u16(user: &[u8]) -> Vec<u16> {
     }
     #[cfg(target_endian = "big")]
     {
-        let mut split = vec![0u8; user.len()];
-        user_bytes_to_work_bytes(user, &mut split);
-        for (d, c) in out.iter_mut().zip(split.chunks_exact(2)) {
-            *d = u16::from_le_bytes([c[0], c[1]]);
+        for (src, dst) in user.chunks_exact(64).zip(out.chunks_exact_mut(32)) {
+            for (i, value) in dst.iter_mut().enumerate() {
+                *value = u16::from_le_bytes([src[i], src[i + 32]]);
+            }
         }
     }
-    out
 }
 
 /// Encode split-layout `u16` elements straight into user byte layout.
