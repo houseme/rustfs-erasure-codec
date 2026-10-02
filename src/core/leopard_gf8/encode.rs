@@ -94,6 +94,87 @@ fn active_dit4_strategy(shard_size: usize) -> Dit4Strategy {
     }
 }
 
+// Keep only one immutable schedule per thread. Large configurations are built
+// locally instead of retaining unbounded plan memory in long-lived worker threads.
+#[cfg(feature = "std")]
+const MAX_CACHED_PLAN_BYTES: usize = 1024 * 1024;
+
+struct EncodePlans {
+    #[cfg(feature = "std")]
+    data_shards: usize,
+    #[cfg(feature = "std")]
+    parity_shards: usize,
+    first_ifft_plan: IfftDit8Plan,
+    fft_plan: FftDit8Plan,
+    later_ifft_plans: Vec<IfftDit8Plan>,
+    remainder_ifft_plan: Option<IfftDit8Plan>,
+}
+
+impl EncodePlans {
+    fn new(
+        data_shards: usize,
+        parity_shards: usize,
+        driver: &LeopardGf8EncodeDriver,
+        tables: &LeopardGf8Tables,
+    ) -> Self {
+        let skew = &tables.fft_skew[driver.skew_offset..];
+        let first_ifft_plan = build_ifft_dit8_plan(driver.mtrunc, driver.m, skew);
+        let fft_plan = build_fft_dit8_plan(parity_shards, driver.m, &tables.fft_skew);
+        let mut later_ifft_plans = Vec::new();
+        let mut remainder_ifft_plan = None;
+        if driver.m < data_shards {
+            let mut group_offset = driver.m;
+            let mut skew_offset = driver.m;
+            while group_offset + driver.m <= data_shards {
+                later_ifft_plans.push(build_ifft_dit8_plan(
+                    driver.m,
+                    driver.m,
+                    &skew[skew_offset..],
+                ));
+                group_offset += driver.m;
+                skew_offset += driver.m;
+            }
+            if driver.last_count != 0 {
+                remainder_ifft_plan = Some(build_ifft_dit8_plan(
+                    driver.last_count,
+                    driver.m,
+                    &skew[skew_offset..],
+                ));
+            }
+        }
+        Self {
+            #[cfg(feature = "std")]
+            data_shards,
+            #[cfg(feature = "std")]
+            parity_shards,
+            first_ifft_plan,
+            fft_plan,
+            later_ifft_plans,
+            remainder_ifft_plan,
+        }
+    }
+
+    #[cfg(feature = "std")]
+    fn retained_bytes(&self) -> usize {
+        fn ifft_bytes(plan: &IfftDit8Plan) -> usize {
+            (plan.initial_blocks.capacity() + plan.later_blocks.capacity())
+                * core::mem::size_of::<super::Stage4Block>()
+        }
+        self.fft_plan.stage4_blocks.capacity() * core::mem::size_of::<super::Stage4Block>()
+            + self.fft_plan.final_stage.capacity() * core::mem::size_of::<super::Stage2Block>()
+            + ifft_bytes(&self.first_ifft_plan)
+            + self.later_ifft_plans.capacity() * core::mem::size_of::<IfftDit8Plan>()
+            + self.later_ifft_plans.iter().map(ifft_bytes).sum::<usize>()
+            + self.remainder_ifft_plan.as_ref().map_or(0, ifft_bytes)
+    }
+}
+
+#[cfg(feature = "std")]
+thread_local! {
+    static ENCODE_PLAN_CACHE: std::cell::RefCell<Option<EncodePlans>> =
+        const { std::cell::RefCell::new(None) };
+}
+
 pub(super) fn encode_skeleton<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
     data_shards: usize,
     parity_shards: usize,
@@ -128,31 +209,16 @@ pub(super) fn encode_with_tables<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
         .map(|shard| shard.as_ref().len())
         .ok_or(Error::TooFewShards)?;
     let driver = build_leopard_gf8_encode_driver(data_shards, parity_shards, shard_size)?;
-    let skew = &tables.fft_skew[driver.skew_offset..];
-    let first_ifft_plan = build_ifft_dit8_plan(driver.mtrunc, driver.m, skew);
-    let fft_plan = build_fft_dit8_plan(parity_shards, driver.m, &tables.fft_skew);
-    let mut later_ifft_plans = Vec::new();
-    let mut remainder_ifft_plan = None;
-    if driver.m < data_shards {
-        let mut group_offset = driver.m;
-        let mut skew_offset = driver.m;
-        while group_offset + driver.m <= data_shards {
-            later_ifft_plans.push(build_ifft_dit8_plan(
-                driver.m,
-                driver.m,
-                &skew[skew_offset..],
-            ));
-            group_offset += driver.m;
-            skew_offset += driver.m;
-        }
-        if driver.last_count != 0 {
-            remainder_ifft_plan = Some(build_ifft_dit8_plan(
-                driver.last_count,
-                driver.m,
-                &skew[skew_offset..],
-            ));
-        }
-    }
+    #[cfg(feature = "std")]
+    let plans = ENCODE_PLAN_CACHE.with(|cache| {
+        cache
+            .take()
+            .filter(|plan| plan.data_shards == data_shards && plan.parity_shards == parity_shards)
+            .unwrap_or_else(|| EncodePlans::new(data_shards, parity_shards, &driver, tables))
+    });
+    #[cfg(not(feature = "std"))]
+    let plans = EncodePlans::new(data_shards, parity_shards, &driver, tables);
+
     let chunk_cap = core::cmp::min(driver.shard_size, driver.chunk_size);
     let needed_lanes = driver.work_slices;
     let needed_lane_len = chunk_cap;
@@ -197,12 +263,12 @@ pub(super) fn encode_with_tables<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
 
         flat_work.with_lane_views(work_size, size, |work| {
             #[cfg(feature = "std")]
-            if first_ifft_plan.mtrunc == first_ifft_plan.m {
+            if plans.first_ifft_plan.mtrunc == plans.first_ifft_plan.m {
                 PROFILE8.encode_full_groups.fetch_add(1, Ordering::Relaxed);
             }
             ifft_dit_encoder8_with_plan(
                 data,
-                &first_ifft_plan,
+                &plans.first_ifft_plan,
                 &mut work[..driver.m],
                 None,
                 offset,
@@ -214,7 +280,7 @@ pub(super) fn encode_with_tables<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
             );
 
             let mut group_offset = driver.m;
-            for plan in &later_ifft_plans {
+            for plan in &plans.later_ifft_plans {
                 #[cfg(feature = "std")]
                 {
                     PROFILE8
@@ -238,7 +304,7 @@ pub(super) fn encode_with_tables<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
                 group_offset += driver.m;
             }
 
-            if let Some(plan) = remainder_ifft_plan.as_ref() {
+            if let Some(plan) = plans.remainder_ifft_plan.as_ref() {
                 #[cfg(feature = "std")]
                 PROFILE8
                     .encode_remainder_groups
@@ -260,7 +326,7 @@ pub(super) fn encode_with_tables<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
 
             fft_dit8_with_plan(
                 &mut work[..driver.m],
-                &fft_plan,
+                &plans.fft_plan,
                 tables,
                 driver.shard_size,
                 &mut scratch,
@@ -286,6 +352,13 @@ pub(super) fn encode_with_tables<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
     FLAT_WORK_CACHE.with(|cache| {
         *cache.borrow_mut() = Some(flat_work);
     });
+
+    #[cfg(feature = "std")]
+    if plans.retained_bytes() <= MAX_CACHED_PLAN_BYTES {
+        ENCODE_PLAN_CACHE.with(|cache| {
+            *cache.borrow_mut() = Some(plans);
+        });
+    }
 
     Ok(driver)
 }

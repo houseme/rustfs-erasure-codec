@@ -26,6 +26,8 @@ All notable changes to this project are documented in this file.
 ### Performance
 - Apply cache-line-aligned L2 budgets to parallel chunks, cache hardware cache-size detection, and reuse generated SIMD in the parallel entry point's serial fallback.
 - Disable shared Leopard GF8 atomic profiling updates unless `benchmark-metrics` is enabled.
+- Cache one bounded GF8/GF16 FFT encoding plan per thread and convert GF16 input directly into initialized work lanes instead of allocating complete converted shards.
+- Warmed 10+4 encodes with 32 KiB shards now allocate no heap memory for either Leopard family; `no_std` retains local plan construction.
 
 
 ## 9.0.0 (2026-09-16)
