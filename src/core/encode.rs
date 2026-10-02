@@ -10,6 +10,36 @@ use super::{
     ReedSolomon, leopard,
 };
 
+#[cfg(all(feature = "std", rse_aarch64_neon))]
+struct NeonEncodeJob<'a> {
+    start: usize,
+    outputs: smallvec::SmallVec<[&'a mut [u8]; 4]>,
+}
+
+// Keep generated-kernel jobs entirely on the stack. Eligibility is limited to
+// the measured 10+4, >=1 MiB, small-job workload; other work uses the generic scheduler.
+#[cfg(all(feature = "std", rse_aarch64_neon))]
+fn split_neon_encode_jobs<'a>(
+    parity: &'a mut [&mut [u8]],
+    shard_len: usize,
+    job_limit: usize,
+) -> smallvec::SmallVec<[NeonEncodeJob<'a>; 32]> {
+    let group_len = shard_len.div_ceil(job_limit).div_ceil(64) * 64;
+    let job_count = shard_len.div_ceil(group_len);
+    let mut jobs: smallvec::SmallVec<[NeonEncodeJob<'a>; 32]> = (0..job_count)
+        .map(|index| NeonEncodeJob {
+            start: index * group_len,
+            outputs: smallvec::SmallVec::new(),
+        })
+        .collect();
+    for output in parity {
+        for (job, chunk) in jobs.iter_mut().zip(output.chunks_mut(group_len)) {
+            job.outputs.push(chunk);
+        }
+    }
+    jobs
+}
+
 impl<F: Field> ReedSolomon<F> {
     pub(crate) fn code_some_slices<T: AsRef<[F::Elem]>, U: AsMut<[F::Elem]>>(
         &self,
@@ -340,6 +370,111 @@ impl<F: Field> ReedSolomon<F> {
         false
     }
 
+    /// Fuse native NEON encoding within a bounded set of disjoint byte ranges.
+    /// Only byte views cross into Rayon, so `F` itself need not be `Sync`.
+    #[cfg(all(feature = "std", rse_aarch64_neon))]
+    fn try_encode_codegen_par<T, U>(
+        &self,
+        data: &[T],
+        parity: &mut [U],
+        shard_len: usize,
+        decision: super::ParallelDecision,
+    ) -> bool
+    where
+        T: AsRef<[F::Elem]>,
+        U: AsMut<[F::Elem]>,
+    {
+        use rayon::prelude::*;
+        use smallvec::SmallVec;
+
+        let data_count = self.data_shard_count;
+        let parity_count = self.parity_shard_count;
+        // Stable measurements support only this shape and shard-size range.
+        // Avoid extending the optimization to noisier small-shard results.
+        if (data_count, parity_count) != (10, 4)
+            || shard_len < 1024 * 1024
+            || !decision.use_parallel
+            || !(2..=4).contains(&decision.jobs)
+            || !leopard::is_byte_field::<F>()
+            || !crate::galois_8::generated_encode_allowed()
+        {
+            return false;
+        }
+
+        let mut data_bytes = SmallVec::<[&[u8]; 12]>::new();
+        for input in data {
+            let Some(bytes) = F::as_gf8_slice(input.as_ref()) else {
+                return false;
+            };
+            if bytes.len() != shard_len {
+                return false;
+            }
+            data_bytes.push(bytes);
+        }
+        let matrix_rows = self.get_parity_rows();
+        let mut byte_rows = SmallVec::<[&[u8]; 4]>::new();
+        for row in &matrix_rows {
+            let Some(bytes) = F::as_gf8_slice(row) else {
+                return false;
+            };
+            if bytes.len() != data_count {
+                return false;
+            }
+            byte_rows.push(bytes);
+        }
+        let mut parity_bytes = SmallVec::<[&mut [u8]; 4]>::new();
+        for output in parity {
+            let Some(bytes) = F::as_gf8_slice_mut(output.as_mut()) else {
+                return false;
+            };
+            if bytes.len() != shard_len {
+                return false;
+            }
+            parity_bytes.push(bytes);
+        }
+
+        let mut jobs = split_neon_encode_jobs(&mut parity_bytes, shard_len, decision.jobs);
+        let chunk_len = decision.chunk_len.max(1);
+        let encoded = jobs
+            .par_iter_mut()
+            .map(|job| {
+                let job_len = job.outputs[0].len();
+                let mut encoded = true;
+                for offset in (0..job_len).step_by(chunk_len) {
+                    let end = offset.saturating_add(chunk_len).min(job_len);
+                    let inputs: SmallVec<[&[u8]; 12]> = data_bytes
+                        .iter()
+                        .map(|input| &input[job.start + offset..job.start + end])
+                        .collect();
+                    let mut outputs: SmallVec<[&mut [u8]; 4]> = job
+                        .outputs
+                        .iter_mut()
+                        .map(|output| &mut output[offset..end])
+                        .collect();
+                    encoded &= crate::galois_8::aarch64::codegen::try_encode_codegen_neon(
+                        data_count,
+                        parity_count,
+                        &byte_rows,
+                        &inputs,
+                        &mut outputs,
+                        end - offset,
+                    );
+                }
+                encoded
+            })
+            .reduce(|| true, |left, right| left & right);
+        if encoded {
+            self.runtime_profile_metrics.record_code_some(
+                true,
+                shard_len,
+                data_count,
+                parity_count,
+                chunk_len.min(jobs[0].outputs[0].len()),
+            );
+        }
+        encoded
+    }
+
     pub(crate) fn encode_fast_one_parity<
         T: AsRef<[F::Elem]>,
         U: AsRef<[F::Elem]> + AsMut<[F::Elem]>,
@@ -618,6 +753,10 @@ impl<F: Field> ReedSolomon<F> {
             }
             return Ok(());
         }
+        #[cfg(all(feature = "std", rse_aarch64_neon))]
+        if self.try_encode_codegen_par(data, parity, shard_len, decision) {
+            return Ok(());
+        }
         self.code_some_slices_par_chunked(&parity_rows, data, parity, decision.chunk_len);
 
         Ok(())
@@ -733,5 +872,52 @@ impl<F: Field> ReedSolomon<F> {
 
         let (input, output) = slices.split_at_mut(self.data_shard_count);
         self.encode_sep_par(&*input, output)
+    }
+}
+
+#[cfg(all(test, feature = "std", rse_aarch64_neon))]
+mod parallel_codegen_tests {
+    use super::split_neon_encode_jobs;
+
+    #[test]
+    fn codegen_budget_above_measured_range_falls_back_without_writes() {
+        let codec = crate::galois_8::ReedSolomon::new(10, 4).unwrap();
+        let shard_len = 1024 * 1024;
+        let data = vec![vec![7_u8; shard_len]; 10];
+        for jobs in [5, 33] {
+            let mut parity = vec![vec![0xa5_u8; shard_len]; 4];
+            let original = parity.clone();
+            let decision = crate::ParallelDecision {
+                use_parallel: true,
+                jobs,
+                chunk_len: 64 * 1024,
+            };
+            assert!(!codec.try_encode_codegen_par(&data, &mut parity, shard_len, decision));
+            assert_eq!(parity, original);
+        }
+    }
+
+    #[test]
+    fn transposed_jobs_are_bounded_disjoint_and_cover_all_bytes() {
+        for shard_len in [65, 1024, 262_145, 1_048_639] {
+            for budget in [2, 3, 7, 16, 32] {
+                let mut parity = vec![vec![0_u8; shard_len]; 4];
+                let mut views: Vec<_> = parity.iter_mut().map(Vec::as_mut_slice).collect();
+                let mut jobs = split_neon_encode_jobs(&mut views, shard_len, budget);
+                assert!(jobs.len() <= budget);
+                assert!(!jobs.spilled());
+                for job in &mut jobs {
+                    assert!(!job.outputs.spilled());
+                    assert_eq!(job.start % 64, 0);
+                    for output in &mut job.outputs {
+                        for value in output.iter_mut() {
+                            *value += 1;
+                        }
+                    }
+                }
+                drop(jobs);
+                assert!(parity.iter().flatten().all(|&value| value == 1));
+            }
+        }
     }
 }
