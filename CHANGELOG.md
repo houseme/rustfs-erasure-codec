@@ -16,6 +16,7 @@ All notable changes to this project are documented in this file.
 - Validate Leopard shard counts, actual lengths, byte views, required masks, and field-order boundaries before decoding; publish only requested recovered shards and never expose stale fixed buffers after a later output error.
 - Reject malformed optimized/workspace inputs and preserve selective parity recovery without restoring unrequested shards.
 - Bound full and incremental Classic encoding/reconstruction by the configured parallel job limit, and account for field element width in byte budgets.
+- Reject unequal verification-stream lengths while retaining documented zero-padding for encoding, including short reads and partial final blocks.
 
 
 ### Changed
@@ -28,6 +29,7 @@ All notable changes to this project are documented in this file.
 - Disable shared Leopard GF8 atomic profiling updates unless `benchmark-metrics` is enabled.
 - Cache one bounded GF8/GF16 FFT encoding plan per thread and convert GF16 input directly into initialized work lanes instead of allocating complete converted shards.
 - Warmed 10+4 encodes with 32 KiB shards now allocate no heap memory for either Leopard family; `no_std` retains local plan construction.
+- Reuse stream verification scratch, parallel read-length metadata, and missing-shard buffers across blocks; use optimized encoding dispatch and inline common shard views.
 
 
 ## 9.0.0 (2026-09-16)
