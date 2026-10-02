@@ -28,10 +28,11 @@
 //! ```
 
 use std::io::Error;
+use std::sync::Arc;
 
 use smallvec::SmallVec;
 
-use crate::ShardSlot;
+use crate::matrix::Matrix;
 
 /// Lower bound for the read/write block size (1 KiB).
 const MIN_BLOCK_SIZE_BYTES: usize = 1024;
@@ -491,6 +492,127 @@ fn write_block_par<W: std::io::Write + Send>(
 // ReedSolomon streaming methods
 // ---------------------------------------------------------------------------
 
+/// A stream has a fixed missing-shard layout and codec, so only its byte views
+/// change between blocks. Keep the decode matrix alive independently of the
+/// codec's LRU cache, including when that cache is disabled or evicts entries.
+struct StreamReconstructPlan<'codec> {
+    codec: &'codec super::ReedSolomon<crate::galois_8::Field>,
+    survivor_indices: SmallVec<[usize; 32]>,
+    missing_data_indices: SmallVec<[usize; 32]>,
+    missing_parity_indices: SmallVec<[usize; 32]>,
+    decode_matrix: Option<Arc<Matrix<crate::galois_8::Field>>>,
+}
+
+impl<'codec> StreamReconstructPlan<'codec> {
+    fn new(
+        codec: &'codec super::ReedSolomon<crate::galois_8::Field>,
+        present_indices: &[usize],
+        missing_indices: &[usize],
+    ) -> Result<Self, crate::Error> {
+        let survivor_indices: SmallVec<[usize; 32]> = present_indices
+            .iter()
+            .copied()
+            .take(codec.data_shard_count)
+            .collect();
+        let (missing_data_indices, missing_parity_indices): (
+            SmallVec<[usize; 32]>,
+            SmallVec<[usize; 32]>,
+        ) = missing_indices
+            .iter()
+            .copied()
+            .partition(|&index| index < codec.data_shard_count);
+        let decode_matrix = if missing_data_indices.is_empty() {
+            None
+        } else {
+            Some(codec.get_data_decode_matrix(&survivor_indices, missing_indices)?)
+        };
+        Ok(Self {
+            codec,
+            survivor_indices,
+            missing_data_indices,
+            missing_parity_indices,
+            decode_matrix,
+        })
+    }
+
+    fn data_rows(&self) -> SmallVec<[&[u8]; 32]> {
+        let mut rows = SmallVec::with_capacity(self.missing_data_indices.len());
+        if let Some(matrix) = &self.decode_matrix {
+            for &index in &self.missing_data_indices {
+                rows.push(matrix.get_row(index));
+            }
+        }
+        rows
+    }
+
+    fn parity_rows(&self) -> SmallVec<[&[u8]; 32]> {
+        self.missing_parity_indices
+            .iter()
+            .map(|&index| self.codec.matrix.get_row(index))
+            .collect()
+    }
+
+    /// All present buffers have already passed the equal-length read check,
+    /// and missing buffers have been resized to the same block length.
+    fn reconstruct_block(
+        &self,
+        buffers: &mut [Vec<u8>],
+        shard_len: usize,
+        data_rows: &[&[u8]],
+        parity_rows: &[&[u8]],
+    ) {
+        let missing_data = self.missing_data_indices.len();
+        let missing_parity = self.missing_parity_indices.len();
+        self.codec.record_reconstruct_runtime(
+            false,
+            missing_data,
+            missing_parity,
+            missing_data + missing_parity == 0,
+        );
+
+        if missing_data != 0 {
+            let mut inputs: SmallVec<[&[u8]; 32]> =
+                SmallVec::with_capacity(self.survivor_indices.len());
+            let mut outputs: SmallVec<[&mut [u8]; 32]> = SmallVec::with_capacity(missing_data);
+            let mut survivors = self.survivor_indices.iter().copied().peekable();
+            let mut missing = self.missing_data_indices.iter().copied().peekable();
+
+            // Each buffer is borrowed once. Sorted, disjoint index lists select
+            // the original survivors and missing data outputs without aliasing.
+            for (index, buffer) in buffers.iter_mut().enumerate() {
+                if survivors.peek() == Some(&index) {
+                    inputs.push(buffer.as_slice());
+                    survivors.next();
+                } else if missing.peek() == Some(&index) {
+                    outputs.push(buffer.as_mut_slice());
+                    missing.next();
+                }
+            }
+            self.codec
+                .record_reconstruct_data_stage_runtime(shard_len, missing_data);
+            self.codec
+                .code_some_slices(data_rows, &inputs, &mut outputs);
+        }
+
+        if missing_parity != 0 {
+            // The data phase's views have ended; restored data can now be read
+            // while only the disjoint parity buffers are mutated.
+            let (data, parity) = buffers.split_at_mut(self.codec.data_shard_count);
+            let mut missing = self.missing_parity_indices.iter().copied().peekable();
+            let mut outputs: SmallVec<[&mut [u8]; 32]> = SmallVec::with_capacity(missing_parity);
+            for (offset, buffer) in parity.iter_mut().enumerate() {
+                if missing.peek() == Some(&(self.codec.data_shard_count + offset)) {
+                    outputs.push(buffer.as_mut_slice());
+                    missing.next();
+                }
+            }
+            self.codec
+                .record_reconstruct_parity_stage_runtime(shard_len, missing_parity);
+            self.codec.code_some_slices(parity_rows, data, &mut outputs);
+        }
+    }
+}
+
 impl super::ReedSolomon<crate::galois_8::Field> {
     /// Stream-encode data from readers into parity writers.
     ///
@@ -692,7 +814,8 @@ impl super::ReedSolomon<crate::galois_8::Field> {
     ///
     /// The function reads blocks from present shards, reconstructs missing
     /// blocks, and writes recovered data into the missing cursors.  The set
-    /// of missing shard indices must be consistent across all blocks.
+    /// of missing shard indices must be consistent across all blocks. The
+    /// decode plan and scratch buffers are reused across those blocks.
     ///
     /// # Limitations
     ///
@@ -767,8 +890,7 @@ impl super::ReedSolomon<crate::galois_8::Field> {
         // Strategy: read present shards into buffers per block, reconstruct,
         // then write recovered data into missing shards' cursors.
 
-        // Retain both present and missing buffers between blocks. ShardSlot
-        // views mark missing data without relinquishing its backing storage.
+        // Retain both present and missing buffers between blocks.
         let mut bufs: Vec<Vec<u8>> = (0..total)
             .map(|i| {
                 if present[i] {
@@ -780,8 +902,41 @@ impl super::ReedSolomon<crate::galois_8::Field> {
             .collect();
         let mut read_lengths = Vec::with_capacity(total);
 
+        let (all_eof, mut actual_len) = read_present_cursors_with_mode(
+            shards,
+            &mut bufs,
+            &present,
+            &present_indices,
+            block_size,
+            use_parallel_read,
+            &mut read_lengths,
+        )?;
+        if all_eof {
+            return Ok(());
+        }
+
+        let plan = StreamReconstructPlan::new(self, &present_indices, &missing_indices)
+            .map_err(|e| StreamError::codec(0, e))?;
+        let data_rows = plan.data_rows();
+        let parity_rows = plan.parity_rows();
+
         loop {
-            let (all_eof, actual_len) = read_present_cursors_with_mode(
+            // Resize the retained missing buffers for the final partial block.
+            // Present buffers already have their validated read length.
+            for &idx in &missing_indices {
+                bufs[idx].resize(actual_len, 0);
+            }
+
+            plan.reconstruct_block(&mut bufs, actual_len, &data_rows, &parity_rows);
+
+            // Write recovered data into missing shards' cursors.
+            for &idx in &missing_indices {
+                shards[idx]
+                    .get_mut()
+                    .extend_from_slice(&bufs[idx][..actual_len]);
+            }
+
+            let (all_eof, next_len) = read_present_cursors_with_mode(
                 shards,
                 &mut bufs,
                 &present,
@@ -793,32 +948,7 @@ impl super::ReedSolomon<crate::galois_8::Field> {
             if all_eof {
                 break;
             }
-
-            // Resize the retained missing buffers for the final partial block.
-            // Present buffers already have their validated read length.
-            for &idx in &missing_indices {
-                bufs[idx].resize(actual_len, 0);
-            }
-
-            {
-                let mut slots: SmallVec<[ShardSlot<&mut [u8]>; 32]> = bufs
-                    .iter_mut()
-                    .zip(&present)
-                    .map(|(buf, &is_present)| {
-                        ShardSlot::with_present(buf.as_mut_slice(), is_present)
-                    })
-                    .collect();
-                self.reconstruct(&mut slots)
-                    .map_err(|e| StreamError::codec(0, e))?;
-            }
-
-            // Write recovered data into missing shards' cursors.
-            // (reconstruct fills in all missing shards — data and parity)
-            for &idx in &missing_indices {
-                shards[idx]
-                    .get_mut()
-                    .extend_from_slice(&bufs[idx][..actual_len]);
-            }
+            actual_len = next_len;
         }
 
         Ok(())
