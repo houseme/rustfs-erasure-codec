@@ -6,7 +6,7 @@ use super::{
 };
 
 #[cfg(feature = "std")]
-pub const PARALLEL_POLICY_VERSION: u32 = 2;
+pub const PARALLEL_POLICY_VERSION: u32 = 3;
 #[cfg(feature = "std")]
 const RS_PARALLEL_POLICY_MIN_PARALLEL_SHARD_BYTES_ENV: &str =
     "RS_PARALLEL_POLICY_MIN_PARALLEL_SHARD_BYTES";
@@ -88,18 +88,16 @@ impl ParallelPolicy {
         let min_parallel_shard_bytes = self.min_parallel_shard_bytes.max(1);
         let min_bytes_per_job = self.min_bytes_per_job.max(CODE_SLICE_MIN_CHUNK_BYTES);
 
-        let mut chunk_count = shard_size.div_ceil(min_bytes_per_job).max(1);
-
-        // Cache-aware chunking: if L2 cache size is known, limit chunk count so
-        // each job's working set (chunk * active shards) fits in L2.
-        if self.l2_cache_bytes > 0 {
+        // Bound the actual inner chunk, independently of the number of jobs.
+        // More chunks alone do not reduce a job's working set.
+        let cache_chunk_len = if self.l2_cache_bytes == 0 {
+            usize::MAX
+        } else {
             let active_shards = data_shards.saturating_add(output_shards).max(1);
-            let ideal_chunk = self.l2_cache_bytes / active_shards;
-            if ideal_chunk > 0 {
-                let cache_chunk_count = shard_size.div_ceil(ideal_chunk).max(1);
-                chunk_count = chunk_count.max(cache_chunk_count);
-            }
-        }
+            (self.l2_cache_bytes / active_shards).max(1)
+        };
+        let chunk_cap = min_bytes_per_job.min(cache_chunk_len).min(shard_size);
+        let chunk_count = shard_size.div_ceil(chunk_cap).max(1);
         let max_useful_jobs = if output_shards <= 2 {
             chunk_count
         } else {
@@ -112,20 +110,43 @@ impl ParallelPolicy {
             return ParallelDecision {
                 use_parallel: false,
                 jobs: 1,
-                chunk_len: core::cmp::min(Self::serial_chunk_len(shard_size), shard_size),
+                chunk_len: align_chunk_len(Self::serial_chunk_len(shard_size).min(cache_chunk_len)),
             };
         }
 
         let chunks_per_output = core::cmp::max(1, jobs.div_ceil(output_shards));
-        let chunk_len = shard_size
-            .div_ceil(chunks_per_output)
-            .clamp(CODE_SLICE_MIN_CHUNK_BYTES, min_bytes_per_job);
+        let chunk_len = align_chunk_len(shard_size.div_ceil(chunks_per_output).min(chunk_cap));
 
         ParallelDecision {
             use_parallel: true,
             jobs,
             chunk_len: core::cmp::min(chunk_len, shard_size),
         }
+    }
+
+    /// Apply byte-based policy limits to fields with wider elements, returning
+    /// the inner chunk length in elements for slice indexing.
+    pub(crate) fn decide_for_elements(
+        &self,
+        shard_len: usize,
+        element_size: usize,
+        data_shards: usize,
+        output_shards: usize,
+        available_parallelism: usize,
+    ) -> ParallelDecision {
+        let element_size = element_size.max(1);
+        let mut decision = self.decide(
+            shard_len.saturating_mul(element_size),
+            data_shards,
+            output_shards,
+            available_parallelism,
+        );
+        decision.chunk_len = if shard_len == 0 {
+            0
+        } else {
+            (decision.chunk_len / element_size).max(1).min(shard_len)
+        };
+        decision
     }
 
     fn serial_chunk_len(shard_size: usize) -> usize {
@@ -166,6 +187,78 @@ impl ParallelPolicy {
             policy.l2_cache_bytes = value;
         }
         policy
+    }
+}
+
+// Preserve cache-line and SIMD boundaries without exceeding the budget.
+#[cfg(feature = "std")]
+fn align_chunk_len(chunk_len: usize) -> usize {
+    const ALIGNMENT: usize = 64;
+    if chunk_len >= ALIGNMENT {
+        chunk_len / ALIGNMENT * ALIGNMENT
+    } else {
+        chunk_len
+    }
+}
+
+/// Visit disjoint output chunks with at most `jobs` active callbacks.
+///
+/// Cache chunks run sequentially within a bounded number of Rayon tasks. When
+/// there are fewer outputs than jobs, apportion the budget across outputs;
+/// otherwise group outputs. Neither path creates a pool or allocates tasks.
+#[cfg(feature = "std")]
+pub(crate) fn for_each_output_chunk<E, U, C>(
+    outputs: &mut [U],
+    shard_len: usize,
+    chunk_len: usize,
+    jobs: usize,
+    process: C,
+) where
+    E: Send,
+    U: AsMut<[E]> + Send,
+    C: Fn(usize, usize, &mut [E]) + Send + Sync,
+{
+    use rayon::prelude::*;
+
+    if outputs.is_empty() || shard_len == 0 {
+        return;
+    }
+    let chunk_len = chunk_len.max(1).min(shard_len);
+    let jobs = jobs.max(1);
+    let output_count = outputs.len();
+    if output_count >= jobs {
+        let outputs_per_job = output_count.div_ceil(jobs);
+        outputs
+            .par_chunks_mut(outputs_per_job)
+            .enumerate()
+            .for_each(|(group_index, group)| {
+                for (offset, output) in group.iter_mut().enumerate() {
+                    let row = group_index * outputs_per_job + offset;
+                    for (chunk_index, chunk) in output.as_mut().chunks_mut(chunk_len).enumerate() {
+                        process(row, chunk_index * chunk_len, chunk);
+                    }
+                }
+            });
+    } else {
+        let chunk_count = shard_len.div_ceil(chunk_len);
+        outputs
+            .par_iter_mut()
+            .enumerate()
+            .for_each(|(row, output)| {
+                let row_jobs = jobs / output_count + usize::from(row < jobs % output_count);
+                let chunks_per_job = chunk_count.div_ceil(row_jobs);
+                let group_len = chunks_per_job.saturating_mul(chunk_len).min(shard_len);
+                output
+                    .as_mut()
+                    .par_chunks_mut(group_len)
+                    .enumerate()
+                    .for_each(|(group_index, group)| {
+                        for (chunk_index, chunk) in group.chunks_mut(chunk_len).enumerate() {
+                            let start = group_index * group_len + chunk_index * chunk_len;
+                            process(row, start, chunk);
+                        }
+                    });
+            });
     }
 }
 
@@ -250,8 +343,9 @@ impl<F: Field> ReedSolomon<F> {
         output_shards: usize,
         available_parallelism: usize,
     ) -> ParallelDecision {
-        self.effective_parallel_policy().decide(
+        self.effective_parallel_policy().decide_for_elements(
             shard_len,
+            core::mem::size_of::<F::Elem>(),
             self.data_shard_count,
             output_shards,
             available_parallelism,
@@ -294,6 +388,20 @@ impl<F: Field> ReedSolomon<F> {
 #[cfg(all(test, feature = "std"))]
 mod tests {
     use super::*;
+
+    #[test]
+    fn cache_budget_uses_bytes_for_wider_field_elements() {
+        let policy = ParallelPolicy {
+            min_parallel_shard_bytes: 1,
+            min_bytes_per_job: 256 * 1024,
+            max_jobs: 2,
+            l2_cache_bytes: 64 * 1024,
+        };
+        let decision = policy.decide_for_elements(1024 * 1024, 2, 10, 4, 8);
+        assert!(decision.use_parallel);
+        assert!(decision.chunk_len * 2 * 14 <= policy.l2_cache_bytes);
+        assert_eq!(decision.chunk_len * 2 % 64, 0);
+    }
 
     #[test]
     fn test_default_policy_has_l2_cache() {

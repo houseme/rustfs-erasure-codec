@@ -10,8 +10,6 @@ use crate::errors::Error;
 use crate::{Field, ReconstructShard};
 
 #[cfg(feature = "std")]
-use rayon::prelude::*;
-#[cfg(feature = "std")]
 use std::sync::atomic::Ordering;
 
 #[cfg(not(feature = "std"))]
@@ -98,7 +96,13 @@ impl<F: Field> ReedSolomon<F> {
             self.code_some_slices_chunked(matrix_rows, inputs, outputs);
             return;
         }
-        self.code_some_slices_par_chunked(matrix_rows, inputs, outputs, decision.chunk_len);
+        self.code_some_slices_par_chunked_with_jobs(
+            matrix_rows,
+            inputs,
+            outputs,
+            decision.chunk_len,
+            decision.jobs,
+        );
     }
 
     #[cfg(feature = "std")]
@@ -125,8 +129,9 @@ impl<F: Field> ReedSolomon<F> {
             return;
         }
 
-        let decision = policy.decide(
+        let decision = policy.decide_for_elements(
             shard_len,
+            core::mem::size_of::<F::Elem>(),
             self.data_shard_count,
             outputs.len(),
             self.policy_cache.available_parallelism,
@@ -137,7 +142,13 @@ impl<F: Field> ReedSolomon<F> {
             self.code_some_slices_chunked(matrix_rows, inputs, outputs);
             return;
         }
-        self.code_some_slices_par_chunked(matrix_rows, inputs, outputs, decision.chunk_len);
+        self.code_some_slices_par_chunked_with_jobs(
+            matrix_rows,
+            inputs,
+            outputs,
+            decision.chunk_len,
+            decision.jobs,
+        );
     }
 
     #[cfg(feature = "std")]
@@ -165,11 +176,7 @@ impl<F: Field> ReedSolomon<F> {
             return;
         }
 
-        let chunk_len = if self.data_shard_count <= 16 {
-            core::cmp::min(shard_len, core::cmp::max(decision.chunk_len, 512 * 1024))
-        } else {
-            decision.chunk_len
-        };
+        let chunk_len = decision.chunk_len;
         self.runtime_profile_metrics.record_code_some(
             true,
             shard_len,
@@ -179,29 +186,24 @@ impl<F: Field> ReedSolomon<F> {
         );
 
         let data_shard_count = self.data_shard_count;
-        outputs
-            .par_iter_mut()
-            .enumerate()
-            .for_each(|(i_row, output)| {
+        super::parallel::for_each_output_chunk(
+            outputs,
+            shard_len,
+            chunk_len,
+            decision.jobs,
+            |i_row, start, output_chunk| {
                 let matrix_row = matrix_rows[i_row];
-
-                let mut start = 0;
-                while start < shard_len {
-                    let end = core::cmp::min(start + chunk_len, shard_len);
-                    let output_chunk = &mut output[start..end];
-
-                    F::mul_slice(matrix_row[0], &inputs[0][start..end], output_chunk);
-                    for i_input in 1..data_shard_count {
-                        F::mul_slice_add(
-                            matrix_row[i_input],
-                            &inputs[i_input][start..end],
-                            output_chunk,
-                        );
-                    }
-
-                    start = end;
+                let end = start + output_chunk.len();
+                F::mul_slice(matrix_row[0], &inputs[0][start..end], output_chunk);
+                for i_input in 1..data_shard_count {
+                    F::mul_slice_add(
+                        matrix_row[i_input],
+                        &inputs[i_input][start..end],
+                        output_chunk,
+                    );
                 }
-            });
+            },
+        );
     }
 
     #[cfg(feature = "std")]
@@ -239,13 +241,13 @@ impl<F: Field> ReedSolomon<F> {
 
             let data_shard_count = self.data_shard_count;
             let matrix_row = matrix_rows[0];
-            outputs[0]
-                .par_chunks_mut(decision.chunk_len)
-                .enumerate()
-                .for_each(|(chunk_idx, output_chunk)| {
-                    let start = chunk_idx * decision.chunk_len;
+            super::parallel::for_each_output_chunk(
+                outputs,
+                shard_len,
+                decision.chunk_len,
+                decision.jobs,
+                |_, start, output_chunk| {
                     let end = start + output_chunk.len();
-
                     F::mul_slice(matrix_row[0], &inputs[0][start..end], output_chunk);
                     for i_input in 1..data_shard_count {
                         F::mul_slice_add(
@@ -254,7 +256,8 @@ impl<F: Field> ReedSolomon<F> {
                             output_chunk,
                         );
                     }
-                });
+                },
+            );
             return;
         }
 

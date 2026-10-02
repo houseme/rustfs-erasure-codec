@@ -2015,9 +2015,13 @@ fn test_parallel_policy_creates_multiple_chunks_for_small_output_reconstruct_cas
 #[test]
 fn test_reconstruct_parallel_policy_respects_min_bytes_per_job_env() {
     let _policy_env = lock_policy_env();
-    let decision = with_env_var("RS_RECONSTRUCT_MIN_BYTES_PER_JOB", "65536", || {
-        let r = ReedSolomon::new(10, 4).unwrap();
-        r.reconstruct_parallel_decision_with(1024 * 1024, 2, 4, false, 8)
+    // Isolate the explicit job-size override from the independently tested
+    // hardware cache budget, which may impose a smaller chunk.
+    let decision = with_env_var("RS_PARALLEL_POLICY_L2_CACHE_BYTES", "0", || {
+        with_env_var("RS_RECONSTRUCT_MIN_BYTES_PER_JOB", "65536", || {
+            let r = ReedSolomon::new(10, 4).unwrap();
+            r.reconstruct_parallel_decision_with(1024 * 1024, 2, 4, false, 8)
+        })
     });
 
     assert!(decision.use_parallel);
