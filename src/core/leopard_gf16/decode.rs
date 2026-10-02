@@ -1,6 +1,7 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
+use smallvec::SmallVec;
 
 use crate::errors::Error;
 
@@ -13,6 +14,83 @@ use super::{
     FftDit16Plan, IfftDit16Plan, LeopardGf16Tables, MODULUS16, ORDER16, WORK_SIZE16,
     build_ifft_decode_dit16_plan, ceil_pow2, init_leopard_gf16_tables,
 };
+
+// At most one workspace is retained per calling/Rayon worker thread. FFT
+// schedules are immutable and cached separately; these buffers contain only
+// transient shard data and are fully initialized over each active chunk.
+#[cfg(feature = "std")]
+const MAX_CACHED_DECODE_BYTES: usize = 4 * 1024 * 1024;
+
+#[cfg(feature = "std")]
+fn cacheable_decode_size(lanes: usize, chunk_len: usize) -> bool {
+    lanes
+        .saturating_add(2)
+        .saturating_mul(chunk_len)
+        .saturating_mul(core::mem::size_of::<u16>())
+        <= MAX_CACHED_DECODE_BYTES
+}
+
+struct DecodeBuffers {
+    work: FlatWork16,
+    // Input layout conversion and FFT butterflies use scratch at disjoint stages.
+    scratch: Vec<u16>,
+    out_scratch: Vec<u16>,
+}
+
+impl DecodeBuffers {
+    fn new(lanes: usize, chunk_len: usize) -> Self {
+        Self {
+            work: FlatWork16::new(lanes, chunk_len),
+            scratch: alloc::vec![0; chunk_len],
+            out_scratch: alloc::vec![0; chunk_len],
+        }
+    }
+
+    #[cfg(feature = "std")]
+    fn retained_bytes(&self) -> usize {
+        self.work.allocated_bytes().saturating_add(
+            self.scratch
+                .capacity()
+                .saturating_add(self.out_scratch.capacity())
+                .saturating_mul(core::mem::size_of::<u16>()),
+        )
+    }
+}
+
+#[cfg(feature = "std")]
+thread_local! {
+    static DECODE_BUFFER_CACHE: std::cell::RefCell<Option<DecodeBuffers>> =
+        const { std::cell::RefCell::new(None) };
+}
+
+fn with_decode_buffers<R>(
+    lanes: usize,
+    chunk_len: usize,
+    operation: impl FnOnce(&mut DecodeBuffers) -> R,
+) -> R {
+    // Decide cache eligibility before allocating. An oversized workspace is
+    // still needed for this operation, but is never retained after it finishes.
+    #[cfg(feature = "std")]
+    let cacheable = cacheable_decode_size(lanes, chunk_len);
+    #[cfg(feature = "std")]
+    let mut buffers = DECODE_BUFFER_CACHE.with(|cache| {
+        cache
+            .take()
+            .filter(|buffers| buffers.work.can_reuse(lanes, chunk_len))
+            .unwrap_or_else(|| DecodeBuffers::new(lanes, chunk_len))
+    });
+    #[cfg(not(feature = "std"))]
+    let mut buffers = DecodeBuffers::new(lanes, chunk_len);
+
+    // Release the RefCell borrow before computation, so nested operations never
+    // borrow an in-use workspace. On panic the local workspace is simply dropped.
+    let result = operation(&mut buffers);
+    #[cfg(feature = "std")]
+    if cacheable && buffers.retained_bytes() <= MAX_CACHED_DECODE_BYTES {
+        DECODE_BUFFER_CACHE.with(|cache| *cache.borrow_mut() = Some(buffers));
+    }
+    result
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) struct LeopardGf16DecodeDriver {
@@ -155,13 +233,17 @@ fn decode_plan_for(
     use parking_lot::Mutex;
     use std::sync::OnceLock;
 
-    type Key = (usize, usize, Vec<bool>);
+    type Key = (usize, usize, SmallVec<[bool; 256]>);
     // A handful of distinct erasure patterns per configuration is typical; each
     // entry is ~128 KiB (the 65536-element error locator).
     const CACHE_CAPACITY: usize = 16;
     static CACHE: OnceLock<Mutex<LruCache<Key, Arc<LeopardGf16DecodePlan>>>> = OnceLock::new();
 
-    let key = (driver.data_shards, driver.parity_shards, present.to_vec());
+    let key = (
+        driver.data_shards,
+        driver.parity_shards,
+        present.iter().copied().collect::<SmallVec<[bool; 256]>>(),
+    );
     let cache = CACHE.get_or_init(|| Mutex::new(LruCache::new(CACHE_CAPACITY)));
 
     if let Some(plan) = cache.lock().get(&key) {
@@ -230,8 +312,8 @@ pub(crate) fn reconstruct_with_tables16_with_options(
     let driver = build_leopard_gf16_decode_driver(data_shards, parity_shards, shard_size)?;
     let shard_u16_len = shard_size / 2;
 
-    let mut missing_parity = Vec::new();
-    let mut missing_data = Vec::new();
+    let mut missing_parity = SmallVec::<[usize; 32]>::new();
+    let mut missing_data = SmallVec::<[usize; 32]>::new();
     for i in data_shards..total_shards {
         if !present[i] {
             missing_parity.push(i);
@@ -263,18 +345,11 @@ pub(crate) fn reconstruct_with_tables16_with_options(
     let ifft_plan = &plan.ifft_plan;
     let fft_plan = &plan.fft_plan;
 
-    // Convert each present input shard from user byte layout into aligned
-    // split-layout `u16` elements (alignment- and endian-safe).
-    let converted_inputs: Vec<Option<Vec<u16>>> = input_data
-        .iter()
-        .map(|opt| opt.map(super::ops::user_bytes_to_work_u16))
-        .collect();
-
     let chunk_cap = core::cmp::min(shard_u16_len, driver.chunk_size);
 
     // Recovery targets: (shard index, work lane, inverse error-locator value) for
     // each missing shard. The order is reused for the per-chunk output slices.
-    let missing: Vec<(usize, usize, u16)> = (0..total_shards)
+    let missing: SmallVec<[(usize, usize, u16); 32]> = (0..total_shards)
         .filter(|&i| !present[i] && !outputs[i].is_empty())
         .map(|i| {
             let (work_idx, err_idx) = if i >= data_shards {
@@ -300,7 +375,7 @@ pub(crate) fn reconstruct_with_tables16_with_options(
             &driver,
             present,
             outputs,
-            &converted_inputs,
+            input_data,
             err_locs,
             ifft_plan,
             fft_plan,
@@ -312,53 +387,43 @@ pub(crate) fn reconstruct_with_tables16_with_options(
         );
     }
 
-    let mut work = FlatWork16::new(driver.n, chunk_cap);
-    let mut scratch: Vec<u16> = Vec::new();
-    // Reusable aligned scratch holding a chunk of recovered u16 elements before
-    // they are encoded back into the byte output as little-endian.
-    let mut out_scratch: Vec<u16> = Vec::new();
+    with_decode_buffers(driver.n, chunk_cap, |buffers| {
+        let DecodeBuffers {
+            work,
+            scratch,
+            out_scratch,
+        } = buffers;
+        let mut offset = 0usize;
+        while offset < shard_u16_len {
+            let end = core::cmp::min(offset + driver.chunk_size, shard_u16_len);
+            let size = end - offset;
 
-    let mut offset = 0usize;
-    while offset < shard_u16_len {
-        let end = core::cmp::min(offset + driver.chunk_size, shard_u16_len);
-        let size = end - offset;
+            compute_reconstruct_chunk(
+                work, scratch, offset, end, size, present, input_data, err_locs, ifft_plan,
+                fft_plan, tables, &driver,
+            )?;
 
-        compute_reconstruct_chunk(
-            &mut work,
-            &mut scratch,
-            offset,
-            end,
-            size,
-            present,
-            &converted_inputs,
-            err_locs,
-            ifft_plan,
-            fft_plan,
-            tables,
-            &driver,
-        )?;
-
-        if out_scratch.len() < size {
-            out_scratch.resize(size, 0);
+            if out_scratch.len() < size {
+                out_scratch.resize(size, 0);
+            }
+            // Step 5: scale each missing shard's transform by the inverse error locator
+            // and write it straight into user byte layout at this chunk's byte range.
+            for &(shard_idx, work_idx, inv_err) in &missing {
+                mulgf16(
+                    &mut out_scratch[..size],
+                    &work.lane(work_idx)[..size],
+                    inv_err,
+                    tables,
+                );
+                super::ops::work_u16_to_user_bytes(
+                    &out_scratch[..size],
+                    &mut outputs[shard_idx][offset * 2..end * 2],
+                );
+            }
+            offset = end;
         }
-        // Step 5: scale each missing shard's transform by the inverse error locator
-        // and write it straight into user byte layout at this chunk's byte range.
-        for &(shard_idx, work_idx, inv_err) in &missing {
-            mulgf16(
-                &mut out_scratch[..size],
-                &work.lane(work_idx)[..size],
-                inv_err,
-                tables,
-            );
-            super::ops::work_u16_to_user_bytes(
-                &out_scratch[..size],
-                &mut outputs[shard_idx][offset * 2..end * 2],
-            );
-        }
-        offset = end;
-    }
-
-    Ok(())
+        Ok(())
+    })
 }
 
 /// Steps 1-4 of a single reconstruct chunk: multiply the received shards by the
@@ -373,7 +438,7 @@ fn compute_reconstruct_chunk(
     end: usize,
     size: usize,
     present: &[bool],
-    converted_inputs: &[Option<Vec<u16>>],
+    input_data: &[Option<&[u8]>],
     err_locs: &[u16; ORDER16],
     ifft_plan: &IfftDit16Plan,
     fft_plan: &FftDit16Plan,
@@ -389,12 +454,14 @@ fn compute_reconstruct_chunk(
     for i in 0..driver.data_shards {
         let work_idx = driver.m + i;
         if present[i] {
-            let data_u16 = converted_inputs[i]
-                .as_ref()
-                .ok_or(Error::TooFewShardsPresent)?;
+            let input = input_data[i].ok_or(Error::TooFewShardsPresent)?;
+            super::ops::user_bytes_to_work_u16_into(
+                &input[offset * 2..end * 2],
+                &mut scratch[..size],
+            );
             mulgf16(
                 &mut work.lane_mut(work_idx)[..size],
-                &data_u16[offset..end],
+                &scratch[..size],
                 err_locs[work_idx],
                 tables,
             );
@@ -405,12 +472,14 @@ fn compute_reconstruct_chunk(
     for i in 0..driver.parity_shards {
         let shard_idx = driver.data_shards + i;
         if present[shard_idx] {
-            let data_u16 = converted_inputs[shard_idx]
-                .as_ref()
-                .ok_or(Error::TooFewShardsPresent)?;
+            let input = input_data[shard_idx].ok_or(Error::TooFewShardsPresent)?;
+            super::ops::user_bytes_to_work_u16_into(
+                &input[offset * 2..end * 2],
+                &mut scratch[..size],
+            );
             mulgf16(
                 &mut work.lane_mut(i)[..size],
-                &data_u16[offset..end],
+                &scratch[..size],
                 err_locs[i],
                 tables,
             );
@@ -445,7 +514,7 @@ fn reconstruct_chunks_parallel(
     driver: &LeopardGf16DecodeDriver,
     present: &[bool],
     outputs: &mut [&mut [u8]],
-    converted_inputs: &[Option<Vec<u16>>],
+    input_data: &[Option<&[u8]>],
     err_locs: &[u16; ORDER16],
     ifft_plan: &IfftDit16Plan,
     fft_plan: &FftDit16Plan,
@@ -488,39 +557,43 @@ fn reconstruct_chunks_parallel(
     };
     let chunks_per_job = jobs.len().div_ceil(max_jobs).max(1);
     jobs.par_chunks_mut(chunks_per_job).try_for_each(|group| {
-        let mut work = FlatWork16::new(driver.n, chunk_cap);
-        let mut scratch = Vec::<u16>::new();
-        let mut out_scratch = Vec::<u16>::new();
-        for (offset, size, chunk_out) in group {
-            let (offset, size) = (*offset, *size);
-            compute_reconstruct_chunk(
-                &mut work,
-                &mut scratch,
-                offset,
-                offset + size,
-                size,
-                present,
-                converted_inputs,
-                err_locs,
-                ifft_plan,
-                fft_plan,
-                tables,
-                driver,
-            )?;
-            if out_scratch.len() < size {
-                out_scratch.resize(size, 0);
-            }
-            for (k, &(_, work_idx, inv_err)) in missing.iter().enumerate() {
-                mulgf16(
-                    &mut out_scratch[..size],
-                    &work.lane(work_idx)[..size],
-                    inv_err,
+        with_decode_buffers(driver.n, chunk_cap, |buffers| {
+            let DecodeBuffers {
+                work,
+                scratch,
+                out_scratch,
+            } = buffers;
+            for (offset, size, chunk_out) in group {
+                let (offset, size) = (*offset, *size);
+                compute_reconstruct_chunk(
+                    work,
+                    scratch,
+                    offset,
+                    offset + size,
+                    size,
+                    present,
+                    input_data,
+                    err_locs,
+                    ifft_plan,
+                    fft_plan,
                     tables,
-                );
-                super::ops::work_u16_to_user_bytes(&out_scratch[..size], chunk_out[k]);
+                    driver,
+                )?;
+                if out_scratch.len() < size {
+                    out_scratch.resize(size, 0);
+                }
+                for (k, &(_, work_idx, inv_err)) in missing.iter().enumerate() {
+                    mulgf16(
+                        &mut out_scratch[..size],
+                        &work.lane(work_idx)[..size],
+                        inv_err,
+                        tables,
+                    );
+                    super::ops::work_u16_to_user_bytes(&out_scratch[..size], chunk_out[k]);
+                }
             }
-        }
-        Ok(())
+            Ok(())
+        })
     })
 }
 
@@ -586,7 +659,7 @@ pub(super) fn ifft_dit_decode16_with_plan(
             let a = i;
             let b = i + stage.dist;
             if b < n
-                && let Some((ra, rb)) = get_pair_mut_flat16(work, a, b)
+                && let Some((ra, rb)) = get_pair_mut_flat16(work, a, b, size)
             {
                 ifft_dit2_16(ra, rb, stage.log_m, tables);
             }
@@ -621,14 +694,14 @@ pub(super) fn fft_dit_decode16_with_plan(
         let a = stage.r;
         let b = stage.r + stage.dist;
         if b < n
-            && let Some((ra, rb)) = get_pair_mut_flat16(work, a, b)
+            && let Some((ra, rb)) = get_pair_mut_flat16(work, a, b, size)
         {
             fft_dit2_16(ra, rb, stage.log_m, tables);
         }
     }
 }
 
-fn compute_formal_derivative16(work: &mut FlatWork16, n: usize, _size: usize) {
+fn compute_formal_derivative16(work: &mut FlatWork16, n: usize, size: usize) {
     for i in 1..n {
         let width = ((i ^ (i - 1)) + 1) >> 1;
         for j in 0..width {
@@ -638,7 +711,7 @@ fn compute_formal_derivative16(work: &mut FlatWork16, n: usize, _size: usize) {
                 // Go: slicesXor(work[i-width:i], work[i:i+width]) modifies v1=work[i-width:i]
                 // slicesXor(v1, v2) → for each j: sliceXor(v2[j], v1[j]) → v1[j] ^= v2[j]
                 // So: work[lo_idx] ^= work[hi_idx], i.e., lo ^= hi
-                if let Some((lo, hi)) = get_pair_mut_flat16(work, lo_idx, hi_idx) {
+                if let Some((lo, hi)) = get_pair_mut_flat16(work, lo_idx, hi_idx, size) {
                     slice_xor_u16(lo, hi);
                 }
             }
@@ -650,6 +723,7 @@ fn get_pair_mut_flat16(
     work: &mut FlatWork16,
     i: usize,
     j: usize,
+    size: usize,
 ) -> Option<(&mut [u16], &mut [u16])> {
     if i == j || i >= work.lanes() || j >= work.lanes() {
         return None;
@@ -659,7 +733,7 @@ fn get_pair_mut_flat16(
         let ptr = work as *mut FlatWork16;
         let lane_i = (*ptr).lane_mut(i);
         let lane_j = (*ptr).lane_mut(j);
-        Some((lane_i, lane_j))
+        Some((&mut lane_i[..size], &mut lane_j[..size]))
     }
 }
 
@@ -667,7 +741,7 @@ fn get_pair_mut_flat16(
 fn dit4_decode_at_16(
     forward: bool,
     work: &mut FlatWork16,
-    _size: usize,
+    size: usize,
     base: usize,
     dist: usize,
     log_m01: u16,
@@ -680,7 +754,9 @@ fn dit4_decode_at_16(
         let a = base + i;
         let d = a + dist * 3;
         if d >= work.lanes() {
-            dit4_decode_pairwise_16(forward, work, a, dist, log_m01, log_m23, log_m02, tables);
+            dit4_decode_pairwise_16(
+                forward, work, size, a, dist, log_m01, log_m23, log_m02, tables,
+            );
             continue;
         }
 
@@ -690,10 +766,10 @@ fn dit4_decode_at_16(
         // SAFETY: d < work.lanes() (checked above) and a<b<c<d are distinct (dist >= 1), so the four lane_mut calls via the raw *mut reborrow return four disjoint, non-aliasing lane slices.
         unsafe {
             let ptr = work as *mut FlatWork16;
-            let a_ref = &mut *(*ptr).lane_mut(a);
-            let b_ref = &mut *(*ptr).lane_mut(b);
-            let c_ref = &mut *(*ptr).lane_mut(c);
-            let d_ref = &mut *(*ptr).lane_mut(d);
+            let a_ref = &mut (*ptr).lane_mut(a)[..size];
+            let b_ref = &mut (*ptr).lane_mut(b)[..size];
+            let c_ref = &mut (*ptr).lane_mut(c)[..size];
+            let d_ref = &mut (*ptr).lane_mut(d)[..size];
             if forward {
                 fft_dit4_16(
                     a_ref, b_ref, c_ref, d_ref, log_m01, log_m23, log_m02, tables,
@@ -712,6 +788,7 @@ fn dit4_decode_at_16(
 fn dit4_decode_pairwise_16(
     forward: bool,
     work: &mut FlatWork16,
+    size: usize,
     a: usize,
     dist: usize,
     log_m01: u16,
@@ -734,50 +811,50 @@ fn dit4_decode_pairwise_16(
     if forward {
         if has_a
             && has_c
-            && let Some((r1, r2)) = get_pair_mut_flat16(work, a, c)
+            && let Some((r1, r2)) = get_pair_mut_flat16(work, a, c, size)
         {
             fft_dit2_16(r1, r2, log_m02, tables);
         }
         if has_b
             && has_d
-            && let Some((r1, r2)) = get_pair_mut_flat16(work, b, d)
+            && let Some((r1, r2)) = get_pair_mut_flat16(work, b, d, size)
         {
             fft_dit2_16(r1, r2, log_m02, tables);
         }
         if has_a
             && has_b
-            && let Some((r1, r2)) = get_pair_mut_flat16(work, a, b)
+            && let Some((r1, r2)) = get_pair_mut_flat16(work, a, b, size)
         {
             fft_dit2_16(r1, r2, log_m01, tables);
         }
         if has_c
             && has_d
-            && let Some((r1, r2)) = get_pair_mut_flat16(work, c, d)
+            && let Some((r1, r2)) = get_pair_mut_flat16(work, c, d, size)
         {
             fft_dit2_16(r1, r2, log_m23, tables);
         }
     } else {
         if has_a
             && has_b
-            && let Some((r1, r2)) = get_pair_mut_flat16(work, a, b)
+            && let Some((r1, r2)) = get_pair_mut_flat16(work, a, b, size)
         {
             ifft_dit2_16(r1, r2, log_m01, tables);
         }
         if has_c
             && has_d
-            && let Some((r1, r2)) = get_pair_mut_flat16(work, c, d)
+            && let Some((r1, r2)) = get_pair_mut_flat16(work, c, d, size)
         {
             ifft_dit2_16(r1, r2, log_m23, tables);
         }
         if has_a
             && has_c
-            && let Some((r1, r2)) = get_pair_mut_flat16(work, a, c)
+            && let Some((r1, r2)) = get_pair_mut_flat16(work, a, c, size)
         {
             ifft_dit2_16(r1, r2, log_m02, tables);
         }
         if has_b
             && has_d
-            && let Some((r1, r2)) = get_pair_mut_flat16(work, b, d)
+            && let Some((r1, r2)) = get_pair_mut_flat16(work, b, d, size)
         {
             ifft_dit2_16(r1, r2, log_m02, tables);
         }
@@ -795,5 +872,26 @@ mod decode_driver_boundary_tests {
             super::build_leopard_gf16_decode_driver(super::super::ORDER16 - 3, 4, 64),
             Err(crate::Error::TooManyShards),
         );
+    }
+}
+
+#[cfg(all(test, feature = "std"))]
+mod decode_buffer_tests {
+    use super::*;
+
+    #[test]
+    fn decode_workspace_retention_counts_all_buffers_and_drops_oversized_entries() {
+        assert!(!cacheable_decode_size(usize::MAX, usize::MAX));
+        assert!(!cacheable_decode_size(64, 32 * 1024));
+        DECODE_BUFFER_CACHE.with(|cache| *cache.borrow_mut() = None);
+        with_decode_buffers(16, 64, |buffers| {
+            assert_eq!(buffers.retained_bytes(), (16 + 2) * 64 * 2);
+        });
+        DECODE_BUFFER_CACHE.with(|cache| assert!(cache.borrow().is_some()));
+        // FlatWork alone fits exactly; the two scratch buffers put it over cap.
+        with_decode_buffers(64, 32 * 1024, |buffers| {
+            assert!(buffers.retained_bytes() > MAX_CACHED_DECODE_BYTES);
+        });
+        DECODE_BUFFER_CACHE.with(|cache| assert!(cache.borrow().is_none()));
     }
 }

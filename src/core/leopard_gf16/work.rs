@@ -24,8 +24,12 @@ unsafe impl Sync for FlatWork16 {}
 
 impl FlatWork16 {
     pub(crate) fn new(lanes: usize, lane_len: usize) -> Self {
-        let len_elems = lanes * lane_len;
-        let len_bytes = len_elems * core::mem::size_of::<u16>();
+        let len_elems = lanes
+            .checked_mul(lane_len)
+            .expect("FlatWork16 element count overflow");
+        let len_bytes = len_elems
+            .checked_mul(core::mem::size_of::<u16>())
+            .expect("FlatWork16 byte count overflow");
         let layout =
             Layout::from_size_align(len_bytes, WORK_ALIGNMENT).expect("FlatWork16 layout overflow");
         // SAFETY: layout is non-zero-sized (len_bytes = lanes*lane_len*2 > 0 for the codec's inputs) with 64-byte alignment; zeroed bytes are a valid u16 bit pattern, and a null return is handled just below.
@@ -43,6 +47,11 @@ impl FlatWork16 {
 
     pub(crate) fn can_reuse(&self, lanes: usize, lane_len: usize) -> bool {
         self.lanes == lanes && self.lane_len == lane_len
+    }
+
+    #[cfg(feature = "std")]
+    pub(crate) fn allocated_bytes(&self) -> usize {
+        self.len_elems.saturating_mul(core::mem::size_of::<u16>())
     }
 
     pub(crate) fn lanes(&self) -> usize {
