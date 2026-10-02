@@ -4,7 +4,6 @@ extern crate alloc;
 use rayon::prelude::*;
 
 use alloc::vec;
-use alloc::vec::Vec;
 
 use crate::Field;
 use crate::errors::Error;
@@ -290,33 +289,45 @@ impl<F: Field> ReedSolomon<F> {
         parity: &mut [U],
         _shard_len: usize,
     ) -> bool {
-        if !crate::galois_8::generated_encode_allowed() {
+        if !leopard::is_byte_field::<F>() || !crate::galois_8::generated_encode_allowed() {
             return false;
         }
 
-        // SAFETY: We only call this when size_of::<F::Elem>() == 1, so F::Elem is u8.
-        // u8 and F::Elem have identical layout (align=1, size=1), so pointer casts are valid.
-        let _data_u8: smallvec::SmallVec<[&[u8]; 32]> = data
-            .iter()
-            .map(|d| unsafe { &*(d.as_ref() as *const [F::Elem] as *const [u8]) })
-            .collect();
-        let _parity_len = parity.len();
-        // SAFETY: only called when size_of::<F::Elem>() == 1, so F::Elem is u8.
-        // u8 and F::Elem share layout (align=1, size=1), so the pointer cast is valid.
-        let mut _parity_u8: smallvec::SmallVec<[&mut [u8]; 32]> = parity
-            .iter_mut()
-            .map(|p| unsafe { &mut *(p.as_mut() as *mut [F::Elem] as *mut [u8]) })
-            .collect();
+        // A one-byte element does not identify a finite field. Only fields
+        // explicitly exposing the native GF8 representation may use this path.
+        let mut _data_u8 = smallvec::SmallVec::<[&[u8]; 32]>::with_capacity(data.len());
+        for input in data {
+            let input = input.as_ref();
+            let Some(bytes) = F::as_gf8_slice(input) else {
+                return false;
+            };
+            if bytes.len() != input.len() {
+                return false;
+            }
+            _data_u8.push(bytes);
+        }
+        let mut _parity_u8 = smallvec::SmallVec::<[&mut [u8]; 32]>::with_capacity(parity.len());
+        for output in parity {
+            let output = output.as_mut();
+            let len = output.len();
+            let Some(bytes) = F::as_gf8_slice_mut(output) else {
+                return false;
+            };
+            if bytes.len() != len {
+                return false;
+            }
+            _parity_u8.push(bytes);
+        }
         let parity_rows = self.get_parity_rows();
-        let mut _parity_refs: smallvec::SmallVec<[&[u8]; 32]> =
-            smallvec::SmallVec::with_capacity(parity_rows.len());
-        for r in parity_rows.iter() {
-            let slice: &[F::Elem] = r;
-            // SAFETY: only called when size_of::<F::Elem>() == 1, so F::Elem is u8;
-            // ptr/len come from a live `&[F::Elem]`, valid for `slice.len()` bytes.
-            _parity_refs.push(unsafe {
-                core::slice::from_raw_parts(slice.as_ptr() as *const u8, slice.len())
-            });
+        let mut _parity_refs = smallvec::SmallVec::<[&[u8]; 32]>::with_capacity(parity_rows.len());
+        for row in &parity_rows {
+            let Some(bytes) = F::as_gf8_slice(row) else {
+                return false;
+            };
+            if bytes.len() != row.len() {
+                return false;
+            }
+            _parity_refs.push(bytes);
         }
 
         // x86_64 AVX2 codegen path
@@ -462,11 +473,9 @@ impl<F: Field> ReedSolomon<F> {
         }
 
         // Try SIMD codegen path for GF(2^8) with common configurations.
-        if core::mem::size_of::<F::Elem>() == 1 {
-            let shard_len = data.first().map(|d| d.as_ref().len()).unwrap_or(0);
-            if shard_len > 0 && self.try_encode_codegen(data, parity, shard_len) {
-                return Ok(());
-            }
+        let shard_len = data[0].as_ref().len();
+        if self.try_encode_codegen(data, parity, shard_len) {
+            return Ok(());
         }
 
         let parity_rows = self.get_parity_rows();
@@ -504,22 +513,25 @@ impl<F: Field> ReedSolomon<F> {
         parity: &mut [U],
         encode_fn: fn(usize, usize, &[&[u8]], &mut [&mut [u8]]) -> Result<(), Error>,
     ) -> Result<(), Error> {
-        let data_u8: Vec<&[u8]> = data
-            .iter()
-            .map(|s| {
-                let slice: &[F::Elem] = s.as_ref();
-                // SAFETY: Leopard is only instantiated when F::Elem = u8.
-                unsafe { &*(slice as *const [F::Elem] as *const [u8]) }
-            })
-            .collect();
-        let mut parity_u8: Vec<&mut [u8]> = parity
-            .iter_mut()
-            .map(|s| {
-                let slice: &mut [F::Elem] = s.as_mut();
-                // SAFETY: Same as above — F::Elem = u8 for leopard.
-                unsafe { &mut *(slice as *mut [F::Elem] as *mut [u8]) }
-            })
-            .collect();
+        let mut data_u8 = smallvec::SmallVec::<[&[u8]; 32]>::with_capacity(data.len());
+        for shard in data {
+            let slice = shard.as_ref();
+            let bytes = F::as_gf8_slice(slice).ok_or(Error::UnsupportedCodecFamily)?;
+            if bytes.len() != slice.len() {
+                return Err(Error::IncorrectShardSize);
+            }
+            data_u8.push(bytes);
+        }
+        let mut parity_u8 = smallvec::SmallVec::<[&mut [u8]; 32]>::with_capacity(parity.len());
+        for shard in parity {
+            let slice = shard.as_mut();
+            let len = slice.len();
+            let bytes = F::as_gf8_slice_mut(slice).ok_or(Error::UnsupportedCodecFamily)?;
+            if bytes.len() != len {
+                return Err(Error::IncorrectShardSize);
+            }
+            parity_u8.push(bytes);
+        }
         encode_fn(
             self.data_shard_count,
             self.parity_shard_count,
@@ -708,6 +720,9 @@ impl<F: Field> ReedSolomon<F> {
         T: AsRef<[U]> + AsMut<[U]>,
         U: AsRef<[F::Elem]> + AsMut<[F::Elem]> + Send,
     {
+        if self.is_leopard_gf8_family() || self.is_leopard_gf16_family() {
+            return Err(Error::UnsupportedCodecFamily);
+        }
         let slices = shards.as_mut();
 
         check_slice_index!(data => self, i_data);

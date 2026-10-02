@@ -59,7 +59,7 @@ impl Error {
                 "The data shard index provided is greater or equal to the number of data shards in codec"
             }
             Error::InvalidCustomMatrix => {
-                "The supplied custom matrix is invalid or missing for MatrixMode::Custom"
+                "The encoding matrix is invalid, missing, or incompatible with the reconstruction workspace"
             }
             Error::UnsupportedCodecFamily => {
                 "The selected codec family is not supported for this field or configuration"
@@ -177,7 +177,7 @@ mod tests {
         );
         assert_eq!(
             alloc::format!("{}", Error::InvalidCustomMatrix),
-            "The supplied custom matrix is invalid or missing for MatrixMode::Custom"
+            "The encoding matrix is invalid, missing, or incompatible with the reconstruction workspace"
         );
         assert_eq!(
             alloc::format!("{}", Error::UnsupportedCodecFamily),

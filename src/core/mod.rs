@@ -66,7 +66,7 @@ pub struct ReedSolomon<F: Field> {
     total_shard_count: usize,
     codec_family: CodecFamily,
     pub(crate) family_state: FamilyState<F>,
-    matrix: Matrix<F>,
+    matrix: Arc<Matrix<F>>,
     options: CodecOptions,
     #[cfg(feature = "std")]
     pub(crate) policy_cache: RuntimeParallelPolicyCache,
@@ -79,71 +79,23 @@ pub struct ReedSolomon<F: Field> {
 
 impl<F: Field> Clone for ReedSolomon<F> {
     fn clone(&self) -> ReedSolomon<F> {
-        match ReedSolomon::with_options(
-            self.data_shard_count,
-            self.parity_shard_count,
-            self.options,
-        ) {
-            Ok(codec) => codec,
-            Err(err) => {
-                debug_assert!(
-                    false,
-                    "existing codec invariants must produce a valid clone, but got error: {err:?}"
-                );
-                let mut matrix = Matrix::new(self.matrix.row_count(), self.matrix.col_count());
-                for row in 0..self.matrix.row_count() {
-                    for col in 0..self.matrix.col_count() {
-                        matrix.set(row, col, self.matrix.get(row, col));
-                    }
-                }
-
-                let family_state = crate::core::leopard::build_family_state(
-                    self.codec_family,
-                    self.data_shard_count,
-                    self.parity_shard_count,
-                    &matrix,
-                )
-                .unwrap_or_else(|_| {
-                    debug_assert!(
-                        false,
-                        "fallback clone path could not rebuild family state from stored matrix"
-                    );
-                    match self.codec_family {
-                        super::CodecFamily::Classic => FamilyState::Classic,
-                        super::CodecFamily::LeopardGF16 => FamilyState::LeopardGF16,
-                        super::CodecFamily::LeopardGF8 => {
-                            debug_assert!(
-                                false,
-                                "LeopardGF8 should have a recoverable family state"
-                            );
-                            FamilyState::Classic
-                        }
-                    }
-                });
-
-                let options = self.options;
-                #[cfg(feature = "std")]
-                let policy_cache = self.policy_cache;
-
-                ReedSolomon {
-                    data_shard_count: self.data_shard_count,
-                    parity_shard_count: self.parity_shard_count,
-                    total_shard_count: self.total_shard_count,
-                    codec_family: self.codec_family,
-                    family_state,
-                    matrix,
-                    options,
-                    #[cfg(feature = "std")]
-                    policy_cache,
-                    data_decode_matrix_cache: Mutex::new(LruCache::new(
-                        options.inversion_cache_capacity,
-                    )),
-                    #[cfg(feature = "std")]
-                    reconstruction_cache_metrics: ReconstructionCacheMetrics::default(),
-                    #[cfg(feature = "std")]
-                    runtime_profile_metrics: RuntimeProfileMetrics::default(),
-                }
-            }
+        Self {
+            data_shard_count: self.data_shard_count,
+            parity_shard_count: self.parity_shard_count,
+            total_shard_count: self.total_shard_count,
+            codec_family: self.codec_family,
+            family_state: self.family_state.clone(),
+            matrix: Arc::clone(&self.matrix),
+            options: self.options,
+            #[cfg(feature = "std")]
+            policy_cache: self.policy_cache,
+            data_decode_matrix_cache: Mutex::new(LruCache::new(
+                self.options.inversion_cache_capacity,
+            )),
+            #[cfg(feature = "std")]
+            reconstruction_cache_metrics: ReconstructionCacheMetrics::default(),
+            #[cfg(feature = "std")]
+            runtime_profile_metrics: RuntimeProfileMetrics::default(),
         }
     }
 }
@@ -153,10 +105,21 @@ impl<F: Field> PartialEq for ReedSolomon<F> {
         self.data_shard_count == rhs.data_shard_count
             && self.parity_shard_count == rhs.parity_shard_count
             && self.codec_family == rhs.codec_family
+            && (Arc::ptr_eq(&self.matrix, &rhs.matrix)
+                || (self.matrix.row_count() == rhs.matrix.row_count()
+                    && self.matrix.col_count() == rhs.matrix.col_count()
+                    && (0..self.matrix.row_count())
+                        .all(|row| self.matrix.get_row(row) == rhs.matrix.get_row(row))))
     }
 }
 
 impl<F: Field> ReedSolomon<F> {
+    /// Shared immutable encoding matrix, used to validate reusable workspaces.
+    #[cfg(feature = "std")]
+    pub(crate) fn matrix_identity(&self) -> &Arc<Matrix<F>> {
+        &self.matrix
+    }
+
     /// Returns `Ok(())` for Classic, LeopardGF8, and LeopardGF16 families.
     ///
     /// Methods that are genuinely Classic-only (e.g., `update`, `decode_idx`) should

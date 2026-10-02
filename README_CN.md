@@ -138,10 +138,9 @@ use rustfs_erasure_codec::{CodecFamily, CodecOptions};
 let rs = ReedSolomon::with_options(
     32,
     16,
-    CodecOptions {
-        codec_family: CodecFamily::LeopardGF8,
-        ..CodecOptions::default()
-    },
+    CodecOptions::builder()
+        .codec_family(CodecFamily::LeopardGF8)
+        .build(),
 )
 .unwrap();
 ```

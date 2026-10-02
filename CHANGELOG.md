@@ -10,6 +10,17 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+### Fixed
+- Preserve effective encoding matrices and resolved codec families when cloning; codec equality and prepared reconstruction workspaces now distinguish incompatible matrices.
+- Use one consistent XOR parity matrix for single-parity fast mode across encoding, updates, incremental encoding, and recovery; reject conflicting custom matrices.
+- Validate Leopard shard counts, actual lengths, byte views, required masks, and field-order boundaries before decoding; publish only requested recovered shards and never expose stale fixed buffers after a later output error.
+- Reject malformed optimized/workspace inputs and preserve selective parity recovery without restoring unrequested shards.
+
+### Changed
+- Add opt-in safe GF8 byte views to `Field`, replacing element-size-based reinterpretation in specialized kernels while preserving generic field arithmetic and the default encoded format.
+- Share immutable codec matrices and Leopard setup state; retain independent reconstruction caches for cloned codecs.
+- Correct public builder examples for non-exhaustive codec options.
+
 ## 9.0.0 (2026-09-16)
 
 > Major release: remove the bundled C SIMD backend and make the GF(2^8) SIMD

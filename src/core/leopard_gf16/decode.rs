@@ -39,11 +39,11 @@ pub(crate) fn build_leopard_gf16_decode_driver(
     if m > MODULUS16 {
         return Err(Error::TooManyShards);
     }
-    let work_size = m + data_shards;
-    let n = ceil_pow2(work_size);
-    if n > MODULUS16 {
+    let work_size = m.checked_add(data_shards).ok_or(Error::TooManyShards)?;
+    if work_size > super::ORDER16 {
         return Err(Error::TooManyShards);
     }
+    let n = ceil_pow2(work_size);
 
     Ok(LeopardGf16DecodeDriver {
         data_shards,
@@ -181,7 +181,7 @@ fn decode_plan_for(
     plan
 }
 
-#[allow(clippy::needless_range_loop)]
+#[cfg(test)]
 pub(crate) fn reconstruct_with_tables16(
     present: &[bool],
     outputs: &mut [&mut [u8]],
@@ -190,25 +190,41 @@ pub(crate) fn reconstruct_with_tables16(
     parity_shards: usize,
     tables: &LeopardGf16Tables,
 ) -> Result<(), Error> {
+    reconstruct_with_tables16_with_options(
+        present,
+        outputs,
+        input_data,
+        data_shards,
+        parity_shards,
+        tables,
+        0,
+    )
+}
+
+#[allow(clippy::needless_range_loop)]
+pub(crate) fn reconstruct_with_tables16_with_options(
+    present: &[bool],
+    outputs: &mut [&mut [u8]],
+    input_data: &[Option<&[u8]>],
+    data_shards: usize,
+    parity_shards: usize,
+    tables: &LeopardGf16Tables,
+    max_parallel_jobs: usize,
+) -> Result<(), Error> {
+    #[cfg(not(feature = "std"))]
+    let _ = max_parallel_jobs;
+    let shard_size = super::super::reconstruct::validate_leopard_decode_buffers(
+        present,
+        outputs,
+        input_data,
+        data_shards,
+        parity_shards,
+    )?;
     let total_shards = data_shards + parity_shards;
-    if present.len() != total_shards
-        || outputs.len() != total_shards
-        || input_data.len() != total_shards
+    if present.iter().all(|is_present| *is_present)
+        || outputs.iter().all(|output| output.is_empty())
     {
-        return Err(Error::IncorrectShardSize);
-    }
-
-    let shard_size = outputs.first().map(|s| s.len()).unwrap_or(0);
-    if shard_size == 0 || !shard_size.is_multiple_of(64) {
-        return Err(Error::IncorrectShardSize);
-    }
-
-    let number_present = present.iter().filter(|&&p| p).count();
-    if number_present == total_shards {
         return Ok(());
-    }
-    if number_present < data_shards {
-        return Err(Error::TooFewShardsPresent);
     }
 
     let driver = build_leopard_gf16_decode_driver(data_shards, parity_shards, shard_size)?;
@@ -259,7 +275,7 @@ pub(crate) fn reconstruct_with_tables16(
     // Recovery targets: (shard index, work lane, inverse error-locator value) for
     // each missing shard. The order is reused for the per-chunk output slices.
     let missing: Vec<(usize, usize, u16)> = (0..total_shards)
-        .filter(|&i| !present[i])
+        .filter(|&i| !present[i] && !outputs[i].is_empty())
         .map(|i| {
             let (work_idx, err_idx) = if i >= data_shards {
                 (i - data_shards, i - data_shards)
@@ -279,7 +295,7 @@ pub(crate) fn reconstruct_with_tables16(
     // larger than one chunk parallelise across the rayon pool. Single-chunk shards
     // (<= 64 KiB) and `no_std` take the serial path, reusing one set of buffers.
     #[cfg(feature = "std")]
-    if shard_u16_len.div_ceil(driver.chunk_size) >= 2 {
+    if max_parallel_jobs != 1 && shard_u16_len.div_ceil(driver.chunk_size) >= 2 {
         return reconstruct_chunks_parallel(
             &driver,
             present,
@@ -292,6 +308,7 @@ pub(crate) fn reconstruct_with_tables16(
             &missing,
             shard_u16_len,
             chunk_cap,
+            max_parallel_jobs,
         );
     }
 
@@ -436,6 +453,7 @@ fn reconstruct_chunks_parallel(
     missing: &[(usize, usize, u16)],
     shard_u16_len: usize,
     chunk_cap: usize,
+    max_parallel_jobs: usize,
 ) -> Result<(), Error> {
     use rayon::prelude::*;
 
@@ -444,7 +462,7 @@ fn reconstruct_chunks_parallel(
     let mut per_shard_chunks: Vec<_> = outputs
         .iter_mut()
         .enumerate()
-        .filter(|(i, _)| !present[*i])
+        .filter(|(i, out)| !present[*i] && !out.is_empty())
         .map(|(_, out)| out.chunks_mut(chunk_bytes))
         .collect();
 
@@ -462,18 +480,22 @@ fn reconstruct_chunks_parallel(
     }
     drop(per_shard_chunks);
 
-    jobs.into_par_iter().try_for_each_init(
-        || {
-            (
-                FlatWork16::new(driver.n, chunk_cap),
-                Vec::<u16>::new(),
-                Vec::<u16>::new(),
-            )
-        },
-        |(work, scratch, out_scratch), (offset, size, mut chunk_out)| -> Result<(), Error> {
+    let available_jobs = rayon::current_num_threads().max(1);
+    let max_jobs = if max_parallel_jobs == 0 {
+        available_jobs
+    } else {
+        max_parallel_jobs.min(available_jobs).max(1)
+    };
+    let chunks_per_job = jobs.len().div_ceil(max_jobs).max(1);
+    jobs.par_chunks_mut(chunks_per_job).try_for_each(|group| {
+        let mut work = FlatWork16::new(driver.n, chunk_cap);
+        let mut scratch = Vec::<u16>::new();
+        let mut out_scratch = Vec::<u16>::new();
+        for (offset, size, chunk_out) in group {
+            let (offset, size) = (*offset, *size);
             compute_reconstruct_chunk(
-                work,
-                scratch,
+                &mut work,
+                &mut scratch,
                 offset,
                 offset + size,
                 size,
@@ -497,9 +519,9 @@ fn reconstruct_chunks_parallel(
                 );
                 super::ops::work_u16_to_user_bytes(&out_scratch[..size], chunk_out[k]);
             }
-            Ok(())
-        },
-    )
+        }
+        Ok(())
+    })
 }
 
 pub(super) fn ifft_dit_decode16_with_plan(
@@ -759,5 +781,19 @@ fn dit4_decode_pairwise_16(
         {
             ifft_dit2_16(r1, r2, log_m02, tables);
         }
+    }
+}
+
+#[cfg(test)]
+mod decode_driver_boundary_tests {
+    #[test]
+    fn permits_the_full_field_transform_order() {
+        let driver =
+            super::build_leopard_gf16_decode_driver(super::super::ORDER16 - 4, 4, 64).unwrap();
+        assert_eq!(driver.n, super::super::ORDER16);
+        assert_eq!(
+            super::build_leopard_gf16_decode_driver(super::super::ORDER16 - 3, 4, 64),
+            Err(crate::Error::TooManyShards),
+        );
     }
 }
