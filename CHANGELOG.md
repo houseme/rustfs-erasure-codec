@@ -15,11 +15,17 @@ All notable changes to this project are documented in this file.
 - Use one consistent XOR parity matrix for single-parity fast mode across encoding, updates, incremental encoding, and recovery; reject conflicting custom matrices.
 - Validate Leopard shard counts, actual lengths, byte views, required masks, and field-order boundaries before decoding; publish only requested recovered shards and never expose stale fixed buffers after a later output error.
 - Reject malformed optimized/workspace inputs and preserve selective parity recovery without restoring unrequested shards.
+- Bound full and incremental Classic encoding/reconstruction by the configured parallel job limit, and account for field element width in byte budgets.
+
 
 ### Changed
 - Add opt-in safe GF8 byte views to `Field`, replacing element-size-based reinterpretation in specialized kernels while preserving generic field arithmetic and the default encoded format.
 - Share immutable codec matrices and Leopard setup state; retain independent reconstruction caches for cloned codecs.
 - Correct public builder examples for non-exhaustive codec options.
+
+### Performance
+- Apply cache-line-aligned L2 budgets to parallel chunks, cache hardware cache-size detection, and reuse generated SIMD in the parallel entry point's serial fallback.
+
 
 ## 9.0.0 (2026-09-16)
 

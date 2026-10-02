@@ -10,6 +10,13 @@ pub(crate) const DEFAULT_L2_CACHE_BYTES: usize = 256 * 1024;
 /// Returns `Some(bytes)` on success, `None` if detection fails or is unsupported.
 /// The caller should fall back to [`DEFAULT_L2_CACHE_BYTES`].
 pub(crate) fn detect_l2_cache_bytes() -> Option<usize> {
+    // Hardware discovery can read sysfs or start sysctl. Cache only this value;
+    // each policy still applies fresh environment overrides afterwards.
+    static L2_CACHE_BYTES: std::sync::OnceLock<Option<usize>> = std::sync::OnceLock::new();
+    *L2_CACHE_BYTES.get_or_init(detect_l2_cache_bytes_uncached)
+}
+
+fn detect_l2_cache_bytes_uncached() -> Option<usize> {
     #[cfg(target_os = "linux")]
     {
         detect_l2_cache_linux()
@@ -39,6 +46,9 @@ fn detect_l2_cache_macos() -> Option<usize> {
         .arg("hw.l2cachesize")
         .output()
         .ok()?;
+    if !output.status.success() {
+        return None;
+    }
     let s = String::from_utf8(output.stdout).ok()?;
     let val = s.trim().parse::<usize>().ok()?;
     if val > 0 { Some(val) } else { None }
@@ -48,9 +58,11 @@ fn detect_l2_cache_macos() -> Option<usize> {
 fn parse_cache_size(s: &str) -> Option<usize> {
     let s = s.trim();
     if let Some(k) = s.strip_suffix('K') {
-        k.parse::<usize>().ok().map(|v| v * 1024)
+        k.parse::<usize>().ok().and_then(|v| v.checked_mul(1024))
     } else if let Some(m) = s.strip_suffix('M') {
-        m.parse::<usize>().ok().map(|v| v * 1024 * 1024)
+        m.parse::<usize>()
+            .ok()
+            .and_then(|v| v.checked_mul(1024 * 1024))
     } else {
         s.parse().ok()
     }

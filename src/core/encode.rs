@@ -1,8 +1,5 @@
 extern crate alloc;
 
-#[cfg(feature = "std")]
-use rayon::prelude::*;
-
 use alloc::vec;
 
 use crate::Field;
@@ -97,10 +94,36 @@ impl<F: Field> ReedSolomon<F> {
             .first()
             .map(|input| input.as_ref().len())
             .unwrap_or(0);
+        let jobs = self
+            .parallel_policy_with(
+                shard_len,
+                outputs.len(),
+                self.policy_cache.available_parallelism,
+            )
+            .jobs;
+        self.code_some_slices_par_chunked_with_jobs(matrix_rows, inputs, outputs, chunk_len, jobs);
+    }
+
+    #[cfg(feature = "std")]
+    pub(crate) fn code_some_slices_par_chunked_with_jobs<T, U>(
+        &self,
+        matrix_rows: &[&[F::Elem]],
+        inputs: &[T],
+        outputs: &mut [U],
+        chunk_len: usize,
+        jobs: usize,
+    ) where
+        F::Elem: Send + Sync,
+        T: AsRef<[F::Elem]> + Sync,
+        U: AsMut<[F::Elem]> + Send,
+    {
+        let shard_len = inputs
+            .first()
+            .map(|input| input.as_ref().len())
+            .unwrap_or(0);
         if shard_len == 0 {
             return;
         }
-
         self.runtime_profile_metrics.record_code_some(
             true,
             shard_len,
@@ -108,81 +131,30 @@ impl<F: Field> ReedSolomon<F> {
             outputs.len(),
             chunk_len,
         );
-        let data_shard_count = self.data_shard_count;
         let chunk_count = shard_len.div_ceil(chunk_len);
         if outputs.len() <= 2 && chunk_count > 1 {
             self.runtime_profile_metrics
                 .record_code_some_small_output_chunk_parallel(outputs.len(), chunk_count);
-            if outputs.len() == 1 {
-                let matrix_row = matrix_rows[0];
-                outputs[0]
-                    .as_mut()
-                    .par_chunks_mut(chunk_len)
-                    .enumerate()
-                    .for_each(|(chunk_idx, output_chunk)| {
-                        let start = chunk_idx * chunk_len;
-                        let end = start + output_chunk.len();
-
-                        F::mul_slice(matrix_row[0], &inputs[0].as_ref()[start..end], output_chunk);
-                        for i_input in 1..data_shard_count {
-                            F::mul_slice_add(
-                                matrix_row[i_input],
-                                &inputs[i_input].as_ref()[start..end],
-                                output_chunk,
-                            );
-                        }
-                    });
-            } else {
-                let matrix_row0 = matrix_rows[0];
-                let matrix_row1 = matrix_rows[1];
-                let (first, second) = outputs.split_at_mut(1);
-                let output0 = first[0].as_mut();
-                let output1 = second[0].as_mut();
-
-                output0
-                    .par_chunks_mut(chunk_len)
-                    .zip(output1.par_chunks_mut(chunk_len))
-                    .enumerate()
-                    .for_each(|(chunk_idx, (output0_chunk, output1_chunk))| {
-                        let start = chunk_idx * chunk_len;
-                        let end = start + output0_chunk.len();
-                        let input0 = &inputs[0].as_ref()[start..end];
-
-                        F::mul_slice(matrix_row0[0], input0, output0_chunk);
-                        F::mul_slice(matrix_row1[0], input0, output1_chunk);
-                        for i_input in 1..data_shard_count {
-                            let input_chunk = &inputs[i_input].as_ref()[start..end];
-                            F::mul_slice_add(matrix_row0[i_input], input_chunk, output0_chunk);
-                            F::mul_slice_add(matrix_row1[i_input], input_chunk, output1_chunk);
-                        }
-                    });
-            }
-        } else {
-            outputs
-                .par_iter_mut()
-                .enumerate()
-                .for_each(|(i_row, output)| {
-                    let matrix_row = matrix_rows[i_row];
-                    let output = output.as_mut();
-
-                    let mut start = 0;
-                    while start < shard_len {
-                        let end = core::cmp::min(start + chunk_len, shard_len);
-                        let output_chunk = &mut output[start..end];
-
-                        F::mul_slice(matrix_row[0], &inputs[0].as_ref()[start..end], output_chunk);
-                        for i_input in 1..data_shard_count {
-                            F::mul_slice_add(
-                                matrix_row[i_input],
-                                &inputs[i_input].as_ref()[start..end],
-                                output_chunk,
-                            );
-                        }
-
-                        start = end;
-                    }
-                });
         }
+        let data_shard_count = self.data_shard_count;
+        super::parallel::for_each_output_chunk(
+            outputs,
+            shard_len,
+            chunk_len,
+            jobs,
+            |row, start, output_chunk| {
+                let matrix_row = matrix_rows[row];
+                let end = start + output_chunk.len();
+                F::mul_slice(matrix_row[0], &inputs[0].as_ref()[start..end], output_chunk);
+                for i_input in 1..data_shard_count {
+                    F::mul_slice_add(
+                        matrix_row[i_input],
+                        &inputs[i_input].as_ref()[start..end],
+                        output_chunk,
+                    );
+                }
+            },
+        );
     }
 
     #[cfg(feature = "std")]
@@ -193,6 +165,7 @@ impl<F: Field> ReedSolomon<F> {
         input: &[F::Elem],
         outputs: &mut [U],
         chunk_len: usize,
+        jobs: usize,
     ) where
         F::Elem: Send + Sync,
     {
@@ -200,29 +173,23 @@ impl<F: Field> ReedSolomon<F> {
         if shard_len == 0 {
             return;
         }
-
         self.runtime_profile_metrics
             .record_code_single(true, shard_len, outputs.len(), chunk_len);
-        outputs
-            .par_iter_mut()
-            .enumerate()
-            .for_each(|(i_row, output)| {
-                let coefficient = matrix_rows[i_row][i_input];
-                let output = output.as_mut();
-
-                let mut start = 0;
-                while start < shard_len {
-                    let end = core::cmp::min(start + chunk_len, shard_len);
-                    let output_chunk = &mut output[start..end];
-                    let input_chunk = &input[start..end];
-                    if i_input == 0 {
-                        F::mul_slice(coefficient, input_chunk, output_chunk);
-                    } else {
-                        F::mul_slice_add(coefficient, input_chunk, output_chunk);
-                    }
-                    start = end;
+        super::parallel::for_each_output_chunk(
+            outputs,
+            shard_len,
+            chunk_len,
+            jobs,
+            |row, start, output_chunk| {
+                let coefficient = matrix_rows[row][i_input];
+                let input_chunk = &input[start..start + output_chunk.len()];
+                if i_input == 0 {
+                    F::mul_slice(coefficient, input_chunk, output_chunk);
+                } else {
+                    F::mul_slice_add(coefficient, input_chunk, output_chunk);
                 }
-            });
+            },
+        );
     }
 
     pub(crate) fn code_single_slice_range<U: AsMut<[F::Elem]>>(
@@ -646,7 +613,9 @@ impl<F: Field> ReedSolomon<F> {
         let shard_len = data[0].as_ref().len();
         let decision = self.parallel_policy(shard_len, parity.len());
         if !decision.use_parallel {
-            self.code_some_slices(&parity_rows, data, parity);
+            if !self.try_encode_codegen(data, parity, shard_len) {
+                self.code_some_slices(&parity_rows, data, parity);
+            }
             return Ok(());
         }
         self.code_some_slices_par_chunked(&parity_rows, data, parity, decision.chunk_len);
@@ -685,6 +654,7 @@ impl<F: Field> ReedSolomon<F> {
             single_data,
             parity,
             decision.chunk_len,
+            decision.jobs,
         );
 
         Ok(())
@@ -740,6 +710,7 @@ impl<F: Field> ReedSolomon<F> {
                 input,
                 output,
                 decision.chunk_len,
+                decision.jobs,
             );
         } else {
             self.code_single_slice(&parity_rows, i_data, input, output);
