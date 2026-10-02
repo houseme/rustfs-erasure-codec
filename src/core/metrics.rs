@@ -12,8 +12,15 @@ pub(crate) struct MetricCounter {
 
 #[cfg(feature = "std")]
 impl MetricCounter {
+    pub(crate) const fn new() -> Self {
+        Self {
+            #[cfg(feature = "benchmark-metrics")]
+            value: AtomicUsize::new(0),
+        }
+    }
+
     #[inline]
-    fn load(&self, ordering: Ordering) -> usize {
+    pub(crate) fn load(&self, ordering: Ordering) -> usize {
         #[cfg(feature = "benchmark-metrics")]
         {
             self.value.load(ordering)
@@ -26,7 +33,7 @@ impl MetricCounter {
     }
 
     #[inline]
-    fn store(&self, value: usize, ordering: Ordering) {
+    pub(crate) fn store(&self, value: usize, ordering: Ordering) {
         #[cfg(feature = "benchmark-metrics")]
         {
             self.value.store(value, ordering);

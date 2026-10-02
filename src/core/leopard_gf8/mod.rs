@@ -4,9 +4,9 @@ use alloc::boxed::Box;
 use alloc::vec::Vec;
 use spin::Once;
 
-use crate::errors::Error;
 #[cfg(feature = "std")]
-use std::sync::atomic::AtomicUsize;
+use super::metrics::MetricCounter;
+use crate::errors::Error;
 #[cfg(feature = "std")]
 use std::sync::atomic::Ordering;
 
@@ -101,29 +101,29 @@ enum IfftProfilePhase {
 #[cfg(feature = "std")]
 #[derive(Debug, Default)]
 pub(crate) struct LeopardGf8ProfileMetrics {
-    encode_calls: AtomicUsize,
-    encode_chunks: AtomicUsize,
-    encode_full_groups: AtomicUsize,
-    encode_remainder_groups: AtomicUsize,
-    encode_later_group_calls: AtomicUsize,
-    fft_stage_calls: AtomicUsize,
-    ifft_stage_calls: AtomicUsize,
-    first_group_ifft_calls: AtomicUsize,
-    later_group_ifft_calls: AtomicUsize,
-    remainder_group_ifft_calls: AtomicUsize,
-    first_group_input_copy_bytes: AtomicUsize,
-    later_group_input_copy_bytes: AtomicUsize,
-    remainder_group_input_copy_bytes: AtomicUsize,
-    first_group_zero_fill_bytes: AtomicUsize,
-    later_group_zero_fill_bytes: AtomicUsize,
-    remainder_group_zero_fill_bytes: AtomicUsize,
-    later_group_xor_bytes: AtomicUsize,
-    remainder_group_xor_bytes: AtomicUsize,
-    output_writeback_calls: AtomicUsize,
-    input_copy_bytes: AtomicUsize,
-    zero_fill_bytes: AtomicUsize,
-    xor_bytes: AtomicUsize,
-    output_writeback_bytes: AtomicUsize,
+    encode_calls: MetricCounter,
+    encode_chunks: MetricCounter,
+    encode_full_groups: MetricCounter,
+    encode_remainder_groups: MetricCounter,
+    encode_later_group_calls: MetricCounter,
+    fft_stage_calls: MetricCounter,
+    ifft_stage_calls: MetricCounter,
+    first_group_ifft_calls: MetricCounter,
+    later_group_ifft_calls: MetricCounter,
+    remainder_group_ifft_calls: MetricCounter,
+    first_group_input_copy_bytes: MetricCounter,
+    later_group_input_copy_bytes: MetricCounter,
+    remainder_group_input_copy_bytes: MetricCounter,
+    first_group_zero_fill_bytes: MetricCounter,
+    later_group_zero_fill_bytes: MetricCounter,
+    remainder_group_zero_fill_bytes: MetricCounter,
+    later_group_xor_bytes: MetricCounter,
+    remainder_group_xor_bytes: MetricCounter,
+    output_writeback_calls: MetricCounter,
+    input_copy_bytes: MetricCounter,
+    zero_fill_bytes: MetricCounter,
+    xor_bytes: MetricCounter,
+    output_writeback_bytes: MetricCounter,
 }
 
 #[cfg(feature = "std")]
@@ -207,29 +207,29 @@ static TABLES8: Once<LeopardGf8Tables> = Once::new();
 
 #[cfg(feature = "std")]
 static PROFILE8: LeopardGf8ProfileMetrics = LeopardGf8ProfileMetrics {
-    encode_calls: AtomicUsize::new(0),
-    encode_chunks: AtomicUsize::new(0),
-    encode_full_groups: AtomicUsize::new(0),
-    encode_remainder_groups: AtomicUsize::new(0),
-    encode_later_group_calls: AtomicUsize::new(0),
-    fft_stage_calls: AtomicUsize::new(0),
-    ifft_stage_calls: AtomicUsize::new(0),
-    first_group_ifft_calls: AtomicUsize::new(0),
-    later_group_ifft_calls: AtomicUsize::new(0),
-    remainder_group_ifft_calls: AtomicUsize::new(0),
-    first_group_input_copy_bytes: AtomicUsize::new(0),
-    later_group_input_copy_bytes: AtomicUsize::new(0),
-    remainder_group_input_copy_bytes: AtomicUsize::new(0),
-    first_group_zero_fill_bytes: AtomicUsize::new(0),
-    later_group_zero_fill_bytes: AtomicUsize::new(0),
-    remainder_group_zero_fill_bytes: AtomicUsize::new(0),
-    later_group_xor_bytes: AtomicUsize::new(0),
-    remainder_group_xor_bytes: AtomicUsize::new(0),
-    output_writeback_calls: AtomicUsize::new(0),
-    input_copy_bytes: AtomicUsize::new(0),
-    zero_fill_bytes: AtomicUsize::new(0),
-    xor_bytes: AtomicUsize::new(0),
-    output_writeback_bytes: AtomicUsize::new(0),
+    encode_calls: MetricCounter::new(),
+    encode_chunks: MetricCounter::new(),
+    encode_full_groups: MetricCounter::new(),
+    encode_remainder_groups: MetricCounter::new(),
+    encode_later_group_calls: MetricCounter::new(),
+    fft_stage_calls: MetricCounter::new(),
+    ifft_stage_calls: MetricCounter::new(),
+    first_group_ifft_calls: MetricCounter::new(),
+    later_group_ifft_calls: MetricCounter::new(),
+    remainder_group_ifft_calls: MetricCounter::new(),
+    first_group_input_copy_bytes: MetricCounter::new(),
+    later_group_input_copy_bytes: MetricCounter::new(),
+    remainder_group_input_copy_bytes: MetricCounter::new(),
+    first_group_zero_fill_bytes: MetricCounter::new(),
+    later_group_zero_fill_bytes: MetricCounter::new(),
+    remainder_group_zero_fill_bytes: MetricCounter::new(),
+    later_group_xor_bytes: MetricCounter::new(),
+    remainder_group_xor_bytes: MetricCounter::new(),
+    output_writeback_calls: MetricCounter::new(),
+    input_copy_bytes: MetricCounter::new(),
+    zero_fill_bytes: MetricCounter::new(),
+    xor_bytes: MetricCounter::new(),
+    output_writeback_bytes: MetricCounter::new(),
 };
 
 pub(crate) fn init_leopard_gf8_tables() -> &'static LeopardGf8Tables {
