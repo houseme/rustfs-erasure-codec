@@ -11,6 +11,7 @@ All notable changes to this project are documented in this file.
 ## Unreleased
 
 ### Fixed
+- Gate test-only NEON thread-local profile capture on `std`, allowing `no_std + simd-accel` test builds.
 - Finish Classic inverse planning before initializing missing destinations; singular custom matrices leave outputs missing, and empty selective requests skip unused inverses.
 - Preserve effective encoding matrices and resolved codec families when cloning; codec equality and prepared reconstruction workspaces now distinguish incompatible matrices.
 - Use one consistent XOR parity matrix for single-parity fast mode across encoding, updates, incremental encoding, and recovery; reject conflicting custom matrices.
@@ -26,12 +27,13 @@ All notable changes to this project are documented in this file.
 - Prepare checked GF8 shard views and select a generated ISA kernel once per encode operation; share serial/parallel setup and never fall back after a kernel writes parity.
 - Use the resolved codec family as the sole algorithm state and one Classic recovery plan across generic, optimized, workspace, and stream entry points.
 - Add opt-in safe GF8 byte views to `Field`, replacing element-size-based reinterpretation in specialized kernels while preserving generic field arithmetic and the default encoded format.
-- Share immutable codec matrices and Leopard setup state; retain independent reconstruction caches for cloned codecs.
+- Share immutable Classic codec matrices; derive FFT family metadata from shard counts and retain independent reconstruction caches for cloned codecs.
 - Correct public builder examples for non-exhaustive codec options.
 - Make benchmark gates reject empty comparisons, duplicate/dropped cases, invalid metrics, and conflicting provenance; deliberate partial profiles and asymmetric missing provenance require explicit opt-in and remain visible in reports.
 
 
 ### Performance
+- Skip all-present Classic plan construction through one validated fast return, retain zero-allocation wide layouts, and execute prepared native views by reference.
 - Remove per-chunk kernel-selection reductions and duplicate policy decisions from generated encoding; inline the measured NEON route's four-job metadata.
 - Remove unused Classic matrix construction from Leopard GF8 setup. Skip inversion for parity-only recovery and compose selective parity rows directly instead of cloning all shards or recovering unrequested data.
 - Reuse one bounded recovery executor for every output width; apply each stage policy once and keep wide workspace layout validation free of rebuilt index lists.
@@ -47,6 +49,8 @@ All notable changes to this project are documented in this file.
 
 
 ### Validation
+- The 2026-10-16 refactor passed stable 1.99.1 workspace SIMD/metrics tests, no_std SIMD tests, all-feature Clippy, focused AddressSanitizer, x86 library/test and wasm32 compile checks, and both baseline correctness reproducers.
+- Archive all 43 final A/B/B/A cases and both superseded drafts. Allocation observations repeat, but latency drift rejects the overall comparison; see `docs/erasure-codec-review-refactor-2026-10-16.md` and backlog #2853.
 - Workspace tests with SIMD and metrics, production SIMD tests, `no_std` tests, all-feature Clippy (including fuzz targets), and Rust 1.98.1 library compilation passed.
 - x86_64 and wasm32 cross-compilation passed; 120 Classic/GF8/GF16 parity fixtures matched the previous revision byte for byte.
 - AddressSanitizer passed 22 field/Leopard regression tests; 11 original release reproducers, 18 Python gate tests, and 6 JavaScript wrapper tests passed.
@@ -57,6 +61,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Added
+- Expand the recovery probe to 43 cases with poisoned-output/presence preflights, constructors, serial encoding, optimized recovery, and validated all-present workloads.
 - Add the `recovery_paths` JSONL benchmark with deterministic warm fixtures, cumulative allocation counts, latency samples, backend/features/revision provenance, and documented measurement limits.
 
 

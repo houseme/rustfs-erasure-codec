@@ -818,7 +818,7 @@ Before a future `rust-sve` backend is considered usable, it should add:
 4. smoke metadata verification
 5. workload and kernel benchmark evidence
 
-## 16. Warm Recovery And Parallel Encode Probe
+## 16. Codec Construction, Encoding, And Recovery Probe
 
 `benches/recovery_paths.rs` provides a small stable-Rust probe without additional
 dependencies. It keeps deterministic fixtures and measures these cases:
@@ -831,6 +831,30 @@ dependencies. It keeps deterministic fixtures and measures these cases:
   and uses serial in-memory stream I/O.
 - Classic parallel encode: `4+2` and `10+4` with 256 KiB shards, and `10+4` with
   1 MiB shards. Enable the SIMD feature appropriate to the comparison host.
+- Codec construction: Classic, Leopard GF8, and Leopard GF16 at `10+4`, `32+16`,
+  and `128+64`. These `*.construct` cases create and drop a fresh codec each
+  iteration, with shared field tables already warm; `shard_size: 0` means no
+  payload is encoded or recovered in this case.
+- Classic parity-only recovery: `10+4` with 1 KiB shards and `32+16` with 4 KiB
+  shards, each recovering parity shard 0 with inversion caching enabled and
+  disabled. The operation labels end in `.cached` and `.uncached` respectively.
+- Generic selective parity recovery: `32+16` with 64 KiB shards, missing data
+  shard 0 and parity shard 0, requesting only that parity shard through
+  `reconstruct_some` with reused `ShardSlot` storage. The unrequested data
+  buffer must remain missing and unchanged.
+- Classic optimized data recovery (`classic.reconstruct_data_opt`): `10+4`
+  with 32 KiB and 1 MiB shards, separately missing one and two data shards.
+  This API requires `Option<Vec<u8>>`; each iteration takes and drops the
+  missing data buffers, then reconstructs replacement buffers. That adapter
+  storage turnover is included in the latency and allocation measurements.
+- Classic serial encode (`encode.serial`): `10+4` with 1 KiB, 32 KiB, and 1 MiB
+  shards. These cases call `encode`, without the parallel or automatic entrypoint.
+- Classic all-present recovery: `10+4`, `40+8`, and `128+64`, with 65-byte shards
+  and no erasures. `classic.reconstruct_all_present` uses the generic API with
+  `ShardSlot`; `classic.reconstruct_opt_all_present` uses `Option<Vec<u8>>`.
+  These timed closures only call their API, with no buffer resets or replacement.
+  The untimed preflight also checks that one shorter present shard is rejected,
+  so the fast return cannot skip input validation.
 
 For example, on an ARM64 host:
 
@@ -849,10 +873,23 @@ cargo bench --bench recovery_paths --features "std simd-neon" \
 (default 100). `RSE_RECOVERY_CASE_FILTER` optionally selects a substring of the
 reported `case_id`; a filter matching no cases fails. Each case performs 20
 warmup iterations, counts allocations for one further operation, then collects
-three `std::time::Instant` latency samples in batches of eight operations. The
-codec, erasure pattern, and caller buffers are reused. Stream buffers retain
-their capacity when marked missing. Initialization and fixture allocation are
-excluded; invalid reconstructed bytes fail before that case is reported.
+three `std::time::Instant` latency samples in batches of eight operations.
+Except for construction probes, the codec and erasure pattern are reused.
+Caller buffers are retained for the ShardSlot, stream, and encode cases;
+`reconstruct_data_opt` replaces its missing `Option<Vec<u8>>` buffers each time.
+The take/drop cost is included in latency, and replacement allocations are
+included in the allocation counts, so these cases should not be treated as
+allocation-equivalent to ShardSlot recovery. Stream buffers retain their
+capacity when marked missing.
+Initialization and fixture allocation are excluded from recovery/encode timing.
+An untimed preflight poisons missing or parity output bytes before invoking the
+operation, so a successful no-op cannot pass using previously correct output.
+Recovery checks both bytes and presence before and after measurement; selective
+recovery also checks that the unrequested missing shard remains unchanged.
+All-present cases instead check unchanged content and presence, alongside the
+malformed-length preflight described above.
+The timed recovery/encode loops retain their original operations and do not
+include the preflight poisoning or correctness checks.
 
 Each JSONL row records shard dimensions, missing data/parity counts, stream
 block size, allocation calls, `allocated_bytes`, all three `samples_ns`, their
@@ -877,3 +914,6 @@ These short samples help identify allocation changes and local regressions.
 They do not establish cold-start cost, broad throughput claims, cross-machine
 speedups, or application-level performance; use repeated controlled runs for
 those conclusions.
+
+The 2026-10-16 review and rejected-latency A/B/B/A evidence are recorded in
+[the refactor review](erasure-codec-review-refactor-2026-10-16.md).

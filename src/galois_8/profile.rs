@@ -131,6 +131,7 @@ impl RustNeonProfileMetrics {
 /// thread-local accumulator, so a test reads only its own thread's calls.
 #[cfg(all(
     test,
+    feature = "std",
     feature = "simd-neon",
     target_arch = "aarch64",
     not(target_env = "msvc"),

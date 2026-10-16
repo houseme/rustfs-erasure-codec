@@ -13,7 +13,7 @@ use rustfs_erasure_codec::galois_8::{
     shards_to_slots,
 };
 use rustfs_erasure_codec::stream::{StreamIoMode, StreamOptions};
-use rustfs_erasure_codec::{CodecFamily, CodecOptions};
+use rustfs_erasure_codec::{CodecFamily, CodecOptions, Error, ShardSlot};
 
 const FIXTURE_SEED: u64 = 0x817a_bdef_7649_2104;
 const WARMUP_ITERATIONS: usize = 20;
@@ -327,6 +327,41 @@ fn fixture(codec: &ReedSolomon, shard_size: usize) -> Vec<Vec<u8>> {
     shards
 }
 
+fn poison_missing(slots: &mut [ShardSlot<Vec<u8>>], missing_indices: &[usize]) {
+    for &index in missing_indices {
+        slots[index].mark_missing();
+        for byte in slots[index].as_inner_mut() {
+            *byte ^= 0xff;
+        }
+    }
+}
+
+fn assert_complete_slots(slots: &[ShardSlot<Vec<u8>>], original: &[Vec<u8>]) {
+    for (slot, expected) in slots.iter().zip(original) {
+        assert!(slot.is_present(), "recovered shard must be marked present");
+        assert_eq!(slot.as_inner(), expected);
+    }
+}
+
+fn assert_selective_slots(
+    slots: &[ShardSlot<Vec<u8>>],
+    original: &[Vec<u8>],
+    unrequested_data: &[u8],
+) {
+    assert!(
+        !slots[0].is_present(),
+        "unrequested data must remain missing"
+    );
+    assert_eq!(slots[0].as_inner().as_slice(), unrequested_data);
+    assert_complete_slots(&slots[1..], &original[1..]);
+}
+
+fn assert_complete_options(shards: &[Option<Vec<u8>>], original: &[Vec<u8>]) {
+    for (shard, expected) in shards.iter().zip(original) {
+        assert_eq!(shard.as_deref(), Some(expected.as_slice()));
+    }
+}
+
 fn main() -> Result<(), String> {
     let config = Config::read()?;
     let mut completed = 0;
@@ -362,15 +397,18 @@ fn main() -> Result<(), String> {
             let original = fixture(&codec, size);
             let mut slots = shards_to_slots(&original);
             let indices: Vec<_> = (0..missing).collect();
+            // Validate real recovery outside the measured loop. Merely marking
+            // correct bytes missing would let a successful no-op pass the oracle.
+            poison_missing(&mut slots, &indices);
+            codec.reconstruct(&mut slots).expect("recovery preflight");
+            assert_complete_slots(&slots, &original);
             let measurement = measure(&config, || {
                 mark_missing_slots(&mut slots, &indices);
                 codec
                     .reconstruct(black_box(&mut slots))
                     .expect("recover missing data");
             });
-            for (slot, expected) in slots.iter().zip(&original) {
-                assert_eq!(slot.as_inner(), expected);
-            }
+            assert_complete_slots(&slots, &original);
             report(&config, &case, measurement);
             completed += 1;
         }
@@ -398,6 +436,15 @@ fn main() -> Result<(), String> {
         let options = StreamOptions::default()
             .with_block_size(block)
             .with_io_mode(StreamIoMode::Serial);
+        for index in [0, data] {
+            streams[index].get_mut().clear();
+        }
+        codec
+            .reconstruct_stream(&mut streams, &options)
+            .expect("stream recovery preflight");
+        for (stream, expected) in streams.iter().zip(&original) {
+            assert_eq!(stream.get_ref(), expected);
+        }
         let measurement = measure(&config, || {
             for index in [0, data] {
                 streams[index].get_mut().clear();
@@ -427,6 +474,15 @@ fn main() -> Result<(), String> {
         }
         let codec = ReedSolomon::new(data, parity).expect("construct parallel codec");
         let mut shards = fixture(&codec, size);
+        for shard in &mut shards[data..] {
+            for byte in shard {
+                *byte ^= 0xff;
+            }
+        }
+        codec
+            .encode_par(&mut shards)
+            .expect("parallel encode preflight");
+        assert!(codec.verify(&shards).expect("verify preflight parity"));
         let measurement = measure(&config, || {
             codec
                 .encode_par(black_box(&mut shards))
@@ -435,6 +491,259 @@ fn main() -> Result<(), String> {
         assert!(codec.verify(&shards).expect("verify parallel parity"));
         report(&config, &case, measurement);
         completed += 1;
+    }
+    for (family, operation) in [
+        (CodecFamily::Classic, "classic.construct"),
+        (CodecFamily::LeopardGF8, "gf8.construct"),
+        (CodecFamily::LeopardGF16, "gf16.construct"),
+    ] {
+        for (data, parity) in [(10, 4), (32, 16), (128, 64)] {
+            let case = Case {
+                operation,
+                data_shards: data,
+                parity_shards: parity,
+                shard_size: 0,
+                missing_data_shards: 0,
+                missing_parity_shards: 0,
+                stream_block_size: None,
+            };
+            if !config.includes(&case) {
+                continue;
+            }
+            let options = CodecOptions::builder().codec_family(family).build();
+            let preflight =
+                ReedSolomon::with_options(data, parity, options).expect("constructor preflight");
+            assert_eq!(preflight.data_shard_count(), data);
+            assert_eq!(preflight.parity_shard_count(), parity);
+            assert_eq!(preflight.codec_family(), family);
+            drop(preflight);
+            let measurement = measure(&config, || {
+                let codec = ReedSolomon::with_options(
+                    black_box(data),
+                    black_box(parity),
+                    black_box(options),
+                )
+                .expect("construct codec");
+                drop(black_box(codec));
+            });
+            report(&config, &case, measurement);
+            completed += 1;
+        }
+    }
+    for (inversion_cache, operation) in [
+        (true, "classic.reconstruct_parity.cached"),
+        (false, "classic.reconstruct_parity.uncached"),
+    ] {
+        for (data, parity, size) in [(10, 4, 1024), (32, 16, 4096)] {
+            let case = Case {
+                operation,
+                data_shards: data,
+                parity_shards: parity,
+                shard_size: size,
+                missing_data_shards: 0,
+                missing_parity_shards: 1,
+                stream_block_size: None,
+            };
+            if !config.includes(&case) {
+                continue;
+            }
+            let codec = ReedSolomon::with_options(
+                data,
+                parity,
+                CodecOptions::builder()
+                    .inversion_cache(inversion_cache)
+                    .build(),
+            )
+            .expect("construct parity recovery codec");
+            let original = fixture(&codec, size);
+            let mut slots = shards_to_slots(&original);
+            let missing = [data];
+            poison_missing(&mut slots, &missing);
+            codec
+                .reconstruct(&mut slots)
+                .expect("parity recovery preflight");
+            assert_complete_slots(&slots, &original);
+            let measurement = measure(&config, || {
+                mark_missing_slots(&mut slots, &missing);
+                codec
+                    .reconstruct(black_box(&mut slots))
+                    .expect("recover missing parity");
+            });
+            assert_complete_slots(&slots, &original);
+            report(&config, &case, measurement);
+            completed += 1;
+        }
+    }
+    let case = Case {
+        operation: "classic.reconstruct_some_parity",
+        data_shards: 32,
+        parity_shards: 16,
+        shard_size: 65536,
+        missing_data_shards: 1,
+        missing_parity_shards: 1,
+        stream_block_size: None,
+    };
+    if config.includes(&case) {
+        let codec = ReedSolomon::new(case.data_shards, case.parity_shards)
+            .expect("construct selective recovery codec");
+        let original = fixture(&codec, case.shard_size);
+        let mut slots = shards_to_slots(&original);
+        let missing = [0, case.data_shards];
+        let mut required = vec![false; codec.total_shard_count()];
+        required[case.data_shards] = true;
+        poison_missing(&mut slots, &missing);
+        let unrequested_data = slots[0].as_inner().clone();
+        codec
+            .reconstruct_some(&mut slots, &required)
+            .expect("selective recovery preflight");
+        assert_selective_slots(&slots, &original, &unrequested_data);
+        let measurement = measure(&config, || {
+            mark_missing_slots(&mut slots, &missing);
+            codec
+                .reconstruct_some(black_box(&mut slots), black_box(&required))
+                .expect("recover requested parity");
+        });
+        assert_selective_slots(&slots, &original, &unrequested_data);
+        report(&config, &case, measurement);
+        completed += 1;
+    }
+    for (size, missing) in [(32768, 1), (32768, 2), (1048576, 1), (1048576, 2)] {
+        let case = Case {
+            operation: "classic.reconstruct_data_opt",
+            data_shards: 10,
+            parity_shards: 4,
+            shard_size: size,
+            missing_data_shards: missing,
+            missing_parity_shards: 0,
+            stream_block_size: None,
+        };
+        if !config.includes(&case) {
+            continue;
+        }
+        let codec = ReedSolomon::new(case.data_shards, case.parity_shards)
+            .expect("construct option-vec data recovery codec");
+        let original = fixture(&codec, size);
+        let mut shards: Vec<_> = original.iter().cloned().map(Some).collect();
+        for shard in &mut shards[..missing] {
+            for byte in shard.as_mut().expect("present preflight data") {
+                *byte ^= 0xff;
+            }
+            drop(shard.take());
+        }
+        codec
+            .reconstruct_data_opt(&mut shards)
+            .expect("option-vec data recovery preflight");
+        assert_complete_options(&shards, &original);
+        let measurement = measure(&config, || {
+            // This API requires Option<Vec<u8>>: replacing missing data buffers
+            // is part of its measured cost, unlike retained ShardSlot storage.
+            for shard in &mut shards[..missing] {
+                drop(shard.take());
+            }
+            codec
+                .reconstruct_data_opt(black_box(&mut shards))
+                .expect("recover missing option-vec data");
+        });
+        assert_complete_options(&shards, &original);
+        report(&config, &case, measurement);
+        completed += 1;
+    }
+    for size in [1024, 32768, 1048576] {
+        let case = Case {
+            operation: "encode.serial",
+            data_shards: 10,
+            parity_shards: 4,
+            shard_size: size,
+            missing_data_shards: 0,
+            missing_parity_shards: 0,
+            stream_block_size: None,
+        };
+        if !config.includes(&case) {
+            continue;
+        }
+        let codec =
+            ReedSolomon::new(case.data_shards, case.parity_shards).expect("construct serial codec");
+        let original = fixture(&codec, size);
+        let mut shards = original.clone();
+        for shard in &mut shards[case.data_shards..] {
+            for byte in shard {
+                *byte ^= 0xff;
+            }
+        }
+        codec.encode(&mut shards).expect("serial encode preflight");
+        assert_eq!(shards, original);
+        let measurement = measure(&config, || {
+            codec.encode(black_box(&mut shards)).expect("serial encode");
+        });
+        assert_eq!(shards, original);
+        report(&config, &case, measurement);
+        completed += 1;
+    }
+    for (optimized, operation) in [
+        (false, "classic.reconstruct_all_present"),
+        (true, "classic.reconstruct_opt_all_present"),
+    ] {
+        for (data, parity) in [(10, 4), (40, 8), (128, 64)] {
+            let case = Case {
+                operation,
+                data_shards: data,
+                parity_shards: parity,
+                shard_size: 65,
+                missing_data_shards: 0,
+                missing_parity_shards: 0,
+                stream_block_size: None,
+            };
+            if !config.includes(&case) {
+                continue;
+            }
+            let codec = ReedSolomon::new(data, parity).expect("construct all-present codec");
+            let original = fixture(&codec, case.shard_size);
+            let measurement = if optimized {
+                let mut shards: Vec<_> = original.iter().cloned().map(Some).collect();
+                {
+                    let mut invalid = shards.clone();
+                    invalid[0].as_mut().expect("present shard").pop();
+                    assert_eq!(
+                        codec.reconstruct_opt(&mut invalid),
+                        Err(Error::IncorrectShardSize),
+                    );
+                }
+                codec
+                    .reconstruct_opt(&mut shards)
+                    .expect("all-present opt preflight");
+                assert_complete_options(&shards, &original);
+                let measurement = measure(&config, || {
+                    codec
+                        .reconstruct_opt(black_box(&mut shards))
+                        .expect("all-present opt recovery");
+                });
+                assert_complete_options(&shards, &original);
+                measurement
+            } else {
+                let mut slots = shards_to_slots(&original);
+                {
+                    let mut invalid = shards_to_slots(&original);
+                    invalid[0].as_inner_mut().pop();
+                    assert_eq!(
+                        codec.reconstruct(&mut invalid),
+                        Err(Error::IncorrectShardSize),
+                    );
+                }
+                codec
+                    .reconstruct(&mut slots)
+                    .expect("all-present preflight");
+                assert_complete_slots(&slots, &original);
+                let measurement = measure(&config, || {
+                    codec
+                        .reconstruct(black_box(&mut slots))
+                        .expect("all-present recovery");
+                });
+                assert_complete_slots(&slots, &original);
+                measurement
+            };
+            report(&config, &case, measurement);
+            completed += 1;
+        }
     }
     if completed == 0 {
         return Err("RSE_RECOVERY_CASE_FILTER matched no cases".to_owned());
