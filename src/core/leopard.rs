@@ -1,11 +1,5 @@
-extern crate alloc;
-
-use alloc::sync::Arc;
-use alloc::vec::Vec;
-
 use crate::Field;
 use crate::errors::Error;
-use crate::matrix::Matrix;
 
 use super::{CodecFamily, LeopardMode};
 
@@ -33,86 +27,6 @@ pub(crate) fn is_byte_field<F: Field>() -> bool {
     F::ORDER == 256
         && F::as_gf8_slice(&[]).is_some_and(|slice| slice.is_empty())
         && F::as_gf8_slice_mut(&mut []).is_some_and(|slice| slice.is_empty())
-}
-
-#[derive(Debug, PartialEq)]
-pub(crate) enum FamilyState<F: Field> {
-    Classic,
-    LeopardGF8(Arc<LeopardGF8Codec<F>>),
-    LeopardGF16,
-}
-
-impl<F: Field> Clone for FamilyState<F> {
-    fn clone(&self) -> Self {
-        match self {
-            Self::Classic => Self::Classic,
-            Self::LeopardGF8(codec) => Self::LeopardGF8(Arc::clone(codec)),
-            Self::LeopardGF16 => Self::LeopardGF16,
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub(crate) struct LeopardGF8Codec<F: Field> {
-    data_shards: usize,
-    parity_shards: usize,
-    total_shards: usize,
-    setup_rows: usize,
-    setup_cols: usize,
-    parity_rows: Vec<Vec<F::Elem>>,
-    _marker: core::marker::PhantomData<F>,
-}
-
-impl<F: Field> LeopardGF8Codec<F> {
-    pub(crate) fn new(
-        data_shards: usize,
-        parity_shards: usize,
-        setup_matrix: &Matrix<F>,
-    ) -> Result<Self, Error> {
-        validate_leopard_gf8::<F>(data_shards, parity_shards)?;
-
-        Ok(Self {
-            data_shards,
-            parity_shards,
-            total_shards: data_shards.saturating_add(parity_shards),
-            setup_rows: setup_matrix.row_count(),
-            setup_cols: setup_matrix.col_count(),
-            parity_rows: (data_shards..(data_shards + parity_shards))
-                .map(|row| setup_matrix.get_row(row).to_vec())
-                .collect(),
-            _marker: core::marker::PhantomData,
-        })
-    }
-
-    pub(crate) fn data_shards(&self) -> usize {
-        self.data_shards
-    }
-
-    pub(crate) fn parity_shards(&self) -> usize {
-        self.parity_shards
-    }
-
-    pub(crate) fn total_shards(&self) -> usize {
-        self.total_shards
-    }
-
-    pub(crate) fn setup_shape(&self) -> (usize, usize) {
-        (self.setup_rows, self.setup_cols)
-    }
-
-    pub(crate) fn parity_rows(&self) -> Vec<&[F::Elem]> {
-        self.parity_rows.iter().map(|row| row.as_slice()).collect()
-    }
-}
-
-pub(crate) fn leopard_gf8_state<F: Field>(
-    family_state: &FamilyState<F>,
-) -> Result<&LeopardGF8Codec<F>, Error> {
-    match family_state {
-        FamilyState::LeopardGF8(codec) => Ok(codec),
-        FamilyState::Classic => Err(Error::UnsupportedCodecFamily),
-        FamilyState::LeopardGF16 => Err(Error::UnsupportedLeopardPrototype),
-    }
 }
 
 pub(crate) fn validate_leopard_shard_len(shard_len: usize) -> Result<(), Error> {
@@ -208,23 +122,6 @@ mod leopard_shard_len_tests {
         assert!(validate_leopard_shard_len(len).is_ok());
         // Largest 64-multiple representable in a usize.
         assert_eq!(len, usize::MAX - (usize::MAX % LEOPARD_SHARD_MULTIPLE));
-    }
-}
-
-pub(crate) fn build_family_state<F: Field>(
-    codec_family: CodecFamily,
-    data_shards: usize,
-    parity_shards: usize,
-    setup_matrix: &Matrix<F>,
-) -> Result<FamilyState<F>, Error> {
-    match codec_family {
-        CodecFamily::Classic => Ok(FamilyState::Classic),
-        CodecFamily::LeopardGF8 => Ok(FamilyState::LeopardGF8(Arc::new(LeopardGF8Codec::new(
-            data_shards,
-            parity_shards,
-            setup_matrix,
-        )?))),
-        CodecFamily::LeopardGF16 => Ok(FamilyState::LeopardGF16),
     }
 }
 

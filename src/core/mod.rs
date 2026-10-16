@@ -12,6 +12,7 @@ mod options;
 #[cfg(feature = "std")]
 mod parallel;
 mod reconstruct;
+mod recovery_plan;
 mod shard_by_shard;
 #[cfg(feature = "std")]
 pub mod stream;
@@ -30,8 +31,6 @@ use spin::Mutex;
 use crate::Field;
 use crate::matrix::Matrix;
 
-use leopard::FamilyState;
-
 pub use leopard::{LEOPARD_SHARD_MULTIPLE, leopard_aligned_shard_len};
 #[cfg(feature = "std")]
 pub use leopard_gf8::LeopardGf8ProfileStats;
@@ -44,6 +43,7 @@ pub use options::{CodecFamily, CodecOptions, LeopardMode, MatrixMode};
 pub(crate) use parallel::RuntimeParallelPolicyCache;
 #[cfg(feature = "std")]
 pub use parallel::{PARALLEL_POLICY_VERSION, ParallelDecision, ParallelPolicy};
+pub(crate) use recovery_plan::{ClassicReconstructPlan, ReconstructionGoal};
 pub use shard_by_shard::ShardByShard;
 pub use workspace::VerifyWorkspace;
 
@@ -65,7 +65,7 @@ pub struct ReedSolomon<F: Field> {
     parity_shard_count: usize,
     total_shard_count: usize,
     codec_family: CodecFamily,
-    pub(crate) family_state: FamilyState<F>,
+    // Classic uses an immutable shared matrix; FFT families keep an empty sentinel.
     matrix: Arc<Matrix<F>>,
     options: CodecOptions,
     #[cfg(feature = "std")]
@@ -84,7 +84,6 @@ impl<F: Field> Clone for ReedSolomon<F> {
             parity_shard_count: self.parity_shard_count,
             total_shard_count: self.total_shard_count,
             codec_family: self.codec_family,
-            family_state: self.family_state.clone(),
             matrix: Arc::clone(&self.matrix),
             options: self.options,
             #[cfg(feature = "std")]
@@ -120,23 +119,12 @@ impl<F: Field> ReedSolomon<F> {
         &self.matrix
     }
 
-    /// Returns `Ok(())` for Classic, LeopardGF8, and LeopardGF16 families.
-    ///
-    /// Methods that are genuinely Classic-only (e.g., `update`, `decode_idx`) should
-    /// check `is_leopard_gf8_family()` / `is_leopard_gf16_family()` separately and
-    /// return an appropriate error.
-    pub(crate) fn ensure_classic_family_execution(&self) -> Result<(), crate::Error> {
-        match self.family_state {
-            FamilyState::Classic | FamilyState::LeopardGF8(_) | FamilyState::LeopardGF16 => Ok(()),
-        }
-    }
-
     pub(crate) fn is_leopard_gf8_family(&self) -> bool {
-        matches!(self.family_state, FamilyState::LeopardGF8(_))
+        self.codec_family == CodecFamily::LeopardGF8
     }
 
     pub(crate) fn is_leopard_gf16_family(&self) -> bool {
-        matches!(self.family_state, FamilyState::LeopardGF16)
+        self.codec_family == CodecFamily::LeopardGF16
     }
 
     /// True for any Leopard codec family (GF8 or GF16). Both decode through the

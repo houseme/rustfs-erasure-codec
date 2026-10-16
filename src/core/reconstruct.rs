@@ -6,6 +6,7 @@ use alloc::vec::Vec;
 
 use smallvec::SmallVec;
 
+use super::{ClassicReconstructPlan, ReconstructionGoal};
 use crate::errors::Error;
 use crate::{Field, ReconstructShard};
 
@@ -69,43 +70,6 @@ pub(super) fn validate_leopard_decode_buffers(
 
 impl<F: Field> ReedSolomon<F> {
     #[cfg(feature = "std")]
-    pub(crate) fn code_some_slices_par_raw(
-        &self,
-        matrix_rows: &[&[F::Elem]],
-        inputs: &[&[F::Elem]],
-        outputs: &mut [&mut [F::Elem]],
-    ) where
-        F::Elem: Send + Sync,
-    {
-        let shard_len = inputs.first().map(|input| input.len()).unwrap_or(0);
-        if shard_len == 0 {
-            return;
-        }
-
-        if outputs.len() <= 2 {
-            self.code_some_slices_one_or_two_outputs_reconstruct_data_par_raw(
-                matrix_rows,
-                inputs,
-                outputs,
-            );
-            return;
-        }
-
-        let decision = self.parallel_policy(shard_len, outputs.len());
-        if !decision.use_parallel {
-            self.code_some_slices_chunked(matrix_rows, inputs, outputs);
-            return;
-        }
-        self.code_some_slices_par_chunked_with_jobs(
-            matrix_rows,
-            inputs,
-            outputs,
-            decision.chunk_len,
-            decision.jobs,
-        );
-    }
-
-    #[cfg(feature = "std")]
     pub(crate) fn code_some_slices_with_policy_raw(
         &self,
         matrix_rows: &[&[F::Elem]],
@@ -117,15 +81,6 @@ impl<F: Field> ReedSolomon<F> {
     {
         let shard_len = inputs.first().map(|input| input.len()).unwrap_or(0);
         if shard_len == 0 {
-            return;
-        }
-
-        if outputs.len() <= 2 {
-            self.code_some_slices_one_or_two_outputs_reconstruct_data_par_raw(
-                matrix_rows,
-                inputs,
-                outputs,
-            );
             return;
         }
 
@@ -152,329 +107,238 @@ impl<F: Field> ReedSolomon<F> {
     }
 
     #[cfg(feature = "std")]
-    pub(crate) fn code_some_slices_two_outputs_reconstruct_data_par_raw(
-        &self,
-        matrix_rows: &[&[F::Elem]],
-        inputs: &[&[F::Elem]],
-        outputs: &mut [&mut [F::Elem]],
-    ) where
-        F::Elem: Send + Sync,
-    {
-        debug_assert_eq!(2, matrix_rows.len());
-        debug_assert_eq!(2, outputs.len());
-
-        let shard_len = inputs.first().map(|input| input.len()).unwrap_or(0);
-        if shard_len == 0 {
-            return;
-        }
-
-        let decision = self.parallel_policy(shard_len, outputs.len());
-        self.runtime_profile_metrics
-            .record_parallel_policy(decision);
-        if !decision.use_parallel {
-            self.code_some_slices_chunked(matrix_rows, inputs, outputs);
-            return;
-        }
-
-        let chunk_len = decision.chunk_len;
-        self.runtime_profile_metrics.record_code_some(
-            true,
-            shard_len,
-            inputs.len(),
-            outputs.len(),
-            chunk_len,
-        );
-
-        let data_shard_count = self.data_shard_count;
-        super::parallel::for_each_output_chunk(
-            outputs,
-            shard_len,
-            chunk_len,
-            decision.jobs,
-            |i_row, start, output_chunk| {
-                let matrix_row = matrix_rows[i_row];
-                let end = start + output_chunk.len();
-                F::mul_slice(matrix_row[0], &inputs[0][start..end], output_chunk);
-                for i_input in 1..data_shard_count {
-                    F::mul_slice_add(
-                        matrix_row[i_input],
-                        &inputs[i_input][start..end],
-                        output_chunk,
-                    );
-                }
-            },
-        );
-    }
-
-    #[cfg(feature = "std")]
-    pub(crate) fn code_some_slices_one_or_two_outputs_reconstruct_data_par_raw(
-        &self,
-        matrix_rows: &[&[F::Elem]],
-        inputs: &[&[F::Elem]],
-        outputs: &mut [&mut [F::Elem]],
-    ) where
-        F::Elem: Send + Sync,
-    {
-        debug_assert!((1..=2).contains(&outputs.len()));
-
-        if outputs.len() == 1 {
-            let shard_len = inputs.first().map(|input| input.len()).unwrap_or(0);
-            if shard_len == 0 {
-                return;
-            }
-
-            let decision = self.parallel_policy(shard_len, outputs.len());
-            self.runtime_profile_metrics
-                .record_parallel_policy(decision);
-            if !decision.use_parallel {
-                self.code_some_slices_chunked(matrix_rows, inputs, outputs);
-                return;
-            }
-
-            self.runtime_profile_metrics.record_code_some(
-                true,
-                shard_len,
-                inputs.len(),
-                outputs.len(),
-                decision.chunk_len,
-            );
-
-            let data_shard_count = self.data_shard_count;
-            let matrix_row = matrix_rows[0];
-            super::parallel::for_each_output_chunk(
-                outputs,
-                shard_len,
-                decision.chunk_len,
-                decision.jobs,
-                |_, start, output_chunk| {
-                    let end = start + output_chunk.len();
-                    F::mul_slice(matrix_row[0], &inputs[0][start..end], output_chunk);
-                    for i_input in 1..data_shard_count {
-                        F::mul_slice_add(
-                            matrix_row[i_input],
-                            &inputs[i_input][start..end],
-                            output_chunk,
-                        );
-                    }
-                },
-            );
-            return;
-        }
-
-        self.code_some_slices_two_outputs_reconstruct_data_par_raw(matrix_rows, inputs, outputs);
-    }
-
-    #[cfg(feature = "std")]
-    pub(crate) fn reconstruct_internal_option_vec_par(
+    pub(crate) fn execute_classic_plan_parallel(
         &self,
         shards: &mut [Option<Vec<F::Elem>>],
-        data_only: bool,
-    ) -> Result<(), Error>
-    where
-        F::Elem: Send + Sync,
-    {
-        let (data_policy, parity_policy) = self.policy_cache.reconstruct_stage_policies(data_only);
-        self.reconstruct_internal_option_vec_par_with_stage_policies(
-            shards,
-            data_only,
-            data_policy,
-            parity_policy,
-        )
-    }
-
-    #[cfg(feature = "std")]
-    pub(crate) fn reconstruct_internal_option_vec_par_with_stage_policies(
-        &self,
-        shards: &mut [Option<Vec<F::Elem>>],
-        data_only: bool,
+        plan: &ClassicReconstructPlan<F>,
         data_policy: ParallelPolicy,
         parity_policy: ParallelPolicy,
     ) -> Result<(), Error>
     where
         F::Elem: Send + Sync,
     {
-        check_piece_count!(all => self, shards);
+        self.execute_classic_option_plan_bulk(shards, plan, |data_stage, rows, inputs, outputs| {
+            self.code_some_slices_with_policy_raw(
+                rows,
+                inputs,
+                outputs,
+                if data_stage {
+                    data_policy
+                } else {
+                    parity_policy
+                },
+            );
+        })
+    }
 
-        let data_shard_count = self.data_shard_count;
+    #[cfg(feature = "std")]
+    pub(crate) fn execute_classic_option_plan_serial(
+        &self,
+        shards: &mut [Option<Vec<F::Elem>>],
+        plan: &ClassicReconstructPlan<F>,
+    ) -> Result<(), Error> {
+        self.execute_classic_option_plan_bulk(shards, plan, |_, rows, inputs, outputs| {
+            self.code_some_slices(rows, inputs, outputs);
+        })
+    }
 
-        let mut number_present = 0;
-        let mut shard_len = None;
-        for shard in shards.iter() {
-            if let Some(shard) = shard.as_ref() {
-                let len = shard.len();
-                if len == 0 {
-                    return Err(Error::EmptyShard);
-                }
-                number_present += 1;
-                if let Some(old_len) = shard_len
-                    && len != old_len
-                {
+    pub(crate) fn execute_classic_plan_serial<T: ReconstructShard<F>>(
+        &self,
+        shards: &mut [T],
+        plan: &ClassicReconstructPlan<F>,
+    ) -> Result<(), Error> {
+        #[cfg(feature = "std")]
+        self.runtime_profile_metrics.record_reconstruct(
+            plan.data_only,
+            plan.data_targets.len(),
+            plan.parity_targets.len(),
+            plan.shape.invalid_indices.is_empty(),
+        );
+        if !plan.has_outputs() {
+            return Ok(());
+        }
+        let data_rows = plan.data_rows();
+        let parity_rows = plan.parity_rows(self);
+        let mut inputs: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
+        let mut data_destinations: SmallVec<[&mut T; 32]> = SmallVec::new();
+        let mut parity_destinations: SmallVec<[&mut T; 32]> = SmallVec::new();
+        let mut survivors = plan.shape.valid_indices.iter().copied().peekable();
+        let mut data_targets = plan.data_targets.iter().copied().peekable();
+        let mut parity_targets = plan.parity_targets.iter().copied().peekable();
+        for (index, shard) in shards.iter_mut().enumerate() {
+            if survivors.peek() == Some(&index) {
+                let input = shard.get().ok_or(Error::TooFewShardsPresent)?;
+                if input.len() != plan.shape.shard_len {
                     return Err(Error::IncorrectShardSize);
                 }
-                shard_len = Some(len);
+                inputs.push(input);
+                survivors.next();
+            } else if data_targets.peek() == Some(&index) {
+                data_destinations.push(shard);
+                data_targets.next();
+            } else if parity_targets.peek() == Some(&index) {
+                parity_destinations.push(shard);
+                parity_targets.next();
             }
         }
-
-        if number_present == self.total_shard_count {
-            self.runtime_profile_metrics
-                .record_reconstruct(data_only, 0, 0, true);
-            return Ok(());
-        }
-        if number_present < data_shard_count {
-            return Err(Error::TooFewShardsPresent);
-        }
-
-        // invariant: reached only when number_present >= data_shard_count >= 1
-        // (see the TooFewDataShards guard in new()), so at least one present
-        // shard has set shard_len to Some.
-        let shard_len = shard_len.expect("at least one shard present; qed");
-
-        let mut valid_indices: SmallVec<[usize; 32]> = SmallVec::with_capacity(data_shard_count);
-        let mut invalid_indices: SmallVec<[usize; 32]> =
-            SmallVec::with_capacity(self.total_shard_count);
-        let mut missing_data_indices: SmallVec<[usize; 32]> = SmallVec::new();
-        let mut missing_parity_indices: SmallVec<[usize; 32]> = SmallVec::new();
-
-        for (matrix_row, shard) in shards.iter().enumerate() {
-            match shard.as_ref() {
-                Some(_shard) => {
-                    if valid_indices.len() < data_shard_count {
-                        valid_indices.push(matrix_row);
-                    }
-                }
-                None => {
-                    invalid_indices.push(matrix_row);
-                    if matrix_row < data_shard_count {
-                        missing_data_indices.push(matrix_row);
-                    } else if !data_only {
-                        missing_parity_indices.push(matrix_row);
-                    }
-                }
-            }
-        }
-
-        self.runtime_profile_metrics.record_reconstruct(
-            data_only,
-            missing_data_indices.len(),
-            missing_parity_indices.len(),
-            false,
-        );
-
-        let data_decode_matrix = self.get_data_decode_matrix(&valid_indices, &invalid_indices)?;
-
-        if !missing_data_indices.is_empty() {
+        // Generic destinations may reject their backing-buffer length. Finish
+        // each initialized output before touching the next, so a later error
+        // never leaves an earlier destination marked present with stale bytes.
+        let mut recovered_data: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
+        if !data_destinations.is_empty() {
             #[cfg(feature = "std")]
             self.runtime_profile_metrics
-                .record_reconstruct_data_stage(shard_len, missing_data_indices.len());
-            let mut matrix_rows: SmallVec<[&[F::Elem]; 32]> =
-                SmallVec::with_capacity(missing_data_indices.len());
-            for &idx in &missing_data_indices {
-                matrix_rows.push(data_decode_matrix.get_row(idx));
-            }
-
-            let mut recovered_data: Vec<Vec<F::Elem>> = missing_data_indices
-                .iter()
-                .map(|_| vec![F::zero(); shard_len])
-                .collect();
-
-            {
-                let mut sub_shards: SmallVec<[&[F::Elem]; 32]> =
-                    SmallVec::with_capacity(data_shard_count);
-                for &idx in &valid_indices {
-                    let shard = shards[idx].as_deref().ok_or(Error::TooFewShardsPresent)?;
-                    sub_shards.push(shard);
+                .record_reconstruct_data_stage(plan.shape.shard_len, data_destinations.len());
+            for (destination, row) in data_destinations.into_iter().zip(data_rows) {
+                let output = match destination.get_or_initialize(plan.shape.shard_len) {
+                    Ok(output) | Err(Ok(output)) => output,
+                    Err(Err(error)) => return Err(error),
+                };
+                if output.len() != plan.shape.shard_len {
+                    return Err(Error::IncorrectShardSize);
                 }
-
-                let mut outputs: SmallVec<[&mut [F::Elem]; 32]> = recovered_data
-                    .iter_mut()
-                    .map(|shard| shard.as_mut_slice())
-                    .collect();
-
-                if data_only && outputs.len() <= 2 {
-                    self.runtime_profile_metrics
-                        .record_reconstruct_data_small_output_specialized();
-                    self.code_some_slices_one_or_two_outputs_reconstruct_data_par_raw(
-                        &matrix_rows,
-                        &sub_shards,
-                        &mut outputs,
-                    );
-                } else {
-                    self.code_some_slices_with_policy_raw(
-                        &matrix_rows,
-                        &sub_shards,
-                        &mut outputs,
-                        data_policy,
-                    );
-                }
-            }
-
-            for (idx, recovered) in missing_data_indices.into_iter().zip(recovered_data) {
-                shards[idx] = Some(recovered);
+                self.code_some_slices(&[row], &inputs, &mut [&mut *output]);
+                recovered_data.push(output);
             }
         }
-
-        if data_only {
+        if parity_destinations.is_empty() {
             return Ok(());
         }
-
-        if missing_parity_indices.is_empty() {
-            return Ok(());
-        }
-
         #[cfg(feature = "std")]
         self.runtime_profile_metrics
-            .record_reconstruct_parity_stage(shard_len, missing_parity_indices.len());
-        let parity_rows = self.get_parity_rows();
-        let mut matrix_rows: SmallVec<[&[F::Elem]; 32]> =
-            SmallVec::with_capacity(missing_parity_indices.len());
-        for &idx in &missing_parity_indices {
-            matrix_rows.push(parity_rows[idx - data_shard_count]);
-        }
-
-        let mut recovered_parity: Vec<Vec<F::Elem>> = missing_parity_indices
-            .iter()
-            .map(|_| vec![F::zero(); shard_len])
-            .collect();
-
-        {
-            let mut all_data: SmallVec<[&[F::Elem]; 32]> =
-                SmallVec::with_capacity(data_shard_count);
-            for shard in shards.iter().take(data_shard_count) {
-                let shard = shard.as_deref().ok_or(Error::TooFewShardsPresent)?;
-                all_data.push(shard);
+            .record_reconstruct_parity_stage(plan.shape.shard_len, parity_destinations.len());
+        let mut all_data: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
+        let parity_inputs = if plan.direct_parity || recovered_data.is_empty() {
+            inputs.as_slice()
+        } else {
+            let mut existing = 0;
+            let mut recovered = 0;
+            for index in 0..self.data_shard_count {
+                if plan.data_targets.get(recovered) == Some(&index) {
+                    all_data.push(recovered_data[recovered]);
+                    recovered += 1;
+                } else {
+                    all_data.push(inputs[existing]);
+                    existing += 1;
+                }
             }
-
-            let mut outputs: SmallVec<[&mut [F::Elem]; 32]> = recovered_parity
-                .iter_mut()
-                .map(|shard| shard.as_mut_slice())
-                .collect();
-
-            self.code_some_slices_with_policy_raw(
-                &matrix_rows,
-                &all_data,
-                &mut outputs,
-                parity_policy,
-            );
-        }
-        for (idx, recovered) in missing_parity_indices.into_iter().zip(recovered_parity) {
-            shards[idx] = Some(recovered);
+            all_data.as_slice()
+        };
+        for (destination, row) in parity_destinations.into_iter().zip(parity_rows) {
+            let output = match destination.get_or_initialize(plan.shape.shard_len) {
+                Ok(output) | Err(Ok(output)) => output,
+                Err(Err(error)) => return Err(error),
+            };
+            if output.len() != plan.shape.shard_len {
+                return Err(Error::IncorrectShardSize);
+            }
+            self.code_some_slices(&[row], parity_inputs, &mut [output]);
         }
         Ok(())
     }
 
     #[cfg(feature = "std")]
-    pub(crate) fn reconstruct_internal_option_vec_par_with_policy(
+    fn execute_classic_option_plan_bulk(
         &self,
         shards: &mut [Option<Vec<F::Elem>>],
-        data_only: bool,
-        policy: ParallelPolicy,
-    ) -> Result<(), Error>
-    where
-        F::Elem: Send + Sync,
-    {
-        self.reconstruct_internal_option_vec_par_with_stage_policies(
-            shards, data_only, policy, policy,
-        )
+        plan: &ClassicReconstructPlan<F>,
+        mut compute: impl FnMut(bool, &[&[F::Elem]], &[&[F::Elem]], &mut [&mut [F::Elem]]),
+    ) -> Result<(), Error> {
+        #[cfg(feature = "std")]
+        self.runtime_profile_metrics.record_reconstruct(
+            plan.data_only,
+            plan.data_targets.len(),
+            plan.parity_targets.len(),
+            plan.shape.invalid_indices.is_empty(),
+        );
+        if !plan.has_outputs() {
+            return Ok(());
+        }
+        let data_rows = plan.data_rows();
+        let parity_rows = plan.parity_rows(self);
+        let mut inputs: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
+        let mut data_outputs: SmallVec<[&mut [F::Elem]; 32]> = SmallVec::new();
+        let mut parity_outputs: SmallVec<[&mut [F::Elem]; 32]> = SmallVec::new();
+        let mut survivors = plan.shape.valid_indices.iter().copied().peekable();
+        let mut data_targets = plan.data_targets.iter().copied().peekable();
+        let mut parity_targets = plan.parity_targets.iter().copied().peekable();
+
+        // Concrete Option<Vec<_>> destinations cannot reject initialization:
+        // their new buffers have exactly the validated shard length. Keep the
+        // fused bulk kernels here while generic fallible containers use the
+        // per-output adapter above. Both borrow disjoint views without copying
+        // present payloads or constructing raw pointers.
+        for (index, shard) in shards.iter_mut().enumerate() {
+            if survivors.peek() == Some(&index) {
+                let input = shard.as_deref().ok_or(Error::TooFewShardsPresent)?;
+                debug_assert_eq!(input.len(), plan.shape.shard_len);
+                inputs.push(input);
+                survivors.next();
+            } else if data_targets.peek() == Some(&index) {
+                let output = shard
+                    .get_or_insert_with(|| vec![F::zero(); plan.shape.shard_len])
+                    .as_mut_slice();
+                debug_assert_eq!(output.len(), plan.shape.shard_len);
+                data_outputs.push(output);
+                data_targets.next();
+            } else if parity_targets.peek() == Some(&index) {
+                let output = shard
+                    .get_or_insert_with(|| vec![F::zero(); plan.shape.shard_len])
+                    .as_mut_slice();
+                debug_assert_eq!(output.len(), plan.shape.shard_len);
+                parity_outputs.push(output);
+                parity_targets.next();
+            }
+        }
+        if plan.direct_parity {
+            #[cfg(feature = "std")]
+            {
+                if !data_outputs.is_empty() {
+                    self.runtime_profile_metrics
+                        .record_reconstruct_data_stage(plan.shape.shard_len, data_outputs.len());
+                }
+                self.runtime_profile_metrics
+                    .record_reconstruct_parity_stage(plan.shape.shard_len, parity_outputs.len());
+            }
+            let mut rows = data_rows;
+            rows.extend(parity_rows);
+            data_outputs.extend(parity_outputs);
+            compute(true, &rows, &inputs, &mut data_outputs);
+            return Ok(());
+        }
+        if !data_outputs.is_empty() {
+            #[cfg(feature = "std")]
+            self.runtime_profile_metrics
+                .record_reconstruct_data_stage(plan.shape.shard_len, data_outputs.len());
+            compute(true, &data_rows, &inputs, &mut data_outputs);
+        }
+        if parity_outputs.is_empty() {
+            return Ok(());
+        }
+        #[cfg(feature = "std")]
+        self.runtime_profile_metrics
+            .record_reconstruct_parity_stage(plan.shape.shard_len, parity_outputs.len());
+        if data_outputs.is_empty() {
+            compute(false, &parity_rows, &inputs, &mut parity_outputs);
+        } else {
+            // Full recovery first restores missing data, then encodes parity.
+            // Selective parity uses composed rows instead, so no unrequested
+            // missing data is initialized solely as a dependency.
+            let mut all_data: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
+            let mut existing = 0;
+            let mut recovered = 0;
+            for index in 0..self.data_shard_count {
+                if plan.data_targets.get(recovered) == Some(&index) {
+                    all_data.push(data_outputs[recovered]);
+                    recovered += 1;
+                } else {
+                    all_data.push(inputs[existing]);
+                    existing += 1;
+                }
+            }
+            compute(false, &parity_rows, &all_data, &mut parity_outputs);
+        }
+        Ok(())
     }
 
     /// Reconstruct all missing shards (data and parity).
@@ -487,7 +351,6 @@ impl<F: Field> ReedSolomon<F> {
         if self.is_leopard_gf16_family() {
             return self.reconstruct_leopard_gf16(slices, false);
         }
-        self.ensure_classic_family_execution()?;
         self.reconstruct_internal(slices, false)
     }
 
@@ -499,7 +362,6 @@ impl<F: Field> ReedSolomon<F> {
         if self.is_leopard_gf16_family() {
             return self.reconstruct_leopard_gf16(slices, true);
         }
-        self.ensure_classic_family_execution()?;
         self.reconstruct_internal(slices, true)
     }
 
@@ -509,31 +371,21 @@ impl<F: Field> ReedSolomon<F> {
         shards: &mut [T],
         required: &[bool],
     ) -> Result<(), Error> {
-        let normalized_required;
-        let required = if required.len() == self.total_shard_count {
-            required
-        } else if required.len() == self.data_shard_count {
-            normalized_required = {
-                let mut flags = vec![false; self.total_shard_count];
-                flags[..self.data_shard_count].copy_from_slice(required);
-                flags
-            };
-            normalized_required.as_slice()
-        } else {
+        if required.len() != self.data_shard_count && required.len() != self.total_shard_count {
             return Err(Error::InvalidShardFlags);
-        };
+        }
 
         if self.is_leopard_gf8_family() {
             return self.reconstruct_leopard_impl(
                 shards,
-                |index| required[index],
+                |index| required.get(index).copied().unwrap_or(false),
                 super::leopard_gf8::reconstruct_with_tables,
             );
         }
         if self.is_leopard_gf16_family() {
             return self.reconstruct_leopard_impl(
                 shards,
-                |index| required[index],
+                |index| required.get(index).copied().unwrap_or(false),
                 |present, outputs, inputs, data, parity| {
                     super::leopard::leopard_gf16_reconstruct(
                         present,
@@ -546,147 +398,11 @@ impl<F: Field> ReedSolomon<F> {
                 },
             );
         }
-        self.ensure_classic_family_execution()?;
-
-        check_piece_count!(all => self, shards);
-
-        let mut number_present = 0;
-        let mut shard_len = None;
-
-        for shard in shards.iter_mut() {
-            if let Some(len) = shard.len() {
-                if len == 0 {
-                    return Err(Error::EmptyShard);
-                }
-                number_present += 1;
-                if let Some(old_len) = shard_len
-                    && len != old_len
-                {
-                    return Err(Error::IncorrectShardSize);
-                }
-                shard_len = Some(len);
-            }
-        }
-
-        if number_present == self.total_shard_count {
-            return Ok(());
-        }
-
-        if number_present < self.data_shard_count {
-            return Err(Error::TooFewShardsPresent);
-        }
-
-        // invariant: reached only when number_present >= data_shard_count >= 1
-        // (see the TooFewDataShards guard in new()), so at least one present
-        // shard has set shard_len to Some.
-        let shard_len = shard_len.expect("at least one shard present; qed");
-        let required_data_only = required
-            .iter()
-            .enumerate()
-            .all(|(i, required)| !*required || i < self.data_shard_count);
-
-        let originally_missing: Vec<bool> = shards
-            .iter_mut()
-            .map(|shard| shard.get().is_none())
-            .collect();
-
-        if required_data_only {
-            let mut valid_indices: SmallVec<[usize; 32]> =
-                SmallVec::with_capacity(self.data_shard_count);
-            let mut invalid_indices: SmallVec<[usize; 32]> =
-                SmallVec::with_capacity(self.total_shard_count);
-            let mut required_missing_data_indices: SmallVec<[usize; 32]> = SmallVec::new();
-
-            for (index, is_missing) in originally_missing.iter().copied().enumerate() {
-                if is_missing {
-                    invalid_indices.push(index);
-                    if index < self.data_shard_count && required[index] {
-                        required_missing_data_indices.push(index);
-                    }
-                } else if valid_indices.len() < self.data_shard_count {
-                    valid_indices.push(index);
-                }
-            }
-
-            if required_missing_data_indices.is_empty() {
-                return Ok(());
-            }
-
-            let data_decode_matrix =
-                self.get_data_decode_matrix(&valid_indices, &invalid_indices)?;
-            let mut matrix_rows: SmallVec<[&[F::Elem]; 32]> =
-                SmallVec::with_capacity(required_missing_data_indices.len());
-            for &idx in &required_missing_data_indices {
-                matrix_rows.push(data_decode_matrix.get_row(idx));
-            }
-
-            // Borrow present input shards directly and defer output mutation until
-            // after compute completes, so the required-data-only path avoids
-            // cloning every valid shard into temporary owned buffers.
-            let mut sub_shard_ptrs: SmallVec<[(*const F::Elem, usize); 32]> =
-                SmallVec::with_capacity(valid_indices.len());
-            for &idx in &valid_indices {
-                let shard = shards[idx]
-                    .get()
-                    .expect("valid shard index must be present");
-                sub_shard_ptrs.push((shard.as_ptr(), shard.len()));
-            }
-
-            let sub_shards: SmallVec<[&[F::Elem]; 32]> = sub_shard_ptrs
-                .iter()
-                .map(|&(ptr, len)| {
-                    // SAFETY: each pointer/length pair was captured from a present
-                    // shard in `shards` after full length validation. The compute
-                    // phase only reads from these inputs and writes into separate
-                    // owned recovery buffers, so the pointed-to shard storage
-                    // remains valid and unmodified for the duration of these
-                    // borrowed slices.
-                    unsafe { core::slice::from_raw_parts(ptr, len) }
-                })
-                .collect();
-            let mut output_ptrs: SmallVec<[(*mut F::Elem, usize); 32]> =
-                SmallVec::with_capacity(required_missing_data_indices.len());
-            for &idx in &required_missing_data_indices {
-                match shards[idx].get_or_initialize(shard_len) {
-                    Ok(dst) | Err(Ok(dst)) => output_ptrs.push((dst.as_mut_ptr(), dst.len())),
-                    Err(Err(err)) => return Err(err),
-                }
-            }
-            let mut outputs: SmallVec<[&mut [F::Elem]; 32]> = output_ptrs
-                .iter()
-                .map(|&(ptr, len)| {
-                    // SAFETY: each pointer/length pair came from a distinct
-                    // `get_or_initialize(shard_len)` call above after all
-                    // validation completed. Required missing indices are unique,
-                    // and this compute phase mutates only those output buffers.
-                    unsafe { core::slice::from_raw_parts_mut(ptr, len) }
-                })
-                .collect();
-            self.code_some_slices(&matrix_rows, &sub_shards, &mut outputs);
-            drop(outputs);
-        } else {
-            let mut working: Vec<Option<Vec<F::Elem>>> = shards
-                .iter_mut()
-                .map(|shard| shard.get().map(|data| data.to_vec()))
-                .collect();
-            self.reconstruct(&mut working)?;
-
-            for (i, shard) in shards.iter_mut().enumerate() {
-                if !required[i] || !originally_missing[i] {
-                    continue;
-                }
-
-                let recovered = working[i]
-                    .as_ref()
-                    .expect("recovered shard must be present");
-                match shard.get_or_initialize(shard_len) {
-                    Ok(dst) | Err(Ok(dst)) => dst.copy_from_slice(recovered),
-                    Err(Err(err)) => return Err(err),
-                }
-            }
-        }
-
-        Ok(())
+        self.with_classic_reconstruct_plan(
+            shards,
+            ReconstructionGoal::Required(required),
+            |shards, plan| self.execute_classic_plan_serial(shards, plan),
+        )
     }
 
     /// Validate every present shard before initializing recovery destinations.
@@ -903,171 +619,13 @@ impl<F: Field> ReedSolomon<F> {
         shards: &mut [T],
         data_only: bool,
     ) -> Result<(), Error> {
-        check_piece_count!(all => self, shards);
-
-        let data_shard_count = self.data_shard_count;
-
-        let mut number_present = 0;
-        let mut shard_len = None;
-
-        for shard in shards.iter_mut() {
-            if let Some(len) = shard.len() {
-                if len == 0 {
-                    return Err(Error::EmptyShard);
-                }
-                number_present += 1;
-                if let Some(old_len) = shard_len
-                    && len != old_len
-                {
-                    return Err(Error::IncorrectShardSize);
-                }
-                shard_len = Some(len);
-            }
-        }
-
-        if number_present == self.total_shard_count {
-            #[cfg(feature = "std")]
-            self.runtime_profile_metrics
-                .record_reconstruct(data_only, 0, 0, true);
-            return Ok(());
-        }
-
-        if number_present < data_shard_count {
-            return Err(Error::TooFewShardsPresent);
-        }
-
-        // invariant: reached only when number_present >= data_shard_count >= 1
-        // (see the TooFewDataShards guard in new()), so at least one present
-        // shard has set shard_len to Some.
-        let shard_len = shard_len.expect("at least one shard present; qed");
-
-        let mut sub_shards: SmallVec<[&[F::Elem]; 32]> = SmallVec::with_capacity(data_shard_count);
-        let mut missing_data_slices: SmallVec<[&mut [F::Elem]; 32]> =
-            SmallVec::with_capacity(self.parity_shard_count);
-        let mut missing_parity_slices: SmallVec<[&mut [F::Elem]; 32]> =
-            SmallVec::with_capacity(self.parity_shard_count);
-        let mut valid_indices: SmallVec<[usize; 32]> = SmallVec::with_capacity(data_shard_count);
-        let mut invalid_indices: SmallVec<[usize; 32]> = SmallVec::with_capacity(data_shard_count);
-
-        for (matrix_row, shard) in shards.iter_mut().enumerate() {
-            let shard_data = if matrix_row >= data_shard_count && data_only {
-                shard.get().ok_or(None)
-            } else {
-                shard.get_or_initialize(shard_len).map_err(Some)
-            };
-
-            match shard_data {
-                Ok(shard) => {
-                    if sub_shards.len() < data_shard_count {
-                        sub_shards.push(shard);
-                        valid_indices.push(matrix_row);
-                    }
-                }
-                Err(None) => {
-                    invalid_indices.push(matrix_row);
-                }
-                Err(Some(x)) => {
-                    let shard = x?;
-                    if matrix_row < data_shard_count {
-                        missing_data_slices.push(shard);
-                    } else {
-                        missing_parity_slices.push(shard);
-                    }
-
-                    invalid_indices.push(matrix_row);
-                }
-            }
-        }
-
-        #[cfg(feature = "std")]
-        {
-            let missing_data_count = invalid_indices
-                .iter()
-                .filter(|&&i| i < data_shard_count)
-                .count();
-            let missing_parity_count = if data_only {
-                0
-            } else {
-                invalid_indices
-                    .iter()
-                    .filter(|&&i| i >= data_shard_count)
-                    .count()
-            };
-            self.runtime_profile_metrics.record_reconstruct(
-                data_only,
-                missing_data_count,
-                missing_parity_count,
-                false,
-            );
-        }
-
-        let data_decode_matrix = self.get_data_decode_matrix(&valid_indices, &invalid_indices)?;
-
-        let mut matrix_rows: SmallVec<[&[F::Elem]; 32]> =
-            SmallVec::with_capacity(self.parity_shard_count);
-
-        for i_slice in invalid_indices
-            .iter()
-            .cloned()
-            .take_while(|i| i < &data_shard_count)
-        {
-            matrix_rows.push(data_decode_matrix.get_row(i_slice));
-        }
-
-        #[cfg(feature = "std")]
-        self.runtime_profile_metrics
-            .record_reconstruct_data_stage(shard_len, matrix_rows.len());
-        self.code_some_slices(&matrix_rows, &sub_shards, &mut missing_data_slices);
-
-        if data_only {
-            Ok(())
+        let goal = if data_only {
+            ReconstructionGoal::Data
         } else {
-            let mut matrix_rows: SmallVec<[&[F::Elem]; 32]> =
-                SmallVec::with_capacity(self.parity_shard_count);
-            let parity_rows = self.get_parity_rows();
-
-            for i_slice in invalid_indices
-                .iter()
-                .cloned()
-                .skip_while(|i| i < &data_shard_count)
-            {
-                matrix_rows.push(parity_rows[i_slice - data_shard_count]);
-            }
-            #[cfg(feature = "std")]
-            self.runtime_profile_metrics
-                .record_reconstruct_parity_stage(shard_len, matrix_rows.len());
-            {
-                let mut i_old_data_slice = 0;
-                let mut i_new_data_slice = 0;
-
-                let mut all_data_slices: SmallVec<[&[F::Elem]; 32]> =
-                    SmallVec::with_capacity(data_shard_count);
-
-                let mut next_maybe_good = 0;
-                let mut push_good_up_to = move |data_slices: &mut SmallVec<_>, up_to| {
-                    for _ in next_maybe_good..up_to {
-                        data_slices.push(sub_shards[i_old_data_slice]);
-                        i_old_data_slice += 1;
-                    }
-
-                    next_maybe_good = up_to + 1;
-                };
-
-                for i_slice in invalid_indices
-                    .iter()
-                    .cloned()
-                    .take_while(|i| i < &data_shard_count)
-                {
-                    push_good_up_to(&mut all_data_slices, i_slice);
-                    all_data_slices.push(missing_data_slices[i_new_data_slice]);
-                    i_new_data_slice += 1;
-                }
-                push_good_up_to(&mut all_data_slices, data_shard_count);
-
-                self.code_some_slices(&matrix_rows, &all_data_slices, &mut missing_parity_slices);
-            }
-
-            Ok(())
-        }
+            ReconstructionGoal::All
+        };
+        self.with_classic_reconstruct_plan(shards, goal, |shards, plan| {
+            self.execute_classic_plan_serial(shards, plan)
+        })
     }
 }

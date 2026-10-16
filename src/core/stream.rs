@@ -28,11 +28,10 @@
 //! ```
 
 use std::io::Error;
-use std::sync::Arc;
 
 use smallvec::SmallVec;
 
-use crate::matrix::Matrix;
+use super::{ClassicReconstructPlan, ReconstructionGoal};
 
 /// Lower bound for the read/write block size (1 KiB).
 const MIN_BLOCK_SIZE_BYTES: usize = 1024;
@@ -497,59 +496,35 @@ fn write_block_par<W: std::io::Write + Send>(
 /// codec's LRU cache, including when that cache is disabled or evicts entries.
 struct StreamReconstructPlan<'codec> {
     codec: &'codec super::ReedSolomon<crate::galois_8::Field>,
-    survivor_indices: SmallVec<[usize; 32]>,
-    missing_data_indices: SmallVec<[usize; 32]>,
-    missing_parity_indices: SmallVec<[usize; 32]>,
-    decode_matrix: Option<Arc<Matrix<crate::galois_8::Field>>>,
+    plan: ClassicReconstructPlan<crate::galois_8::Field>,
 }
 
 impl<'codec> StreamReconstructPlan<'codec> {
     fn new(
         codec: &'codec super::ReedSolomon<crate::galois_8::Field>,
-        present_indices: &[usize],
         missing_indices: &[usize],
+        shard_len: usize,
     ) -> Result<Self, crate::Error> {
-        let survivor_indices: SmallVec<[usize; 32]> = present_indices
-            .iter()
-            .copied()
-            .take(codec.data_shard_count)
-            .collect();
-        let (missing_data_indices, missing_parity_indices): (
-            SmallVec<[usize; 32]>,
-            SmallVec<[usize; 32]>,
-        ) = missing_indices
-            .iter()
-            .copied()
-            .partition(|&index| index < codec.data_shard_count);
-        let decode_matrix = if missing_data_indices.is_empty() {
-            None
-        } else {
-            Some(codec.get_data_decode_matrix(&survivor_indices, missing_indices)?)
-        };
-        Ok(Self {
-            codec,
-            survivor_indices,
-            missing_data_indices,
-            missing_parity_indices,
-            decode_matrix,
-        })
+        let mut missing = missing_indices.iter().copied().peekable();
+        let lengths = (0..codec.total_shard_count).map(|index| {
+            if missing.peek() == Some(&index) {
+                missing.next();
+                None
+            } else {
+                Some(shard_len)
+            }
+        });
+        let shape = codec.classic_reconstruct_shape(lengths)?;
+        let plan = codec.prepare_classic_reconstruct_plan(shape, ReconstructionGoal::All)?;
+        Ok(Self { codec, plan })
     }
 
     fn data_rows(&self) -> SmallVec<[&[u8]; 32]> {
-        let mut rows = SmallVec::with_capacity(self.missing_data_indices.len());
-        if let Some(matrix) = &self.decode_matrix {
-            for &index in &self.missing_data_indices {
-                rows.push(matrix.get_row(index));
-            }
-        }
-        rows
+        self.plan.data_rows()
     }
 
     fn parity_rows(&self) -> SmallVec<[&[u8]; 32]> {
-        self.missing_parity_indices
-            .iter()
-            .map(|&index| self.codec.matrix.get_row(index))
-            .collect()
+        self.plan.parity_rows(self.codec)
     }
 
     /// All present buffers have already passed the equal-length read check,
@@ -561,8 +536,8 @@ impl<'codec> StreamReconstructPlan<'codec> {
         data_rows: &[&[u8]],
         parity_rows: &[&[u8]],
     ) {
-        let missing_data = self.missing_data_indices.len();
-        let missing_parity = self.missing_parity_indices.len();
+        let missing_data = self.plan.data_targets.len();
+        let missing_parity = self.plan.parity_targets.len();
         self.codec.record_reconstruct_runtime(
             false,
             missing_data,
@@ -572,10 +547,10 @@ impl<'codec> StreamReconstructPlan<'codec> {
 
         if missing_data != 0 {
             let mut inputs: SmallVec<[&[u8]; 32]> =
-                SmallVec::with_capacity(self.survivor_indices.len());
+                SmallVec::with_capacity(self.plan.shape.valid_indices.len());
             let mut outputs: SmallVec<[&mut [u8]; 32]> = SmallVec::with_capacity(missing_data);
-            let mut survivors = self.survivor_indices.iter().copied().peekable();
-            let mut missing = self.missing_data_indices.iter().copied().peekable();
+            let mut survivors = self.plan.shape.valid_indices.iter().copied().peekable();
+            let mut missing = self.plan.data_targets.iter().copied().peekable();
 
             // Each buffer is borrowed once. Sorted, disjoint index lists select
             // the original survivors and missing data outputs without aliasing.
@@ -598,7 +573,7 @@ impl<'codec> StreamReconstructPlan<'codec> {
             // The data phase's views have ended; restored data can now be read
             // while only the disjoint parity buffers are mutated.
             let (data, parity) = buffers.split_at_mut(self.codec.data_shard_count);
-            let mut missing = self.missing_parity_indices.iter().copied().peekable();
+            let mut missing = self.plan.parity_targets.iter().copied().peekable();
             let mut outputs: SmallVec<[&mut [u8]; 32]> = SmallVec::with_capacity(missing_parity);
             for (offset, buffer) in parity.iter_mut().enumerate() {
                 if missing.peek() == Some(&(self.codec.data_shard_count + offset)) {
@@ -915,7 +890,7 @@ impl super::ReedSolomon<crate::galois_8::Field> {
             return Ok(());
         }
 
-        let plan = StreamReconstructPlan::new(self, &present_indices, &missing_indices)
+        let plan = StreamReconstructPlan::new(self, &missing_indices, actual_len)
             .map_err(|e| StreamError::codec(0, e))?;
         let data_rows = plan.data_rows();
         let parity_rows = plan.parity_rows();
