@@ -50,6 +50,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Validation
+- Archive rejected grouping and unstable separate-process probes alongside the retained fused NEON results. All 18 final same-buffer paired cells pass two 5% drift checks; local 32 KiB 10+4/12+4/8+4 latency observations improve about 8.7%/9.8%/5.2%, with a roughly 8 ns small 4+2 tradeoff recorded in the review.
 - Direct generated-NEON tests compare all six supported shapes against scalar field arithmetic across 258 shape/length combinations, including every vector tail, unaligned buffers, zero/identity/high coefficients, empty checked invocations, and untouched output guards.
 - The 2026-10-16 refactor passed stable 1.99.1 workspace SIMD/metrics tests, no_std SIMD tests, all-feature Clippy, focused AddressSanitizer, x86 library/test and wasm32 compile checks, and both baseline correctness reproducers.
 - Archive all 43 final A/B/B/A cases and both superseded drafts. Allocation observations repeat, but latency drift rejects the overall comparison; see `docs/erasure-codec-review-refactor-2026-10-16.md` and backlog #2853.
@@ -63,6 +64,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Added
+- Extend serial encode probes to all six generated layouts (58 total recovery-path cases), independently verify parity, and preserve a standalone paired-comparison probe with per-phase iteration counts.
 - Expand the recovery probe to 43 cases with poisoned-output/presence preflights, constructors, serial encoding, optimized recovery, and validated all-present workloads.
 - Add the `recovery_paths` JSONL benchmark with deterministic warm fixtures, cumulative allocation counts, latency samples, backend/features/revision provenance, and documented measurement limits.
 

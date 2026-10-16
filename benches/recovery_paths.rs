@@ -648,36 +648,48 @@ fn main() -> Result<(), String> {
         report(&config, &case, measurement);
         completed += 1;
     }
-    for size in [1024, 32768, 1048576] {
-        let case = Case {
-            operation: "encode.serial",
-            data_shards: 10,
-            parity_shards: 4,
-            shard_size: size,
-            missing_data_shards: 0,
-            missing_parity_shards: 0,
-            stream_block_size: None,
-        };
-        if !config.includes(&case) {
-            continue;
-        }
-        let codec =
-            ReedSolomon::new(case.data_shards, case.parity_shards).expect("construct serial codec");
-        let original = fixture(&codec, size);
-        let mut shards = original.clone();
-        for shard in &mut shards[case.data_shards..] {
-            for byte in shard {
-                *byte ^= 0xff;
+    for (data, parity) in [(10, 4), (12, 4), (8, 3), (8, 4), (6, 3), (4, 2)] {
+        for size in [1024, 32768, 1048576] {
+            let case = Case {
+                operation: "encode.serial",
+                data_shards: data,
+                parity_shards: parity,
+                shard_size: size,
+                missing_data_shards: 0,
+                missing_parity_shards: 0,
+                stream_block_size: None,
+            };
+            if !config.includes(&case) {
+                continue;
             }
+            let codec = ReedSolomon::new(case.data_shards, case.parity_shards)
+                .expect("construct serial codec");
+            let original = fixture(&codec, size);
+            let mut shards = original.clone();
+            for shard in &mut shards[case.data_shards..] {
+                for byte in shard {
+                    *byte ^= 0xff;
+                }
+            }
+            codec.encode(&mut shards).expect("serial encode preflight");
+            assert_eq!(shards, original);
+            assert!(
+                codec
+                    .verify(&shards)
+                    .expect("independent serial parity check")
+            );
+            let measurement = measure(&config, || {
+                codec.encode(black_box(&mut shards)).expect("serial encode");
+            });
+            assert_eq!(shards, original);
+            assert!(
+                codec
+                    .verify(&shards)
+                    .expect("independent serial parity check")
+            );
+            report(&config, &case, measurement);
+            completed += 1;
         }
-        codec.encode(&mut shards).expect("serial encode preflight");
-        assert_eq!(shards, original);
-        let measurement = measure(&config, || {
-            codec.encode(black_box(&mut shards)).expect("serial encode");
-        });
-        assert_eq!(shards, original);
-        report(&config, &case, measurement);
-        completed += 1;
     }
     for (optimized, operation) in [
         (false, "classic.reconstruct_all_present"),

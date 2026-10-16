@@ -847,8 +847,10 @@ dependencies. It keeps deterministic fixtures and measures these cases:
   This API requires `Option<Vec<u8>>`; each iteration takes and drops the
   missing data buffers, then reconstructs replacement buffers. That adapter
   storage turnover is included in the latency and allocation measurements.
-- Classic serial encode (`encode.serial`): `10+4` with 1 KiB, 32 KiB, and 1 MiB
-  shards. These cases call `encode`, without the parallel or automatic entrypoint.
+- Classic serial encode (`encode.serial`): all generated shapes (`10+4`, `12+4`,
+  `8+3`, `8+4`, `6+3`, `4+2`) with 1 KiB, 32 KiB, and 1 MiB shards. These cases
+  call `encode`, without the parallel or automatic entrypoint. Each result also
+  passes an untimed independent `verify` arithmetic check.
 - Classic all-present recovery: `10+4`, `40+8`, and `128+64`, with 65-byte shards
   and no erasures. `classic.reconstruct_all_present` uses the generic API with
   `ShardSlot`; `classic.reconstruct_opt_all_present` uses `Option<Vec<u8>>`.
@@ -917,3 +919,7 @@ those conclusions.
 
 The 2026-10-16 review and rejected-latency A/B/B/A evidence are recorded in
 [the refactor review](erasure-codec-review-refactor-2026-10-16.md).
+
+The profile now has 58 cases; `RSE_RECOVERY_CASE_FILTER=encode.` selects 21.
+For adjacent same-process comparisons that share buffer addresses, see the
+[NEON follow-up review and standalone probe](erasure-codec-neon-review-2026-10-16.md).
