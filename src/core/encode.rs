@@ -1,6 +1,9 @@
 extern crate alloc;
 
 use alloc::vec;
+use smallvec::SmallVec;
+
+use crate::galois_8::codegen::SelectedEncodeKernel;
 
 use crate::Field;
 use crate::errors::Error;
@@ -10,26 +13,160 @@ use super::{
     ReedSolomon, leopard,
 };
 
+/// Checked native byte views shared by Classic generated kernels and Leopard.
+/// Failed preparation never modifies an output shard.
+struct ByteShardViews<'a> {
+    data: SmallVec<[&'a [u8]; 32]>,
+    parity: SmallVec<[&'a mut [u8]; 32]>,
+}
+
+impl<'a> ByteShardViews<'a> {
+    #[inline]
+    fn prepare<F, T, U>(data: &'a [T], parity: &'a mut [U], shard_len: usize) -> Result<Self, Error>
+    where
+        F: Field,
+        F::Elem: 'a,
+        T: AsRef<[F::Elem]>,
+        U: AsMut<[F::Elem]>,
+    {
+        let mut data_bytes = SmallVec::with_capacity(data.len());
+        for input in data {
+            let slice = input.as_ref();
+            if slice.len() != shard_len {
+                return Err(Error::IncorrectShardSize);
+            }
+            let bytes = F::as_gf8_slice(slice).ok_or(Error::UnsupportedCodecFamily)?;
+            if bytes.len() != shard_len {
+                return Err(Error::IncorrectShardSize);
+            }
+            data_bytes.push(bytes);
+        }
+        let mut parity_bytes = SmallVec::with_capacity(parity.len());
+        for output in parity {
+            let slice = output.as_mut();
+            if slice.len() != shard_len {
+                return Err(Error::IncorrectShardSize);
+            }
+            let bytes = F::as_gf8_slice_mut(slice).ok_or(Error::UnsupportedCodecFamily)?;
+            if bytes.len() != shard_len {
+                return Err(Error::IncorrectShardSize);
+            }
+            parity_bytes.push(bytes);
+        }
+        Ok(Self {
+            data: data_bytes,
+            parity: parity_bytes,
+        })
+    }
+}
+
+#[derive(Clone, Copy)]
+enum NativeEncodeExecution {
+    Serial,
+    #[cfg(all(feature = "std", rse_aarch64_neon))]
+    Parallel(super::ParallelDecision),
+}
+
+impl NativeEncodeExecution {
+    #[cfg(feature = "std")]
+    fn for_parallel_decision(
+        data_shards: usize,
+        parity_shards: usize,
+        shard_len: usize,
+        decision: super::ParallelDecision,
+    ) -> Option<Self> {
+        if !decision.use_parallel {
+            return Some(Self::Serial);
+        }
+        // Preserve the measured activation boundary. Other shapes, sizes,
+        // budgets, and architectures continue through the generic scheduler.
+        #[cfg(rse_aarch64_neon)]
+        if (data_shards, parity_shards) == (10, 4)
+            && shard_len >= 1024 * 1024
+            && (2..=4).contains(&decision.jobs)
+        {
+            return Some(Self::Parallel(decision));
+        }
+        let _ = (data_shards, parity_shards, shard_len);
+        None
+    }
+}
+
+struct PreparedNativeEncode<'a> {
+    kernel: SelectedEncodeKernel,
+    execution: NativeEncodeExecution,
+    rows: SmallVec<[&'a [u8]; 4]>,
+    shards: ByteShardViews<'a>,
+    shard_len: usize,
+}
+
+impl PreparedNativeEncode<'_> {
+    /// Execute in place so the inline shard views are not copied into another
+    /// stack frame. Errors never switch algorithms after parity has been written.
+    fn execute(&mut self) -> Result<usize, Error> {
+        let Self {
+            kernel,
+            execution,
+            rows,
+            shards,
+            shard_len,
+        } = self;
+        let ByteShardViews { data, parity } = shards;
+        match *execution {
+            NativeEncodeExecution::Serial => {
+                kernel.execute(rows, data, parity, *shard_len)?;
+                Ok(*shard_len)
+            }
+            #[cfg(all(feature = "std", rse_aarch64_neon))]
+            NativeEncodeExecution::Parallel(decision) => {
+                use rayon::prelude::*;
+
+                let mut jobs = split_neon_encode_jobs(parity, *shard_len, decision.jobs);
+                let chunk_len = decision.chunk_len.max(1);
+                let effective_chunk_len = chunk_len.min(jobs[0].outputs[0].len());
+                jobs.par_iter_mut().try_for_each(|job| {
+                    let job_len = job.outputs[0].len();
+                    for offset in (0..job_len).step_by(chunk_len) {
+                        let end = offset.saturating_add(chunk_len).min(job_len);
+                        let inputs: SmallVec<[&[u8]; 12]> = data
+                            .iter()
+                            .map(|input| &input[job.start + offset..job.start + end])
+                            .collect();
+                        let mut outputs: SmallVec<[&mut [u8]; 4]> = job
+                            .outputs
+                            .iter_mut()
+                            .map(|output| &mut output[offset..end])
+                            .collect();
+                        kernel.execute(rows, &inputs, &mut outputs, end - offset)?;
+                    }
+                    Ok::<_, Error>(())
+                })?;
+                Ok(effective_chunk_len)
+            }
+        }
+    }
+}
+
 #[cfg(all(feature = "std", rse_aarch64_neon))]
 struct NeonEncodeJob<'a> {
     start: usize,
-    outputs: smallvec::SmallVec<[&'a mut [u8]; 4]>,
+    outputs: SmallVec<[&'a mut [u8]; 4]>,
 }
 
-// Keep generated-kernel jobs entirely on the stack. Eligibility is limited to
-// the measured 10+4, >=1 MiB, small-job workload; other work uses the generic scheduler.
+// Native parallel eligibility permits at most four jobs and four outputs;
+// both dimensions stay on the stack without reserving unused 32-job storage.
 #[cfg(all(feature = "std", rse_aarch64_neon))]
 fn split_neon_encode_jobs<'a>(
     parity: &'a mut [&mut [u8]],
     shard_len: usize,
     job_limit: usize,
-) -> smallvec::SmallVec<[NeonEncodeJob<'a>; 32]> {
+) -> SmallVec<[NeonEncodeJob<'a>; 4]> {
     let group_len = shard_len.div_ceil(job_limit).div_ceil(64) * 64;
     let job_count = shard_len.div_ceil(group_len);
-    let mut jobs: smallvec::SmallVec<[NeonEncodeJob<'a>; 32]> = (0..job_count)
+    let mut jobs: SmallVec<[NeonEncodeJob<'a>; 4]> = (0..job_count)
         .map(|index| NeonEncodeJob {
             start: index * group_len,
-            outputs: smallvec::SmallVec::new(),
+            outputs: SmallVec::new(),
         })
         .collect();
     for output in parity {
@@ -106,32 +243,6 @@ impl<F: Field> ReedSolomon<F> {
         } else {
             CODE_SLICE_LARGE_CHUNK_BYTES
         }
-    }
-
-    #[cfg(feature = "std")]
-    pub(crate) fn code_some_slices_par_chunked<T, U>(
-        &self,
-        matrix_rows: &[&[F::Elem]],
-        inputs: &[T],
-        outputs: &mut [U],
-        chunk_len: usize,
-    ) where
-        F::Elem: Send + Sync,
-        T: AsRef<[F::Elem]> + Sync,
-        U: AsMut<[F::Elem]> + Send,
-    {
-        let shard_len = inputs
-            .first()
-            .map(|input| input.as_ref().len())
-            .unwrap_or(0);
-        let jobs = self
-            .parallel_policy_with(
-                shard_len,
-                outputs.len(),
-                self.policy_cache.available_parallelism,
-            )
-            .jobs;
-        self.code_some_slices_par_chunked_with_jobs(matrix_rows, inputs, outputs, chunk_len, jobs);
     }
 
     #[cfg(feature = "std")]
@@ -278,201 +389,41 @@ impl<F: Field> ReedSolomon<F> {
         self.options.fast_one_parity && self.parity_shard_count == 1
     }
 
-    /// Attempt SIMD codegen encode for GF(2^8) with common configurations.
-    /// Returns `true` if the codegen path was used, `false` to fall back to generic path.
-    fn try_encode_codegen<T: AsRef<[F::Elem]>, U: AsRef<[F::Elem]> + AsMut<[F::Elem]>>(
-        &self,
-        data: &[T],
-        parity: &mut [U],
-        _shard_len: usize,
-    ) -> bool {
-        if !leopard::is_byte_field::<F>() || !crate::galois_8::generated_encode_allowed() {
-            return false;
-        }
-
-        // A one-byte element does not identify a finite field. Only fields
-        // explicitly exposing the native GF8 representation may use this path.
-        let mut _data_u8 = smallvec::SmallVec::<[&[u8]; 32]>::with_capacity(data.len());
-        for input in data {
-            let input = input.as_ref();
-            let Some(bytes) = F::as_gf8_slice(input) else {
-                return false;
-            };
-            if bytes.len() != input.len() {
-                return false;
-            }
-            _data_u8.push(bytes);
-        }
-        let mut _parity_u8 = smallvec::SmallVec::<[&mut [u8]; 32]>::with_capacity(parity.len());
-        for output in parity {
-            let output = output.as_mut();
-            let len = output.len();
-            let Some(bytes) = F::as_gf8_slice_mut(output) else {
-                return false;
-            };
-            if bytes.len() != len {
-                return false;
-            }
-            _parity_u8.push(bytes);
-        }
-        let parity_rows = self.get_parity_rows();
-        let mut _parity_refs = smallvec::SmallVec::<[&[u8]; 32]>::with_capacity(parity_rows.len());
-        for row in &parity_rows {
-            let Some(bytes) = F::as_gf8_slice(row) else {
-                return false;
-            };
-            if bytes.len() != row.len() {
-                return false;
-            }
-            _parity_refs.push(bytes);
-        }
-
-        // x86_64 AVX2 codegen path
-        #[cfg(all(
-            feature = "simd-avx2",
-            target_arch = "x86_64",
-            not(target_env = "msvc"),
-            not(any(target_os = "android", target_os = "ios"))
-        ))]
-        {
-            if crate::galois_8::x86::codegen::try_encode_codegen_avx2(
-                self.data_shard_count,
-                self.parity_shard_count,
-                &_parity_refs,
-                &_data_u8,
-                &mut _parity_u8,
-                _shard_len,
-            ) {
-                return true;
-            }
-        }
-
-        // aarch64 NEON codegen path
-        #[cfg(all(
-            feature = "simd-neon",
-            target_arch = "aarch64",
-            not(target_env = "msvc"),
-            not(any(target_os = "android", target_os = "ios"))
-        ))]
-        {
-            if crate::galois_8::aarch64::codegen::try_encode_codegen_neon(
-                self.data_shard_count,
-                self.parity_shard_count,
-                &_parity_refs,
-                &_data_u8,
-                &mut _parity_u8,
-                _shard_len,
-            ) {
-                return true;
-            }
-        }
-
-        false
-    }
-
-    /// Fuse native NEON encoding within a bounded set of disjoint byte ranges.
-    /// Only byte views cross into Rayon, so `F` itself need not be `Sync`.
-    #[cfg(all(feature = "std", rse_aarch64_neon))]
-    fn try_encode_codegen_par<T, U>(
-        &self,
-        data: &[T],
-        parity: &mut [U],
+    /// Select a supported ISA/shape and validate all native views exactly once
+    /// before execution. Unsupported or inconsistent Field views use the generic
+    /// Classic path, preserving the public safe-Field fallback contract.
+    #[inline]
+    fn prepare_native_encode<'a, T, U>(
+        &'a self,
+        data: &'a [T],
+        parity: &'a mut [U],
         shard_len: usize,
-        decision: super::ParallelDecision,
-    ) -> bool
+        execution: NativeEncodeExecution,
+    ) -> Option<PreparedNativeEncode<'a>>
     where
         T: AsRef<[F::Elem]>,
         U: AsMut<[F::Elem]>,
     {
-        use rayon::prelude::*;
-        use smallvec::SmallVec;
-
-        let data_count = self.data_shard_count;
-        let parity_count = self.parity_shard_count;
-        // Stable measurements support only this shape and shard-size range.
-        // Avoid extending the optimization to noisier small-shard results.
-        if (data_count, parity_count) != (10, 4)
-            || shard_len < 1024 * 1024
-            || !decision.use_parallel
-            || !(2..=4).contains(&decision.jobs)
-            || !leopard::is_byte_field::<F>()
-            || !crate::galois_8::generated_encode_allowed()
-        {
-            return false;
+        if !leopard::is_byte_field::<F>() || !crate::galois_8::generated_encode_allowed() {
+            return None;
         }
-
-        let mut data_bytes = SmallVec::<[&[u8]; 12]>::new();
-        for input in data {
-            let Some(bytes) = F::as_gf8_slice(input.as_ref()) else {
-                return false;
-            };
-            if bytes.len() != shard_len {
-                return false;
+        let kernel = SelectedEncodeKernel::select(self.data_shard_count, self.parity_shard_count)?;
+        let shards = ByteShardViews::prepare::<F, _, _>(data, parity, shard_len).ok()?;
+        let mut rows = SmallVec::new();
+        for row in self.get_parity_rows() {
+            let bytes = F::as_gf8_slice(row)?;
+            if bytes.len() != self.data_shard_count {
+                return None;
             }
-            data_bytes.push(bytes);
+            rows.push(bytes);
         }
-        let matrix_rows = self.get_parity_rows();
-        let mut byte_rows = SmallVec::<[&[u8]; 4]>::new();
-        for row in &matrix_rows {
-            let Some(bytes) = F::as_gf8_slice(row) else {
-                return false;
-            };
-            if bytes.len() != data_count {
-                return false;
-            }
-            byte_rows.push(bytes);
-        }
-        let mut parity_bytes = SmallVec::<[&mut [u8]; 4]>::new();
-        for output in parity {
-            let Some(bytes) = F::as_gf8_slice_mut(output.as_mut()) else {
-                return false;
-            };
-            if bytes.len() != shard_len {
-                return false;
-            }
-            parity_bytes.push(bytes);
-        }
-
-        let mut jobs = split_neon_encode_jobs(&mut parity_bytes, shard_len, decision.jobs);
-        let chunk_len = decision.chunk_len.max(1);
-        let encoded = jobs
-            .par_iter_mut()
-            .map(|job| {
-                let job_len = job.outputs[0].len();
-                let mut encoded = true;
-                for offset in (0..job_len).step_by(chunk_len) {
-                    let end = offset.saturating_add(chunk_len).min(job_len);
-                    let inputs: SmallVec<[&[u8]; 12]> = data_bytes
-                        .iter()
-                        .map(|input| &input[job.start + offset..job.start + end])
-                        .collect();
-                    let mut outputs: SmallVec<[&mut [u8]; 4]> = job
-                        .outputs
-                        .iter_mut()
-                        .map(|output| &mut output[offset..end])
-                        .collect();
-                    encoded &= crate::galois_8::aarch64::codegen::try_encode_codegen_neon(
-                        data_count,
-                        parity_count,
-                        &byte_rows,
-                        &inputs,
-                        &mut outputs,
-                        end - offset,
-                    );
-                }
-                encoded
-            })
-            .reduce(|| true, |left, right| left & right);
-        if encoded {
-            self.runtime_profile_metrics.record_code_some(
-                true,
-                shard_len,
-                data_count,
-                parity_count,
-                chunk_len.min(jobs[0].outputs[0].len()),
-            );
-        }
-        encoded
+        Some(PreparedNativeEncode {
+            kernel,
+            execution,
+            rows,
+            shards,
+            shard_len,
+        })
     }
 
     pub(crate) fn encode_fast_one_parity<
@@ -576,8 +527,10 @@ impl<F: Field> ReedSolomon<F> {
 
         // Try SIMD codegen path for GF(2^8) with common configurations.
         let shard_len = data[0].as_ref().len();
-        if self.try_encode_codegen(data, parity, shard_len) {
-            return Ok(());
+        if let Some(mut prepared) =
+            self.prepare_native_encode(data, parity, shard_len, NativeEncodeExecution::Serial)
+        {
+            return prepared.execute().map(|_| ());
         }
 
         let parity_rows = self.get_parity_rows();
@@ -615,30 +568,13 @@ impl<F: Field> ReedSolomon<F> {
         parity: &mut [U],
         encode_fn: fn(usize, usize, &[&[u8]], &mut [&mut [u8]]) -> Result<(), Error>,
     ) -> Result<(), Error> {
-        let mut data_u8 = smallvec::SmallVec::<[&[u8]; 32]>::with_capacity(data.len());
-        for shard in data {
-            let slice = shard.as_ref();
-            let bytes = F::as_gf8_slice(slice).ok_or(Error::UnsupportedCodecFamily)?;
-            if bytes.len() != slice.len() {
-                return Err(Error::IncorrectShardSize);
-            }
-            data_u8.push(bytes);
-        }
-        let mut parity_u8 = smallvec::SmallVec::<[&mut [u8]; 32]>::with_capacity(parity.len());
-        for shard in parity {
-            let slice = shard.as_mut();
-            let len = slice.len();
-            let bytes = F::as_gf8_slice_mut(slice).ok_or(Error::UnsupportedCodecFamily)?;
-            if bytes.len() != len {
-                return Err(Error::IncorrectShardSize);
-            }
-            parity_u8.push(bytes);
-        }
+        let shard_len = data.first().ok_or(Error::TooFewDataShards)?.as_ref().len();
+        let mut shards = ByteShardViews::prepare::<F, _, _>(data, parity, shard_len)?;
         encode_fn(
             self.data_shard_count,
             self.parity_shard_count,
-            &data_u8,
-            &mut parity_u8,
+            &shards.data,
+            &mut shards.parity,
         )
     }
 
@@ -743,20 +679,40 @@ impl<F: Field> ReedSolomon<F> {
             return Ok(());
         }
 
-        let parity_rows = self.get_parity_rows();
         let shard_len = data[0].as_ref().len();
         let decision = self.parallel_policy(shard_len, parity.len());
-        if !decision.use_parallel {
-            if !self.try_encode_codegen(data, parity, shard_len) {
-                self.code_some_slices(&parity_rows, data, parity);
+        if let Some(execution) = NativeEncodeExecution::for_parallel_decision(
+            self.data_shard_count,
+            self.parity_shard_count,
+            shard_len,
+            decision,
+        ) && let Some(mut prepared) =
+            self.prepare_native_encode(data, parity, shard_len, execution)
+        {
+            let chunk_len = prepared.execute()?;
+            if decision.use_parallel {
+                self.runtime_profile_metrics.record_code_some(
+                    true,
+                    shard_len,
+                    self.data_shard_count,
+                    self.parity_shard_count,
+                    chunk_len,
+                );
             }
             return Ok(());
         }
-        #[cfg(all(feature = "std", rse_aarch64_neon))]
-        if self.try_encode_codegen_par(data, parity, shard_len, decision) {
-            return Ok(());
+        let parity_rows = self.get_parity_rows();
+        if decision.use_parallel {
+            self.code_some_slices_par_chunked_with_jobs(
+                &parity_rows,
+                data,
+                parity,
+                decision.chunk_len,
+                decision.jobs,
+            );
+        } else {
+            self.code_some_slices(&parity_rows, data, parity);
         }
-        self.code_some_slices_par_chunked(&parity_rows, data, parity, decision.chunk_len);
 
         Ok(())
     }
@@ -812,12 +768,7 @@ impl<F: Field> ReedSolomon<F> {
         F::Elem: Send + Sync,
         U: AsRef<[F::Elem]> + AsMut<[F::Elem]> + Send,
     {
-        let decision = self.parallel_policy(single_data.len(), parity.len());
-        if decision.use_parallel {
-            self.encode_single_sep_par(i_data, single_data, parity)
-        } else {
-            self.encode_single_sep(i_data, single_data, parity)
-        }
+        self.encode_single_sep_par(i_data, single_data, parity)
     }
 
     /// Auto-parallelizing version of [`encode_single`](Self::encode_single).
@@ -839,21 +790,7 @@ impl<F: Field> ReedSolomon<F> {
 
         let (mut_input, output) = slices.split_at_mut(self.data_shard_count);
         let input = mut_input[i_data].as_ref();
-        let decision = self.parallel_policy(input.len(), output.len());
-        let parity_rows = self.get_parity_rows();
-        if decision.use_parallel {
-            self.code_single_slice_par_chunked(
-                &parity_rows,
-                i_data,
-                input,
-                output,
-                decision.chunk_len,
-                decision.jobs,
-            );
-        } else {
-            self.code_single_slice(&parity_rows, i_data, input, output);
-        }
-        Ok(())
+        self.encode_single_sep_par(i_data, input, output)
     }
 
     /// Parallel version of [`encode`](Self::encode).
@@ -879,27 +816,35 @@ mod parallel_codegen_tests {
     use super::split_neon_encode_jobs;
 
     #[test]
-    fn codegen_budget_above_measured_range_falls_back_without_writes() {
-        let codec = crate::galois_8::ReedSolomon::new(10, 4).unwrap();
-        let shard_len = 1024 * 1024;
-        let data = vec![vec![7_u8; shard_len]; 10];
-        for jobs in [5, 33] {
-            let mut parity = vec![vec![0xa5_u8; shard_len]; 4];
-            let original = parity.clone();
+    fn native_parallel_selection_preserves_the_measured_boundary() {
+        for (data, parity, shard_len, jobs, eligible) in [
+            (10, 4, 1024 * 1024, 2, true),
+            (10, 4, 1024 * 1024, 4, true),
+            (10, 4, 1024 * 1024, 5, false),
+            (10, 4, 1024 * 1024, 33, false),
+            (10, 4, 1024 * 1024 - 1, 4, false),
+            (12, 4, 1024 * 1024, 4, false),
+            (4, 2, 1024 * 1024, 4, false),
+        ] {
             let decision = crate::ParallelDecision {
                 use_parallel: true,
                 jobs,
                 chunk_len: 64 * 1024,
             };
-            assert!(!codec.try_encode_codegen_par(&data, &mut parity, shard_len, decision));
-            assert_eq!(parity, original);
+            assert_eq!(
+                super::NativeEncodeExecution::for_parallel_decision(
+                    data, parity, shard_len, decision
+                )
+                .is_some(),
+                eligible
+            );
         }
     }
 
     #[test]
     fn transposed_jobs_are_bounded_disjoint_and_cover_all_bytes() {
         for shard_len in [65, 1024, 262_145, 1_048_639] {
-            for budget in [2, 3, 7, 16, 32] {
+            for budget in [2, 3, 4] {
                 let mut parity = vec![vec![0_u8; shard_len]; 4];
                 let mut views: Vec<_> = parity.iter_mut().map(Vec::as_mut_slice).collect();
                 let mut jobs = split_neon_encode_jobs(&mut views, shard_len, budget);

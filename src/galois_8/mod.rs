@@ -5,6 +5,7 @@ include!(concat!(env!("OUT_DIR"), "/table.rs"));
 pub(crate) mod aarch64;
 mod aligned;
 mod backend;
+pub(crate) mod codegen;
 mod policy;
 mod ppc64;
 mod profile;
