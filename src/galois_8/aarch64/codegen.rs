@@ -21,3 +21,61 @@ pub(crate) fn select_encode_kernel_neon(
 ) -> Option<crate::galois_8::codegen::SelectedEncodeKernel> {
     None
 }
+
+#[cfg(all(test, rse_aarch64_neon))]
+mod tests {
+    extern crate alloc;
+
+    use alloc::{vec, vec::Vec};
+
+    #[test]
+    fn generated_neon_matches_scalar_with_unaligned_tails_and_edge_coefficients() {
+        for (data_count, parity_count) in [(10, 4), (12, 4), (8, 3), (8, 4), (6, 3), (4, 2)] {
+            let kernel = super::select_encode_kernel_neon(data_count, parity_count).unwrap();
+            let rows: Vec<Vec<u8>> = (0..parity_count)
+                .map(|row| {
+                    (0..data_count)
+                        .map(|column| {
+                            if row == 0 {
+                                0
+                            } else {
+                                [0, 1, 255, 2, 128, 239, 19][(row * 3 + column) % 7]
+                            }
+                        })
+                        .collect()
+                })
+                .collect();
+            let row_refs: Vec<_> = rows.iter().map(Vec::as_slice).collect();
+            for len in (0..=33).chain([63, 64, 65, 127, 128, 129, 255, 256, 257]) {
+                let storage: Vec<Vec<u8>> = (0..data_count)
+                    .map(|row| {
+                        (0..len + 3)
+                            .map(|offset| (row * 73 + offset * 19 + offset / 17) as u8)
+                            .collect()
+                    })
+                    .collect();
+                let inputs: Vec<_> = storage.iter().map(|shard| &shard[1..1 + len]).collect();
+                let mut outputs = vec![vec![0xa5; len + 3]; parity_count];
+                let mut views: Vec<_> = outputs
+                    .iter_mut()
+                    .map(|shard| &mut shard[1..1 + len])
+                    .collect();
+                kernel.execute(&row_refs, &inputs, &mut views, len).unwrap();
+                for (row, output) in rows.iter().zip(&outputs) {
+                    assert_eq!(output[0], 0xa5);
+                    assert_eq!(&output[1 + len..], &[0xa5; 2]);
+                    for offset in 0..len {
+                        let expected = row.iter().zip(&inputs).fold(0, |sum, (&coef, input)| {
+                            sum ^ crate::galois_8::mul(coef, input[offset])
+                        });
+                        assert_eq!(
+                            output[1 + offset],
+                            expected,
+                            "{data_count}+{parity_count}, len {len}, byte {offset}"
+                        );
+                    }
+                }
+            }
+        }
+    }
+}

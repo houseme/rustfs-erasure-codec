@@ -33,6 +33,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Performance
+- Fuse NEON parity accumulators around each streamed input vector so all outputs share its load and nibble extraction; capture checked buffer pointers before the vector loop to remove repeated slice checks.
 - Skip all-present Classic plan construction through one validated fast return, retain zero-allocation wide layouts, and execute prepared native views by reference.
 - Remove per-chunk kernel-selection reductions and duplicate policy decisions from generated encoding; inline the measured NEON route's four-job metadata.
 - Remove unused Classic matrix construction from Leopard GF8 setup. Skip inversion for parity-only recovery and compose selective parity rows directly instead of cloning all shards or recovering unrequested data.
@@ -49,6 +50,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Validation
+- Direct generated-NEON tests compare all six supported shapes against scalar field arithmetic across 258 shape/length combinations, including every vector tail, unaligned buffers, zero/identity/high coefficients, empty checked invocations, and untouched output guards.
 - The 2026-10-16 refactor passed stable 1.99.1 workspace SIMD/metrics tests, no_std SIMD tests, all-feature Clippy, focused AddressSanitizer, x86 library/test and wasm32 compile checks, and both baseline correctness reproducers.
 - Archive all 43 final A/B/B/A cases and both superseded drafts. Allocation observations repeat, but latency drift rejects the overall comparison; see `docs/erasure-codec-review-refactor-2026-10-16.md` and backlog #2853.
 - Workspace tests with SIMD and metrics, production SIMD tests, `no_std` tests, all-feature Clippy (including fuzz targets), and Rust 1.98.1 library compilation passed.

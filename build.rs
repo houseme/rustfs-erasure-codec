@@ -491,117 +491,122 @@ fn generate_encode_fn_neon(f: &mut File, d: usize, p: usize) {
 
     writeln!(
         f,
-        "    /// Specialized encode for {d} data + {p} parity shards using NEON."
+        "    /// Encode {d}+{p} with one shared nibble extraction per input vector."
     )
     .unwrap();
     writeln!(f, "    ///").unwrap();
     writeln!(f, "    /// # Safety").unwrap();
-    writeln!(f, "    ///").unwrap();
     writeln!(
         f,
-        "    /// Caller must ensure NEON is available and all slices have length >= shard_len."
+        "    /// The checked dispatcher must prove NEON availability, coefficient and buffer bounds;"
+    )
+    .unwrap();
+    writeln!(
+        f,
+        "    /// the input/output views must remain borrowed throughout this invocation."
     )
     .unwrap();
     writeln!(f, "    #[target_feature(enable = \"neon\")]").unwrap();
     writeln!(f, "    pub(super) unsafe fn encode_{d}x{p}_neon(").unwrap();
-    writeln!(f, "        parity_rows: &[&[u8]],").unwrap();
-    writeln!(f, "        data: &[&[u8]],").unwrap();
-    writeln!(f, "        parity: &mut [&mut [u8]],").unwrap();
-    writeln!(f, "        shard_len: usize,").unwrap();
-    writeln!(f, "    ) {{").unwrap();
-
-    writeln!(f, "        let nibble_mask: uint8x16_t = vdupq_n_u8(0x0f);").unwrap();
-
-    // Load coefficient tables
     writeln!(
         f,
-        "        // Load GF multiplication table halves for all coefficients."
+        "        parity_rows: &[&[u8]], data: &[&[u8]], parity: &mut [&mut [u8]], shard_len: usize,"
     )
     .unwrap();
+    writeln!(f, "    ) {{").unwrap();
+    writeln!(f, "        let nibble_mask = vdupq_n_u8(0x0f);").unwrap();
     for pi in 0..p {
         for di in 0..d {
             writeln!(
                 f,
-                "        // SAFETY: this function has #[target_feature] enabled, NEON is always available on aarch64, and vld1q_u8 performs an unaligned load from a 16-byte multiplication-table row."
-            )
-                .unwrap();
-            writeln!(f, "        let (coef_low_{pi}_{di}, coef_high_{pi}_{di}): (uint8x16_t, uint8x16_t) = unsafe {{").unwrap();
-            writeln!(f, "            let c = parity_rows[{pi}][{di}];").unwrap();
-            writeln!(
-                f,
-                "            (vld1q_u8(super::super::super::MUL_TABLE_LOW[c as usize].as_ptr()),"
+                "        // SAFETY: the parent proved NEON availability and coefficient-row bounds;"
             )
             .unwrap();
             writeln!(
                 f,
-                "             vld1q_u8(super::super::super::MUL_TABLE_HIGH[c as usize].as_ptr()))"
+                "        // both table rows contain 16 bytes and permit unaligned loads."
+            )
+            .unwrap();
+            writeln!(
+                f,
+                "        let (coef_low_{pi}_{di}, coef_high_{pi}_{di}) = unsafe {{"
+            )
+            .unwrap();
+            writeln!(f, "            let c = parity_rows[{pi}][{di}] as usize;").unwrap();
+            writeln!(
+                f,
+                "            (vld1q_u8(super::super::super::MUL_TABLE_LOW[c].as_ptr()),"
+            )
+            .unwrap();
+            writeln!(
+                f,
+                "             vld1q_u8(super::super::super::MUL_TABLE_HIGH[c].as_ptr()))"
             )
             .unwrap();
             writeln!(f, "        }};").unwrap();
         }
     }
-
-    writeln!(f).unwrap();
+    // The single checked invocation has validated all lengths. Capture pointers
+    // once so the fixed-width vector loop does not repeat slice bounds checks.
+    for di in 0..d {
+        writeln!(f, "        let input_{di} = data[{di}].as_ptr();").unwrap();
+    }
+    for pi in 0..p {
+        writeln!(f, "        let output_{pi} = parity[{pi}].as_mut_ptr();").unwrap();
+    }
     writeln!(f, "        let bytes_done = shard_len & !15usize;").unwrap();
-    writeln!(f).unwrap();
-    writeln!(
-        f,
-        "        // Main SIMD loop: process 16 bytes per iteration."
-    )
-    .unwrap();
     writeln!(f, "        let mut offset = 0usize;").unwrap();
     writeln!(f, "        while offset < bytes_done {{").unwrap();
     writeln!(
         f,
-        "        // SAFETY: this function has #[target_feature] enabled, the caller guarantees ISA availability (see # Safety), and every pointer uses unaligned loads/stores within shard_len bounds."
+        "            // SAFETY: offset is 16-byte aligned and offset+16 <= shard_len;"
     )
-        .unwrap();
-    writeln!(f, "        unsafe {{").unwrap();
-
-    // Load all data shards
+    .unwrap();
+    writeln!(
+        f,
+        "            // pointers derive from live input/output borrows; the checked parent proves buffer bounds and NEON availability."
+    )
+    .unwrap();
+    writeln!(f, "            unsafe {{").unwrap();
+    // Keep parity accumulators fused: one input load and nibble extraction feed
+    // every output. Streaming avoids retaining all input vectors at once.
     for di in 0..d {
         writeln!(
             f,
-            "            let d{di}: uint8x16_t = vld1q_u8(data[{di}][offset..].as_ptr());"
+            "                let value = vld1q_u8(input_{di}.add(offset));"
         )
         .unwrap();
-    }
-
-    writeln!(f).unwrap();
-
-    // Compute each parity shard
-    for pi in 0..p {
-        writeln!(f, "            // Compute parity shard {pi}.").unwrap();
-        writeln!(f, "            let low = vandq_u8(d0, nibble_mask);").unwrap();
-        writeln!(f, "            let high = vshrq_n_u8::<4>(d0);").unwrap();
-        writeln!(f, "            let mut acc_{pi}: uint8x16_t = veorq_u8(").unwrap();
-        writeln!(f, "                vqtbl1q_u8(coef_low_{pi}_0, low),").unwrap();
-        writeln!(f, "                vqtbl1q_u8(coef_high_{pi}_0, high),").unwrap();
-        writeln!(f, "            );").unwrap();
-
-        for di in 1..d {
-            writeln!(f, "            let low = vandq_u8(d{di}, nibble_mask);").unwrap();
-            writeln!(f, "            let high = vshrq_n_u8::<4>(d{di});").unwrap();
-            writeln!(f, "            acc_{pi} = veorq_u8(acc_{pi}, veorq_u8(").unwrap();
-            writeln!(f, "                vqtbl1q_u8(coef_low_{pi}_{di}, low),").unwrap();
-            writeln!(f, "                vqtbl1q_u8(coef_high_{pi}_{di}, high),").unwrap();
-            writeln!(f, "            ));").unwrap();
+        writeln!(f, "                let low = vandq_u8(value, nibble_mask);").unwrap();
+        writeln!(f, "                let high = vshrq_n_u8::<4>(value);").unwrap();
+        for pi in 0..p {
+            if di == 0 {
+                writeln!(f, "                let mut acc_{pi} = veorq_u8(").unwrap();
+            } else {
+                writeln!(f, "                acc_{pi} = veorq_u8(acc_{pi}, veorq_u8(").unwrap();
+            }
+            writeln!(
+                f,
+                "                    vqtbl1q_u8(coef_low_{pi}_{di}, low),"
+            )
+            .unwrap();
+            writeln!(
+                f,
+                "                    vqtbl1q_u8(coef_high_{pi}_{di}, high),"
+            )
+            .unwrap();
+            writeln!(f, "                {}", if di == 0 { ");" } else { "));" }).unwrap();
         }
-
+    }
+    for pi in 0..p {
         writeln!(
             f,
-            "            vst1q_u8(parity[{pi}][offset..].as_mut_ptr(), acc_{pi});"
+            "                vst1q_u8(output_{pi}.add(offset), acc_{pi});"
         )
         .unwrap();
     }
-
-    writeln!(f, "        }}").unwrap(); // close unsafe block
+    writeln!(f, "            }}").unwrap();
     writeln!(f, "            offset += 16;").unwrap();
     writeln!(f, "        }}").unwrap();
-
-    // Scalar tail
-    writeln!(f).unwrap();
-    writeln!(f, "        // Scalar tail for remaining bytes.").unwrap();
     writeln!(f, "        for i in bytes_done..shard_len {{").unwrap();
     for pi in 0..p {
         writeln!(f, "            let mut acc: u8 = 0;").unwrap();
@@ -611,7 +616,6 @@ fn generate_encode_fn_neon(f: &mut File, d: usize, p: usize) {
         writeln!(f, "            parity[{pi}][i] = acc;").unwrap();
     }
     writeln!(f, "        }}").unwrap();
-
     writeln!(f, "    }}").unwrap();
     writeln!(f).unwrap();
 }
