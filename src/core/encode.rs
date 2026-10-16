@@ -659,7 +659,6 @@ impl<F: Field> ReedSolomon<F> {
         if self.is_leopard_gf8_family() || self.is_leopard_gf16_family() {
             return Err(Error::UnsupportedCodecFamily);
         }
-        self.ensure_classic_family_execution()?;
         check_piece_count!(data => self, old_data);
         check_piece_count!(parity => self, parity);
 

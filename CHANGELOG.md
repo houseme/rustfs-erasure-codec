@@ -11,6 +11,7 @@ All notable changes to this project are documented in this file.
 ## Unreleased
 
 ### Fixed
+- Finish Classic inverse planning before initializing missing destinations; singular custom matrices leave outputs missing, and empty selective requests skip unused inverses.
 - Preserve effective encoding matrices and resolved codec families when cloning; codec equality and prepared reconstruction workspaces now distinguish incompatible matrices.
 - Use one consistent XOR parity matrix for single-parity fast mode across encoding, updates, incremental encoding, and recovery; reject conflicting custom matrices.
 - Validate Leopard shard counts, actual lengths, byte views, required masks, and field-order boundaries before decoding; publish only requested recovered shards and never expose stale fixed buffers after a later output error.
@@ -22,6 +23,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Changed
+- Use the resolved codec family as the sole algorithm state and one Classic recovery plan across generic, optimized, workspace, and stream entry points.
 - Add opt-in safe GF8 byte views to `Field`, replacing element-size-based reinterpretation in specialized kernels while preserving generic field arithmetic and the default encoded format.
 - Share immutable codec matrices and Leopard setup state; retain independent reconstruction caches for cloned codecs.
 - Correct public builder examples for non-exhaustive codec options.
@@ -29,6 +31,8 @@ All notable changes to this project are documented in this file.
 
 
 ### Performance
+- Remove unused Classic matrix construction from Leopard GF8 setup. Skip inversion for parity-only recovery and compose selective parity rows directly instead of cloning all shards or recovering unrequested data.
+- Reuse one bounded recovery executor for every output width; apply each stage policy once and keep wide workspace layout validation free of rebuilt index lists.
 - Apply cache-line-aligned L2 budgets to parallel chunks, cache hardware cache-size detection, and reuse generated SIMD in the parallel entry point's serial fallback.
 - Disable shared Leopard GF8 atomic profiling updates unless `benchmark-metrics` is enabled.
 - Cache one bounded GF8/GF16 FFT encoding plan per thread and convert GF16 input directly into initialized work lanes instead of allocating complete converted shards.

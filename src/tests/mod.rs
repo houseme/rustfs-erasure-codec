@@ -2097,56 +2097,97 @@ fn test_reconstruct_parallel_policy_default_arch_stays_on_default_chunk() {
 
 #[cfg(feature = "std")]
 #[test]
-fn test_reconstruct_data_two_missing_skips_small_output_chunk_parallel_path() {
-    let r = ReedSolomon::new(10, 4).unwrap();
+fn test_reconstruct_data_two_missing_uses_one_bounded_stage_decision() {
+    let _policy_env = lock_policy_env();
+    let r = ReedSolomon::with_options(10, 4, CodecOptions::builder().max_parallel_jobs(2).build())
+        .unwrap();
     let mut shards = make_random_shards!(1024 * 1024, 14);
     r.encode(&mut shards).unwrap();
-
+    let expected = shards.clone();
     let mut shards: Vec<Option<Vec<u8>>> = shards.into_iter().map(Some).collect();
-    shards[0] = None;
-    shards[2] = None;
-
+    for index in [0, 2] {
+        shards[index] = None;
+    }
+    let available = std::thread::available_parallelism().map_or(1, usize::from);
+    let (decision, _, _) =
+        r.reconstruct_execution_context_for_bench(1024 * 1024, 2, 2, true, available);
     r.reset_runtime_profile_stats();
     r.reconstruct_data_opt(&mut shards).unwrap();
     let stats = r.runtime_profile_stats();
-
+    for index in [0, 2] {
+        assert_eq!(shards[index].as_ref(), Some(&expected[index]));
+    }
     if benchmark_metrics_enabled() {
         assert_eq!(1, stats.reconstruct_data_only_calls);
         assert_eq!(1, stats.reconstruct_data_stage_calls);
-        assert!(stats.code_some_parallel_calls >= 1);
-        assert_eq!(0, stats.code_some_small_output_chunk_parallel_calls);
+        assert_eq!(
+            usize::from(decision.use_parallel),
+            stats.code_some_parallel_calls
+        );
+        assert_eq!(
+            usize::from(!decision.use_parallel),
+            stats.code_some_serial_calls
+        );
+        assert_eq!(
+            usize::from(decision.use_parallel),
+            stats.parallel_policy_calls
+        );
+        assert!(stats.parallel_policy_total_jobs <= 2);
+        assert_eq!(
+            usize::from(decision.use_parallel && decision.chunk_len < 1024 * 1024),
+            stats.code_some_small_output_chunk_parallel_calls,
+        );
     } else {
         assert_eq!(0, stats.reconstruct_data_only_calls);
         assert_eq!(0, stats.reconstruct_data_stage_calls);
         assert_eq!(0, stats.code_some_parallel_calls);
-        assert_eq!(0, stats.code_some_small_output_chunk_parallel_calls);
+        assert_eq!(0, stats.parallel_policy_calls);
     }
 }
 
 #[cfg(feature = "std")]
 #[test]
-fn test_reconstruct_data_one_missing_skips_small_output_chunk_parallel_path() {
-    let r = ReedSolomon::new(10, 4).unwrap();
+fn test_reconstruct_data_one_missing_uses_one_bounded_stage_decision() {
+    let _policy_env = lock_policy_env();
+    let r = ReedSolomon::with_options(10, 4, CodecOptions::builder().max_parallel_jobs(2).build())
+        .unwrap();
     let mut shards = make_random_shards!(1024 * 1024, 14);
     r.encode(&mut shards).unwrap();
-
+    let expected = shards.clone();
     let mut shards: Vec<Option<Vec<u8>>> = shards.into_iter().map(Some).collect();
     shards[0] = None;
-
+    let available = std::thread::available_parallelism().map_or(1, usize::from);
+    let (decision, _, _) =
+        r.reconstruct_execution_context_for_bench(1024 * 1024, 1, 1, true, available);
     r.reset_runtime_profile_stats();
     r.reconstruct_data_opt(&mut shards).unwrap();
     let stats = r.runtime_profile_stats();
-
+    assert_eq!(shards[0].as_ref(), Some(&expected[0]));
     if benchmark_metrics_enabled() {
         assert_eq!(1, stats.reconstruct_data_only_calls);
         assert_eq!(1, stats.reconstruct_data_stage_calls);
-        assert!(stats.code_some_parallel_calls >= 1);
-        assert_eq!(0, stats.code_some_small_output_chunk_parallel_calls);
+        assert_eq!(
+            usize::from(decision.use_parallel),
+            stats.code_some_parallel_calls
+        );
+        assert_eq!(
+            usize::from(!decision.use_parallel),
+            stats.code_some_serial_calls
+        );
+        assert_eq!(
+            usize::from(decision.use_parallel),
+            stats.parallel_policy_calls
+        );
+        assert!(stats.parallel_policy_total_jobs <= 2);
+        assert_eq!(
+            usize::from(decision.use_parallel && decision.chunk_len < 1024 * 1024),
+            stats.code_some_small_output_chunk_parallel_calls,
+        );
     } else {
         assert_eq!(0, stats.reconstruct_data_only_calls);
         assert_eq!(0, stats.reconstruct_data_stage_calls);
         assert_eq!(0, stats.code_some_parallel_calls);
-        assert_eq!(0, stats.code_some_small_output_chunk_parallel_calls);
+        assert_eq!(0, stats.parallel_policy_calls);
     }
 }
 

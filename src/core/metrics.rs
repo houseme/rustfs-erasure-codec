@@ -151,6 +151,7 @@ pub struct RuntimeProfileStats {
     pub reconstruct_data_stage_bytes: usize,
     pub reconstruct_parity_stage_calls: usize,
     pub reconstruct_parity_stage_bytes: usize,
+    /// Legacy specialized-kernel counter; unified recovery execution reports zero.
     pub reconstruct_data_small_output_specialized_calls: usize,
 }
 
@@ -447,10 +448,5 @@ impl RuntimeProfileMetrics {
             .fetch_add(1, Ordering::Relaxed);
         self.reconstruct_parity_stage_bytes
             .fetch_add(shard_len.saturating_mul(output_count), Ordering::Relaxed);
-    }
-
-    pub(crate) fn record_reconstruct_data_small_output_specialized(&self) {
-        self.reconstruct_data_small_output_specialized_calls
-            .fetch_add(1, Ordering::Relaxed);
     }
 }

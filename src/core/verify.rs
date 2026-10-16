@@ -87,7 +87,6 @@ impl<F: Field> ReedSolomon<F> {
     ///
     /// Returns `true` if valid, `false` if corrupted.
     pub fn verify<T: AsRef<[F::Elem]>>(&self, slices: &[T]) -> Result<bool, Error> {
-        self.ensure_classic_family_execution()?;
         check_piece_count!(all => self, slices);
         check_slices!(multi => slices);
 
@@ -125,7 +124,6 @@ impl<F: Field> ReedSolomon<F> {
     where
         T: AsRef<[F::Elem]>,
     {
-        self.ensure_classic_family_execution()?;
         check_piece_count!(all => self, slices);
         check_slices!(multi => slices);
 
@@ -145,7 +143,6 @@ impl<F: Field> ReedSolomon<F> {
         T: AsRef<[F::Elem]>,
         U: AsRef<[F::Elem]> + AsMut<[F::Elem]>,
     {
-        self.ensure_classic_family_execution()?;
         check_piece_count!(all => self, slices);
         check_piece_count!(parity_buf => self, buffer);
         check_slices!(multi => slices, multi => buffer);
@@ -178,7 +175,6 @@ impl<F: Field> ReedSolomon<F> {
         T: AsRef<[F::Elem]> + Sync,
         U: AsRef<[F::Elem]> + AsMut<[F::Elem]> + Send,
     {
-        self.ensure_classic_family_execution()?;
         check_piece_count!(all => self, slices);
         check_piece_count!(parity_buf => self, buffer);
         check_slices!(multi => slices, multi => buffer);
@@ -210,7 +206,6 @@ impl<F: Field> ReedSolomon<F> {
         F::Elem: Send + Sync,
         T: AsRef<[F::Elem]> + Sync,
     {
-        self.ensure_classic_family_execution()?;
         check_piece_count!(all => self, slices);
         check_slices!(multi => slices);
 

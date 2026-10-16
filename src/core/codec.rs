@@ -309,22 +309,11 @@ impl<F: Field> ReedSolomon<F> {
             CodecFamily::Classic => {
                 Self::build_matrix_with_options(data_shards, total_shards, options)?
             }
-            CodecFamily::LeopardGF8 => Self::build_matrix(data_shards, total_shards)?,
-            // LeopardGF16 encodes and reconstructs entirely with GF(2^16) FFT
-            // tables and never consults this GF(2^8) matrix (see
-            // `encode_leopard_sep_inner` / `leopard_gf16_reconstruct`). Building a
-            // Vandermonde here would call `Field::nth` past the 256-element
-            // GF(2^8) range for total > 256, and would needlessly allocate a
-            // total-by-data matrix (up to about 65536 rows). Use an empty
-            // sentinel instead.
-            CodecFamily::LeopardGF16 => Matrix::new(0, 0),
+            // Both Leopard families encode and reconstruct entirely through FFT
+            // tables. A Classic matrix here would be unused cubic setup work;
+            // GF16 also permits more shards than this field can represent.
+            CodecFamily::LeopardGF8 | CodecFamily::LeopardGF16 => Matrix::new(0, 0),
         };
-        let family_state = super::leopard::build_family_state(
-            options.codec_family,
-            data_shards,
-            parity_shards,
-            &matrix,
-        )?;
         #[cfg(feature = "std")]
         let policy_cache = Self::resolve_policy_cache_with_options(options);
 
@@ -333,7 +322,6 @@ impl<F: Field> ReedSolomon<F> {
             parity_shard_count: parity_shards,
             total_shard_count: total_shards,
             codec_family: options.codec_family,
-            family_state,
             matrix: Arc::new(matrix),
             options,
             #[cfg(feature = "std")]
@@ -366,10 +354,14 @@ impl<F: Field> ReedSolomon<F> {
         self.codec_family
     }
 
-    /// Returns the Leopard GF8 setup matrix shape `(rows, cols)`, or `None` if not using LeopardGF8.
+    /// Returns the logical Leopard GF8 setup shape `(total_shards, data_shards)`,
+    /// or `None` for other codec families.
+    ///
+    /// This compatibility metadata is derived from the shard counts; FFT codecs
+    /// do not construct a Classic encoding matrix.
     pub fn leopard_setup_matrix_shape(&self) -> Option<(usize, usize)> {
-        let codec = super::leopard::leopard_gf8_state(&self.family_state).ok()?;
-        Some(codec.setup_shape())
+        self.is_leopard_gf8_family()
+            .then_some((self.total_shard_count, self.data_shard_count))
     }
 
     /// Returns the inversion cache capacity.
@@ -556,12 +548,6 @@ impl<F: Field> ReedSolomon<F> {
         {
             return Err(Error::InvalidCustomMatrix);
         }
-        let family_state = super::leopard::build_family_state(
-            options.codec_family,
-            data_shards,
-            parity_shards,
-            &matrix,
-        )?;
         #[cfg(feature = "std")]
         let policy_cache = Self::resolve_policy_cache_with_options(options);
 
@@ -570,7 +556,6 @@ impl<F: Field> ReedSolomon<F> {
             parity_shard_count: parity_shards,
             total_shard_count: total_shards,
             codec_family: options.codec_family,
-            family_state,
             matrix: Arc::new(matrix),
             options,
             #[cfg(feature = "std")]
