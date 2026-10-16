@@ -15,15 +15,11 @@ include!(concat!(env!("OUT_DIR"), "/codegen_encode.rs"));
     not(target_env = "msvc"),
     not(any(target_os = "android", target_os = "ios"))
 )))]
-pub(crate) fn try_encode_codegen_avx2(
+pub(crate) fn select_encode_kernel_avx2(
     _data_shard_count: usize,
     _parity_shard_count: usize,
-    _parity_rows: &[&[u8]],
-    _data: &[&[u8]],
-    _parity: &mut [&mut [u8]],
-    _shard_len: usize,
-) -> bool {
-    false
+) -> Option<crate::galois_8::codegen::SelectedEncodeKernel> {
+    None
 }
 
 #[inline]
@@ -106,19 +102,8 @@ mod tests {
     }
 
     #[test]
-    fn no_runtime_avx2_returns_fallback_without_writing_parity() {
-        let mut parity = [0xa5; 1];
-        let mut parity_refs = [&mut parity[..]];
-
-        assert!(!try_encode_codegen_avx2_with_avx2_available(
-            false,
-            4,
-            2,
-            &[],
-            &[],
-            &mut parity_refs,
-            1,
-        ));
-        assert_eq!(parity, [0xa5; 1]);
+    fn no_runtime_avx2_cannot_select_a_kernel() {
+        let selected = select_encode_kernel_avx2_with_avx2_available(false, 4, 2);
+        assert!(selected.is_none());
     }
 }

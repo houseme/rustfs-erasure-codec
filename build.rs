@@ -212,64 +212,58 @@ fn generate_encode_codegen_avx2(f: &mut File, configs: &[(usize, usize)]) {
     writeln!(f, "}}").unwrap();
     writeln!(f).unwrap();
 
-    // Re-export dispatch function at the module level
-    writeln!(f, "#[cfg(all(").unwrap();
-    writeln!(f, "    feature = \"simd-avx2\",").unwrap();
-    writeln!(f, "    target_arch = \"x86_64\",").unwrap();
-    writeln!(f, "    not(target_env = \"msvc\"),").unwrap();
+    generate_encode_selector(f, configs, "avx2");
+}
+
+fn generate_encode_selector(f: &mut File, configs: &[(usize, usize)], isa: &str) {
+    writeln!(f, "pub(crate) fn select_encode_kernel_{isa}(").unwrap();
+    writeln!(f, "    data_shard_count: usize, parity_shard_count: usize,").unwrap();
     writeln!(
         f,
-        "    not(any(target_os = \"android\", target_os = \"ios\"))"
+        ") -> Option<crate::galois_8::codegen::SelectedEncodeKernel> {{"
     )
     .unwrap();
-    writeln!(f, "))]").unwrap();
-    writeln!(f, "pub(crate) fn try_encode_codegen_avx2(").unwrap();
-    writeln!(f, "    data_shard_count: usize,").unwrap();
-    writeln!(f, "    parity_shard_count: usize,").unwrap();
-    writeln!(f, "    parity_rows: &[&[u8]],").unwrap();
-    writeln!(f, "    data: &[&[u8]],").unwrap();
-    writeln!(f, "    parity: &mut [&mut [u8]],").unwrap();
-    writeln!(f, "    shard_len: usize,").unwrap();
-    writeln!(f, ") -> bool {{").unwrap();
-    writeln!(f, "    try_encode_codegen_avx2_with_avx2_available(").unwrap();
-    writeln!(f, "        avx2_codegen_available(),").unwrap();
-    writeln!(
-        f,
-        "        data_shard_count, parity_shard_count, parity_rows, data, parity, shard_len,"
-    )
-    .unwrap();
-    writeln!(f, "    )").unwrap();
-    writeln!(f, "}}").unwrap();
-    writeln!(f).unwrap();
-    writeln!(f, "fn try_encode_codegen_avx2_with_avx2_available(").unwrap();
-    writeln!(f, "    avx2_available: bool,").unwrap();
-    writeln!(f, "    data_shard_count: usize,").unwrap();
-    writeln!(f, "    parity_shard_count: usize,").unwrap();
-    writeln!(f, "    parity_rows: &[&[u8]],").unwrap();
-    writeln!(f, "    data: &[&[u8]],").unwrap();
-    writeln!(f, "    parity: &mut [&mut [u8]],").unwrap();
-    writeln!(f, "    shard_len: usize,").unwrap();
-    writeln!(f, ") -> bool {{").unwrap();
-    writeln!(f, "    if !avx2_available {{").unwrap();
-    writeln!(f, "        return false;").unwrap();
-    writeln!(f, "    }}").unwrap();
+    if isa == "avx2" {
+        writeln!(f, "    select_encode_kernel_avx2_with_avx2_available(").unwrap();
+        writeln!(
+            f,
+            "        avx2_codegen_available(), data_shard_count, parity_shard_count,"
+        )
+        .unwrap();
+        writeln!(f, "    )").unwrap();
+        writeln!(f, "}}").unwrap();
+        writeln!(f, "fn select_encode_kernel_avx2_with_avx2_available(").unwrap();
+        writeln!(
+            f,
+            "    avx2_available: bool, data_shard_count: usize, parity_shard_count: usize,"
+        )
+        .unwrap();
+        writeln!(
+            f,
+            ") -> Option<crate::galois_8::codegen::SelectedEncodeKernel> {{"
+        )
+        .unwrap();
+        writeln!(f, "    if !avx2_available {{ return None; }}").unwrap();
+    }
     writeln!(f, "    match (data_shard_count, parity_shard_count) {{").unwrap();
     for &(d, p) in configs {
         writeln!(
             f,
-            "        // SAFETY: the AVX2 runtime check above proved this CPU supports AVX2."
+            "        ({d}, {p}) => Some(crate::galois_8::codegen::SelectedEncodeKernel::new("
         )
         .unwrap();
-        writeln!(f, "        ({d}, {p}) => unsafe {{").unwrap();
         writeln!(
             f,
-            "            avx2_impl::encode_{d}x{p}_avx2(parity_rows, data, parity, shard_len);"
+            "            {d}, {p}, |parity_rows, data, parity, shard_len| {{"
         )
         .unwrap();
-        writeln!(f, "            true").unwrap();
-        writeln!(f, "        }},").unwrap();
+        writeln!(f, "                // SAFETY: selection established ISA availability; SelectedEncodeKernel::execute").unwrap();
+        writeln!(f, "                // validates every row and shard before invoking this private callback.").unwrap();
+        writeln!(f, "                unsafe {{ {isa}_impl::encode_{d}x{p}_{isa}(parity_rows, data, parity, shard_len); }}").unwrap();
+        writeln!(f, "            }},").unwrap();
+        writeln!(f, "        )),").unwrap();
     }
-    writeln!(f, "        _ => false,").unwrap();
+    writeln!(f, "        _ => None,").unwrap();
     writeln!(f, "    }}").unwrap();
     writeln!(f, "}}").unwrap();
 }
@@ -489,44 +483,7 @@ fn generate_encode_codegen_neon(f: &mut File, configs: &[(usize, usize)]) {
     writeln!(f, "}}").unwrap();
     writeln!(f).unwrap();
 
-    // Re-export dispatch function
-    writeln!(f, "#[cfg(all(").unwrap();
-    writeln!(f, "    feature = \"simd-neon\",").unwrap();
-    writeln!(f, "    target_arch = \"aarch64\",").unwrap();
-    writeln!(f, "    not(target_env = \"msvc\"),").unwrap();
-    writeln!(
-        f,
-        "    not(any(target_os = \"android\", target_os = \"ios\"))"
-    )
-    .unwrap();
-    writeln!(f, "))]").unwrap();
-    writeln!(f, "pub(crate) fn try_encode_codegen_neon(").unwrap();
-    writeln!(f, "    data_shard_count: usize,").unwrap();
-    writeln!(f, "    parity_shard_count: usize,").unwrap();
-    writeln!(f, "    parity_rows: &[&[u8]],").unwrap();
-    writeln!(f, "    data: &[&[u8]],").unwrap();
-    writeln!(f, "    parity: &mut [&mut [u8]],").unwrap();
-    writeln!(f, "    shard_len: usize,").unwrap();
-    writeln!(f, ") -> bool {{").unwrap();
-    writeln!(f, "    match (data_shard_count, parity_shard_count) {{").unwrap();
-    for &(d, p) in configs {
-        writeln!(
-            f,
-            "        // SAFETY: runtime feature detection dispatches here only after confirming the ISA is available."
-        )
-            .unwrap();
-        writeln!(f, "        ({d}, {p}) => unsafe {{").unwrap();
-        writeln!(
-            f,
-            "            neon_impl::encode_{d}x{p}_neon(parity_rows, data, parity, shard_len);"
-        )
-        .unwrap();
-        writeln!(f, "            true").unwrap();
-        writeln!(f, "        }},").unwrap();
-    }
-    writeln!(f, "        _ => false,").unwrap();
-    writeln!(f, "    }}").unwrap();
-    writeln!(f, "}}").unwrap();
+    generate_encode_selector(f, configs, "neon");
 }
 
 fn generate_encode_fn_neon(f: &mut File, d: usize, p: usize) {

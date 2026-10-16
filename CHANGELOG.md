@@ -23,6 +23,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Changed
+- Prepare checked GF8 shard views and select a generated ISA kernel once per encode operation; share serial/parallel setup and never fall back after a kernel writes parity.
 - Use the resolved codec family as the sole algorithm state and one Classic recovery plan across generic, optimized, workspace, and stream entry points.
 - Add opt-in safe GF8 byte views to `Field`, replacing element-size-based reinterpretation in specialized kernels while preserving generic field arithmetic and the default encoded format.
 - Share immutable codec matrices and Leopard setup state; retain independent reconstruction caches for cloned codecs.
@@ -31,6 +32,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Performance
+- Remove per-chunk kernel-selection reductions and duplicate policy decisions from generated encoding; inline the measured NEON route's four-job metadata.
 - Remove unused Classic matrix construction from Leopard GF8 setup. Skip inversion for parity-only recovery and compose selective parity rows directly instead of cloning all shards or recovering unrequested data.
 - Reuse one bounded recovery executor for every output width; apply each stage policy once and keep wide workspace layout validation free of rebuilt index lists.
 - Apply cache-line-aligned L2 budgets to parallel chunks, cache hardware cache-size detection, and reuse generated SIMD in the parallel entry point's serial fallback.

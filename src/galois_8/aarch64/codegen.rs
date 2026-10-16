@@ -15,13 +15,9 @@ include!(concat!(env!("OUT_DIR"), "/codegen_encode.rs"));
     not(target_env = "msvc"),
     not(any(target_os = "android", target_os = "ios"))
 )))]
-pub(crate) fn try_encode_codegen_neon(
+pub(crate) fn select_encode_kernel_neon(
     _data_shard_count: usize,
     _parity_shard_count: usize,
-    _parity_rows: &[&[u8]],
-    _data: &[&[u8]],
-    _parity: &mut [&mut [u8]],
-    _shard_len: usize,
-) -> bool {
-    false
+) -> Option<crate::galois_8::codegen::SelectedEncodeKernel> {
+    None
 }
