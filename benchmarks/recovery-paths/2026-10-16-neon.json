@@ -1,0 +1,4383 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "neon-fused-encode-review-evidence",
+  "baseline_revision": "642217a40a8798eb8756a83c84ac4b525546eabc",
+  "runtime_revision": "0e2b5bad5503fb29528539c0d12bf2ef004b3601",
+  "compiler": "rustc 1.99.1",
+  "target": "aarch64-apple-darwin",
+  "profile": "release",
+  "features": [
+    "std",
+    "simd-accel"
+  ],
+  "benchmark_metrics_enabled": false,
+  "backend": "rust-neon",
+  "backend_override": "unset",
+  "rayon_threads": 4,
+  "parallel_policy_max_jobs": 4,
+  "drift_limits": {
+    "baseline": 0.05,
+    "candidate": 0.05
+  },
+  "notes": [
+    "The complete recovery_paths harness has 58 cases; the separate-process encode. filter selects 21. Both separate products used identical harness bytes and dependency lockfiles, independent target directories, and inspected generated sources.",
+    "The separate-process run used the rejected grouping draft and suffered large repeatability failures even in unchanged controls. None of its latency comparisons describes the delivered runtime.",
+    "Paired probes link both product snapshots into one process and execute adjacent A1/B1/B2/A2 phases per case. Each phase has 20 untimed warmups and three 150 ms samples in batches of eight; serial-only operations are measured.",
+    "To avoid Cargo package collisions, only the temporary baseline manifests changed package/workspace dependency version from 9.0.0 to 0.0.1. Every baseline Rust/build.rs source byte was verified against the 642217a snapshot; all common dependency versions and checksums match its committed lockfile. No product version was changed.",
+    "The rejected grouping draft retained samples but not iteration counts; it is diagnostic only. Its production-source delta from the retained runtime is embedded for reconstruction.",
+    "The fused distinct-buffer probe recorded a 4+2/1MiB slowdown. The final probe shares the identical buffer addresses between implementations to control data placement; that slowdown did not recur. Both probes remain visible.",
+    "Preflights compare baseline/candidate encoding bytes, verify through their independent arithmetic path, and poison output before re-encoding; final parity is verified again after all phases.",
+    "Host hardware resources were not reserved. Final paired results are local warm microbenchmark observations with two drift checks, not isolated-server, cold-cache, parallel, x86, browser, or downstream throughput guarantees.",
+    "The retained algorithm keeps all parity accumulators fused; grouping reduced stack accesses but introduced small-shard latency regressions in the draft. The retained template shares each input load/nibbles and hoists checked pointers instead of adding dispatch variants."
+  ],
+  "assembly_method": "otool -tvV; identify generated-function backward-branch loops containing tbl and count q/d loads/stores based on sp/x29. Counts are per 16-byte offset across all outputs; they are instruction counts, not timing or stack-size claims.",
+  "assembly": {
+    "baseline": [
+      {
+        "name": "encode_4x2_neon",
+        "instructions": 454,
+        "simd_loops": [
+          {
+            "instructions": 54,
+            "vector_stack_accesses": 1
+          }
+        ]
+      },
+      {
+        "name": "encode_6x3_neon",
+        "instructions": 763,
+        "simd_loops": [
+          {
+            "instructions": 117,
+            "vector_stack_accesses": 13
+          }
+        ]
+      },
+      {
+        "name": "encode_8x3_neon",
+        "instructions": 975,
+        "simd_loops": [
+          {
+            "instructions": 152,
+            "vector_stack_accesses": 20
+          }
+        ]
+      },
+      {
+        "name": "encode_8x4_neon",
+        "instructions": 1206,
+        "simd_loops": [
+          {
+            "instructions": 193,
+            "vector_stack_accesses": 30
+          }
+        ]
+      },
+      {
+        "name": "encode_10x4_neon",
+        "instructions": 1478,
+        "simd_loops": [
+          {
+            "instructions": 247,
+            "vector_stack_accesses": 44
+          }
+        ]
+      },
+      {
+        "name": "encode_12x4_neon",
+        "instructions": 1767,
+        "simd_loops": [
+          {
+            "instructions": 306,
+            "vector_stack_accesses": 67
+          }
+        ]
+      }
+    ],
+    "candidate": [
+      {
+        "name": "encode_4x2_neon",
+        "instructions": 292,
+        "simd_loops": [
+          {
+            "instructions": 41,
+            "vector_stack_accesses": 0
+          }
+        ]
+      },
+      {
+        "name": "encode_6x3_neon",
+        "instructions": 580,
+        "simd_loops": [
+          {
+            "instructions": 92,
+            "vector_stack_accesses": 14
+          }
+        ]
+      },
+      {
+        "name": "encode_8x3_neon",
+        "instructions": 751,
+        "simd_loops": [
+          {
+            "instructions": 125,
+            "vector_stack_accesses": 23
+          }
+        ]
+      },
+      {
+        "name": "encode_8x4_neon",
+        "instructions": 990,
+        "simd_loops": [
+          {
+            "instructions": 160,
+            "vector_stack_accesses": 33
+          }
+        ]
+      },
+      {
+        "name": "encode_10x4_neon",
+        "instructions": 1227,
+        "simd_loops": [
+          {
+            "instructions": 201,
+            "vector_stack_accesses": 44
+          }
+        ]
+      },
+      {
+        "name": "encode_12x4_neon",
+        "instructions": 1483,
+        "simd_loops": [
+          {
+            "instructions": 254,
+            "vector_stack_accesses": 67
+          }
+        ]
+      }
+    ]
+  },
+  "rejected_grouping_assembly": {
+    "baseline": [
+      {
+        "name": "encode_4x2_neon",
+        "instructions": 454,
+        "simd_loops": [
+          {
+            "instructions": 54,
+            "vector_stack_accesses": 1
+          }
+        ]
+      },
+      {
+        "name": "encode_6x3_neon",
+        "instructions": 763,
+        "simd_loops": [
+          {
+            "instructions": 117,
+            "vector_stack_accesses": 13
+          }
+        ]
+      },
+      {
+        "name": "encode_8x3_neon",
+        "instructions": 975,
+        "simd_loops": [
+          {
+            "instructions": 152,
+            "vector_stack_accesses": 20
+          }
+        ]
+      },
+      {
+        "name": "encode_8x4_neon",
+        "instructions": 1206,
+        "simd_loops": [
+          {
+            "instructions": 193,
+            "vector_stack_accesses": 30
+          }
+        ]
+      },
+      {
+        "name": "encode_10x4_neon",
+        "instructions": 1478,
+        "simd_loops": [
+          {
+            "instructions": 247,
+            "vector_stack_accesses": 44
+          }
+        ]
+      },
+      {
+        "name": "encode_12x4_neon",
+        "instructions": 1767,
+        "simd_loops": [
+          {
+            "instructions": 306,
+            "vector_stack_accesses": 67
+          }
+        ]
+      }
+    ],
+    "candidate": [
+      {
+        "name": "encode_4x2_neon",
+        "instructions": 292,
+        "simd_loops": [
+          {
+            "instructions": 41,
+            "vector_stack_accesses": 0
+          }
+        ]
+      },
+      {
+        "name": "encode_6x3_neon",
+        "instructions": 650,
+        "simd_loops": [
+          {
+            "instructions": 64,
+            "vector_stack_accesses": 5
+          },
+          {
+            "instructions": 40,
+            "vector_stack_accesses": 0
+          }
+        ]
+      },
+      {
+        "name": "encode_8x3_neon",
+        "instructions": 903,
+        "simd_loops": [
+          {
+            "instructions": 52,
+            "vector_stack_accesses": 0
+          },
+          {
+            "instructions": 52,
+            "vector_stack_accesses": 0
+          },
+          {
+            "instructions": 52,
+            "vector_stack_accesses": 0
+          }
+        ]
+      },
+      {
+        "name": "encode_8x4_neon",
+        "instructions": 1181,
+        "simd_loops": [
+          {
+            "instructions": 52,
+            "vector_stack_accesses": 0
+          },
+          {
+            "instructions": 52,
+            "vector_stack_accesses": 0
+          },
+          {
+            "instructions": 52,
+            "vector_stack_accesses": 0
+          },
+          {
+            "instructions": 52,
+            "vector_stack_accesses": 0
+          }
+        ]
+      },
+      {
+        "name": "encode_10x4_neon",
+        "instructions": 1439,
+        "simd_loops": [
+          {
+            "instructions": 64,
+            "vector_stack_accesses": 0
+          },
+          {
+            "instructions": 64,
+            "vector_stack_accesses": 0
+          },
+          {
+            "instructions": 64,
+            "vector_stack_accesses": 0
+          },
+          {
+            "instructions": 64,
+            "vector_stack_accesses": 0
+          }
+        ]
+      },
+      {
+        "name": "encode_12x4_neon",
+        "instructions": 1704,
+        "simd_loops": [
+          {
+            "instructions": 76,
+            "vector_stack_accesses": 0
+          },
+          {
+            "instructions": 76,
+            "vector_stack_accesses": 0
+          },
+          {
+            "instructions": 76,
+            "vector_stack_accesses": 0
+          },
+          {
+            "instructions": 76,
+            "vector_stack_accesses": 0
+          }
+        ]
+      }
+    ]
+  },
+  "rejected_grouping_source_patch_from_runtime": "diff --git a/build.rs b/build.rs\nindex 418524e..1f9141d 100644\n--- a/build.rs\n+++ b/build.rs\n@@ -489,25 +489,62 @@ fn generate_encode_codegen_neon(f: &mut File, configs: &[(usize, usize)]) {\n fn generate_encode_fn_neon(f: &mut File, d: usize, p: usize) {\n     use std::io::Write;\n \n+    // AArch64 has 32 vector registers. Each live output needs two table\n+    // vectors per input and an accumulator; reserve six vectors for the mask,\n+    // streamed input, nibbles, and table-lookup temporaries. Grouping outputs\n+    // at generation time avoids keeping all d*p coefficient pairs live.\n+    let outputs_per_group = ((32 - 6) / (2 * d + 1)).max(1);\n     writeln!(\n         f,\n-        \"    /// Encode {d}+{p} with one shared nibble extraction per input vector.\"\n+        \"    /// Encode {d}+{p} with register-bounded parity groups.\"\n     )\n     .unwrap();\n     writeln!(f, \"    ///\").unwrap();\n     writeln!(f, \"    /// # Safety\").unwrap();\n     writeln!(\n         f,\n-        \"    /// The checked dispatcher must prove NEON availability, coefficient and buffer bounds;\"\n+        \"    /// NEON must be available; every row and shard must have the checked shape.\"\n     )\n     .unwrap();\n+    writeln!(f, \"    #[target_feature(enable = \\\"neon\\\")]\").unwrap();\n+    writeln!(f, \"    pub(super) unsafe fn encode_{d}x{p}_neon(\").unwrap();\n+    writeln!(\n+        f,\n+        \"        parity_rows: &[&[u8]], data: &[&[u8]], parity: &mut [&mut [u8]], shard_len: usize,\"\n+    )\n+    .unwrap();\n+    writeln!(f, \"    ) {{\").unwrap();\n+    for start in (0..p).step_by(outputs_per_group) {\n+        writeln!(\n+            f,\n+            \"        // SAFETY: the checked parent invocation covers each disjoint output group.\"\n+        )\n+        .unwrap();\n+        writeln!(f, \"        unsafe {{ encode_{d}x{p}_neon_group_{start}(parity_rows, data, parity, shard_len); }}\").unwrap();\n+    }\n+    writeln!(f, \"    }}\").unwrap();\n+    writeln!(f).unwrap();\n+    for start in (0..p).step_by(outputs_per_group) {\n+        generate_neon_encode_group(f, d, p, start, (start + outputs_per_group).min(p));\n+    }\n+}\n+\n+fn generate_neon_encode_group(f: &mut File, d: usize, p: usize, start: usize, end: usize) {\n+    use std::io::Write;\n+\n+    writeln!(f, \"    /// # Safety\").unwrap();\n     writeln!(\n         f,\n-        \"    /// the input/output views must remain borrowed throughout this invocation.\"\n+        \"    /// The parent must prove NEON availability, coefficient and buffer bounds;\"\n+    )\n+    .unwrap();\n+    writeln!(\n+        f,\n+        \"    /// the input/output views remain borrowed throughout this disjoint output group.\"\n     )\n     .unwrap();\n     writeln!(f, \"    #[target_feature(enable = \\\"neon\\\")]\").unwrap();\n-    writeln!(f, \"    pub(super) unsafe fn encode_{d}x{p}_neon(\").unwrap();\n+    writeln!(f, \"    unsafe fn encode_{d}x{p}_neon_group_{start}(\").unwrap();\n     writeln!(\n         f,\n         \"        parity_rows: &[&[u8]], data: &[&[u8]], parity: &mut [&mut [u8]], shard_len: usize,\"\n@@ -515,7 +552,7 @@ fn generate_encode_fn_neon(f: &mut File, d: usize, p: usize) {\n     .unwrap();\n     writeln!(f, \"    ) {{\").unwrap();\n     writeln!(f, \"        let nibble_mask = vdupq_n_u8(0x0f);\").unwrap();\n-    for pi in 0..p {\n+    for pi in start..end {\n         for di in 0..d {\n             writeln!(\n                 f,\n@@ -551,7 +588,7 @@ fn generate_encode_fn_neon(f: &mut File, d: usize, p: usize) {\n     for di in 0..d {\n         writeln!(f, \"        let input_{di} = data[{di}].as_ptr();\").unwrap();\n     }\n-    for pi in 0..p {\n+    for pi in start..end {\n         writeln!(f, \"        let output_{pi} = parity[{pi}].as_mut_ptr();\").unwrap();\n     }\n     writeln!(f, \"        let bytes_done = shard_len & !15usize;\").unwrap();\n@@ -568,8 +605,8 @@ fn generate_encode_fn_neon(f: &mut File, d: usize, p: usize) {\n     )\n     .unwrap();\n     writeln!(f, \"            unsafe {{\").unwrap();\n-    // Keep parity accumulators fused: one input load and nibble extraction feed\n-    // every output. Streaming avoids retaining all input vectors at once.\n+    // Stream one input at a time, reusing its nibbles across the output group.\n+    // No d-vector input array competes with the resident coefficient tables.\n     for di in 0..d {\n         writeln!(\n             f,\n@@ -578,7 +615,7 @@ fn generate_encode_fn_neon(f: &mut File, d: usize, p: usize) {\n         .unwrap();\n         writeln!(f, \"                let low = vandq_u8(value, nibble_mask);\").unwrap();\n         writeln!(f, \"                let high = vshrq_n_u8::<4>(value);\").unwrap();\n-        for pi in 0..p {\n+        for pi in start..end {\n             if di == 0 {\n                 writeln!(f, \"                let mut acc_{pi} = veorq_u8(\").unwrap();\n             } else {\n@@ -597,7 +634,7 @@ fn generate_encode_fn_neon(f: &mut File, d: usize, p: usize) {\n             writeln!(f, \"                {}\", if di == 0 { \");\" } else { \"));\" }).unwrap();\n         }\n     }\n-    for pi in 0..p {\n+    for pi in start..end {\n         writeln!(\n             f,\n             \"                vst1q_u8(output_{pi}.add(offset), acc_{pi});\"\n@@ -608,7 +645,7 @@ fn generate_encode_fn_neon(f: &mut File, d: usize, p: usize) {\n     writeln!(f, \"            offset += 16;\").unwrap();\n     writeln!(f, \"        }}\").unwrap();\n     writeln!(f, \"        for i in bytes_done..shard_len {{\").unwrap();\n-    for pi in 0..p {\n+    for pi in start..end {\n         writeln!(f, \"            let mut acc: u8 = 0;\").unwrap();\n         for di in 0..d {\n             writeln!(f, \"            acc ^= super::super::super::MUL_TABLE[parity_rows[{pi}][{di}] as usize][data[{di}][i] as usize];\").unwrap();\n",
+  "runs": [
+    {
+      "name": "separate-process-grouping-draft",
+      "status": "rejected-instability-and-superseded-runtime",
+      "candidate_revision": "f81c3f6 (unpublished draft)",
+      "sample_ms": 300,
+      "cooldown_seconds": 20,
+      "raw": {
+        "A1": [
+          {
+            "case_id": "encode.parallel/4x2/262144/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              25279.035461590298,
+              24062.312940987813,
+              23866.67064249364
+            ],
+            "sample_iterations": [
+              11872,
+              12472,
+              12576
+            ]
+          },
+          {
+            "case_id": "encode.parallel/10x4/262144/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              78638.28825995808,
+              75245.80410821643,
+              74319.53391089108
+            ],
+            "sample_iterations": [
+              3816,
+              3992,
+              4040
+            ]
+          },
+          {
+            "case_id": "encode.parallel/10x4/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              239896.7285031847,
+              240059.21576433122,
+              247826.34292763157
+            ],
+            "sample_iterations": [
+              1256,
+              1256,
+              1216
+            ]
+          },
+          {
+            "case_id": "encode.serial/10x4/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              680.855824921021,
+              679.1714774065018,
+              679.2893170908433
+            ],
+            "sample_iterations": [
+              440624,
+              441720,
+              441640
+            ]
+          },
+          {
+            "case_id": "encode.serial/10x4/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              21208.159624081403,
+              21213.559318438914,
+              21374.91688034188
+            ],
+            "sample_iterations": [
+              14152,
+              14144,
+              14040
+            ]
+          },
+          {
+            "case_id": "encode.serial/10x4/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              804498.6702127659,
+              784042.5338541666,
+              801754.4335106383
+            ],
+            "sample_iterations": [
+              376,
+              384,
+              376
+            ]
+          },
+          {
+            "case_id": "encode.serial/12x4/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              804.2260235046859,
+              800.8217080957568,
+              802.6379331563965
+            ],
+            "sample_iterations": [
+              373032,
+              374616,
+              373768
+            ]
+          },
+          {
+            "case_id": "encode.serial/12x4/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              27367.459153902262,
+              27385.732208029196,
+              27352.567377826403
+            ],
+            "sample_iterations": [
+              10968,
+              10960,
+              10968
+            ]
+          },
+          {
+            "case_id": "encode.serial/12x4/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              1150855.1136363635,
+              1139728.2196969697,
+              1147736.5833333333
+            ],
+            "sample_iterations": [
+              264,
+              264,
+              264
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x3/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              464.7143565276659,
+              462.972794417215,
+              483.9800198107972
+            ],
+            "sample_iterations": [
+              645560,
+              647992,
+              619864
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x3/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              11694.218701278452,
+              11615.01722669557,
+              11645.71530580565
+            ],
+            "sample_iterations": [
+              25656,
+              25832,
+              25768
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x3/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              435280.3520114943,
+              433036.9971264368,
+              434360.2729885057
+            ],
+            "sample_iterations": [
+              696,
+              696,
+              696
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x4/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              564.0230101373201,
+              564.6706682627878,
+              564.4297137223618
+            ],
+            "sample_iterations": [
+              531896,
+              531288,
+              531512
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x4/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              15125.747631048387,
+              15249.347916666668,
+              15177.46904087414
+            ],
+            "sample_iterations": [
+              19840,
+              19680,
+              19768
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x4/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              577224.3596153846,
+              566413.6343283582,
+              582324.198076923
+            ],
+            "sample_iterations": [
+              520,
+              536,
+              520
+            ]
+          },
+          {
+            "case_id": "encode.serial/6x3/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              369.6527903732984,
+              371.3525209688759,
+              371.5765120588177
+            ],
+            "sample_iterations": [
+              811576,
+              807864,
+              807376
+            ]
+          },
+          {
+            "case_id": "encode.serial/6x3/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              8348.071555753395,
+              8377.083566004021,
+              8353.640033407572
+            ],
+            "sample_iterations": [
+              35944,
+              35816,
+              35920
+            ]
+          },
+          {
+            "case_id": "encode.serial/6x3/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              276244.140625,
+              276370.67279411765,
+              277313.61029411765
+            ],
+            "sample_iterations": [
+              1088,
+              1088,
+              1088
+            ]
+          },
+          {
+            "case_id": "encode.serial/4x2/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              227.72960694115503,
+              227.71697135032397,
+              228.02156084495223
+            ],
+            "sample_iterations": [
+              1317360,
+              1317432,
+              1315672
+            ]
+          },
+          {
+            "case_id": "encode.serial/4x2/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              3991.3942768199236,
+              3990.801026923486,
+              3986.272759885204
+            ],
+            "sample_iterations": [
+              75168,
+              75176,
+              75264
+            ]
+          },
+          {
+            "case_id": "encode.serial/4x2/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              123646.86143092105,
+              123634.62828947368,
+              123416.73519736843
+            ],
+            "sample_iterations": [
+              2432,
+              2432,
+              2432
+            ]
+          }
+        ],
+        "B1": [
+          {
+            "case_id": "encode.parallel/4x2/262144/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              25176.22340604027,
+              24478.874265665796,
+              24474.600456621003
+            ],
+            "sample_iterations": [
+              11920,
+              12256,
+              12264
+            ]
+          },
+          {
+            "case_id": "encode.parallel/10x4/262144/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              77257.99485596707,
+              73745.75368369352,
+              73236.39522417155
+            ],
+            "sample_iterations": [
+              3888,
+              4072,
+              4104
+            ]
+          },
+          {
+            "case_id": "encode.parallel/10x4/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              226520.14307228915,
+              222038.2152366864,
+              222465.11316568046
+            ],
+            "sample_iterations": [
+              1328,
+              1352,
+              1352
+            ]
+          },
+          {
+            "case_id": "encode.serial/10x4/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              876.1366554132984,
+              876.6788035346924,
+              873.74254409469
+            ],
+            "sample_iterations": [
+              342416,
+              342208,
+              343352
+            ]
+          },
+          {
+            "case_id": "encode.serial/10x4/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              24229.70163113695,
+              24191.586718246293,
+              24250.88211053652
+            ],
+            "sample_iterations": [
+              12384,
+              12408,
+              12376
+            ]
+          },
+          {
+            "case_id": "encode.serial/10x4/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              794736.7630208334,
+              793610.4609375,
+              792936.0911458334
+            ],
+            "sample_iterations": [
+              384,
+              384,
+              384
+            ]
+          },
+          {
+            "case_id": "encode.serial/12x4/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              1049.1173031193173,
+              1073.9922816965948,
+              1033.2982027719609
+            ],
+            "sample_iterations": [
+              285960,
+              279336,
+              290336
+            ]
+          },
+          {
+            "case_id": "encode.serial/12x4/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              30087.585204490777,
+              29614.336720599844,
+              30229.233883964545
+            ],
+            "sample_iterations": [
+              9976,
+              10136,
+              9928
+            ]
+          },
+          {
+            "case_id": "encode.serial/12x4/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              1314631.823275862,
+              1201959.80078125,
+              1194166.9921875
+            ],
+            "sample_iterations": [
+              232,
+              256,
+              256
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x3/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              598.8238486658256,
+              568.1826079545455,
+              563.5764972197175
+            ],
+            "sample_iterations": [
+              500984,
+              528000,
+              532320
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x3/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              15080.75532770406,
+              14580.998493390358,
+              14565.269029126213
+            ],
+            "sample_iterations": [
+              19896,
+              20576,
+              20600
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x3/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              462202.8719512195,
+              487194.2646103896,
+              523149.0885416667
+            ],
+            "sample_iterations": [
+              656,
+              616,
+              576
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x4/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              854.505970013216,
+              892.8681785714285,
+              944.1033489841645
+            ],
+            "sample_iterations": [
+              351088,
+              336000,
+              317768
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x4/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              27333.071428571428,
+              20018.532150480256,
+              19387.995284237728
+            ],
+            "sample_iterations": [
+              10976,
+              14992,
+              15480
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x4/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              620356.4733606557,
+              621228.8237704918,
+              616072.5758196721
+            ],
+            "sample_iterations": [
+              488,
+              488,
+              488
+            ]
+          },
+          {
+            "case_id": "encode.serial/6x3/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              1422.6921063651591,
+              434.1267408342112,
+              429.46415155922534
+            ],
+            "sample_iterations": [
+              238800,
+              691048,
+              698552
+            ]
+          },
+          {
+            "case_id": "encode.serial/6x3/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              9530.773506988564,
+              9444.17470410476,
+              9436.962663563161
+            ],
+            "sample_iterations": [
+              31480,
+              31768,
+              31792
+            ]
+          },
+          {
+            "case_id": "encode.serial/6x3/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              299208.1259920635,
+              301993.084,
+              300968.542
+            ],
+            "sample_iterations": [
+              1008,
+              1000,
+              1000
+            ]
+          },
+          {
+            "case_id": "encode.serial/4x2/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              308.7297601014259,
+              1378.2573872615678,
+              1463.5977724221373
+            ],
+            "sample_iterations": [
+              971744,
+              217672,
+              204976
+            ]
+          },
+          {
+            "case_id": "encode.serial/4x2/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              24787.759583608724,
+              24850.93605036448,
+              24969.079477363517
+            ],
+            "sample_iterations": [
+              12104,
+              12072,
+              12016
+            ]
+          },
+          {
+            "case_id": "encode.serial/4x2/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              788742.4036458334,
+              809666.3324468085,
+              831439.3125
+            ],
+            "sample_iterations": [
+              384,
+              376,
+              368
+            ]
+          }
+        ],
+        "B2": [
+          {
+            "case_id": "encode.parallel/4x2/262144/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              143166.84505703422,
+              141839.48537735848,
+              140611.9302434457
+            ],
+            "sample_iterations": [
+              2104,
+              2120,
+              2136
+            ]
+          },
+          {
+            "case_id": "encode.parallel/10x4/262144/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              503675.2783333333,
+              498896.2450657895,
+              491635.8214285714
+            ],
+            "sample_iterations": [
+              600,
+              608,
+              616
+            ]
+          },
+          {
+            "case_id": "encode.parallel/10x4/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              1352149.5535714286,
+              1346431.1785714286,
+              1305353.6293103448
+            ],
+            "sample_iterations": [
+              224,
+              224,
+              232
+            ]
+          },
+          {
+            "case_id": "encode.serial/10x4/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              5255.819323756132,
+              5136.313364607588,
+              5170.110887096775
+            ],
+            "sample_iterations": [
+              57080,
+              58408,
+              58032
+            ]
+          },
+          {
+            "case_id": "encode.serial/10x4/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              142523.95075757575,
+              144651.98317307694,
+              142060.08254716982
+            ],
+            "sample_iterations": [
+              2112,
+              2080,
+              2120
+            ]
+          },
+          {
+            "case_id": "encode.serial/10x4/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              4716551.421875,
+              4664637.736111111,
+              4670097.805555556
+            ],
+            "sample_iterations": [
+              64,
+              72,
+              72
+            ]
+          },
+          {
+            "case_id": "encode.serial/12x4/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              6043.445012890751,
+              6040.303551296505,
+              6034.155450522929
+            ],
+            "sample_iterations": [
+              49648,
+              49672,
+              49720
+            ]
+          },
+          {
+            "case_id": "encode.serial/12x4/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              171669.0450913242,
+              171054.33238636365,
+              170204.11481900452
+            ],
+            "sample_iterations": [
+              1752,
+              1760,
+              1768
+            ]
+          },
+          {
+            "case_id": "encode.serial/12x4/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              6312345.5,
+              7138195.3125,
+              7004826.375
+            ],
+            "sample_iterations": [
+              48,
+              48,
+              48
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x3/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              3705.23951437605,
+              3725.0069278903457,
+              3830.348559901951
+            ],
+            "sample_iterations": [
+              80968,
+              80544,
+              78328
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x3/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              98420.66164921466,
+              98354.37107329843,
+              98656.67388451444
+            ],
+            "sample_iterations": [
+              3056,
+              3056,
+              3048
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x3/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              3151215.2708333335,
+              3140629.34375,
+              3148448.78125
+            ],
+            "sample_iterations": [
+              96,
+              96,
+              96
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x4/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              4859.7893935467155,
+              4936.129014214267,
+              4737.635137695806
+            ],
+            "sample_iterations": [
+              61736,
+              60784,
+              63328
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x4/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              125178.38541666667,
+              125698.66596989967,
+              124384.57160596027
+            ],
+            "sample_iterations": [
+              2400,
+              2392,
+              2416
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x4/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              3881642.7125,
+              3974961.9875,
+              4035335.425
+            ],
+            "sample_iterations": [
+              80,
+              80,
+              80
+            ]
+          },
+          {
+            "case_id": "encode.serial/6x3/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              2730.661317629069,
+              2763.5827376565953,
+              2739.099061427215
+            ],
+            "sample_iterations": [
+              109864,
+              108560,
+              109528
+            ]
+          },
+          {
+            "case_id": "encode.serial/6x3/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              63748.10759762309,
+              62455.48211314476,
+              61245.8280995106
+            ],
+            "sample_iterations": [
+              4712,
+              4808,
+              4904
+            ]
+          },
+          {
+            "case_id": "encode.serial/6x3/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              1931795.3125,
+              1942750.78125,
+              1940851.5625
+            ],
+            "sample_iterations": [
+              160,
+              160,
+              160
+            ]
+          },
+          {
+            "case_id": "encode.serial/4x2/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              1493.05873511964,
+              1477.6558178021198,
+              1474.9602605703049
+            ],
+            "sample_iterations": [
+              200936,
+              203032,
+              203400
+            ]
+          },
+          {
+            "case_id": "encode.serial/4x2/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              25039.813501335113,
+              24890.8599867286,
+              24790.196794448115
+            ],
+            "sample_iterations": [
+              11984,
+              12056,
+              12104
+            ]
+          },
+          {
+            "case_id": "encode.serial/4x2/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              751108.3325,
+              720884.7287735849,
+              730915.7644230769
+            ],
+            "sample_iterations": [
+              400,
+              424,
+              416
+            ]
+          }
+        ],
+        "A2": [
+          {
+            "case_id": "encode.parallel/4x2/262144/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              25538.408356024505,
+              24563.516453831042,
+              24647.089191852825
+            ],
+            "sample_iterations": [
+              11752,
+              12216,
+              12176
+            ]
+          },
+          {
+            "case_id": "encode.parallel/10x4/262144/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              78755.6996855346,
+              89748.66656698564,
+              81302.84983766233
+            ],
+            "sample_iterations": [
+              3816,
+              3344,
+              3696
+            ]
+          },
+          {
+            "case_id": "encode.parallel/10x4/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              235330.40390625,
+              233103.84316770185,
+              231367.93865030675
+            ],
+            "sample_iterations": [
+              1280,
+              1288,
+              1304
+            ]
+          },
+          {
+            "case_id": "encode.serial/10x4/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              687.5804065823249,
+              683.3169141763848,
+              707.0444586899958
+            ],
+            "sample_iterations": [
+              436320,
+              439040,
+              424304
+            ]
+          },
+          {
+            "case_id": "encode.serial/10x4/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              23273.233948511166,
+              21354.913631189527,
+              21271.84366137266
+            ],
+            "sample_iterations": [
+              12896,
+              14056,
+              14104
+            ]
+          },
+          {
+            "case_id": "encode.serial/10x4/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              843894.213888889,
+              852095.025,
+              806489.1409574468
+            ],
+            "sample_iterations": [
+              360,
+              360,
+              376
+            ]
+          },
+          {
+            "case_id": "encode.serial/12x4/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              802.6719589460391,
+              802.9735075585628,
+              797.9372353554483
+            ],
+            "sample_iterations": [
+              373752,
+              373616,
+              375976
+            ]
+          },
+          {
+            "case_id": "encode.serial/12x4/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              27333.701530612245,
+              27185.133605072464,
+              27093.652256317688
+            ],
+            "sample_iterations": [
+              10976,
+              11040,
+              11080
+            ]
+          },
+          {
+            "case_id": "encode.serial/12x4/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              1026911.7398648649,
+              1032176.5202702703,
+              1026649.7736486486
+            ],
+            "sample_iterations": [
+              296,
+              296,
+              296
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x3/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              458.4500461502726,
+              463.21870367854143,
+              475.49436385768263
+            ],
+            "sample_iterations": [
+              654384,
+              647648,
+              630928
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x3/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              11725.402469521725,
+              11856.343542522922,
+              11683.805490654206
+            ],
+            "sample_iterations": [
+              25592,
+              25304,
+              25680
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x3/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              452766.6912650602,
+              445202.2676470588,
+              442496.0794117647
+            ],
+            "sample_iterations": [
+              664,
+              680,
+              680
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x4/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              565.9566329610625,
+              568.6220753915904,
+              589.7520326481828
+            ],
+            "sample_iterations": [
+              530080,
+              527592,
+              508696
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x4/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              15832.108748417053,
+              20417.97373434948,
+              17206.204644495414
+            ],
+            "sample_iterations": [
+              18952,
+              14696,
+              17440
+            ]
+          },
+          {
+            "case_id": "encode.serial/8x4/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              600990.4920634921,
+              583870.3519230769,
+              579920.8326923077
+            ],
+            "sample_iterations": [
+              504,
+              520,
+              520
+            ]
+          },
+          {
+            "case_id": "encode.serial/6x3/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              371.11220162694957,
+              368.99377140158225,
+              372.3595285969616
+            ],
+            "sample_iterations": [
+              808384,
+              813024,
+              805680
+            ]
+          },
+          {
+            "case_id": "encode.serial/6x3/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              8332.753582537214,
+              8334.792833333333,
+              8715.46740646061
+            ],
+            "sample_iterations": [
+              36008,
+              36000,
+              34424
+            ]
+          },
+          {
+            "case_id": "encode.serial/6x3/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              285049.9128787879,
+              277224.34099264705,
+              278456.2111111111
+            ],
+            "sample_iterations": [
+              1056,
+              1088,
+              1080
+            ]
+          },
+          {
+            "case_id": "encode.serial/4x2/1024/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              229.68907910452333,
+              227.8619412847716,
+              232.0920553430626
+            ],
+            "sample_iterations": [
+              1306120,
+              1316592,
+              1292592
+            ]
+          },
+          {
+            "case_id": "encode.serial/4x2/32768/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              4017.202289769684,
+              4175.721662398397,
+              4064.310799826596
+            ],
+            "sample_iterations": [
+              74680,
+              71848,
+              73816
+            ]
+          },
+          {
+            "case_id": "encode.serial/4x2/1048576/missing0+0/block0",
+            "allocations": 0,
+            "allocated_bytes": 0,
+            "samples_ns": [
+              126065.85570469798,
+              127565.6530612245,
+              124685.42358803986
+            ],
+            "sample_iterations": [
+              2384,
+              2352,
+              2408
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "paired-grouping-draft",
+      "status": "rejected-candidate",
+      "sample_ms": 150,
+      "shared_buffer": false,
+      "iteration_counts_retained": false,
+      "raw": [
+        {
+          "case_id": "encode.serial/10x4/1024",
+          "A1": [
+            771.531765625643,
+            655.7845769795747,
+            661.9268233487486
+          ],
+          "B1": [
+            839.3639822731545,
+            845.8349309815951,
+            842.1786572493712
+          ],
+          "B2": [
+            843.8064893569147,
+            845.3427201208241,
+            842.439316844139
+          ],
+          "A2": [
+            660.8967607768496,
+            663.7581949803533,
+            662.2154379304255
+          ]
+        },
+        {
+          "case_id": "encode.serial/10x4/32768",
+          "A1": [
+            20711.426186534216,
+            22682.644347037483,
+            20837.45375
+          ],
+          "B1": [
+            23939.712213010203,
+            24410.787711313395,
+            25442.955732700135
+          ],
+          "B2": [
+            24968.049600532624,
+            24460.696382007824,
+            24263.731727037517
+          ],
+          "A2": [
+            21087.277668539326,
+            20807.158813747228,
+            21034.28629484305
+          ]
+        },
+        {
+          "case_id": "encode.serial/10x4/1048576",
+          "A1": [
+            806889.7604166666,
+            815248.265625,
+            794265.84375
+          ],
+          "B1": [
+            843180.2554347826,
+            804498.9166666666,
+            792819.4427083334
+          ],
+          "B2": [
+            791615.015625,
+            792446.6145833334,
+            792426.8697916666
+          ],
+          "A2": [
+            799588.3229166666,
+            791718.53125,
+            790174.9114583334
+          ]
+        },
+        {
+          "case_id": "encode.serial/12x4/1024",
+          "A1": [
+            779.9846915429094,
+            782.5870826377295,
+            803.0483104201464
+          ],
+          "B1": [
+            1017.1283157038242,
+            1006.4879092860976,
+            1011.120227566868
+          ],
+          "B2": [
+            1006.5466879596328,
+            1004.6683277072282,
+            1003.187530094698
+          ],
+          "A2": [
+            827.9037663369834,
+            1127.6574152032715,
+            888.0290966137817
+          ]
+        },
+        {
+          "case_id": "encode.serial/12x4/32768",
+          "A1": [
+            27237.97333091437,
+            27129.16979768786,
+            27028.458213256483
+          ],
+          "B1": [
+            28761.407208588957,
+            28734.375,
+            28927.72534668721
+          ],
+          "B2": [
+            28697.33524464832,
+            28673.37232415902,
+            28732.56431852986
+          ],
+          "A2": [
+            26898.91511461318,
+            26827.55132331903,
+            26829.33959227468
+          ]
+        },
+        {
+          "case_id": "encode.serial/12x4/1048576",
+          "A1": [
+            1016933.9342105263,
+            1020058.9342105263,
+            1013300.4407894737
+          ],
+          "B1": [
+            1172733.3984375,
+            1208754.5546875,
+            1244145.8359375
+          ],
+          "B2": [
+            1182279.9453125,
+            1200290.359375,
+            1212474.9375
+          ],
+          "A2": [
+            1010883.7763157894,
+            1005466.5592105263,
+            1013549.0657894737
+          ]
+        },
+        {
+          "case_id": "encode.serial/8x3/1024",
+          "A1": [
+            454.44920502193463,
+            450.0918168943086,
+            447.8254854426903
+          ],
+          "B1": [
+            555.0434920963827,
+            564.8041975420206,
+            558.3108772034302
+          ],
+          "B2": [
+            547.9591954526858,
+            552.5096760173262,
+            552.1298034452296
+          ],
+          "A2": [
+            452.61393535616867,
+            452.02984269527485,
+            452.87202316257276
+          ]
+        },
+        {
+          "case_id": "encode.serial/8x3/32768",
+          "A1": [
+            11477.13303243574,
+            11461.736552567238,
+            11493.330039828432
+          ],
+          "B1": [
+            14447.34283513097,
+            14466.657767925983,
+            14451.933262711864
+          ],
+          "B2": [
+            14446.428062403698,
+            14420.041506533436,
+            14433.177019230769
+          ],
+          "A2": [
+            11527.149277811925,
+            11499.936158798284,
+            11505.962423312883
+          ]
+        },
+        {
+          "case_id": "encode.serial/8x3/1048576",
+          "A1": [
+            437277.7354651163,
+            436600.8953488372,
+            436991.27906976745
+          ],
+          "B1": [
+            460775.1524390244,
+            461520.1981707317,
+            461378.5548780488
+          ],
+          "B2": [
+            465015.625,
+            462522.48475609755,
+            462170.2256097561
+          ],
+          "A2": [
+            451809.6488095238,
+            439776.4069767442,
+            456289.5595238095
+          ]
+        },
+        {
+          "case_id": "encode.serial/8x4/1024",
+          "A1": [
+            562.450786663467,
+            557.483220104656,
+            557.3706229006272
+          ],
+          "B1": [
+            705.6946650357546,
+            715.7327986028935,
+            706.5043330821402
+          ],
+          "B2": [
+            717.0033363924898,
+            713.2316082772262,
+            705.1434225865894
+          ],
+          "A2": [
+            553.128255995752,
+            555.8255395150294,
+            552.842408450289
+          ]
+        },
+        {
+          "case_id": "encode.serial/8x4/32768",
+          "A1": [
+            15251.706504065041,
+            15293.684543230016,
+            16933.22709837545
+          ],
+          "B1": [
+            19422.527432712217,
+            19451.64470954357,
+            19339.27731958763
+          ],
+          "B2": [
+            19300.497299382718,
+            19278.327338129497,
+            19276.791109969166
+          ],
+          "A2": [
+            15131.031653225806,
+            15258.581672091132,
+            15064.687851405622
+          ]
+        },
+        {
+          "case_id": "encode.serial/8x4/1048576",
+          "A1": [
+            573196.0227272727,
+            586618.65234375,
+            587368.4921875
+          ],
+          "B1": [
+            621862.0604838709,
+            620648.6895161291,
+            616113.9112903225
+          ],
+          "B2": [
+            619887.4314516129,
+            621091.3951612903,
+            617447.2459677419
+          ],
+          "A2": [
+            578873.1060606061,
+            586160.3203125,
+            626248.9583333334
+          ]
+        },
+        {
+          "case_id": "encode.serial/6x3/1024",
+          "A1": [
+            398.93772074468086,
+            382.91487634529375,
+            377.6683183273914
+          ],
+          "B1": [
+            413.3164113303207,
+            417.4939964596647,
+            428.71159342418144
+          ],
+          "B2": [
+            432.7823860357761,
+            592.3667806272305,
+            585.2348270857393
+          ],
+          "A2": [
+            413.11962676537337,
+            422.4705623901582,
+            387.994537102181
+          ]
+        },
+        {
+          "case_id": "encode.serial/6x3/32768",
+          "A1": [
+            8527.945941336971,
+            9241.418679152292,
+            8574.437728519195
+          ],
+          "B1": [
+            10656.377201704545,
+            12405.671296296296,
+            10585.902229119638
+          ],
+          "B2": [
+            9823.609677841801,
+            11117.701541197392,
+            10857.4538940359
+          ],
+          "A2": [
+            8714.185467007435,
+            9070.176499032881,
+            9465.604503027245
+          ]
+        },
+        {
+          "case_id": "encode.serial/6x3/1048576",
+          "A1": [
+            347079.45,
+            355152.90801886795,
+            382882.22959183675
+          ],
+          "B1": [
+            452211.4345238095,
+            407682.2925531915,
+            475925.259375
+          ],
+          "B2": [
+            402971.85372340423,
+            424782.4083333333,
+            366241.58653846156
+          ],
+          "A2": [
+            359556.50471698114,
+            323287.4461206897,
+            302243.4682539682
+          ]
+        },
+        {
+          "case_id": "encode.serial/4x2/1024",
+          "A1": [
+            235.6458451155601,
+            231.7838710674331,
+            230.96237820726014
+          ],
+          "B1": [
+            227.14632750224118,
+            227.20425628597394,
+            225.98141843031385
+          ],
+          "B2": [
+            230.5124675747778,
+            230.92507943741072,
+            239.9607377332412
+          ],
+          "A2": [
+            234.58136494432628,
+            238.45162654356312,
+            255.15383032142176
+          ]
+        },
+        {
+          "case_id": "encode.serial/4x2/32768",
+          "A1": [
+            4016.547547654744,
+            4027.530551975945,
+            3989.807180851064
+          ],
+          "B1": [
+            3969.3155958933107,
+            3979.758011460102,
+            3961.2191592733416
+          ],
+          "B2": [
+            3959.7849978885133,
+            3997.3597580473247,
+            3977.62537123462
+          ],
+          "A2": [
+            3985.165382571732,
+            3981.3605891719744,
+            3980.3828008915307
+          ]
+        },
+        {
+          "case_id": "encode.serial/4x2/1048576",
+          "A1": [
+            123473.2384868421,
+            123259.32761437909,
+            123329.82679738563
+          ],
+          "B1": [
+            123196.38480392157,
+            122827.9885620915,
+            122490.93587662338
+          ],
+          "B2": [
+            122718.20506535948,
+            126489.89765100672,
+            124396.7988410596
+          ],
+          "A2": [
+            125626.25,
+            134350.33482142858,
+            126279.43204697987
+          ]
+        }
+      ],
+      "comparison": [
+        {
+          "case_id": "encode.serial/10x4/1024",
+          "baseline_ns": 662.0711306395871,
+          "candidate_ns": 842.992573303143,
+          "latency_change": 0.27326586871229175,
+          "baseline_drift": 0.00043602188564717537,
+          "candidate_drift": 0.0019328821664277296,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/10x4/32768",
+          "baseline_ns": 20935.870022421524,
+          "candidate_ns": 24435.74204666061,
+          "latency_change": 0.16717108104372325,
+          "baseline_drift": 0.009446093904013964,
+          "candidate_drift": 0.002044533395835435,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/10x4/1048576",
+          "baseline_ns": 799304.1458333333,
+          "candidate_ns": 798462.8932291666,
+          "latency_change": -0.0010524812220128466,
+          "baseline_drift": 0.01880210892604761,
+          "candidate_drift": 0.015005672008880921,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/12x4/1024",
+          "baseline_ns": 835.3080896257557,
+          "candidate_ns": 1007.8942776370482,
+          "latency_change": 0.2066138113047804,
+          "baseline_drift": 0.1347351832343784,
+          "candidate_drift": 0.006380942328852002,
+          "gate_passed": false
+        },
+        {
+          "case_id": "encode.serial/12x4/32768",
+          "baseline_ns": 26979.254694981268,
+          "candidate_ns": 28729.371226618638,
+          "latency_change": 0.06486897252810064,
+          "baseline_drift": 0.011051949162068975,
+          "candidate_drift": 0.002227706157628573,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/12x4/1048576",
+          "baseline_ns": 1013908.8552631579,
+          "candidate_ns": 1204522.45703125,
+          "latency_change": 0.1879987543048125,
+          "baseline_drift": 0.005949410960933044,
+          "candidate_drift": 0.00700241027400994,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/8x3/1024",
+          "baseline_ns": 451.3528761252386,
+          "candidate_ns": 555.22034032433,
+          "latency_change": 0.23012474206605238,
+          "baseline_drift": 0.005603564355519897,
+          "candidate_drift": 0.011071025141336066,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/8x3/32768",
+          "baseline_ns": 11491.547727874313,
+          "candidate_ns": 14442.555140971315,
+          "latency_change": 0.2567980817709117,
+          "baseline_drift": 0.002511898293386272,
+          "candidate_drift": 0.0012978362922204667,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/8x3/1048576",
+          "baseline_ns": 444400.4639396456,
+          "candidate_ns": 461950.51981707313,
+          "latency_change": 0.03949153365377889,
+          "baseline_drift": 0.03390998962565228,
+          "candidate_drift": 0.00247937375058771,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/8x4/1024",
+          "baseline_ns": 555.305738050204,
+          "candidate_ns": 709.8679706796831,
+          "latency_change": 0.27833717903254485,
+          "baseline_drift": 0.007811829938282888,
+          "candidate_drift": 0.009521916398924413,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/8x4/32768",
+          "baseline_ns": 15212.35809822791,
+          "candidate_ns": 19350.42738542086,
+          "latency_change": 0.27202023910250905,
+          "baseline_drift": 0.010635297827965906,
+          "candidate_drift": 0.00742437332537127,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/8x4/1048576",
+          "baseline_ns": 586389.486328125,
+          "candidate_ns": 620268.060483871,
+          "latency_change": 0.05777486627171324,
+          "baseline_drift": 0.0007813117251195267,
+          "candidate_drift": 0.001226552278890236,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/6x3/1024",
+          "baseline_ns": 398.0172515553336,
+          "candidate_ns": 501.364411772702,
+          "latency_change": 0.25965497679690586,
+          "baseline_drift": 0.07888110983925967,
+          "candidate_drift": 0.4017802221074107,
+          "gate_passed": false
+        },
+        {
+          "case_id": "encode.serial/6x3/32768",
+          "baseline_ns": 8822.307113776038,
+          "candidate_ns": 10756.915547870223,
+          "latency_change": 0.2192859995854477,
+          "baseline_drift": 0.05781589256457287,
+          "candidate_drift": 0.018869141784807697,
+          "gate_passed": false
+        },
+        {
+          "case_id": "encode.serial/6x3/1048576",
+          "baseline_ns": 339220.1770697788,
+          "candidate_ns": 427591.64412360685,
+          "latency_change": 0.2605135927266784,
+          "baseline_drift": 0.08972321830597363,
+          "candidate_drift": 0.10888619137252875,
+          "gate_passed": false
+        },
+        {
+          "case_id": "encode.serial/4x2/1024",
+          "baseline_ns": 235.1177488054981,
+          "candidate_ns": 229.03570346982593,
+          "latency_change": -0.025868082552557792,
+          "baseline_drift": 0.028767124500177932,
+          "candidate_drift": 0.016635760642585096,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/4x2/32768",
+          "baseline_ns": 3998.954068413359,
+          "candidate_ns": 3973.4704835639654,
+          "latency_change": -0.006372562528457526,
+          "baseline_drift": 0.008760498429382535,
+          "candidate_drift": 0.0020935033107236656,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/4x2/1048576",
+          "baseline_ns": 124804.62942218274,
+          "candidate_ns": 123612.39370157555,
+          "latency_change": -0.009552816479059922,
+          "baseline_drift": 0.023916398215981127,
+          "candidate_drift": 0.012772416916809082,
+          "gate_passed": true
+        }
+      ]
+    },
+    {
+      "name": "paired-fused-distinct-buffers",
+      "status": "diagnostic-data-placement-uncontrolled",
+      "sample_ms": 150,
+      "shared_buffer": false,
+      "iteration_counts_retained": true,
+      "raw": [
+        {
+          "case_id": "encode.serial/10x4/1024",
+          "A1": {
+            "samples_ns": [
+              793.8957204250995,
+              673.6376823309621,
+              678.0365182252116
+            ],
+            "iterations": [
+              188944,
+              222672,
+              221232
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              707.1804424077845,
+              686.0714736553239,
+              688.7642526540058
+            ],
+            "iterations": [
+              212112,
+              218640,
+              217784
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              678.7942384969048,
+              737.1836298407705,
+              674.9146614714564
+            ],
+            "iterations": [
+              220984,
+              203480,
+              222256
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              675.0821332133213,
+              677.459510604473,
+              679.2281742437964
+            ],
+            "iterations": [
+              222200,
+              221416,
+              220840
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/10x4/32768",
+          "A1": {
+            "samples_ns": [
+              21059.69416386083,
+              21390.108323831242,
+              21311.943607954545
+            ],
+            "iterations": [
+              7128,
+              7016,
+              7040
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              19517.678980228928,
+              19419.8207815735,
+              19430.084196891192
+            ],
+            "iterations": [
+              7688,
+              7728,
+              7720
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              19421.84265010352,
+              19385.68569214876,
+              19195.331115660185
+            ],
+            "iterations": [
+              7728,
+              7744,
+              7816
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              21005.173292273237,
+              21062.82154882155,
+              21222.69753959276
+            ],
+            "iterations": [
+              7144,
+              7128,
+              7072
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/10x4/1048576",
+          "A1": {
+            "samples_ns": [
+              790715.4947916666,
+              852324.7282608695,
+              857239.5852272727
+            ],
+            "iterations": [
+              192,
+              184,
+              176
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              820575.8641304348,
+              821965.3532608695,
+              816408.421875
+            ],
+            "iterations": [
+              184,
+              184,
+              192
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              824509.0597826086,
+              812517.578125,
+              794660.15625
+            ],
+            "iterations": [
+              184,
+              192,
+              192
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              837245.4728260869,
+              813310.7604166666,
+              836937.5
+            ],
+            "iterations": [
+              184,
+              192,
+              184
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/12x4/1024",
+          "A1": {
+            "samples_ns": [
+              901.4370282678717,
+              808.7088760458897,
+              802.1568663101605
+            ],
+            "iterations": [
+              166408,
+              185488,
+              187000
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              796.9591178595716,
+              791.340239090065,
+              785.9045171633346
+            ],
+            "iterations": [
+              188224,
+              189552,
+              190872
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              797.3296957390713,
+              829.0060294897869,
+              1020.3396228981879
+            ],
+            "iterations": [
+              188128,
+              180944,
+              147016
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              937.1951566951567,
+              830.0516346451813,
+              815.1833072475109
+            ],
+            "iterations": [
+              160056,
+              180712,
+              184008
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/12x4/32768",
+          "A1": {
+            "samples_ns": [
+              27340.439868804664,
+              27230.625725689406,
+              27141.74041244573
+            ],
+            "iterations": [
+              5488,
+              5512,
+              5528
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              24672.01200657895,
+              24945.92885638298,
+              24799.33817701453
+            ],
+            "iterations": [
+              6080,
+              6016,
+              6056
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              24630.707349081364,
+              24601.668250327653,
+              24682.510855263157
+            ],
+            "iterations": [
+              6096,
+              6104,
+              6080
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              27562.553597650513,
+              27367.065962099125,
+              27171.317293777134
+            ],
+            "iterations": [
+              5448,
+              5488,
+              5528
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/12x4/1048576",
+          "A1": {
+            "samples_ns": [
+              1062004.6319444445,
+              1077296.5833333333,
+              1081546.5902777778
+            ],
+            "iterations": [
+              144,
+              144,
+              144
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              1103535.8455882352,
+              1029725.0592105263,
+              1079188.3680555555
+            ],
+            "iterations": [
+              136,
+              152,
+              144
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              1040840.1842105263,
+              1020164.197368421,
+              1054576.1041666667
+            ],
+            "iterations": [
+              152,
+              152,
+              144
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              1120234.375,
+              1129324.4485294118,
+              1084994.5069444445
+            ],
+            "iterations": [
+              136,
+              136,
+              144
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/8x3/1024",
+          "A1": {
+            "samples_ns": [
+              461.04039932135044,
+              463.78295901456875,
+              459.89043069829046
+            ],
+            "iterations": [
+              325352,
+              323432,
+              326168
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              456.65857282026303,
+              457.60764448186654,
+              455.23081662134604
+            ],
+            "iterations": [
+              328480,
+              327792,
+              329504
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              453.3499117483498,
+              451.1183055047637,
+              456.9361520653101
+            ],
+            "iterations": [
+              330872,
+              332512,
+              328280
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              461.7557011279121,
+              458.8255426271228,
+              466.5418667579
+            ],
+            "iterations": [
+              324848,
+              326928,
+              321520
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/8x3/32768",
+          "A1": {
+            "samples_ns": [
+              11551.121228448275,
+              11496.123237277743,
+              11543.256461538462
+            ],
+            "iterations": [
+              12992,
+              13048,
+              13000
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              11292.15894039735,
+              11310.470672496984,
+              11386.668943533698
+            ],
+            "iterations": [
+              13288,
+              13264,
+              13176
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              11334.900528700906,
+              11284.703369434417,
+              11237.214799281006
+            ],
+            "iterations": [
+              13240,
+              13296,
+              13352
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              11611.377708978329,
+              11587.727764051884,
+              11554.923367221196
+            ],
+            "iterations": [
+              12920,
+              12952,
+              12984
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/8x3/1048576",
+          "A1": {
+            "samples_ns": [
+              465211.3841463415,
+              448705.9791666667,
+              442028.9476744186
+            ],
+            "iterations": [
+              328,
+              336,
+              344
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              433515.86363636365,
+              432786.1022727273,
+              435453.5965909091
+            ],
+            "iterations": [
+              352,
+              352,
+              352
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              432205.9659090909,
+              436969.8401162791,
+              433611.38636363635
+            ],
+            "iterations": [
+              352,
+              344,
+              352
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              519960.58445945947,
+              484821.4487179487,
+              492096.01923076925
+            ],
+            "iterations": [
+              296,
+              312,
+              312
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/8x4/1024",
+          "A1": {
+            "samples_ns": [
+              571.6648830757035,
+              566.776619460734,
+              566.1397003321256
+            ],
+            "iterations": [
+              262392,
+              264656,
+              264960
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              559.1324064410318,
+              557.7691644108636,
+              560.5631296899758
+            ],
+            "iterations": [
+              268280,
+              268936,
+              267592
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              561.2955582996558,
+              561.2453080100574,
+              581.8356102215603
+            ],
+            "iterations": [
+              267240,
+              267264,
+              257808
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              581.5868289241075,
+              613.2716237652908,
+              587.8357800106593
+            ],
+            "iterations": [
+              257944,
+              244592,
+              255176
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/8x4/32768",
+          "A1": {
+            "samples_ns": [
+              15616.062135720233,
+              15784.950126262625,
+              15231.11130275974
+            ],
+            "iterations": [
+              9608,
+              9504,
+              9856
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              14439.236046959199,
+              14441.922440338722,
+              14411.274385560675
+            ],
+            "iterations": [
+              10392,
+              10392,
+              10416
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              14393.894666155027,
+              14383.407687883435,
+              14368.27509578544
+            ],
+            "iterations": [
+              10424,
+              10432,
+              10440
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              15121.95060483871,
+              15104.045088566827,
+              15112.967465753425
+            ],
+            "iterations": [
+              9920,
+              9936,
+              9928
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/8x4/1048576",
+          "A1": {
+            "samples_ns": [
+              576878.0,
+              564228.2463235294,
+              564682.5955882353
+            ],
+            "iterations": [
+              264,
+              272,
+              272
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              562311.5808823529,
+              560048.1029411765,
+              600829.42578125
+            ],
+            "iterations": [
+              272,
+              272,
+              256
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              569033.2992424242,
+              597463.21875,
+              579310.446969697
+            ],
+            "iterations": [
+              264,
+              256,
+              264
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              565922.0294117647,
+              574729.1666666666,
+              574784.8825757576
+            ],
+            "iterations": [
+              272,
+              264,
+              264
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/6x3/1024",
+          "A1": {
+            "samples_ns": [
+              377.66207349742183,
+              376.8904949748744,
+              380.6597285664982
+            ],
+            "iterations": [
+              397184,
+              398000,
+              394056
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              373.4011475654685,
+              374.4103067153897,
+              369.76064899721945
+            ],
+            "iterations": [
+              401720,
+              400632,
+              405672
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              366.35105800980836,
+              366.37070127789286,
+              365.31284095779915
+            ],
+            "iterations": [
+              409448,
+              409424,
+              410608
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              368.15969781460467,
+              370.9924244672642,
+              369.96822033898303
+            ],
+            "iterations": [
+              407432,
+              404328,
+              405448
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/6x3/32768",
+          "A1": {
+            "samples_ns": [
+              8333.747722222222,
+              8509.700657894737,
+              8462.99870261733
+            ],
+            "iterations": [
+              18000,
+              17632,
+              17728
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              8270.922970886635,
+              8261.683204845815,
+              8267.393242945327
+            ],
+            "iterations": [
+              18136,
+              18160,
+              18144
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              8282.209308745583,
+              8245.781112576957,
+              8370.558928571429
+            ],
+            "iterations": [
+              18112,
+              18192,
+              17920
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              8457.91751240415,
+              8465.961230248307,
+              8460.621504285069
+            ],
+            "iterations": [
+              17736,
+              17720,
+              17736
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/6x3/1048576",
+          "A1": {
+            "samples_ns": [
+              292743.5096153846,
+              308858.862704918,
+              316369.0958333333
+            ],
+            "iterations": [
+              520,
+              488,
+              480
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              304473.87298387097,
+              313945.5729166667,
+              341069.12727272726
+            ],
+            "iterations": [
+              496,
+              480,
+              440
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              295497.0703125,
+              305086.5262096774,
+              310635.15983606555
+            ],
+            "iterations": [
+              512,
+              496,
+              488
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              302653.22580645164,
+              303460.60080645164,
+              361946.11298076925
+            ],
+            "iterations": [
+              496,
+              496,
+              416
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/4x2/1024",
+          "A1": {
+            "samples_ns": [
+              239.83149302890766,
+              243.62565615945326,
+              249.2835217905765
+            ],
+            "iterations": [
+              625440,
+              615704,
+              601728
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              249.3478230514515,
+              255.21762151714375,
+              246.06283874227373
+            ],
+            "iterations": [
+              601576,
+              587736,
+              609608
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              247.92276772137672,
+              248.9287800539012,
+              271.62118644067795
+            ],
+            "iterations": [
+              605032,
+              602584,
+              552240
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              248.07631612024028,
+              241.59264592191727,
+              239.46127444093946
+            ],
+            "iterations": [
+              604656,
+              620880,
+              626408
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/4x2/32768",
+          "A1": {
+            "samples_ns": [
+              4098.141116695804,
+              4199.032747424989,
+              4136.5748400617695
+            ],
+            "iterations": [
+              36608,
+              35728,
+              36264
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              4089.7923391494,
+              4106.702392685063,
+              4119.145183435852
+            ],
+            "iterations": [
+              36680,
+              36528,
+              36416
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              4086.9137968613777,
+              4085.178376906318,
+              4097.216162333406
+            ],
+            "iterations": [
+              36704,
+              36720,
+              36616
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              4064.158214130906,
+              4149.681969026548,
+              4076.4152989130434
+            ],
+            "iterations": [
+              36912,
+              36160,
+              36800
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/4x2/1048576",
+          "A1": {
+            "samples_ns": [
+              126398.35067114094,
+              130004.81293103448,
+              125775.17333333334
+            ],
+            "iterations": [
+              1192,
+              1160,
+              1200
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              150758.916,
+              141058.42763157896,
+              132845.62059859154
+            ],
+            "iterations": [
+              1000,
+              1064,
+              1136
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              144103.3320610687,
+              150563.459,
+              126733.70608108108
+            ],
+            "iterations": [
+              1048,
+              1000,
+              1184
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              125645.65916666666,
+              124895.66142384105,
+              123965.1521381579
+            ],
+            "iterations": [
+              1200,
+              1208,
+              1216
+            ]
+          }
+        }
+      ],
+      "comparison": [
+        {
+          "case_id": "encode.serial/10x4/1024",
+          "baseline_ns": 677.7480144148424,
+          "candidate_ns": 683.7792455754552,
+          "latency_change": 0.008898928558012997,
+          "baseline_drift": 0.0008509978522232009,
+          "candidate_drift": 0.014475220104242736,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/10x4/32768",
+          "baseline_ns": 21187.382578388046,
+          "candidate_ns": 19407.884944519974,
+          "latency_change": -0.08398855438062602,
+          "baseline_drift": 0.011689316737869548,
+          "candidate_drift": 0.0022850392356784655,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/10x4/1048576",
+          "baseline_ns": 844631.1141304348,
+          "candidate_ns": 816546.7211277174,
+          "latency_change": -0.03325048359322025,
+          "baseline_drift": 0.018053246316420357,
+          "candidate_drift": 0.009820281533596154,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/12x4/1024",
+          "baseline_ns": 819.3802553455355,
+          "candidate_ns": 810.1731342899259,
+          "latency_change": -0.011236688943312312,
+          "baseline_drift": 0.026391151663432977,
+          "candidate_drift": 0.047597466347765405,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/12x4/32768",
+          "baseline_ns": 27298.845843894265,
+          "candidate_ns": 24715.02276304795,
+          "latency_change": -0.0946495355745679,
+          "baseline_drift": 0.005010543561656089,
+          "candidate_drift": 0.006799811621161167,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/12x4/1048576",
+          "baseline_ns": 1098765.4791666665,
+          "candidate_ns": 1060014.276133041,
+          "latency_change": -0.035267947317580095,
+          "baseline_drift": 0.039856983054573636,
+          "candidate_drift": 0.03553428204023701,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/8x3/1024",
+          "baseline_ns": 461.3980502246313,
+          "candidate_ns": 455.00424228430643,
+          "latency_change": -0.013857466318316747,
+          "baseline_drift": 0.001551494852977342,
+          "candidate_drift": 0.007245371638332276,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/8x3/32768",
+          "baseline_ns": 11565.492112795173,
+          "candidate_ns": 11297.5870209657,
+          "latency_change": -0.023164175740786885,
+          "baseline_drift": 0.0038525785736112095,
+          "candidate_drift": 0.0022781813249579397,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/8x3/1048576",
+          "baseline_ns": 470400.999198718,
+          "candidate_ns": 433563.625,
+          "latency_change": -0.07831057812688935,
+          "baseline_drift": 0.09670038305414663,
+          "candidate_drift": 0.0002203442487005436,
+          "gate_passed": false
+        },
+        {
+          "case_id": "encode.serial/8x4/1024",
+          "baseline_ns": 577.3061997356966,
+          "candidate_ns": 560.2139823703437,
+          "latency_change": -0.02960684879735931,
+          "baseline_drift": 0.03715601495693721,
+          "candidate_drift": 0.003868764953891324,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/8x4/32768",
+          "baseline_ns": 15364.51480073683,
+          "candidate_ns": 14411.321867421317,
+          "latency_change": -0.06203859644626075,
+          "baseline_drift": 0.032216487459794774,
+          "candidate_drift": 0.0038664344079006874,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/8x4/1048576",
+          "baseline_ns": 569705.881127451,
+          "candidate_ns": 570811.013926025,
+          "latency_change": 0.0019398304198421368,
+          "baseline_drift": 0.017791536620613835,
+          "candidate_drift": 0.03023033255098584,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/6x3/1024",
+          "baseline_ns": 373.81514691820246,
+          "candidate_ns": 369.8761027876384,
+          "latency_change": -0.010537411774344196,
+          "baseline_drift": 0.02037232144384582,
+          "candidate_drift": 0.01888073885585484,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/6x3/32768",
+          "baseline_ns": 8461.8101034512,
+          "candidate_ns": 8274.801275845455,
+          "latency_change": -0.022100333772495317,
+          "baseline_drift": 0.00028089314624679673,
+          "candidate_drift": 0.0017921085117003077,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/6x3/1048576",
+          "baseline_ns": 306159.7317556848,
+          "candidate_ns": 309516.04956317204,
+          "latency_change": 0.010962636360569933,
+          "baseline_drift": 0.01747808643465687,
+          "candidate_drift": 0.028218415774064254,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/4x2/1024",
+          "baseline_ns": 242.60915104068528,
+          "candidate_ns": 249.13830155267635,
+          "latency_change": 0.02691221861988269,
+          "baseline_drift": 0.008344811747599268,
+          "candidate_drift": 0.0016805560699194588,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/4x2/32768",
+          "baseline_ns": 4106.495069487406,
+          "candidate_ns": 4096.808094773221,
+          "latency_change": -0.0023589398137021655,
+          "baseline_drift": 0.014543322307648099,
+          "candidate_drift": 0.004818609660864004,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/4x2/1048576",
+          "baseline_ns": 125647.006047491,
+          "candidate_ns": 142580.87984632383,
+          "latency_change": 0.13477339676866085,
+          "baseline_drift": 0.011888519425459432,
+          "candidate_drift": 0.021586122010678555,
+          "gate_passed": true
+        }
+      ]
+    },
+    {
+      "name": "paired-fused-shared-buffer",
+      "status": "retained-local-observation",
+      "sample_ms": 150,
+      "shared_buffer": true,
+      "iteration_counts_retained": true,
+      "raw": [
+        {
+          "case_id": "encode.serial/10x4/1024",
+          "A1": {
+            "samples_ns": [
+              778.0013018132028,
+              670.5988519723901,
+              678.7672178178395
+            ],
+            "iterations": [
+              192808,
+              223688,
+              220992
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              673.7652628552948,
+              665.159907233318,
+              682.3229394104803
+            ],
+            "iterations": [
+              222632,
+              225512,
+              219840
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              680.9158677415841,
+              680.8486882716049,
+              683.545760271226
+            ],
+            "iterations": [
+              220296,
+              220320,
+              219448
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              779.4212287483892,
+              674.6748164939551,
+              667.6999145360018
+            ],
+            "iterations": [
+              192456,
+              222336,
+              224656
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/10x4/32768",
+          "A1": {
+            "samples_ns": [
+              20904.397714604238,
+              20939.3193359375,
+              21084.117556179775
+            ],
+            "iterations": [
+              7176,
+              7168,
+              7120
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              19144.78099489796,
+              19253.149640657084,
+              19045.653553299493
+            ],
+            "iterations": [
+              7840,
+              7792,
+              7880
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              19145.886479591838,
+              19053.42106598985,
+              19015.176418439718
+            ],
+            "iterations": [
+              7840,
+              7880,
+              7896
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              20865.63195216908,
+              20884.32628062361,
+              21223.139281674208
+            ],
+            "iterations": [
+              7192,
+              7184,
+              7072
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/10x4/1048576",
+          "A1": {
+            "samples_ns": [
+              755417.085,
+              766019.795,
+              786787.109375
+            ],
+            "iterations": [
+              200,
+              200,
+              192
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              772241.25,
+              756924.795,
+              750833.3317307692
+            ],
+            "iterations": [
+              200,
+              200,
+              208
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              754371.04,
+              759356.46,
+              739929.8894230769
+            ],
+            "iterations": [
+              200,
+              200,
+              208
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              776538.545,
+              782493.4895833334,
+              808637.1510416666
+            ],
+            "iterations": [
+              200,
+              192,
+              192
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/12x4/1024",
+          "A1": {
+            "samples_ns": [
+              789.3261523889707,
+              790.2699192902601,
+              797.2971254836926
+            ],
+            "iterations": [
+              190040,
+              189816,
+              188136
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              775.2911618771966,
+              776.0955608443709,
+              775.8084995241838
+            ],
+            "iterations": [
+              193480,
+              193280,
+              193352
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              776.0740035594554,
+              776.7551990554704,
+              784.0660805385967
+            ],
+            "iterations": [
+              193288,
+              193112,
+              191312
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              787.9951145198571,
+              791.5888303710897,
+              787.9707566397714
+            ],
+            "iterations": [
+              190360,
+              189496,
+              190368
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/12x4/32768",
+          "A1": {
+            "samples_ns": [
+              26993.682553956834,
+              26966.527478448275,
+              26975.911458333332
+            ],
+            "iterations": [
+              5560,
+              5568,
+              5568
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              24342.26378080415,
+              24324.01783398184,
+              24319.653858625163
+            ],
+            "iterations": [
+              6168,
+              6168,
+              6168
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              24273.818240620956,
+              24384.50910273082,
+              24431.281087239582
+            ],
+            "iterations": [
+              6184,
+              6152,
+              6144
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              27170.89526049204,
+              26933.06886657102,
+              27003.207553956836
+            ],
+            "iterations": [
+              5528,
+              5576,
+              5560
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/12x4/1048576",
+          "A1": {
+            "samples_ns": [
+              1025279.8815789474,
+              995913.927631579,
+              999544.9539473684
+            ],
+            "iterations": [
+              152,
+              152,
+              152
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              992380.2105263158,
+              978304.425,
+              998313.322368421
+            ],
+            "iterations": [
+              152,
+              160,
+              152
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              983960.41875,
+              988049.6118421053,
+              1003052.3618421053
+            ],
+            "iterations": [
+              160,
+              152,
+              152
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              998631.302631579,
+              1029064.6907894737,
+              1002739.3092105263
+            ],
+            "iterations": [
+              152,
+              152,
+              152
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/8x3/1024",
+          "A1": {
+            "samples_ns": [
+              454.62613655650654,
+              452.6160593588568,
+              454.1210279977718
+            ],
+            "iterations": [
+              329944,
+              331408,
+              330312
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              448.7786763121993,
+              449.1064101796407,
+              449.52458284385415
+            ],
+            "iterations": [
+              334248,
+              334000,
+              333688
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              450.1362861601248,
+              447.34333472503874,
+              446.9849575665109
+            ],
+            "iterations": [
+              333240,
+              335320,
+              335584
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              453.80254368556075,
+              454.4951642225185,
+              455.6611968408262
+            ],
+            "iterations": [
+              330544,
+              330040,
+              329200
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/8x3/32768",
+          "A1": {
+            "samples_ns": [
+              11482.757960808329,
+              11467.782243276284,
+              11466.085345354522
+            ],
+            "iterations": [
+              13064,
+              13088,
+              13088
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              11202.045325567504,
+              11205.959378733573,
+              11196.797313432835
+            ],
+            "iterations": [
+              13392,
+              13392,
+              13400
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              11201.07773297491,
+              11198.333358208954,
+              11198.920970149255
+            ],
+            "iterations": [
+              13392,
+              13400,
+              13400
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              12327.218216162944,
+              11773.867467043314,
+              11493.62362132353
+            ],
+            "iterations": [
+              12176,
+              12744,
+              13056
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/8x3/1048576",
+          "A1": {
+            "samples_ns": [
+              451803.0744047619,
+              445123.1831395349,
+              444727.47093023255
+            ],
+            "iterations": [
+              336,
+              344,
+              344
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              431568.5369318182,
+              429533.4971590909,
+              431250.94886363635
+            ],
+            "iterations": [
+              352,
+              352,
+              352
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              427719.3409090909,
+              431261.48295454547,
+              431348.48295454547
+            ],
+            "iterations": [
+              352,
+              352,
+              352
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              444505.93604651163,
+              443772.7703488372,
+              446149.34593023255
+            ],
+            "iterations": [
+              344,
+              344,
+              344
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/8x4/1024",
+          "A1": {
+            "samples_ns": [
+              555.2714478204217,
+              559.0825444272169,
+              557.8994540152935
+            ],
+            "iterations": [
+              270144,
+              268304,
+              268872
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              554.5730442176871,
+              551.0672299779574,
+              549.8613123167155
+            ],
+            "iterations": [
+              270480,
+              272200,
+              272800
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              549.9359950139317,
+              550.1297677727899,
+              549.5028244241252
+            ],
+            "iterations": [
+              272760,
+              272664,
+              272976
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              554.6757891077979,
+              552.3492274494786,
+              555.8866698784465
+            ],
+            "iterations": [
+              270432,
+              271568,
+              269840
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/8x4/32768",
+          "A1": {
+            "samples_ns": [
+              15058.51223916533,
+              15074.235530546624,
+              15133.131754032258
+            ],
+            "iterations": [
+              9968,
+              9952,
+              9920
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              14307.827993897788,
+              14272.240391933028,
+              14276.136796042618
+            ],
+            "iterations": [
+              10488,
+              10512,
+              10512
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              14319.095896946565,
+              14262.991159695817,
+              14279.299847792998
+            ],
+            "iterations": [
+              10480,
+              10520,
+              10512
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              15003.0083,
+              15035.552684294871,
+              15038.521551724138
+            ],
+            "iterations": [
+              10000,
+              9984,
+              9976
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/8x4/1048576",
+          "A1": {
+            "samples_ns": [
+              543691.3678571428,
+              555977.6323529412,
+              556034.9264705882
+            ],
+            "iterations": [
+              280,
+              272,
+              272
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              537335.2678571428,
+              540375.8928571428,
+              535564.5243055555
+            ],
+            "iterations": [
+              280,
+              280,
+              288
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              535610.1006944445,
+              536882.5892857143,
+              536812.65
+            ],
+            "iterations": [
+              288,
+              280,
+              280
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              543008.4821428572,
+              551830.4227941176,
+              543757.7392857143
+            ],
+            "iterations": [
+              280,
+              272,
+              280
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/6x3/1024",
+          "A1": {
+            "samples_ns": [
+              363.3503870823967,
+              362.8759144394341,
+              363.08712553978427
+            ],
+            "iterations": [
+              412832,
+              413368,
+              413128
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              361.42668857704615,
+              365.2569227997039,
+              363.3522808751429
+            ],
+            "iterations": [
+              415024,
+              410672,
+              412824
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              360.8519707088008,
+              360.3121961413555,
+              360.6632588289605
+            ],
+            "iterations": [
+              415688,
+              416312,
+              415904
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              364.1432289137908,
+              363.63093679699017,
+              363.6400934796944
+            ],
+            "iterations": [
+              411928,
+              412512,
+              412496
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/6x3/32768",
+          "A1": {
+            "samples_ns": [
+              8281.864233657243,
+              8296.448805838125,
+              8287.62980556783
+            ],
+            "iterations": [
+              18112,
+              18088,
+              18104
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              8106.740434500649,
+              8108.512537829659,
+              8149.817090395481
+            ],
+            "iterations": [
+              18504,
+              18504,
+              18408
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              8138.029893663194,
+              8109.953935986159,
+              8091.446937014668
+            ],
+            "iterations": [
+              18432,
+              18496,
+              18544
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              8280.449779249448,
+              8276.117552956752,
+              8270.35796957672
+            ],
+            "iterations": [
+              18120,
+              18128,
+              18144
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/6x3/1048576",
+          "A1": {
+            "samples_ns": [
+              273730.0724637681,
+              274998.64130434784,
+              273850.09057971014
+            ],
+            "iterations": [
+              552,
+              552,
+              552
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              265288.65845070424,
+              265568.5140845071,
+              265397.3732394366
+            ],
+            "iterations": [
+              568,
+              568,
+              568
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              264976.5985915493,
+              270471.8,
+              266866.93133802817
+            ],
+            "iterations": [
+              568,
+              560,
+              568
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              274001.4347826087,
+              274659.64673913043,
+              274385.71920289856
+            ],
+            "iterations": [
+              552,
+              552,
+              552
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/4x2/1024",
+          "A1": {
+            "samples_ns": [
+              225.03920624347387,
+              224.00680531163758,
+              224.81506438694515
+            ],
+            "iterations": [
+              666552,
+              669624,
+              667216
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              228.40923985869168,
+              231.3798034207019,
+              247.48901974630746
+            ],
+            "iterations": [
+              656720,
+              648288,
+              606088
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              233.9691941501641,
+              252.692573213299,
+              227.51673755035674
+            ],
+            "iterations": [
+              641112,
+              593608,
+              659296
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              224.20358573478416,
+              224.9326572415696,
+              226.04401499716693
+            ],
+            "iterations": [
+              669040,
+              666872,
+              663592
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/4x2/32768",
+          "A1": {
+            "samples_ns": [
+              3963.881843162122,
+              3955.358389580257,
+              3947.8958157894735
+            ],
+            "iterations": [
+              37848,
+              37928,
+              38000
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              3928.1437735651443,
+              3935.9508291351804,
+              3934.326479227864
+            ],
+            "iterations": [
+              38192,
+              38112,
+              38128
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              3931.3198637316564,
+              3932.2184944432797,
+              3928.594646972554
+            ],
+            "iterations": [
+              38160,
+              38152,
+              38184
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              3985.227391073326,
+              3989.135715805148,
+              3969.430249788315
+            ],
+            "iterations": [
+              37640,
+              37608,
+              37792
+            ]
+          }
+        },
+        {
+          "case_id": "encode.serial/4x2/1048576",
+          "A1": {
+            "samples_ns": [
+              122559.64052287582,
+              122805.55555555556,
+              122760.21241830065
+            ],
+            "iterations": [
+              1224,
+              1224,
+              1224
+            ]
+          },
+          "B1": {
+            "samples_ns": [
+              122154.89691558441,
+              121925.56168831169,
+              122030.84415584416
+            ],
+            "iterations": [
+              1232,
+              1232,
+              1232
+            ]
+          },
+          "B2": {
+            "samples_ns": [
+              121930.33035714286,
+              121930.09334415584,
+              121977.8474025974
+            ],
+            "iterations": [
+              1232,
+              1232,
+              1232
+            ]
+          },
+          "A2": {
+            "samples_ns": [
+              122621.90196078431,
+              122668.77777777778,
+              123267.36111111111
+            ],
+            "iterations": [
+              1224,
+              1224,
+              1224
+            ]
+          }
+        }
+      ],
+      "comparison": [
+        {
+          "case_id": "encode.serial/10x4/1024",
+          "baseline_ns": 676.7210171558972,
+          "candidate_ns": 677.3405652984395,
+          "latency_change": 0.0009155148529982338,
+          "baseline_drift": 0.006029167609244768,
+          "candidate_drift": 0.010612902268048341,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/10x4/32768",
+          "baseline_ns": 20911.822808280554,
+          "candidate_ns": 19099.101030443904,
+          "latency_change": -0.08668406357760727,
+          "baseline_drift": 0.0026263057758285635,
+          "candidate_drift": 0.004772054009521298,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/10x4/1048576",
+          "baseline_ns": 774256.6422916667,
+          "candidate_ns": 755647.9175,
+          "latency_change": -0.02403431081532359,
+          "baseline_drift": 0.021505572951066254,
+          "candidate_drift": 0.003373855654972946,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/12x4/1024",
+          "baseline_ns": 789.1325169050585,
+          "candidate_ns": 776.281849289827,
+          "latency_change": -0.01628454960344461,
+          "baseline_drift": 0.002878516206773929,
+          "candidate_drift": 0.0012202747609328934,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/12x4/32768",
+          "baseline_ns": 26989.559506145084,
+          "candidate_ns": 24354.26346835633,
+          "latency_change": -0.09764131338226323,
+          "baseline_drift": 0.001011869262162568,
+          "candidate_drift": 0.0024868946060576658,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/12x4/1048576",
+          "baseline_ns": 1001142.1315789474,
+          "candidate_ns": 990214.9111842106,
+          "latency_change": -0.010914754309163888,
+          "baseline_drift": 0.0031958095036574985,
+          "candidate_drift": 0.004363850304827999,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/8x3/1024",
+          "baseline_ns": 454.30809611014513,
+          "candidate_ns": 448.2248724523397,
+          "latency_change": -0.013390084195925467,
+          "baseline_drift": 0.0008238689725430515,
+          "candidate_drift": 0.003925741015134321,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/8x3/32768",
+          "baseline_ns": 11620.824855159799,
+          "candidate_ns": 11200.48314785838,
+          "latency_change": -0.03617141748029884,
+          "baseline_drift": 0.02669088209679704,
+          "candidate_drift": 0.00027890937123042914,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/8x3/1048576",
+          "baseline_ns": 444814.55959302327,
+          "candidate_ns": 431256.21590909094,
+          "latency_change": -0.03048089005076038,
+          "baseline_drift": 0.0013866882615947151,
+          "candidate_drift": 2.4426823725054447e-05,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/8x4/1024",
+          "baseline_ns": 556.2876215615456,
+          "candidate_ns": 550.5016124959445,
+          "latency_change": -0.010401110579018935,
+          "baseline_drift": 0.0057782184303898365,
+          "candidate_drift": 0.002052807538693524,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/8x4/32768",
+          "baseline_ns": 15054.894107420747,
+          "candidate_ns": 14277.718321917808,
+          "latency_change": -0.05162279986545104,
+          "baseline_drift": 0.0025661564179069174,
+          "candidate_drift": 0.00022156216317958943,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/8x4/1048576",
+          "baseline_ns": 549867.6858193278,
+          "candidate_ns": 537073.9589285714,
+          "latency_change": -0.02326691897104871,
+          "baseline_drift": 0.021979109151408327,
+          "candidate_drift": 0.0009726103764359229,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/6x3/1024",
+          "baseline_ns": 363.3636095097393,
+          "candidate_ns": 362.00776985205175,
+          "latency_change": -0.0037313578525843827,
+          "baseline_drift": 0.0015229621240027136,
+          "candidate_drift": 0.007400592173814946,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/6x3/32768",
+          "baseline_ns": 8281.873679262291,
+          "candidate_ns": 8109.233236907909,
+          "latency_change": -0.020845577829407436,
+          "baseline_drift": 0.0013890886636062083,
+          "candidate_drift": 0.00017776357251420016,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/6x3/1048576",
+          "baseline_ns": 274117.9048913043,
+          "candidate_ns": 266132.15228873235,
+          "latency_change": -0.029132546470244436,
+          "baseline_drift": 0.0019559191017777255,
+          "candidate_drift": 0.0055371991088464245,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/4x2/1024",
+          "baseline_ns": 224.87386081425737,
+          "candidate_ns": 232.674498785433,
+          "latency_change": 0.034688949364456656,
+          "baseline_drift": 0.000523064835290743,
+          "candidate_drift": 0.01119108362605914,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/4x2/32768",
+          "baseline_ns": 3970.2928903267916,
+          "candidate_ns": 3932.8231714797603,
+          "latency_change": -0.009437520072718697,
+          "baseline_drift": 0.0075515284712894815,
+          "candidate_drift": 0.0007642008135526623,
+          "gate_passed": true
+        },
+        {
+          "case_id": "encode.serial/4x2/1048576",
+          "baseline_ns": 122714.49509803922,
+          "candidate_ns": 121980.58725649351,
+          "latency_change": -0.005980612485585901,
+          "baseline_drift": 0.0007448230882113327,
+          "candidate_drift": 0.0008236753535273422,
+          "gate_passed": true
+        }
+      ]
+    }
+  ]
+}
