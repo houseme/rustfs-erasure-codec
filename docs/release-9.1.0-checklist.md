@@ -1,8 +1,9 @@
 # 9.1.0 release preparation
 
 Status: **prepared candidate, not tagged or uploaded**. Main review base is
-`26c1051`; [review and validation](erasure-codec-main-review-2026-10-18.md) records
-the justified refactor and its limits. CHANGELOG's 2026-10-18 date is the prepared
+`500444a` after the PR #8 rebase merge (initial review base `26c1051`);
+[review and validation](erasure-codec-main-review-2026-10-18.md) records
+the justified recovery and follow-up stream refactors and their limits. CHANGELOG's 2026-10-18 date is the prepared
 release date, not evidence of registry publication.
 
 ## Version and API boundary
@@ -22,7 +23,7 @@ release date, not evidence of registry publication.
 
 ## Executed candidate checks
 
-Workspace 498 / no_std297 tests, focused 15 regressions, all-feature Clippy,
+Workspace 500 / no_std297 tests, focused 43 release regressions, all-feature Clippy,
 wasm32 and 79 Python gate tests pass locally. The independent published-version
 probe passes all 200 non-fast byte/roundtrip cases. Original-main release tests
 reproduce the allocation defect; candidate budgets pass. Formatting, actionlint

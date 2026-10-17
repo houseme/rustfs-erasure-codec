@@ -1,0 +1,145 @@
+{
+  "schema_version": 1,
+  "review_base": "500444a84ce9178c473aea18634218cf643c8f1b",
+  "review_started_at": "26c10518f1fc8b4032a3f64886987bd6b9b66482",
+  "candidate_parent_tree_equivalent_to": "bc25be0c2ef4b5510043fe91422f36aa2b4419e5",
+  "finding": "stream prefix view collections and independent read-length arrays",
+  "issue_record": "https://github.com/rustfs/backlog/issues/2708#issuecomment-6237599194",
+  "profile": "release",
+  "compiler": "Rust 1.99.1 stable",
+  "local_platform": "macOS ARM64",
+  "features": [
+    "std",
+    "simd-accel",
+    "benchmark-metrics"
+  ],
+  "allocation_scope": {
+    "io_mode": "Serial",
+    "block_size_bytes": 1024,
+    "sample_blocks": [
+      1,
+      5
+    ],
+    "counter": "current-thread alloc, alloc_zeroed and realloc requests",
+    "input_and_output_storage": "outside measured scope",
+    "dispatch": "warmed before comparison",
+    "baseline": "original main 26c1051 production source/manifests verified byte-for-byte; final tests only overlaid",
+    "baseline_focused_result": {
+      "passed": 0,
+      "failed": 2
+    },
+    "candidate_stream_result": {
+      "passed": 11,
+      "failed": 0
+    },
+    "rows": [
+      {
+        "operation": "encode_stream",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "baseline_one_block": 9,
+        "baseline_five_blocks": 9,
+        "candidate_one_block": 8,
+        "candidate_five_blocks": 8,
+        "permitted_four_block_coefficient_growth": 0
+      },
+      {
+        "operation": "encode_stream",
+        "data_shards": 33,
+        "parity_shards": 2,
+        "baseline_one_block": 39,
+        "baseline_five_blocks": 43,
+        "candidate_one_block": 37,
+        "candidate_five_blocks": 37,
+        "permitted_four_block_coefficient_growth": 0
+      },
+      {
+        "operation": "encode_stream",
+        "data_shards": 2,
+        "parity_shards": 33,
+        "baseline_one_block": 40,
+        "baseline_five_blocks": 48,
+        "candidate_one_block": 38,
+        "candidate_five_blocks": 42,
+        "permitted_four_block_coefficient_growth": 4
+      },
+      {
+        "operation": "encode_stream",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "baseline_one_block": 72,
+        "baseline_five_blocks": 84,
+        "candidate_one_block": 69,
+        "candidate_five_blocks": 73,
+        "permitted_four_block_coefficient_growth": 4
+      },
+      {
+        "operation": "verify_stream",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "baseline_one_block": 11,
+        "baseline_five_blocks": 11,
+        "candidate_one_block": 10,
+        "candidate_five_blocks": 10,
+        "permitted_four_block_coefficient_growth": 0
+      },
+      {
+        "operation": "verify_stream",
+        "data_shards": 33,
+        "parity_shards": 2,
+        "baseline_one_block": 41,
+        "baseline_five_blocks": 45,
+        "candidate_one_block": 39,
+        "candidate_five_blocks": 39,
+        "permitted_four_block_coefficient_growth": 0
+      },
+      {
+        "operation": "verify_stream",
+        "data_shards": 2,
+        "parity_shards": 33,
+        "baseline_one_block": 73,
+        "baseline_five_blocks": 81,
+        "candidate_one_block": 71,
+        "candidate_five_blocks": 75,
+        "permitted_four_block_coefficient_growth": 4
+      },
+      {
+        "operation": "verify_stream",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "baseline_one_block": 104,
+        "baseline_five_blocks": 112,
+        "candidate_one_block": 102,
+        "candidate_five_blocks": 106,
+        "permitted_four_block_coefficient_growth": 4
+      }
+    ]
+  },
+  "source_sha256": {
+    "src/core/stream.rs": "90cbfb09fd2c8e3d2660c2b7a5eda30f3b76105de7c6dc0b95385591952dd658",
+    "tests/stream_reuse_regressions.rs": "ca27424794f12b0cb1baca3f25cf577327af00937b19dc35fdbc40305751b132"
+  },
+  "validation": {
+    "workspace": {
+      "passed": 500,
+      "failed": 0,
+      "ignored": 43,
+      "core_passed": 493,
+      "wasm_rust_passed": 7,
+      "nested_summaries_excluded": 5
+    },
+    "no_std_simd": {
+      "passed": 297,
+      "failed": 0,
+      "ignored": 20
+    },
+    "focused_release_passed": 43,
+    "published_9_0_0_non_fast_cases": 200,
+    "all_target_all_feature_clippy": "passed",
+    "wasm32_check": "passed",
+    "wide_padding_tail_serial_parallel": "passed"
+  },
+  "new_latency_or_throughput_attribution": false,
+  "prior_full_66_case_campaign": "still rejected; no selected-case timing rerun",
+  "remaining_generic_coefficient_row_views": "retained for existing contiguous kernel API"
+}
