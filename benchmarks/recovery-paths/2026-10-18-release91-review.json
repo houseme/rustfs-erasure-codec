@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "review_base": "26c10518f1fc8b4032a3f64886987bd6b9b66482",
+  "runtime_refactor_commit": "1da24f0df6ce5d1a77610d546b1d35147025b860",
+  "version": "9.1.0",
+  "compiler": "Rust 1.99.1 stable",
+  "local_platform": "macOS ARM64",
+  "allocation": {
+    "baseline": "26c10518f1fc8b4032a3f64886987bd6b9b66482 plus tests only",
+    "profile": "release",
+    "rustc": "1.99.1",
+    "baseline_data_requests": 6,
+    "candidate_data_maximum": 5,
+    "baseline_selective_requests": 7,
+    "candidate_selective_maximum": 6,
+    "full_recovery_budget": 7,
+    "exact_bytes_presence_and_unrequested_poison": "passed",
+    "scope": "allocation behavior, no latency attribution"
+  },
+  "published_version_compatibility": {
+    "baseline": "published crates.io 9.0.0",
+    "candidate": "9.1.0",
+    "cases_per_version": 200,
+    "baseline_valid_cases": 200,
+    "baseline_rejected_or_inconsistent": [],
+    "valid_parity_or_roundtrip_mismatches": [],
+    "fast_one_parity": false,
+    "fields": [
+      "built-in GF8",
+      "tower GF16"
+    ],
+    "scope": "functional byte compatibility, not latency or throughput"
+  },
+  "workspace_tests": {
+    "passed": 498,
+    "failed": 0,
+    "ignored": 43,
+    "core_passed": 491,
+    "wasm_rust_passed": 7,
+    "nested_summaries_excluded": 5
+  },
+  "core_no_std_simd": {
+    "passed": 297,
+    "failed": 0,
+    "ignored": 20
+  },
+  "focused_classic_regressions": 15,
+  "all_features_clippy": "passed",
+  "wasm32_check": "passed",
+  "python_gate_tests": 79,
+  "new_throughput_attribution": false
+}

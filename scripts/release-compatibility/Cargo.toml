@@ -1,0 +1,11 @@
+[package]
+name = "rse-release-compatibility"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[dependencies]
+codec_old = { package = "rustfs-erasure-codec", version = "=9.0.0", features = ["simd-accel"] }
+codec_new = { package = "rustfs-erasure-codec", version = "=9.1.0", path = "../..", features = ["simd-accel"] }

@@ -11,7 +11,7 @@
 
 `rustfs-erasure-codec` 是一个 Rust 2024 Reed-Solomon 纠删码库，覆盖内存分片、定向恢复、渐进式恢复以及按块流式处理场景。
 
-当前 `9.0.0` 主线提供：
+当前 `9.1.0` 主线提供：
 
 - Classic `GF(2^8)` 与 `GF(2^16)` Reed-Solomon
 - Leopard GF8 与 Leopard GF16 编解码器族
@@ -29,26 +29,26 @@ WASM 绑定见 [wasm/README.md](wasm/README.md)。
 
 ```toml
 [dependencies]
-rustfs-erasure-codec = "9.0.0"
+rustfs-erasure-codec = "9.1.0"
 ```
 
 启用全部支持的 SIMD 后端：
 
 ```toml
 [dependencies]
-rustfs-erasure-codec = { version = "9.0.0", features = ["simd-accel"] }
+rustfs-erasure-codec = { version = "9.1.0", features = ["simd-accel"] }
 ```
 
 也可以只启用部署平台需要的后端：
 
 ```toml
 [dependencies]
-rustfs-erasure-codec = { version = "9.0.0", features = ["simd-neon"] }   # aarch64
-# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-ssse3"] } # x86_64
-# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-avx2"] }  # x86_64
-# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-avx512"] }# x86_64
-# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-gfni"] }  # x86_64
-# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-vsx"] }   # powerpc64
+rustfs-erasure-codec = { version = "9.1.0", features = ["simd-neon"] }   # aarch64
+# rustfs-erasure-codec = { version = "9.1.0", features = ["simd-ssse3"] } # x86_64
+# rustfs-erasure-codec = { version = "9.1.0", features = ["simd-avx2"] }  # x86_64
+# rustfs-erasure-codec = { version = "9.1.0", features = ["simd-avx512"] }# x86_64
+# rustfs-erasure-codec = { version = "9.1.0", features = ["simd-gfni"] }  # x86_64
+# rustfs-erasure-codec = { version = "9.1.0", features = ["simd-vsx"] }   # powerpc64
 ```
 
 运行时后端分发带有保护；目标 CPU 不支持的 ISA 会安全回退到标量路径。

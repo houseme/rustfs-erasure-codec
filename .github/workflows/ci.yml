@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - houseme/erasure-codec-review-fixes
+      - houseme/release-*
       - main
       - 'feature/**'
       - 'refactor/**'
@@ -86,6 +87,9 @@ jobs:
           python3 scripts/check_release_manifest.py
           python3 -m unittest discover -s scripts/tests -p 'test_*.py'
           bash -n scripts/release-check.sh
+
+      - name: Compare with published 9.0.0 encoding
+        run: cargo run --locked --quiet --manifest-path scripts/release-compatibility/Cargo.toml --target-dir target
 
       - name: Verify the actual distributable without uploading
         run: cargo publish --dry-run --locked --registry crates-io --package rustfs-erasure-codec

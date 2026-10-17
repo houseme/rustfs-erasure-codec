@@ -13,7 +13,7 @@ English | [Chinese](README_CN.md)
 memory-resident shards, targeted recovery, progressive recovery, and block-based
 streaming workloads.
 
-The current `9.0.0` line provides:
+The current `9.1.0` line provides:
 
 - classic Reed-Solomon over `GF(2^8)` and `GF(2^16)`
 - Leopard GF8 and Leopard GF16 codec families
@@ -31,26 +31,26 @@ Default `std` build:
 
 ```toml
 [dependencies]
-rustfs-erasure-codec = "9.0.0"
+rustfs-erasure-codec = "9.1.0"
 ```
 
 Enable all supported SIMD backends:
 
 ```toml
 [dependencies]
-rustfs-erasure-codec = { version = "9.0.0", features = ["simd-accel"] }
+rustfs-erasure-codec = { version = "9.1.0", features = ["simd-accel"] }
 ```
 
 Enable only the backend family you deploy:
 
 ```toml
 [dependencies]
-rustfs-erasure-codec = { version = "9.0.0", features = ["simd-neon"] }   # aarch64
-# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-ssse3"] } # x86_64
-# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-avx2"] }  # x86_64
-# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-avx512"] }# x86_64
-# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-gfni"] }  # x86_64
-# rustfs-erasure-codec = { version = "9.0.0", features = ["simd-vsx"] }   # powerpc64
+rustfs-erasure-codec = { version = "9.1.0", features = ["simd-neon"] }   # aarch64
+# rustfs-erasure-codec = { version = "9.1.0", features = ["simd-ssse3"] } # x86_64
+# rustfs-erasure-codec = { version = "9.1.0", features = ["simd-avx2"] }  # x86_64
+# rustfs-erasure-codec = { version = "9.1.0", features = ["simd-avx512"] }# x86_64
+# rustfs-erasure-codec = { version = "9.1.0", features = ["simd-gfni"] }  # x86_64
+# rustfs-erasure-codec = { version = "9.1.0", features = ["simd-vsx"] }   # powerpc64
 ```
 
 Runtime dispatch is guarded. Unsupported ISAs fall back to scalar execution.
