@@ -57,7 +57,7 @@ impl ClassicShardLengths {
 }
 
 /// Validated, immutable erasure layout shared by all Classic entry points.
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub(crate) struct ClassicReconstructShape {
     pub(crate) shard_len: usize,
     pub(crate) number_present: usize,
@@ -86,6 +86,18 @@ pub(crate) struct ClassicReconstructPlan<F: Field> {
 }
 
 impl<F: Field> ClassicReconstructPlan<F> {
+    fn new(shape: ClassicReconstructShape, goal: ReconstructionGoal<'_>) -> Self {
+        Self {
+            shape,
+            data_targets: SmallVec::new(),
+            parity_targets: SmallVec::new(),
+            data_only: matches!(goal, ReconstructionGoal::Data),
+            direct_parity: false,
+            decode_matrix: None,
+            parity_decode_rows: SmallVec::new(),
+        }
+    }
+
     pub(crate) fn has_outputs(&self) -> bool {
         !self.data_targets.is_empty() || !self.parity_targets.is_empty()
     }
@@ -173,8 +185,16 @@ impl<F: Field> ReedSolomon<F> {
             );
             return Ok(());
         };
-        let shape = self.classic_reconstruct_shape_from_suffix(lengths, state, first_missing)?;
-        let plan = self.prepare_classic_reconstruct_plan(shape, goal)?;
+        // Build the scoped plan in its final storage. Returning large owned
+        // shapes/plans through Result needlessly moves their inline metadata.
+        let mut plan = ClassicReconstructPlan::new(ClassicReconstructShape::default(), goal);
+        self.fill_classic_reconstruct_shape_from_suffix(
+            &mut plan.shape,
+            lengths,
+            state,
+            first_missing,
+        )?;
+        self.fill_classic_reconstruct_plan(&mut plan, goal)?;
         execute(shards, &plan)
     }
 
@@ -186,7 +206,14 @@ impl<F: Field> ReedSolomon<F> {
         let mut lengths = lengths.enumerate();
         let mut state = ClassicShardLengths::default();
         if let Some(first_missing) = state.scan_present_prefix(&mut lengths)? {
-            self.classic_reconstruct_shape_from_suffix(lengths, state, first_missing)
+            let mut shape = ClassicReconstructShape::default();
+            self.fill_classic_reconstruct_shape_from_suffix(
+                &mut shape,
+                lengths,
+                state,
+                first_missing,
+            )?;
+            Ok(shape)
         } else {
             // Explicit workspace preparation still needs a shape for later
             // layout validation, but an all-present shape needs no index storage.
@@ -199,18 +226,17 @@ impl<F: Field> ReedSolomon<F> {
         }
     }
 
-    fn classic_reconstruct_shape_from_suffix(
+    /// Fill a fresh shape without returning its inline index buffers by value.
+    fn fill_classic_reconstruct_shape_from_suffix(
         &self,
+        shape: &mut ClassicReconstructShape,
         lengths: impl Iterator<Item = (usize, Option<usize>)>,
         mut state: ClassicShardLengths,
         first_missing: usize,
-    ) -> Result<ClassicReconstructShape, Error> {
-        let mut shape = ClassicReconstructShape {
-            shard_len: 0,
-            number_present: 0,
-            valid_indices: (0..first_missing.min(self.data_shard_count())).collect(),
-            invalid_indices: SmallVec::new(),
-        };
+    ) -> Result<(), Error> {
+        shape
+            .valid_indices
+            .extend(0..first_missing.min(self.data_shard_count()));
         shape.invalid_indices.push(first_missing);
         // Do not decide quorum or initialize destinations until every remaining
         // present length has been checked, even if too many erasures are known.
@@ -225,7 +251,7 @@ impl<F: Field> ReedSolomon<F> {
         }
         shape.shard_len = state.shard_len;
         shape.number_present = state.number_present;
-        Ok(shape)
+        Ok(())
     }
 
     /// Reusing a plan validates the layout without allocating new index lists.
@@ -257,6 +283,19 @@ impl<F: Field> ReedSolomon<F> {
         shape: ClassicReconstructShape,
         goal: ReconstructionGoal<'_>,
     ) -> Result<ClassicReconstructPlan<F>, Error> {
+        let mut plan = ClassicReconstructPlan::new(shape, goal);
+        self.fill_classic_reconstruct_plan(&mut plan, goal)?;
+        Ok(plan)
+    }
+
+    /// Complete a fresh plan before any caller can initialize destinations.
+    /// Workspaces own the result; scoped calls keep it in its execution frame.
+    fn fill_classic_reconstruct_plan(
+        &self,
+        plan: &mut ClassicReconstructPlan<F>,
+        goal: ReconstructionGoal<'_>,
+    ) -> Result<(), Error> {
+        let shape = &plan.shape;
         if shape.number_present < self.data_shard_count() {
             return Err(Error::TooFewShardsPresent);
         }
@@ -276,34 +315,36 @@ impl<F: Field> ReedSolomon<F> {
         let (missing_data, missing_parity) = shape
             .invalid_indices
             .split_at(shape.missing_data_count(self.data_shard_count()));
-        let data_targets: SmallVec<[usize; 32]> = missing_data
-            .iter()
-            .copied()
-            .filter(|&index| selected(index))
-            .collect();
-        let parity_targets: SmallVec<[usize; 32]> = missing_parity
-            .iter()
-            .copied()
-            .filter(|&index| selected(index))
-            .collect();
+        plan.data_targets.extend(
+            missing_data
+                .iter()
+                .copied()
+                .filter(|&index| selected(index)),
+        );
+        plan.parity_targets.extend(
+            missing_parity
+                .iter()
+                .copied()
+                .filter(|&index| selected(index)),
+        );
         // Selecting requested missing outputs first makes an empty request a
         // validated no-op even when the unused survivor matrix is singular.
-        let needs_inverse =
-            !missing_data.is_empty() && (!data_targets.is_empty() || !parity_targets.is_empty());
-        let decode_matrix = if needs_inverse {
+        let needs_inverse = !missing_data.is_empty()
+            && (!plan.data_targets.is_empty() || !plan.parity_targets.is_empty());
+        plan.decode_matrix = if needs_inverse {
             Some(self.get_data_decode_matrix(&shape.valid_indices, &shape.invalid_indices)?)
         } else {
             None
         };
-        let direct_parity = matches!(goal, ReconstructionGoal::Required(_))
+        plan.direct_parity = matches!(goal, ReconstructionGoal::Required(_))
             && !missing_data.is_empty()
-            && !parity_targets.is_empty();
-        let mut parity_decode_rows = SmallVec::new();
-        if direct_parity {
-            let inverse = decode_matrix
+            && !plan.parity_targets.is_empty();
+        if plan.direct_parity {
+            let inverse = plan
+                .decode_matrix
                 .as_ref()
                 .expect("missing data needs an inverse");
-            for &index in &parity_targets {
+            for &index in &plan.parity_targets {
                 let parity = self.encoding_format().matrix().get_row(index);
                 let row = (0..self.data_shard_count())
                     .map(|column| {
@@ -315,17 +356,9 @@ impl<F: Field> ReedSolomon<F> {
                         )
                     })
                     .collect();
-                parity_decode_rows.push(row);
+                plan.parity_decode_rows.push(row);
             }
         }
-        Ok(ClassicReconstructPlan {
-            shape,
-            data_targets,
-            parity_targets,
-            data_only: matches!(goal, ReconstructionGoal::Data),
-            direct_parity,
-            decode_matrix,
-            parity_decode_rows,
-        })
+        Ok(())
     }
 }
