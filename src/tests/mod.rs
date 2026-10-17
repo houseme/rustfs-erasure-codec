@@ -2086,13 +2086,24 @@ fn test_aarch64_reconstruct_stage_policies_allow_data_parity_split() {
 
 #[cfg(all(feature = "std", not(target_arch = "aarch64")))]
 #[test]
-fn test_reconstruct_parallel_policy_default_arch_stays_on_default_chunk() {
+fn test_reconstruct_parallel_policy_default_arch_respects_cache_budget() {
     let _policy_env = lock_policy_env();
-    let r = ReedSolomon::new(10, 4).unwrap();
-    let decision = r.reconstruct_parallel_decision_with(1024 * 1024, 1, 2, false, 8);
+    for (l2_cache_bytes, expected_chunk, expected_jobs) in [
+        (0, 256 * 1024, 4),
+        (1024 * 1024, 87_360, 8),
+        (16 * 1024 * 1024, 256 * 1024, 4),
+    ] {
+        let mut r = ReedSolomon::new(10, 4).unwrap();
+        // Inject only this policy's hardware estimate. The default-architecture
+        // chunk limit must coexist with the active 10+2-shard cache budget,
+        // regardless of the developer or CI host's actual L2 size.
+        r.policy_cache.reconstruct_full_data.l2_cache_bytes = l2_cache_bytes;
+        let decision = r.reconstruct_parallel_decision_with(1024 * 1024, 1, 2, false, 8);
 
-    assert!(decision.use_parallel);
-    assert_eq!(256 * 1024, decision.chunk_len);
+        assert!(decision.use_parallel);
+        assert_eq!(expected_chunk, decision.chunk_len, "L2={l2_cache_bytes}");
+        assert_eq!(expected_jobs, decision.jobs, "L2={l2_cache_bytes}");
+    }
 }
 
 #[cfg(feature = "std")]
