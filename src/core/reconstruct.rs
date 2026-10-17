@@ -142,6 +142,24 @@ impl<F: Field> ReedSolomon<F> {
         })
     }
 
+    fn reconstruct_classic_output<'a, T: ReconstructShard<F>>(
+        &self,
+        destination: &'a mut T,
+        row: &[F::Elem],
+        inputs: &[&[F::Elem]],
+        shard_len: usize,
+    ) -> Result<&'a [F::Elem], Error> {
+        let output = match destination.get_or_initialize(shard_len) {
+            Ok(output) | Err(Ok(output)) => output,
+            Err(Err(error)) => return Err(error),
+        };
+        if output.len() != shard_len {
+            return Err(Error::IncorrectShardSize);
+        }
+        self.code_some_slices(&[row], inputs, &mut [&mut *output]);
+        Ok(output)
+    }
+
     pub(crate) fn execute_classic_plan_serial<T: ReconstructShard<F>>(
         &self,
         shards: &mut [T],
@@ -184,20 +202,31 @@ impl<F: Field> ReedSolomon<F> {
         // each initialized output before touching the next, so a later error
         // never leaves an earlier destination marked present with stale bytes.
         let mut recovered_data: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
+        #[cfg(feature = "std")]
         if !data_destinations.is_empty() {
-            #[cfg(feature = "std")]
             self.runtime_profile_metrics
                 .record_reconstruct_data_stage(plan.shape.shard_len, data_destinations.len());
-            for (destination, row) in data_destinations.iter_mut().zip(data_rows) {
-                let output = match destination.get_or_initialize(plan.shape.shard_len) {
-                    Ok(output) | Err(Ok(output)) => output,
-                    Err(Err(error)) => return Err(error),
-                };
-                if output.len() != plan.shape.shard_len {
-                    return Err(Error::IncorrectShardSize);
-                }
-                self.code_some_slices(&[row], &inputs, &mut [&mut *output]);
-                recovered_data.push(output);
+        }
+        let mut data_outputs =
+            data_destinations
+                .iter_mut()
+                .zip(data_rows)
+                .map(|(destination, row)| {
+                    self.reconstruct_classic_output(
+                        &mut **destination,
+                        row,
+                        &inputs,
+                        plan.shape.shard_len,
+                    )
+                });
+        if plan.direct_parity || parity_destinations.is_empty() {
+            // Data-only and composed parity never read the recovered data again.
+            // Consume the same checked executor without building a view list.
+            data_outputs.try_for_each(|output| output.map(|_| ()))?;
+        } else {
+            // Ordinary mixed recovery uses restored data to encode parity.
+            for output in data_outputs {
+                recovered_data.push(output?);
             }
         }
         if parity_destinations.is_empty() {
@@ -224,14 +253,12 @@ impl<F: Field> ReedSolomon<F> {
             all_data.as_slice()
         };
         for (destination, row) in parity_destinations.iter_mut().zip(plan.parity_rows(self)) {
-            let output = match destination.get_or_initialize(plan.shape.shard_len) {
-                Ok(output) | Err(Ok(output)) => output,
-                Err(Err(error)) => return Err(error),
-            };
-            if output.len() != plan.shape.shard_len {
-                return Err(Error::IncorrectShardSize);
-            }
-            self.code_some_slices(&[row], parity_inputs, &mut [output]);
+            self.reconstruct_classic_output(
+                &mut **destination,
+                row,
+                parity_inputs,
+                plan.shape.shard_len,
+            )?;
         }
         Ok(())
     }

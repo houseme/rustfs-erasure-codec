@@ -402,6 +402,86 @@ mod allocation_regressions {
         }
     }
 
+    #[derive(Clone, Copy)]
+    enum WideRecovery {
+        Data,
+        Selective,
+        All,
+    }
+
+    fn check_wide_recovery(mode: WideRecovery, allocation_budget: usize) {
+        let parity = if matches!(mode, WideRecovery::Data) {
+            40
+        } else {
+            48
+        };
+        let codec = ReedSolomon::with_options(
+            64,
+            parity,
+            CodecOptions::builder()
+                .codec_family(rustfs_erasure_codec::CodecFamily::Classic)
+                .build(),
+        )
+        .unwrap();
+        let original = encoded(&codec, 65);
+        let mut slots: Vec<_> = original
+            .iter()
+            .map(|shard| ShardSlot::new_present(shard.clone().unwrap()))
+            .collect();
+        let mut required = vec![false; codec.total_shard_count()];
+        required[..33].fill(true);
+        required[64] = true;
+        for measured in [false, true] {
+            for slot in &mut slots[..40] {
+                slot.mark_missing();
+                slot.as_inner_mut().fill(0xa5);
+            }
+            if !matches!(mode, WideRecovery::Data) {
+                slots[64].mark_missing();
+                slots[64].as_inner_mut().fill(0xa5);
+            }
+            let mut recover = || match mode {
+                WideRecovery::Data => codec.reconstruct_data(&mut slots),
+                WideRecovery::Selective => codec.reconstruct_some(&mut slots, &required),
+                WideRecovery::All => codec.reconstruct(&mut slots),
+            };
+            let calls = if measured {
+                allocation_calls(|| recover().unwrap())
+            } else {
+                recover().unwrap();
+                0
+            };
+            for (index, (slot, expected)) in slots.iter().zip(&original).enumerate() {
+                if matches!(mode, WideRecovery::Selective) && (33..40).contains(&index) {
+                    assert!(!slot.is_present());
+                    assert!(slot.as_inner().iter().all(|&value| value == 0xa5));
+                } else {
+                    assert!(slot.is_present());
+                    assert_eq!(slot.as_inner(), expected.as_ref().unwrap());
+                }
+            }
+            assert!(
+                calls <= allocation_budget,
+                "unneeded recovered-data views: {calls} requests, budget {allocation_budget}"
+            );
+        }
+    }
+
+    #[test]
+    fn wide_recovery_data_only_does_not_retain_unused_output_views() {
+        check_wide_recovery(WideRecovery::Data, 5);
+    }
+
+    #[test]
+    fn wide_recovery_selective_parity_uses_original_survivors_without_retaining_data_views() {
+        check_wide_recovery(WideRecovery::Selective, 6);
+    }
+
+    #[test]
+    fn wide_recovery_full_parity_keeps_its_required_data_views() {
+        check_wide_recovery(WideRecovery::All, 7);
+    }
+
     #[test]
     fn complete_layouts_do_not_allocate_recovery_metadata() {
         for (data, parity) in [(10, 4), (40, 8), (128, 64)] {
