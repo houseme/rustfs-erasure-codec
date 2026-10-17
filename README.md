@@ -121,7 +121,7 @@ rs.reconstruct_opt_with_workspace(&mut missing, &workspace).unwrap();
 | Targeted recovery | `reconstruct_some`, `reconstruct_some_opt` |
 | Progressive recovery | `decode_idx` |
 | Incremental encoding | `ShardByShard` |
-| Streaming | `stream::encode_stream`, `stream::verify_stream`, `stream::reconstruct_stream` |
+| Streaming | `stream::encode_stream`, `stream::verify_stream`, `stream::reconstruct_stream`, `reconstruct_stream_from` |
 
 ## Codec Families
 
@@ -227,17 +227,24 @@ Main entry points:
 
 - `encode_stream(...)`
 - `verify_stream(...)`
-- `reconstruct_stream(...)`
+- `reconstruct_stream_from(...)`: independent `Option<Read>` / `Option<Write>` endpoints
+- `reconstruct_stream(...)`: compatible `Cursor<Vec<u8>>` adapter
 
 Current scope:
 
 - implemented on the Classic `galois_8` path
 - tuned for block-based processing via `StreamOptions`
-- validates shard counts, block sizes, and equal present-shard lengths up front
+- validates endpoint layout and recoverability before I/O, then equal input lengths before writing each block
 - rejects Leopard-family codecs with `UnsupportedCodecFamily`
 
-Use this path when data should be processed in bounded blocks instead of holding
-the full shard matrix in memory.
+Use `reconstruct_stream_from` for bounded-memory recovery from files or other
+non-Seek streams. Both arrays contain one slot per shard: `Some(reader)` means
+present and requires `None` writer; missing input is `None` with a `Some(writer)`.
+At least the data-shard count must be present, including for an empty dataset.
+Readers and writers start at their current positions; short I/O and interruptions
+are handled. Completed output can remain after an error, and writers are not
+flushed automatically. The Cursor adapter retains its older empty-Vec presence
+inference and in-memory output behavior. See the [completion audit and example](docs/erasure-codec-completion-audit-2026-10-17.md).
 
 ## Runtime Backend Control
 

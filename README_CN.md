@@ -117,7 +117,7 @@ rs.reconstruct_opt_with_workspace(&mut missing, &workspace).unwrap();
 | 定向恢复 | `reconstruct_some`, `reconstruct_some_opt` |
 | 渐进式恢复 | `decode_idx` |
 | 增量编码 | `ShardByShard` |
-| 流式处理 | `stream::encode_stream`, `stream::verify_stream`, `stream::reconstruct_stream` |
+| 流式处理 | `stream::encode_stream`, `stream::verify_stream`, `stream::reconstruct_stream`, `reconstruct_stream_from` |
 
 ## 编解码器族
 
@@ -215,16 +215,20 @@ assert!(slots[5].is_present());
 
 - `encode_stream(...)`
 - `verify_stream(...)`
-- `reconstruct_stream(...)`
+- `reconstruct_stream_from(...)`：独立 `Option<Read>` / `Option<Write>` 输入输出
+- `reconstruct_stream(...)`：兼容原有 `Cursor<Vec<u8>>` 调用
 
 当前范围：
 
 - 实现在 Classic `galois_8` 路径上
 - 通过 `StreamOptions` 做按块处理
-- 入口会提前校验分片数量、块大小和 present 分片长度一致性
+- I/O 前校验端点布局和可恢复性，每块写入前校验输入长度一致性
 - Leopard-family 编解码器会返回 `UnsupportedCodecFamily`
 
-当数据不适合整组分片常驻内存时，优先考虑这个路径。
+对文件及其他非 Seek 外部流，使用 `reconstruct_stream_from` 做有界内存恢复。
+两个数组各有 total-shards 个槽：`Some(reader)` 明确表示存在且对应 writer 必须为 `None`；缺失位置用 `None` reader 和 `Some(writer)`。
+即使为空数据集，也必须有至少 data-shards 个存在的 reader。接口从当前读写位置推进，处理短读写及中断；失败后可能保留已写前缀，不自动 flush。
+旧 Cursor 接口仍以空 Vec 推断缺失，输出仍驻留内存。详见[本轮核查及示例](docs/erasure-codec-completion-audit-2026-10-17.md)。
 
 ## 运行时后端控制
 
