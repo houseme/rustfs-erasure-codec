@@ -9,19 +9,6 @@
 ))]
 include!(concat!(env!("OUT_DIR"), "/codegen_encode.rs"));
 
-#[cfg(not(all(
-    feature = "simd-neon",
-    target_arch = "aarch64",
-    not(target_env = "msvc"),
-    not(any(target_os = "android", target_os = "ios"))
-)))]
-pub(crate) fn select_encode_kernel_neon(
-    _data_shard_count: usize,
-    _parity_shard_count: usize,
-) -> Option<crate::galois_8::codegen::SelectedEncodeKernel> {
-    None
-}
-
 #[cfg(all(test, rse_aarch64_neon))]
 mod tests {
     extern crate alloc;

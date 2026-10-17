@@ -9,19 +9,6 @@
 ))]
 include!(concat!(env!("OUT_DIR"), "/codegen_encode.rs"));
 
-#[cfg(not(all(
-    feature = "simd-avx2",
-    target_arch = "x86_64",
-    not(target_env = "msvc"),
-    not(any(target_os = "android", target_os = "ios"))
-)))]
-pub(crate) fn select_encode_kernel_avx2(
-    _data_shard_count: usize,
-    _parity_shard_count: usize,
-) -> Option<crate::galois_8::codegen::SelectedEncodeKernel> {
-    None
-}
-
 #[inline]
 #[cfg(all(feature = "std", target_arch = "x86_64", test))]
 fn avx2_codegen_available() -> bool {

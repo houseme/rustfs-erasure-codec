@@ -71,6 +71,12 @@ impl FlatWork {
         self.lanes == lanes && self.lane_len == lane_len
     }
 
+    #[cfg(feature = "std")]
+    pub(super) fn allocated_bytes(&self) -> usize {
+        // This is the allocation Layout's size; alignment adds no lane padding.
+        self.len
+    }
+
     pub(super) fn lanes(&self) -> usize {
         self.lanes
     }

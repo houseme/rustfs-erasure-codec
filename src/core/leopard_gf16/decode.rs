@@ -234,8 +234,9 @@ fn decode_plan_for(
     use std::sync::OnceLock;
 
     type Key = (usize, usize, SmallVec<[bool; 256]>);
-    // A handful of distinct erasure patterns per configuration is typical; each
-    // entry is ~128 KiB (the 65536-element error locator).
+    // Bound the entry count, not total bytes: each error locator alone is
+    // 128 KiB, with additional shape-dependent FFT schedules and an owned key.
+    // A handful of erasure patterns per configuration is typical.
     const CACHE_CAPACITY: usize = 16;
     static CACHE: OnceLock<Mutex<LruCache<Key, Arc<LeopardGf16DecodePlan>>>> = OnceLock::new();
 
