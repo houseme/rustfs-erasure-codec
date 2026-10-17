@@ -41,7 +41,7 @@
         "baseline_five_blocks": 9,
         "candidate_one_block": 8,
         "candidate_five_blocks": 8,
-        "permitted_four_block_coefficient_growth": 0
+        "permitted_four_direct_codec_requests": 0
       },
       {
         "operation": "encode_stream",
@@ -51,7 +51,7 @@
         "baseline_five_blocks": 43,
         "candidate_one_block": 37,
         "candidate_five_blocks": 37,
-        "permitted_four_block_coefficient_growth": 0
+        "permitted_four_direct_codec_requests": 0
       },
       {
         "operation": "encode_stream",
@@ -61,7 +61,7 @@
         "baseline_five_blocks": 48,
         "candidate_one_block": 38,
         "candidate_five_blocks": 42,
-        "permitted_four_block_coefficient_growth": 4
+        "permitted_four_direct_codec_requests": 4
       },
       {
         "operation": "encode_stream",
@@ -71,7 +71,7 @@
         "baseline_five_blocks": 84,
         "candidate_one_block": 69,
         "candidate_five_blocks": 73,
-        "permitted_four_block_coefficient_growth": 4
+        "permitted_four_direct_codec_requests": 4
       },
       {
         "operation": "verify_stream",
@@ -81,7 +81,7 @@
         "baseline_five_blocks": 11,
         "candidate_one_block": 10,
         "candidate_five_blocks": 10,
-        "permitted_four_block_coefficient_growth": 0
+        "permitted_four_direct_codec_requests": 0
       },
       {
         "operation": "verify_stream",
@@ -91,7 +91,7 @@
         "baseline_five_blocks": 45,
         "candidate_one_block": 39,
         "candidate_five_blocks": 39,
-        "permitted_four_block_coefficient_growth": 0
+        "permitted_four_direct_codec_requests": 0
       },
       {
         "operation": "verify_stream",
@@ -101,7 +101,7 @@
         "baseline_five_blocks": 81,
         "candidate_one_block": 71,
         "candidate_five_blocks": 75,
-        "permitted_four_block_coefficient_growth": 4
+        "permitted_four_direct_codec_requests": 4
       },
       {
         "operation": "verify_stream",
@@ -111,13 +111,14 @@
         "baseline_five_blocks": 112,
         "candidate_one_block": 102,
         "candidate_five_blocks": 106,
-        "permitted_four_block_coefficient_growth": 4
+        "permitted_four_direct_codec_requests": 4
       }
-    ]
+    ],
+    "direct_control": "four matching encode_sep_opt / verify_with_buffer_opt calls with prepared buffers; includes platform/debug dispatch and coefficient-row allocations"
   },
   "source_sha256": {
     "src/core/stream.rs": "90cbfb09fd2c8e3d2660c2b7a5eda30f3b76105de7c6dc0b95385591952dd658",
-    "tests/stream_reuse_regressions.rs": "ca27424794f12b0cb1baca3f25cf577327af00937b19dc35fdbc40305751b132"
+    "tests/stream_reuse_regressions.rs": "f54270808114dc7aa5f8379c923587b01c32b9ac7915d935ba99fd37a86ed977"
   },
   "validation": {
     "workspace": {

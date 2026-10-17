@@ -381,13 +381,23 @@ fn stream_encode_avoids_per_block_reference_allocations() {
         measure(1); // Warm dispatch and hardware discovery outside the comparison.
         let single = measure(1);
         let five = measure(5);
-        // The existing generic encoder still collects parity coefficient rows
-        // above 32 outputs. This budget permits those required kernel views,
-        // but never another data/parity reference array for each stream block.
-        let coefficient_requests = if parity > 32 { 4 } else { 0 };
-        counts.push((data, parity, single, five, coefficient_requests));
+        let block = encoded_shards(&codec, BLOCK_SIZE);
+        let mut output = vec![vec![0; BLOCK_SIZE]; parity];
+        codec.encode_sep_opt(&block[..data], &mut output).unwrap();
+        // Match the actual codec path, including platform/debug dispatch and
+        // wide coefficient rows. Only the stream adapter must add no per-block
+        // views. A fixed global-allocation budget would count unrelated Windows
+        // debug runtime allocations as a stream regression.
+        let direct_requests = count_allocations(|| {
+            for _ in 0..4 {
+                codec.encode_sep_opt(&block[..data], &mut output).unwrap();
+            }
+        })
+        .1;
+        assert_eq!(output, block[data..]);
+        counts.push((data, parity, single, five, direct_requests));
     }
-    eprintln!("(data, parity, one block, five blocks, permitted coefficient growth): {counts:?}");
+    eprintln!("(data, parity, one block, five blocks, permitted direct-codec growth): {counts:?}");
     assert!(
         counts
             .iter()
@@ -413,10 +423,18 @@ fn stream_verify_avoids_per_block_reference_allocations() {
         measure(1);
         let single = measure(1);
         let five = measure(5);
-        let coefficient_requests = if parity > 32 { 4 } else { 0 };
-        counts.push((data, parity, single, five, coefficient_requests));
+        let block = encoded_shards(&codec, BLOCK_SIZE);
+        let mut scratch = vec![vec![0; BLOCK_SIZE]; parity];
+        assert!(codec.verify_with_buffer_opt(&block, &mut scratch).unwrap());
+        let direct_requests = count_allocations(|| {
+            for _ in 0..4 {
+                assert!(codec.verify_with_buffer_opt(&block, &mut scratch).unwrap());
+            }
+        })
+        .1;
+        counts.push((data, parity, single, five, direct_requests));
     }
-    eprintln!("(data, parity, one block, five blocks, permitted coefficient growth): {counts:?}");
+    eprintln!("(data, parity, one block, five blocks, permitted direct-codec growth): {counts:?}");
     assert!(
         counts
             .iter()

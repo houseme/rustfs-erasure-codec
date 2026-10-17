@@ -77,8 +77,11 @@ Release allocation requests for 1 / 5 blocks (1 KiB each, serial I/O):
 | Encode | 33+33 | 72 / 84 | 69 / 73 |
 | Verify | 33+33 | 104 / 112 | 102 / 106 |
 
-The wide-parity refactor still permits four extra coefficient-row allocations
-across four extra blocks. Tests enforce a maximum budget and validate all bytes;
+The local release wide-parity case still permits four extra coefficient-row
+allocations across four extra blocks. Tests measure four matching direct codec
+calls as their control, isolating stream adapters from platform/debug dispatch
+allocations (first exposed by Windows CI). They enforce this measured maximum
+budget and validate all bytes;
 they do not claim that every wide codec allocation is eliminated. All eight
 operation/layout rows, including 4+2 and 2+33, are retained in the
 [second-pass evidence](../benchmarks/recovery-paths/2026-10-18-stream-buffer-review.json).
