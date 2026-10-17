@@ -580,7 +580,7 @@ impl crate::ReedSolomon<super::Field> {
             let mut valid_indices =
                 smallvec::SmallVec::<[usize; 32]>::with_capacity(self.data_shard_count());
             let mut invalid_indices =
-                smallvec::SmallVec::<[usize; 32]>::with_capacity(self.total_shard_count());
+                smallvec::SmallVec::<[usize; 32]>::with_capacity(self.parity_shard_count());
 
             for (idx, expected) in expect_input.iter().copied().enumerate() {
                 if expected {

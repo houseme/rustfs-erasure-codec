@@ -1,5 +1,7 @@
 # Task 13: Progressive DecodeIdx for Classic GF(2^8)
 
+Current P2 evaluation and its retained implementation: [2026-10-17 workspace assessment](decode-idx-workspace-evaluation-2026-10-17.md). The existing API receives a measured capacity fix; no new prepared-workspace API or isolated throughput conclusion is claimed.
+
 ## 1. Goal
 
 Add a progressive decode API for the classic GF(2^8) path that allows callers to reconstruct missing shards from

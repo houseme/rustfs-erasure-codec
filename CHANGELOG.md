@@ -25,6 +25,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Changed
+- Reserve progressive DecodeIdx missing-index metadata by parity count, avoiding heap spills for warmed 32+16 batches while preserving existing XOR, mask and error semantics.
 - Limit retained Leopard encoder work plus scratch to 4 MiB per family per thread, checking actual allocation capacity. Oversized calls keep resources local and preserve small warm caches; repeated oversized encodes may allocate again. Remove unused native selector stubs without expanding dispatch.
 - Prepare checked GF8 shard views and select a generated ISA kernel once per encode operation; share serial/parallel setup and never fall back after a kernel writes parity.
 - Use the resolved codec family as the sole algorithm state and one Classic recovery plan across generic, optimized, workspace, and stream entry points.
@@ -68,6 +69,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Added
+- Preserve the DecodeIdx workspace allocation study and all exploratory ABBA samples; keep the simpler capacity correction instead of introducing an API from preparation-excluding, unreserved timing.
 - Add `--strict-provenance` to the benchmark gate, requiring comparable CPU/compiler/build/backend/features/thread budgets and stream I/O metadata, with consistent JSON/CSV aliases and no override for supplied conflicts.
 - Exercise bounded family/matrix/fast/API/error/workspace combinations through a shared deterministic and libFuzzer contract helper; preserve a reusable cross-revision parity probe including wide FFT chunk boundaries.
 - Add explicit-presence `reconstruct_stream_from` for independent non-Seek readers/writers. Share one block recovery engine with the legacy Cursor adapter, retaining plans and buffers and documenting partial-output error semantics.
