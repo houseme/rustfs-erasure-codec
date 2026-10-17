@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "final-metadata-correctness-validation",
+  "source_commit": "9fcae450af8d98c5735e5c84bb42f28f9f018df8",
+  "source_archive_sha256": "4f53b6d06b524073443051933a0dc0fe9250715a257daf84e1a1713ddef6e6b6",
+  "rustc": "1.99.1 (58cf8f9c3 2026-10-13)",
+  "linux_x86_64_native": {
+    "source_commit": "9fcae450af8d98c5735e5c84bb42f28f9f018df8",
+    "features": [
+      "std",
+      "simd-accel",
+      "benchmark-metrics"
+    ],
+    "passed": 490,
+    "failed": 0,
+    "ignored": 43,
+    "scope": "Core library, integration and documentation tests; task-owned source and target",
+    "parent_summary_counting": "Last parent result per test executable; four nested child summaries excluded",
+    "historical_uncorrected_sum": 494
+  },
+  "linux_arm64_docker": {
+    "target": "aarch64-unknown-linux-gnu",
+    "image_tag": "rust:1.99.1-trixie",
+    "scope": "ARM64 Linux VM functional validation; no performance claim",
+    "cpu_quota": 4,
+    "memory_gib": 8,
+    "offline": true,
+    "network": "none",
+    "readonly_source": true,
+    "source_files": 358,
+    "source_unchanged": true,
+    "source_tree_sha256": "7c34a1cdf328c1b2d8a9322de0fcc0466543b1c77782ce09104028f189232e74",
+    "parent_summary_counting": "Last parent result per test executable; spawned child summaries not added",
+    "std_simd_metrics": {
+      "exit": 0,
+      "library": {
+        "status": "ok",
+        "passed": 355,
+        "failed": 0,
+        "ignored": 5,
+        "measured": 0,
+        "filtered": 0
+      },
+      "integration": {
+        "passed": 122,
+        "failed": 0,
+        "ignored": 38,
+        "measured": 0
+      },
+      "doctests": {
+        "status": "ok",
+        "passed": 10,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      "parent_passed_total": 487,
+      "parent_ignored_total": 43,
+      "actual_test_lib_features": [
+        "benchmark-metrics",
+        "default",
+        "parking_lot",
+        "rayon",
+        "simd-accel",
+        "simd-avx2",
+        "simd-avx512",
+        "simd-gfni",
+        "simd-neon",
+        "simd-ssse3",
+        "simd-vsx",
+        "std"
+      ]
+    },
+    "no_std_simd": {
+      "exit": 0,
+      "library": {
+        "status": "ok",
+        "passed": 237,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      "integration": {
+        "passed": 52,
+        "failed": 0,
+        "ignored": 20,
+        "measured": 0
+      },
+      "doctests": {
+        "status": "ok",
+        "passed": 8,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      "parent_passed_total": 297,
+      "parent_ignored_total": 20,
+      "actual_test_lib_features": [
+        "simd-accel",
+        "simd-avx2",
+        "simd-avx512",
+        "simd-gfni",
+        "simd-neon",
+        "simd-ssse3",
+        "simd-vsx"
+      ]
+    },
+    "containers_removed": true
+  },
+  "local_macos_arm64": {
+    "std_simd_metrics_passed": 487,
+    "std_simd_metrics_ignored": 43,
+    "no_std_simd_passed": 297,
+    "no_std_simd_ignored": 20,
+    "classic_recovery_regressions_passed": 11,
+    "native_view_budget_regressions_passed": 3,
+    "workspace_all_features_clippy": "passed with warnings denied"
+  },
+  "real_generated_wasm": {
+    "bindgen_version": "0.2.129",
+    "locked_release_build": "passed",
+    "node_tests_passed": 14,
+    "system_chrome_tests_passed": 8,
+    "default_chromium_ci": "Checked separately for delivery SHA after push; earlier c68c257 passed eight default Chromium tests",
+    "node_suite_composition": {
+      "real_wasm_cases": 12,
+      "numeric_constants_unit": 1,
+      "facade_validation_spy_unit": 1
+    }
+  },
+  "pinned_downstream_release_fixtures": {
+    "consumer_revision": "902c97ce055b1faddb8cd689f0d3a04a0a3e6f35",
+    "codec_revision": "9fcae450af8d98c5735e5c84bb42f28f9f018df8",
+    "passed": 4,
+    "failed": 0,
+    "exit_code": 0,
+    "mode": "release, locked, offline",
+    "source_lock_graph_and_formal_executable_rechecked": true,
+    "historical_85_tests": "bridge22 + erasure59 + fixture4 executed for c68c257, not relabeled as final-source tests"
+  },
+  "final_remote_resource_audit": {
+    "observed_utc": "2026-10-17T08:31:21.938885+00:00",
+    "active_owned_workloads": 0,
+    "both_partitions_removed": true,
+    "controllers_restored": true,
+    "parent_cpu_availability_restored": true,
+    "launcher_affinity_restored_by_each_runner": true
+  }
+}

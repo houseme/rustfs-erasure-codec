@@ -1,0 +1,1579 @@
+{
+  "attribution_allowed": false,
+  "campaign_error": null,
+  "drift_limit": 0.05,
+  "cases": [
+    {
+      "case_id": "classic.construct/10x4/0/missing0+0/block0",
+      "A1_ns": 20347.961001085187,
+      "B1_ns": 20432.472903050108,
+      "B2_ns": 20269.29740680713,
+      "A2_ns": 20148.09526047261,
+      "baseline_drift": 0.009822396484931106,
+      "candidate_drift": 0.007986086511271862,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        11,
+        11,
+        11,
+        11
+      ],
+      "allocated_bytes": [
+        2153,
+        2153,
+        2153,
+        2153
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.construct/128x64/0/missing0+0/block0",
+      "A1_ns": 3964278.55,
+      "B1_ns": 4257036.583333333,
+      "B2_ns": 4379356.625,
+      "A2_ns": 4012284.4625,
+      "baseline_drift": 0.012109621434144735,
+      "candidate_drift": 0.028733612989270574,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        11,
+        11,
+        11,
+        11
+      ],
+      "allocated_bytes": [
+        132445,
+        132445,
+        132445,
+        132445
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.construct/32x16/0/missing0+0/block0",
+      "A1_ns": 89455.68571428572,
+      "B1_ns": 91630.23262195122,
+      "B2_ns": 92072.06587009804,
+      "A2_ns": 84975.04242081448,
+      "baseline_drift": 0.05008785364165724,
+      "candidate_drift": 0.004821915600386362,
+      "drift_passed": false,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        11,
+        11,
+        11,
+        11
+      ],
+      "allocated_bytes": [
+        9565,
+        9565,
+        9565,
+        9565
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_all_present/10x4/65/missing0+0/block0",
+      "A1_ns": 9.116074999033696,
+      "B1_ns": 13.543877915138767,
+      "B2_ns": 13.883317170069498,
+      "A2_ns": 9.188367519354982,
+      "baseline_drift": 0.007930224392509677,
+      "candidate_drift": 0.025062190980865262,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_all_present/128x64/65/missing0+0/block0",
+      "A1_ns": 83.02674704757096,
+      "B1_ns": 146.2006763236997,
+      "B2_ns": 145.22172873761744,
+      "A2_ns": 84.67229172875967,
+      "baseline_drift": 0.019819452642723334,
+      "candidate_drift": 0.006695916945792968,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_all_present/40x8/65/missing0+0/block0",
+      "A1_ns": 21.509806744553146,
+      "B1_ns": 38.51984900233687,
+      "B2_ns": 37.41560751444741,
+      "A2_ns": 21.436255732768256,
+      "baseline_drift": 0.003419417601393082,
+      "candidate_drift": 0.0286668176664574,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_data_opt/10x4/1048576/missing1+0/block0",
+      "A1_ns": 96484.06780205655,
+      "B1_ns": 96622.27699228792,
+      "B2_ns": 96698.50225515464,
+      "A2_ns": 98741.86381578947,
+      "baseline_drift": 0.023400713352643265,
+      "candidate_drift": 0.0007888994674882799,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        2,
+        1,
+        1,
+        2
+      ],
+      "allocated_bytes": [
+        1048600,
+        1048576,
+        1048576,
+        1048600
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_data_opt/10x4/1048576/missing2+0/block0",
+      "A1_ns": 169693.39083710406,
+      "B1_ns": 161960.18265086206,
+      "B2_ns": 161021.88841201717,
+      "A2_ns": 161046.51824034334,
+      "baseline_drift": 0.05095585958949467,
+      "candidate_drift": 0.005793363674252983,
+      "drift_passed": false,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        3,
+        2,
+        2,
+        3
+      ],
+      "allocated_bytes": [
+        2097200,
+        2097152,
+        2097152,
+        2097200
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_data_opt/10x4/32768/missing1+0/block0",
+      "A1_ns": 3160.600136957438,
+      "B1_ns": 3224.7202897927596,
+      "B2_ns": 3250.3723023920957,
+      "A2_ns": 3170.5234084376057,
+      "baseline_drift": 0.0031396795071079175,
+      "candidate_drift": 0.00795480236860624,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "allocated_bytes": [
+        32768,
+        32768,
+        32768,
+        32768
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_data_opt/10x4/32768/missing2+0/block0",
+      "A1_ns": 6320.992078206641,
+      "B1_ns": 7302.358231113707,
+      "B2_ns": 7190.366684240797,
+      "A2_ns": 6416.457378100941,
+      "baseline_drift": 0.015102898202236759,
+      "candidate_drift": 0.015336353453017204,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "allocated_bytes": [
+        65536,
+        65536,
+        65536,
+        65536
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_opt_all_present/10x4/65/missing0+0/block0",
+      "A1_ns": 10.63277333595703,
+      "B1_ns": 14.558438632889024,
+      "B2_ns": 14.802231376137156,
+      "A2_ns": 12.440588582264438,
+      "baseline_drift": 0.17002292715051937,
+      "candidate_drift": 0.016745802856727998,
+      "drift_passed": false,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_opt_all_present/128x64/65/missing0+0/block0",
+      "A1_ns": 110.57678743612351,
+      "B1_ns": 149.64822986336137,
+      "B2_ns": 148.62764011588965,
+      "A2_ns": 112.08231537826981,
+      "baseline_drift": 0.01361522591724773,
+      "candidate_drift": 0.006819925290152629,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_opt_all_present/40x8/65/missing0+0/block0",
+      "A1_ns": 27.281666909170273,
+      "B1_ns": 40.27409839762866,
+      "B2_ns": 38.8702618455804,
+      "A2_ns": 28.983192752041575,
+      "baseline_drift": 0.06236883723183939,
+      "candidate_drift": 0.03485705721300314,
+      "drift_passed": false,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_parity.cached/10x4/1024/missing0+1/block0",
+      "A1_ns": 313.18352520899623,
+      "B1_ns": 321.0496200933179,
+      "B2_ns": 310.406716124493,
+      "A2_ns": 312.76992752112227,
+      "baseline_drift": 0.0013206240257943591,
+      "candidate_drift": 0.033150339706776055,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_parity.cached/32x16/4096/missing0+1/block0",
+      "A1_ns": 1660.0457503320054,
+      "B1_ns": 1653.1233634560283,
+      "B2_ns": 1695.8382512549179,
+      "A2_ns": 1654.1887461402735,
+      "baseline_drift": 0.0035282185388929577,
+      "candidate_drift": 0.025838899106470636,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_parity.uncached/10x4/1024/missing0+1/block0",
+      "A1_ns": 984.3888863367896,
+      "B1_ns": 293.8155478249969,
+      "B2_ns": 286.7211684761832,
+      "A2_ns": 968.9951098191215,
+      "baseline_drift": 0.015637901576635027,
+      "candidate_drift": 0.02414569072784145,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        5,
+        0,
+        0,
+        5
+      ],
+      "allocated_bytes": [
+        1572,
+        0,
+        0,
+        1572
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_parity.uncached/32x16/4096/missing0+1/block0",
+      "A1_ns": 5240.923473309112,
+      "B1_ns": 1651.9932709251102,
+      "B2_ns": 1692.5755382289221,
+      "A2_ns": 5312.246087110481,
+      "baseline_drift": 0.013608787490334562,
+      "candidate_drift": 0.024565637171806376,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        5,
+        0,
+        0,
+        5
+      ],
+      "allocated_bytes": [
+        6192,
+        0,
+        0,
+        6192
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_some_parity/32x16/65536/missing1+1/block0",
+      "A1_ns": 93909.0428125,
+      "B1_ns": 25623.163678278688,
+      "B2_ns": 26564.97689447592,
+      "A2_ns": 95205.29409898477,
+      "baseline_drift": 0.013803263750359784,
+      "candidate_drift": 0.03675632049275901,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        50,
+        0,
+        0,
+        50
+      ],
+      "allocated_bytes": [
+        3146928,
+        0,
+        0,
+        3146928
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.parallel/10x4/1048576/missing0+0/block0",
+      "A1_ns": 191551.5969387755,
+      "B1_ns": 193165.4108974359,
+      "B2_ns": 192346.5794871795,
+      "A2_ns": 191303.61294416245,
+      "baseline_drift": 0.0012946067721498755,
+      "candidate_drift": 0.004239016739343571,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.parallel/10x4/262144/missing0+0/block0",
+      "A1_ns": 57626.34600614439,
+      "B1_ns": 57956.24556327161,
+      "B2_ns": 56753.036686838124,
+      "A2_ns": 57612.44796466974,
+      "baseline_drift": 0.00024117512974308752,
+      "candidate_drift": 0.020760642183419664,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.parallel/4x2/262144/missing0+0/block0",
+      "A1_ns": 27644.039056742815,
+      "B1_ns": 28137.643192048014,
+      "B2_ns": 27038.13671593367,
+      "A2_ns": 27302.933679039303,
+      "baseline_drift": 0.012339201843961756,
+      "candidate_drift": 0.039075997538595364,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/10x4/1024/missing0+0/block0",
+      "A1_ns": 655.7298715662102,
+      "B1_ns": 778.1123661659128,
+      "B2_ns": 772.4611433250252,
+      "A2_ns": 655.7552154373448,
+      "baseline_drift": 3.864986518609115e-05,
+      "candidate_drift": 0.0072627336187105485,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/10x4/1048576/missing0+0/block0",
+      "A1_ns": 727566.4134615385,
+      "B1_ns": 581396.6711538462,
+      "B2_ns": 596027.4226190476,
+      "A2_ns": 597580.2083333334,
+      "baseline_drift": 0.1786588862860924,
+      "candidate_drift": 0.02516483528563218,
+      "drift_passed": false,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/10x4/32768/missing0+0/block0",
+      "A1_ns": 17654.74329411765,
+      "B1_ns": 17601.33317691225,
+      "B2_ns": 17629.42534069549,
+      "A2_ns": 17661.398717043314,
+      "baseline_drift": 0.0003769764767909134,
+      "candidate_drift": 0.0015960247727193622,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/12x4/1024/missing0+0/block0",
+      "A1_ns": 782.2432598039215,
+      "B1_ns": 911.4323641997812,
+      "B2_ns": 910.029602868375,
+      "A2_ns": 774.2608988520461,
+      "baseline_drift": 0.010204448362874041,
+      "candidate_drift": 0.0015390734260767314,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/12x4/1048576/missing0+0/block0",
+      "A1_ns": 750160.6575,
+      "B1_ns": 770814.099489796,
+      "B2_ns": 748741.2352941176,
+      "A2_ns": 756456.935,
+      "baseline_drift": 0.008393238750993959,
+      "candidate_drift": 0.02863578158506508,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/12x4/32768/missing0+0/block0",
+      "A1_ns": 21772.041932675565,
+      "B1_ns": 21494.446275071634,
+      "B2_ns": 21512.487600344037,
+      "A2_ns": 21842.667370413514,
+      "baseline_drift": 0.003243859163799989,
+      "candidate_drift": 0.0008393482223976179,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/4x2/1024/missing0+0/block0",
+      "A1_ns": 199.05639196025245,
+      "B1_ns": 290.2033247562297,
+      "B2_ns": 300.034040812571,
+      "A2_ns": 196.99244535440187,
+      "baseline_drift": 0.010368652749732976,
+      "candidate_drift": 0.03387527025956416,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/4x2/1048576/missing0+0/block0",
+      "A1_ns": 121277.91048387096,
+      "B1_ns": 118451.55835962146,
+      "B2_ns": 119303.58730158731,
+      "A2_ns": 119959.7999201278,
+      "baseline_drift": 0.010868513140473879,
+      "candidate_drift": 0.007193058105483763,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/4x2/32768/missing0+0/block0",
+      "A1_ns": 3408.974786383056,
+      "B1_ns": 3485.7251254763455,
+      "B2_ns": 3493.7686556735607,
+      "A2_ns": 3426.8709563191082,
+      "baseline_drift": 0.005249722000742585,
+      "candidate_drift": 0.0023075629625604055,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/6x3/1024/missing0+0/block0",
+      "A1_ns": 341.72286174468513,
+      "B1_ns": 445.9942838538569,
+      "B2_ns": 443.8782772865547,
+      "A2_ns": 334.73796952547576,
+      "baseline_drift": 0.020440225109750076,
+      "candidate_drift": 0.004744470151091917,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/6x3/1048576/missing0+0/block0",
+      "A1_ns": 252081.03439597314,
+      "B1_ns": 250537.69333333333,
+      "B2_ns": 260599.265625,
+      "A2_ns": 254367.8141891892,
+      "baseline_drift": 0.009071605877433608,
+      "candidate_drift": 0.040159914293934396,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/6x3/32768/missing0+0/block0",
+      "A1_ns": 7508.8104354354355,
+      "B1_ns": 7592.7673618141325,
+      "B2_ns": 7554.757705479452,
+      "A2_ns": 7550.698736661969,
+      "baseline_drift": 0.005578553565402933,
+      "candidate_drift": 0.005006034627880296,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/8x3/1024/missing0+0/block0",
+      "A1_ns": 432.229727120793,
+      "B1_ns": 530.4372445082536,
+      "B2_ns": 539.6826465043318,
+      "A2_ns": 430.76735704275507,
+      "baseline_drift": 0.0033833167556039934,
+      "candidate_drift": 0.017429775325541685,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/8x3/1048576/missing0+0/block0",
+      "A1_ns": 427299.20170454547,
+      "B1_ns": 339081.3400900901,
+      "B2_ns": 343861.9943181818,
+      "A2_ns": 350032.5925925926,
+      "baseline_drift": 0.18082554051991562,
+      "candidate_drift": 0.014098841967598474,
+      "drift_passed": false,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/8x3/32768/missing0+0/block0",
+      "A1_ns": 10489.132130872484,
+      "B1_ns": 10570.56168968433,
+      "B2_ns": 10582.622389954853,
+      "A2_ns": 10537.881427367238,
+      "baseline_drift": 0.0046476005723363745,
+      "candidate_drift": 0.0011409706148628462,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/8x4/1024/missing0+0/block0",
+      "A1_ns": 538.869821528646,
+      "B1_ns": 648.4654131145273,
+      "B2_ns": 656.4367243159977,
+      "A2_ns": 533.7663971760419,
+      "baseline_drift": 0.009470607090459882,
+      "candidate_drift": 0.012292577275917926,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/8x4/1048576/missing0+0/block0",
+      "A1_ns": 573700.6401515151,
+      "B1_ns": 454005.2981927711,
+      "B2_ns": 459806.4801829268,
+      "A2_ns": 463117.4135802469,
+      "baseline_drift": 0.19275423248972334,
+      "candidate_drift": 0.012777784781913493,
+      "drift_passed": false,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/8x4/32768/missing0+0/block0",
+      "A1_ns": 14119.95844314759,
+      "B1_ns": 14002.22774356103,
+      "B2_ns": 14017.90153213752,
+      "A2_ns": 14109.775583145221,
+      "baseline_drift": 0.0007211678450308456,
+      "candidate_drift": 0.0011193782063498858,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf16.construct/10x4/0/missing0+0/block0",
+      "A1_ns": 17192.727486251144,
+      "B1_ns": 17301.43899907749,
+      "B2_ns": 17178.04733287546,
+      "A2_ns": 17067.891833484988,
+      "baseline_drift": 0.0072609568706295535,
+      "candidate_drift": 0.007131873031405722,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "allocated_bytes": [
+        1373,
+        1373,
+        1373,
+        1373
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf16.construct/128x64/0/missing0+0/block0",
+      "A1_ns": 17192.31994729606,
+      "B1_ns": 17365.930613425928,
+      "B2_ns": 17181.95361887311,
+      "A2_ns": 17027.056513844756,
+      "baseline_drift": 0.009612631335266353,
+      "candidate_drift": 0.010594133919352489,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "allocated_bytes": [
+        1373,
+        1373,
+        1373,
+        1373
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf16.construct/32x16/0/missing0+0/block0",
+      "A1_ns": 17192.342919340055,
+      "B1_ns": 17302.16092020295,
+      "B2_ns": 17181.100893266146,
+      "A2_ns": 17061.455300272977,
+      "baseline_drift": 0.007613134503025698,
+      "candidate_drift": 0.006996815455313943,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "allocated_bytes": [
+        1373,
+        1373,
+        1373,
+        1373
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf16.reconstruct/10x4/1024/missing1+0/block0",
+      "A1_ns": 5747.86632183908,
+      "B1_ns": 5604.4393865809925,
+      "B2_ns": 5688.592294858183,
+      "A2_ns": 5687.009819532908,
+      "baseline_drift": 0.010587668344851253,
+      "candidate_drift": 0.015015401625840141,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "allocated_bytes": [
+        1024,
+        1024,
+        1024,
+        1024
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf16.reconstruct/10x4/131136/missing1+0/block0",
+      "A1_ns": 225481.9116766467,
+      "B1_ns": 228445.87575757576,
+      "B2_ns": 228426.89772727274,
+      "A2_ns": 224751.82709580837,
+      "baseline_drift": 0.003237885360335757,
+      "candidate_drift": 8.307451487177264e-05,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "allocated_bytes": [
+        131440,
+        131440,
+        131440,
+        131440
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf16.reconstruct/10x4/32768/missing1+0/block0",
+      "A1_ns": 101446.96993243243,
+      "B1_ns": 101108.95721024259,
+      "B2_ns": 100785.17928954423,
+      "A2_ns": 101904.84001358696,
+      "baseline_drift": 0.004513393366598173,
+      "candidate_drift": 0.0032022674314116095,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "allocated_bytes": [
+        32768,
+        32768,
+        32768,
+        32768
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf16.reconstruct/10x4/32768/missing2+0/block0",
+      "A1_ns": 101485.47398648648,
+      "B1_ns": 101228.42014824798,
+      "B2_ns": 100892.44623655915,
+      "A2_ns": 101802.77235772357,
+      "baseline_drift": 0.0031265397773019288,
+      "candidate_drift": 0.003318968242286169,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "allocated_bytes": [
+        65536,
+        65536,
+        65536,
+        65536
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf16.reconstruct/32x16/32768/missing2+0/block0",
+      "A1_ns": 556310.7242647059,
+      "B1_ns": 554752.9117647059,
+      "B2_ns": 555260.7316176471,
+      "A2_ns": 556345.2095588235,
+      "baseline_drift": 6.198926717293496e-05,
+      "candidate_drift": 0.000915398265014522,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "allocated_bytes": [
+        68528,
+        68528,
+        68528,
+        68528
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf8.construct/10x4/0/missing0+0/block0",
+      "A1_ns": 20416.445631464343,
+      "B1_ns": 17327.047575057735,
+      "B2_ns": 17190.958868011,
+      "A2_ns": 20331.40955284553,
+      "baseline_drift": 0.004165077514166393,
+      "candidate_drift": 0.007854119777603419,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        17,
+        5,
+        5,
+        17
+      ],
+      "allocated_bytes": [
+        2369,
+        1373,
+        1373,
+        2369
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf8.construct/128x64/0/missing0+0/block0",
+      "A1_ns": 3964370.1875,
+      "B1_ns": 17303.715463560886,
+      "B2_ns": 17180.05714612918,
+      "A2_ns": 4011329.025,
+      "baseline_drift": 0.011845220117955968,
+      "candidate_drift": 0.0071463448235792315,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        77,
+        5,
+        5,
+        77
+      ],
+      "allocated_bytes": [
+        142253,
+        1373,
+        1373,
+        142253
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf8.construct/32x16/0/missing0+0/block0",
+      "A1_ns": 90213.35096153847,
+      "B1_ns": 17317.129674515236,
+      "B2_ns": 17179.386223087495,
+      "A2_ns": 85932.72397025171,
+      "baseline_drift": 0.047450038665693306,
+      "candidate_drift": 0.007954173354170258,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        29,
+        5,
+        5,
+        29
+      ],
+      "allocated_bytes": [
+        10541,
+        1373,
+        1373,
+        10541
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf8.reconstruct/10x4/1024/missing1+0/block0",
+      "A1_ns": 4450.490847869942,
+      "B1_ns": 4421.68130232284,
+      "B2_ns": 4402.363070782956,
+      "A2_ns": 4432.102603120198,
+      "baseline_drift": 0.0041317340891835475,
+      "candidate_drift": 0.00436897872529507,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "allocated_bytes": [
+        1024,
+        1024,
+        1024,
+        1024
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf8.reconstruct/10x4/131136/missing1+0/block0",
+      "A1_ns": 533260.514084507,
+      "B1_ns": 532115.5404929577,
+      "B2_ns": 532290.3679577465,
+      "A2_ns": 539126.9410714286,
+      "baseline_drift": 0.011001052641208542,
+      "candidate_drift": 0.00032855169880363633,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "allocated_bytes": [
+        131136,
+        131136,
+        131136,
+        131136
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf8.reconstruct/10x4/32768/missing1+0/block0",
+      "A1_ns": 134427.91173835125,
+      "B1_ns": 132491.11839788733,
+      "B2_ns": 132717.89708480565,
+      "A2_ns": 133654.2290925267,
+      "baseline_drift": 0.005755372049001672,
+      "candidate_drift": 0.0017116519934361474,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "allocated_bytes": [
+        32768,
+        32768,
+        32768,
+        32768
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf8.reconstruct/10x4/32768/missing2+0/block0",
+      "A1_ns": 135374.6465827338,
+      "B1_ns": 133280.1010638298,
+      "B2_ns": 133241.96808510637,
+      "A2_ns": 134144.840625,
+      "baseline_drift": 0.009084462924024761,
+      "candidate_drift": 0.00028611156818636463,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "allocated_bytes": [
+        65536,
+        65536,
+        65536,
+        65536
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf8.reconstruct/32x16/32768/missing2+0/block0",
+      "A1_ns": 597575.501984127,
+      "B1_ns": 594125.298828125,
+      "B2_ns": 593407.59765625,
+      "A2_ns": 597619.1726190476,
+      "baseline_drift": 7.307969415681903e-05,
+      "candidate_drift": 0.001207996315407911,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "allocated_bytes": [
+        68528,
+        68528,
+        68528,
+        68528
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "stream.reconstruct/10x4/1048576/missing1+1/block4096",
+      "A1_ns": 413575.7925824176,
+      "B1_ns": 411498.8192934783,
+      "B2_ns": 416821.65,
+      "A2_ns": 412189.26923076925,
+      "baseline_drift": 0.0033525254052968467,
+      "candidate_drift": 0.012935227167020225,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        21,
+        16,
+        16,
+        21
+      ],
+      "allocated_bytes": [
+        58174,
+        57904,
+        57904,
+        58174
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "stream.reconstruct/10x4/1048576/missing1+1/block65536",
+      "A1_ns": 433340.9109195402,
+      "B1_ns": 411237.4347826087,
+      "B2_ns": 418566.0097222222,
+      "A2_ns": 438203.55959302327,
+      "baseline_drift": 0.011221300714868265,
+      "candidate_drift": 0.017820787505611113,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        21,
+        16,
+        16,
+        21
+      ],
+      "allocated_bytes": [
+        918334,
+        918064,
+        918064,
+        918334
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "stream.reconstruct/32x16/1048576/missing1+1/block4096",
+      "A1_ns": 3095764.4615384615,
+      "B1_ns": 3166350.03125,
+      "B2_ns": 3138541.6145833335,
+      "A2_ns": 3137653.875,
+      "baseline_drift": 0.013531201737719156,
+      "candidate_drift": 0.008782483424831122,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        57,
+        52,
+        52,
+        57
+      ],
+      "allocated_bytes": [
+        199600,
+        199296,
+        199296,
+        199600
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    }
+  ],
+  "allocation_attribution_allowed": false,
+  "latency_attribution_allowed": false,
+  "python_assertions_enabled": true,
+  "supplemental_isolation_passed": true,
+  "complete_case_sets": true,
+  "cleanup_passed": true
+}

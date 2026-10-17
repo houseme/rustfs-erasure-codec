@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "artifact_kind": "single-pass-correctness-validation",
+  "source_commit": "024d14da1cf39cb8a17eaf0d4dc4f1368af36b27",
+  "source_archive_sha256": "835a4f52294b9b8d04f0a263cbaf78cf76df01f832cb479c9ad1b440e7d94b57",
+  "rustc": "1.99.1 (58cf8f9c3 2026-10-13)",
+  "linux_arm64_docker": {
+    "target": "aarch64-unknown-linux-gnu",
+    "image_tag": "rust:1.99.1-trixie",
+    "scope": "ARM64 Linux VM; functional validation, no performance claim",
+    "cpu_quota": 4,
+    "memory_gib": 8,
+    "offline": true,
+    "network": "none",
+    "readonly_source": true,
+    "source_files": 358,
+    "source_unchanged": true,
+    "source_tree_sha256": "98bbaa4206e791c27ca7a5c6f9f6139f10184988f7bac59e7b3f26200de0c6c9",
+    "parent_summary_counting": "Last parent result per test executable; spawned child summaries not added",
+    "std_simd_metrics": {
+      "exit": 0,
+      "library": {
+        "status": "ok",
+        "passed": 352,
+        "failed": 0,
+        "ignored": 5,
+        "measured": 0,
+        "filtered": 0
+      },
+      "integration": {
+        "passed": 122,
+        "failed": 0,
+        "ignored": 38,
+        "measured": 0
+      },
+      "doctests": {
+        "status": "ok",
+        "passed": 10,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      "parent_passed_total": 484,
+      "parent_ignored_total": 43,
+      "actual_test_lib_features": [
+        "benchmark-metrics",
+        "default",
+        "parking_lot",
+        "rayon",
+        "simd-accel",
+        "simd-avx2",
+        "simd-avx512",
+        "simd-gfni",
+        "simd-neon",
+        "simd-ssse3",
+        "simd-vsx",
+        "std"
+      ]
+    },
+    "no_std_simd": {
+      "exit": 0,
+      "library": {
+        "status": "ok",
+        "passed": 234,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      "integration": {
+        "passed": 52,
+        "failed": 0,
+        "ignored": 20,
+        "measured": 0
+      },
+      "doctests": {
+        "status": "ok",
+        "passed": 8,
+        "failed": 0,
+        "ignored": 0,
+        "measured": 0,
+        "filtered": 0
+      },
+      "parent_passed_total": 294,
+      "parent_ignored_total": 20,
+      "actual_test_lib_features": [
+        "simd-accel",
+        "simd-avx2",
+        "simd-avx512",
+        "simd-gfni",
+        "simd-neon",
+        "simd-ssse3",
+        "simd-vsx"
+      ]
+    },
+    "containers_removed": true
+  },
+  "local_macos_arm64": {
+    "std_simd_metrics_passed": 484,
+    "no_std_simd_passed": 294,
+    "focused_classic_recovery_regressions_passed": 11,
+    "workspace_all_features_clippy": "passed with warnings denied"
+  },
+  "real_generated_wasm": {
+    "bindgen_version": "0.2.129",
+    "locked_release_build": "passed",
+    "node_tests_passed": 14,
+    "system_chrome_tests_passed": 8,
+    "default_chromium_ci": "Final-head CI is checked after delivery; earlier c68c257 passed 8 default Chromium tests",
+    "node_suite_composition": {
+      "real_wasm_cases": 12,
+      "numeric_constants_unit": 1,
+      "facade_validation_spy_unit": 1
+    }
+  }
+}

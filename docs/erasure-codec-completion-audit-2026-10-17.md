@@ -4,6 +4,8 @@ This audits `houseme/erasure-codec-review-fixes` from `426bd95`, with `origin/ma
 `60bb40c` already merged. Gaps were [registered in backlog #2708 before implementation](https://github.com/rustfs/backlog/issues/2708#issuecomment-6229247787).
 Historical checked boxes, pushes and local microbenchmarks do not establish completion of every related task.
 
+> Subsequent work: [real WASM integration, DecodeIdx assessment and native Linux validation](erasure-codec-followup-validation-2026-10-17.md). #2852 is now completed; the associated-task table below records the earlier audit baseline.
+
 ## Four requested capabilities
 
 | Capability | Baseline | Delivered contract |
@@ -64,7 +66,7 @@ and all existing SIMD activation limits.
 No encoding polynomial, matrix calculation, default family, padding rule, shard layout or SIMD activation threshold changed in this completion work.
 
 - **400 before/after small parity snapshots and five wide raw snapshots match byte for byte** against `426bd95`: five shard layouts, four matrix options and both fast settings; Classic GF8 and tower GF16 lengths 1/65/192, Leopard GF8/GF16 lengths 64/192. Each snapshot also verifies its codeword. Wide cases cover GF8 129+64 and 128+128 at 128 KiB+64, and GF16 4+511/512/513 at 64 KiB+64, including FFT chunk tails and more than 256 total shards. The wide streams compare all 125,939,835 bytes including deterministic headers. Existing golden-vector tests passed.
-- Stable 1.99.1 workspace SIMD + metrics suite: **491 passed, 43 ignored**, including doctests. Ignored benchmarks/platform tests were not silently treated as executed.
+- Stable 1.99.1 workspace SIMD + metrics suite: **486 passed, 43 ignored** (corrected from 491 after excluding five nested child summaries; see the [count audit](../benchmarks/recovery-paths/2026-10-17-parent-test-count-audit.json)), including doctests. Ignored benchmarks/platform tests were not silently treated as executed.
 - `no_std` + SIMD suite: **291 passed, 20 ignored**, including eight format identity tests.
 - New focused tests: **22 passed** (9 format, 10 external stream, 3 combination test functions). The combination helper executes 1,318 deterministic cases.
 - Nightly AddressSanitizer: all **22 focused tests passed** with leak detection disabled. Six cache-budget ASAN tests also passed (the five new budget tests and the existing field-width budget test). The final SIMD fuzz target completed **30,000 executions**, starting with 6,720 generated header seeds (`-runs=30000 -max_len=256 -seed=2708 -timeout=10`). No failure was reported. This is a bounded smoke run, not exhaustive fuzzing.
