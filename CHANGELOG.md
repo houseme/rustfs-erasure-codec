@@ -28,6 +28,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Changed
+- Bound generated-native byte views to 12 data/4 parity inline slots through the shared checked constructor, retaining Leopard 32/32 storage. Keep the native preparation object within 512 bytes without changing validation, kernels or dispatch limits.
 - Validate Classic recovery lengths once across the present prefix and erasure suffix, preserving complete-layout fast returns, error priority, workspace layout checks and publication order without adding a shape-specific path.
 - Reserve progressive DecodeIdx missing-index metadata by parity count, avoiding heap spills for warmed 32+16 batches while preserving existing XOR, mask and error semantics.
 - Limit retained Leopard encoder work plus scratch to 4 MiB per family per thread, checking actual allocation capacity. Oversized calls keep resources local and preserve small warm caches; repeated oversized encodes may allocate again. Remove unused native selector stubs without expanding dispatch.

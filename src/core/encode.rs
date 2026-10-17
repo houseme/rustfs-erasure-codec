@@ -1,7 +1,7 @@
 extern crate alloc;
 
 use alloc::vec;
-use smallvec::SmallVec;
+use smallvec::{Array, SmallVec};
 
 use crate::galois_8::codegen::SelectedEncodeKernel;
 
@@ -15,21 +15,32 @@ use super::{
 
 /// Checked native byte views shared by Classic generated kernels and Leopard.
 /// Failed preparation never modifies an output shard.
-struct ByteShardViews<'a> {
-    data: SmallVec<[&'a [u8]; 32]>,
-    parity: SmallVec<[&'a mut [u8]; 32]>,
+struct ByteShardViews<D: Array, P: Array> {
+    data: SmallVec<D>,
+    parity: SmallVec<P>,
 }
 
-impl<'a> ByteShardViews<'a> {
+// Generated kernels support at most 12 data and 4 parity shards. Leopard keeps
+// its wider inline storage while using the same complete view validation.
+type NativeByteShardViews<'a> = ByteShardViews<[&'a [u8]; 12], [&'a mut [u8]; 4]>;
+type LeopardByteShardViews<'a> = ByteShardViews<[&'a [u8]; 32], [&'a mut [u8]; 32]>;
+
+impl<D: Array, P: Array> ByteShardViews<D, P> {
     #[inline]
-    fn prepare<F, T, U>(data: &'a [T], parity: &'a mut [U], shard_len: usize) -> Result<Self, Error>
+    fn prepare<'a, F, T, U>(
+        data: &'a [T],
+        parity: &'a mut [U],
+        shard_len: usize,
+    ) -> Result<Self, Error>
     where
+        D: Array<Item = &'a [u8]>,
+        P: Array<Item = &'a mut [u8]>,
         F: Field,
         F::Elem: 'a,
         T: AsRef<[F::Elem]>,
         U: AsMut<[F::Elem]>,
     {
-        let mut data_bytes = SmallVec::with_capacity(data.len());
+        let mut data_bytes = SmallVec::<D>::with_capacity(data.len());
         for input in data {
             let slice = input.as_ref();
             if slice.len() != shard_len {
@@ -41,7 +52,7 @@ impl<'a> ByteShardViews<'a> {
             }
             data_bytes.push(bytes);
         }
-        let mut parity_bytes = SmallVec::with_capacity(parity.len());
+        let mut parity_bytes = SmallVec::<P>::with_capacity(parity.len());
         for output in parity {
             let slice = output.as_mut();
             if slice.len() != shard_len {
@@ -96,7 +107,7 @@ struct PreparedNativeEncode<'a> {
     kernel: SelectedEncodeKernel,
     execution: NativeEncodeExecution,
     rows: SmallVec<[&'a [u8]; 4]>,
-    shards: ByteShardViews<'a>,
+    shards: NativeByteShardViews<'a>,
     shard_len: usize,
 }
 
@@ -409,7 +420,7 @@ impl<F: Field> ReedSolomon<F> {
         }
         let kernel =
             SelectedEncodeKernel::select(self.data_shard_count(), self.parity_shard_count())?;
-        let shards = ByteShardViews::prepare::<F, _, _>(data, parity, shard_len).ok()?;
+        let shards = NativeByteShardViews::prepare::<F, _, _>(data, parity, shard_len).ok()?;
         let mut rows = SmallVec::new();
         for row in self.get_parity_rows() {
             let bytes = F::as_gf8_slice(row)?;
@@ -570,7 +581,7 @@ impl<F: Field> ReedSolomon<F> {
         encode_fn: fn(usize, usize, &[&[u8]], &mut [&mut [u8]]) -> Result<(), Error>,
     ) -> Result<(), Error> {
         let shard_len = data.first().ok_or(Error::TooFewDataShards)?.as_ref().len();
-        let mut shards = ByteShardViews::prepare::<F, _, _>(data, parity, shard_len)?;
+        let mut shards = LeopardByteShardViews::prepare::<F, _, _>(data, parity, shard_len)?;
         encode_fn(
             self.data_shard_count(),
             self.parity_shard_count(),
@@ -809,6 +820,83 @@ impl<F: Field> ReedSolomon<F> {
 
         let (input, output) = slices.split_at_mut(self.data_shard_count());
         self.encode_sep_par(&*input, output)
+    }
+}
+
+#[cfg(test)]
+mod byte_view_storage_tests {
+    use super::alloc::vec;
+    use super::{LeopardByteShardViews, NativeByteShardViews, PreparedNativeEncode};
+    use crate::{Error, galois_8};
+
+    #[test]
+    fn native_metadata_budget_covers_every_generated_shape_without_spilling() {
+        let prepared_bytes = core::mem::size_of::<PreparedNativeEncode<'static>>();
+        assert!(
+            prepared_bytes <= 512,
+            "native prepared metadata uses {prepared_bytes} bytes"
+        );
+        for (data_count, parity_count) in [(10, 4), (12, 4), (8, 3), (8, 4), (6, 3), (4, 2)] {
+            let data = vec![[0x31; 65]; data_count];
+            let mut parity = vec![[0xa5; 65]; parity_count];
+            let views =
+                NativeByteShardViews::prepare::<galois_8::Field, _, _>(&data, &mut parity, 65)
+                    .unwrap();
+            assert!(!views.data.spilled());
+            assert!(!views.parity.spilled());
+            assert_eq!(
+                (views.data.len(), views.parity.len()),
+                (data_count, parity_count)
+            );
+            drop(views);
+            assert!(data.iter().all(|shard| *shard == [0x31; 65]));
+            assert!(parity.iter().all(|shard| *shard == [0xa5; 65]));
+        }
+    }
+
+    #[test]
+    fn leopard_keeps_wider_inline_views_without_writing_payload() {
+        for parity_count in [16, 32] {
+            let data = vec![[0x31; 64]; 32];
+            let mut parity = vec![[0xa5; 64]; parity_count];
+            let views =
+                LeopardByteShardViews::prepare::<galois_8::Field, _, _>(&data, &mut parity, 64)
+                    .unwrap();
+            assert!(!views.data.spilled());
+            assert!(!views.parity.spilled());
+            assert_eq!((views.data.len(), views.parity.len()), (32, parity_count));
+            drop(views);
+            assert!(data.iter().all(|shard| *shard == [0x31; 64]));
+            assert!(parity.iter().all(|shard| *shard == [0xa5; 64]));
+        }
+    }
+
+    #[test]
+    fn both_storage_sizes_reject_bad_lengths_before_writing() {
+        for native in [false, true] {
+            for short_data in [false, true] {
+                let mut data = vec![vec![0x31; 65]; 2];
+                let mut parity = vec![vec![0xa5; 65]; 2];
+                if short_data {
+                    data[1].pop();
+                } else {
+                    // Fail after an earlier mutable output view was prepared.
+                    parity[1].pop();
+                }
+                let data_before = data.clone();
+                let parity_before = parity.clone();
+                let result = if native {
+                    NativeByteShardViews::prepare::<galois_8::Field, _, _>(&data, &mut parity, 65)
+                        .map(|_| ())
+                } else {
+                    LeopardByteShardViews::prepare::<galois_8::Field, _, _>(&data, &mut parity, 65)
+                        .map(|_| ())
+                };
+                assert_eq!(result, Err(Error::IncorrectShardSize));
+                assert_eq!(data, data_before);
+                assert_eq!(parity, parity_before);
+            }
+        }
     }
 }
 
