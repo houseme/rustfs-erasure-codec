@@ -73,6 +73,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Added
+- Add a pinned RustFS benchmark overlay with degraded-reader scenarios, independent full-plaintext preflight and an observed output sink; require identical overlays and isolated release measurements for downstream comparisons.
 - Run CI and security regressions on the review-fixes branch, gate releases on real generated-WASM Node/Chromium integration, and select the core package for genuine no_std and no_std+SIMD tests without WASM feature unification.
 - Add a locked zero-runtime-dependency WASM package build and real Node/browser tests, including a complete independent parity oracle, fixed golden vector, isolated instances and offline package-install smoke coverage.
 - Preserve the DecodeIdx workspace allocation study and all exploratory ABBA samples; keep the simpler capacity correction instead of introducing an API from preparation-excluding, unreserved timing.
