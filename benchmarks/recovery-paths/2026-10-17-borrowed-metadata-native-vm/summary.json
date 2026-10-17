@@ -1,0 +1,1796 @@
+{
+  "attribution_allowed": false,
+  "campaign_error": null,
+  "drift_limit": 0.05,
+  "cases": [
+    {
+      "case_id": "classic.construct/10x4/0/missing0+0/block0",
+      "A1_ns": 20350.313629334203,
+      "B1_ns": 20550.12995232616,
+      "B2_ns": 20200.116436419452,
+      "A2_ns": 20463.443055328204,
+      "baseline_drift": 0.005559099877012752,
+      "candidate_drift": 0.017032180172032785,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        11,
+        11,
+        11,
+        11
+      ],
+      "allocated_bytes": [
+        2158,
+        2158,
+        2158,
+        2158
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.construct/128x64/0/missing0+0/block0",
+      "A1_ns": 4326216.336206896,
+      "B1_ns": 4181789.9,
+      "B2_ns": 4185212.304166667,
+      "A2_ns": 4286247.633333334,
+      "baseline_drift": 0.009238720343006657,
+      "candidate_drift": 0.0008184065312959454,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        11,
+        11,
+        11,
+        11
+      ],
+      "allocated_bytes": [
+        132450,
+        132450,
+        132450,
+        132450
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.construct/32x16/0/missing0+0/block0",
+      "A1_ns": 94238.8657686511,
+      "B1_ns": 91620.76474358975,
+      "B2_ns": 89926.9374550683,
+      "A2_ns": 93261.59890007458,
+      "baseline_drift": 0.01037010431530061,
+      "candidate_drift": 0.018487373394686313,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        11,
+        11,
+        11,
+        11
+      ],
+      "allocated_bytes": [
+        9570,
+        9570,
+        9570,
+        9570
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_all_present/10x4/65/missing0+0/block0",
+      "A1_ns": 10.513729520623604,
+      "B1_ns": 14.669749553364847,
+      "B2_ns": 14.53978631866719,
+      "A2_ns": 10.590140215986317,
+      "baseline_drift": 0.007267706023140974,
+      "candidate_drift": 0.008859267448628416,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_all_present/128x64/65/missing0+0/block0",
+      "A1_ns": 107.51618709444908,
+      "B1_ns": 150.4909696429754,
+      "B2_ns": 150.44974577025985,
+      "A2_ns": 107.3563211826028,
+      "baseline_drift": 0.001486900867362806,
+      "candidate_drift": 0.00027392921192104236,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_all_present/40x8/65/missing0+0/block0",
+      "A1_ns": 26.5802560486559,
+      "B1_ns": 39.478762167352016,
+      "B2_ns": 39.96728845636116,
+      "A2_ns": 26.73025396409593,
+      "baseline_drift": 0.005643208070134964,
+      "candidate_drift": 0.012374407458325631,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_data_opt/10x4/1048576/missing1+0/block0",
+      "A1_ns": 96323.28553543914,
+      "B1_ns": 100107.89371497197,
+      "B2_ns": 95564.51986249044,
+      "A2_ns": 98686.3358326756,
+      "baseline_drift": 0.024532492679218754,
+      "candidate_drift": 0.04538477120912621,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        2,
+        1,
+        1,
+        2
+      ],
+      "allocated_bytes": [
+        1048600,
+        1048576,
+        1048576,
+        1048600
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_data_opt/10x4/1048576/missing2+0/block0",
+      "A1_ns": 174916.28846153847,
+      "B1_ns": 169003.15996621622,
+      "B2_ns": 168217.01898521505,
+      "A2_ns": 169454.1463414634,
+      "baseline_drift": 0.03122717825833643,
+      "candidate_drift": 0.004651634804688332,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        3,
+        2,
+        2,
+        3
+      ],
+      "allocated_bytes": [
+        2097200,
+        2097152,
+        2097152,
+        2097200
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_data_opt/10x4/32768/missing1+0/block0",
+      "A1_ns": 3203.12567905189,
+      "B1_ns": 3173.086453520841,
+      "B2_ns": 3184.4559057675656,
+      "A2_ns": 3238.8845448774423,
+      "baseline_drift": 0.011163741110569392,
+      "candidate_drift": 0.003583089340067902,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "allocated_bytes": [
+        32768,
+        32768,
+        32768,
+        32768
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_data_opt/10x4/32768/missing2+0/block0",
+      "A1_ns": 6357.772016937083,
+      "B1_ns": 7025.36843140561,
+      "B2_ns": 7525.153806212751,
+      "A2_ns": 6467.440934137004,
+      "baseline_drift": 0.017249583172810112,
+      "candidate_drift": 0.07114009459958615,
+      "drift_passed": false,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "allocated_bytes": [
+        65536,
+        65536,
+        65536,
+        65536
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_data_slots/10x4/32768/missing1+0/block0",
+      "A1_ns": 3002.53714090123,
+      "B1_ns": 2921.6461113708074,
+      "B2_ns": 2932.9412218442044,
+      "A2_ns": 3001.393569319055,
+      "baseline_drift": 0.0003808684217746494,
+      "candidate_drift": 0.003866009106796797,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_data_slots/10x4/32768/missing2+0/block0",
+      "A1_ns": 5960.124547036667,
+      "B1_ns": 5633.1011727727455,
+      "B2_ns": 5591.668429881458,
+      "A2_ns": 5869.782811326071,
+      "baseline_drift": 0.015157692594781946,
+      "candidate_drift": 0.007355227896766681,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_data_slots/4x2/16384/missing1+0/block0",
+      "A1_ns": 605.1460051945663,
+      "B1_ns": 487.63016351202697,
+      "B2_ns": 474.4975269229455,
+      "A2_ns": 615.1886657807963,
+      "baseline_drift": 0.01659543399448049,
+      "candidate_drift": 0.026931550941182825,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_data_slots/4x2/16384/missing2+0/block0",
+      "A1_ns": 1289.4654954095317,
+      "B1_ns": 1171.6700375400708,
+      "B2_ns": 1164.6602738800686,
+      "A2_ns": 1274.6850233011094,
+      "baseline_drift": 0.011462479733688524,
+      "candidate_drift": 0.0059827113738601945,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_data_vec/10x4/32768/missing1+0/block0",
+      "A1_ns": 3176.119848438652,
+      "B1_ns": 3127.889660069062,
+      "B2_ns": 3127.268535313102,
+      "A2_ns": 3171.865788906087,
+      "baseline_drift": 0.0013393888567071466,
+      "candidate_drift": 0.0001985763001455254,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "allocated_bytes": [
+        32768,
+        32768,
+        32768,
+        32768
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_data_vec/10x4/32768/missing2+0/block0",
+      "A1_ns": 6350.354291556593,
+      "B1_ns": 6063.708343439243,
+      "B2_ns": 6035.929448334138,
+      "A2_ns": 6264.398045602606,
+      "baseline_drift": 0.013535661477702798,
+      "candidate_drift": 0.004581172696929148,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "allocated_bytes": [
+        65536,
+        65536,
+        65536,
+        65536
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_data_vec/4x2/16384/missing1+0/block0",
+      "A1_ns": 766.1878348227968,
+      "B1_ns": 691.8546747180003,
+      "B2_ns": 685.015097710409,
+      "A2_ns": 767.436297427554,
+      "baseline_drift": 0.0016294471773308228,
+      "candidate_drift": 0.00988585790849661,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "allocated_bytes": [
+        16384,
+        16384,
+        16384,
+        16384
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_data_vec/4x2/16384/missing2+0/block0",
+      "A1_ns": 1546.8189424219174,
+      "B1_ns": 1415.4072414905904,
+      "B2_ns": 1407.4351376456677,
+      "A2_ns": 1528.1482353085,
+      "baseline_drift": 0.012070389495091094,
+      "candidate_drift": 0.005632374634827464,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "allocated_bytes": [
+        32768,
+        32768,
+        32768,
+        32768
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_opt_all_present/10x4/65/missing0+0/block0",
+      "A1_ns": 10.329881507174267,
+      "B1_ns": 20.905877624523765,
+      "B2_ns": 20.91980710600601,
+      "A2_ns": 10.449453175960675,
+      "baseline_drift": 0.011575318526486855,
+      "candidate_drift": 0.0006662949880615887,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_opt_all_present/128x64/65/missing0+0/block0",
+      "A1_ns": 107.04989915901616,
+      "B1_ns": 264.4428729489816,
+      "B2_ns": 266.8661339133219,
+      "A2_ns": 107.3210173173182,
+      "baseline_drift": 0.002532633476835855,
+      "candidate_drift": 0.009163646338117948,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_opt_all_present/40x8/65/missing0+0/block0",
+      "A1_ns": 26.46010930034612,
+      "B1_ns": 66.13435767941455,
+      "B2_ns": 66.16801878747425,
+      "A2_ns": 26.80490794016974,
+      "baseline_drift": 0.013030884941171106,
+      "candidate_drift": 0.0005089806454743329,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_parity.cached/10x4/1024/missing0+1/block0",
+      "A1_ns": 316.96502804501404,
+      "B1_ns": 156.83501836851454,
+      "B2_ns": 163.2303247300174,
+      "A2_ns": 291.48746050345704,
+      "baseline_drift": 0.08037974314926244,
+      "candidate_drift": 0.04077728576200901,
+      "drift_passed": false,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_parity.cached/32x16/4096/missing0+1/block0",
+      "A1_ns": 1702.8769923439502,
+      "B1_ns": 1560.261822068277,
+      "B2_ns": 1529.1643744495007,
+      "A2_ns": 1712.84035647241,
+      "baseline_drift": 0.005850900665905101,
+      "candidate_drift": 0.0199309161955612,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_parity.uncached/10x4/1024/missing0+1/block0",
+      "A1_ns": 1022.3427248525793,
+      "B1_ns": 162.12696805840721,
+      "B2_ns": 161.47768508243757,
+      "A2_ns": 973.8459474672401,
+      "baseline_drift": 0.04743690761073538,
+      "candidate_drift": 0.004004780843960054,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        5,
+        0,
+        0,
+        5
+      ],
+      "allocated_bytes": [
+        1572,
+        0,
+        0,
+        1572
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_parity.uncached/32x16/4096/missing0+1/block0",
+      "A1_ns": 5813.467654171705,
+      "B1_ns": 1558.1540296544674,
+      "B2_ns": 1526.4724276154307,
+      "A2_ns": 5841.2172137850475,
+      "baseline_drift": 0.0047733231289983635,
+      "candidate_drift": 0.02033277932481581,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        5,
+        0,
+        0,
+        5
+      ],
+      "allocated_bytes": [
+        6192,
+        0,
+        0,
+        6192
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "classic.reconstruct_some_parity/32x16/65536/missing1+1/block0",
+      "A1_ns": 91261.44516423358,
+      "B1_ns": 27744.52968264536,
+      "B2_ns": 25089.523755769613,
+      "A2_ns": 95117.56986692014,
+      "baseline_drift": 0.04225360113185905,
+      "candidate_drift": 0.09569475342508671,
+      "drift_passed": false,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        50,
+        0,
+        0,
+        50
+      ],
+      "allocated_bytes": [
+        3146928,
+        0,
+        0,
+        3146928
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.parallel/10x4/1048576/missing0+0/block0",
+      "A1_ns": 192604.14098613252,
+      "B1_ns": 190447.44653729073,
+      "B2_ns": 189964.88657056144,
+      "A2_ns": 193221.55293663061,
+      "baseline_drift": 0.003205600603065628,
+      "candidate_drift": 0.0025338221934878558,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.parallel/10x4/262144/missing0+0/block0",
+      "A1_ns": 58027.86647331786,
+      "B1_ns": 57637.7663669894,
+      "B2_ns": 56841.68272727272,
+      "A2_ns": 57884.07563657407,
+      "baseline_drift": 0.002477961804952966,
+      "candidate_drift": 0.013811840567309441,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.parallel/4x2/262144/missing0+0/block0",
+      "A1_ns": 27715.056029705167,
+      "B1_ns": 28091.857331460673,
+      "B2_ns": 27623.043940565625,
+      "A2_ns": 27719.97597006652,
+      "baseline_drift": 0.00017751868717419406,
+      "candidate_drift": 0.0166885864954901,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/10x4/1024/missing0+0/block0",
+      "A1_ns": 655.8623130138676,
+      "B1_ns": 736.8540535601653,
+      "B2_ns": 734.8322100207517,
+      "A2_ns": 659.516264318087,
+      "baseline_drift": 0.005571217055342803,
+      "candidate_drift": 0.0027438860241656426,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/10x4/1048576/missing0+0/block0",
+      "A1_ns": 589451.6631455399,
+      "B1_ns": 603960.0797101449,
+      "B2_ns": 626139.7287500001,
+      "A2_ns": 600179.8881578948,
+      "baseline_drift": 0.018200347345030732,
+      "candidate_drift": 0.03672370043149176,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/10x4/32768/missing0+0/block0",
+      "A1_ns": 17455.38074211114,
+      "B1_ns": 17719.657370659108,
+      "B2_ns": 17835.538076045086,
+      "A2_ns": 17684.314135662757,
+      "baseline_drift": 0.013115348037027408,
+      "candidate_drift": 0.006539669642701806,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/12x4/1024/missing0+0/block0",
+      "A1_ns": 754.1323520096046,
+      "B1_ns": 857.404162865511,
+      "B2_ns": 852.1664953812592,
+      "A2_ns": 776.2344272017089,
+      "baseline_drift": 0.029307952553960792,
+      "candidate_drift": 0.006108749771807864,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/12x4/1048576/missing0+0/block0",
+      "A1_ns": 787678.016509434,
+      "B1_ns": 761194.5143939395,
+      "B2_ns": 758664.6795454546,
+      "A2_ns": 758957.9356060605,
+      "baseline_drift": 0.036461701737780405,
+      "candidate_drift": 0.00332350641084056,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/12x4/32768/missing0+0/block0",
+      "A1_ns": 21295.868483816015,
+      "B1_ns": 21861.225428471495,
+      "B2_ns": 21982.668806048885,
+      "A2_ns": 21769.06788699286,
+      "baseline_drift": 0.022220244435509073,
+      "candidate_drift": 0.005555195337733743,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/4x2/1024/missing0+0/block0",
+      "A1_ns": 193.12124823487244,
+      "B1_ns": 256.17704746856197,
+      "B2_ns": 239.60235926723888,
+      "A2_ns": 200.37793332873804,
+      "baseline_drift": 0.03757579841779024,
+      "candidate_drift": 0.06470012971539585,
+      "drift_passed": false,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/4x2/1048576/missing0+0/block0",
+      "A1_ns": 114687.43291284403,
+      "B1_ns": 116591.94454799627,
+      "B2_ns": 124641.40104685942,
+      "A2_ns": 117264.32680581612,
+      "baseline_drift": 0.022468842727785043,
+      "candidate_drift": 0.0690395595516422,
+      "drift_passed": false,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/4x2/32768/missing0+0/block0",
+      "A1_ns": 3444.557174841554,
+      "B1_ns": 3489.156286635404,
+      "B2_ns": 3464.314171493501,
+      "A2_ns": 3399.977203182374,
+      "baseline_drift": 0.012942148844206858,
+      "candidate_drift": 0.007119805792895062,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/6x3/1024/missing0+0/block0",
+      "A1_ns": 325.3954992607016,
+      "B1_ns": 403.27014839906445,
+      "B2_ns": 395.7292978507184,
+      "A2_ns": 340.0153805718234,
+      "baseline_drift": 0.04492957445428147,
+      "candidate_drift": 0.018699253039884955,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/6x3/1048576/missing0+0/block0",
+      "A1_ns": 250890.48271543087,
+      "B1_ns": 261292.04775574117,
+      "B2_ns": 271076.4648268398,
+      "A2_ns": 254539.6532012195,
+      "baseline_drift": 0.014544874107192296,
+      "candidate_drift": 0.03744628722970256,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/6x3/32768/missing0+0/block0",
+      "A1_ns": 7545.805437341543,
+      "B1_ns": 7517.5909610295885,
+      "B2_ns": 7552.044458373612,
+      "A2_ns": 7522.071195390539,
+      "baseline_drift": 0.0031453556744985844,
+      "candidate_drift": 0.004583050278024858,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/8x3/1024/missing0+0/block0",
+      "A1_ns": 414.08273056881535,
+      "B1_ns": 492.85255159171373,
+      "B2_ns": 494.82232123064256,
+      "A2_ns": 427.6717623622473,
+      "baseline_drift": 0.03281719035895314,
+      "candidate_drift": 0.003996671281435438,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/8x3/1048576/missing0+0/block0",
+      "A1_ns": 341942.8545081967,
+      "B1_ns": 351069.3133753502,
+      "B2_ns": 375457.36036036036,
+      "A2_ns": 344942.7840909091,
+      "baseline_drift": 0.008773189856612351,
+      "candidate_drift": 0.06946789723810287,
+      "drift_passed": false,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/8x3/32768/missing0+0/block0",
+      "A1_ns": 10583.10159160176,
+      "B1_ns": 10857.464290367412,
+      "B2_ns": 10667.750309353134,
+      "A2_ns": 10714.636121110823,
+      "baseline_drift": 0.012428731631324741,
+      "candidate_drift": 0.017473138841689773,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/8x4/1024/missing0+0/block0",
+      "A1_ns": 520.6974747253846,
+      "B1_ns": 629.3457549378459,
+      "B2_ns": 614.6991798703725,
+      "A2_ns": 535.3492224606306,
+      "baseline_drift": 0.02813869558897575,
+      "candidate_drift": 0.023272700185162698,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/8x4/1048576/missing0+0/block0",
+      "A1_ns": 454957.0045454546,
+      "B1_ns": 466278.6101301115,
+      "B2_ns": 467469.8236940298,
+      "A2_ns": 481930.88942307694,
+      "baseline_drift": 0.0592888659986055,
+      "candidate_drift": 0.002554724874868075,
+      "drift_passed": false,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "encode.serial/8x4/32768/missing0+0/block0",
+      "A1_ns": 14033.104554894478,
+      "B1_ns": 14179.37145530853,
+      "B2_ns": 14220.457243203275,
+      "A2_ns": 14141.296776018098,
+      "baseline_drift": 0.007709785151275295,
+      "candidate_drift": 0.00289757469322538,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocated_bytes": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf16.construct/10x4/0/missing0+0/block0",
+      "A1_ns": 17256.871013942575,
+      "B1_ns": 17270.100839320254,
+      "B2_ns": 17077.204815573772,
+      "A2_ns": 17348.090237302247,
+      "baseline_drift": 0.005285965415513294,
+      "candidate_drift": 0.011169362908831415,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "allocated_bytes": [
+        1378,
+        1378,
+        1378,
+        1378
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf16.construct/128x64/0/missing0+0/block0",
+      "A1_ns": 17250.01888712571,
+      "B1_ns": 17265.15583137688,
+      "B2_ns": 17173.11167399368,
+      "A2_ns": 17334.280366056573,
+      "baseline_drift": 0.004884718067975635,
+      "candidate_drift": 0.005331209186998587,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "allocated_bytes": [
+        1378,
+        1378,
+        1378,
+        1378
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf16.construct/32x16/0/missing0+0/block0",
+      "A1_ns": 17270.167535921526,
+      "B1_ns": 17262.376898646784,
+      "B2_ns": 17107.76566990557,
+      "A2_ns": 17331.964803133233,
+      "baseline_drift": 0.0035782668050654554,
+      "candidate_drift": 0.00895654344989616,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "allocated_bytes": [
+        1378,
+        1378,
+        1378,
+        1378
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf16.reconstruct/10x4/1024/missing1+0/block0",
+      "A1_ns": 5620.125393399875,
+      "B1_ns": 5636.187130844493,
+      "B2_ns": 5708.244240604594,
+      "A2_ns": 5615.118627032612,
+      "baseline_drift": 0.0008908638182955064,
+      "candidate_drift": 0.01278472628521543,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "allocated_bytes": [
+        1024,
+        1024,
+        1024,
+        1024
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf16.reconstruct/10x4/131136/missing1+0/block0",
+      "A1_ns": 228684.57586837298,
+      "B1_ns": 224922.3520683453,
+      "B2_ns": 231095.40942698703,
+      "A2_ns": 226011.8648465704,
+      "baseline_drift": 0.011687325267362825,
+      "candidate_drift": 0.027445281902289453,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "allocated_bytes": [
+        131440,
+        131440,
+        131440,
+        131440
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf16.reconstruct/10x4/32768/missing1+0/block0",
+      "A1_ns": 101127.00040420372,
+      "B1_ns": 102208.21793300653,
+      "B2_ns": 101140.96460355986,
+      "A2_ns": 101404.90085158151,
+      "baseline_drift": 0.0027480341181584933,
+      "candidate_drift": 0.010441952232708052,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "allocated_bytes": [
+        32768,
+        32768,
+        32768,
+        32768
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf16.reconstruct/10x4/32768/missing2+0/block0",
+      "A1_ns": 100978.92174878836,
+      "B1_ns": 102179.48774509806,
+      "B2_ns": 100863.95141129033,
+      "A2_ns": 101332.97052269042,
+      "baseline_drift": 0.0035061651260532845,
+      "candidate_drift": 0.01287475953186934,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "allocated_bytes": [
+        65536,
+        65536,
+        65536,
+        65536
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf16.reconstruct/32x16/32768/missing2+0/block0",
+      "A1_ns": 561211.54764574,
+      "B1_ns": 556583.295,
+      "B2_ns": 555992.7411111111,
+      "A2_ns": 555235.0387168142,
+      "baseline_drift": 0.010649297852114659,
+      "candidate_drift": 0.0010610341600153506,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "allocated_bytes": [
+        68528,
+        68528,
+        68528,
+        68528
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf8.construct/10x4/0/missing0+0/block0",
+      "A1_ns": 20504.400114810564,
+      "B1_ns": 17283.510801188993,
+      "B2_ns": 17071.062610951798,
+      "A2_ns": 20592.215162246746,
+      "baseline_drift": 0.004282741603971685,
+      "candidate_drift": 0.012291958079638565,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        17,
+        5,
+        5,
+        17
+      ],
+      "allocated_bytes": [
+        2374,
+        1378,
+        1378,
+        2374
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf8.construct/128x64/0/missing0+0/block0",
+      "A1_ns": 4315387.327586208,
+      "B1_ns": 17265.387482734808,
+      "B2_ns": 17079.431377237328,
+      "A2_ns": 4296814.3625,
+      "baseline_drift": 0.004303892947796317,
+      "candidate_drift": 0.010770456538171214,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        77,
+        5,
+        5,
+        77
+      ],
+      "allocated_bytes": [
+        142258,
+        1378,
+        1378,
+        142258
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf8.construct/32x16/0/missing0+0/block0",
+      "A1_ns": 94533.48932350718,
+      "B1_ns": 17272.416971811523,
+      "B2_ns": 17072.31360966949,
+      "A2_ns": 92894.58506686478,
+      "baseline_drift": 0.01733675831042092,
+      "candidate_drift": 0.011585139617032114,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        29,
+        5,
+        5,
+        29
+      ],
+      "allocated_bytes": [
+        10546,
+        1378,
+        1378,
+        10546
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf8.reconstruct/10x4/1024/missing1+0/block0",
+      "A1_ns": 4417.746788301821,
+      "B1_ns": 4402.9410948892255,
+      "B2_ns": 4406.002903493003,
+      "A2_ns": 4422.165882477801,
+      "baseline_drift": 0.0010003049943201336,
+      "candidate_drift": 0.0006954007645778582,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "allocated_bytes": [
+        1024,
+        1024,
+        1024,
+        1024
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf8.reconstruct/10x4/131136/missing1+0/block0",
+      "A1_ns": 533627.9670212767,
+      "B1_ns": 532602.0484042553,
+      "B2_ns": 530340.1647245763,
+      "A2_ns": 529956.4565677966,
+      "baseline_drift": 0.006880281170371427,
+      "candidate_drift": 0.004246855013899986,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "allocated_bytes": [
+        131136,
+        131136,
+        131136,
+        131136
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf8.reconstruct/10x4/32768/missing1+0/block0",
+      "A1_ns": 132744.95408704883,
+      "B1_ns": 132249.37407505285,
+      "B2_ns": 132852.48990435706,
+      "A2_ns": 132636.55023860023,
+      "baseline_drift": 0.0008166325356330217,
+      "candidate_drift": 0.004560443733835351,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "allocated_bytes": [
+        32768,
+        32768,
+        32768,
+        32768
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf8.reconstruct/10x4/32768/missing2+0/block0",
+      "A1_ns": 133374.12420042642,
+      "B1_ns": 133352.785847548,
+      "B2_ns": 133018.99614361703,
+      "A2_ns": 133264.0815565032,
+      "baseline_drift": 0.0008250674153096327,
+      "candidate_drift": 0.002503057598755798,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        2,
+        2,
+        2,
+        2
+      ],
+      "allocated_bytes": [
+        65536,
+        65536,
+        65536,
+        65536
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "gf8.reconstruct/32x16/32768/missing2+0/block0",
+      "A1_ns": 595746.6416666667,
+      "B1_ns": 593072.4058056872,
+      "B2_ns": 593259.933056872,
+      "A2_ns": 593391.356042654,
+      "baseline_drift": 0.003953502142158172,
+      "candidate_drift": 0.00031619621710454737,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        6,
+        6,
+        6,
+        6
+      ],
+      "allocated_bytes": [
+        68528,
+        68528,
+        68528,
+        68528
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "stream.reconstruct/10x4/1048576/missing1+1/block4096",
+      "A1_ns": 442851.2243816254,
+      "B1_ns": 406626.3502435065,
+      "B2_ns": 408930.01184640516,
+      "A2_ns": 436393.49956445995,
+      "baseline_drift": 0.014582154144843318,
+      "candidate_drift": 0.005665303297533786,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        21,
+        16,
+        16,
+        21
+      ],
+      "allocated_bytes": [
+        58174,
+        57904,
+        57904,
+        58174
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "stream.reconstruct/10x4/1048576/missing1+1/block65536",
+      "A1_ns": 412397.5119243421,
+      "B1_ns": 423260.5663006756,
+      "B2_ns": 414590.5302152318,
+      "A2_ns": 428867.5702054795,
+      "baseline_drift": 0.03993733668344501,
+      "candidate_drift": 0.020483921195920685,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        21,
+        16,
+        16,
+        21
+      ],
+      "allocated_bytes": [
+        918334,
+        918064,
+        918064,
+        918334
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    },
+    {
+      "case_id": "stream.reconstruct/32x16/1048576/missing1+1/block4096",
+      "A1_ns": 3393793.3040540535,
+      "B1_ns": 3329491.7203947366,
+      "B2_ns": 3300905.5493421056,
+      "A2_ns": 3308703.5986842103,
+      "baseline_drift": 0.02507215311792832,
+      "candidate_drift": 0.008585746249953674,
+      "drift_passed": true,
+      "candidate_vs_baseline_ratio": null,
+      "allocations": [
+        57,
+        52,
+        52,
+        57
+      ],
+      "allocated_bytes": [
+        199600,
+        199296,
+        199296,
+        199600
+      ],
+      "allocation_bookends_repeat": {
+        "baseline": true,
+        "candidate": true
+      }
+    }
+  ],
+  "allocation_attribution_allowed": false,
+  "latency_attribution_allowed": false,
+  "independent_scope": "This 66-case campaign uses a new candidate and 3x1000ms samples; historical 58-case rejection remains unchanged.",
+  "python_assertions_enabled": true,
+  "isolation_passed": true,
+  "complete_case_sets": true,
+  "cleanup_passed": true
+}

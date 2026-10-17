@@ -1,6 +1,8 @@
 # Codec follow-up implementation and validation — 2026-10-17
 
-This continues the [completion audit](erasure-codec-completion-audit-2026-10-17.md) on `houseme/erasure-codec-review-fixes`. The current runtime is `9fcae450af8d98c5735e5c84bb42f28f9f018df8`, including main `60bb40c`. Encoding mathematics, shard payloads, public recovery semantics and SIMD activation limits remain unchanged.
+> Subsequent metadata lifetime and row-borrowing work is recorded in the [latest recovery validation](erasure-codec-recovery-metadata-validation-2026-10-17.md); this report preserves the earlier `9fcae45` results.
+
+This continues the [completion audit](erasure-codec-completion-audit-2026-10-17.md) on `houseme/erasure-codec-review-fixes`. The runtime examined here is `9fcae450af8d98c5735e5c84bb42f28f9f018df8`, including main `60bb40c`. Encoding mathematics, shard payloads, public recovery semantics and SIMD activation limits remain unchanged.
 
 [WASM #2852](https://github.com/rustfs/backlog/issues/2852) is accepted and closed. [DecodeIdx #2571](https://github.com/rustfs/backlog/issues/2571) has an explicit P2 evaluation decision, without claiming a new prepared API. [Performance #2853](https://github.com/rustfs/backlog/issues/2853) remains open. Correctness, compilation, drift checks and throughput acceptance are separate results.
 

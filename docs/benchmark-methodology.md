@@ -899,6 +899,11 @@ dependencies. It keeps deterministic fixtures and measures these cases:
   shard 0 and parity shard 0, requesting only that parity shard through
   `reconstruct_some` with reused `ShardSlot` storage. The unrequested data
   buffer must remain missing and unchanged.
+- Ordinary generic Classic data recovery (`classic.reconstruct_data_slots` and
+  `classic.reconstruct_data_vec`): `4+2` with 16 KiB and `10+4` with 32 KiB shards,
+  each missing one/two data shards. Slots retain backing storage; Vec adapters
+  take/drop and reconstruct payload buffers inside timing. Both use the ordinary
+  `reconstruct_data` entry point exercised by the pinned ECStore consumer.
 - Classic optimized data recovery (`classic.reconstruct_data_opt`): `10+4`
   with 32 KiB and 1 MiB shards, separately missing one and two data shards.
   This API requires `Option<Vec<u8>>`; each iteration takes and drops the
@@ -935,14 +940,16 @@ warmup iterations, counts allocations for one further operation, then collects
 three `std::time::Instant` latency samples in batches of eight operations.
 Except for construction probes, the codec and erasure pattern are reused.
 Caller buffers are retained for the ShardSlot, stream, and encode cases;
-`reconstruct_data_opt` replaces its missing `Option<Vec<u8>>` buffers each time.
+the generic Vec and `reconstruct_data_opt` cases replace their missing
+`Option<Vec<u8>>` buffers each time.
 The take/drop cost is included in latency, and replacement allocations are
 included in the allocation counts, so these cases should not be treated as
 allocation-equivalent to ShardSlot recovery. Stream buffers retain their
 capacity when marked missing.
 Initialization and fixture allocation are excluded from recovery/encode timing.
-An untimed preflight poisons missing or parity output bytes before invoking the
-operation, so a successful no-op cannot pass using previously correct output.
+An untimed preflight poisons retained missing/parity output bytes or actually
+removes Option buffers before invoking the operation, so a successful no-op
+cannot pass using previously correct output.
 Recovery checks both bytes and presence before and after measurement; selective
 recovery also checks that the unrequested missing shard remains unchanged.
 All-present cases instead check unchanged content and presence, alongside the
@@ -977,6 +984,6 @@ those conclusions.
 The 2026-10-16 review and rejected-latency A/B/B/A evidence are recorded in
 [the refactor review](erasure-codec-review-refactor-2026-10-16.md).
 
-The profile now has 58 cases; `RSE_RECOVERY_CASE_FILTER=encode.` selects 21.
+The profile now has 66 cases; `RSE_RECOVERY_CASE_FILTER=encode.` selects 21.
 For adjacent same-process comparisons that share buffer addresses, see the
 [NEON follow-up review and standalone probe](erasure-codec-neon-review-2026-10-16.md).

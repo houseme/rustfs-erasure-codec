@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "source_commit": "0a2d5ee74c62a83059cea857fb6645477d433020",
+  "runtime_commit": "0a2d5ee74c62a83059cea857fb6645477d433020",
+  "source_archive_sha256": "fcea9d3a762d21fcfd381aa683d12ba6fcdb72ea9a1c370532fd81288e13cc5f",
+  "rustc": "1.99.1 (58cf8f9c3 2026-10-13)",
+  "counting_method": "Last parent result per test executable; child repetition excluded",
+  "local_macos_arm64": {
+    "std_simd_metrics": {
+      "passed": 488,
+      "failed": 0,
+      "ignored": 43
+    },
+    "no_std_simd": {
+      "passed": 297,
+      "failed": 0,
+      "ignored": 20
+    },
+    "classic_regressions_passed": 12,
+    "all_feature_workspace_clippy": "passed"
+  },
+  "linux_arm64_docker": {
+    "target": "aarch64-unknown-linux-gnu",
+    "image_tag": "rust:1.99.1-trixie",
+    "cpu_quota": 4,
+    "memory_gib": 8,
+    "offline": true,
+    "network": "none",
+    "source_readonly": true,
+    "source_files": 587,
+    "source_tree_sha256": "3d8716390c181113104ca9d71f0bea1702456fe9e928e563d480e40594b7339f",
+    "source_unchanged": true,
+    "std_simd_metrics": {
+      "passed": 488,
+      "failed": 0,
+      "ignored": 43
+    },
+    "no_std_simd": {
+      "passed": 297,
+      "failed": 0,
+      "ignored": 20
+    },
+    "actual_no_std_features": [
+      "simd-accel",
+      "simd-avx2",
+      "simd-avx512",
+      "simd-gfni",
+      "simd-neon",
+      "simd-ssse3",
+      "simd-vsx"
+    ],
+    "containers_removed": true,
+    "scope": "ARM64 Linux VM functional execution, not dedicated ARM throughput"
+  },
+  "generated_wasm": {
+    "locked_release_build": "passed",
+    "node_tests_passed": 14,
+    "real_wasm_node_cases": 12,
+    "supplemental_node_unit_cases": 2,
+    "system_chrome_tests_passed": 8,
+    "delivery_sha_default_chromium_ci": "checked separately after final push"
+  },
+  "wide_parity_allocation_regression": {
+    "baseline_source": "5d2406876ad79b6729d60f1f874457aab76724f8",
+    "baseline_test_overlay": "Final regression test file applied to otherwise archived baseline source",
+    "baseline_executed_tests": 1,
+    "expected_baseline_exit": 101,
+    "baseline_observed_allocation_requests": 4,
+    "candidate_allocation_budget_maximum": 3,
+    "candidate_budget_and_complete_bytes_presence": "passed",
+    "workload": "Classic4+40,65element shards,40poisoned retained parity destinations, warmed serial reconstruct"
+  },
+  "release_probe_smoke": {
+    "cases": 66,
+    "samples_per_case": 3,
+    "sample_ms": 1,
+    "oracles": "all passed",
+    "scope": "correctness/allocation smoke, no timing attribution"
+  },
+  "native_linux_x86_64": {
+    "passed": 491,
+    "failed": 0,
+    "ignored": 43,
+    "core_features": [
+      "std",
+      "simd-accel",
+      "benchmark-metrics"
+    ],
+    "exit_code": 0,
+    "parent_sections": 25,
+    "nested_child_summaries_excluded": 4,
+    "root_raw_log_recomputation": "passed"
+  },
+  "pinned_downstream_release_fixtures": {
+    "consumer_revision": "902c97ce055b1faddb8cd689f0d3a04a0a3e6f35",
+    "source_commit": "0a2d5ee74c62a83059cea857fb6645477d433020",
+    "passed": 4,
+    "failed": 0,
+    "ignored": 0,
+    "exit_code": 0,
+    "profile": "opt3/thinLTO/codegen1/debug0/strip symbols",
+    "source_lock_graph_and_formal_executable_rechecked": true
+  },
+  "independent_source_review": "No blocking findings: fresh-plan fill invariants, borrowed output lifetime, row order, late errors, exact reservation hints and generic/no_std bounds checked read-only."
+}

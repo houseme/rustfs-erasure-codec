@@ -1,0 +1,46 @@
+{
+  "rows": 264,
+  "samples": 792,
+  "drifts": 132,
+  "attribution_allowed": false,
+  "allocation_attribution_allowed": false,
+  "failed_cases": [
+    {
+      "case_id": "classic.reconstruct_data_opt/10x4/32768/missing2+0/block0",
+      "baseline_drift": 0.017249583172810112,
+      "candidate_drift": 0.07114009459958615
+    },
+    {
+      "case_id": "classic.reconstruct_parity.cached/10x4/1024/missing0+1/block0",
+      "baseline_drift": 0.08037974314926244,
+      "candidate_drift": 0.04077728576200901
+    },
+    {
+      "case_id": "classic.reconstruct_some_parity/32x16/65536/missing1+1/block0",
+      "baseline_drift": 0.04225360113185905,
+      "candidate_drift": 0.09569475342508671
+    },
+    {
+      "case_id": "encode.serial/4x2/1024/missing0+0/block0",
+      "baseline_drift": 0.03757579841779024,
+      "candidate_drift": 0.06470012971539585
+    },
+    {
+      "case_id": "encode.serial/4x2/1048576/missing0+0/block0",
+      "baseline_drift": 0.022468842727785043,
+      "candidate_drift": 0.0690395595516422
+    },
+    {
+      "case_id": "encode.serial/8x3/1048576/missing0+0/block0",
+      "baseline_drift": 0.008773189856612351,
+      "candidate_drift": 0.06946789723810287
+    },
+    {
+      "case_id": "encode.serial/8x4/1048576/missing0+0/block0",
+      "baseline_drift": 0.0592888659986055,
+      "candidate_drift": 0.002554724874868075
+    }
+  ],
+  "largest_latency_increases": [],
+  "all_case_deltas": []
+}

@@ -1,0 +1,59 @@
+{
+  "attribution_allowed": true,
+  "allocation_attribution_allowed": false,
+  "allocations": "not measured by this Criterion harness",
+  "campaign_error": null,
+  "drift_limit_each_side": 0.05,
+  "cases": [
+    {
+      "case_id": "streaming_decode/decode/4+2_4096KB_64KB-block_verify-false",
+      "A1_ns": 223933.87833538587,
+      "B1_ns": 220178.26844369137,
+      "B2_ns": 222579.01970543718,
+      "A2_ns": 220868.3808168317,
+      "baseline_drift": 0.013689297668318834,
+      "candidate_drift": 0.010903670369992957,
+      "drift_passed": true,
+      "candidate_latency_ratio": -0.004597483400796243,
+      "candidate_throughput_ratio": 0.0046187178795806805
+    },
+    {
+      "case_id": "streaming_decode/decode/4+2_4096KB_64KB-block_verify-false_missing-first-data",
+      "A1_ns": 410947.25393217895,
+      "B1_ns": 403185.1271205357,
+      "B2_ns": 403935.878470037,
+      "A2_ns": 409434.8342717718,
+      "baseline_drift": 0.003680325506340454,
+      "candidate_drift": 0.0018620511993163724,
+      "drift_passed": true,
+      "candidate_latency_ratio": -0.0161645199280378,
+      "candidate_throughput_ratio": 0.016430104682599422
+    },
+    {
+      "case_id": "streaming_decode/decode/4+2_4096KB_64KB-block_verify-true",
+      "A1_ns": 815557.5314732143,
+      "B1_ns": 809470.233038348,
+      "B2_ns": 810488.2421460177,
+      "A2_ns": 813794.6477678572,
+      "baseline_drift": 0.002161568788620727,
+      "candidate_drift": 0.0012576238953823093,
+      "drift_passed": true,
+      "candidate_latency_ratio": -0.005765299961780657,
+      "candidate_throughput_ratio": 0.005798731387628209
+    },
+    {
+      "case_id": "streaming_decode/decode/4+2_4096KB_64KB-block_verify-true_missing-first-data",
+      "A1_ns": 901622.0672442245,
+      "B1_ns": 892981.2535014006,
+      "B2_ns": 892599.0401960785,
+      "A2_ns": 904390.5686881188,
+      "baseline_drift": 0.003070578620991471,
+      "candidate_drift": 0.0004280194055849007,
+      "drift_passed": true,
+      "candidate_latency_ratio": -0.011313510120772752,
+      "candidate_throughput_ratio": 0.011442970280856946
+    }
+  ],
+  "complete_case_sets": true,
+  "cleanup_passed": true
+}

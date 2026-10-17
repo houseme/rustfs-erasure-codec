@@ -1,0 +1,110 @@
+{
+  "baseline_revision": "8f49bd8b174fa776309219c55c697b5b7ad9f05c",
+  "candidate_revision": "0a2d5ee74c62a83059cea857fb6645477d433020",
+  "runtime_revision": "0a2d5ee74c62a83059cea857fb6645477d433020",
+  "shared_harness": "candidate benches/recovery_paths.rs applied identically to both revisions",
+  "baseline_harness_only_overlay": true,
+  "candidate_clean": true,
+  "identical_lockfiles": true,
+  "harness_source_sha256": "af017b2df9b0d48473786054ea286b161066f249018778b11e119db54b31ca43",
+  "lockfile_source_sha256": "76e89a1483e7ec3cb7abedbcff60098d5de8e244a66e2a803cf4db4ab104cf1f",
+  "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)\nbinary: rustc\ncommit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67\ncommit-date: 2026-10-13\nhost: x86_64-unknown-linux-gnu\nrelease: 1.99.1\nLLVM version: 23.1.1\n",
+  "profile": {
+    "opt_level": "3",
+    "debuginfo": 0,
+    "debug_assertions": false,
+    "overflow_checks": false,
+    "test": true
+  },
+  "features": [
+    "default",
+    "parking_lot",
+    "rayon",
+    "simd-accel",
+    "simd-avx2",
+    "simd-avx512",
+    "simd-gfni",
+    "simd-neon",
+    "simd-ssse3",
+    "simd-vsx",
+    "std"
+  ],
+  "platform": "Linux x86_64 virtual machine",
+  "isolation": "VM-level exclusive cpuset partition; physical host exclusivity unavailable",
+  "reserved_virtual_cpus": 8,
+  "rayon_threads": 4,
+  "options_max_parallel_jobs": 0,
+  "parallel_budget": "automatic; eight process-visible CPUs and four Rayon workers",
+  "sample_count": 3,
+  "sample_ms": 1000,
+  "warmup_iterations": 20,
+  "phase_order": [
+    "A1",
+    "B1",
+    "B2",
+    "A2"
+  ],
+  "phase_rows": {
+    "A1": 66,
+    "B1": 66,
+    "B2": 66,
+    "A2": 66
+  },
+  "drift_limit_each_side": 0.05,
+  "no_retries_or_selected_case_reruns": true,
+  "runtime_tuning_prefixes_cleared": [
+    "RS_PARALLEL_POLICY_",
+    "RS_RECONSTRUCT_",
+    "RS_AARCH64_RECONSTRUCT_"
+  ],
+  "runtime_backend": "auto with strict override",
+  "all_thread_samples_by_phase": {
+    "A1": 197,
+    "B1": 197,
+    "B2": 197,
+    "A2": 197
+  },
+  "all_root_children_checked": true,
+  "isolation_passed": true,
+  "python_assertions_enabled": true,
+  "latency_attribution_allowed": false,
+  "allocation_attribution_allowed": false,
+  "reservation_removed": true,
+  "parent_cpus_restored": true,
+  "root_controller_restored": true,
+  "telemetry": {
+    "A1": {
+      "exit_code": 0,
+      "isolation_check_passed": true,
+      "reserved_cpu_steal_fraction": 0.0,
+      "frequency_observation_available": false,
+      "thermal_observation_available": false,
+      "all_virtual_cpus_steal_ticks_delta": 0
+    },
+    "B1": {
+      "exit_code": 0,
+      "isolation_check_passed": true,
+      "reserved_cpu_steal_fraction": 0.0,
+      "frequency_observation_available": false,
+      "thermal_observation_available": false,
+      "all_virtual_cpus_steal_ticks_delta": 0
+    },
+    "B2": {
+      "exit_code": 0,
+      "isolation_check_passed": true,
+      "reserved_cpu_steal_fraction": 0.0,
+      "frequency_observation_available": false,
+      "thermal_observation_available": false,
+      "all_virtual_cpus_steal_ticks_delta": 0
+    },
+    "A2": {
+      "exit_code": 0,
+      "isolation_check_passed": true,
+      "reserved_cpu_steal_fraction": 0.0,
+      "frequency_observation_available": false,
+      "thermal_observation_available": false,
+      "all_virtual_cpus_steal_ticks_delta": 0
+    }
+  },
+  "raw_artifacts_byte_identical": true
+}
