@@ -2,6 +2,7 @@
 
 > **状态: ✅ 已完成 (2026-06-04)** — 14/14 子任务全部完成，并发 I/O + 并行 codec 已集成
 > **当前实现校准 (2026-06-28)** — `StreamOptions` 使用 `StreamIoMode::{Auto, Serial, Parallel}`；旧版 `concurrent_streams: bool` 仅作为历史设计记录，不再对应公开 API。
+> **当前实现校准 (2026-10-17)** — 新增 `reconstruct_stream_from`，支持明确缺失标记的独立非 Seek reader/writer；旧 Cursor API 作为共享执行器的适配器保留。以下设计记录不代表所有恢复接口均为外部流。详见[完成度核查](erasure-codec-completion-audit-2026-10-17.md)。
 > 文档日期: 2026-05-31
 > 预估总工作量: 2-3 周
 > 前置依赖: 无

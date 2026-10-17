@@ -1,7 +1,8 @@
 //! Streaming encode/verify/reconstruct for large data.
 //!
 //! Provides [`encode_stream`](crate::galois_8::ReedSolomon::encode_stream),
-//! [`verify_stream`](crate::galois_8::ReedSolomon::verify_stream), and
+//! [`verify_stream`](crate::galois_8::ReedSolomon::verify_stream),
+//! [`reconstruct_stream_from`](crate::galois_8::ReedSolomon::reconstruct_stream_from), and
 //! [`reconstruct_stream`](crate::galois_8::ReedSolomon::reconstruct_stream) methods that
 //! process data in configurable blocks, avoiding the need to load entire
 //! files into memory.
@@ -311,11 +312,9 @@ fn zero_pad_short_buffers(
     }
 }
 
-fn read_present_cursors_with_mode(
-    shards: &mut [std::io::Cursor<Vec<u8>>],
+fn read_present_streams_with_mode<R: std::io::Read + Send>(
+    readers: &mut [Option<R>],
     buffers: &mut [Vec<u8>],
-    present: &[bool],
-    present_indices: &[usize],
     max_len: usize,
     use_parallel_io: bool,
     read_lengths: &mut Vec<(usize, usize)>,
@@ -325,29 +324,31 @@ fn read_present_cursors_with_mode(
     if use_parallel_io {
         use rayon::prelude::*;
 
-        read_lengths.resize(shards.len(), (0, 0));
-        shards
+        read_lengths.resize(readers.len(), (0, 0));
+        readers
             .par_iter_mut()
             .zip(buffers.par_iter_mut())
             .zip(read_lengths.par_iter_mut())
             .enumerate()
-            .try_for_each(|(i, ((shard, buf), read_length))| {
+            .try_for_each(|(i, ((reader, buf), read_length))| {
                 *read_length = (i, 0);
-                if present[i] {
-                    let total = read_one_stream(shard, buf, max_len)
+                if let Some(reader) = reader {
+                    let total = read_one_stream(reader, buf, max_len)
                         .map_err(|e| StreamError::read(i, e))?;
                     buf.truncate(total);
                     read_length.1 = total;
                 }
                 Ok::<_, StreamError>(())
             })?;
-        read_lengths.retain(|&(i, _)| present[i]);
+        read_lengths.retain(|&(i, _)| readers[i].is_some());
     } else {
-        for &i in present_indices {
-            let total = read_one_stream(&mut shards[i], &mut buffers[i], max_len)
-                .map_err(|e| StreamError::read(i, e))?;
-            buffers[i].truncate(total);
-            read_lengths.push((i, total));
+        for (i, (reader, buf)) in readers.iter_mut().zip(buffers.iter_mut()).enumerate() {
+            if let Some(reader) = reader {
+                let total =
+                    read_one_stream(reader, buf, max_len).map_err(|e| StreamError::read(i, e))?;
+                buf.truncate(total);
+                read_lengths.push((i, total));
+            }
         }
     }
 
@@ -369,6 +370,39 @@ fn read_present_cursors_with_mode(
     }
 
     Ok((actual_len == 0, actual_len))
+}
+
+fn write_missing_streams_with_mode<W: std::io::Write + Send>(
+    writers: &mut [Option<W>],
+    buffers: &[Vec<u8>],
+    len: usize,
+    use_parallel_io: bool,
+) -> Result<(), StreamError> {
+    if use_parallel_io {
+        use rayon::prelude::*;
+
+        writers
+            .par_iter_mut()
+            .zip(buffers.par_iter())
+            .enumerate()
+            .try_for_each(|(i, (writer, buf))| {
+                if let Some(writer) = writer {
+                    writer
+                        .write_all(&buf[..len])
+                        .map_err(|e| StreamError::write(i, e))?;
+                }
+                Ok(())
+            })
+    } else {
+        for (i, (writer, buf)) in writers.iter_mut().zip(buffers).enumerate() {
+            if let Some(writer) = writer {
+                writer
+                    .write_all(&buf[..len])
+                    .map_err(|e| StreamError::write(i, e))?;
+            }
+        }
+        Ok(())
+    }
 }
 
 /// Write `len` bytes from each buffer to the corresponding writer.
@@ -791,6 +825,7 @@ impl super::ReedSolomon<crate::galois_8::Field> {
     /// blocks, and writes recovered data into the missing cursors.  The set
     /// of missing shard indices must be consistent across all blocks. The
     /// decode plan and scratch buffers are reused across those blocks.
+    /// For independent readers and writers, use [`Self::reconstruct_stream_from`].
     ///
     /// # Limitations
     ///
@@ -802,14 +837,6 @@ impl super::ReedSolomon<crate::galois_8::Field> {
         shards: &mut [std::io::Cursor<Vec<u8>>],
         options: &StreamOptions,
     ) -> Result<(), StreamError> {
-        // block_size is a public field and may bypass with_block_size's clamp
-        // (e.g. a struct literal). Clamp it to the valid range here: 0 would be
-        // raised to the lower bound (otherwise reads hit EOF immediately and
-        // silently produce empty output), and a huge value is capped to the
-        // upper bound (otherwise Vec::with_capacity may OOM).
-        let block_size = options
-            .block_size
-            .clamp(MIN_BLOCK_SIZE_BYTES, MAX_BLOCK_SIZE_BYTES);
         let total = self.total_shard_count();
 
         // Validate the shard count at runtime (debug_assert is removed in
@@ -823,52 +850,126 @@ impl super::ReedSolomon<crate::galois_8::Field> {
             return Err(StreamError::codec(0, crate::Error::UnsupportedCodecFamily));
         }
 
-        // Determine which shards are present (non-empty cursor).
-        let mut present = vec![false; total];
-        for (i, shard) in shards.iter().enumerate() {
-            present[i] = !shard.get_ref().is_empty();
-        }
-
-        let missing_count = present.iter().filter(|&&p| !p).count();
-        let present_count = total - missing_count;
+        let present_count = shards
+            .iter()
+            .filter(|shard| !shard.get_ref().is_empty())
+            .count();
         // An empty dataset (no present shards) has nothing to recover; return Ok,
         // consistent with encode_stream returning Ok for empty input (rather than
         // TooFewShardsPresent).
         if present_count == 0 {
             return Ok(());
         }
-        if missing_count > self.parity_shard_count() {
+        if present_count < self.data_shard_count() {
             return Err(StreamError::codec(0, crate::Error::TooFewShardsPresent));
         }
-        let use_parallel_read = use_parallel_stream_io(options, present_count);
-        let present_indices: Vec<usize> = present
-            .iter()
-            .enumerate()
-            .filter_map(|(i, is_present)| is_present.then_some(i))
-            .collect();
-        let missing_indices: Vec<usize> = present
-            .iter()
-            .enumerate()
-            .filter_map(|(i, is_present)| (!is_present).then_some(i))
-            .collect();
 
-        // Presence is decided from whether the underlying Vec is empty, but
-        // reads go through the Cursor's Read impl (from the current position).
-        // A present cursor whose position is not 0 (e.g. just written to, with
-        // the position at the end) would be misread as empty, causing silent
-        // no-recovery or wrong recovery. Reset every present cursor's position
-        // to 0 before reading.
-        for &idx in &present_indices {
-            shards[idx].set_position(0);
+        let mut readers: SmallVec<[Option<&mut std::io::Cursor<Vec<u8>>>; 32]> =
+            SmallVec::with_capacity(total);
+        let mut writers: SmallVec<[Option<&mut Vec<u8>>; 32]> = SmallVec::with_capacity(total);
+        for shard in shards {
+            // Each cursor contributes only one mutable reference. Writing via
+            // the underlying Vec preserves the legacy missing-cursor position.
+            if shard.get_ref().is_empty() {
+                readers.push(None);
+                writers.push(Some(shard.get_mut()));
+            } else {
+                shard.set_position(0);
+                readers.push(Some(shard));
+                writers.push(None);
+            }
+        }
+        self.reconstruct_stream_from(&mut readers, &mut writers, options)
+    }
+
+    /// Reconstruct missing shards from independent readers into independent writers.
+    ///
+    /// Both slices have one entry per total shard. `Some(reader)` marks a
+    /// present shard, including an empty stream; its writer must be `None`.
+    /// `None` marks a missing shard and requires `Some(writer)` at that index.
+    /// At least [`Self::data_shard_count`] readers must be present. Unlike
+    /// [`Self::reconstruct_stream`], an all-`None` reader layout is an error.
+    ///
+    /// Readers are consumed from their current positions without seeking.
+    /// All present streams must have equal lengths; short reads and
+    /// [`std::io::ErrorKind::Interrupted`] are retried. Each block is fully read
+    /// and length-checked before any of its recovered bytes are written. The
+    /// decode plan and block buffers are reused, keeping scratch memory bounded
+    /// by the shard count and clamped block size, independent of stream length.
+    /// `options.io_mode` controls both reading and writing; compute remains serial.
+    ///
+    /// Writers receive recovered bytes through `write_all`; they are not
+    /// flushed. On error, readers may have advanced and writers may contain
+    /// earlier blocks and some or all of the current block. Outputs are not rolled back,
+    /// and retrying requires callers to restore the stream positions themselves.
+    ///
+    /// # Errors
+    ///
+    /// Counts, codec family, reader/writer layout, and the number of available
+    /// shards are checked before any I/O. Invalid layouts return
+    /// [`crate::Error::InvalidShardFlags`] with the offending shard index.
+    /// Unequal lengths return [`crate::Error::IncorrectShardSize`]. Read and
+    /// write failures retain their shard index and underlying I/O error.
+    /// Only Classic codecs are supported; Leopard returns
+    /// [`crate::Error::UnsupportedCodecFamily`].
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// use rustfs_erasure_codec::{galois_8::ReedSolomon, stream::StreamOptions};
+    /// use std::fs::File;
+    ///
+    /// let codec = ReedSolomon::new(2, 1)?;
+    /// let mut readers = [None, Some(File::open("data1")?), Some(File::open("parity0")?)];
+    /// let mut writers = [Some(File::create("data0.recovered")?), None, None];
+    /// codec.reconstruct_stream_from(&mut readers, &mut writers, &StreamOptions::default())?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn reconstruct_stream_from<R: std::io::Read + Send, W: std::io::Write + Send>(
+        &self,
+        readers: &mut [Option<R>],
+        writers: &mut [Option<W>],
+        options: &StreamOptions,
+    ) -> Result<(), StreamError> {
+        let total = self.total_shard_count();
+        for count in [readers.len(), writers.len()] {
+            if count < total {
+                return Err(StreamError::codec(0, crate::Error::TooFewShards));
+            }
+            if count > total {
+                return Err(StreamError::codec(0, crate::Error::TooManyShards));
+            }
+        }
+        if self.is_leopard_gf8_family() || self.is_leopard_gf16_family() {
+            return Err(StreamError::codec(0, crate::Error::UnsupportedCodecFamily));
+        }
+        let mut missing_indices: SmallVec<[usize; 32]> = SmallVec::new();
+        for (index, (reader, writer)) in readers.iter().zip(writers.iter()).enumerate() {
+            if reader.is_some() == writer.is_some() {
+                return Err(StreamError::codec(index, crate::Error::InvalidShardFlags));
+            }
+            if reader.is_none() {
+                missing_indices.push(index);
+            }
+        }
+        let present_count = total - missing_indices.len();
+        if present_count < self.data_shard_count() {
+            return Err(StreamError::codec(0, crate::Error::TooFewShardsPresent));
         }
 
-        // Strategy: read present shards into buffers per block, reconstruct,
-        // then write recovered data into missing shards' cursors.
+        let block_size = options
+            .block_size
+            .clamp(MIN_BLOCK_SIZE_BYTES, MAX_BLOCK_SIZE_BYTES);
+        let use_parallel_read = use_parallel_stream_io(options, present_count);
+        let use_parallel_write = use_parallel_stream_io(options, missing_indices.len());
 
         // Retain both present and missing buffers between blocks.
-        let mut bufs: Vec<Vec<u8>> = (0..total)
-            .map(|i| {
-                if present[i] {
+        let mut bufs: Vec<Vec<u8>> = readers
+            .iter()
+            .map(|reader| {
+                if reader.is_some() {
                     Vec::with_capacity(block_size)
                 } else {
                     Vec::new()
@@ -877,11 +978,9 @@ impl super::ReedSolomon<crate::galois_8::Field> {
             .collect();
         let mut read_lengths = Vec::with_capacity(total);
 
-        let (all_eof, mut actual_len) = read_present_cursors_with_mode(
-            shards,
+        let (all_eof, mut actual_len) = read_present_streams_with_mode(
+            readers,
             &mut bufs,
-            &present,
-            &present_indices,
             block_size,
             use_parallel_read,
             &mut read_lengths,
@@ -904,18 +1003,11 @@ impl super::ReedSolomon<crate::galois_8::Field> {
 
             plan.reconstruct_block(&mut bufs, actual_len, &data_rows, &parity_rows);
 
-            // Write recovered data into missing shards' cursors.
-            for &idx in &missing_indices {
-                shards[idx]
-                    .get_mut()
-                    .extend_from_slice(&bufs[idx][..actual_len]);
-            }
+            write_missing_streams_with_mode(writers, &bufs, actual_len, use_parallel_write)?;
 
-            let (all_eof, next_len) = read_present_cursors_with_mode(
-                shards,
+            let (all_eof, next_len) = read_present_streams_with_mode(
+                readers,
                 &mut bufs,
-                &present,
-                &present_indices,
                 block_size,
                 use_parallel_read,
                 &mut read_lengths,

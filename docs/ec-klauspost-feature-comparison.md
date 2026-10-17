@@ -79,7 +79,7 @@
 | 维度 | Go | Rust | 结论 |
 |---|---|---|---|
 | 入口形式 | `NewStream(...)` | `galois_8::ReedSolomon::{encode,verify,reconstruct}_stream(...)` | Rust 已有功能，但不是独立 builder |
-| 数据接口 | `[]io.Reader` / `[]io.Writer` | `Read` / `Write` / `Cursor<Vec<u8>>` | Rust 更直接但更具体 |
+| 数据接口 | `[]io.Reader` / `[]io.Writer` | `Read` / `Write`，恢复使用独立 `Option<R>` / `Option<W>`，保留 Cursor 适配器 | Rust 更直接但更具体 |
 | 块大小配置 | ✅ `WithStreamBlockSize` | ✅ `StreamOptions::with_block_size(...)` | 等价 |
 | 并发流选项 | ✅ `WithConcurrentStreams` | 内部并行实现，无等价公开 option | Go 更成熟 |
 | Leopard >256 stream | ❌ README 明确 GF16 stream 不支持 | `reconstruct_stream` 对 Leopard family 不支持 | 两边都有限制 |
@@ -152,6 +152,8 @@ Rust 把这些能力更清晰地拆成独立 API：
 
 ---
 
+> 2026-10-17 校准：统一格式身份、外部流恢复及组合测试已补全；WASM 真实生成绑定和隔离跨架构吞吐验收仍分别见 backlog #2852 / #2853。当前证据见[完成度核查](erasure-codec-completion-audit-2026-10-17.md)。
+
 ## 4. Rust 相比 Go 仍有差距的部分
 
 ### 4.1 Streaming API 的产品化程度
@@ -160,7 +162,7 @@ Rust 已经有 block-based stream API，但和 Go 的 `NewStream()` 体系相比
 
 - 没有独立的 stream encoder/decoder builder
 - 没有公开对等的 `WithConcurrentStreams`
-- `reconstruct_stream(...)` 当前要求 `Cursor<Vec<u8>>`，调用形态更偏内存缓冲而不是纯抽象流
+- `reconstruct_stream_from(...)` 已支持非 Seek 独立 reader/writer 和明确缺失标记；旧 `reconstruct_stream(...)` 保留 `Cursor<Vec<u8>>` 合同
 - Leopard family 的流式重建限制需要更显眼的公开文档
 
 结论：

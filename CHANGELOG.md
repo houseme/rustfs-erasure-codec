@@ -64,6 +64,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Added
+- Add explicit-presence `reconstruct_stream_from` for independent non-Seek readers/writers. Share one block recovery engine with the legacy Cursor adapter, retaining plans and buffers and documenting partial-output error semantics.
 - Expose a versioned `EncodingFormat<F>` with explicit portable metadata and share its effective identity across codec equality and prepared recovery workspaces; remove duplicated identity state without serializing on hot paths.
 - Extend serial encode probes to all six generated layouts (58 total recovery-path cases), independently verify parity, and preserve a standalone paired-comparison probe with per-phase iteration counts.
 - Expand the recovery probe to 43 cases with poisoned-output/presence preflights, constructors, serial encoding, optimized recovery, and validated all-present workloads.
