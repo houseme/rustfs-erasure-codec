@@ -191,7 +191,7 @@ Every change that touches hot paths should be validated with the smallest releva
 1. Track backlog issue `rustfs/backlog#2571` for klauspost v1.14.2 hardening and validation status.
 2. Keep P0 hardening complete: Leopard shard combination validation, Leopard family rejection in `decode_idx`, and regression tests.
 3. Keep P1 compatibility complete: `reconstruct_some` / `reconstruct_some_opt` DataShards-length required mask support and current Clippy compatibility.
-4. Defer T8/P2 one-pass reconstruct, stream reader/writer shape, and allocator/workspace experiments until benchmark evidence justifies the extra API or complexity.
+4. Classic shared recovery plans, missing-output recovery, reusable workspaces and external reader/writer streams are implemented. See the [2026-10-17 completion audit](erasure-codec-completion-audit-2026-10-17.md) for exact coverage. DecodeIdx-specific workspace evaluation and isolated throughput acceptance remain separate P2 work; do not infer them from unit tests.
 
 ## Merge Guidance
 

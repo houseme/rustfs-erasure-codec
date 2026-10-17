@@ -52,6 +52,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Validation
+- The 2026-10-17 completion audit passes 491 workspace SIMD/metrics tests and 291 no_std tests, 400 small and five wide cross-revision byte comparisons, focused AddressSanitizer tests, 30,000 final fuzz executions, all-feature Clippy and x86/i686/wasm32 compile checks. Record unexecuted platform/runtime acceptance explicitly in `docs/erasure-codec-completion-audit-2026-10-17.md`.
 - The benchmark regression gate passes 32 Python tests, covering empty/incomplete artifacts, alias conflicts, strict metadata, numeric thread budgets and legacy compatibility.
 - Archive rejected grouping and unstable separate-process probes alongside the retained fused NEON results. All 18 final same-buffer paired cells pass two 5% drift checks; local 32 KiB 10+4/12+4/8+4 latency observations improve about 8.7%/9.8%/5.2%, with a roughly 8 ns small 4+2 tradeoff recorded in the review.
 - Direct generated-NEON tests compare all six supported shapes against scalar field arithmetic across 258 shape/length combinations, including every vector tail, unaligned buffers, zero/identity/high coefficients, empty checked invocations, and untouched output guards.
