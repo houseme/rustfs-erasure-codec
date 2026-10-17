@@ -4,8 +4,12 @@
 Legacy artifacts may omit provenance fields on both sides. A field present on
 only one side requires --allow-missing-provenance and is reported as unchecked.
 That flag never permits unequal values available on both sides. Commit hashes,
-iteration counts, seeds and profile labels are intentionally not equality gates:
-they can change between runs of the same workload.
+iteration counts and seeds are intentionally not equality gates: they can change
+between runs of the same workload. Workload profile labels are compared when
+present, separately from the build profile.
+
+--strict-provenance requires complete comparable build, CPU and thread-budget
+metadata in every row. Legacy omission overrides do not waive these requirements.
 
 Every baseline case must remain in current results. For a deliberately smaller
 profile, --allow-missing-cases reports omitted cases without failing the gate;
@@ -45,8 +49,39 @@ PROVENANCE_FIELDS = (
     "stream_io_backend",
     "stream_io_mode",
     "cpu_model",
-    "cpu",
+    "compiler",
+    "build_profile",
+    "profile",
+    "rayon_threads",
+    "available_parallelism",
+    "max_parallel_jobs",
+    "effective_max_jobs",
+    "target_cpu",
+    "rustflags",
 )
+PROVENANCE_ALIASES = {
+    "backend": ("backend", "backend_name"),
+    "cpu_model": ("cpu_model", "cpu"),
+    "compiler": ("compiler", "compiler_version", "rustc", "rustc_version"),
+    "build_profile": ("build_profile", "cargo_profile"),
+    "rayon_threads": ("rayon_threads", "rayon_num_threads"),
+    "max_parallel_jobs": ("max_parallel_jobs", "max_jobs"),
+}
+STRICT_PROVENANCE_FIELDS = (
+    "target_triple",
+    "features",
+    "benchmark_metrics_enabled",
+    "backend",
+    "cpu_model",
+    "compiler",
+    "build_profile",
+    "rayon_threads",
+    "available_parallelism",
+    "max_parallel_jobs",
+)
+STREAM_PROVENANCE_FIELDS = ("stream_io_backend", "stream_io_mode")
+THREAD_FIELDS = ("rayon_threads", "available_parallelism", "max_parallel_jobs", "effective_max_jobs")
+UNKNOWN_PROVENANCE = {"unknown", "unavailable", "unspecified", "n/a", "null", "none", "nan"}
 DEFAULT_THRESHOLDS = {
     "encode": 0.10,
     "verify": 0.12,
@@ -84,24 +119,73 @@ def positive_integer(value, name):
     return str(int(raw))
 
 
-def provenance_value(record, field):
-    if field not in record or record[field] is None:
+def normalize_provenance_value(value, field):
+    if value is None:
         return None
-    value = record[field]
     if field in ("benchmark_metrics_enabled", "override_honored"):
-        value = str(value).lower()
+        value = str(value).strip().lower()
         if value not in ("true", "false"):
             raise ValueError(f"{field} must be true or false")
+    elif field in THREAD_FIELDS:
+        # Configured max_parallel_jobs=0 means automatic, not a zero-size pool.
+        raw = str(value)
+        minimum = 0 if field == "max_parallel_jobs" else 1
+        if not raw.isascii() or not raw.isdecimal() or int(raw) < minimum:
+            kind = "nonnegative" if minimum == 0 else "positive"
+            raise ValueError(f"{field} must be a {kind} integer")
+        return str(int(raw))
     elif field == "features":
         # Cargo feature order is not semantically significant.
         if not isinstance(value, str):
             raise ValueError("features must be a pipe-separated string")
         value = "|".join(sorted(set(part.strip() for part in value.split("|") if part.strip())))
     else:
+        if field != "schema_version" and not isinstance(value, str):
+            raise ValueError(f"{field} must be a string")
         value = str(value).strip()
-        if not value:
+        if not value and field != "rustflags":
             raise ValueError(f"{field} must not be empty when present")
+        if field == "compiler":
+            # Keep version/hash/date intact; only normalize the optional tool
+            # prefix and whitespace, never equate different compiler builds.
+            value = " ".join(value.split()).removeprefix("rustc ")
+        elif field == "cpu_model":
+            value = " ".join(value.split())
+        if field != "rustflags" and value.lower() in UNKNOWN_PROVENANCE:
+            return None
     return value
+
+
+def provenance_value(record, field):
+    values = []
+    for alias in PROVENANCE_ALIASES.get(field, (field,)):
+        if alias in record:
+            value = normalize_provenance_value(record[alias], field)
+            if value is not None:
+                values.append((alias, value))
+    if not values:
+        return None
+    first = values[0][1]
+    if any(value != first for _, value in values[1:]):
+        raise ValueError(f"conflicting aliases for {field}: {', '.join(alias for alias, _ in values)}")
+    return first
+
+
+def strict_missing_fields(record):
+    required = list(STRICT_PROVENANCE_FIELDS)
+    if (
+        record["operation"].endswith("_stream")
+        or record["stream_block_size"]
+        or record["artifact_kind"] == "stream-path-results"
+    ):
+        required.extend(STREAM_PROVENANCE_FIELDS)
+    missing = []
+    for field in required:
+        value = record[field]
+        unknown = UNKNOWN_PROVENANCE - {"none"} if field == "features" else UNKNOWN_PROVENANCE
+        if value is None or value == "" or value.lower() in unknown:
+            missing.append(field)
+    return missing
 
 
 def normalize_record(record):
@@ -125,13 +209,17 @@ def normalize_record(record):
     return normalized
 
 
-def index_records(rows, source="artifact"):
+def index_records(rows, source="artifact", strict_provenance=False):
     if not isinstance(rows, list) or not rows:
         raise ValueError(f"{source}: expected a nonempty list of benchmark rows")
     indexed = {}
     for row_number, row in enumerate(rows, start=1):
         try:
             record = normalize_record(row)
+            if strict_provenance:
+                missing = strict_missing_fields(record)
+                if missing:
+                    raise ValueError(f"strict provenance missing or unknown fields: {', '.join(missing)}")
         except (KeyError, TypeError, ValueError, OverflowError) as error:
             raise ValueError(f"{source}: row {row_number}: {error}") from error
         key = (
@@ -214,9 +302,14 @@ def main():
         help="Allow an intentional subset of baseline cases; omitted cases remain reported and --require-case still applies",
     )
     parser.add_argument(
+        "--strict-provenance",
+        action="store_true",
+        help="Require target/features/metrics/backend/CPU/compiler/build profile and thread budgets in every row, plus stream I/O provenance for stream cases",
+    )
+    parser.add_argument(
         "--allow-missing-provenance",
         action="store_true",
-        help="Allow legacy fields absent on only one side, reporting unchecked fields; available mismatches still fail",
+        help="Allow optional legacy fields absent on only one side; cannot waive strict requirements or available mismatches",
     )
     args = parser.parse_args()
 
@@ -224,8 +317,8 @@ def main():
     current_path = pathlib.Path(args.current)
     try:
         thresholds = parse_threshold_overrides(args.threshold)
-        baseline = index_records(load_rows(baseline_path), "baseline")
-        current = index_records(load_rows(current_path), "current")
+        baseline = index_records(load_rows(baseline_path), "baseline", args.strict_provenance)
+        current = index_records(load_rows(current_path), "current", args.strict_provenance)
     except (OSError, TypeError, ValueError) as error:
         parser.error(str(error))
 
@@ -315,6 +408,7 @@ def main():
         "baseline": str(baseline_path),
         "current": str(current_path),
         "metric": args.metric,
+        "strict_provenance": args.strict_provenance,
         "thresholds": thresholds,
         "comparisons": comparisons,
         "failures": failures,
