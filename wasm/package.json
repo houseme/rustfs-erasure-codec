@@ -1,0 +1,29 @@
+{
+  "name": "rustfs-erasure-codec-wasm",
+  "version": "0.2.5",
+  "description": "Reed-Solomon erasure coding for browsers and Node.js",
+  "license": "MIT",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit --project tsconfig.json",
+    "test:node": "node --test tests/index.test.mjs",
+    "test:browser": "playwright test",
+    "test": "npm run test:node && npm run test:browser"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@types/node": "26.6.5",
+    "typescript": "7.0.2"
+  }
+}

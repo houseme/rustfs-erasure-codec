@@ -7,23 +7,46 @@ This package lives inside the current
 repository and tracks the main Rust codebase in this checkout.
 
 **Package:** `rustfs-erasure-codec-wasm` v0.2.5
-**Dependencies:** [`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen)
+**Runtime:** WASM plus ES modules; no npm runtime dependencies.
+**Bindings:** [`wasm-bindgen`](https://github.com/wasm-bindgen/wasm-bindgen), with
+the CLI version required to match `Cargo.lock` (currently 0.2.129).
 
 ## Building
 
-Prerequisites: install [`wasm-pack`](https://rustwasm.github.io/wasm-pack/installer/).
+Use Node.js 22 or newer and a Rust toolchain satisfying the workspace MSRV.
+The npm development tools are pinned in `package-lock.json`; they are not part
+of the runtime package.
 
 ```bash
-# Build for browser (ES module)
+# From the repository root
+rustup target add wasm32-unknown-unknown
+cargo install wasm-bindgen-cli --version 0.2.129 --locked
 cd wasm
-wasm-pack build --target web
+npm ci --ignore-scripts
+npm run build
+npm run typecheck
 
-# Build for Node.js
-cd wasm
-wasm-pack build --target nodejs
+# Inspect or create the npm package after a successful build
+npm pack --dry-run
+npm pack
 ```
 
-The output `.wasm` and JS/TS bindings will be placed in `wasm/pkg/`.
+`npm run build` runs a locked release Cargo build, checks the installed
+wasm-bindgen CLI against `Cargo.lock`, generates JS/types/WASM, and compiles the
+TypeScript facade. It respects `CARGO_TARGET_DIR`. Developers who have already
+built the current Rust sources can use `npm run build -- --skip-cargo` to repeat
+only binding generation and TypeScript compilation.
+
+The distributable files are in `wasm/dist/`: `src/index.js` and its declarations,
+plus the JS/types/WASM in `generated/`. Serve the entire `dist` tree when using
+native browser ES modules, so its relative WASM URL remains available.
+
+Each initializer creates an independent generated binding factory and WASM
+instance, including concurrent asynchronous calls. The build script wraps the
+complete `--target no-modules` generator output in a static function; it does
+not rewrite ABI details or evaluate generated source at runtime. The generated
+bridge owns allocation, imports, slice conversion, copy-back, and memory-view
+refresh after growth.
 
 ## TypeScript API
 
@@ -32,16 +55,22 @@ The [`ReedSolomonErasure`](src/index.ts) class provides the high-level interface
 ### Instantiation
 
 ```typescript
-// Auto-detect environment (Node.js or browser)
+// Load the binary relative to this package's module (Node.js or HTTP browser)
 const rs = await ReedSolomonErasure.fromCurrentDirectory();
 
 // Browser: async instantiation from fetch()
 const rs = await ReedSolomonErasure.fromResponse(fetch("rustfs_erasure_codec_bg.wasm"));
 
 // Node.js: synchronous instantiation from bytes
-const bytes = readFileSync("rustfs_erasure_codec_bg.wasm");
+const bytes = readFileSync("/path/to/rustfs_erasure_codec_bg.wasm");
 const rs = ReedSolomonErasure.fromBytes(bytes);
 ```
+
+The Node.js byte-loading example uses `readFileSync` from `node:fs`. For browser
+ES modules served directly, import the facade from `./dist/src/index.js`.
+`fromResponse` accepts a `Response` or `Promise<Response>` and reports HTTP or
+WASM compilation errors. `fromBytes` accepts `BufferSource` and remains
+synchronous. A failed later initializer never falls back to an earlier instance.
 
 ### Methods
 
@@ -126,12 +155,32 @@ console.assert(reconstructResult === ReedSolomonErasure.RESULT_OK);
 ## Maintenance
 
 Run `cargo test -p rustfs-erasure-codec-wasm --lib` from the repository root for
-host tests of encoding, recovery, and malformed input handling. These tests do
-not exercise browser loading or JavaScript/WASM integration; validate those
-separately with the generated package.
-With Node.js supporting built-in TypeScript stripping, run
-`node --test wasm/tests/index.test.mjs` for wrapper validation and copy-back tests
-using mocked WASM exports. These also do not replace generated-package tests.
+Rust host tests. Build the package first, then run the actual generated binary
+through both environments:
+
+```bash
+# From wasm/, after npm ci and npm run build
+npm run test:node
+npx playwright install --with-deps chromium
+npm run test:browser
+
+# Alternatively, use an existing local Google Chrome installation
+PLAYWRIGHT_CHANNEL=chrome npm run test:browser
+```
+
+The Node and Chromium integration suites use the real WASM binary. A separate
+Node unit test spies only on the high-level generated operation methods to
+confirm that facade validation runs before entering the bridge; it never mocks
+the raw WASM ABI and is not counted as integration evidence.
+They cover synchronous and asynchronous initialization, module-relative loading,
+isolated/concurrent instances, invalid later modules, HTTP errors and MIME
+fallback, data-only recovery, malformed counts/buffers/flags, repeated calls,
+subarray boundaries, and explicit plus allocation-driven `memory.grow`.
+Both environments check every 3+2 parity byte against an independent scalar
+GF8 oracle and check the fixed 4+2 vector from the Rust golden-vector tests.
+Memory-growth tests inspect the real generated instance's memory; the facade
+does not expose memory management as a public API. The browser test server binds
+only to loopback and uses a CSP without JavaScript `unsafe-eval`.
 
 The WASM package is now maintained as part of the main repository workflow in
 `houseme/rustfs-erasure-codec`.

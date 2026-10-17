@@ -11,6 +11,7 @@ All notable changes to this project are documented in this file.
 ## Unreleased
 
 ### Fixed
+- Replace the TypeScript facade's manually maintained raw WASM ABI with independent factories around complete, version-matched wasm-bindgen output. Preserve result codes and data-only recovery while supporting real Node/browser initialization and memory growth.
 - Remove the fuzz assumption that zeroing a shard must invalidate a codeword; compare reconstructed bytes against the original complete codeword instead.
 - Gate test-only NEON thread-local profile capture on `std`, allowing `no_std + simd-accel` test builds.
 - Finish Classic inverse planning before initializing missing destinations; singular custom matrices leave outputs missing, and empty selective requests skip unused inverses.
@@ -69,6 +70,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Added
+- Add a locked zero-runtime-dependency WASM package build and real Node/browser tests, including a complete independent parity oracle, fixed golden vector, isolated instances and offline package-install smoke coverage.
 - Preserve the DecodeIdx workspace allocation study and all exploratory ABBA samples; keep the simpler capacity correction instead of introducing an API from preparation-excluding, unreserved timing.
 - Add `--strict-provenance` to the benchmark gate, requiring comparable CPU/compiler/build/backend/features/thread budgets and stream I/O metadata, with consistent JSON/CSV aliases and no override for supplied conflicts.
 - Exercise bounded family/matrix/fast/API/error/workspace combinations through a shared deterministic and libFuzzer contract helper; preserve a reusable cross-revision parity probe including wide FFT chunk boundaries.
