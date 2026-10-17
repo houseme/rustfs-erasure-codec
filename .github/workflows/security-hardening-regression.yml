@@ -1,6 +1,9 @@
 name: Security Hardening Regression
 
 on:
+  push:
+    branches:
+      - houseme/erasure-codec-review-fixes
   pull_request:
     branches:
       - main
@@ -76,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [panic-regression-p0]
-    if: ${{ github.event_name == 'pull_request' || github.event.inputs.run_level == 'P1' || github.event.inputs.run_level == 'P2' }}
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || github.event.inputs.run_level == 'P1' || github.event.inputs.run_level == 'P2' }}
 
     steps:
       - name: Checkout
@@ -106,7 +109,7 @@ jobs:
     timeout-minutes: 30
     needs: [panic-regression-p1]
     continue-on-error: true
-    if: ${{ github.event_name == 'pull_request' || github.event.inputs.run_level == 'P2' }}
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || github.event.inputs.run_level == 'P2' }}
 
     strategy:
       fail-fast: false

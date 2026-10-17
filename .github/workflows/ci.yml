@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches:
+      - houseme/erasure-codec-review-fixes
       - main
       - 'feature/**'
       - 'refactor/**'
@@ -65,6 +66,58 @@ jobs:
 
       - name: Run cargo-audit
         run: cargo audit
+
+  wasm-integration:
+    name: WASM generated bindings (Node and Chromium)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      RUSTFLAGS: ""
+    defaults:
+      run:
+        working-directory: wasm
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install Rust with WASM target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '26'
+          cache: npm
+          cache-dependency-path: wasm/package-lock.json
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2.9.1
+
+      - name: Install matching wasm-bindgen CLI
+        working-directory: .
+        run: |
+          version="$(python3 -c 'import tomllib; p=tomllib.load(open("Cargo.lock", "rb")); print(next(x["version"] for x in p["package"] if x["name"] == "wasm-bindgen"))')"
+          cargo install wasm-bindgen-cli --version "${version}" --locked
+
+      - name: Install locked JavaScript development tools
+        run: npm ci --ignore-scripts
+
+      - name: Build complete generated package
+        run: npm run build
+
+      - name: Check TypeScript contracts
+        run: npm run typecheck
+
+      - name: Test real WASM in Node.js
+        run: npm run test:node
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Test real WASM in Chromium
+        run: npm run test:browser
 
   build-linux:
     name: Build Linux (${{ matrix.toolchain }})
@@ -143,7 +196,7 @@ jobs:
         run: cargo check --verbose --workspace --exclude rustfs-erasure-codec-fuzz --target ${{ matrix.target }}
 
       - name: Check target build (no default features)
-        run: cargo check --verbose --workspace --exclude rustfs-erasure-codec-fuzz --target ${{ matrix.target }} --no-default-features
+        run: cargo check --verbose -p rustfs-erasure-codec --target ${{ matrix.target }} --no-default-features
 
       - name: Check target build (simd-accel)
         run: cargo check --verbose --workspace --exclude rustfs-erasure-codec-fuzz --target ${{ matrix.target }} --features simd-accel
@@ -203,7 +256,10 @@ jobs:
         uses: Swatinem/rust-cache@v2.9.1 # v2.9.1
 
       - name: Test no_std
-        run: cargo test --verbose --workspace --exclude rustfs-erasure-codec-fuzz --no-default-features
+        run: cargo test --verbose -p rustfs-erasure-codec --no-default-features
+
+      - name: Test no_std with SIMD
+        run: cargo test --verbose -p rustfs-erasure-codec --no-default-features --features simd-accel
 
       - name: Test std + simd
         run: cargo test --verbose --workspace --exclude rustfs-erasure-codec-fuzz --features simd-accel
@@ -233,7 +289,10 @@ jobs:
         uses: Swatinem/rust-cache@v2.9.1 # v2.9.1
 
       - name: Test no_std
-        run: cargo test --verbose --workspace --exclude rustfs-erasure-codec-fuzz --no-default-features
+        run: cargo test --verbose -p rustfs-erasure-codec --no-default-features
+
+      - name: Test no_std with SIMD
+        run: cargo test --verbose -p rustfs-erasure-codec --no-default-features --features simd-accel
 
       - name: Test std + simd
         run: cargo test --verbose --workspace --exclude rustfs-erasure-codec-fuzz --features simd-accel
@@ -290,7 +349,10 @@ jobs:
         uses: Swatinem/rust-cache@v2.9.1 # v2.9.1
 
       - name: Test no_std
-        run: cargo test --verbose --workspace --exclude rustfs-erasure-codec-fuzz --no-default-features
+        run: cargo test --verbose -p rustfs-erasure-codec --no-default-features
+
+      - name: Test no_std with SIMD
+        run: cargo test --verbose -p rustfs-erasure-codec --no-default-features --features simd-accel
 
       - name: Test std + simd
         run: cargo test --verbose --workspace --exclude rustfs-erasure-codec-fuzz --features simd-accel
@@ -302,6 +364,7 @@ jobs:
     needs:
       - typos
       - security
+      - wasm-integration
       - build-linux
       - build-windows-native
       - build-windows-gnu-targets

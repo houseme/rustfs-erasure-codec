@@ -11,6 +11,7 @@ All notable changes to this project are documented in this file.
 ## Unreleased
 
 ### Fixed
+- Make the native recovery-policy test use deterministic disabled/small/large L2 estimates instead of assuming every host permits a 256 KiB chunk; verify both chunk sizes and job counts.
 - Make the Galois ABBA analyzer reject empty/incomplete campaigns, duplicate rows, revision/backend conflicts and either-side drift. Failed campaigns return nonzero and withhold all candidate attribution instead of emitting an empty PASS.
 - Replace the TypeScript facade's manually maintained raw WASM ABI with independent factories around complete, version-matched wasm-bindgen output. Preserve result codes and data-only recovery while supporting real Node/browser initialization and memory growth.
 - Remove the fuzz assumption that zeroing a shard must invalidate a codeword; compare reconstructed bytes against the original complete codeword instead.
@@ -72,6 +73,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Added
+- Run CI and security regressions on the review-fixes branch, gate releases on real generated-WASM Node/Chromium integration, and select the core package for genuine no_std and no_std+SIMD tests without WASM feature unification.
 - Add a locked zero-runtime-dependency WASM package build and real Node/browser tests, including a complete independent parity oracle, fixed golden vector, isolated instances and offline package-install smoke coverage.
 - Preserve the DecodeIdx workspace allocation study and all exploratory ABBA samples; keep the simpler capacity correction instead of introducing an API from preparation-excluding, unreserved timing.
 - Add `--strict-provenance` to the benchmark gate, requiring comparable CPU/compiler/build/backend/features/thread budgets and stream I/O metadata, with consistent JSON/CSV aliases and no override for supplied conflicts.
