@@ -59,6 +59,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Validation
+- Extend the recovery probe from 58 to 66 cases with ordinary Classic data recovery at downstream-relevant 4+2/16 KiB and 10+4/32 KiB sizes, one/two missing data shards, and separate retained-slot/Option<Vec> adapter costs. Preserve complete preflight/final byte and presence oracles.
 - Complete two final controlled-I/O downstream ABBAs with 320 raw samples and all drift gates passing. Final runtime remains 1.50% slower for integrity-enabled degraded reads versus merged main; its +0.29% point estimate versus the previous runtime has overlapping confidence intervals and is not a proven speedup. Keep #2853 open and archive every result.
 - Complete an independent pinned ECStore four-cell ABBA with 160 raw samples: healthy reads remain essentially flat; degraded-read throughput observations are -1.47% with bitrot and -2.62% without. Preserve confidence intervals and keep the optimization follow-up open rather than describing the drift pass as a speedup.
 - Archive all 232 native Linux x86 VM ABBA observations with source/build/resource provenance and cleanup checks. Reject the entire latency/allocation attribution campaign after seven of 58 cases fail the dual 5% drift gate; retain null candidate deltas and do not retry a selected subset.
