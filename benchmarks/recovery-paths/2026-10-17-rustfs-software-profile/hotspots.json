@@ -1,0 +1,2682 @@
+{
+  "purpose": "qualitative symbolized CPU hotspot evidence, never speed attribution",
+  "profile": "new controlled I/O profile; historical four-phase I/O values were not separately recorded",
+  "case": "streaming_decode/decode/4+2_4096KB_64KB-block_verify-true_missing-first-data",
+  "event": "cpu-clock:u",
+  "frequency_hz": 499,
+  "dwarf_stack_bytes": 8192,
+  "profile_seconds": 15,
+  "io_controlled_profile": {
+    "consumer_revision": "902c97ce055b1faddb8cd689f0d3a04a0a3e6f35",
+    "cleared_prefixes": [
+      "RUSTFS_GET_"
+    ],
+    "cleared_exact_keys": [
+      "RUSTFS_SHARD_LOCALITY_SCHEDULING"
+    ],
+    "fixed_environment": {
+      "RUSTFS_SHARD_LOCALITY_SCHEDULING": "off",
+      "RUSTFS_GET_SHARD_LOCALITY_PREFERENCE_ENABLE": "false",
+      "RUSTFS_GET_DECODE_STRIPE_PREFETCH_COUNT": "1",
+      "RUSTFS_GET_BITROT_DECODE_OVERLAP_ENABLE": "false",
+      "RUSTFS_GET_LOCKSTEP_DATA_SHARDS_ONLY_ENABLE": "false"
+    },
+    "source": "crates/ecstore/src/erasure/coding/decode.rs:64-221",
+    "source_derived_mode": "Default read policy, serial stripe read/reconstruct/emit, no prefetch/overlap, locality off, all live shard readers engaged; no data-shards-only savings",
+    "observation_boundary": "Mode derived from pinned source and explicit child environment; not a per-stripe execution trace",
+    "history_boundary": "Earlier c68 four-phase environment was fixed across phases but these I/O values were not individually recorded; they cannot be retroactively assumed default."
+  },
+  "source_revisions": {
+    "baseline": "8f49bd8b174fa776309219c55c697b5b7ad9f05c",
+    "candidate": "c68c2575ea11d1eb4c085b21e55f6b95da5975c3"
+  },
+  "consumer_revision": "902c97ce055b1faddb8cd689f0d3a04a0a3e6f35",
+  "profile_overrides": {
+    "rustfs-erasure-codec": {
+      "debug": 1,
+      "strip": "none"
+    },
+    "rustfs-ecstore": {
+      "debug": 1,
+      "strip": "none"
+    }
+  },
+  "formal_executables_unchanged": true,
+  "cleanup_passed": true,
+  "limitations": [
+    "Package debug=1/strip=none differs from formal timing artifacts.",
+    "Control window excludes preflight fixture work but includes profile warmup and reader/sink iteration setup.",
+    "Some optimized call chains end in unresolved frames; leaf symbols and positive inline-source evidence are more reliable than full caller attribution.",
+    "Perf header-only diagnostics emit HEADER_EVENT_DESC metadata warning; normal reports/scripts parse all samples with matching counts.",
+    "Hardware cycles unavailable; this is software CPU sampling."
+  ],
+  "labels": {
+    "baseline": {
+      "samples": 7495,
+      "record_counts": {
+        "PERF_RECORD_SAMPLE": 7495,
+        "PERF_RECORD_LOST": 0,
+        "PERF_RECORD_LOST_SAMPLES": 0,
+        "PERF_RECORD_THROTTLE": 0,
+        "PERF_RECORD_UNTHROTTLE": 0
+      },
+      "loss_or_throttle_observed": false,
+      "unresolved_leaf_samples": 1359,
+      "unresolved_leaf_fraction": 0.18132088058705803,
+      "any_unresolved_frame_samples": 6531,
+      "any_unresolved_frame_fraction": 0.8713809206137425,
+      "unresolved_tail_samples": 5558,
+      "frames_per_sample_histogram": {
+        "1": 121,
+        "2": 359,
+        "3": 4833,
+        "4": 467,
+        "5": 230,
+        "6": 36,
+        "7": 188,
+        "8": 463,
+        "9": 17,
+        "10": 10,
+        "11": 463,
+        "12": 19,
+        "13": 8,
+        "14": 10,
+        "15": 6,
+        "17": 14,
+        "18": 2,
+        "19": 4,
+        "20": 9,
+        "21": 5,
+        "22": 109,
+        "23": 6,
+        "24": 2,
+        "25": 74,
+        "27": 2,
+        "30": 13,
+        "31": 7,
+        "33": 12,
+        "34": 3,
+        "35": 3
+      },
+      "positive_stack_mentions": {
+        "stack_mentions_decode": 673,
+        "stack_mentions_generic_executor": 110,
+        "stack_mentions_observed_sink": 52
+      },
+      "unresolved_leaf_with_positive_recovery_caller": 69,
+      "function_aggregates": [
+        {
+          "symbol": "<highway::x86::avx::AvxHash>::append",
+          "dso": "benchmark",
+          "self_samples": 4119,
+          "self_sample_fraction": 0.5495663775850567
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::codegen::avx2_impl::encode_4x2_avx2",
+          "dso": "benchmark",
+          "self_samples": 867,
+          "self_sample_fraction": 0.11567711807871915
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 583,
+          "self_sample_fraction": 0.07778519012675117
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::gfni::rust_gfni_avx512_mul_impl::<true>",
+          "dso": "benchmark",
+          "self_samples": 219,
+          "self_sample_fraction": 0.02921947965310207
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 184,
+          "self_sample_fraction": 0.024549699799866577
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 144,
+          "self_sample_fraction": 0.019212808539026016
+        },
+        {
+          "symbol": "<highway::x86::avx::AvxHash>::finalize256",
+          "dso": "benchmark",
+          "self_samples": 90,
+          "self_sample_fraction": 0.01200800533689126
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::gfni::rust_gfni_avx512_mul_impl::<false>",
+          "dso": "benchmark",
+          "self_samples": 90,
+          "self_sample_fraction": 0.01200800533689126
+        },
+        {
+          "symbol": "<futures_util::stream::futures_unordered::FuturesUnordered<core::pin::Pin<alloc::boxed::Box<dyn core::future::future::Future<Output = (usize, rustfs_ecstore::set_disk::shard_source::ShardReadCost, core::result::Result<alloc::vec::Vec<u8>, rustfs_ecstore::disk::error::DiskError>, bool)> + core::marker::Send>>> as futures_core::stream::Stream>::poll_next",
+          "dso": "benchmark",
+          "self_samples": 67,
+          "self_sample_fraction": 0.008939292861907939
+        },
+        {
+          "symbol": "malloc",
+          "dso": "libc.so.6",
+          "self_samples": 62,
+          "self_sample_fraction": 0.008272181454302868
+        },
+        {
+          "symbol": "<futures_util::stream::futures_unordered::FuturesUnordered<core::pin::Pin<alloc::boxed::Box<dyn core::future::future::Future<Output = (usize, rustfs_ecstore::set_disk::shard_source::ShardReadCost, core::result::Result<alloc::vec::Vec<u8>, rustfs_ecstore::disk::error::DiskError>, bool)> + core::marker::Send>>>>::push",
+          "dso": "benchmark",
+          "self_samples": 56,
+          "self_sample_fraction": 0.0074716477651767844
+        },
+        {
+          "symbol": "core::ptr::drop_glue::<tokio::time::timeout::Timeout<<rustfs_ecstore::erasure::coding::bitrot::BitrotReader<core::io::cursor::Cursor<&[u8]>>>::read_appending::{closure#0}>>",
+          "dso": "benchmark",
+          "self_samples": 53,
+          "self_sample_fraction": 0.007071380920613743
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 52,
+          "self_sample_fraction": 0.0069379586390927285
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::decode::ParallelReader<core::io::cursor::Cursor<&[u8]>>>::read_lockstep::{closure#0}",
+          "dso": "benchmark",
+          "self_samples": 42,
+          "self_sample_fraction": 0.005603735823882588
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 41,
+          "self_sample_fraction": 0.005470313542361574
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::erasure::ReedSolomonEncoder>::reconstruct_data",
+          "dso": "benchmark",
+          "self_samples": 34,
+          "self_sample_fraction": 0.0045363575717144765
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 32,
+          "self_sample_fraction": 0.004269513008672448
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::bitrot::BitrotReader<core::io::cursor::Cursor<&[u8]>>>::read_appending::{closure#0}",
+          "dso": "benchmark",
+          "self_samples": 31,
+          "self_sample_fraction": 0.004136090727151434
+        },
+        {
+          "symbol": "rustfs_ecstore::erasure::coding::decode::read_shard_result::<core::io::cursor::Cursor<&[u8]>>::{closure#0}",
+          "dso": "benchmark",
+          "self_samples": 29,
+          "self_sample_fraction": 0.0038692461641094064
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 27,
+          "self_sample_fraction": 0.0036024016010673785
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::try_encode_codegen::<&mut [u8], &mut [u8]>",
+          "dso": "benchmark",
+          "self_samples": 25,
+          "self_sample_fraction": 0.00333555703802535
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 25,
+          "self_sample_fraction": 0.00333555703802535
+        },
+        {
+          "symbol": "<rustfs_ecstore::set_disk::shard_source::StripeReadState>::reset",
+          "dso": "benchmark",
+          "self_samples": 23,
+          "self_sample_fraction": 0.003068712474983322
+        },
+        {
+          "symbol": "<futures_util::stream::futures_unordered::FuturesUnordered<core::pin::Pin<alloc::boxed::Box<dyn core::future::future::Future<Output = (usize, rustfs_ecstore::set_disk::shard_source::ShardReadCost, core::result::Result<alloc::vec::Vec<u8>, rustfs_ecstore::disk::error::DiskError>, bool)> + core::marker::Send>>>>::release_task",
+          "dso": "benchmark",
+          "self_samples": 21,
+          "self_sample_fraction": 0.002801867911941294
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::erasure::Erasure>::decode_data_with_reconstruction_verification_policy",
+          "dso": "benchmark",
+          "self_samples": 21,
+          "self_sample_fraction": 0.002801867911941294
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::erasure::Erasure>::emit_decoded_stripe::<erasure_benchmark::bench_streaming_decode::ObservedSink>::{closure#0}",
+          "dso": "benchmark",
+          "self_samples": 21,
+          "self_sample_fraction": 0.002801867911941294
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 18,
+          "self_sample_fraction": 0.002401601067378252
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 18,
+          "self_sample_fraction": 0.002401601067378252
+        },
+        {
+          "symbol": "<std::sys::pal::unix::time::Timespec>::now",
+          "dso": "benchmark",
+          "self_samples": 17,
+          "self_sample_fraction": 0.0022681787858572383
+        },
+        {
+          "symbol": "core::ptr::drop_glue::<futures_util::stream::futures_unordered::task::Task<core::pin::Pin<alloc::boxed::Box<dyn core::future::future::Future<Output = (usize, rustfs_ecstore::set_disk::shard_source::ShardReadCost, core::result::Result<alloc::vec::Vec<u8>, rustfs_ecstore::disk::error::DiskError>, bool)> + core::marker::Send>>>>",
+          "dso": "benchmark",
+          "self_samples": 17,
+          "self_sample_fraction": 0.0022681787858572383
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 17,
+          "self_sample_fraction": 0.0022681787858572383
+        },
+        {
+          "symbol": "<tokio::runtime::scheduler::Handle>::current",
+          "dso": "benchmark",
+          "self_samples": 16,
+          "self_sample_fraction": 0.002134756504336224
+        },
+        {
+          "symbol": "<rustfs_utils::hash::HashAlgorithm>::hash_encode",
+          "dso": "benchmark",
+          "self_samples": 15,
+          "self_sample_fraction": 0.0020013342228152103
+        },
+        {
+          "symbol": "<alloc::sync::Arc<futures_util::stream::futures_unordered::task::Task<core::pin::Pin<alloc::boxed::Box<dyn core::future::future::Future<Output = (usize, rustfs_ecstore::set_disk::shard_source::ShardReadCost, core::result::Result<alloc::vec::Vec<u8>, rustfs_ecstore::disk::error::DiskError>, bool)> + core::marker::Send>>>>>::drop_slow",
+          "dso": "benchmark",
+          "self_samples": 14,
+          "self_sample_fraction": 0.0018679119412941961
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 14,
+          "self_sample_fraction": 0.0018679119412941961
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::erasure::ReedSolomonEncoder>::reconstruct",
+          "dso": "benchmark",
+          "self_samples": 13,
+          "self_sample_fraction": 0.0017344896597731821
+        },
+        {
+          "symbol": "<std::sys::pal::unix::time::Timespec>::sub_timespec",
+          "dso": "benchmark",
+          "self_samples": 13,
+          "self_sample_fraction": 0.0017344896597731821
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::code_some_slices_chunked::<&[u8], &mut [u8]>",
+          "dso": "benchmark",
+          "self_samples": 12,
+          "self_sample_fraction": 0.0016010673782521682
+        },
+        {
+          "symbol": "rustfs_ecstore::erasure::coding::bitrot::split_and_verify",
+          "dso": "benchmark",
+          "self_samples": 12,
+          "self_sample_fraction": 0.0016010673782521682
+        },
+        {
+          "symbol": "cfree",
+          "dso": "libc.so.6",
+          "self_samples": 11,
+          "self_sample_fraction": 0.0014676450967311542
+        },
+        {
+          "symbol": "clock_gettime",
+          "dso": "libc.so.6",
+          "self_samples": 11,
+          "self_sample_fraction": 0.0014676450967311542
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 11,
+          "self_sample_fraction": 0.0014676450967311542
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::get_parity_rows",
+          "dso": "benchmark",
+          "self_samples": 10,
+          "self_sample_fraction": 0.00133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 10,
+          "self_sample_fraction": 0.00133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 9,
+          "self_sample_fraction": 0.001200800533689126
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::decode::ParallelReader<core::io::cursor::Cursor<&[u8]>>>::read::{closure#0}",
+          "dso": "benchmark",
+          "self_samples": 9,
+          "self_sample_fraction": 0.001200800533689126
+        },
+        {
+          "symbol": "rustfs_ecstore::erasure::coding::decode::read_shard::<core::io::cursor::Cursor<&[u8]>>::{closure#0}",
+          "dso": "benchmark",
+          "self_samples": 9,
+          "self_sample_fraction": 0.001200800533689126
+        },
+        {
+          "symbol": "rustfs_ecstore::erasure::coding::decode::read_shard::<core::io::cursor::Cursor<&[u8]>>",
+          "dso": "benchmark",
+          "self_samples": 8,
+          "self_sample_fraction": 0.001067378252168112
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 8,
+          "self_sample_fraction": 0.001067378252168112
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 8,
+          "self_sample_fraction": 0.001067378252168112
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 8,
+          "self_sample_fraction": 0.001067378252168112
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::decode::ParallelReader<core::io::cursor::Cursor<&[u8]>>>::recycle_shards",
+          "dso": "benchmark",
+          "self_samples": 7,
+          "self_sample_fraction": 0.0009339559706470981
+        },
+        {
+          "symbol": "__libc_calloc",
+          "dso": "libc.so.6",
+          "self_samples": 7,
+          "self_sample_fraction": 0.0009339559706470981
+        },
+        {
+          "symbol": "<highway::builder::HighwayHasher>::new",
+          "dso": "benchmark",
+          "self_samples": 6,
+          "self_sample_fraction": 0.0008005336891260841
+        },
+        {
+          "symbol": "erasure_benchmark::bench_streaming_decode::{closure#3}::{closure#1}::{closure#0}",
+          "dso": "benchmark",
+          "self_samples": 6,
+          "self_sample_fraction": 0.0008005336891260841
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 5,
+          "self_sample_fraction": 0.00066711140760507
+        },
+        {
+          "symbol": "core::ptr::drop_glue::<futures_util::stream::futures_unordered::ready_to_run_queue::ReadyToRunQueue<core::pin::Pin<alloc::boxed::Box<dyn core::future::future::Future<Output = (usize, rustfs_ecstore::set_disk::shard_source::ShardReadCost, core::result::Result<alloc::vec::Vec<u8>, rustfs_ecstore::disk::error::DiskError>, bool)> + core::marker::Send>>>>",
+          "dso": "benchmark",
+          "self_samples": 5,
+          "self_sample_fraction": 0.00066711140760507
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 5,
+          "self_sample_fraction": 0.00066711140760507
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 5,
+          "self_sample_fraction": 0.00066711140760507
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 5,
+          "self_sample_fraction": 0.00066711140760507
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 5,
+          "self_sample_fraction": 0.00066711140760507
+        },
+        {
+          "symbol": "rustfs_ecstore::disk::error_reduce::reduce_errs",
+          "dso": "benchmark",
+          "self_samples": 4,
+          "self_sample_fraction": 0.000533689126084056
+        },
+        {
+          "symbol": "tokio::runtime::park::drop_waker",
+          "dso": "benchmark",
+          "self_samples": 4,
+          "self_sample_fraction": 0.000533689126084056
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 4,
+          "self_sample_fraction": 0.000533689126084056
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 4,
+          "self_sample_fraction": 0.000533689126084056
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 4,
+          "self_sample_fraction": 0.000533689126084056
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 4,
+          "self_sample_fraction": 0.000533689126084056
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 3,
+          "self_sample_fraction": 0.00040026684456304204
+        },
+        {
+          "symbol": "<alloc::sync::Arc<futures_util::stream::futures_unordered::ready_to_run_queue::ReadyToRunQueue<core::pin::Pin<alloc::boxed::Box<dyn core::future::future::Future<Output = (usize, rustfs_ecstore::set_disk::shard_source::ShardReadCost, core::result::Result<alloc::vec::Vec<u8>, rustfs_ecstore::disk::error::DiskError>, bool)> + core::marker::Send>>>>>::drop_slow",
+          "dso": "benchmark",
+          "self_samples": 3,
+          "self_sample_fraction": 0.00040026684456304204
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::codec::workspace::ShardBufferPool>::take",
+          "dso": "benchmark",
+          "self_samples": 3,
+          "self_sample_fraction": 0.00040026684456304204
+        },
+        {
+          "symbol": "<smallvec::SmallVec<[&mut [u8]; 16]>>::into_vec",
+          "dso": "benchmark",
+          "self_samples": 3,
+          "self_sample_fraction": 0.00040026684456304204
+        },
+        {
+          "symbol": "<tokio::time::instant::Instant>::now",
+          "dso": "benchmark",
+          "self_samples": 3,
+          "self_sample_fraction": 0.00040026684456304204
+        },
+        {
+          "symbol": "tokio::time::sleep::sleep",
+          "dso": "benchmark",
+          "self_samples": 3,
+          "self_sample_fraction": 0.00040026684456304204
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 3,
+          "self_sample_fraction": 0.00040026684456304204
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 3,
+          "self_sample_fraction": 0.00040026684456304204
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 3,
+          "self_sample_fraction": 0.00040026684456304204
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 3,
+          "self_sample_fraction": 0.00040026684456304204
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 3,
+          "self_sample_fraction": 0.00040026684456304204
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 3,
+          "self_sample_fraction": 0.00040026684456304204
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "<futures_util::stream::futures_unordered::FuturesUnordered<core::pin::Pin<alloc::boxed::Box<dyn core::future::future::Future<Output = (usize, rustfs_ecstore::set_disk::shard_source::ShardReadCost, core::result::Result<alloc::vec::Vec<u8>, rustfs_ecstore::disk::error::DiskError>, bool)> + core::marker::Send>>>>::new",
+          "dso": "benchmark",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "<highway::x86::avx::AvxHash>::force_new",
+          "dso": "benchmark",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "core::ptr::drop_glue::<rustfs_ecstore::erasure::coding::decode::read_shard_result<core::io::cursor::Cursor<&[u8]>>::{closure#0}>",
+          "dso": "benchmark",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::gfni::rust_gfni_avx512_mul_slice",
+          "dso": "benchmark",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::gfni::rust_gfni_avx512_mul_slice_xor",
+          "dso": "benchmark",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "tokio::runtime::park::clone",
+          "dso": "benchmark",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "<core::io::error::Error>::new::<alloc::string::String>",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::decode::ParallelReader<core::io::cursor::Cursor<&[u8]>>>::new_for_decode",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::decode::ParallelReader<core::io::cursor::Cursor<&[u8]>>>::read_into_state::{closure#0}",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::erasure::ReedSolomonEncoder>::encode",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "<tokio::runtime::context::Context>::set_current",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "<tokio::util::rand::rt::RngSeedGenerator>::next_seed",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "alloc::io::error::custom_owner_from_box::drop_box_raw::<core::io::error::Custom>",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "alloc::io::error::custom_owner_from_box::drop_box_raw::<dyn core::error::Error + core::marker::Send + core::marker::Sync>",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "core::ptr::drop_glue::<core::option::Option<tokio::runtime::Timer>>",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "core::ptr::drop_glue::<futures_util::stream::futures_unordered::FuturesUnordered<core::pin::Pin<alloc::boxed::Box<dyn core::future::future::Future<Output = (usize, rustfs_ecstore::set_disk::shard_source::ShardReadCost, core::result::Result<alloc::vec::Vec<u8>, rustfs_ecstore::disk::error::DiskError>, bool)> + core::marker::Send>>>>",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "erasure_benchmark::bench_streaming_decode::{closure#3}::{closure#1}",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::scalar::mul_slice_xor_pure_rust",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::codegen::try_encode_codegen_avx2",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        }
+      ],
+      "codec_ecstore_source_aggregates": [
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::codegen::avx2_impl::encode_4x2_avx2",
+          "source": "codec/generated/codegen_encode.rs:0",
+          "self_samples": 361,
+          "self_sample_fraction": 0.048165443629086056
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::codegen::avx2_impl::encode_4x2_avx2",
+          "source": "codec/generated/codegen_encode.rs:3171",
+          "self_samples": 23,
+          "self_sample_fraction": 0.003068712474983322
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::codegen::avx2_impl::encode_4x2_avx2",
+          "source": "codec/generated/codegen_encode.rs:3086",
+          "self_samples": 21,
+          "self_sample_fraction": 0.002801867911941294
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::codegen::avx2_impl::encode_4x2_avx2",
+          "source": "codec/generated/codegen_encode.rs:3141",
+          "self_samples": 11,
+          "self_sample_fraction": 0.0014676450967311542
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::codegen::avx2_impl::encode_4x2_avx2",
+          "source": "codec/generated/codegen_encode.rs:3056",
+          "self_samples": 4,
+          "self_sample_fraction": 0.000533689126084056
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::erasure::ReedSolomonEncoder>::reconstruct_data",
+          "source": "codec/src/core/reconstruct.rs:496",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::erasure::ReedSolomonEncoder>::reconstruct_data",
+          "source": "codec/src/core/reconstruct.rs:918",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::code_some_slices_chunked::<&[u8], &mut [u8]>",
+          "source": "codec/src/core/encode.rs:83",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::get_parity_rows",
+          "source": "codec/src/matrix.rs:0",
+          "self_samples": 2,
+          "self_sample_fraction": 0.000266844563042028
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::erasure::ReedSolomonEncoder>::encode",
+          "source": "codec/src/macros.rs:151",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::erasure::ReedSolomonEncoder>::reconstruct_data",
+          "source": "codec/src/core/reconstruct.rs:0",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::code_some_slices_chunked::<&[u8], &mut [u8]>",
+          "source": "codec/src/core/encode.rs:236",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::code_some_slices_chunked::<&[u8], &mut [u8]>",
+          "source": "codec/src/core/encode.rs:77",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::try_encode_codegen::<&mut [u8], &mut [u8]>",
+          "source": "codec/src/core/encode.rs:283",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::try_encode_codegen::<&mut [u8], &mut [u8]>",
+          "source": "codec/src/core/encode.rs:338",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::codegen::avx2_impl::encode_4x2_avx2",
+          "source": "codec/generated/codegen_encode.rs:3013",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::codegen::avx2_impl::encode_4x2_avx2",
+          "source": "codec/generated/codegen_encode.rs:3026",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::codegen::try_encode_codegen_avx2",
+          "source": "codec/generated/codegen_encode.rs:3205",
+          "self_samples": 1,
+          "self_sample_fraction": 0.000133422281521014
+        }
+      ]
+    },
+    "candidate": {
+      "samples": 7437,
+      "record_counts": {
+        "PERF_RECORD_SAMPLE": 7437,
+        "PERF_RECORD_LOST": 0,
+        "PERF_RECORD_LOST_SAMPLES": 0,
+        "PERF_RECORD_THROTTLE": 0,
+        "PERF_RECORD_UNTHROTTLE": 0
+      },
+      "loss_or_throttle_observed": false,
+      "unresolved_leaf_samples": 1407,
+      "unresolved_leaf_fraction": 0.1891891891891892,
+      "any_unresolved_frame_samples": 6515,
+      "any_unresolved_frame_fraction": 0.8760252790103537,
+      "unresolved_tail_samples": 5563,
+      "frames_per_sample_histogram": {
+        "1": 152,
+        "2": 283,
+        "3": 4797,
+        "4": 478,
+        "5": 195,
+        "6": 98,
+        "7": 172,
+        "8": 477,
+        "9": 19,
+        "10": 5,
+        "11": 452,
+        "12": 9,
+        "13": 11,
+        "14": 16,
+        "15": 6,
+        "16": 5,
+        "17": 15,
+        "18": 3,
+        "19": 3,
+        "20": 8,
+        "21": 5,
+        "22": 86,
+        "23": 43,
+        "24": 13,
+        "25": 55,
+        "27": 2,
+        "30": 7,
+        "31": 7,
+        "32": 2,
+        "33": 9,
+        "34": 4
+      },
+      "positive_stack_mentions": {
+        "stack_mentions_decode": 666,
+        "stack_mentions_native_prepare": 37,
+        "stack_mentions_planner": 138,
+        "stack_mentions_generic_executor": 112,
+        "stack_mentions_observed_sink": 60
+      },
+      "unresolved_leaf_with_positive_recovery_caller": 83,
+      "function_aggregates": [
+        {
+          "symbol": "<highway::x86::avx::AvxHash>::append",
+          "dso": "benchmark",
+          "self_samples": 4003,
+          "self_sample_fraction": 0.5382546725830308
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::codegen::avx2_impl::encode_4x2_avx2",
+          "dso": "benchmark",
+          "self_samples": 852,
+          "self_sample_fraction": 0.1145623235175474
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 601,
+          "self_sample_fraction": 0.08081215543902111
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 202,
+          "self_sample_fraction": 0.027161489848057014
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::gfni::rust_gfni_avx512_mul_impl::<true>",
+          "dso": "benchmark",
+          "self_samples": 185,
+          "self_sample_fraction": 0.024875621890547265
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 106,
+          "self_sample_fraction": 0.014253059029178432
+        },
+        {
+          "symbol": "<highway::x86::avx::AvxHash>::finalize256",
+          "dso": "benchmark",
+          "self_samples": 94,
+          "self_sample_fraction": 0.012639505176818609
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::gfni::rust_gfni_avx512_mul_impl::<false>",
+          "dso": "benchmark",
+          "self_samples": 91,
+          "self_sample_fraction": 0.012236116713728654
+        },
+        {
+          "symbol": "<futures_util::stream::futures_unordered::FuturesUnordered<core::pin::Pin<alloc::boxed::Box<dyn core::future::future::Future<Output = (usize, rustfs_ecstore::set_disk::shard_source::ShardReadCost, core::result::Result<alloc::vec::Vec<u8>, rustfs_ecstore::disk::error::DiskError>, bool)> + core::marker::Send>>> as futures_core::stream::Stream>::poll_next",
+          "dso": "benchmark",
+          "self_samples": 69,
+          "self_sample_fraction": 0.00927793465106898
+        },
+        {
+          "symbol": "core::ptr::drop_glue::<tokio::time::timeout::Timeout<<rustfs_ecstore::erasure::coding::bitrot::BitrotReader<core::io::cursor::Cursor<&[u8]>>>::read_appending::{closure#0}>>",
+          "dso": "benchmark",
+          "self_samples": 52,
+          "self_sample_fraction": 0.006992066693559231
+        },
+        {
+          "symbol": "<futures_util::stream::futures_unordered::FuturesUnordered<core::pin::Pin<alloc::boxed::Box<dyn core::future::future::Future<Output = (usize, rustfs_ecstore::set_disk::shard_source::ShardReadCost, core::result::Result<alloc::vec::Vec<u8>, rustfs_ecstore::disk::error::DiskError>, bool)> + core::marker::Send>>>>::push",
+          "dso": "benchmark",
+          "self_samples": 47,
+          "self_sample_fraction": 0.0063197525884093044
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::bitrot::BitrotReader<core::io::cursor::Cursor<&[u8]>>>::read_appending::{closure#0}",
+          "dso": "benchmark",
+          "self_samples": 45,
+          "self_sample_fraction": 0.0060508269463493344
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::with_classic_reconstruct_plan::<core::option::Option<alloc::vec::Vec<u8>>, <rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::reconstruct_internal<core::option::Option<alloc::vec::Vec<u8>>>::{closure#0}>",
+          "dso": "benchmark",
+          "self_samples": 45,
+          "self_sample_fraction": 0.0060508269463493344
+        },
+        {
+          "symbol": "malloc",
+          "dso": "libc.so.6",
+          "self_samples": 41,
+          "self_sample_fraction": 0.0055129756622293935
+        },
+        {
+          "symbol": "rustfs_ecstore::erasure::coding::decode::read_shard_result::<core::io::cursor::Cursor<&[u8]>>::{closure#0}",
+          "dso": "benchmark",
+          "self_samples": 39,
+          "self_sample_fraction": 0.0052440500201694235
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 39,
+          "self_sample_fraction": 0.0052440500201694235
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 36,
+          "self_sample_fraction": 0.004840661557079467
+        },
+        {
+          "symbol": "<futures_util::stream::futures_unordered::FuturesUnordered<core::pin::Pin<alloc::boxed::Box<dyn core::future::future::Future<Output = (usize, rustfs_ecstore::set_disk::shard_source::ShardReadCost, core::result::Result<alloc::vec::Vec<u8>, rustfs_ecstore::disk::error::DiskError>, bool)> + core::marker::Send>>>>::release_task",
+          "dso": "benchmark",
+          "self_samples": 34,
+          "self_sample_fraction": 0.004571735915019497
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::decode::ParallelReader<core::io::cursor::Cursor<&[u8]>>>::read_lockstep::{closure#0}",
+          "dso": "benchmark",
+          "self_samples": 33,
+          "self_sample_fraction": 0.004437273093989512
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 31,
+          "self_sample_fraction": 0.004168347451929542
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 28,
+          "self_sample_fraction": 0.003764958988839586
+        },
+        {
+          "symbol": "<rustfs_ecstore::set_disk::shard_source::StripeReadState>::reset",
+          "dso": "benchmark",
+          "self_samples": 26,
+          "self_sample_fraction": 0.0034960333467796154
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::encode::ByteShardViews>::prepare::<rustfs_erasure_codec::galois_8::Field, &mut [u8], &mut [u8]>",
+          "dso": "benchmark",
+          "self_samples": 26,
+          "self_sample_fraction": 0.0034960333467796154
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 23,
+          "self_sample_fraction": 0.00309264488368966
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::prepare_native_encode::<&mut [u8], &mut [u8]>",
+          "dso": "benchmark",
+          "self_samples": 21,
+          "self_sample_fraction": 0.0028237192416296895
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::erasure::Erasure>::emit_decoded_stripe::<erasure_benchmark::bench_streaming_decode::ObservedSink>::{closure#0}",
+          "dso": "benchmark",
+          "self_samples": 17,
+          "self_sample_fraction": 0.0022858679575097486
+        },
+        {
+          "symbol": "rustfs_ecstore::erasure::coding::decode::read_shard::<core::io::cursor::Cursor<&[u8]>>::{closure#0}",
+          "dso": "benchmark",
+          "self_samples": 17,
+          "self_sample_fraction": 0.0022858679575097486
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 17,
+          "self_sample_fraction": 0.0022858679575097486
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 16,
+          "self_sample_fraction": 0.002151405136479763
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 16,
+          "self_sample_fraction": 0.002151405136479763
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::erasure::Erasure>::decode_data_with_reconstruction_verification_policy",
+          "dso": "benchmark",
+          "self_samples": 15,
+          "self_sample_fraction": 0.002016942315449778
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::code_some_slices_chunked::<&[u8], &mut [u8]>",
+          "dso": "benchmark",
+          "self_samples": 15,
+          "self_sample_fraction": 0.002016942315449778
+        },
+        {
+          "symbol": "<alloc::sync::Arc<futures_util::stream::futures_unordered::task::Task<core::pin::Pin<alloc::boxed::Box<dyn core::future::future::Future<Output = (usize, rustfs_ecstore::set_disk::shard_source::ShardReadCost, core::result::Result<alloc::vec::Vec<u8>, rustfs_ecstore::disk::error::DiskError>, bool)> + core::marker::Send>>>>>::drop_slow",
+          "dso": "benchmark",
+          "self_samples": 14,
+          "self_sample_fraction": 0.001882479494419793
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::erasure::ReedSolomonEncoder>::reconstruct",
+          "dso": "benchmark",
+          "self_samples": 14,
+          "self_sample_fraction": 0.001882479494419793
+        },
+        {
+          "symbol": "<rustfs_utils::hash::HashAlgorithm>::hash_encode",
+          "dso": "benchmark",
+          "self_samples": 14,
+          "self_sample_fraction": 0.001882479494419793
+        },
+        {
+          "symbol": "<tokio::runtime::scheduler::Handle>::current",
+          "dso": "benchmark",
+          "self_samples": 14,
+          "self_sample_fraction": 0.001882479494419793
+        },
+        {
+          "symbol": "erasure_benchmark::bench_streaming_decode::{closure#3}::{closure#1}::{closure#0}",
+          "dso": "benchmark",
+          "self_samples": 14,
+          "self_sample_fraction": 0.001882479494419793
+        },
+        {
+          "symbol": "clock_gettime",
+          "dso": "libc.so.6",
+          "self_samples": 14,
+          "self_sample_fraction": 0.001882479494419793
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::decode::ParallelReader<core::io::cursor::Cursor<&[u8]>>>::recycle_shards",
+          "dso": "benchmark",
+          "self_samples": 13,
+          "self_sample_fraction": 0.0017480166733898077
+        },
+        {
+          "symbol": "<std::sys::pal::unix::time::Timespec>::now",
+          "dso": "benchmark",
+          "self_samples": 13,
+          "self_sample_fraction": 0.0017480166733898077
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 13,
+          "self_sample_fraction": 0.0017480166733898077
+        },
+        {
+          "symbol": "core::ptr::drop_glue::<futures_util::stream::futures_unordered::task::Task<core::pin::Pin<alloc::boxed::Box<dyn core::future::future::Future<Output = (usize, rustfs_ecstore::set_disk::shard_source::ShardReadCost, core::result::Result<alloc::vec::Vec<u8>, rustfs_ecstore::disk::error::DiskError>, bool)> + core::marker::Send>>>>",
+          "dso": "benchmark",
+          "self_samples": 12,
+          "self_sample_fraction": 0.0016135538523598225
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 12,
+          "self_sample_fraction": 0.0016135538523598225
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 12,
+          "self_sample_fraction": 0.0016135538523598225
+        },
+        {
+          "symbol": "rustfs_ecstore::erasure::coding::decode::read_shard::<core::io::cursor::Cursor<&[u8]>>",
+          "dso": "benchmark",
+          "self_samples": 11,
+          "self_sample_fraction": 0.0014790910313298372
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 11,
+          "self_sample_fraction": 0.0014790910313298372
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::decode::ParallelReader<core::io::cursor::Cursor<&[u8]>>>::read::{closure#0}",
+          "dso": "benchmark",
+          "self_samples": 10,
+          "self_sample_fraction": 0.001344628210299852
+        },
+        {
+          "symbol": "rustfs_ecstore::erasure::coding::bitrot::split_and_verify",
+          "dso": "benchmark",
+          "self_samples": 10,
+          "self_sample_fraction": 0.001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 10,
+          "self_sample_fraction": 0.001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 10,
+          "self_sample_fraction": 0.001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 9,
+          "self_sample_fraction": 0.0012101653892698668
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::codec::workspace::ShardBufferPool>::take",
+          "dso": "benchmark",
+          "self_samples": 9,
+          "self_sample_fraction": 0.0012101653892698668
+        },
+        {
+          "symbol": "cfree",
+          "dso": "libc.so.6",
+          "self_samples": 9,
+          "self_sample_fraction": 0.0012101653892698668
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 8,
+          "self_sample_fraction": 0.0010757025682398816
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 8,
+          "self_sample_fraction": 0.0010757025682398816
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 7,
+          "self_sample_fraction": 0.0009412397472098965
+        },
+        {
+          "symbol": "<smallvec::SmallVec<[&mut [u8]; 16]>>::into_vec",
+          "dso": "benchmark",
+          "self_samples": 7,
+          "self_sample_fraction": 0.0009412397472098965
+        },
+        {
+          "symbol": "<std::sys::pal::unix::time::Timespec>::sub_timespec",
+          "dso": "benchmark",
+          "self_samples": 7,
+          "self_sample_fraction": 0.0009412397472098965
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 7,
+          "self_sample_fraction": 0.0009412397472098965
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 7,
+          "self_sample_fraction": 0.0009412397472098965
+        },
+        {
+          "symbol": "rustfs_ecstore::disk::error_reduce::reduce_errs",
+          "dso": "benchmark",
+          "self_samples": 6,
+          "self_sample_fraction": 0.0008067769261799112
+        },
+        {
+          "symbol": "__libc_calloc",
+          "dso": "libc.so.6",
+          "self_samples": 6,
+          "self_sample_fraction": 0.0008067769261799112
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 6,
+          "self_sample_fraction": 0.0008067769261799112
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 6,
+          "self_sample_fraction": 0.0008067769261799112
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 6,
+          "self_sample_fraction": 0.0008067769261799112
+        },
+        {
+          "symbol": "<futures_util::stream::futures_unordered::FuturesUnordered<core::pin::Pin<alloc::boxed::Box<dyn core::future::future::Future<Output = (usize, rustfs_ecstore::set_disk::shard_source::ShardReadCost, core::result::Result<alloc::vec::Vec<u8>, rustfs_ecstore::disk::error::DiskError>, bool)> + core::marker::Send>>>>::new",
+          "dso": "benchmark",
+          "self_samples": 5,
+          "self_sample_fraction": 0.000672314105149926
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 5,
+          "self_sample_fraction": 0.000672314105149926
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 5,
+          "self_sample_fraction": 0.000672314105149926
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 5,
+          "self_sample_fraction": 0.000672314105149926
+        },
+        {
+          "symbol": "<alloc::sync::Arc<futures_util::stream::futures_unordered::ready_to_run_queue::ReadyToRunQueue<core::pin::Pin<alloc::boxed::Box<dyn core::future::future::Future<Output = (usize, rustfs_ecstore::set_disk::shard_source::ShardReadCost, core::result::Result<alloc::vec::Vec<u8>, rustfs_ecstore::disk::error::DiskError>, bool)> + core::marker::Send>>>>>::drop_slow",
+          "dso": "benchmark",
+          "self_samples": 4,
+          "self_sample_fraction": 0.0005378512841199408
+        },
+        {
+          "symbol": "<highway::x86::avx::AvxHash>::force_new",
+          "dso": "benchmark",
+          "self_samples": 4,
+          "self_sample_fraction": 0.0005378512841199408
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::erasure::ReedSolomonEncoder>::encode",
+          "dso": "benchmark",
+          "self_samples": 4,
+          "self_sample_fraction": 0.0005378512841199408
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::erasure::ReedSolomonEncoder>::reconstruct_data",
+          "dso": "benchmark",
+          "self_samples": 4,
+          "self_sample_fraction": 0.0005378512841199408
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::get_parity_rows",
+          "dso": "benchmark",
+          "self_samples": 4,
+          "self_sample_fraction": 0.0005378512841199408
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::encode::PreparedNativeEncode>::execute",
+          "dso": "benchmark",
+          "self_samples": 4,
+          "self_sample_fraction": 0.0005378512841199408
+        },
+        {
+          "symbol": "core::ptr::drop_glue::<core::option::Option<tokio::runtime::Timer>>",
+          "dso": "benchmark",
+          "self_samples": 4,
+          "self_sample_fraction": 0.0005378512841199408
+        },
+        {
+          "symbol": "core::ptr::drop_glue::<rustfs_erasure_codec::core::recovery_plan::ClassicReconstructPlan<rustfs_erasure_codec::galois_8::Field>>",
+          "dso": "benchmark",
+          "self_samples": 4,
+          "self_sample_fraction": 0.0005378512841199408
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 4,
+          "self_sample_fraction": 0.0005378512841199408
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 4,
+          "self_sample_fraction": 0.0005378512841199408
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 4,
+          "self_sample_fraction": 0.0005378512841199408
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 4,
+          "self_sample_fraction": 0.0005378512841199408
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 4,
+          "self_sample_fraction": 0.0005378512841199408
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 3,
+          "self_sample_fraction": 0.0004033884630899556
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 3,
+          "self_sample_fraction": 0.0004033884630899556
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 3,
+          "self_sample_fraction": 0.0004033884630899556
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 3,
+          "self_sample_fraction": 0.0004033884630899556
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 3,
+          "self_sample_fraction": 0.0004033884630899556
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 3,
+          "self_sample_fraction": 0.0004033884630899556
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 3,
+          "self_sample_fraction": 0.0004033884630899556
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "<criterion::bencher::Bencher>::iter_batched::<(alloc::vec::Vec<core::option::Option<rustfs_ecstore::erasure::coding::bitrot::BitrotReader<core::io::cursor::Cursor<&[u8]>>>>, erasure_benchmark::bench_streaming_decode::ObservedSink), (), erasure_benchmark::bench_streaming_decode::{closure#3}::{closure#0}, erasure_benchmark::bench_streaming_decode::{closure#3}::{closure#1}>",
+          "dso": "benchmark",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "<highway::builder::HighwayHasher>::new",
+          "dso": "benchmark",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "core::ptr::drop_glue::<futures_util::stream::futures_unordered::FuturesUnordered<core::pin::Pin<alloc::boxed::Box<dyn core::future::future::Future<Output = (usize, rustfs_ecstore::set_disk::shard_source::ShardReadCost, core::result::Result<alloc::vec::Vec<u8>, rustfs_ecstore::disk::error::DiskError>, bool)> + core::marker::Send>>>>",
+          "dso": "benchmark",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "core::ptr::drop_glue::<futures_util::stream::futures_unordered::ready_to_run_queue::ReadyToRunQueue<core::pin::Pin<alloc::boxed::Box<dyn core::future::future::Future<Output = (usize, rustfs_ecstore::set_disk::shard_source::ShardReadCost, core::result::Result<alloc::vec::Vec<u8>, rustfs_ecstore::disk::error::DiskError>, bool)> + core::marker::Send>>>>",
+          "dso": "benchmark",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "std::env::var::inner",
+          "dso": "benchmark",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "tokio::runtime::park::clone",
+          "dso": "benchmark",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "tokio::time::sleep::sleep",
+          "dso": "benchmark",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "[vdso]",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<alloc::raw_vec::RawVecInner>::finish_grow",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::decode::ParallelReader<core::io::cursor::Cursor<&[u8]>>>::new_with_metrics_path_read_costs_timeout_and_reconstruction_verification",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::decode::ParallelReader<core::io::cursor::Cursor<&[u8]>>>::read_into_state::{closure#0}",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::decode::ReaderLaunchIter<core::io::cursor::Cursor<&[u8]>>>::new",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<tokio::time::instant::Instant>::now",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "alloc::io::error::custom_owner_from_box::drop_box_raw::<core::io::error::Custom>",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "alloc::io::error::custom_owner_from_box::drop_box_raw::<dyn core::error::Error + core::marker::Send + core::marker::Sync>",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "core::ptr::drop_glue::<[core::option::Option<rustfs_ecstore::disk::error::DiskError>]>",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "core::ptr::drop_glue::<rustfs_erasure_codec::core::encode::PreparedNativeEncode>",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "erasure_benchmark::bench_streaming_decode::{closure#3}::{closure#1}",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "rustfs_ecstore::erasure::coding::decode::get_shard_locality_scheduling_mode",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::scalar::mul_slice_xor_pure_rust",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::gfni::rust_gfni_avx512_mul_slice",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "rustfs_utils::envs::get_env_bool_with_aliases",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "tokio::runtime::park::drop_waker",
+          "dso": "benchmark",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "dso": "libc.so.6",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        }
+      ],
+      "codec_ecstore_source_aggregates": [
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::codegen::avx2_impl::encode_4x2_avx2",
+          "source": "codec/generated/codegen_encode.rs:0",
+          "self_samples": 355,
+          "self_sample_fraction": 0.04773430146564475
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::codegen::avx2_impl::encode_4x2_avx2",
+          "source": "codec/generated/codegen_encode.rs:3086",
+          "self_samples": 30,
+          "self_sample_fraction": 0.004033884630899556
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::codegen::avx2_impl::encode_4x2_avx2",
+          "source": "codec/generated/codegen_encode.rs:3171",
+          "self_samples": 27,
+          "self_sample_fraction": 0.003630496167809601
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::codegen::avx2_impl::encode_4x2_avx2",
+          "source": "codec/generated/codegen_encode.rs:3141",
+          "self_samples": 10,
+          "self_sample_fraction": 0.001344628210299852
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::codegen::avx2_impl::encode_4x2_avx2",
+          "source": "codec/generated/codegen_encode.rs:3056",
+          "self_samples": 9,
+          "self_sample_fraction": 0.0012101653892698668
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::code_some_slices_chunked::<&[u8], &mut [u8]>",
+          "source": "codec/src/core/encode.rs:347",
+          "self_samples": 5,
+          "self_sample_fraction": 0.000672314105149926
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::get_parity_rows",
+          "source": "codec/src/core/codec.rs:67",
+          "self_samples": 3,
+          "self_sample_fraction": 0.0004033884630899556
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::prepare_native_encode::<&mut [u8], &mut [u8]>",
+          "source": "codec/src/core/encode.rs:414",
+          "self_samples": 3,
+          "self_sample_fraction": 0.0004033884630899556
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::prepare_native_encode::<&mut [u8], &mut [u8]>",
+          "source": "codec/src/core/encode.rs:421",
+          "self_samples": 3,
+          "self_sample_fraction": 0.0004033884630899556
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::erasure::ReedSolomonEncoder>::reconstruct_data",
+          "source": "codec/src/core/reconstruct.rs:359",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::prepare_native_encode::<&mut [u8], &mut [u8]>",
+          "source": "codec/src/core/encode.rs:424",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::with_classic_reconstruct_plan::<core::option::Option<alloc::vec::Vec<u8>>, <rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::reconstruct_internal<core::option::Option<alloc::vec::Vec<u8>>>::{closure#0}>",
+          "source": "codec/src/core/recovery_plan.rs:209",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::encode::ByteShardViews>::prepare::<rustfs_erasure_codec::galois_8::Field, &mut [u8], &mut [u8]>",
+          "source": "codec/src/core/encode.rs:60",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::codegen::avx2_impl::encode_4x2_avx2",
+          "source": "codec/generated/codegen_encode.rs:3111",
+          "self_samples": 2,
+          "self_sample_fraction": 0.0002689256420599704
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::erasure::ReedSolomonEncoder>::encode",
+          "source": "codec/src/core/encode.rs:532",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::erasure::ReedSolomonEncoder>::encode",
+          "source": "codec/src/core/format.rs:97",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<rustfs_ecstore::erasure::coding::erasure::ReedSolomonEncoder>::encode",
+          "source": "codec/src/macros.rs:151",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::code_some_slices_chunked::<&[u8], &mut [u8]>",
+          "source": "codec/src/core/encode.rs:220",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::prepare_native_encode::<&mut [u8], &mut [u8]>",
+          "source": "codec/src/core/encode.rs:412",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::prepare_native_encode::<&mut [u8], &mut [u8]>",
+          "source": "codec/src/core/encode.rs:416",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::prepare_native_encode::<&mut [u8], &mut [u8]>",
+          "source": "codec/src/core/encode.rs:428",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::prepare_native_encode::<&mut [u8], &mut [u8]>",
+          "source": "codec/src/core/format.rs:90",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::with_classic_reconstruct_plan::<core::option::Option<alloc::vec::Vec<u8>>, <rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::reconstruct_internal<core::option::Option<alloc::vec::Vec<u8>>>::{closure#0}>",
+          "source": "codec/src/core/reconstruct.rs:0",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::with_classic_reconstruct_plan::<core::option::Option<alloc::vec::Vec<u8>>, <rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::reconstruct_internal<core::option::Option<alloc::vec::Vec<u8>>>::{closure#0}>",
+          "source": "codec/src/core/reconstruct.rs:171",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::with_classic_reconstruct_plan::<core::option::Option<alloc::vec::Vec<u8>>, <rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::reconstruct_internal<core::option::Option<alloc::vec::Vec<u8>>>::{closure#0}>",
+          "source": "codec/src/core/reconstruct.rs:563",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::with_classic_reconstruct_plan::<core::option::Option<alloc::vec::Vec<u8>>, <rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::reconstruct_internal<core::option::Option<alloc::vec::Vec<u8>>>::{closure#0}>",
+          "source": "codec/src/core/recovery_plan.rs:107",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::with_classic_reconstruct_plan::<core::option::Option<alloc::vec::Vec<u8>>, <rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::reconstruct_internal<core::option::Option<alloc::vec::Vec<u8>>>::{closure#0}>",
+          "source": "codec/src/core/recovery_plan.rs:130",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::encode::ByteShardViews>::prepare::<rustfs_erasure_codec::galois_8::Field, &mut [u8], &mut [u8]>",
+          "source": "codec/src/core/encode.rs:35",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::encode::ByteShardViews>::prepare::<rustfs_erasure_codec::galois_8::Field, &mut [u8], &mut [u8]>",
+          "source": "codec/src/core/encode.rs:56",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::encode::ByteShardViews>::prepare::<rustfs_erasure_codec::galois_8::Field, &mut [u8], &mut [u8]>",
+          "source": "codec/src/core/encode.rs:57",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::codegen::avx2_impl::encode_4x2_avx2",
+          "source": "codec/generated/codegen_encode.rs:3013",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::codegen::avx2_impl::encode_4x2_avx2",
+          "source": "codec/generated/codegen_encode.rs:3125",
+          "self_samples": 1,
+          "self_sample_fraction": 0.0001344628210299852
+        }
+      ]
+    }
+  }
+}

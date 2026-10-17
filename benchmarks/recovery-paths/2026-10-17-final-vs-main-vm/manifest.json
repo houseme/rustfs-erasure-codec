@@ -1,0 +1,203 @@
+{
+  "consumer_revision": "902c97ce055b1faddb8cd689f0d3a04a0a3e6f35",
+  "codec_revisions": {
+    "baseline": "8f49bd8b174fa776309219c55c697b5b7ad9f05c",
+    "candidate": "9fcae450af8d98c5735e5c84bb42f28f9f018df8"
+  },
+  "common_oracle_overlay_sha256": "cfdb6aa01c4ca6cacbc47073690e45ff2fa5570df898bc527f5335a53e816fdb",
+  "common_benchmark_source_sha256": "43ef262f5bcc1d7f28944119a6270bd979065c4e61f6a3816173ca6ebbf9b635",
+  "common_lockfile_source_sha256": "d52e43f55d11a26d87389fe9ef9cb70522c10fbf6e6e6d9258690f33339a88c3",
+  "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)\nbinary: rustc\ncommit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67\ncommit-date: 2026-10-13\nhost: x86_64-unknown-linux-gnu\nrelease: 1.99.1\nLLVM version: 23.1.1\n",
+  "release_profile": {
+    "opt-level": 3,
+    "lto": "thin",
+    "codegen-units": 1,
+    "debug": 0,
+    "strip": "symbols",
+    "split-debuginfo": "off"
+  },
+  "ecstore_features": [
+    "default"
+  ],
+  "codec_features": [
+    "default",
+    "parking_lot",
+    "rayon",
+    "simd-accel",
+    "simd-avx2",
+    "simd-avx512",
+    "simd-gfni",
+    "simd-neon",
+    "simd-ssse3",
+    "simd-vsx",
+    "std"
+  ],
+  "compiler_flags_equal": true,
+  "specified_build_flag_overrides_unset": true,
+  "actual_codec_rustflags_empty": true,
+  "platform": "Linux x86_64 virtual machine",
+  "isolation": "Exclusive VM-level cpuset partition, not physical-host exclusivity",
+  "reserved_virtual_cpus": 8,
+  "TOKIO_WORKER_THREADS": 4,
+  "RAYON_NUM_THREADS": 4,
+  "actual_rayon_threads": null,
+  "rayon_observation": "unavailable_no_direct_dependency",
+  "options_max_parallel_jobs": 0,
+  "parallel_budget": "automatic",
+  "backend_override": "auto with strict override",
+  "backend_observation": "resolved selection, not a per-kernel execution trace",
+  "phase_order": [
+    "A1",
+    "B1",
+    "B2",
+    "A2"
+  ],
+  "criterion_version": "0.8.2",
+  "criterion_sample_size": 10,
+  "criterion_measurement_seconds": 5,
+  "criterion_warmup_seconds": 1,
+  "plaintext_oracles_per_phase": 12,
+  "plaintext_oracle_evidence": "Frozen benchmark executes all registered preflights outside filtering; every completed phase exited successfully",
+  "statistic": "Criterion median point estimate, cross-checked against normalized raw samples",
+  "drift_limit_each_side": 0.05,
+  "no_retries_or_selected_case_reruns": true,
+  "allocation_measurement": "not performed by this Criterion harness",
+  "python_assertions_enabled": true,
+  "reservation_removed": true,
+  "parent_cpus_restored": true,
+  "root_controller_restored": true,
+  "phase_info": {
+    "A1": {
+      "exit_code": 0,
+      "cases": 4,
+      "runtime": {
+        "actual_rayon_threads": null,
+        "actual_tokio_workers": 4,
+        "available_parallelism": 8,
+        "backend_observation": "codec_resolved_backend_not_per_kernel_trace",
+        "options_max_parallel_jobs": 0,
+        "rayon_observation": "unavailable_no_direct_dependency",
+        "resolved_backend": "rust-gfni-avx512"
+      },
+      "io_effective": {
+        "RUSTFS_SHARD_LOCALITY_SCHEDULING": "off",
+        "RUSTFS_GET_SHARD_LOCALITY_PREFERENCE_ENABLE": "false",
+        "RUSTFS_GET_DECODE_STRIPE_PREFETCH_COUNT": "1",
+        "RUSTFS_GET_BITROT_DECODE_OVERLAP_ENABLE": "false",
+        "RUSTFS_GET_LOCKSTEP_DATA_SHARDS_ONLY_ENABLE": "false"
+      },
+      "isolation_passed": true,
+      "samples_with_all_benchmark_tids": 28,
+      "reserved_cpu_steal_fraction": 0.0,
+      "all_virtual_cpus_steal_ticks_delta": 0,
+      "frequency_observation_available": false,
+      "thermal_observation_available": false
+    },
+    "B1": {
+      "exit_code": 0,
+      "cases": 4,
+      "runtime": {
+        "actual_rayon_threads": null,
+        "actual_tokio_workers": 4,
+        "available_parallelism": 8,
+        "backend_observation": "codec_resolved_backend_not_per_kernel_trace",
+        "options_max_parallel_jobs": 0,
+        "rayon_observation": "unavailable_no_direct_dependency",
+        "resolved_backend": "rust-gfni-avx512"
+      },
+      "io_effective": {
+        "RUSTFS_SHARD_LOCALITY_SCHEDULING": "off",
+        "RUSTFS_GET_SHARD_LOCALITY_PREFERENCE_ENABLE": "false",
+        "RUSTFS_GET_DECODE_STRIPE_PREFETCH_COUNT": "1",
+        "RUSTFS_GET_BITROT_DECODE_OVERLAP_ENABLE": "false",
+        "RUSTFS_GET_LOCKSTEP_DATA_SHARDS_ONLY_ENABLE": "false"
+      },
+      "isolation_passed": true,
+      "samples_with_all_benchmark_tids": 27,
+      "reserved_cpu_steal_fraction": 0.0,
+      "all_virtual_cpus_steal_ticks_delta": 0,
+      "frequency_observation_available": false,
+      "thermal_observation_available": false
+    },
+    "B2": {
+      "exit_code": 0,
+      "cases": 4,
+      "runtime": {
+        "actual_rayon_threads": null,
+        "actual_tokio_workers": 4,
+        "available_parallelism": 8,
+        "backend_observation": "codec_resolved_backend_not_per_kernel_trace",
+        "options_max_parallel_jobs": 0,
+        "rayon_observation": "unavailable_no_direct_dependency",
+        "resolved_backend": "rust-gfni-avx512"
+      },
+      "io_effective": {
+        "RUSTFS_SHARD_LOCALITY_SCHEDULING": "off",
+        "RUSTFS_GET_SHARD_LOCALITY_PREFERENCE_ENABLE": "false",
+        "RUSTFS_GET_DECODE_STRIPE_PREFETCH_COUNT": "1",
+        "RUSTFS_GET_BITROT_DECODE_OVERLAP_ENABLE": "false",
+        "RUSTFS_GET_LOCKSTEP_DATA_SHARDS_ONLY_ENABLE": "false"
+      },
+      "isolation_passed": true,
+      "samples_with_all_benchmark_tids": 27,
+      "reserved_cpu_steal_fraction": 0.0,
+      "all_virtual_cpus_steal_ticks_delta": 0,
+      "frequency_observation_available": false,
+      "thermal_observation_available": false
+    },
+    "A2": {
+      "exit_code": 0,
+      "cases": 4,
+      "runtime": {
+        "actual_rayon_threads": null,
+        "actual_tokio_workers": 4,
+        "available_parallelism": 8,
+        "backend_observation": "codec_resolved_backend_not_per_kernel_trace",
+        "options_max_parallel_jobs": 0,
+        "rayon_observation": "unavailable_no_direct_dependency",
+        "resolved_backend": "rust-gfni-avx512"
+      },
+      "io_effective": {
+        "RUSTFS_SHARD_LOCALITY_SCHEDULING": "off",
+        "RUSTFS_GET_SHARD_LOCALITY_PREFERENCE_ENABLE": "false",
+        "RUSTFS_GET_DECODE_STRIPE_PREFETCH_COUNT": "1",
+        "RUSTFS_GET_BITROT_DECODE_OVERLAP_ENABLE": "false",
+        "RUSTFS_GET_LOCKSTEP_DATA_SHARDS_ONLY_ENABLE": "false"
+      },
+      "isolation_passed": true,
+      "samples_with_all_benchmark_tids": 27,
+      "reserved_cpu_steal_fraction": 0.0,
+      "all_virtual_cpus_steal_ticks_delta": 0,
+      "frequency_observation_available": false,
+      "thermal_observation_available": false
+    }
+  },
+  "comparison": "main",
+  "combination_changes": [
+    "single-pass planning",
+    "bounded native metadata"
+  ],
+  "io_controlled_profile": {
+    "consumer_revision": "902c97ce055b1faddb8cd689f0d3a04a0a3e6f35",
+    "cleared_prefixes": [
+      "RUSTFS_GET_"
+    ],
+    "cleared_exact_keys": [
+      "RUSTFS_SHARD_LOCALITY_SCHEDULING"
+    ],
+    "fixed_environment": {
+      "RUSTFS_SHARD_LOCALITY_SCHEDULING": "off",
+      "RUSTFS_GET_SHARD_LOCALITY_PREFERENCE_ENABLE": "false",
+      "RUSTFS_GET_DECODE_STRIPE_PREFETCH_COUNT": "1",
+      "RUSTFS_GET_BITROT_DECODE_OVERLAP_ENABLE": "false",
+      "RUSTFS_GET_LOCKSTEP_DATA_SHARDS_ONLY_ENABLE": "false"
+    },
+    "source": "crates/ecstore/src/erasure/coding/decode.rs:64-221",
+    "source_derived_mode": "Default read policy, serial stripe read/reconstruct/emit, no prefetch/overlap, locality off, all live shard readers engaged; no data-shards-only savings",
+    "observation_boundary": "Mode derived from pinned source and explicit child environment; not a per-stripe execution trace",
+    "history_boundary": "Earlier c68 four-phase environment was fixed across phases but these I/O values were not individually recorded; they cannot be retroactively assumed default."
+  },
+  "independent_scope": "Only this downstream streaming profile and combined code change; does not replace the rejected 58-case codec campaign; not an isolated single-pass effect",
+  "comparison_scope": "All accumulated branch runtime differences after merged-main baseline 8f49bd8, including earlier c68c257 changes and the two final runtime corrections; not an isolated two-change comparison.",
+  "root_independent_recomputation": "16 datasets, 160 normalized samples, eight drift checks, ratios, CI bounds, runtime, fixed I/O and cleanup verified against raw artifacts."
+}

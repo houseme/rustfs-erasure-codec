@@ -1,0 +1,2428 @@
+{
+  "method": "For every Cargo Running or Doc-tests section, count only its last test-result summary. Nested child results are excluded. Raw logs are retained unchanged.",
+  "runs": {
+    "audit-workspace": {
+      "log_name": "final-workspace-tests.log",
+      "parent_totals": {
+        "passed": 486,
+        "failed": 0,
+        "ignored": 43
+      },
+      "uncorrected_sum_including_nested_children": 491,
+      "executable_count": 25,
+      "executables": [
+        {
+          "executable": "Running unittests src/lib.rs",
+          "passed": 352,
+          "failed": 0,
+          "ignored": 5,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/benchmark_small_files.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/benchmark_smoke.rs",
+          "passed": 1,
+          "failed": 0,
+          "ignored": 35,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/benchmark_stream_paths.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/classic_recovery_plan_regressions.rs",
+          "passed": 8,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/codec_construction_regressions.rs",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/codec_contract_matrix.rs",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/codec_identity_regressions.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/comprehensive_x86_64_benchmark.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/encoding_dispatch_regressions.rs",
+          "passed": 4,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 1
+        },
+        {
+          "executable": "Running tests/encoding_format_identity.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/external_stream_recovery.rs",
+          "passed": 10,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/golden_vectors.rs",
+          "passed": 7,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_encode_reuse_regressions.rs",
+          "passed": 4,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_gf16_decode_reuse.rs",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 1
+        },
+        {
+          "executable": "Running tests/leopard_gf8_decode_reuse.rs",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_reconstruct_regressions.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/parallel_codegen_regressions.rs",
+          "passed": 6,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 3
+        },
+        {
+          "executable": "Running tests/parallel_policy_regressions.rs",
+          "passed": 6,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/selftest.rs",
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/stream_plan_regressions.rs",
+          "passed": 7,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/stream_reuse_regressions.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/workspace_policy_regressions.rs",
+          "passed": 14,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running unittests src/lib.rs (WASM crate)",
+          "passed": 7,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Doc-tests rustfs_erasure_codec",
+          "passed": 10,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        }
+      ]
+    },
+    "audit-no-std": {
+      "log_name": "final-no-std-tests.log",
+      "parent_totals": {
+        "passed": 291,
+        "failed": 0,
+        "ignored": 20
+      },
+      "uncorrected_sum_including_nested_children": 291,
+      "executable_count": 24,
+      "executables": [
+        {
+          "executable": "Running unittests src/lib.rs",
+          "passed": 234,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/benchmark_small_files.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/benchmark_smoke.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 19,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/benchmark_stream_paths.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/classic_recovery_plan_regressions.rs",
+          "passed": 6,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/codec_construction_regressions.rs",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/codec_contract_matrix.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/codec_identity_regressions.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/comprehensive_x86_64_benchmark.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/encoding_dispatch_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/encoding_format_identity.rs",
+          "passed": 8,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/external_stream_recovery.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/golden_vectors.rs",
+          "passed": 7,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_encode_reuse_regressions.rs",
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_gf16_decode_reuse.rs",
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_gf8_decode_reuse.rs",
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_reconstruct_regressions.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/parallel_codegen_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/parallel_policy_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/selftest.rs",
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/stream_plan_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/stream_reuse_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/workspace_policy_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Doc-tests rustfs_erasure_codec",
+          "passed": 8,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        }
+      ]
+    },
+    "single-pass-std": {
+      "log_name": "single-pass-std-tests.log",
+      "parent_totals": {
+        "passed": 484,
+        "failed": 0,
+        "ignored": 43
+      },
+      "uncorrected_sum_including_nested_children": 489,
+      "executable_count": 25,
+      "executables": [
+        {
+          "executable": "Running unittests src/lib.rs",
+          "passed": 352,
+          "failed": 0,
+          "ignored": 5,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/benchmark_small_files.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/benchmark_smoke.rs",
+          "passed": 1,
+          "failed": 0,
+          "ignored": 35,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/benchmark_stream_paths.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/classic_recovery_plan_regressions.rs",
+          "passed": 11,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/codec_construction_regressions.rs",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/codec_contract_matrix.rs",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/codec_identity_regressions.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/comprehensive_x86_64_benchmark.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/decode_idx_allocation_regressions.rs",
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/encoding_dispatch_regressions.rs",
+          "passed": 4,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 1
+        },
+        {
+          "executable": "Running tests/encoding_format_identity.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/external_stream_recovery.rs",
+          "passed": 10,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/golden_vectors.rs",
+          "passed": 7,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_encode_reuse_regressions.rs",
+          "passed": 4,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_gf16_decode_reuse.rs",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 1
+        },
+        {
+          "executable": "Running tests/leopard_gf8_decode_reuse.rs",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_reconstruct_regressions.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/parallel_codegen_regressions.rs",
+          "passed": 6,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 3
+        },
+        {
+          "executable": "Running tests/parallel_policy_regressions.rs",
+          "passed": 6,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/selftest.rs",
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/stream_plan_regressions.rs",
+          "passed": 7,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/stream_reuse_regressions.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/workspace_policy_regressions.rs",
+          "passed": 14,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Doc-tests rustfs_erasure_codec",
+          "passed": 10,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        }
+      ]
+    },
+    "single-pass-no-std": {
+      "log_name": "single-pass-no-std-tests.log",
+      "parent_totals": {
+        "passed": 294,
+        "failed": 0,
+        "ignored": 20
+      },
+      "uncorrected_sum_including_nested_children": 294,
+      "executable_count": 25,
+      "executables": [
+        {
+          "executable": "Running unittests src/lib.rs",
+          "passed": 234,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/benchmark_small_files.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/benchmark_smoke.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 19,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/benchmark_stream_paths.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/classic_recovery_plan_regressions.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/codec_construction_regressions.rs",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/codec_contract_matrix.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/codec_identity_regressions.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/comprehensive_x86_64_benchmark.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/decode_idx_allocation_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/encoding_dispatch_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/encoding_format_identity.rs",
+          "passed": 8,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/external_stream_recovery.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/golden_vectors.rs",
+          "passed": 7,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_encode_reuse_regressions.rs",
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_gf16_decode_reuse.rs",
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_gf8_decode_reuse.rs",
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_reconstruct_regressions.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/parallel_codegen_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/parallel_policy_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/selftest.rs",
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/stream_plan_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/stream_reuse_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/workspace_policy_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Doc-tests rustfs_erasure_codec",
+          "passed": 8,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        }
+      ]
+    },
+    "final-std": {
+      "log_name": "native-views-std-tests.log",
+      "parent_totals": {
+        "passed": 487,
+        "failed": 0,
+        "ignored": 43
+      },
+      "uncorrected_sum_including_nested_children": 492,
+      "executable_count": 25,
+      "executables": [
+        {
+          "executable": "Running unittests src/lib.rs",
+          "passed": 355,
+          "failed": 0,
+          "ignored": 5,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/benchmark_small_files.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/benchmark_smoke.rs",
+          "passed": 1,
+          "failed": 0,
+          "ignored": 35,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/benchmark_stream_paths.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/classic_recovery_plan_regressions.rs",
+          "passed": 11,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/codec_construction_regressions.rs",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/codec_contract_matrix.rs",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/codec_identity_regressions.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/comprehensive_x86_64_benchmark.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/decode_idx_allocation_regressions.rs",
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/encoding_dispatch_regressions.rs",
+          "passed": 4,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 1
+        },
+        {
+          "executable": "Running tests/encoding_format_identity.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/external_stream_recovery.rs",
+          "passed": 10,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/golden_vectors.rs",
+          "passed": 7,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_encode_reuse_regressions.rs",
+          "passed": 4,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_gf16_decode_reuse.rs",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 1
+        },
+        {
+          "executable": "Running tests/leopard_gf8_decode_reuse.rs",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_reconstruct_regressions.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/parallel_codegen_regressions.rs",
+          "passed": 6,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 3
+        },
+        {
+          "executable": "Running tests/parallel_policy_regressions.rs",
+          "passed": 6,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/selftest.rs",
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/stream_plan_regressions.rs",
+          "passed": 7,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/stream_reuse_regressions.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/workspace_policy_regressions.rs",
+          "passed": 14,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Doc-tests rustfs_erasure_codec",
+          "passed": 10,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        }
+      ]
+    },
+    "final-no-std": {
+      "log_name": "native-views-no-std-tests.log",
+      "parent_totals": {
+        "passed": 297,
+        "failed": 0,
+        "ignored": 20
+      },
+      "uncorrected_sum_including_nested_children": 297,
+      "executable_count": 25,
+      "executables": [
+        {
+          "executable": "Running unittests src/lib.rs",
+          "passed": 237,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/benchmark_small_files.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/benchmark_smoke.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 19,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/benchmark_stream_paths.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/classic_recovery_plan_regressions.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/codec_construction_regressions.rs",
+          "passed": 3,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/codec_contract_matrix.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/codec_identity_regressions.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/comprehensive_x86_64_benchmark.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 1,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/decode_idx_allocation_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/encoding_dispatch_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/encoding_format_identity.rs",
+          "passed": 8,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/external_stream_recovery.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/golden_vectors.rs",
+          "passed": 7,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_encode_reuse_regressions.rs",
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_gf16_decode_reuse.rs",
+          "passed": 1,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_gf8_decode_reuse.rs",
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/leopard_reconstruct_regressions.rs",
+          "passed": 9,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/parallel_codegen_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/parallel_policy_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/selftest.rs",
+          "passed": 2,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/stream_plan_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/stream_reuse_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Running tests/workspace_policy_regressions.rs",
+          "passed": 0,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        },
+        {
+          "executable": "Doc-tests rustfs_erasure_codec",
+          "passed": 8,
+          "failed": 0,
+          "ignored": 0,
+          "child_summaries_excluded": 0
+        }
+      ]
+    }
+  },
+  "native_linux_runs": {
+    "native-fixed-policy": {
+      "revision": "c68c2575ea11d1eb4c085b21e55f6b95da5975c3",
+      "stage": "native-fixed-policy",
+      "exit_code": 0,
+      "method": "Each Cargo Running/Doc-tests segment: only its last parent test summary counts; earlier nested summaries preserved separately.",
+      "parent_executables": 25,
+      "parent_totals": {
+        "passed": 484,
+        "failed": 0,
+        "ignored": 43,
+        "measured": 0,
+        "filtered": 0
+      },
+      "original_all_summaries_totals": {
+        "passed": 488,
+        "failed": 0,
+        "ignored": 43,
+        "measured": 0,
+        "filtered": 13
+      },
+      "nested_summary_count": 4,
+      "sections": [
+        {
+          "label": "Running unittests src/lib.rs",
+          "start_line": 3,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 357,
+              "failed": 0,
+              "ignored": 5,
+              "measured": 0,
+              "filtered": 0,
+              "line": 369
+            }
+          ]
+        },
+        {
+          "label": "Running tests/benchmark_small_files.rs",
+          "start_line": 371,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 0,
+              "failed": 0,
+              "ignored": 1,
+              "measured": 0,
+              "filtered": 0,
+              "line": 376
+            }
+          ]
+        },
+        {
+          "label": "Running tests/benchmark_smoke.rs",
+          "start_line": 378,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 0,
+              "failed": 0,
+              "ignored": 35,
+              "measured": 0,
+              "filtered": 0,
+              "line": 417
+            }
+          ]
+        },
+        {
+          "label": "Running tests/benchmark_stream_paths.rs",
+          "start_line": 419,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 0,
+              "failed": 0,
+              "ignored": 1,
+              "measured": 0,
+              "filtered": 0,
+              "line": 424
+            }
+          ]
+        },
+        {
+          "label": "Running tests/classic_recovery_plan_regressions.rs",
+          "start_line": 426,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 8,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 438
+            }
+          ]
+        },
+        {
+          "label": "Running tests/codec_construction_regressions.rs",
+          "start_line": 440,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 3,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 447
+            }
+          ]
+        },
+        {
+          "label": "Running tests/codec_contract_matrix.rs",
+          "start_line": 449,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 3,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 456
+            }
+          ]
+        },
+        {
+          "label": "Running tests/codec_identity_regressions.rs",
+          "start_line": 458,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 9,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 471
+            }
+          ]
+        },
+        {
+          "label": "Running tests/comprehensive_x86_64_benchmark.rs",
+          "start_line": 473,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 0,
+              "failed": 0,
+              "ignored": 1,
+              "measured": 0,
+              "filtered": 0,
+              "line": 478
+            }
+          ]
+        },
+        {
+          "label": "Running tests/decode_idx_allocation_regressions.rs",
+          "start_line": 480,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 2,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 486
+            }
+          ]
+        },
+        {
+          "label": "Running tests/encoding_dispatch_regressions.rs",
+          "start_line": 488,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 1,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 3,
+              "line": 497
+            },
+            {
+              "result": "ok",
+              "passed": 4,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 502
+            }
+          ]
+        },
+        {
+          "label": "Running tests/encoding_format_identity.rs",
+          "start_line": 504,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 9,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 517
+            }
+          ]
+        },
+        {
+          "label": "Running tests/external_stream_recovery.rs",
+          "start_line": 519,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 10,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 533
+            }
+          ]
+        },
+        {
+          "label": "Running tests/golden_vectors.rs",
+          "start_line": 535,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 7,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 546
+            }
+          ]
+        },
+        {
+          "label": "Running tests/leopard_encode_reuse_regressions.rs",
+          "start_line": 548,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 4,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 556
+            }
+          ]
+        },
+        {
+          "label": "Running tests/leopard_gf16_decode_reuse.rs",
+          "start_line": 558,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 1,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 2,
+              "line": 565
+            },
+            {
+              "result": "ok",
+              "passed": 3,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 571
+            }
+          ]
+        },
+        {
+          "label": "Running tests/leopard_gf8_decode_reuse.rs",
+          "start_line": 573,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 3,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 580
+            }
+          ]
+        },
+        {
+          "label": "Running tests/leopard_reconstruct_regressions.rs",
+          "start_line": 582,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 9,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 595
+            }
+          ]
+        },
+        {
+          "label": "Running tests/parallel_codegen_regressions.rs",
+          "start_line": 597,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 1,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 4,
+              "line": 604
+            },
+            {
+              "result": "ok",
+              "passed": 1,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 4,
+              "line": 610
+            },
+            {
+              "result": "ok",
+              "passed": 5,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 618
+            }
+          ]
+        },
+        {
+          "label": "Running tests/parallel_policy_regressions.rs",
+          "start_line": 620,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 6,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 630
+            }
+          ]
+        },
+        {
+          "label": "Running tests/selftest.rs",
+          "start_line": 632,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 2,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 638
+            }
+          ]
+        },
+        {
+          "label": "Running tests/stream_plan_regressions.rs",
+          "start_line": 640,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 7,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 651
+            }
+          ]
+        },
+        {
+          "label": "Running tests/stream_reuse_regressions.rs",
+          "start_line": 653,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 9,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 666
+            }
+          ]
+        },
+        {
+          "label": "Running tests/workspace_policy_regressions.rs",
+          "start_line": 668,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 14,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 686
+            }
+          ]
+        },
+        {
+          "label": "Doc-tests rustfs_erasure_codec",
+          "start_line": 688,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 10,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 702
+            }
+          ]
+        }
+      ]
+    },
+    "native-single-pass": {
+      "revision": "024d14da1cf39cb8a17eaf0d4dc4f1368af36b27",
+      "stage": "native-single-pass",
+      "exit_code": 0,
+      "method": "Each Cargo Running/Doc-tests segment: only its last parent test summary counts; earlier nested summaries preserved separately.",
+      "parent_executables": 25,
+      "parent_totals": {
+        "passed": 487,
+        "failed": 0,
+        "ignored": 43,
+        "measured": 0,
+        "filtered": 0
+      },
+      "original_all_summaries_totals": {
+        "passed": 491,
+        "failed": 0,
+        "ignored": 43,
+        "measured": 0,
+        "filtered": 13
+      },
+      "nested_summary_count": 4,
+      "sections": [
+        {
+          "label": "Running unittests src/lib.rs",
+          "start_line": 3,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 357,
+              "failed": 0,
+              "ignored": 5,
+              "measured": 0,
+              "filtered": 0,
+              "line": 369
+            }
+          ]
+        },
+        {
+          "label": "Running tests/benchmark_small_files.rs",
+          "start_line": 371,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 0,
+              "failed": 0,
+              "ignored": 1,
+              "measured": 0,
+              "filtered": 0,
+              "line": 376
+            }
+          ]
+        },
+        {
+          "label": "Running tests/benchmark_smoke.rs",
+          "start_line": 378,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 0,
+              "failed": 0,
+              "ignored": 35,
+              "measured": 0,
+              "filtered": 0,
+              "line": 417
+            }
+          ]
+        },
+        {
+          "label": "Running tests/benchmark_stream_paths.rs",
+          "start_line": 419,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 0,
+              "failed": 0,
+              "ignored": 1,
+              "measured": 0,
+              "filtered": 0,
+              "line": 424
+            }
+          ]
+        },
+        {
+          "label": "Running tests/classic_recovery_plan_regressions.rs",
+          "start_line": 426,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 11,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 441
+            }
+          ]
+        },
+        {
+          "label": "Running tests/codec_construction_regressions.rs",
+          "start_line": 443,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 3,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 450
+            }
+          ]
+        },
+        {
+          "label": "Running tests/codec_contract_matrix.rs",
+          "start_line": 452,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 3,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 459
+            }
+          ]
+        },
+        {
+          "label": "Running tests/codec_identity_regressions.rs",
+          "start_line": 461,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 9,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 474
+            }
+          ]
+        },
+        {
+          "label": "Running tests/comprehensive_x86_64_benchmark.rs",
+          "start_line": 476,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 0,
+              "failed": 0,
+              "ignored": 1,
+              "measured": 0,
+              "filtered": 0,
+              "line": 481
+            }
+          ]
+        },
+        {
+          "label": "Running tests/decode_idx_allocation_regressions.rs",
+          "start_line": 483,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 2,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 489
+            }
+          ]
+        },
+        {
+          "label": "Running tests/encoding_dispatch_regressions.rs",
+          "start_line": 491,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 1,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 3,
+              "line": 500
+            },
+            {
+              "result": "ok",
+              "passed": 4,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 505
+            }
+          ]
+        },
+        {
+          "label": "Running tests/encoding_format_identity.rs",
+          "start_line": 507,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 9,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 520
+            }
+          ]
+        },
+        {
+          "label": "Running tests/external_stream_recovery.rs",
+          "start_line": 522,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 10,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 536
+            }
+          ]
+        },
+        {
+          "label": "Running tests/golden_vectors.rs",
+          "start_line": 538,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 7,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 549
+            }
+          ]
+        },
+        {
+          "label": "Running tests/leopard_encode_reuse_regressions.rs",
+          "start_line": 551,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 4,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 559
+            }
+          ]
+        },
+        {
+          "label": "Running tests/leopard_gf16_decode_reuse.rs",
+          "start_line": 561,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 1,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 2,
+              "line": 568
+            },
+            {
+              "result": "ok",
+              "passed": 3,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 574
+            }
+          ]
+        },
+        {
+          "label": "Running tests/leopard_gf8_decode_reuse.rs",
+          "start_line": 576,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 3,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 583
+            }
+          ]
+        },
+        {
+          "label": "Running tests/leopard_reconstruct_regressions.rs",
+          "start_line": 585,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 9,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 598
+            }
+          ]
+        },
+        {
+          "label": "Running tests/parallel_codegen_regressions.rs",
+          "start_line": 600,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 1,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 4,
+              "line": 607
+            },
+            {
+              "result": "ok",
+              "passed": 1,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 4,
+              "line": 613
+            },
+            {
+              "result": "ok",
+              "passed": 5,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 621
+            }
+          ]
+        },
+        {
+          "label": "Running tests/parallel_policy_regressions.rs",
+          "start_line": 623,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 6,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 633
+            }
+          ]
+        },
+        {
+          "label": "Running tests/selftest.rs",
+          "start_line": 635,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 2,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 641
+            }
+          ]
+        },
+        {
+          "label": "Running tests/stream_plan_regressions.rs",
+          "start_line": 643,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 7,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 654
+            }
+          ]
+        },
+        {
+          "label": "Running tests/stream_reuse_regressions.rs",
+          "start_line": 656,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 9,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 669
+            }
+          ]
+        },
+        {
+          "label": "Running tests/workspace_policy_regressions.rs",
+          "start_line": 671,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 14,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 689
+            }
+          ]
+        },
+        {
+          "label": "Doc-tests rustfs_erasure_codec",
+          "start_line": 691,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 10,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 705
+            }
+          ]
+        }
+      ]
+    },
+    "native-final-metadata": {
+      "revision": "9fcae450af8d98c5735e5c84bb42f28f9f018df8",
+      "stage": "native-final-metadata",
+      "exit_code": 0,
+      "method": "Each Cargo Running/Doc-tests segment: only its last parent test summary counts; earlier nested summaries preserved separately.",
+      "parent_executables": 25,
+      "parent_totals": {
+        "passed": 490,
+        "failed": 0,
+        "ignored": 43,
+        "measured": 0,
+        "filtered": 0
+      },
+      "original_all_summaries_totals": {
+        "passed": 494,
+        "failed": 0,
+        "ignored": 43,
+        "measured": 0,
+        "filtered": 13
+      },
+      "nested_summary_count": 4,
+      "sections": [
+        {
+          "label": "Running unittests src/lib.rs",
+          "start_line": 3,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 360,
+              "failed": 0,
+              "ignored": 5,
+              "measured": 0,
+              "filtered": 0,
+              "line": 372
+            }
+          ]
+        },
+        {
+          "label": "Running tests/benchmark_small_files.rs",
+          "start_line": 374,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 0,
+              "failed": 0,
+              "ignored": 1,
+              "measured": 0,
+              "filtered": 0,
+              "line": 379
+            }
+          ]
+        },
+        {
+          "label": "Running tests/benchmark_smoke.rs",
+          "start_line": 381,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 0,
+              "failed": 0,
+              "ignored": 35,
+              "measured": 0,
+              "filtered": 0,
+              "line": 420
+            }
+          ]
+        },
+        {
+          "label": "Running tests/benchmark_stream_paths.rs",
+          "start_line": 422,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 0,
+              "failed": 0,
+              "ignored": 1,
+              "measured": 0,
+              "filtered": 0,
+              "line": 427
+            }
+          ]
+        },
+        {
+          "label": "Running tests/classic_recovery_plan_regressions.rs",
+          "start_line": 429,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 11,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 444
+            }
+          ]
+        },
+        {
+          "label": "Running tests/codec_construction_regressions.rs",
+          "start_line": 446,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 3,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 453
+            }
+          ]
+        },
+        {
+          "label": "Running tests/codec_contract_matrix.rs",
+          "start_line": 455,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 3,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 462
+            }
+          ]
+        },
+        {
+          "label": "Running tests/codec_identity_regressions.rs",
+          "start_line": 464,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 9,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 477
+            }
+          ]
+        },
+        {
+          "label": "Running tests/comprehensive_x86_64_benchmark.rs",
+          "start_line": 479,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 0,
+              "failed": 0,
+              "ignored": 1,
+              "measured": 0,
+              "filtered": 0,
+              "line": 484
+            }
+          ]
+        },
+        {
+          "label": "Running tests/decode_idx_allocation_regressions.rs",
+          "start_line": 486,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 2,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 492
+            }
+          ]
+        },
+        {
+          "label": "Running tests/encoding_dispatch_regressions.rs",
+          "start_line": 494,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 1,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 3,
+              "line": 503
+            },
+            {
+              "result": "ok",
+              "passed": 4,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 508
+            }
+          ]
+        },
+        {
+          "label": "Running tests/encoding_format_identity.rs",
+          "start_line": 510,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 9,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 523
+            }
+          ]
+        },
+        {
+          "label": "Running tests/external_stream_recovery.rs",
+          "start_line": 525,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 10,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 539
+            }
+          ]
+        },
+        {
+          "label": "Running tests/golden_vectors.rs",
+          "start_line": 541,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 7,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 552
+            }
+          ]
+        },
+        {
+          "label": "Running tests/leopard_encode_reuse_regressions.rs",
+          "start_line": 554,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 4,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 562
+            }
+          ]
+        },
+        {
+          "label": "Running tests/leopard_gf16_decode_reuse.rs",
+          "start_line": 564,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 1,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 2,
+              "line": 571
+            },
+            {
+              "result": "ok",
+              "passed": 3,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 577
+            }
+          ]
+        },
+        {
+          "label": "Running tests/leopard_gf8_decode_reuse.rs",
+          "start_line": 579,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 3,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 586
+            }
+          ]
+        },
+        {
+          "label": "Running tests/leopard_reconstruct_regressions.rs",
+          "start_line": 588,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 9,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 601
+            }
+          ]
+        },
+        {
+          "label": "Running tests/parallel_codegen_regressions.rs",
+          "start_line": 603,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 1,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 4,
+              "line": 610
+            },
+            {
+              "result": "ok",
+              "passed": 1,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 4,
+              "line": 616
+            },
+            {
+              "result": "ok",
+              "passed": 5,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 624
+            }
+          ]
+        },
+        {
+          "label": "Running tests/parallel_policy_regressions.rs",
+          "start_line": 626,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 6,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 636
+            }
+          ]
+        },
+        {
+          "label": "Running tests/selftest.rs",
+          "start_line": 638,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 2,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 644
+            }
+          ]
+        },
+        {
+          "label": "Running tests/stream_plan_regressions.rs",
+          "start_line": 646,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 7,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 657
+            }
+          ]
+        },
+        {
+          "label": "Running tests/stream_reuse_regressions.rs",
+          "start_line": 659,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 9,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 672
+            }
+          ]
+        },
+        {
+          "label": "Running tests/workspace_policy_regressions.rs",
+          "start_line": 674,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 14,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 692
+            }
+          ]
+        },
+        {
+          "label": "Doc-tests rustfs_erasure_codec",
+          "start_line": 694,
+          "summaries": [
+            {
+              "result": "ok",
+              "passed": 10,
+              "failed": 0,
+              "ignored": 0,
+              "measured": 0,
+              "filtered": 0,
+              "line": 708
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "independent_root_recomputation": "All three native logs and final release fixture log reparsed locally; native totals 484/487/490 and fixture4 match the captured final parent summaries."
+}
