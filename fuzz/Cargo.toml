@@ -29,3 +29,9 @@ name = "fuzz_encode_reconstruct"
 path = "fuzz_targets/fuzz_encode_reconstruct.rs"
 test = false
 bench = false
+
+[[bin]]
+name = "fuzz_codec_contracts"
+path = "fuzz_targets/fuzz_codec_contracts.rs"
+test = false
+bench = false
