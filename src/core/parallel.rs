@@ -346,7 +346,7 @@ impl<F: Field> ReedSolomon<F> {
         self.effective_parallel_policy().decide_for_elements(
             shard_len,
             core::mem::size_of::<F::Elem>(),
-            self.data_shard_count,
+            self.data_shard_count(),
             output_shards,
             available_parallelism,
         )

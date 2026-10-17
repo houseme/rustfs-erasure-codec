@@ -213,7 +213,7 @@ impl<F: Field> ReedSolomon<F> {
         let mut start = 0;
         while start < shard_len {
             let end = core::cmp::min(start + chunk_len, shard_len);
-            for (i_input, input) in inputs.iter().enumerate().take(self.data_shard_count) {
+            for (i_input, input) in inputs.iter().enumerate().take(self.data_shard_count()) {
                 self.code_single_slice_range(
                     matrix_rows,
                     i_input,
@@ -277,7 +277,7 @@ impl<F: Field> ReedSolomon<F> {
             self.runtime_profile_metrics
                 .record_code_some_small_output_chunk_parallel(outputs.len(), chunk_count);
         }
-        let data_shard_count = self.data_shard_count;
+        let data_shard_count = self.data_shard_count();
         super::parallel::for_each_output_chunk(
             outputs,
             shard_len,
@@ -386,7 +386,7 @@ impl<F: Field> ReedSolomon<F> {
     }
 
     pub(crate) fn fast_one_parity_enabled(&self) -> bool {
-        self.options.fast_one_parity && self.parity_shard_count == 1
+        self.options.fast_one_parity && self.parity_shard_count() == 1
     }
 
     /// Select a supported ISA/shape and validate all native views exactly once
@@ -407,12 +407,13 @@ impl<F: Field> ReedSolomon<F> {
         if !leopard::is_byte_field::<F>() || !crate::galois_8::generated_encode_allowed() {
             return None;
         }
-        let kernel = SelectedEncodeKernel::select(self.data_shard_count, self.parity_shard_count)?;
+        let kernel =
+            SelectedEncodeKernel::select(self.data_shard_count(), self.parity_shard_count())?;
         let shards = ByteShardViews::prepare::<F, _, _>(data, parity, shard_len).ok()?;
         let mut rows = SmallVec::new();
         for row in self.get_parity_rows() {
             let bytes = F::as_gf8_slice(row)?;
-            if bytes.len() != self.data_shard_count {
+            if bytes.len() != self.data_shard_count() {
                 return None;
             }
             rows.push(bytes);
@@ -460,7 +461,7 @@ impl<F: Field> ReedSolomon<F> {
         check_piece_count!(all=> self, slices);
         check_slices!(multi => slices);
 
-        let (mut_input, output) = slices.split_at_mut(self.data_shard_count);
+        let (mut_input, output) = slices.split_at_mut(self.data_shard_count());
         let input = mut_input[i_data].as_ref();
 
         self.encode_single_sep(i_data, input, output)
@@ -499,7 +500,7 @@ impl<F: Field> ReedSolomon<F> {
         check_piece_count!(all => self, slices);
         check_slices!(multi => slices);
 
-        let (input, output) = slices.split_at_mut(self.data_shard_count);
+        let (input, output) = slices.split_at_mut(self.data_shard_count());
         self.encode_sep(&*input, output)
     }
 
@@ -571,8 +572,8 @@ impl<F: Field> ReedSolomon<F> {
         let shard_len = data.first().ok_or(Error::TooFewDataShards)?.as_ref().len();
         let mut shards = ByteShardViews::prepare::<F, _, _>(data, parity, shard_len)?;
         encode_fn(
-            self.data_shard_count,
-            self.parity_shard_count,
+            self.data_shard_count(),
+            self.parity_shard_count(),
             &shards.data,
             &mut shards.parity,
         )
@@ -598,7 +599,7 @@ impl<F: Field> ReedSolomon<F> {
         check_piece_count!(data => self, old_data);
         check_piece_count!(parity => self, parity);
 
-        if new_data.len() != self.data_shard_count {
+        if new_data.len() != self.data_shard_count() {
             return Err(Error::TooFewDataShards);
         }
 
@@ -682,8 +683,8 @@ impl<F: Field> ReedSolomon<F> {
         let shard_len = data[0].as_ref().len();
         let decision = self.parallel_policy(shard_len, parity.len());
         if let Some(execution) = NativeEncodeExecution::for_parallel_decision(
-            self.data_shard_count,
-            self.parity_shard_count,
+            self.data_shard_count(),
+            self.parity_shard_count(),
             shard_len,
             decision,
         ) && let Some(mut prepared) =
@@ -694,8 +695,8 @@ impl<F: Field> ReedSolomon<F> {
                 self.runtime_profile_metrics.record_code_some(
                     true,
                     shard_len,
-                    self.data_shard_count,
-                    self.parity_shard_count,
+                    self.data_shard_count(),
+                    self.parity_shard_count(),
                     chunk_len,
                 );
             }
@@ -788,7 +789,7 @@ impl<F: Field> ReedSolomon<F> {
         check_piece_count!(all=> self, slices);
         check_slices!(multi => slices);
 
-        let (mut_input, output) = slices.split_at_mut(self.data_shard_count);
+        let (mut_input, output) = slices.split_at_mut(self.data_shard_count());
         let input = mut_input[i_data].as_ref();
         self.encode_single_sep_par(i_data, input, output)
     }
@@ -806,7 +807,7 @@ impl<F: Field> ReedSolomon<F> {
         check_piece_count!(all => self, slices);
         check_slices!(multi => slices);
 
-        let (input, output) = slices.split_at_mut(self.data_shard_count);
+        let (input, output) = slices.split_at_mut(self.data_shard_count());
         self.encode_sep_par(&*input, output)
     }
 }

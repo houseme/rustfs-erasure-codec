@@ -506,7 +506,7 @@ impl<'codec> StreamReconstructPlan<'codec> {
         shard_len: usize,
     ) -> Result<Self, crate::Error> {
         let mut missing = missing_indices.iter().copied().peekable();
-        let lengths = (0..codec.total_shard_count).map(|index| {
+        let lengths = (0..codec.total_shard_count()).map(|index| {
             if missing.peek() == Some(&index) {
                 missing.next();
                 None
@@ -572,11 +572,11 @@ impl<'codec> StreamReconstructPlan<'codec> {
         if missing_parity != 0 {
             // The data phase's views have ended; restored data can now be read
             // while only the disjoint parity buffers are mutated.
-            let (data, parity) = buffers.split_at_mut(self.codec.data_shard_count);
+            let (data, parity) = buffers.split_at_mut(self.codec.data_shard_count());
             let mut missing = self.plan.parity_targets.iter().copied().peekable();
             let mut outputs: SmallVec<[&mut [u8]; 32]> = SmallVec::with_capacity(missing_parity);
             for (offset, buffer) in parity.iter_mut().enumerate() {
-                if missing.peek() == Some(&(self.codec.data_shard_count + offset)) {
+                if missing.peek() == Some(&(self.codec.data_shard_count() + offset)) {
                     outputs.push(buffer.as_mut_slice());
                     missing.next();
                 }
@@ -636,8 +636,8 @@ impl super::ReedSolomon<crate::galois_8::Field> {
             return Err(StreamError::codec(0, crate::Error::UnsupportedCodecFamily));
         }
 
-        let data_count = self.data_shard_count;
-        let parity_count = self.parity_shard_count;
+        let data_count = self.data_shard_count();
+        let parity_count = self.parity_shard_count();
         let use_parallel_read = use_parallel_stream_io(options, data_count);
         let use_parallel_write = use_parallel_stream_io(options, parity_count);
 
@@ -730,7 +730,7 @@ impl super::ReedSolomon<crate::galois_8::Field> {
             return Err(StreamError::codec(0, crate::Error::UnsupportedCodecFamily));
         }
 
-        let total = self.total_shard_count;
+        let total = self.total_shard_count();
         let use_parallel_read = use_parallel_stream_io(options, total);
 
         // Validate the shard count at runtime (debug_assert is removed in
@@ -741,7 +741,7 @@ impl super::ReedSolomon<crate::galois_8::Field> {
 
         let mut bufs: Vec<Vec<u8>> = (0..total).map(|_| Vec::with_capacity(block_size)).collect();
         let mut verify_bufs: Vec<Vec<u8>> =
-            (0..self.parity_shard_count).map(|_| Vec::new()).collect();
+            (0..self.parity_shard_count()).map(|_| Vec::new()).collect();
         let mut read_lengths = Vec::with_capacity(total);
 
         loop {
@@ -810,7 +810,7 @@ impl super::ReedSolomon<crate::galois_8::Field> {
         let block_size = options
             .block_size
             .clamp(MIN_BLOCK_SIZE_BYTES, MAX_BLOCK_SIZE_BYTES);
-        let total = self.total_shard_count;
+        let total = self.total_shard_count();
 
         // Validate the shard count at runtime (debug_assert is removed in
         // release builds).
@@ -837,7 +837,7 @@ impl super::ReedSolomon<crate::galois_8::Field> {
         if present_count == 0 {
             return Ok(());
         }
-        if missing_count > self.parity_shard_count {
+        if missing_count > self.parity_shard_count() {
             return Err(StreamError::codec(0, crate::Error::TooFewShardsPresent));
         }
         let use_parallel_read = use_parallel_stream_io(options, present_count);

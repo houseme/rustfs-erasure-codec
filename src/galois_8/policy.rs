@@ -37,9 +37,15 @@ const RS_AARCH64_RECONSTRUCT_PARITY_MIN_BYTES_PER_JOB_ENV: &str =
 /// reconstruct workloads where the missing pattern stays stable across calls.
 pub struct OptionVecReconstructWorkspace {
     plan: ClassicReconstructPlan<super::Field>,
-    matrix: std::sync::Arc<crate::matrix::Matrix<super::Field>>,
-    data_shards: usize,
-    parity_shards: usize,
+    format: crate::EncodingFormat<super::Field>,
+}
+
+#[cfg(feature = "std")]
+impl OptionVecReconstructWorkspace {
+    /// Canonical format for which this reconstruction plan was prepared.
+    pub fn encoding_format(&self) -> &crate::EncodingFormat<super::Field> {
+        &self.format
+    }
 }
 
 impl crate::ReedSolomon<super::Field> {
@@ -314,9 +320,7 @@ impl crate::ReedSolomon<super::Field> {
     ) -> Result<OptionVecReconstructWorkspace, crate::Error> {
         Ok(OptionVecReconstructWorkspace {
             plan: self.plan_option_vec_reconstruct(shards, None)?,
-            matrix: std::sync::Arc::clone(self.matrix_identity()),
-            data_shards: self.data_shard_count(),
-            parity_shards: self.parity_shard_count(),
+            format: self.encoding_format().clone(),
         })
     }
 
@@ -336,20 +340,19 @@ impl crate::ReedSolomon<super::Field> {
         if self.is_leopard_family() {
             return Err(crate::Error::UnsupportedCodecFamily);
         }
-        if workspace.data_shards < self.data_shard_count() {
+        if workspace.format.data_shard_count() < self.data_shard_count() {
             return Err(crate::Error::TooFewDataShards);
         }
-        if workspace.data_shards > self.data_shard_count() {
+        if workspace.format.data_shard_count() > self.data_shard_count() {
             return Err(crate::Error::TooManyDataShards);
         }
-        if workspace.parity_shards < self.parity_shard_count() {
+        if workspace.format.parity_shard_count() < self.parity_shard_count() {
             return Err(crate::Error::TooFewParityShards);
         }
-        if workspace.parity_shards > self.parity_shard_count() {
+        if workspace.format.parity_shard_count() > self.parity_shard_count() {
             return Err(crate::Error::TooManyParityShards);
         }
-        let matrix = self.matrix_identity();
-        if !std::sync::Arc::ptr_eq(matrix, &workspace.matrix) && matrix != &workspace.matrix {
+        if self.encoding_format() != &workspace.format {
             return Err(crate::Error::InvalidCustomMatrix);
         }
 

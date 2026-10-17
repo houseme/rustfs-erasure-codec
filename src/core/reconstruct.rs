@@ -87,7 +87,7 @@ impl<F: Field> ReedSolomon<F> {
         let decision = policy.decide_for_elements(
             shard_len,
             core::mem::size_of::<F::Elem>(),
-            self.data_shard_count,
+            self.data_shard_count(),
             outputs.len(),
             self.policy_cache.available_parallelism,
         );
@@ -213,7 +213,7 @@ impl<F: Field> ReedSolomon<F> {
         } else {
             let mut existing = 0;
             let mut recovered = 0;
-            for index in 0..self.data_shard_count {
+            for index in 0..self.data_shard_count() {
                 if plan.data_targets.get(recovered) == Some(&index) {
                     all_data.push(recovered_data[recovered]);
                     recovered += 1;
@@ -327,7 +327,7 @@ impl<F: Field> ReedSolomon<F> {
             let mut all_data: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
             let mut existing = 0;
             let mut recovered = 0;
-            for index in 0..self.data_shard_count {
+            for index in 0..self.data_shard_count() {
                 if plan.data_targets.get(recovered) == Some(&index) {
                     all_data.push(data_outputs[recovered]);
                     recovered += 1;
@@ -371,7 +371,7 @@ impl<F: Field> ReedSolomon<F> {
         shards: &mut [T],
         required: &[bool],
     ) -> Result<(), Error> {
-        if required.len() != self.data_shard_count && required.len() != self.total_shard_count {
+        if required.len() != self.data_shard_count() && required.len() != self.total_shard_count() {
             return Err(Error::InvalidShardFlags);
         }
 
@@ -451,7 +451,7 @@ impl<F: Field> ReedSolomon<F> {
                 has_required_missing |= required(index);
             }
         }
-        if number_present < self.data_shard_count {
+        if number_present < self.data_shard_count() {
             return Err(Error::TooFewShardsPresent);
         }
         if !has_required_missing {
@@ -488,8 +488,8 @@ impl<F: Field> ReedSolomon<F> {
             &present,
             &mut outputs,
             &input_data,
-            self.data_shard_count,
-            self.parity_shard_count,
+            self.data_shard_count(),
+            self.parity_shard_count(),
         )?;
         drop(outputs);
         drop(input_data);
@@ -525,7 +525,7 @@ impl<F: Field> ReedSolomon<F> {
     ) -> Result<(), Error> {
         self.reconstruct_leopard_impl(
             slices,
-            |index| !data_only || index < self.data_shard_count,
+            |index| !data_only || index < self.data_shard_count(),
             super::leopard_gf8::reconstruct_with_tables,
         )
     }
@@ -537,7 +537,7 @@ impl<F: Field> ReedSolomon<F> {
     ) -> Result<(), Error> {
         self.reconstruct_leopard_impl(
             slices,
-            |index| !data_only || index < self.data_shard_count,
+            |index| !data_only || index < self.data_shard_count(),
             |present, outputs, inputs, data, parity| {
                 super::leopard::leopard_gf16_reconstruct(
                     present,
@@ -556,7 +556,7 @@ impl<F: Field> ReedSolomon<F> {
         valid_indices: &[usize],
         invalid_indices: &[usize],
     ) -> Result<Arc<crate::matrix::Matrix<F>>, Error> {
-        if valid_indices.len() != self.data_shard_count {
+        if valid_indices.len() != self.data_shard_count() {
             return Err(Error::TooFewShardsPresent);
         }
 
@@ -581,10 +581,14 @@ impl<F: Field> ReedSolomon<F> {
                 .fetch_add(1, Ordering::Relaxed);
         }
         let mut sub_matrix =
-            crate::matrix::Matrix::new(self.data_shard_count, self.data_shard_count);
+            crate::matrix::Matrix::new(self.data_shard_count(), self.data_shard_count());
         for (sub_matrix_row, &valid_index) in valid_indices.iter().enumerate() {
-            for c in 0..self.data_shard_count {
-                sub_matrix.set(sub_matrix_row, c, self.matrix.get(valid_index, c));
+            for c in 0..self.data_shard_count() {
+                sub_matrix.set(
+                    sub_matrix_row,
+                    c,
+                    self.encoding_format().matrix().get(valid_index, c),
+                );
             }
         }
         let data_decode_matrix = Arc::new(

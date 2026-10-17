@@ -72,7 +72,7 @@ impl<'a, F: 'a + Field> ShardByShard<'a, F> {
 
     /// Returns `true` if all data shards have been encoded and parity is ready.
     pub fn parity_ready(&self) -> bool {
-        self.cur_input == self.codec.data_shard_count
+        self.cur_input == self.codec.data_shard_count()
     }
 
     /// Reset to accept a new batch of data shards.

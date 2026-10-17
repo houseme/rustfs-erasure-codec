@@ -64,6 +64,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Added
+- Expose a versioned `EncodingFormat<F>` with explicit portable metadata and share its effective identity across codec equality and prepared recovery workspaces; remove duplicated identity state without serializing on hot paths.
 - Extend serial encode probes to all six generated layouts (58 total recovery-path cases), independently verify parity, and preserve a standalone paired-comparison probe with per-phase iteration counts.
 - Expand the recovery probe to 43 cases with poisoned-output/presence preflights, constructors, serial encoding, optimized recovery, and validated all-present workloads.
 - Add the `recovery_paths` JSONL benchmark with deterministic warm fixtures, cumulative allocation counts, latency samples, backend/features/revision provenance, and documented measurement limits.

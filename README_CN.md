@@ -201,6 +201,12 @@ assert!(slots[5].is_present());
 - `rustfs_erasure_codec::galois_8::alloc_aligned_shards(...)`
 - `galois_8::ReedSolomon::alloc_aligned(...)`
 
+## 编码格式身份
+
+`rs.encoding_format()` 统一描述已解析的算法族、分片数和有效矩阵，供编码器相等性及恢复 workspace 兼容判断使用。
+调用 `rs.encoding_format().stable_id_bytes()` 可按需生成完整、版本化的标识字节，作为独立元数据保存并在使用持久化分片前比较；它不插入分片内容，也不用于自动创建 codec。
+内置 GF8 和 tower GF16 提供可移植身份；自定义 Field 未声明稳定字段合同时返回 `None`。缓存、后端和线程配置不改变编码身份，序列化不进入编码及恢复热路径。
+
 ## 流式处理
 
 流式接口位于 `rustfs_erasure_codec::stream`，默认 `std` 特性下可用。

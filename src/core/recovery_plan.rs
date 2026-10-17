@@ -74,7 +74,7 @@ impl<F: Field> ClassicReconstructPlan<F> {
         } else {
             self.parity_targets
                 .iter()
-                .map(|&index| codec.matrix.get_row(index))
+                .map(|&index| codec.encoding_format().matrix().get_row(index))
                 .collect()
         }
     }
@@ -87,10 +87,10 @@ impl<F: Field> ReedSolomon<F> {
         lengths: impl ExactSizeIterator<Item = Option<usize>>,
         mut observe: impl FnMut(usize, bool),
     ) -> Result<(usize, usize), Error> {
-        if lengths.len() < self.total_shard_count {
+        if lengths.len() < self.total_shard_count() {
             return Err(Error::TooFewShards);
         }
-        if lengths.len() > self.total_shard_count {
+        if lengths.len() > self.total_shard_count() {
             return Err(Error::TooManyShards);
         }
         let mut shard_len = 0;
@@ -120,14 +120,14 @@ impl<F: Field> ReedSolomon<F> {
         execute: impl FnOnce(&mut [T], &ClassicReconstructPlan<F>) -> Result<(), Error>,
     ) -> Result<(), Error> {
         if let ReconstructionGoal::Required(required) = goal
-            && required.len() != self.data_shard_count
-            && required.len() != self.total_shard_count
+            && required.len() != self.data_shard_count()
+            && required.len() != self.total_shard_count()
         {
             return Err(Error::InvalidShardFlags);
         }
         let (_, number_present) = self
             .scan_classic_reconstruct_shape(shards.iter().map(ReconstructShard::len), |_, _| {})?;
-        if number_present == self.total_shard_count {
+        if number_present == self.total_shard_count() {
             #[cfg(feature = "std")]
             self.runtime_profile_metrics.record_reconstruct(
                 matches!(goal, ReconstructionGoal::Data),
@@ -156,7 +156,7 @@ impl<F: Field> ReedSolomon<F> {
             self.scan_classic_reconstruct_shape(lengths, |index, present| {
                 if present {
                     if !shape.invalid_indices.is_empty()
-                        && shape.valid_indices.len() < self.data_shard_count
+                        && shape.valid_indices.len() < self.data_shard_count()
                     {
                         shape.valid_indices.push(index);
                     }
@@ -167,7 +167,7 @@ impl<F: Field> ReedSolomon<F> {
                     if shape.invalid_indices.is_empty() {
                         shape
                             .valid_indices
-                            .extend(0..index.min(self.data_shard_count));
+                            .extend(0..index.min(self.data_shard_count()));
                     }
                     shape.invalid_indices.push(index);
                 }
@@ -206,25 +206,25 @@ impl<F: Field> ReedSolomon<F> {
         shape: ClassicReconstructShape,
         goal: ReconstructionGoal<'_>,
     ) -> Result<ClassicReconstructPlan<F>, Error> {
-        if shape.number_present < self.data_shard_count {
+        if shape.number_present < self.data_shard_count() {
             return Err(Error::TooFewShardsPresent);
         }
         if let ReconstructionGoal::Required(required) = goal
-            && required.len() != self.data_shard_count
-            && required.len() != self.total_shard_count
+            && required.len() != self.data_shard_count()
+            && required.len() != self.total_shard_count()
         {
             return Err(Error::InvalidShardFlags);
         }
         let selected = |index: usize| match goal {
             ReconstructionGoal::All => true,
-            ReconstructionGoal::Data => index < self.data_shard_count,
+            ReconstructionGoal::Data => index < self.data_shard_count(),
             ReconstructionGoal::Required(required) => required.get(index).copied().unwrap_or(false),
         };
         // Missing indices are ordered by shard index, so data and parity are
         // adjacent slices of one list rather than separately stored copies.
         let (missing_data, missing_parity) = shape
             .invalid_indices
-            .split_at(shape.missing_data_count(self.data_shard_count));
+            .split_at(shape.missing_data_count(self.data_shard_count()));
         let data_targets: SmallVec<[usize; 32]> = missing_data
             .iter()
             .copied()
@@ -253,8 +253,8 @@ impl<F: Field> ReedSolomon<F> {
                 .as_ref()
                 .expect("missing data needs an inverse");
             for &index in &parity_targets {
-                let parity = self.matrix.get_row(index);
-                let row = (0..self.data_shard_count)
+                let parity = self.encoding_format().matrix().get_row(index);
+                let row = (0..self.data_shard_count())
                     .map(|column| {
                         parity.iter().copied().enumerate().fold(
                             F::zero(),
