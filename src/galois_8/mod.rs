@@ -35,6 +35,18 @@ impl crate::Field for Field {
     const ORDER: usize = 256;
     type Elem = u8;
 
+    fn stable_format() -> Option<(&'static str, usize)> {
+        Some(("rustfs.gf8.poly-11d.u8.v1", 1))
+    }
+
+    fn write_format_element(element: u8, output: &mut [u8]) -> Option<usize> {
+        if output.len() != 1 {
+            return None;
+        }
+        output[0] = element;
+        Some(1)
+    }
+
     #[inline]
     fn as_gf8_slice(slice: &[u8]) -> Option<&[u8]> {
         Some(slice)

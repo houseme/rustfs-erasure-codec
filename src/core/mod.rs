@@ -4,6 +4,7 @@ extern crate alloc;
 pub(crate) mod cache_detect;
 mod codec;
 mod encode;
+mod format;
 mod leopard;
 pub(crate) mod leopard_gf16;
 pub(crate) mod leopard_gf8;
@@ -31,6 +32,7 @@ use spin::Mutex;
 use crate::Field;
 use crate::matrix::Matrix;
 
+pub use format::{ENCODING_FORMAT_VERSION, EncodingFormat};
 pub use leopard::{LEOPARD_SHARD_MULTIPLE, leopard_aligned_shard_len};
 #[cfg(feature = "std")]
 pub use leopard_gf8::LeopardGf8ProfileStats;
@@ -59,15 +61,31 @@ pub(crate) const VERIFY_INLINE_SCRATCH_ELEMS: usize = 4 * 1024;
 #[cfg(feature = "std")]
 pub(crate) const PARALLEL_MIN_SHARD_BYTES: usize = 256 * 1024;
 
+// Construction-only options live in EncodingFormat or are consumed during
+// setup. Keep only the settings consulted by execution and its caches here.
+#[derive(Debug, Clone, Copy)]
+struct ExecutionOptions {
+    fast_one_parity: bool,
+    inversion_cache: bool,
+    inversion_cache_capacity: usize,
+    max_parallel_jobs: usize,
+}
+
+impl From<CodecOptions> for ExecutionOptions {
+    fn from(options: CodecOptions) -> Self {
+        Self {
+            fast_one_parity: options.fast_one_parity,
+            inversion_cache: options.inversion_cache,
+            inversion_cache_capacity: options.inversion_cache_capacity,
+            max_parallel_jobs: options.max_parallel_jobs,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct ReedSolomon<F: Field> {
-    data_shard_count: usize,
-    parity_shard_count: usize,
-    total_shard_count: usize,
-    codec_family: CodecFamily,
-    // Classic uses an immutable shared matrix; FFT families keep an empty sentinel.
-    matrix: Arc<Matrix<F>>,
-    options: CodecOptions,
+    format: EncodingFormat<F>,
+    options: ExecutionOptions,
     #[cfg(feature = "std")]
     pub(crate) policy_cache: RuntimeParallelPolicyCache,
     data_decode_matrix_cache: Mutex<LruCache<Vec<usize>, Arc<Matrix<F>>>>,
@@ -80,11 +98,7 @@ pub struct ReedSolomon<F: Field> {
 impl<F: Field> Clone for ReedSolomon<F> {
     fn clone(&self) -> ReedSolomon<F> {
         Self {
-            data_shard_count: self.data_shard_count,
-            parity_shard_count: self.parity_shard_count,
-            total_shard_count: self.total_shard_count,
-            codec_family: self.codec_family,
-            matrix: Arc::clone(&self.matrix),
+            format: self.format.clone(),
             options: self.options,
             #[cfg(feature = "std")]
             policy_cache: self.policy_cache,
@@ -101,30 +115,27 @@ impl<F: Field> Clone for ReedSolomon<F> {
 
 impl<F: Field> PartialEq for ReedSolomon<F> {
     fn eq(&self, rhs: &ReedSolomon<F>) -> bool {
-        self.data_shard_count == rhs.data_shard_count
-            && self.parity_shard_count == rhs.parity_shard_count
-            && self.codec_family == rhs.codec_family
-            && (Arc::ptr_eq(&self.matrix, &rhs.matrix)
-                || (self.matrix.row_count() == rhs.matrix.row_count()
-                    && self.matrix.col_count() == rhs.matrix.col_count()
-                    && (0..self.matrix.row_count())
-                        .all(|row| self.matrix.get_row(row) == rhs.matrix.get_row(row))))
+        self.format == rhs.format
     }
 }
 
 impl<F: Field> ReedSolomon<F> {
-    /// Shared immutable encoding matrix, used to validate reusable workspaces.
-    #[cfg(feature = "std")]
-    pub(crate) fn matrix_identity(&self) -> &Arc<Matrix<F>> {
-        &self.matrix
+    /// Borrow the canonical effective encoding format.
+    ///
+    /// Cloning this value shares the immutable matrix. Its optional persistent
+    /// identifier is generated only when explicitly requested; it is not stored
+    /// in shard payloads or constructed on encode/reconstruct hot paths.
+    #[inline]
+    pub fn encoding_format(&self) -> &EncodingFormat<F> {
+        &self.format
     }
 
     pub(crate) fn is_leopard_gf8_family(&self) -> bool {
-        self.codec_family == CodecFamily::LeopardGF8
+        self.format.codec_family() == CodecFamily::LeopardGF8
     }
 
     pub(crate) fn is_leopard_gf16_family(&self) -> bool {
-        self.codec_family == CodecFamily::LeopardGF16
+        self.format.codec_family() == CodecFamily::LeopardGF16
     }
 
     /// True for any Leopard codec family (GF8 or GF16). Both decode through the

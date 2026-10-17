@@ -206,6 +206,18 @@ For SIMD-sensitive `galois_8` workloads, aligned shard helpers are available:
 - `rustfs_erasure_codec::galois_8::alloc_aligned_shards(...)`
 - `galois_8::ReedSolomon::alloc_aligned(...)`
 
+## Encoding Format Identity
+
+`rs.encoding_format()` exposes the resolved family, shard counts and effective
+matrix used by codec equality and reconstruction workspaces. Call
+`rs.encoding_format().stable_id_bytes()` to generate a versioned complete
+identifier for separate metadata. Compare that identifier before reusing stored
+shards; it is not inserted into shard payloads and cannot recreate a codec.
+Built-in GF8 and tower GF16 define portable identities. Custom fields return
+`None` unless they opt into the stable field contract. Cache, backend and thread
+settings do not affect encoding identity. Serialization is explicit and stays
+outside encode/reconstruct hot paths.
+
 ## Streaming
 
 The streaming API lives under `rustfs_erasure_codec::stream` and is available

@@ -181,21 +181,21 @@ macro_rules! check_slice_index {
     (
         all => $codec:expr, $index:expr
     ) => {{
-        if $index >= $codec.total_shard_count {
+        if $index >= $codec.total_shard_count() {
             return Err(Error::InvalidIndex);
         }
     }};
     (
         data => $codec:expr, $index:expr
     ) => {{
-        if $index >= $codec.data_shard_count {
+        if $index >= $codec.data_shard_count() {
             return Err(Error::InvalidIndex);
         }
     }};
     (
         parity => $codec:expr, $index:expr
     ) => {{
-        if $index >= $codec.parity_shard_count {
+        if $index >= $codec.parity_shard_count() {
             return Err(Error::InvalidIndex);
         }
     }};
@@ -205,40 +205,40 @@ macro_rules! check_piece_count {
     (
         all => $codec:expr, $pieces:expr
     ) => {{
-        if $pieces.as_ref().len() < $codec.total_shard_count {
+        if $pieces.as_ref().len() < $codec.total_shard_count() {
             return Err(Error::TooFewShards);
         }
-        if $pieces.as_ref().len() > $codec.total_shard_count {
+        if $pieces.as_ref().len() > $codec.total_shard_count() {
             return Err(Error::TooManyShards);
         }
     }};
     (
         data => $codec:expr, $pieces:expr
     ) => {{
-        if $pieces.as_ref().len() < $codec.data_shard_count {
+        if $pieces.as_ref().len() < $codec.data_shard_count() {
             return Err(Error::TooFewDataShards);
         }
-        if $pieces.as_ref().len() > $codec.data_shard_count {
+        if $pieces.as_ref().len() > $codec.data_shard_count() {
             return Err(Error::TooManyDataShards);
         }
     }};
     (
         parity => $codec:expr, $pieces:expr
     ) => {{
-        if $pieces.as_ref().len() < $codec.parity_shard_count {
+        if $pieces.as_ref().len() < $codec.parity_shard_count() {
             return Err(Error::TooFewParityShards);
         }
-        if $pieces.as_ref().len() > $codec.parity_shard_count {
+        if $pieces.as_ref().len() > $codec.parity_shard_count() {
             return Err(Error::TooManyParityShards);
         }
     }};
     (
         parity_buf => $codec:expr, $pieces:expr
     ) => {{
-        if $pieces.as_ref().len() < $codec.parity_shard_count {
+        if $pieces.as_ref().len() < $codec.parity_shard_count() {
             return Err(Error::TooFewBufferShards);
         }
-        if $pieces.as_ref().len() > $codec.parity_shard_count {
+        if $pieces.as_ref().len() > $codec.parity_shard_count() {
             return Err(Error::TooManyBufferShards);
         }
     }};

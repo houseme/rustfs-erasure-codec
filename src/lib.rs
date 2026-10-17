@@ -50,6 +50,7 @@ pub use crate::core::CodecFamily;
 pub use crate::core::CodecOptions;
 #[cfg(feature = "std")]
 pub use crate::core::LeopardGf8ProfileStats;
+pub use crate::core::{ENCODING_FORMAT_VERSION, EncodingFormat};
 
 pub use crate::core::LeopardMode;
 pub use crate::core::MatrixMode;
@@ -98,6 +99,33 @@ pub trait Field: Sized {
 
     /// The representational type of the field.
     type Elem: Default + Clone + Copy + PartialEq + ::core::fmt::Debug;
+
+    /// Stable algebra and element-layout identifier, plus its fixed byte width.
+    ///
+    /// The default opts out of cross-process format identity. An implementation
+    /// that opts in must use a globally unambiguous, versioned UTF-8 name for its
+    /// complete field arithmetic and element encoding. The same name and width
+    /// must mean the same format across releases, processes, and architectures.
+    /// Distinct element values must have distinct encodings. Equivalent wrapper
+    /// fields may intentionally share an identifier only if their contracts are
+    /// identical. Native in-memory size and Rust type names are not stable IDs.
+    ///
+    /// Also implement [`Self::write_format_element`]. This hook is queried only
+    /// by explicit format serialization, never by codec construction or execution.
+    fn stable_format() -> Option<(&'static str, usize)> {
+        None
+    }
+
+    /// Write one element's stable encoding into `output`, returning bytes written.
+    ///
+    /// `output` has the width declared by [`Self::stable_format`]. Return `None`
+    /// if the element or buffer cannot be encoded. On success write every byte
+    /// and return exactly that width. The caller checks the returned width and
+    /// declines to produce a persistent identifier when the hooks disagree.
+    /// The encoding must be deterministic and independent of native endianness.
+    fn write_format_element(_element: Self::Elem, _output: &mut [u8]) -> Option<usize> {
+        None
+    }
 
     /// Expose elements as bytes for the built-in GF(2^8) kernels.
     ///

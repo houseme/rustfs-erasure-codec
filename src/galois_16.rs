@@ -19,6 +19,18 @@ impl crate::Field for Field {
 
     type Elem = [u8; 2];
 
+    fn stable_format() -> Option<(&'static str, usize)> {
+        Some(("rustfs.gf16.tower-11d-x2-02x-80.ax-ac.v1", 2))
+    }
+
+    fn write_format_element(element: [u8; 2], output: &mut [u8]) -> Option<usize> {
+        if output.len() != 2 {
+            return None;
+        }
+        output.copy_from_slice(&element);
+        Some(2)
+    }
+
     fn add(a: [u8; 2], b: [u8; 2]) -> [u8; 2] {
         (Element(a) + Element(b)).0
     }

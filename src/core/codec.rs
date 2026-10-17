@@ -17,7 +17,7 @@ use crate::matrix::Matrix;
 
 use super::{
     CodecFamily, CodecOptions, DATA_DECODE_MATRIX_CACHE_MAX_CAPACITY,
-    DATA_DECODE_MATRIX_CACHE_MIN_CAPACITY, MatrixMode, ReedSolomon,
+    DATA_DECODE_MATRIX_CACHE_MIN_CAPACITY, EncodingFormat, MatrixMode, ReedSolomon,
 };
 #[cfg(feature = "std")]
 use super::{
@@ -57,9 +57,9 @@ impl<F: Field> ReedSolomon<F> {
     }
 
     pub(crate) fn get_parity_rows(&self) -> SmallVec<[&[F::Elem]; 32]> {
-        let mut parity_rows = SmallVec::with_capacity(self.parity_shard_count);
-        let matrix = &self.matrix;
-        for i in self.data_shard_count..self.total_shard_count {
+        let mut parity_rows = SmallVec::with_capacity(self.parity_shard_count());
+        let matrix = self.encoding_format().matrix();
+        for i in self.data_shard_count()..self.total_shard_count() {
             parity_rows.push(matrix.get_row(i));
         }
 
@@ -318,12 +318,13 @@ impl<F: Field> ReedSolomon<F> {
         let policy_cache = Self::resolve_policy_cache_with_options(options);
 
         Ok(ReedSolomon {
-            data_shard_count: data_shards,
-            parity_shard_count: parity_shards,
-            total_shard_count: total_shards,
-            codec_family: options.codec_family,
-            matrix: Arc::new(matrix),
-            options,
+            format: EncodingFormat::new(
+                data_shards,
+                parity_shards,
+                options.codec_family,
+                Arc::new(matrix),
+            ),
+            options: options.into(),
             #[cfg(feature = "std")]
             policy_cache,
             data_decode_matrix_cache: Mutex::new(LruCache::new(options.inversion_cache_capacity)),
@@ -335,23 +336,27 @@ impl<F: Field> ReedSolomon<F> {
     }
 
     /// Returns the number of data shards.
+    #[inline]
     pub fn data_shard_count(&self) -> usize {
-        self.data_shard_count
+        self.format.data_shard_count()
     }
 
     /// Returns the number of parity shards.
+    #[inline]
     pub fn parity_shard_count(&self) -> usize {
-        self.parity_shard_count
+        self.format.parity_shard_count()
     }
 
     /// Returns the total number of shards (data + parity).
+    #[inline]
     pub fn total_shard_count(&self) -> usize {
-        self.total_shard_count
+        self.format.total_shard_count()
     }
 
     /// Returns the codec family (Classic, LeopardGF8, or LeopardGF16).
+    #[inline]
     pub fn codec_family(&self) -> CodecFamily {
-        self.codec_family
+        self.format.codec_family()
     }
 
     /// Returns the logical Leopard GF8 setup shape `(total_shards, data_shards)`,
@@ -361,7 +366,7 @@ impl<F: Field> ReedSolomon<F> {
     /// do not construct a Classic encoding matrix.
     pub fn leopard_setup_matrix_shape(&self) -> Option<(usize, usize)> {
         self.is_leopard_gf8_family()
-            .then_some((self.total_shard_count, self.data_shard_count))
+            .then_some((self.total_shard_count(), self.data_shard_count()))
     }
 
     /// Returns the inversion cache capacity.
@@ -444,7 +449,7 @@ impl<F: Field> ReedSolomon<F> {
     ///
     /// The last shard is zero-padded if `data.len()` is not evenly divisible.
     pub fn split(&self, data: &[F::Elem]) -> Result<Vec<Vec<F::Elem>>, Error> {
-        let data_shards = self.data_shard_count;
+        let data_shards = self.data_shard_count();
         let shard_len = if data.is_empty() {
             0
         } else {
@@ -552,12 +557,13 @@ impl<F: Field> ReedSolomon<F> {
         let policy_cache = Self::resolve_policy_cache_with_options(options);
 
         Ok(ReedSolomon {
-            data_shard_count: data_shards,
-            parity_shard_count: parity_shards,
-            total_shard_count: total_shards,
-            codec_family: options.codec_family,
-            matrix: Arc::new(matrix),
-            options,
+            format: EncodingFormat::new(
+                data_shards,
+                parity_shards,
+                options.codec_family,
+                Arc::new(matrix),
+            ),
+            options: options.into(),
             #[cfg(feature = "std")]
             policy_cache,
             data_decode_matrix_cache: Mutex::new(LruCache::new(options.inversion_cache_capacity)),

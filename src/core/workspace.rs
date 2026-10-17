@@ -20,8 +20,8 @@ pub struct VerifyWorkspace<F: Field> {
 impl<F: Field> VerifyWorkspace<F> {
     /// Create a new workspace with parity buffers sized for the given codec and shard length.
     pub fn new(codec: &ReedSolomon<F>, shard_len: usize) -> Self {
-        let mut parity = Vec::with_capacity(codec.parity_shard_count);
-        for _ in 0..codec.parity_shard_count {
+        let mut parity = Vec::with_capacity(codec.parity_shard_count());
+        for _ in 0..codec.parity_shard_count() {
             parity.push(vec![F::zero(); shard_len]);
         }
         Self { parity }
@@ -39,14 +39,14 @@ impl<F: Field> VerifyWorkspace<F> {
 
     /// Resize parity buffers to match the given codec and shard length.
     pub fn resize(&mut self, codec: &ReedSolomon<F>, shard_len: usize) {
-        if self.parity.len() < codec.parity_shard_count {
+        if self.parity.len() < codec.parity_shard_count() {
             self.parity
-                .reserve(codec.parity_shard_count - self.parity.len());
-            while self.parity.len() < codec.parity_shard_count {
+                .reserve(codec.parity_shard_count() - self.parity.len());
+            while self.parity.len() < codec.parity_shard_count() {
                 self.parity.push(Vec::new());
             }
-        } else if self.parity.len() > codec.parity_shard_count {
-            self.parity.truncate(codec.parity_shard_count);
+        } else if self.parity.len() > codec.parity_shard_count() {
+            self.parity.truncate(codec.parity_shard_count());
         }
 
         for shard in &mut self.parity {
@@ -55,7 +55,7 @@ impl<F: Field> VerifyWorkspace<F> {
     }
 
     pub(crate) fn prepare(&mut self, codec: &ReedSolomon<F>, shard_len: usize) {
-        if self.parity.len() != codec.parity_shard_count
+        if self.parity.len() != codec.parity_shard_count()
             || self.shard_len() != Some(shard_len)
             || self.parity.iter().any(|shard| shard.len() != shard_len)
         {

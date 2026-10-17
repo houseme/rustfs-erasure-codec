@@ -58,8 +58,8 @@ impl<F: Field> ReedSolomon<F> {
         T: AsRef<[F::Elem]>,
         U: AsRef<[F::Elem]> + AsMut<[F::Elem]>,
     {
-        let data = &slices[0..self.data_shard_count];
-        let to_check = &slices[self.data_shard_count..];
+        let data = &slices[0..self.data_shard_count()];
+        let to_check = &slices[self.data_shard_count()..];
         if self.is_leopard_gf8_family() {
             self.encode_leopard_gf8_sep(data, parity)?;
         } else {
@@ -77,7 +77,7 @@ impl<F: Field> ReedSolomon<F> {
     /// Verify Leopard parity shards by re-encoding and comparing.
     fn verify_leopard<T: AsRef<[F::Elem]>>(&self, slices: &[T]) -> Result<bool, Error> {
         let slice_len = slices[0].as_ref().len();
-        let mut parity_bufs: Vec<Vec<F::Elem>> = (0..self.parity_shard_count)
+        let mut parity_bufs: Vec<Vec<F::Elem>> = (0..self.parity_shard_count())
             .map(|_| vec![F::zero(); slice_len])
             .collect();
         self.verify_leopard_with_buffer(slices, &mut parity_bufs)
@@ -95,8 +95,8 @@ impl<F: Field> ReedSolomon<F> {
         }
 
         let slice_len = slices[0].as_ref().len();
-        let data = &slices[0..self.data_shard_count];
-        let to_check = &slices[self.data_shard_count..];
+        let data = &slices[0..self.data_shard_count()];
+        let to_check = &slices[self.data_shard_count()..];
 
         if self.fast_one_parity_enabled() {
             let mut buffer = vec![F::zero(); slice_len];
@@ -105,7 +105,7 @@ impl<F: Field> ReedSolomon<F> {
         }
 
         let parity_rows = self.get_parity_rows();
-        let scratch_len = self.parity_shard_count * slice_len;
+        let scratch_len = self.parity_shard_count() * slice_len;
         let mut scratch: SmallVec<[F::Elem; VERIFY_INLINE_SCRATCH_ELEMS]> =
             SmallVec::with_capacity(scratch_len);
         scratch.resize(scratch_len, F::zero());
@@ -151,8 +151,8 @@ impl<F: Field> ReedSolomon<F> {
             return self.verify_leopard_with_buffer(slices, buffer);
         }
 
-        let data = &slices[0..self.data_shard_count];
-        let to_check = &slices[self.data_shard_count..];
+        let data = &slices[0..self.data_shard_count()];
+        let to_check = &slices[self.data_shard_count()..];
 
         if self.fast_one_parity_enabled() {
             self.encode_fast_one_parity(data, buffer);
@@ -183,8 +183,8 @@ impl<F: Field> ReedSolomon<F> {
             return self.verify_leopard_with_buffer(slices, buffer);
         }
 
-        let data = &slices[0..self.data_shard_count];
-        let to_check = &slices[self.data_shard_count..];
+        let data = &slices[0..self.data_shard_count()];
+        let to_check = &slices[self.data_shard_count()..];
 
         if self.fast_one_parity_enabled() {
             self.encode_fast_one_parity(data, buffer);
@@ -214,7 +214,7 @@ impl<F: Field> ReedSolomon<F> {
         }
 
         let slice_len = slices[0].as_ref().len();
-        let scratch_len = self.parity_shard_count * slice_len;
+        let scratch_len = self.parity_shard_count() * slice_len;
         let mut scratch: SmallVec<[F::Elem; VERIFY_INLINE_SCRATCH_ELEMS]> =
             SmallVec::with_capacity(scratch_len);
         scratch.resize(scratch_len, F::zero());
