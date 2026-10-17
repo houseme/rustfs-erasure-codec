@@ -25,6 +25,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Changed
+- Limit retained Leopard encoder work plus scratch to 4 MiB per family per thread, checking actual allocation capacity. Oversized calls keep resources local and preserve small warm caches; repeated oversized encodes may allocate again. Remove unused native selector stubs without expanding dispatch.
 - Prepare checked GF8 shard views and select a generated ISA kernel once per encode operation; share serial/parallel setup and never fall back after a kernel writes parity.
 - Use the resolved codec family as the sole algorithm state and one Classic recovery plan across generic, optimized, workspace, and stream entry points.
 - Add opt-in safe GF8 byte views to `Field`, replacing element-size-based reinterpretation in specialized kernels while preserving generic field arithmetic and the default encoded format.

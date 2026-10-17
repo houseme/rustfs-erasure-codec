@@ -13,6 +13,16 @@ use super::{CodecFamily, LeopardMode};
 pub(crate) const LEOPARD_GF8_MAX_SHARDS: usize = 256;
 pub(crate) const LEOPARD_GF16_MAX_SHARDS: usize = 65536;
 
+/// Per-thread heap budget for one Leopard encoder's work buffer and scratch.
+/// Immutable FFT plan caches are accounted for separately.
+#[cfg(feature = "std")]
+pub(crate) const LEOPARD_MAX_CACHED_WORK_BYTES: usize = 4 * 1024 * 1024;
+
+#[cfg(feature = "std")]
+pub(crate) fn leopard_work_cache_fits(work_bytes: usize, scratch_bytes: usize) -> bool {
+    work_bytes.saturating_add(scratch_bytes) <= LEOPARD_MAX_CACHED_WORK_BYTES
+}
+
 /// Parity ceiling at or below which [`LeopardMode::PreferLeopard`] resolves to
 /// GF(2^8) Leopard. Above it a GF(2^8) Leopard codec can be constructed but not
 /// encoded, so resolution falls back to GF(2^16).
@@ -421,5 +431,17 @@ mod auto_activation_tests {
             max_total_shards_for_family::<galois_8::Field>(CodecFamily::LeopardGF16),
             65536
         );
+    }
+}
+
+#[cfg(all(test, feature = "std"))]
+mod leopard_work_cache_budget_tests {
+    use super::{LEOPARD_MAX_CACHED_WORK_BYTES, leopard_work_cache_fits};
+
+    #[test]
+    fn workspace_budget_includes_scratch_and_saturates_on_overflow() {
+        assert!(leopard_work_cache_fits(LEOPARD_MAX_CACHED_WORK_BYTES, 0));
+        assert!(!leopard_work_cache_fits(LEOPARD_MAX_CACHED_WORK_BYTES, 1));
+        assert!(!leopard_work_cache_fits(usize::MAX, usize::MAX));
     }
 }

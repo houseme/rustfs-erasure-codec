@@ -3,7 +3,10 @@ extern crate alloc;
 use alloc::vec;
 use alloc::vec::Vec;
 
+#[cfg(feature = "std")]
+use crate::core::leopard::leopard_work_cache_fits;
 use crate::errors::Error;
+
 #[cfg(feature = "std")]
 use std::sync::atomic::Ordering;
 
@@ -175,6 +178,19 @@ thread_local! {
         const { std::cell::RefCell::new(None) };
 }
 
+// Reserve no memory for caching: account for the work allocation and the
+// scratch Vec's actual capacity after computation, then keep or drop both.
+#[cfg(feature = "std")]
+fn cache_encode_buffers(work: FlatWork, scratch: Vec<u8>) {
+    let scratch_bytes = scratch
+        .capacity()
+        .saturating_mul(core::mem::size_of::<u8>());
+    if leopard_work_cache_fits(work.allocated_bytes(), scratch_bytes) {
+        FLAT_WORK_CACHE.with(|cache| *cache.borrow_mut() = Some(work));
+        SCRATCH_CACHE.with(|cache| *cache.borrow_mut() = Some(scratch));
+    }
+}
+
 pub(super) fn encode_skeleton<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
     data_shards: usize,
     parity_shards: usize,
@@ -209,34 +225,50 @@ pub(super) fn encode_with_tables<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
         .map(|shard| shard.as_ref().len())
         .ok_or(Error::TooFewShards)?;
     let driver = build_leopard_gf8_encode_driver(data_shards, parity_shards, shard_size)?;
-    #[cfg(feature = "std")]
-    let plans = ENCODE_PLAN_CACHE.with(|cache| {
-        cache
-            .take()
-            .filter(|plan| plan.data_shards == data_shards && plan.parity_shards == parity_shards)
-            .unwrap_or_else(|| EncodePlans::new(data_shards, parity_shards, &driver, tables))
-    });
-    #[cfg(not(feature = "std"))]
-    let plans = EncodePlans::new(data_shards, parity_shards, &driver, tables);
-
     let chunk_cap = core::cmp::min(driver.shard_size, driver.chunk_size);
     let needed_lanes = driver.work_slices;
     let needed_lane_len = chunk_cap;
 
+    // An oversized call uses only local resources, preserving the normal warm
+    // configuration (including its immutable plan) in this thread's caches.
+    #[cfg(feature = "std")]
+    let cacheable = leopard_work_cache_fits(
+        needed_lanes
+            .saturating_mul(needed_lane_len)
+            .saturating_mul(core::mem::size_of::<u8>()),
+        needed_lane_len.saturating_mul(core::mem::size_of::<u8>()),
+    );
+
+    #[cfg(feature = "std")]
+    let plans = if cacheable {
+        ENCODE_PLAN_CACHE.with(|cache| {
+            cache
+                .take()
+                .filter(|plan| {
+                    plan.data_shards == data_shards && plan.parity_shards == parity_shards
+                })
+                .unwrap_or_else(|| EncodePlans::new(data_shards, parity_shards, &driver, tables))
+        })
+    } else {
+        EncodePlans::new(data_shards, parity_shards, &driver, tables)
+    };
+    #[cfg(not(feature = "std"))]
+    let plans = EncodePlans::new(data_shards, parity_shards, &driver, tables);
+
     // Try to reuse cached FlatWork to avoid repeated large heap allocations.
     #[cfg(feature = "std")]
-    let mut flat_work = FLAT_WORK_CACHE.with(|cache| {
-        let mut cache = cache.borrow_mut();
-        if let Some(fw) = cache.take() {
-            if fw.can_reuse(needed_lanes, needed_lane_len) {
-                return fw;
-            }
-            // Size mismatch — drop old, allocate new.
-            drop(fw);
-        }
-        // SAFETY: encode path writes all lanes before reading.
-        unsafe { FlatWork::new_uninit(needed_lanes, needed_lane_len) }
-    });
+    let cached_work = if cacheable {
+        FLAT_WORK_CACHE.with(|cache| cache.take())
+    } else {
+        None
+    };
+    #[cfg(feature = "std")]
+    let mut flat_work = cached_work
+        .filter(|work| work.can_reuse(needed_lanes, needed_lane_len))
+        .unwrap_or_else(|| {
+            // SAFETY: the encode path initializes every active lane before reading.
+            unsafe { FlatWork::new_uninit(needed_lanes, needed_lane_len) }
+        });
     #[cfg(not(feature = "std"))]
     let mut flat_work = FlatWork::new(needed_lanes, needed_lane_len);
     let mut offset = 0usize;
@@ -245,7 +277,11 @@ pub(super) fn encode_with_tables<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
     // Reused across all chunks and encode calls (via thread-local on std).
     // The scratch avoids per-butterfly `to_vec()` heap allocations.
     #[cfg(feature = "std")]
-    let mut scratch = SCRATCH_CACHE.with(|cache| cache.take().unwrap_or_default());
+    let mut scratch = if cacheable {
+        SCRATCH_CACHE.with(|cache| cache.take().unwrap_or_default())
+    } else {
+        Vec::new()
+    };
     #[cfg(not(feature = "std"))]
     let mut scratch: Vec<u8> = Vec::new();
 
@@ -341,20 +377,13 @@ pub(super) fn encode_with_tables<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
         offset = end;
     }
 
-    // Return scratch buffer to thread-local cache for reuse.
     #[cfg(feature = "std")]
-    SCRATCH_CACHE.with(|cache| {
-        *cache.borrow_mut() = Some(scratch);
-    });
-
-    // Return FlatWork to cache for reuse by next encode call.
-    #[cfg(feature = "std")]
-    FLAT_WORK_CACHE.with(|cache| {
-        *cache.borrow_mut() = Some(flat_work);
-    });
+    if cacheable {
+        cache_encode_buffers(flat_work, scratch);
+    }
 
     #[cfg(feature = "std")]
-    if plans.retained_bytes() <= MAX_CACHED_PLAN_BYTES {
+    if cacheable && plans.retained_bytes() <= MAX_CACHED_PLAN_BYTES {
         ENCODE_PLAN_CACHE.with(|cache| {
             *cache.borrow_mut() = Some(plans);
         });
@@ -884,4 +913,78 @@ pub(super) fn fft_dit8<W: AsRef<[u8]> + AsMut<[u8]>>(
     let lane_len = work.first().map_or(0, |w| w.as_ref().len());
     let mut scratch = vec![0u8; lane_len];
     fft_dit8_with_plan(work, &plan, tables, 0, &mut scratch);
+}
+
+#[cfg(all(test, feature = "std"))]
+mod encode_cache_budget_tests {
+    use super::*;
+    use crate::core::leopard::LEOPARD_MAX_CACHED_WORK_BYTES;
+
+    fn clear_caches() {
+        FLAT_WORK_CACHE.with(|cache| *cache.borrow_mut() = None);
+        SCRATCH_CACHE.with(|cache| *cache.borrow_mut() = None);
+        ENCODE_PLAN_CACHE.with(|cache| *cache.borrow_mut() = None);
+    }
+
+    fn small_cache_pointers() -> (*const u8, *const u8, *const u8) {
+        let work = FLAT_WORK_CACHE.with(|cache| {
+            let cache = cache.borrow();
+            let work = cache.as_ref().unwrap();
+            assert!(work.can_reuse(8, 64));
+            work.lane(0).as_ptr().cast::<u8>()
+        });
+        let scratch =
+            SCRATCH_CACHE.with(|cache| cache.borrow().as_ref().unwrap().as_ptr().cast::<u8>());
+        let plan = ENCODE_PLAN_CACHE.with(|cache| {
+            let cache = cache.borrow();
+            let plan = cache.as_ref().unwrap();
+            assert_eq!((plan.data_shards, plan.parity_shards), (10, 4));
+            plan.first_ifft_plan.initial_blocks.as_ptr().cast::<u8>()
+        });
+        (work, scratch, plan)
+    }
+
+    #[test]
+    fn oversized_encode_preserves_small_warm_buffers_and_plan() {
+        clear_caches();
+        let data: Vec<_> = (0..10).map(|index| vec![index as u8; 64]).collect();
+        let mut parity = vec![vec![0; 64]; 4];
+        encode_with_tables(10, 4, &data, &mut parity).unwrap();
+        let expected = parity.clone();
+        let warmed = small_cache_pointers();
+        encode_with_tables(10, 4, &data, &mut parity).unwrap();
+        assert_eq!(small_cache_pointers(), warmed);
+
+        // The work allocation alone equals the budget. Scratch makes the
+        // request oversized, so none of its resources may replace the cache.
+        let large_data = vec![vec![0x5a; 32768]; 64];
+        let mut large_parity = vec![vec![0; 32768]; 64];
+        let driver = encode_with_tables(64, 64, &large_data, &mut large_parity).unwrap();
+        let lane_len = (driver.shard_size / core::mem::size_of::<u8>()).min(driver.chunk_size);
+        let work_bytes = driver.work_slices * lane_len * core::mem::size_of::<u8>();
+        assert_eq!(work_bytes, LEOPARD_MAX_CACHED_WORK_BYTES);
+        assert!(!leopard_work_cache_fits(
+            work_bytes,
+            lane_len * core::mem::size_of::<u8>()
+        ));
+        assert_eq!(small_cache_pointers(), warmed);
+
+        parity.iter_mut().for_each(|shard| shard.fill(0xa5));
+        encode_with_tables(10, 4, &data, &mut parity).unwrap();
+        assert_eq!(parity, expected);
+        assert_eq!(small_cache_pointers(), warmed);
+    }
+
+    #[test]
+    fn cache_return_accounts_for_scratch_capacity_instead_of_length() {
+        clear_caches();
+        let work = FlatWork::new(1, 64);
+        let mut scratch =
+            Vec::<u8>::with_capacity(LEOPARD_MAX_CACHED_WORK_BYTES / core::mem::size_of::<u8>());
+        scratch.push(0);
+        assert_eq!(scratch.len(), 1);
+        cache_encode_buffers(work, scratch);
+        FLAT_WORK_CACHE.with(|cache| assert!(cache.borrow().is_none()));
+        SCRATCH_CACHE.with(|cache| assert!(cache.borrow().is_none()));
+    }
 }
