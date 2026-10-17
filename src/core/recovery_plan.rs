@@ -102,33 +102,36 @@ impl<F: Field> ClassicReconstructPlan<F> {
         !self.data_targets.is_empty() || !self.parity_targets.is_empty()
     }
 
-    pub(crate) fn data_rows(&self) -> SmallVec<[&[F::Elem]; 32]> {
-        self.data_targets
-            .iter()
-            .map(|&index| {
-                self.decode_matrix
-                    .as_ref()
-                    .expect("requested missing data requires an inverse")
-                    .get_row(index)
-            })
-            .collect()
+    pub(crate) fn data_rows(&self) -> impl ExactSizeIterator<Item = &[F::Elem]> {
+        self.data_targets.iter().map(|&index| {
+            self.decode_matrix
+                .as_ref()
+                .expect("requested missing data requires an inverse")
+                .get_row(index)
+        })
     }
 
     pub(crate) fn parity_rows<'a>(
         &'a self,
         codec: &'a ReedSolomon<F>,
-    ) -> SmallVec<[&'a [F::Elem]; 32]> {
-        if self.direct_parity {
-            self.parity_decode_rows
-                .iter()
-                .map(|row| row.as_slice())
-                .collect()
+    ) -> impl Iterator<Item = &'a [F::Elem]> {
+        // Exactly one slice is active. Chaining their exact size hints also
+        // keeps bulk callers' existing SmallVec reservation behavior.
+        let direct = if self.direct_parity {
+            self.parity_decode_rows.as_slice()
         } else {
-            self.parity_targets
+            &[]
+        };
+        let encoding = if self.direct_parity {
+            &[]
+        } else {
+            self.parity_targets.as_slice()
+        };
+        direct.iter().map(|row| row.as_slice()).chain(
+            encoding
                 .iter()
-                .map(|&index| codec.encoding_format().matrix().get_row(index))
-                .collect()
-        }
+                .map(move |&index| codec.encoding_format().matrix().get_row(index)),
+        )
     }
 }
 

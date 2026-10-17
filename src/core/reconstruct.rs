@@ -158,7 +158,6 @@ impl<F: Field> ReedSolomon<F> {
             return Ok(());
         }
         let data_rows = plan.data_rows();
-        let parity_rows = plan.parity_rows(self);
         let mut inputs: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
         let mut data_destinations: SmallVec<[&mut T; 32]> = SmallVec::new();
         let mut parity_destinations: SmallVec<[&mut T; 32]> = SmallVec::new();
@@ -189,7 +188,7 @@ impl<F: Field> ReedSolomon<F> {
             #[cfg(feature = "std")]
             self.runtime_profile_metrics
                 .record_reconstruct_data_stage(plan.shape.shard_len, data_destinations.len());
-            for (destination, row) in data_destinations.into_iter().zip(data_rows) {
+            for (destination, row) in data_destinations.iter_mut().zip(data_rows) {
                 let output = match destination.get_or_initialize(plan.shape.shard_len) {
                     Ok(output) | Err(Ok(output)) => output,
                     Err(Err(error)) => return Err(error),
@@ -224,7 +223,7 @@ impl<F: Field> ReedSolomon<F> {
             }
             all_data.as_slice()
         };
-        for (destination, row) in parity_destinations.into_iter().zip(parity_rows) {
+        for (destination, row) in parity_destinations.iter_mut().zip(plan.parity_rows(self)) {
             let output = match destination.get_or_initialize(plan.shape.shard_len) {
                 Ok(output) | Err(Ok(output)) => output,
                 Err(Err(error)) => return Err(error),
@@ -254,8 +253,8 @@ impl<F: Field> ReedSolomon<F> {
         if !plan.has_outputs() {
             return Ok(());
         }
-        let data_rows = plan.data_rows();
-        let parity_rows = plan.parity_rows(self);
+        let data_rows: SmallVec<[&[F::Elem]; 32]> = plan.data_rows().collect();
+        let parity_rows: SmallVec<[&[F::Elem]; 32]> = plan.parity_rows(self).collect();
         let mut inputs: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
         let mut data_outputs: SmallVec<[&mut [F::Elem]; 32]> = SmallVec::new();
         let mut parity_outputs: SmallVec<[&mut [F::Elem]; 32]> = SmallVec::new();

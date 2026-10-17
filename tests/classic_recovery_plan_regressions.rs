@@ -301,7 +301,7 @@ fn parity_only_and_empty_requests_never_request_an_inverse() {
 }
 
 #[cfg(feature = "std")]
-mod all_present_allocations {
+mod allocation_regressions {
     use super::*;
     use std::alloc::{GlobalAlloc, Layout, System};
     use std::cell::Cell;
@@ -351,12 +351,55 @@ mod all_present_allocations {
     #[global_allocator]
     static ALLOCATOR: CountingAllocator = CountingAllocator;
 
-    fn assert_no_allocations(operation: impl FnOnce()) {
+    fn allocation_calls(operation: impl FnOnce()) -> usize {
         CALLS.with(|calls| calls.set(0));
         TRACKING.with(|tracking| tracking.set(true));
         operation();
         TRACKING.with(|tracking| tracking.set(false));
-        CALLS.with(|calls| assert_eq!(calls.get(), 0));
+        CALLS.with(Cell::get)
+    }
+
+    fn assert_no_allocations(operation: impl FnOnce()) {
+        assert_eq!(allocation_calls(operation), 0);
+    }
+
+    #[test]
+    fn wide_parity_recovery_does_not_allocate_an_extra_row_view_array() {
+        let codec = ReedSolomon::with_options(
+            4,
+            40,
+            CodecOptions::builder()
+                .codec_family(rustfs_erasure_codec::CodecFamily::Classic)
+                .build(),
+        )
+        .unwrap();
+        let original = encoded(&codec, 65);
+        let mut slots: Vec<_> = original
+            .iter()
+            .map(|shard| ShardSlot::new_present(shard.clone().unwrap()))
+            .collect();
+        for measured in [false, true] {
+            for slot in &mut slots[4..] {
+                slot.mark_missing();
+                slot.as_inner_mut().fill(0xa5);
+            }
+            let calls = if measured {
+                allocation_calls(|| codec.reconstruct(&mut slots).unwrap())
+            } else {
+                codec.reconstruct(&mut slots).unwrap();
+                0
+            };
+            // Wide index/destination metadata may spill. Borrowed coefficient
+            // rows must not add a fourth allocation for a temporary view array.
+            assert!(
+                calls <= 3,
+                "unexpected row-view allocation: {calls} requests"
+            );
+            for (slot, expected) in slots.iter().zip(&original) {
+                assert!(slot.is_present());
+                assert_eq!(slot.as_inner(), expected.as_ref().unwrap());
+            }
+        }
     }
 
     #[test]
