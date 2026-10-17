@@ -380,7 +380,7 @@ The gate requires every baseline case to remain in the current artifact, rejects
 empty/duplicate results and invalid metrics, and checks available target,
 backend, feature, instrumentation, and stream I/O metadata. For a deliberately
 smaller profile, pass `--allow-missing-cases`; `release-check.sh` forwards this
-only when `RSE_BENCHMARK_ALLOW_MISSING_CASES=1`. Omitted cases remain listed in
+only outside strict release mode when `RSE_BENCHMARK_ALLOW_MISSING_CASES=1`. Omitted cases remain listed in
 `missing_cases`, at least one comparable case is required, and explicit
 `--require-case` checks still apply to both artifacts. Legacy provenance fields
 absent from both sides are reported in `unchecked_provenance`; a field missing

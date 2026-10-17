@@ -11,6 +11,7 @@ All notable changes to this project are documented in this file.
 ## Unreleased
 
 ### Fixed
+- Keep tag release preflight in the strict release profile. Reject missing, unreadable or empty baseline files and partial comparisons before running Cargo, force required checks, and generate the full release smoke matrix while running golden tests normally. Validate tag/package/workspace/lock versions and replace unchecked dirty packaging with locked publish dry-runs; exercise release tooling in branch/PR CI.
 - Make the independent reconstruction hotspot gate compare every baseline scenario and reject empty, duplicate, dropped or malformed evidence, non-finite metrics/limits and conflicting workload/provenance fields. Reuse the main gate's number and provenance normalization.
 - Make the native recovery-policy test use deterministic disabled/small/large L2 estimates instead of assuming every host permits a 256 KiB chunk; verify both chunk sizes and job counts.
 - Make the Galois ABBA analyzer reject empty/incomplete campaigns, duplicate rows, revision/backend conflicts and either-side drift. Failed campaigns return nonzero and withhold all candidate attribution instead of emitting an empty PASS.

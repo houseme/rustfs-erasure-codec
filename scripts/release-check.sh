@@ -4,15 +4,20 @@ set -euo pipefail
 
 VALIDATION_PROFILE="${VALIDATION_PROFILE:-fast}"
 STRICT_RELEASE=0
+case "${VALIDATION_PROFILE}" in
+  fast|extended|release) ;;
+  *) echo "[release-check] ERROR: unknown VALIDATION_PROFILE=${VALIDATION_PROFILE}" >&2; exit 1 ;;
+esac
 
 if [[ "${VALIDATION_PROFILE}" == "release" ]]; then
   STRICT_RELEASE=1
-  VALIDATION_PROFILE="extended"
   RUN_BACKEND_CONSISTENCY=1
   RUN_SMALL_FILE_GATE=1
   RUN_RECONSTRUCTION_HOTSPOT_GATE=1
   RUN_STREAM_PATH_GATE=1
   RUN_SIMD_ACCEL_TESTS=1
+  RUN_X86_SIMD_OVERRIDE_MATRIX=1
+  RUN_AARCH64_SIMD_OVERRIDE_MATRIX=1
 fi
 
 require_strict_baseline() {
@@ -28,6 +33,10 @@ require_strict_baseline() {
     return 0
   fi
 
+  if [[ "${STRICT_RELEASE}" == "1" && ( ! -f "${!var_name}" || ! -r "${!var_name}" || ! -s "${!var_name}" ) ]]; then
+    echo "[release-check] ERROR: ${var_name} must name a readable nonempty baseline file" >&2
+    return 1
+  fi
   return 0
 }
 
@@ -174,8 +183,14 @@ run_stream_path_gate() {
 
 run_fast_checks() {
   run cargo check --tests
-  run cargo test --test selftest
-  run_smoke_profile quick cargo test --test golden_vectors --test benchmark_smoke -- --ignored --nocapture
+  run cargo test --test selftest --test golden_vectors
+  if [[ "${VALIDATION_PROFILE}" == "fast" ]]; then
+    run_smoke_profile quick cargo test --test benchmark_smoke \
+      benchmark_smoke_matrix_runs_and_exports_results -- --ignored --nocapture
+  else
+    run_smoke_profile extended cargo test --release --features "std simd-accel" \
+      --test benchmark_smoke benchmark_smoke_matrix_runs_and_exports_results -- --ignored --nocapture
+  fi
   run cargo test --no-default-features
   run cargo test --features std
 }
@@ -215,6 +230,17 @@ run_extended_checks() {
     echo "[release-check] skipping simd-accel tests (RUN_SIMD_ACCEL_TESTS=0)"
   fi
 }
+
+# Validate every required input before the first Cargo/build/benchmark command.
+if [[ "${STRICT_RELEASE}" == "1" ]]; then
+  if [[ "${RSE_BENCHMARK_ALLOW_MISSING_CASES:-0}" != "0" ]]; then
+    echo "[release-check] ERROR: release profile cannot omit baseline cases" >&2
+    exit 1
+  fi
+  for baseline_variable in RSE_SMOKE_BASELINE RSE_SMALL_FILE_BASELINE RSE_RECONSTRUCTION_HOTSPOT_BASELINE RSE_STREAM_PATH_BASELINE; do
+    require_strict_baseline "${baseline_variable}" "release regression gate"
+  done
+fi
 
 run_fast_checks
 

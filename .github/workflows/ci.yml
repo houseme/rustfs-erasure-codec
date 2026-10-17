@@ -12,7 +12,6 @@ on:
     tags:
       - "v*"
       - "[0-9]*"
-      - "*"
   pull_request:
     branches:
       - main
@@ -66,6 +65,30 @@ jobs:
 
       - name: Run cargo-audit
         run: cargo audit
+
+  release-tooling:
+    name: Release tooling and package dry-run
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: ""
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2.9.1
+
+      - name: Test benchmark and release gates
+        run: |
+          python3 scripts/check_release_manifest.py
+          python3 -m unittest discover -s scripts/tests -p 'test_*.py'
+          bash -n scripts/release-check.sh
+
+      - name: Verify the actual distributable without uploading
+        run: cargo publish --dry-run --locked --registry crates-io --package rustfs-erasure-codec
 
   wasm-integration:
     name: WASM generated bindings (Node and Chromium)
@@ -365,6 +388,7 @@ jobs:
       - typos
       - security
       - wasm-integration
+      - release-tooling
       - build-linux
       - build-windows-native
       - build-windows-gnu-targets
@@ -374,6 +398,8 @@ jobs:
       - test-macos-arm64
 
     env:
+      RUSTFLAGS: ""
+      VALIDATION_PROFILE: release
       RUN_X86_SIMD_OVERRIDE_MATRIX: 1
       RUN_AARCH64_SIMD_OVERRIDE_MATRIX: 1
       RSE_SMOKE_BASELINE: ${{ vars.RSE_SMOKE_BASELINE }}
@@ -393,15 +419,11 @@ jobs:
       - name: Cache Rust artifacts
         uses: Swatinem/rust-cache@v2.9.1 # v2.9.1
 
+      - name: Verify release tag and versions
+        run: python3 scripts/check_release_manifest.py --tag "$GITHUB_REF_NAME"
+
       - name: Release preflight checks
-        run: |
-          if [[ -n "${RSE_SMOKE_BASELINE:-}" && -n "${RSE_SMALL_FILE_BASELINE:-}" && -n "${RSE_RECONSTRUCTION_HOTSPOT_BASELINE:-}" && -n "${RSE_STREAM_PATH_BASELINE:-}" ]]; then
-            export VALIDATION_PROFILE=release
-          else
-            echo "[ci] baseline files are not fully configured, run release preflight in extended profile"
-            export VALIDATION_PROFILE=extended
-          fi
-          bash scripts/release-check.sh
+        run: bash scripts/release-check.sh
 
   publish:
     name: Publish to crates.io
@@ -409,6 +431,8 @@ jobs:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
     needs:
       - release-preflight
+    env:
+      RUSTFLAGS: ""
 
     steps:
       - name: Checkout
@@ -422,10 +446,13 @@ jobs:
       - name: Cache Rust artifacts
         uses: Swatinem/rust-cache@v2.9.1 # v2.9.1
 
+      - name: Verify release tag and versions
+        run: python3 scripts/check_release_manifest.py --tag "$GITHUB_REF_NAME"
+
       - name: Verify package
-        run: cargo package --allow-dirty --no-verify
+        run: cargo publish --dry-run --locked --registry crates-io --package rustfs-erasure-codec
 
       - name: Publish
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
-        run: cargo publish --registry crates-io --package rustfs-erasure-codec --allow-dirty
+        run: cargo publish --locked --registry crates-io --package rustfs-erasure-codec

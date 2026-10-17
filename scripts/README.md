@@ -5,10 +5,10 @@ Build, benchmark, release validation, and report generation scripts for `rustfs-
 ## Quick Reference
 
 ```bash
-# Full release validation (fast profile)
+# Developer checks (fast profile; not release acceptance)
 bash scripts/release-check.sh
 
-# Full release validation (extended profile, includes SIMD tests)
+# Extended checks (includes SIMD and configured baseline comparisons)
 VALIDATION_PROFILE=extended bash scripts/release-check.sh
 
 # Collect x86_64 SIMD benchmarks for all backends
@@ -24,7 +24,7 @@ bash scripts/verify-x86_64.sh
 
 | Script | Language | Description |
 |---|---|---|
-| [`release-check.sh`](release-check.sh) | Bash | Main release validation entry point. Runs `fast` or `extended` profiles with configurable gates (smoke, backend consistency, small-file, reconstruction hotspot). |
+| [`release-check.sh`](release-check.sh) | Bash | Main release validation entry point. Runs `fast`, `extended` or strict `release` profiles with regression gates (smoke, backend consistency, small-file, reconstruction hotspot). |
 | [`check_backend_consistency.sh`](check_backend_consistency.sh) | Bash | Sweeps all SIMD backends on the host architecture and runs override metadata tests. |
 | [`serial-test-check.sh`](serial-test-check.sh) | Bash | Runs the full test suite with `--test-threads=1` for serial execution debugging. |
 | [`verify-x86_64.sh`](verify-x86_64.sh) | Bash | End-to-end x86_64 verification: architecture check, build, unit tests, benchmark smoke, strategy validation. |
@@ -64,6 +64,8 @@ bash scripts/verify-x86_64.sh
 
 ### Python scripts
 
+- `check_release_manifest.py` and its tests require Python 3.11+ (`tomllib`).
+
 - Python 3.8+
 - Standard library only (`json`, `csv`, `argparse`, `pathlib`, `statistics`, `platform`, `subprocess`) — no third-party packages required
 
@@ -75,7 +77,7 @@ bash scripts/verify-x86_64.sh
 
 | Variable | Used By | Description |
 |---|---|---|
-| `VALIDATION_PROFILE` | `release-check.sh` | `fast` (default) or `extended` |
+| `VALIDATION_PROFILE` | `release-check.sh` | `fast` (default), `extended`, or strict `release` |
 | `RSE_SMOKE_BASELINE` | `release-check.sh` | Path to baseline smoke results for regression gate |
 | `RSE_SMALL_FILE_BASELINE` | `release-check.sh` | Path to baseline small-file results |
 | `RSE_SMALL_FILE_METRIC` | `release-check.sh` | Metric for small-file gate: `throughput_mb_s` or `ns_per_iter` (default) |
@@ -93,3 +95,27 @@ bash scripts/verify-x86_64.sh
 | `RSE_SMALL_FILE_PROFILE` | `run_small_file_benchmark_matrix.sh` | Small-file benchmark profile (default: `fast`) |
 | `RSE_STREAM_PROFILE` | `release-check.sh`, `benchmark_stream_paths` | Stream benchmark profile (`quick`, `fast`, or `extended`) |
 | `RSE_STREAM_IO_MODE` | `release-check.sh`, `benchmark_stream_paths` | Stream I/O mode (`auto`, `serial`, or `parallel`) |
+
+## Strict release inputs
+
+Tag CI always selects `VALIDATION_PROFILE=release`; it never falls back to an
+optional profile. All four baseline variables above must point to readable,
+nonempty files on the runner. Missing inputs fail before any Cargo command.
+Release mode forbids `RSE_BENCHMARK_ALLOW_MISSING_CASES` and forces the required
+SIMD, backend and regression checks even if their switches were disabled.
+`extended` and `release` produce the full extended smoke matrix in release mode;
+`fast` retains the quick developer smoke. Golden vectors execute without the
+benchmark-only `--ignored` filter.
+
+```bash
+python3 scripts/check_release_manifest.py
+python3 -m unittest discover -s scripts/tests -p 'test_*.py'
+cargo publish --dry-run --locked --registry crates-io --package rustfs-erasure-codec
+```
+
+The last command builds and verifies the distributable without uploading. It
+can succeed for an already published version; it does not establish permission
+or readiness to publish a new version. Tag preflight additionally requires the
+exact core version with an optional `v` prefix, consistent package/workspace/
+lock versions, and all real baseline files. See the [current readiness report](../docs/erasure-codec-release-readiness-2026-10-17.md)
+for the uncompleted acceptance and version decisions.
