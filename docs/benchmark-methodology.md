@@ -366,6 +366,16 @@ keeps smoke work on the smallest profile, use:
 
 ## 8. Smoke Regression Gate
 
+The independent reconstruction hotspot gate also compares every baseline
+scenario, even without `--require-scenario`. Required scenarios and overrides
+add requirements rather than selecting a smaller comparison. It rejects
+empty/duplicate/dropped scenarios, nonpositive or non-finite metrics, invalid
+limits, and conflicting workload or available provenance fields through the
+same normalization helpers as the general gate. Legacy metadata absent on both
+sides remains unavailable evidence; this does not establish CPU/build isolation
+or replace a complete drift-gated campaign.
+
+
 The gate requires every baseline case to remain in the current artifact, rejects
 empty/duplicate results and invalid metrics, and checks available target,
 backend, feature, instrumentation, and stream I/O metadata. For a deliberately
