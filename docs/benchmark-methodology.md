@@ -366,6 +366,52 @@ absent from both sides are reported in `unchecked_provenance`; a field missing
 on just one side requires `--allow-missing-provenance`. That option never permits
 different values present on both sides.
 
+Use `--strict-provenance` for comparisons that require complete recorded
+provenance. Every row in both artifacts, including unmatched cases, must provide
+these canonical fields: `target_triple`, `features`,
+`benchmark_metrics_enabled`, `backend`, `cpu_model`, `compiler`, `build_profile`,
+`rayon_threads`, `available_parallelism`, and `max_parallel_jobs`. Stream cases
+also require `stream_io_backend` and `stream_io_mode`. The legacy
+`--allow-missing-provenance` option cannot waive strict required fields.
+
+The gate resolves these aliases before comparing JSON or CSV records:
+
+| Canonical field | Accepted aliases |
+|---|---|
+| `backend` | `backend_name` |
+| `cpu_model` | `cpu` |
+| `compiler` | `compiler_version`, `rustc`, `rustc_version` |
+| `build_profile` | `cargo_profile` |
+| `rayon_threads` | `rayon_num_threads` |
+| `max_parallel_jobs` | `max_jobs` |
+
+Aliases in one row must agree. CPU whitespace and the optional `rustc ` compiler
+prefix are normalized; compiler version, hash, and date are otherwise retained.
+Do not substitute an MSRV declaration for the compiler that produced the binary.
+`profile` denotes the workload profile (such as `fast` or `extended`), is
+compared separately, and cannot satisfy `build_profile`. Thread counts must be
+positive integers; only configured `max_parallel_jobs` permits zero, meaning
+automatic selection. Zero and an explicit positive cap are different settings.
+`rayon_threads` is the actual worker pool size, and `available_parallelism` is
+the process-visible parallelism budget, not an alias for the configured cap.
+
+Missing/null metadata and placeholders such as `unknown` or `nan` do not satisfy
+strict requirements. CPU, compiler, and profile strings cannot be blank. For
+`features`, the explicit value `none` represents an empty feature set; a blank
+field does not satisfy strict mode. Known compiler, workload/build profile,
+thread-budget, `effective_max_jobs`, `target_cpu`, or `rustflags` differences
+fail in either mode, even with legacy overrides. Commit revisions, iteration
+counts, and fixture seeds may differ. The JSON summary records
+`strict_provenance`; compatibility mode still permits unavailable metadata on
+both sides and lists it in `unchecked_provenance`.
+
+Equal metadata, including CPU model names, does not establish that runs used the
+same physical machine, exclusive resources, or passed a baseline-drift check.
+Strict provenance complements resource isolation and repeated controlled runs;
+it is not a complete performance acceptance test. Older artifacts often lack
+the required build/CPU/thread fields and therefore need newly recorded evidence
+before they can pass strict mode.
+
 Compare a fresh smoke run against a checked-in or archived baseline:
 
 ```bash

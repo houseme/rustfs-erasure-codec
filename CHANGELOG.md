@@ -51,6 +51,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Validation
+- The benchmark regression gate passes 32 Python tests, covering empty/incomplete artifacts, alias conflicts, strict metadata, numeric thread budgets and legacy compatibility.
 - Archive rejected grouping and unstable separate-process probes alongside the retained fused NEON results. All 18 final same-buffer paired cells pass two 5% drift checks; local 32 KiB 10+4/12+4/8+4 latency observations improve about 8.7%/9.8%/5.2%, with a roughly 8 ns small 4+2 tradeoff recorded in the review.
 - Direct generated-NEON tests compare all six supported shapes against scalar field arithmetic across 258 shape/length combinations, including every vector tail, unaligned buffers, zero/identity/high coefficients, empty checked invocations, and untouched output guards.
 - The 2026-10-16 refactor passed stable 1.99.1 workspace SIMD/metrics tests, no_std SIMD tests, all-feature Clippy, focused AddressSanitizer, x86 library/test and wasm32 compile checks, and both baseline correctness reproducers.
@@ -65,6 +66,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Added
+- Add `--strict-provenance` to the benchmark gate, requiring comparable CPU/compiler/build/backend/features/thread budgets and stream I/O metadata, with consistent JSON/CSV aliases and no override for supplied conflicts.
 - Exercise bounded family/matrix/fast/API/error/workspace combinations through a shared deterministic and libFuzzer contract helper; preserve a reusable cross-revision parity probe including wide FFT chunk boundaries.
 - Add explicit-presence `reconstruct_stream_from` for independent non-Seek readers/writers. Share one block recovery engine with the legacy Cursor adapter, retaining plans and buffers and documenting partial-output error semantics.
 - Expose a versioned `EncodingFormat<F>` with explicit portable metadata and share its effective identity across codec equality and prepared recovery workspaces; remove duplicated identity state without serializing on hot paths.

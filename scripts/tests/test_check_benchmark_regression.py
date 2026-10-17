@@ -23,20 +23,40 @@ def row(**changes):
     return record
 
 
+def strict_row(**changes):
+    record = row(
+        target_triple="x86_64-unknown-linux-gnu",
+        features="std|simd-accel",
+        benchmark_metrics_enabled=False,
+        backend="rust-avx2",
+        cpu_model="Example CPU 16C",
+        compiler="rustc 1.98.1 (012345abc 2026-09-10)",
+        build_profile="release",
+        rayon_threads=4,
+        available_parallelism=16,
+        max_parallel_jobs=2,
+    )
+    record.update(changes)
+    return record
+
+
 class BenchmarkRegressionGateTests(unittest.TestCase):
-    def run_gate(self, baseline, current, *arguments, current_csv=False):
+    def run_gate(self, baseline, current, *arguments, baseline_csv=False, current_csv=False):
         with tempfile.TemporaryDirectory() as directory:
             root = pathlib.Path(directory)
-            baseline_path = root / "baseline.json"
-            baseline_path.write_text(json.dumps(baseline))
+            baseline_path = root / ("baseline.csv" if baseline_csv else "baseline.json")
             current_path = root / ("current.csv" if current_csv else "current.json")
-            if current_csv:
-                with current_path.open("w", newline="") as output:
-                    writer = csv.DictWriter(output, fieldnames=list(current[0]))
-                    writer.writeheader()
-                    writer.writerows(current)
-            else:
-                current_path.write_text(json.dumps(current))
+            for path, records, use_csv in (
+                (baseline_path, baseline, baseline_csv),
+                (current_path, current, current_csv),
+            ):
+                if use_csv:
+                    with path.open("w", newline="") as output:
+                        writer = csv.DictWriter(output, fieldnames=list(records[0]))
+                        writer.writeheader()
+                        writer.writerows(records)
+                else:
+                    path.write_text(json.dumps(records))
             return subprocess.run(
                 [sys.executable, str(SCRIPT), "--baseline", str(baseline_path), "--current", str(current_path), *arguments],
                 capture_output=True,
@@ -123,6 +143,15 @@ class BenchmarkRegressionGateTests(unittest.TestCase):
             "stream_io_backend": ("memory", "disk"),
             "stream_io_mode": ("serial", "auto"),
             "cpu_model": ("cpu-a", "cpu-b"),
+            "compiler": ("rustc 1.98.1", "rustc 1.99.0"),
+            "build_profile": ("release", "dev"),
+            "profile": ("fast", "extended"),
+            "rayon_threads": (2, 4),
+            "available_parallelism": (8, 16),
+            "max_parallel_jobs": (0, 2),
+            "effective_max_jobs": (2, 4),
+            "target_cpu": ("generic", "native"),
+            "rustflags": ("", "-C target-cpu=native"),
         }
         for field, (old, new) in fields.items():
             with self.subTest(field=field):
@@ -184,6 +213,160 @@ class BenchmarkRegressionGateTests(unittest.TestCase):
         result = self.run_gate([row()], [row()], "--metric", "ns_per_block")
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("does not contain ns_per_block", result.stderr)
+
+    def test_strict_provenance_accepts_complete_json_and_csv(self):
+        for baseline_csv, current_csv in ((False, False), (True, False), (False, True), (True, True)):
+            with self.subTest(baseline_csv=baseline_csv, current_csv=current_csv):
+                result = self.run_gate(
+                    [strict_row()], [strict_row()], "--strict-provenance",
+                    baseline_csv=baseline_csv, current_csv=current_csv,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertTrue(json.loads(result.stdout)["strict_provenance"])
+
+    def test_strict_provenance_requires_each_dimension_even_with_legacy_override(self):
+        fields = (
+            "target_triple", "features", "benchmark_metrics_enabled", "backend",
+            "cpu_model", "compiler", "build_profile", "rayon_threads",
+            "available_parallelism", "max_parallel_jobs",
+        )
+        for field in fields:
+            for side in ("baseline", "current", "both"):
+                with self.subTest(field=field, side=side):
+                    baseline, current = strict_row(), strict_row()
+                    if side in ("baseline", "both"):
+                        baseline.pop(field)
+                    if side in ("current", "both"):
+                        current.pop(field)
+                    result = self.run_gate(
+                        [baseline], [current], "--strict-provenance", "--allow-missing-provenance",
+                    )
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn("strict provenance missing", result.stderr)
+                    self.assertIn(field, result.stderr)
+
+    def test_strict_provenance_rejects_legacy_rows_and_unmatched_incomplete_rows(self):
+        legacy = self.run_gate([row()], [row()], "--strict-provenance")
+        self.assertNotEqual(legacy.returncode, 0)
+        extra = self.run_gate([strict_row()], [strict_row(), row(shard_size=2048)], "--strict-provenance")
+        self.assertNotEqual(extra.returncode, 0)
+        self.assertIn("current: row 2", extra.stderr)
+
+    def test_strict_provenance_aliases_work_across_json_and_csv(self):
+        aliases = {
+            "backend": "backend_name", "cpu_model": "cpu", "compiler": "rustc_version",
+            "build_profile": "cargo_profile", "rayon_threads": "rayon_num_threads",
+            "max_parallel_jobs": "max_jobs",
+        }
+        canonical = strict_row()
+        alternate = {aliases.get(key, key): value for key, value in canonical.items()}
+        alternate["cpu"] = " Example   CPU 16C "
+        alternate["rustc_version"] = "1.98.1 (012345abc 2026-09-10)"
+        alternate["rayon_num_threads"] = "04"
+        alternate["max_jobs"] = "02"
+        for baseline, current in ((canonical, alternate), (alternate, canonical)):
+            for current_csv in (False, True):
+                result = self.run_gate([baseline], [current], "--strict-provenance", current_csv=current_csv)
+                self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_all_compiler_aliases_keep_build_identity(self):
+        for alias in ("compiler", "compiler_version", "rustc", "rustc_version"):
+            current = strict_row()
+            current.pop("compiler")
+            current[alias] = "1.98.1 (012345abc 2026-09-10)"
+            result = self.run_gate([strict_row()], [current], "--strict-provenance")
+            self.assertEqual(result.returncode, 0, result.stderr)
+            current[alias] = "1.98.1 (different 2026-09-10)"
+            result = self.run_gate([strict_row()], [current], "--strict-provenance", "--allow-missing-provenance")
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("incompatible provenance", result.stdout)
+
+    def test_conflicting_aliases_in_one_row_fail_even_in_legacy_mode(self):
+        for first, second, old, new in (
+            ("cpu_model", "cpu", "cpu-a", "cpu-b"),
+            ("compiler", "rustc", "rustc 1.98.1", "rustc 1.99.0"),
+            ("build_profile", "cargo_profile", "release", "dev"),
+            ("rayon_threads", "rayon_num_threads", 2, 4),
+            ("max_parallel_jobs", "max_jobs", 0, 4),
+        ):
+            with self.subTest(first=first):
+                conflicting = row(**{first: old, second: new})
+                result = self.run_gate([conflicting], [conflicting], "--allow-missing-provenance")
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("conflicting aliases", result.stderr)
+
+    def test_identical_aliases_in_one_row_are_accepted(self):
+        record = strict_row(cpu=" Example CPU 16C ", rustc="1.98.1 (012345abc 2026-09-10)", max_jobs="02")
+        result = self.run_gate([record], [strict_row()], "--strict-provenance")
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_empty_cpu_compiler_and_profiles_are_invalid_in_both_modes(self):
+        for field in ("cpu_model", "cpu", "compiler", "rustc_version", "build_profile", "cargo_profile", "profile"):
+            for value in ("", "  "):
+                for arguments in ((), ("--strict-provenance",)):
+                    with self.subTest(field=field, value=value, arguments=arguments):
+                        record = strict_row(**{field: value})
+                        result = self.run_gate([record], [record], *arguments)
+                        self.assertNotEqual(result.returncode, 0)
+                        self.assertIn("must not be empty", result.stderr)
+
+    def test_strict_rejects_unknown_placeholder_and_null_metadata(self):
+        for field in ("target_triple", "features", "backend", "cpu_model", "compiler", "build_profile"):
+            for value in (None, "unknown", "NaN", "n/a"):
+                for current_csv in (False, True):
+                    with self.subTest(field=field, value=value, current_csv=current_csv):
+                        result = self.run_gate(
+                            [strict_row()], [strict_row(**{field: value})], "--strict-provenance",
+                            "--allow-missing-provenance", current_csv=current_csv,
+                        )
+                        self.assertNotEqual(result.returncode, 0)
+
+    def test_strict_feature_none_is_explicit_but_blank_is_missing(self):
+        result = self.run_gate([strict_row(features="none")], [strict_row(features="none")], "--strict-provenance")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        for value in ("", " | "):
+            result = self.run_gate([strict_row(features=value)], [strict_row(features=value)], "--strict-provenance")
+            self.assertNotEqual(result.returncode, 0)
+
+    def test_thread_budgets_are_normalized_integers_with_only_max_jobs_allowing_zero(self):
+        for field in ("rayon_threads", "available_parallelism", "max_parallel_jobs", "effective_max_jobs"):
+            for value in (True, False, -1, 1.5, "1.5", "nan", "", " 4 "):
+                with self.subTest(field=field, value=value):
+                    result = self.run_gate([row(**{field: value})], [row(**{field: value})])
+                    self.assertNotEqual(result.returncode, 0)
+        for field in ("rayon_threads", "available_parallelism", "effective_max_jobs"):
+            result = self.run_gate([strict_row(**{field: 0})], [strict_row(**{field: 0})], "--strict-provenance")
+            self.assertNotEqual(result.returncode, 0)
+        result = self.run_gate([strict_row(max_parallel_jobs=0)], [strict_row(max_parallel_jobs="000")], "--strict-provenance")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        mismatch = self.run_gate([strict_row(max_parallel_jobs=0)], [strict_row(max_parallel_jobs=2)], "--strict-provenance")
+        self.assertEqual(mismatch.returncode, 1)
+
+    def test_strict_stream_cases_require_both_io_dimensions(self):
+        stream = strict_row(operation="encode_stream", stream_block_size=1024, stream_io_backend="memory", stream_io_mode="serial")
+        passed = self.run_gate([stream], [stream], "--strict-provenance")
+        self.assertEqual(passed.returncode, 0, passed.stderr)
+        for field in ("stream_io_backend", "stream_io_mode"):
+            missing = dict(stream)
+            missing.pop(field)
+            result = self.run_gate([missing], [missing], "--strict-provenance", "--allow-missing-provenance")
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn(field, result.stderr)
+
+    def test_workload_profile_is_compared_but_is_not_a_build_profile_alias(self):
+        record = strict_row(profile="release")
+        record.pop("build_profile")
+        result = self.run_gate([record], [record], "--strict-provenance")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("build_profile", result.stderr)
+        mismatch = self.run_gate([strict_row(profile="fast")], [strict_row(profile="extended")], "--strict-provenance", "--allow-missing-provenance")
+        self.assertEqual(mismatch.returncode, 1)
+
+    def test_strict_does_not_require_equal_revision_iterations_or_seed(self):
+        baseline = strict_row(git_revision="old", iterations=5, seed=1)
+        current = strict_row(git_revision="new", iterations=10, seed=2)
+        result = self.run_gate([baseline], [current], "--strict-provenance")
+        self.assertEqual(result.returncode, 0, result.stderr)
 
 
 if __name__ == "__main__":
