@@ -10,6 +10,8 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+## 9.1.0 (2026-10-18)
+
 ### Fixed
 - Keep tag release preflight in the strict release profile. Reject missing, unreadable or empty baseline files and partial comparisons before running Cargo, force required checks, and generate the full release smoke matrix while running golden tests normally. Validate tag/package/workspace/lock versions and replace unchecked dirty packaging with locked publish dry-runs; exercise release tooling in branch/PR CI.
 - Make the independent reconstruction hotspot gate compare every baseline scenario and reject empty, duplicate, dropped or malformed evidence, non-finite metrics/limits and conflicting workload/provenance fields. Reuse the main gate's number and provenance normalization.
@@ -64,6 +66,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Validation
+- Prepare 9.1.0 with 498 workspace tests, 297 no_std tests and a shared executable comparing 200 full parity/roundtrip cases against published 9.0.0. Confirm the wide recovery allocation budgets in optimized release builds. Keep prior drift-rejected campaigns and the lack of new throughput attribution explicit.
 - Validate runtime `0a2d5ee` on native Linux x86_64 (491 tests), macOS/ARM64 Docker std+SIMD+metrics (488 tests) and genuine no_std+SIMD (297 tests), plus four pinned release fixtures, 14 Node tests and eight Chrome tests. Archive both intermediate and final controlled downstream results: final degraded-read throughput point estimates are -0.25% versus merged main and +1.14% versus the previous runtime, with overlapping phase confidence intervals. Preserve the complete 66-case campaign and its global rejection after seven drift failures; keep all candidate ratios null and #2853 open.
 - Extend the recovery probe from 58 to 66 cases with ordinary Classic data recovery at downstream-relevant 4+2/16 KiB and 10+4/32 KiB sizes, one/two missing data shards, and separate retained-slot/Option<Vec> adapter costs. Preserve complete preflight/final byte and presence oracles.
 - Complete two controlled-I/O downstream ABBAs for earlier runtime `9fcae45`, with 320 raw samples and all drift gates passing. That runtime remains 1.50% slower for integrity-enabled degraded reads versus merged main; its +0.29% point estimate versus the previous runtime has overlapping confidence intervals and is not a proven speedup. Keep #2853 open and archive every result.
