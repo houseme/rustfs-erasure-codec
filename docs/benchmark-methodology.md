@@ -132,7 +132,7 @@ Backend kernels:
 cargo bench --bench galois_backend --features std
 ```
 
-Backend kernel A/B/B/A gate:
+Backend kernel A/B/B/A gate (nonempty, complete campaigns with both drift checks):
 
 ```bash
 RSE_ABBA_BACKEND=auto \
@@ -160,6 +160,17 @@ Use `--ignored` here as well because the artifact-producing smoke benchmark is i
 ```bash
 cargo test --features "std simd-accel" --test benchmark_smoke benchmark_smoke_matrix_runs_and_exports_results -- --ignored --nocapture
 ```
+
+
+The analyzer rejects empty/incomplete campaigns, duplicate case/stage estimates,
+invalid numeric values, inconsistent resolved revisions and conflicting backend
+provenance. Both A1/A2 and B1/B2 must pass the configured drift limit. A failure
+in any case withholds candidate attribution for the entire campaign, writes an
+explicit failed report and returns nonzero. It does not add a speedup/regression
+threshold. Passing these structural checks still does not establish resource
+isolation. For isolated acceptance, prepare both binaries before measurement,
+reserve and verify the execution resources, and retain every phase's evidence;
+the convenience runner's Cargo/ref switching is not itself an isolation proof.
 
 ## 3. Determinism Rules
 
