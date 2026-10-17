@@ -16,6 +16,46 @@ pub(crate) enum ReconstructionGoal<'a> {
     Required(&'a [bool]),
 }
 
+/// The same validation state is carried across the present prefix and the
+/// recovery suffix, and is also used when checking a reused workspace layout.
+#[derive(Default)]
+struct ClassicShardLengths {
+    shard_len: usize,
+    number_present: usize,
+}
+
+impl ClassicShardLengths {
+    #[inline]
+    fn observe(&mut self, length: Option<usize>) -> Result<bool, Error> {
+        let Some(length) = length else {
+            return Ok(false);
+        };
+        if length == 0 {
+            return Err(Error::EmptyShard);
+        }
+        if self.shard_len != 0 && length != self.shard_len {
+            return Err(Error::IncorrectShardSize);
+        }
+        self.shard_len = length;
+        self.number_present += 1;
+        Ok(true)
+    }
+
+    /// Stop at the first erasure without reading any suffix length twice.
+    #[inline]
+    fn scan_present_prefix(
+        &mut self,
+        lengths: &mut impl Iterator<Item = (usize, Option<usize>)>,
+    ) -> Result<Option<usize>, Error> {
+        for (index, length) in lengths {
+            if !self.observe(length)? {
+                return Ok(Some(index));
+            }
+        }
+        Ok(None)
+    }
+}
+
 /// Validated, immutable erasure layout shared by all Classic entry points.
 #[derive(Clone)]
 pub(crate) struct ClassicReconstructShape {
@@ -82,33 +122,28 @@ impl<F: Field> ClassicReconstructPlan<F> {
 
 impl<F: Field> ReedSolomon<F> {
     #[inline]
+    fn validate_classic_shard_count(&self, count: usize) -> Result<(), Error> {
+        if count < self.total_shard_count() {
+            return Err(Error::TooFewShards);
+        }
+        if count > self.total_shard_count() {
+            return Err(Error::TooManyShards);
+        }
+        Ok(())
+    }
+
+    #[inline]
     fn scan_classic_reconstruct_shape(
         &self,
         lengths: impl ExactSizeIterator<Item = Option<usize>>,
         mut observe: impl FnMut(usize, bool),
     ) -> Result<(usize, usize), Error> {
-        if lengths.len() < self.total_shard_count() {
-            return Err(Error::TooFewShards);
-        }
-        if lengths.len() > self.total_shard_count() {
-            return Err(Error::TooManyShards);
-        }
-        let mut shard_len = 0;
-        let mut number_present = 0;
+        self.validate_classic_shard_count(lengths.len())?;
+        let mut state = ClassicShardLengths::default();
         for (index, length) in lengths.enumerate() {
-            if let Some(length) = length {
-                if length == 0 {
-                    return Err(Error::EmptyShard);
-                }
-                if shard_len != 0 && length != shard_len {
-                    return Err(Error::IncorrectShardSize);
-                }
-                shard_len = length;
-                number_present += 1;
-            }
-            observe(index, length.is_some());
+            observe(index, state.observe(length)?);
         }
-        Ok((shard_len, number_present))
+        Ok((state.shard_len, state.number_present))
     }
 
     /// Keep the validated all-present path free of shape and matrix planning.
@@ -125,9 +160,10 @@ impl<F: Field> ReedSolomon<F> {
         {
             return Err(Error::InvalidShardFlags);
         }
-        let (_, number_present) = self
-            .scan_classic_reconstruct_shape(shards.iter().map(ReconstructShard::len), |_, _| {})?;
-        if number_present == self.total_shard_count() {
+        self.validate_classic_shard_count(shards.len())?;
+        let mut lengths = shards.iter().map(ReconstructShard::len).enumerate();
+        let mut state = ClassicShardLengths::default();
+        let Some(first_missing) = state.scan_present_prefix(&mut lengths)? else {
             #[cfg(feature = "std")]
             self.runtime_profile_metrics.record_reconstruct(
                 matches!(goal, ReconstructionGoal::Data),
@@ -136,8 +172,8 @@ impl<F: Field> ReedSolomon<F> {
                 true,
             );
             return Ok(());
-        }
-        let shape = self.classic_reconstruct_shape(shards.iter().map(ReconstructShard::len))?;
+        };
+        let shape = self.classic_reconstruct_shape_from_suffix(lengths, state, first_missing)?;
         let plan = self.prepare_classic_reconstruct_plan(shape, goal)?;
         execute(shards, &plan)
     }
@@ -146,34 +182,49 @@ impl<F: Field> ReedSolomon<F> {
         &self,
         lengths: impl ExactSizeIterator<Item = Option<usize>>,
     ) -> Result<ClassicReconstructShape, Error> {
+        self.validate_classic_shard_count(lengths.len())?;
+        let mut lengths = lengths.enumerate();
+        let mut state = ClassicShardLengths::default();
+        if let Some(first_missing) = state.scan_present_prefix(&mut lengths)? {
+            self.classic_reconstruct_shape_from_suffix(lengths, state, first_missing)
+        } else {
+            // Explicit workspace preparation still needs a shape for later
+            // layout validation, but an all-present shape needs no index storage.
+            Ok(ClassicReconstructShape {
+                shard_len: state.shard_len,
+                number_present: state.number_present,
+                valid_indices: SmallVec::new(),
+                invalid_indices: SmallVec::new(),
+            })
+        }
+    }
+
+    fn classic_reconstruct_shape_from_suffix(
+        &self,
+        lengths: impl Iterator<Item = (usize, Option<usize>)>,
+        mut state: ClassicShardLengths,
+        first_missing: usize,
+    ) -> Result<ClassicReconstructShape, Error> {
         let mut shape = ClassicReconstructShape {
             shard_len: 0,
             number_present: 0,
-            valid_indices: SmallVec::new(),
+            valid_indices: (0..first_missing.min(self.data_shard_count())).collect(),
             invalid_indices: SmallVec::new(),
         };
-        let (shard_len, number_present) =
-            self.scan_classic_reconstruct_shape(lengths, |index, present| {
-                if present {
-                    if !shape.invalid_indices.is_empty()
-                        && shape.valid_indices.len() < self.data_shard_count()
-                    {
-                        shape.valid_indices.push(index);
-                    }
-                } else {
-                    // Before the first erasure every earlier index is present.
-                    // Defer survivor storage until recovery is actually needed,
-                    // keeping all-present wide layouts allocation-free.
-                    if shape.invalid_indices.is_empty() {
-                        shape
-                            .valid_indices
-                            .extend(0..index.min(self.data_shard_count()));
-                    }
-                    shape.invalid_indices.push(index);
+        shape.invalid_indices.push(first_missing);
+        // Do not decide quorum or initialize destinations until every remaining
+        // present length has been checked, even if too many erasures are known.
+        for (index, length) in lengths {
+            if state.observe(length)? {
+                if shape.valid_indices.len() < self.data_shard_count() {
+                    shape.valid_indices.push(index);
                 }
-            })?;
-        shape.shard_len = shard_len;
-        shape.number_present = number_present;
+            } else {
+                shape.invalid_indices.push(index);
+            }
+        }
+        shape.shard_len = state.shard_len;
+        shape.number_present = state.number_present;
         Ok(shape)
     }
 

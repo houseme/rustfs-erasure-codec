@@ -28,6 +28,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Changed
+- Validate Classic recovery lengths once across the present prefix and erasure suffix, preserving complete-layout fast returns, error priority, workspace layout checks and publication order without adding a shape-specific path.
 - Reserve progressive DecodeIdx missing-index metadata by parity count, avoiding heap spills for warmed 32+16 batches while preserving existing XOR, mask and error semantics.
 - Limit retained Leopard encoder work plus scratch to 4 MiB per family per thread, checking actual allocation capacity. Oversized calls keep resources local and preserve small warm caches; repeated oversized encodes may allocate again. Remove unused native selector stubs without expanding dispatch.
 - Prepare checked GF8 shard views and select a generated ISA kernel once per encode operation; share serial/parallel setup and never fall back after a kernel writes parity.
