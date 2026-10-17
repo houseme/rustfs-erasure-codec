@@ -13,7 +13,10 @@ the CLI version required to match `Cargo.lock` (currently 0.2.129).
 
 ## Building
 
-Use Node.js 22 or newer and a Rust toolchain satisfying the workspace MSRV.
+Use Node.js 22 or newer and the current stable Rust toolchain, as tested in CI.
+The workspace declares no MSRV; Edition 2024 and dependencies still impose
+their compiler requirements. Older Rust versions are not certified by removing
+the manifest declaration.
 The npm development tools are pinned in `package-lock.json`; they are not part
 of the runtime package.
 
