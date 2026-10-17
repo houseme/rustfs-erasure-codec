@@ -42,6 +42,9 @@ fuzz_target!(|data: &[u8]| {
                     codec.encode_sep(&data_slices, &mut parity_slices).unwrap();
                 }
 
+                let expected_data = data.clone();
+                let expected_parity = parity_buffer.clone();
+
                 {
                     let mut data_slices: Vec<_> = data
                         .chunks_mut(shard_size)
@@ -62,21 +65,6 @@ fuzz_target!(|data: &[u8]| {
                         slices[corrupt].1 = false;
                         slices[corrupt].0.fill(0);
                     }
-                }
-
-                if corrupt_count > 0 {
-                    let data_slices: Vec<&[u8]> = data.chunks(shard_size).collect();
-                    let parity_slices: Vec<&[u8]> = parity_buffer.chunks(shard_size).collect();
-
-                    let mut verify_slices = Vec::with_capacity(data_shards + parity_shards);
-                    for &d in &data_slices {
-                        verify_slices.push(d);
-                    }
-                    for &p in &parity_slices {
-                        verify_slices.push(p);
-                    }
-
-                    assert!(!codec.verify(&verify_slices).unwrap());
                 }
 
                 {
@@ -101,6 +89,9 @@ fuzz_target!(|data: &[u8]| {
 
                     codec.reconstruct(&mut slices).unwrap();
                 }
+
+                assert_eq!(data, expected_data);
+                assert_eq!(parity_buffer, expected_parity);
 
                 {
                     let data_slices: Vec<&[u8]> = data.chunks(shard_size).collect();
