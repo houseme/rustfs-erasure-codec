@@ -11,6 +11,7 @@ All notable changes to this project are documented in this file.
 ## Unreleased
 
 ### Fixed
+- Make the independent reconstruction hotspot gate compare every baseline scenario and reject empty, duplicate, dropped or malformed evidence, non-finite metrics/limits and conflicting workload/provenance fields. Reuse the main gate's number and provenance normalization.
 - Make the native recovery-policy test use deterministic disabled/small/large L2 estimates instead of assuming every host permits a 256 KiB chunk; verify both chunk sizes and job counts.
 - Make the Galois ABBA analyzer reject empty/incomplete campaigns, duplicate rows, revision/backend conflicts and either-side drift. Failed campaigns return nonzero and withhold all candidate attribution instead of emitting an empty PASS.
 - Replace the TypeScript facade's manually maintained raw WASM ABI with independent factories around complete, version-matched wasm-bindgen output. Preserve result codes and data-only recovery while supporting real Node/browser initialization and memory growth.
