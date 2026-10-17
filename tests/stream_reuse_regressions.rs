@@ -10,24 +10,26 @@ use rustfs_erasure_codec::stream::{StreamErrorKind, StreamIoMode, StreamOptions}
 
 const BLOCK_SIZE: usize = 1024;
 
-// Count block-sized allocations on this test thread only. Input and output
-// storage is prepared outside the measured scope, so extra blocks expose
-// repeated codec scratch allocation without interference from other tests.
+// Count heap requests and block-sized scratch on this test thread only. Input
+// and output storage is prepared outside the measured scope, so extra blocks
+// expose repeated allocation without interference from other tests.
 thread_local! {
     static COUNT_ALLOCATIONS: Cell<bool> = const { Cell::new(false) };
     static BLOCK_ALLOCATIONS: Cell<usize> = const { Cell::new(0) };
+    static HEAP_REQUESTS: Cell<usize> = const { Cell::new(0) };
 }
 
 struct CountingAllocator;
 
 fn record_allocation(size: usize) {
-    if size == BLOCK_SIZE {
-        let _ = COUNT_ALLOCATIONS.try_with(|enabled| {
-            if enabled.get() {
+    let _ = COUNT_ALLOCATIONS.try_with(|enabled| {
+        if enabled.get() {
+            let _ = HEAP_REQUESTS.try_with(|count| count.set(count.get() + 1));
+            if size == BLOCK_SIZE {
                 let _ = BLOCK_ALLOCATIONS.try_with(|count| count.set(count.get() + 1));
             }
-        });
-    }
+        }
+    });
 }
 
 // SAFETY: All allocation operations forward the original pointer and layout
@@ -60,7 +62,7 @@ unsafe impl GlobalAlloc for CountingAllocator {
 #[global_allocator]
 static ALLOCATOR: CountingAllocator = CountingAllocator;
 
-fn count_block_allocations(operation: impl FnOnce()) -> usize {
+fn count_allocations(operation: impl FnOnce()) -> (usize, usize) {
     struct StopCounting;
     impl Drop for StopCounting {
         fn drop(&mut self) {
@@ -69,11 +71,19 @@ fn count_block_allocations(operation: impl FnOnce()) -> usize {
     }
 
     BLOCK_ALLOCATIONS.with(|count| count.set(0));
+    HEAP_REQUESTS.with(|count| count.set(0));
     COUNT_ALLOCATIONS.with(|enabled| enabled.set(true));
     let guard = StopCounting;
     operation();
     drop(guard);
-    BLOCK_ALLOCATIONS.with(Cell::get)
+    (
+        BLOCK_ALLOCATIONS.with(Cell::get),
+        HEAP_REQUESTS.with(Cell::get),
+    )
+}
+
+fn count_block_allocations(operation: impl FnOnce()) -> usize {
+    count_allocations(operation).0
 }
 
 fn options(mode: StreamIoMode) -> StreamOptions {
@@ -198,26 +208,36 @@ fn streaming_reconstruct_reuses_missing_buffers_across_blocks_and_tail() {
 
 #[test]
 fn stream_views_support_more_than_inline_shard_capacity() {
-    let codec = ReedSolomon::new(33, 2).unwrap();
-    let expected = encoded_shards(&codec, BLOCK_SIZE * 2 + 13);
-    let opts = options(StreamIoMode::Serial);
-    let mut readers: Vec<&[u8]> = expected[..33].iter().map(Vec::as_slice).collect();
-    let mut parity = vec![Vec::new(); 2];
-    codec
-        .encode_stream(&mut readers, &mut parity, &opts)
-        .unwrap();
-    assert_eq!(parity, expected[33..]);
+    for (data, parity) in [(33, 2), (2, 33), (33, 33)] {
+        let codec = ReedSolomon::new(data, parity).unwrap();
+        let mut expected = encoded_shards(&codec, BLOCK_SIZE * 2 + 13);
+        // Exercise an input that ends early within a block and remains at EOF
+        // while other streams continue through a partial final block.
+        let short_len = BLOCK_SIZE + 7;
+        expected[0][short_len..].fill(0);
+        codec.encode(&mut expected).unwrap();
+        for mode in [StreamIoMode::Serial, StreamIoMode::Parallel] {
+            let opts = options(mode);
+            let mut readers: Vec<_> = expected[..data].iter().map(Vec::as_slice).collect();
+            readers[0] = &readers[0][..short_len];
+            let mut outputs = vec![Vec::new(); parity];
+            codec
+                .encode_stream(&mut readers, &mut outputs, &opts)
+                .unwrap();
+            assert_eq!(outputs, expected[data..]);
 
-    let mut shards: Vec<_> = expected.iter().cloned().map(Cursor::new).collect();
-    shards[32] = Cursor::new(Vec::new());
-    shards[34] = Cursor::new(Vec::new());
-    codec.reconstruct_stream(&mut shards, &opts).unwrap();
-    assert!(shards.iter().zip(&expected).all(|(a, b)| a.get_ref() == b));
-    let mut readers: Vec<&[u8]> = shards
-        .iter()
-        .map(|shard| shard.get_ref().as_slice())
-        .collect();
-    assert!(codec.verify_stream(&mut readers, &opts).unwrap());
+            let mut shards: Vec<_> = expected.iter().cloned().map(Cursor::new).collect();
+            shards[data - 1] = Cursor::new(Vec::new());
+            shards[data + parity - 1] = Cursor::new(Vec::new());
+            codec.reconstruct_stream(&mut shards, &opts).unwrap();
+            assert!(shards.iter().zip(&expected).all(|(a, b)| a.get_ref() == b));
+            let mut readers: Vec<_> = shards
+                .iter()
+                .map(|shard| shard.get_ref().as_slice())
+                .collect();
+            assert!(codec.verify_stream(&mut readers, &opts).unwrap());
+        }
+    }
 }
 
 #[test]
@@ -337,4 +357,70 @@ fn reconstruction_scratch_allocations_do_not_grow_with_block_count() {
     // Warm the decode cache before comparing the block buffer lifetimes.
     measure(BLOCK_SIZE);
     assert_eq!(measure(BLOCK_SIZE), measure(BLOCK_SIZE * 5));
+}
+
+#[test]
+fn stream_encode_avoids_per_block_reference_allocations() {
+    let opts = options(StreamIoMode::Serial);
+    let mut counts = Vec::new();
+    for (data, parity) in [(4, 2), (33, 2), (2, 33), (33, 33)] {
+        let codec = ReedSolomon::new(data, parity).unwrap();
+        let measure = |blocks| {
+            let len = BLOCK_SIZE * blocks;
+            let expected = encoded_shards(&codec, len);
+            let mut readers: Vec<_> = expected[..data].iter().map(Vec::as_slice).collect();
+            let mut writers: Vec<_> = (0..parity).map(|_| Vec::with_capacity(len)).collect();
+            let (_, requests) = count_allocations(|| {
+                codec
+                    .encode_stream(&mut readers, &mut writers, &opts)
+                    .unwrap();
+            });
+            assert_eq!(writers, expected[data..]);
+            requests
+        };
+        measure(1); // Warm dispatch and hardware discovery outside the comparison.
+        let single = measure(1);
+        let five = measure(5);
+        // The existing generic encoder still collects parity coefficient rows
+        // above 32 outputs. This budget permits those required kernel views,
+        // but never another data/parity reference array for each stream block.
+        let coefficient_requests = if parity > 32 { 4 } else { 0 };
+        counts.push((data, parity, single, five, coefficient_requests));
+    }
+    eprintln!("(data, parity, one block, five blocks, permitted coefficient growth): {counts:?}");
+    assert!(
+        counts
+            .iter()
+            .all(|&(_, _, single, five, growth)| five <= single + growth),
+        "{counts:?}"
+    );
+}
+
+#[test]
+fn stream_verify_avoids_per_block_reference_allocations() {
+    let opts = options(StreamIoMode::Serial);
+    let mut counts = Vec::new();
+    for (data, parity) in [(4, 2), (33, 2), (2, 33), (33, 33)] {
+        let codec = ReedSolomon::new(data, parity).unwrap();
+        let measure = |blocks| {
+            let expected = encoded_shards(&codec, BLOCK_SIZE * blocks);
+            let mut readers: Vec<_> = expected.iter().map(Vec::as_slice).collect();
+            count_allocations(|| {
+                assert!(codec.verify_stream(&mut readers, &opts).unwrap());
+            })
+            .1
+        };
+        measure(1);
+        let single = measure(1);
+        let five = measure(5);
+        let coefficient_requests = if parity > 32 { 4 } else { 0 };
+        counts.push((data, parity, single, five, coefficient_requests));
+    }
+    eprintln!("(data, parity, one block, five blocks, permitted coefficient growth): {counts:?}");
+    assert!(
+        counts
+            .iter()
+            .all(|&(_, _, single, five, growth)| five <= single + growth),
+        "{counts:?}"
+    );
 }
