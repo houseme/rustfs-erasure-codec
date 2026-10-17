@@ -554,11 +554,11 @@ impl<'codec> StreamReconstructPlan<'codec> {
     }
 
     fn data_rows(&self) -> SmallVec<[&[u8]; 32]> {
-        self.plan.data_rows()
+        self.plan.data_rows().collect()
     }
 
     fn parity_rows(&self) -> SmallVec<[&[u8]; 32]> {
-        self.plan.parity_rows(self.codec)
+        self.plan.parity_rows(self.codec).collect()
     }
 
     /// All present buffers have already passed the equal-length read check,
