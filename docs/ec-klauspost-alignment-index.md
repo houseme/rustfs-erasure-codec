@@ -5,6 +5,8 @@
 This index turns the Klauspost alignment work into independent execution documents.
 Use it as the entry point for planning, implementation, review, and validation.
 
+Current completion evidence and open acceptance boundaries: [2026-10-17 audit](erasure-codec-completion-audit-2026-10-17.md).
+
 ## Read Order
 
 1. Read the overall design:
