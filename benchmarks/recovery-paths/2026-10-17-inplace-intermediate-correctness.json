@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "source_commit": "5d2406876ad79b6729d60f1f874457aab76724f8",
+  "runtime_commit": "24dc15f3983c48e47aa52b15c721bc931484242a",
+  "source_archive_sha256": "011cdabc81c9f9ca729f79fb517e90eef9161f8dde9fd56e32b7832010d2b335",
+  "rustc": "1.99.1 (58cf8f9c3 2026-10-13)",
+  "counting_method": "Last parent summary per Cargo Running/Doc-tests section; nested child repetitions excluded",
+  "local_macos_arm64": {
+    "std_simd_metrics": {
+      "passed": 487,
+      "failed": 0,
+      "ignored": 43
+    },
+    "no_std_simd": {
+      "passed": 297,
+      "failed": 0,
+      "ignored": 20
+    },
+    "classic_regressions_passed": 11,
+    "all_feature_workspace_clippy": "passed"
+  },
+  "linux_arm64_docker": {
+    "target": "aarch64-unknown-linux-gnu",
+    "image_tag": "rust:1.99.1-trixie",
+    "cpu_quota": 4,
+    "memory_gib": 8,
+    "network": "none",
+    "offline": true,
+    "source_readonly": true,
+    "source_files": 587,
+    "source_tree_sha256": "aacbdc713be89cf8199dbfa1309105fb9de13fadb681d0606bc6f456ab1c19f0",
+    "source_unchanged": true,
+    "std_simd_metrics": {
+      "passed": 487,
+      "failed": 0,
+      "ignored": 43
+    },
+    "no_std_simd": {
+      "passed": 297,
+      "failed": 0,
+      "ignored": 20
+    },
+    "actual_no_std_features": [
+      "simd-accel",
+      "simd-avx2",
+      "simd-avx512",
+      "simd-gfni",
+      "simd-neon",
+      "simd-ssse3",
+      "simd-vsx"
+    ],
+    "containers_removed": true,
+    "scope": "Linux ARM64 VM functional execution, not reserved native ARM throughput"
+  },
+  "generated_wasm": {
+    "locked_release_build": "passed",
+    "node_tests_passed": 14,
+    "node_real_wasm_cases": 12,
+    "node_supplemental_unit_cases": 2,
+    "system_chrome_tests_passed": 8,
+    "final_default_chromium_ci": "checked separately after final push"
+  },
+  "bench_smoke": {
+    "case_count": 66,
+    "sample_ms": 1,
+    "samples_per_case": 3,
+    "all_content_and_presence_oracles": "passed",
+    "scope": "Correctness and allocation smoke only; no timing attribution"
+  },
+  "native_linux_x86_64": {
+    "passed": 490,
+    "failed": 0,
+    "ignored": 43,
+    "core_features": [
+      "std",
+      "simd-accel",
+      "benchmark-metrics"
+    ],
+    "parent_sections": 25,
+    "nested_child_summaries_excluded": 4
+  },
+  "pinned_release_fixtures": {
+    "consumer_revision": "902c97ce055b1faddb8cd689f0d3a04a0a3e6f35",
+    "passed": 4,
+    "failed": 0
+  },
+  "codec_campaign": {
+    "case_count": 66,
+    "built": true,
+    "dryrun_passed": true,
+    "measurement_started": false,
+    "reason": "Deferred before launch for the final borrowed-row candidate; no partial result selection."
+  }
+}
