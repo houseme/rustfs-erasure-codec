@@ -607,6 +607,80 @@ fn main() -> Result<(), String> {
         report(&config, &case, measurement);
         completed += 1;
     }
+    // Match the ordinary generic entry point used by the pinned ECStore
+    // consumer. Keep retained buffers and Option<Vec> adapter costs separate.
+    for (data, parity, size, missing) in [
+        (4, 2, 16384, 1),
+        (4, 2, 16384, 2),
+        (10, 4, 32768, 1),
+        (10, 4, 32768, 2),
+    ] {
+        for retained in [false, true] {
+            let case = Case {
+                operation: if retained {
+                    "classic.reconstruct_data_slots"
+                } else {
+                    "classic.reconstruct_data_vec"
+                },
+                data_shards: data,
+                parity_shards: parity,
+                shard_size: size,
+                missing_data_shards: missing,
+                missing_parity_shards: 0,
+                stream_block_size: None,
+            };
+            if !config.includes(&case) {
+                continue;
+            }
+            let codec = ReedSolomon::with_options(
+                data,
+                parity,
+                CodecOptions::builder()
+                    .codec_family(CodecFamily::Classic)
+                    .build(),
+            )
+            .expect("construct generic data recovery codec");
+            let original = fixture(&codec, size);
+            let measurement = if retained {
+                let mut slots = shards_to_slots(&original);
+                let missing_indices: Vec<_> = (0..missing).collect();
+                poison_missing(&mut slots, &missing_indices);
+                codec
+                    .reconstruct_data(&mut slots)
+                    .expect("generic slot preflight");
+                assert_complete_slots(&slots, &original);
+                let measurement = measure(&config, || {
+                    mark_missing_slots(&mut slots, &missing_indices);
+                    codec
+                        .reconstruct_data(black_box(&mut slots))
+                        .expect("recover generic slots");
+                });
+                assert_complete_slots(&slots, &original);
+                measurement
+            } else {
+                let mut shards: Vec<_> = original.iter().cloned().map(Some).collect();
+                for shard in &mut shards[..missing] {
+                    drop(shard.take());
+                }
+                codec
+                    .reconstruct_data(&mut shards)
+                    .expect("generic vec preflight");
+                assert_complete_options(&shards, &original);
+                let measurement = measure(&config, || {
+                    for shard in &mut shards[..missing] {
+                        drop(shard.take());
+                    }
+                    codec
+                        .reconstruct_data(black_box(&mut shards))
+                        .expect("recover generic vec");
+                });
+                assert_complete_options(&shards, &original);
+                measurement
+            };
+            report(&config, &case, measurement);
+            completed += 1;
+        }
+    }
     for (size, missing) in [(32768, 1), (32768, 2), (1048576, 1), (1048576, 2)] {
         let case = Case {
             operation: "classic.reconstruct_data_opt",
