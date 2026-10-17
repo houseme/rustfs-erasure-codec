@@ -64,7 +64,7 @@ and padded prefix length. The existing generic codec APIs borrow its prefix
 directly. The serial and parallel read loops share one completion pass; the
 extra length array and prefix collections are removed. Initialized storage stays
 at block size through partial tails and EOF, avoiding a new full-block zero fill
-when checking EOF. The change removes 25 implementation lines. Reconstruction's
+when checking EOF. The change removes 23 implementation lines. Reconstruction's
 disjoint selected views and existing kernel coefficient rows retain their
 respective contracts; no new fast path, threshold, public API or unsafe is added.
 
