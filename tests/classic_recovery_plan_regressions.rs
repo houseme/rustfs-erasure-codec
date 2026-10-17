@@ -392,3 +392,130 @@ mod all_present_allocations {
         }
     }
 }
+
+struct LengthCountedShard {
+    data: Option<Vec<u8>>,
+    length_reads: core::cell::Cell<usize>,
+}
+
+impl rustfs_erasure_codec::ReconstructShard<rustfs_erasure_codec::galois_8::Field>
+    for LengthCountedShard
+{
+    fn len(&self) -> Option<usize> {
+        self.length_reads.set(self.length_reads.get() + 1);
+        self.data.as_ref().map(Vec::len)
+    }
+
+    fn get(&mut self) -> Option<&mut [u8]> {
+        self.data.as_deref_mut()
+    }
+
+    fn get_or_initialize(
+        &mut self,
+        len: usize,
+    ) -> rustfs_erasure_codec::ReconstructInitResult<'_, rustfs_erasure_codec::galois_8::Field>
+    {
+        <Option<Vec<u8>> as rustfs_erasure_codec::ReconstructShard<
+            rustfs_erasure_codec::galois_8::Field,
+        >>::get_or_initialize(&mut self.data, len)
+    }
+}
+
+#[test]
+fn recovery_reads_each_length_once_across_complete_first_middle_and_last_erasure_layouts() {
+    let codec = ReedSolomon::new(4, 2).unwrap();
+    let complete = encoded(&codec, 65);
+    for missing in [None, Some(0), Some(2), Some(5)] {
+        for goal in 0..3 {
+            let mut shards: Vec<_> = complete
+                .iter()
+                .enumerate()
+                .map(|(index, shard)| LengthCountedShard {
+                    data: if missing == Some(index) {
+                        None
+                    } else {
+                        shard.clone()
+                    },
+                    length_reads: core::cell::Cell::new(0),
+                })
+                .collect();
+            match goal {
+                0 => codec.reconstruct(&mut shards),
+                1 => codec.reconstruct_data(&mut shards),
+                _ => codec.reconstruct_some(&mut shards, &[true; 6]),
+            }
+            .unwrap();
+            for (index, shard) in shards.iter().enumerate() {
+                assert_eq!(
+                    shard.length_reads.get(),
+                    1,
+                    "missing={missing:?}, goal={goal}, shard={index}"
+                );
+                let requested = goal != 1 || index < codec.data_shard_count();
+                if missing == Some(index) && !requested {
+                    assert!(shard.data.is_none());
+                } else {
+                    assert_eq!(shard.data, complete[index]);
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn later_invalid_lengths_take_priority_over_insufficient_survivors_without_publication() {
+    let codec = ReedSolomon::new(4, 2).unwrap();
+    let complete = encoded(&codec, 65);
+    for (invalid_len, expected) in [(0, Error::EmptyShard), (64, Error::IncorrectShardSize)] {
+        for goal in 0..3 {
+            let mut shards = complete.clone();
+            shards[..3].fill(None);
+            shards[5] = Some(vec![0; invalid_len]);
+            let before = shards.clone();
+            let result = match goal {
+                0 => codec.reconstruct(&mut shards),
+                1 => codec.reconstruct_data(&mut shards),
+                _ => codec.reconstruct_some(&mut shards, &[false; 6]),
+            };
+            assert_eq!(result, Err(expected));
+            assert_eq!(shards, before);
+            #[cfg(feature = "std")]
+            {
+                let result = match goal {
+                    0 => codec.reconstruct_opt(&mut shards),
+                    1 => codec.reconstruct_data_opt(&mut shards),
+                    _ => codec.reconstruct_some_opt(&mut shards, &[false; 6]),
+                };
+                assert_eq!(result, Err(expected));
+                assert_eq!(shards, before);
+            }
+        }
+    }
+}
+
+#[test]
+fn recovery_validation_keeps_mask_then_count_then_lengths_priority() {
+    let codec = ReedSolomon::new(4, 2).unwrap();
+    let mut shards = vec![Some(Vec::<u8>::new()); 5];
+    let before = shards.clone();
+    assert_eq!(
+        codec.reconstruct_some(&mut shards, &[true]),
+        Err(Error::InvalidShardFlags)
+    );
+    assert_eq!(
+        codec.reconstruct_some(&mut shards, &[true; 6]),
+        Err(Error::TooFewShards)
+    );
+    assert_eq!(
+        codec.reconstruct_data(&mut shards),
+        Err(Error::TooFewShards)
+    );
+    assert_eq!(shards, before);
+    shards.push(Some(Vec::new()));
+    let before = shards.clone();
+    assert_eq!(
+        codec.reconstruct_some(&mut shards, &[true; 6]),
+        Err(Error::EmptyShard)
+    );
+    assert_eq!(shards, before);
+}
