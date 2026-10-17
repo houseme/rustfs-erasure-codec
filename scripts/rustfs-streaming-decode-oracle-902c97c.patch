@@ -1,0 +1,177 @@
+diff --git a/crates/ecstore/benches/erasure_benchmark.rs b/crates/ecstore/benches/erasure_benchmark.rs
+index b7c5bc9bda62bda4ef71d4d2fb90fd6d420cf685..45ed34454c5e783ac53079b35ea3e4fb450a25aa 100644
+--- a/crates/ecstore/benches/erasure_benchmark.rs
++++ b/crates/ecstore/benches/erasure_benchmark.rs
+@@ -365,7 +365,50 @@
+ /// through a `BitrotReader` per erasure stripe. That is the path executed on
+ /// every object GET, and the one where per-stripe shard buffers are allocated.
+ fn bench_streaming_decode(c: &mut Criterion) {
++    #[derive(Default)]
++    struct ObservedSink {
++        written: usize,
++    }
++
++    impl tokio::io::AsyncWrite for ObservedSink {
++        fn poll_write(
++            self: std::pin::Pin<&mut Self>,
++            _cx: &mut std::task::Context<'_>,
++            buf: &[u8],
++        ) -> std::task::Poll<std::io::Result<usize>> {
++            // Observe decoded bytes without allocating or retaining the output.
++            let len = black_box(buf).len();
++            self.get_mut().written += len;
++            std::task::Poll::Ready(Ok(len))
++        }
++
++        fn poll_flush(self: std::pin::Pin<&mut Self>, _cx: &mut std::task::Context<'_>) -> std::task::Poll<std::io::Result<()>> {
++            std::task::Poll::Ready(Ok(()))
++        }
++
++        fn poll_shutdown(
++            self: std::pin::Pin<&mut Self>,
++            _cx: &mut std::task::Context<'_>,
++        ) -> std::task::Poll<std::io::Result<()>> {
++            std::task::Poll::Ready(Ok(()))
++        }
++    }
++
+     let rt = Runtime::new().unwrap();
++    // Record observed runtime settings once, outside all measured iterations.
++    // Backend selection is not a trace of the kernel used by each operation.
++    eprintln!(
++        "RSE_STREAMING_PROVENANCE={}",
++        serde_json::json!({
++            "resolved_backend": rustfs_erasure_codec::galois_8::active_backend_name(),
++            "backend_observation": "codec_resolved_backend_not_per_kernel_trace",
++            "available_parallelism": std::thread::available_parallelism().ok().map(|count| count.get()),
++            "actual_rayon_threads": serde_json::Value::Null,
++            "rayon_observation": "unavailable_no_direct_dependency",
++            "actual_tokio_workers": rt.metrics().num_workers(),
++            "options_max_parallel_jobs": rustfs_erasure_codec::CodecOptions::default().max_parallel_jobs,
++        })
++    );
+     let hash_algo = HashAlgorithm::HighwayHash256;
+
+     // (data_shards, parity_shards, object_size, block_size)
+@@ -376,7 +419,17 @@
+     ];
+
+     for (data_shards, parity_shards, data_size, block_size) in configs {
+-        let data = generate_test_data(data_size);
++        // Mix the absolute byte offset so shards and stripes do not share the
++        // same short repeating pattern. Fixture generation remains untimed.
++        let data: Vec<u8> = (0..data_size)
++            .map(|offset| {
++                let value = u64::try_from(offset).expect("benchmark offset fits u64");
++                let value = value.wrapping_add(0x9e37_79b9_7f4a_7c15);
++                let value = (value ^ (value >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
++                let value = (value ^ (value >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);
++                (value ^ (value >> 31)).to_le_bytes()[0]
++            })
++            .collect();
+         let erasure = Erasure::new(data_shards, parity_shards, block_size);
+         let shard_size = erasure.shard_size();
+         let total_len = data.len();
+@@ -408,52 +461,57 @@
+             group.sample_size(10);
+             group.measurement_time(Duration::from_secs(5));
+
+-            let name = format!(
+-                "{}+{}_{}KB_{}KB-block_verify-{}",
+-                data_shards,
+-                parity_shards,
+-                data_size / 1024,
+-                block_size / 1024,
+-                verify
+-            );
+-
+-            // Validate decode once per config (untimed) so a regression in
+-            // success or output length fails the benchmark without putting
+-            // assertions inside the measured loop.
+-            {
+-                let readers: Vec<Option<BitrotReader<Cursor<&[u8]>>>> = shard_bufs
+-                    .iter()
+-                    .map(|buf| Some(BitrotReader::new(Cursor::new(buf.as_slice()), shard_size, hash_algo.clone(), skip_verify)))
+-                    .collect();
+-                let mut sink = tokio::io::sink();
+-                let (written, err) = rt.block_on(erasure.decode(&mut sink, readers, 0, total_len, total_len));
+-                assert!(err.is_none(), "decode failed: {err:?}");
+-                assert_eq!(written, total_len, "decode wrote {written} of {total_len} bytes");
++            for missing_first_data in [false, true] {
++                let name = format!(
++                    "{}+{}_{}KB_{}KB-block_verify-{}{}",
++                    data_shards,
++                    parity_shards,
++                    data_size / 1024,
++                    block_size / 1024,
++                    verify,
++                    if missing_first_data { "_missing-first-data" } else { "" }
++                );
++                let make_readers = || -> Vec<Option<BitrotReader<Cursor<&[u8]>>>> {
++                    shard_bufs
++                        .iter()
++                        .enumerate()
++                        .map(|(index, buf)| {
++                            if missing_first_data && index == 0 {
++                                None
++                            } else {
++                                Some(BitrotReader::new(Cursor::new(buf.as_slice()), shard_size, hash_algo.clone(), skip_verify))
++                            }
++                        })
++                        .collect()
++                };
++
++                // The complete plaintext oracle is untimed. A full-length
++                // response with an error still fails; partial output is not success.
++                {
++                    let mut plaintext = Vec::with_capacity(total_len);
++                    let (written, err) = rt.block_on(erasure.decode(&mut plaintext, make_readers(), 0, total_len, total_len));
++                    assert!(err.is_none(), "{name}: decode failed: {err:?}");
++                    assert_eq!(written, total_len, "{name}: decode wrote {written} of {total_len} bytes");
++                    assert_eq!(plaintext, data, "{name}: decoded plaintext differs from the original object");
++                }
++
++                group.bench_function(BenchmarkId::new("decode", &name), |b| {
++                    b.iter_batched(
++                        // Reader/UUID and sink construction stay outside timing.
++                        || (make_readers(), ObservedSink::default()),
++                        |(readers, mut sink)| {
++                            rt.block_on(async {
++                                let (written, err) = erasure.decode(black_box(&mut sink), readers, 0, total_len, total_len).await;
++                                assert!(err.is_none(), "{name}: timed decode failed: {err:?}");
++                                assert_eq!(written, total_len, "{name}: timed decode wrote {written} of {total_len} bytes");
++                                assert_eq!(sink.written, total_len, "{name}: timed sink received an incorrect byte count");
++                                black_box(written);
++                            });
++                        },
++                        criterion::BatchSize::SmallInput,
++                    );
++                });
+             }
+-
+-            group.bench_function(BenchmarkId::new("decode", name), |b| {
+-                b.iter_batched(
+-                    || {
+-                        // Setup (untimed): per-shard readers positioned at the
+-                        // object start, plus the no-op sink, so reader/UUID and
+-                        // sink construction stay out of the timed decode path.
+-                        let readers: Vec<Option<BitrotReader<Cursor<&[u8]>>>> = shard_bufs
+-                            .iter()
+-                            .map(|buf| {
+-                                Some(BitrotReader::new(Cursor::new(buf.as_slice()), shard_size, hash_algo.clone(), skip_verify))
+-                            })
+-                            .collect();
+-                        (readers, tokio::io::sink())
+-                    },
+-                    |(readers, mut sink)| {
+-                        rt.block_on(async {
+-                            let (written, _err) = erasure.decode(black_box(&mut sink), readers, 0, total_len, total_len).await;
+-                            black_box(written);
+-                        });
+-                    },
+-                    criterion::BatchSize::SmallInput,
+-                );
+-            });
+             group.finish();
+         }
+     }
