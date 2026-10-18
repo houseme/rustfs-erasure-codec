@@ -78,13 +78,13 @@ def capture(baseline,output,group):
             'cases':[]}
     counts={}
     for profile in evidence.FILES:
-        records=sampling.run_profile(baseline,env,profile,'calibrate',output/(profile+'-calibration.log'))
+        records=sampling.run_profile(baseline,env,profile,'calibrate',output/(profile+'-calibration.log'),cases=evidence.expected_cases(profile))
         (output/(profile+'-calibration.json')).write_text(json.dumps(records,indent=2)+'\n')
         counts[profile]=evidence.calibration_counts(basic_records(records),profile,source['commit'])
         if evidence.environment_context(baseline,env,group)!=context:raise ValueError('resource context changed during calibration')
     for profile in evidence.FILES:
         path=output/(profile+'-counts.tsv');path.write_text(''.join(f'{k}\t{v}\n' for k,v in sorted(counts[profile].items())))
-        records=sampling.run_profile(baseline,env,profile,'sample',output/(profile+'.log'),path)
+        records=sampling.run_profile(baseline,env,profile,'sample',output/(profile+'.log'),path,cases=evidence.expected_cases(profile))
         (output/(profile+'-samples.json')).write_text(json.dumps(records,indent=2)+'\n')
         normalize=lambda p,row,rev: next(iter(evidence.indexed_rows(p,[row],rev,counts[p],complete=False)))
         sampling.sample_groups(basic_records(records),profile,source['commit'],evidence.expected_cases(profile),counts[profile],normalize,context['isolation']['cpu_affinity'])

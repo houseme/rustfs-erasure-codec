@@ -400,7 +400,7 @@ def calibration_counts(records, profile, revision):
     for record in records:
         key = record.get("case")
         count = record.get("iterations")
-        if record.get("kind") != "calibration" or record.get("revision") != revision or key not in expected_cases(profile) or type(count) is not int or not 0 < count <= 1_000_000_000:
+        if record.get("isolated_case") is not True or record.get("kind") != "calibration" or record.get("revision") != revision or key not in expected_cases(profile) or type(count) is not int or not 0 < count <= 1_000_000_000:
             raise ValueError("invalid calibration sample")
         if not isinstance(record.get("rows"), list) or len(record["rows"]) != 1:
             raise ValueError("calibration must contain one raw row")
@@ -456,7 +456,7 @@ def capture(baseline, candidate, output, group):
             subprocess.run(args,cwd=root,env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
     def execute(root, folder, profile, mode, count_file=None):
         before = environment_context(root,env,group)
-        records = sampling.run_profile(root,env,profile,mode,folder/(profile+".log"),count_file)
+        records = sampling.run_profile(root,env,profile,mode,folder/(profile+".log"),count_file,cases=expected_cases(profile))
         if environment_context(root,env,group)!=before: raise ValueError("measurement environment changed")
         member=folder/(profile+"-samples.json")
         member.write_text(json.dumps(records,indent=2)+"\n")

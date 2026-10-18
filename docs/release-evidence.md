@@ -52,7 +52,13 @@ selecting an insufficient steady-state interval. Allocation state may still chan
 between separate invocations; every formal sample must pass its own interval
 check. The larger
 iteration count for each case is frozen for **both releases and every phase**.
-Every phase then warms each case and collects exactly nine samples. All pilot,
+Each calibration and measurement case runs in a fresh test process, in a fixed
+lexicographic case order. This prevents another case from seeding its allocator
+arenas or worker-pool state. Protocol 3 records `isolated_case=true` on every
+observation; missing/false markers are rejected. Every phase performs exactly
+three warmup invocations at the frozen count, then collects exactly nine samples.
+All three warmups are retained, and none of the nine samples can be replaced or
+silently retried. All pilot,
 warmup and sample exports are retained. A sample needs at least 50 ms wall time
 and 2 ms timed work; its interval must agree with the original raw metric.
 The summary must be the actual median of the nine samples. The width between
@@ -198,3 +204,16 @@ combined policy effect, not either control in isolation. The
 [GNU libc tunables documentation](https://sourceware.org/glibc/manual/latest/html_node/Memory-Allocation-Tunables.html)
 describes the dynamic allocation thresholds. Do not remove allocation costs,
 relax gates, or selectively rerun cases to hide an unstable baseline.
+
+## Published rejected audit snapshot
+
+The [complete protocol-2 rejected campaign](https://github.com/houseme/rustfs-erasure-codec/tree/f12cbb675e9379d58bfc7217c41f6415778e1c83)
+retains every calibration/warmup/sample JSON and file binding without changing
+numeric observations. It is audit data, not an accepted baseline. The
+[online real-data negative preflight](https://github.com/houseme/rustfs-erasure-codec/actions/runs/39114330164)
+rejected unstable distributions on main `8f775a2`, and skipped release-preflight
+and publication. The input's complete validator file set was reviewed for
+credentials, internal addresses and private paths; ancillary SSH/launcher logs
+remain private. Do not configure this rejected commit as accepted evidence.
+Protocol 3 requires new complete calibration and capture on both releases;
+previous timing distributions cannot establish its acceptance.
