@@ -97,3 +97,7 @@ rejection after seven wide distributions. `protocol10-retained-arena-baseline`
 retains complete A1/A2: all 252 distributions pass width, but seven repeat drifts
 exceed 5%. Both baseline prerequisites fail; candidate attribution remains null.
 The controlled allocator context never substitutes for default throughput evidence.
+
+## Complete protocol-10 variability replay
+
+`diagnostics/protocol10-baseline-variability` describes all 126 cases from both existing baseline contexts without new measurements. Sixteen cases have the same single CPU endpoint in both phases, including two repeat failures of 15.827029% and 18.164593%. Equal endpoints do not prove pinning; the replay cannot uniquely assign a cause or approve performance. Every input hash matches the already published complete raw samples. No failures or historical observations are removed.
