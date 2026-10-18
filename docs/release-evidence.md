@@ -28,17 +28,43 @@ python3 candidate/scripts/release_evidence.py capture \
   --output /test/new-campaign --isolation-cgroup /sys/fs/cgroup/reserved-release
 ```
 
-This invokes real Cargo benchmarks, with locked release builds, `std simd-accel`,
-no instrumentation, four Rayon workers, a four-job policy and empty RUSTFLAGS. It
-clears inherited benchmark/policy tuning, builds both revisions first and runs all
-four profiles in **A1/B1/B2/A2** order with fixed 10-second cooling intervals:
+The collector builds the same external integration test against each unmodified
+codec using the original benchmark functions and writers. Generated overlay files
+are untracked test inputs, recorded through the renderer and normalized overlay
+digests; neither release's production code nor original benchmark files are
+edited. The external adapter excludes one-time fixture preparation from the
+small-file and stream timers on both versions, with a checked reversible transform
+that preserves all loop bodies and per-iteration allocations. Smoke keeps its
+original per-iteration workload; hotspots keep their original inner recovery
+intervals. Timing scopes are recorded, so the older cohort is not quantitatively
+comparable to these new summaries. The candidate tree binds the committed renderer/templates. Both use
+locked release builds, `std simd-accel`, no instrumentation, four Rayon workers,
+a four-job policy and empty RUSTFLAGS.
 
-| Profile | Exported cases | Iterations |
-|---|---:|---:|
-| Smoke, extended | 15 | 200 |
-| Small files, fast | 88 | 1000 |
-| Reconstruction hotspots | 8 | 100 |
-| Streams, fast, auto I/O | 15 | 30 |
+Every case is calibrated on both releases before A1. Calibration targets at least
+100 ms wall time and 5 ms timed work, with bounded increasing iterations. The larger
+iteration count for each case is frozen for **both releases and every phase**.
+Every phase then warms each case and collects exactly nine samples. All pilot,
+warmup and sample exports are retained. A sample needs at least 50 ms wall time
+and 2 ms timed work; its interval must agree with the original raw metric.
+The summary must be the actual median of the nine samples. The width between
+the second and eighth sorted samples may not exceed 10% of the median; all nine
+samples remain in the evidence, including extremes. This distribution gate is
+additional to the unchanged 5% A1/A2 and B1/B2 drift limits and existing regression
+thresholds. It does not assume that sequential samples are independent.
+
+| Profile | Cases per phase |
+|---|---:|
+| Smoke, extended | 15 |
+| Small files, fast | 88 |
+| Reconstruction hotspots | 8 |
+| Streams, fast, auto I/O | 15 |
+
+The main test thread records CPU IDs and scheduling run/wait/switch counters
+before and after each invocation. These observations help diagnose migrations
+and scheduling delay; they do not establish physical-host exclusivity or observe
+every Rayon worker. Fixed 10-second cooling intervals precede each complete
+A1/B1/B2/A2 phase.
 
 No case filter is accepted. Both A and B repeat drift must be at most 5% for every
 case; all four A/B pairings must also pass the existing per-operation regression
@@ -61,8 +87,9 @@ python3 candidate/scripts/release_evidence.py verify \
 
 Create a separate data-only Git branch in the same repository. Its
 `release-evidence/` directory must contain the accepted `manifest.json` and the
-sixteen declared JSON members (`A1/`, `B1/`, `B2/`, `A2/`). Copy only these declared
-files, never raw logs, local paths, credentials, host/process inventories or
+sixteen summary JSON members plus every declared per-profile sample and
+calibration JSON (`A1/`, `B1/`, `B2/`, `A2/`, `calibration-baseline/`,
+`calibration-candidate/`). Copy only these declared files, never raw logs, local paths, credentials, host/process inventories or
 executable hashes. Commit and push it, then set repository variable
 `RSE_RELEASE_EVIDENCE_REF` to its full 40-character commit. A branch name, URL or
 runner-local path is not an evidence reference. The source tree is not modified
@@ -100,3 +127,16 @@ CI success or presence of the variable alone is insufficient release acceptance.
 Local `VALIDATION_PROFILE=release` also accepts `RSE_RELEASE_EVIDENCE=<manifest>`.
 Existing local baseline file inputs remain available for direct measurements;
 they do not replace the mandatory immutable snapshot input in release CI.
+
+
+## Why the earlier single-batch campaign was rejected
+
+The complete earlier cohort remains rejected: 18/252 repeat checks exceeded 5%,
+including 6 baseline and 12 candidate checks, with maximum drift 21.18%. Some
+failing small-file batches lasted only 0.14–0.98 ms and stream batches 0.90–3.64 ms.
+They had one mean per case and no independent warmup or sample distribution.
+However, 260–294 ms batches also drifted; short intervals cannot explain every
+failure. Whole-campaign CPU snapshots cannot determine the per-case effects of
+migration, scheduler delay or clock frequency. The new protocol addresses the
+confirmed measurement gaps and adds diagnostics; its implementation alone is not
+accepted performance evidence or permission to publish.

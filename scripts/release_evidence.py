@@ -17,9 +17,12 @@ import shutil
 import subprocess
 import sys
 import time
+import copy
+
+import release_sampling as sampling
 
 from check_benchmark_regression import PROVENANCE_FIELDS, index_records, provenance_value
-from check_reconstruction_hotspot_gate import CASE_FIELDS, load_results
+from check_reconstruction_hotspot_gate import CASE_FIELDS, index_results
 
 BASELINE_RELEASE = "9.0.0"
 BASELINE_COMMIT = "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6"
@@ -55,6 +58,8 @@ BASE_ENV = {
     "RSE_STREAM_ITERATIONS": "30", "RSE_TEST_BENCH_ITERATIONS": "100",
 }
 
+SAMPLING_ENV = {k: v for k, v in BASE_ENV.items() if not k.endswith("_ITERATIONS")}
+SAMPLING_ENV["RSE_SAMPLER_PROTOCOL"] = "duration-v1"
 
 # Complete exported profile catalogs; harness changes require an explicit review.
 def expected_cases(profile):
@@ -156,24 +161,26 @@ def environment_context(root, env, group):
     if not cpu:
         raise ValueError("CPU model must be available for release evidence")
     return {"compiler": command(["rustc", "--version"], root, env), "cpu_model": cpu,
-            "isolation": isolation, "settings": {k: env[k] for k in BASE_ENV}}
+            "isolation": isolation, "settings": {k: env[k] for k in (SAMPLING_ENV if env.get("RSE_SAMPLER_PROTOCOL") else BASE_ENV)}}
 
 
-def rows(profile, path, revision):
+def rows(profile, path, revision, iteration_counts=None):
+    return indexed_rows(profile, json_data(path), revision, iteration_counts)
+
+
+def indexed_rows(profile, original, revision, iteration_counts=None, complete=True):
     if profile == "hotspot":
-        indexed = load_results(path, METRICS[profile])
-        original = json_data(path)
+        indexed = index_results(copy.deepcopy(original), METRICS[profile])
     else:
-        original = json_data(path)
         normalized = index_records(original, "release evidence")
         indexed = {":".join(key).rstrip(":"): value for key, value in normalized.items()}
         for row in original:
             recorded = row.get("git_revision")
             if not isinstance(recorded, str) or not re.fullmatch(r"[0-9a-f]{7,40}", recorded) or not revision.startswith(recorded):
                 raise ValueError("benchmark revision does not match the measured source")
-    if set(indexed) != expected_cases(profile):
+    if (complete and set(indexed) != expected_cases(profile)) or not set(indexed).issubset(expected_cases(profile)):
         raise ValueError(f"{profile}: incomplete or unexpected release case catalog")
-    for row in original:
+    for case, row in zip(indexed, original):
         if type(row.get("schema_version")) is not int or row["schema_version"] != 1 or row.get("benchmark_metrics_enabled") is not False:
             raise ValueError("release artifacts require schema 1 and disabled instrumentation")
         if profile == "hotspot" and any(field not in row for field in CASE_FIELDS):
@@ -190,7 +197,8 @@ def rows(profile, path, revision):
             if "profile" in row and row["profile"] != expected_profile:
                 raise ValueError("unexpected benchmark profile")
             iteration_setting = {"smoke": "RSE_SMOKE_ITERATIONS", "small_file": "RSE_SMALL_FILE_ITERATIONS", "stream": "RSE_STREAM_ITERATIONS"}[profile]
-            if type(row.get("iterations")) is not int or row["iterations"] != int(BASE_ENV[iteration_setting]):
+            expected_iterations = iteration_counts[case] if iteration_counts is not None else int(BASE_ENV[iteration_setting])
+            if type(row.get("iterations")) is not int or row["iterations"] != expected_iterations:
                 raise ValueError("benchmark iterations differ from captured settings")
             if provenance_value(row, "features") != "simd-accel|std":
                 raise ValueError("unexpected features or benchmark profile")
@@ -217,7 +225,7 @@ def compatible(profile, left, right):
 
 def safe_file(root, name):
     path = pathlib.PurePosixPath(name)
-    if path.is_absolute() or ".." in path.parts or len(path.parts) != 2 or path.parts[0] not in PHASES or path.name not in FILES.values():
+    if path.is_absolute() or ".." in path.parts or len(path.parts) != 2 or path.parts[0] not in PHASES + ("calibration-baseline", "calibration-candidate") or path.name not in set(FILES.values()) | {p + "-samples.json" for p in FILES}:
         raise ValueError("invalid evidence member path")
     current = root
     for part in path.parts:
@@ -248,7 +256,7 @@ def verify(manifest, repository, compiler=True):
     for field in ("sources", "contexts", "files"):
         if not isinstance(document.get(field), dict):
             raise ValueError("invalid manifest container: " + field)
-    if type(document.get("schema_version")) is not int or document["schema_version"] != 1 or document.get("phase_order") != list(PHASES):
+    if type(document.get("schema_version")) is not int or document["schema_version"] not in (1, 2) or document.get("phase_order") != list(PHASES):
         raise ValueError("complete A1/B1/B2/A2 evidence is required")
     if document.get("baseline_release") != BASELINE_RELEASE:
         raise ValueError("release baseline must be the published 9.0.0")
@@ -275,7 +283,8 @@ def verify(manifest, repository, compiler=True):
     if not isinstance(reference, dict) or not isinstance(reference.get("isolation"), dict) or reference["isolation"].get("scope") != "exclusive-vm-cpu-partition":
         raise ValueError("controlled resource provenance is required")
     isolation = reference["isolation"]
-    if reference.get("settings") != BASE_ENV or not reference.get("cpu_model") or not reference.get("compiler") or type(isolation.get("reserved_cpu_count")) is not int or isolation["reserved_cpu_count"] < 2 or isolation.get("physical_host_exclusivity_proven") is not False:
+    expected_env = SAMPLING_ENV if document["schema_version"] == 2 else BASE_ENV
+    if reference.get("settings") != expected_env or not reference.get("cpu_model") or not reference.get("compiler") or type(isolation.get("reserved_cpu_count")) is not int or isolation["reserved_cpu_count"] < 2 or isolation.get("physical_host_exclusivity_proven") is not False:
         raise ValueError("incomplete or unexpected controlled capture settings")
     if any(contexts.get(phase) != reference for phase in PHASES + ("after",)):
         raise ValueError("measurement environment changed during the campaign")
@@ -301,7 +310,9 @@ def verify(manifest, repository, compiler=True):
             json_data(path)
             if digest(path.read_bytes()) != entry["sha256"]: raise ValueError("evidence digest mismatch")
             paths[phase][profile] = path
-            data[phase][profile] = rows(profile, path, sources[role]["commit"])
+            counts = document.get("sampling", {}).get("common_iterations", {}).get(profile) if document["schema_version"] == 2 else None
+            data[phase][profile] = rows(profile, path, sources[role]["commit"], counts)
+    sample_spreads = verify_sampling(document, root, repository, data) if document["schema_version"] == 2 else []
     drifts = []
     for profile in FILES:
         for phase in PHASES[1:]: compatible(profile, data["A1"][profile], data[phase][profile])
@@ -312,60 +323,147 @@ def verify(manifest, repository, compiler=True):
                 drifts.append({"profile": profile, "case": case, "pair": first + second, "drift": drift})
     if any(item["drift"] > .05 for item in drifts):
         raise EvidenceFailure("ABBA drift exceeds 5%; no candidate attribution or release approval",
-                              {"drift_checks": drifts, "candidate_attribution": None})
+                              {"drift_checks": drifts, "sample_spreads": sample_spreads, "candidate_attribution": None})
     for profile in FILES:
         for a in ("A1", "A2"):
             for b in ("B1", "B2"):
                 subprocess.run(checker_args(profile, paths[a][profile], paths[b][profile]), cwd=repository, check=True, stdout=subprocess.DEVNULL)
-    return document, paths, {"status": "passed", "candidate_commit": actual["commit"], "candidate_tree": actual["tree"], "measured_candidate_commit": sources["candidate"]["commit"], "baseline_commit": sources["baseline"]["commit"], "manifest_sha256": digest(manifest.read_bytes()), "drift_checks": len(drifts), "case_counts": {p: len(data["A1"][p]) for p in FILES}, "scope": "controlled recorded VM campaign; no new measurement on the verification runner"}
+    return document, paths, {"status": "passed", "candidate_commit": actual["commit"], "candidate_tree": actual["tree"], "measured_candidate_commit": sources["candidate"]["commit"], "baseline_commit": sources["baseline"]["commit"], "manifest_sha256": digest(manifest.read_bytes()), "drift_checks": len(drifts), "sample_distribution_checks": len(sample_spreads), "case_counts": {p: len(data["A1"][p]) for p in FILES}, "scope": "controlled recorded VM campaign; no new measurement on the verification runner"}
+
+
+def evidence_member(root, entry, expected):
+    if not isinstance(entry, dict) or entry.get("path") != expected or not DIGEST.fullmatch(entry.get("sha256", "")):
+        raise ValueError("invalid sampling evidence declaration")
+    path = safe_file(root, expected)
+    result = json_data(path)
+    if digest(path.read_bytes()) != entry["sha256"]:
+        raise ValueError("sampling evidence digest mismatch")
+    return result
+
+
+def verify_sampling(document, root, repository, summarized):
+    contract = document.get("sampling", {})
+    expected = dict(sampling.PROTOCOL, implementation_sha256=sampling.implementation_digest(), overlay_sha256=sampling.overlay_digest(repository))
+    if any(contract.get(k) != v for k, v in expected.items()):
+        raise ValueError("sampling protocol/implementation mismatch")
+    counts = contract.get("common_iterations", {})
+    if set(counts) != set(FILES): raise ValueError("complete common iteration counts are required")
+    pilot_counts = {role: {} for role in ("baseline", "candidate")}
+    for role in pilot_counts:
+        for profile in FILES:
+            name = f"calibration-{role}/{profile}-samples.json"
+            records = evidence_member(root, document.get("calibration", {}).get(role, {}).get(profile), name)
+            pilot_counts[role][profile] = calibration_counts(records, profile, document["sources"][role]["commit"])
+    spreads = []
+    for profile in FILES:
+        expected_counts = {key: max(pilot_counts[role][profile][key] for role in pilot_counts) for key in expected_cases(profile)}
+        if counts[profile] != expected_counts: raise ValueError("common iterations differ from complete calibration")
+        for phase in PHASES:
+            revision = document["sources"]["baseline" if phase.startswith("A") else "candidate"]["commit"]
+            entry = document["files"][phase][profile].get("samples")
+            records = evidence_member(root, entry, f"{phase}/{profile}-samples.json")
+            normalize = lambda p, row, rev: next(iter(indexed_rows(p, [row], rev, counts[p], complete=False)))
+            selected, widths = sampling.selected_row(records, profile, METRICS[profile], revision, expected_cases(profile), counts[profile], normalize, document["contexts"][phase]["isolation"].get("cpu_affinity"))
+            recomputed = indexed_rows(profile, selected, revision, counts[profile])
+            if recomputed != summarized[phase][profile]: raise ValueError("summary is not the median of all fixed samples")
+            spreads.extend(dict(item, phase=phase, profile=profile) for item in widths)
+    unstable = [r for r in spreads if r["central_spread"] > sampling.PROTOCOL["central_spread_limit"]]
+    if unstable:
+        raise EvidenceFailure("sample distributions are unstable; no candidate attribution", {"sample_spreads": spreads, "candidate_attribution": None})
+    return spreads
+
+
+def calibration_counts(records, profile, revision):
+    groups = {}
+    for record in records:
+        key = record.get("case")
+        count = record.get("iterations")
+        if record.get("kind") != "calibration" or record.get("revision") != revision or key not in expected_cases(profile) or type(count) is not int or not 0 < count <= 1_000_000_000:
+            raise ValueError("invalid calibration sample")
+        if not isinstance(record.get("rows"), list) or len(record["rows"]) != 1:
+            raise ValueError("calibration must contain one raw row")
+        sampling.validate_telemetry(record)
+        if set(indexed_rows(profile, record["rows"], revision, {key: count}, complete=False)) != {key}:
+            raise ValueError("calibration row does not match declared case")
+        sampling.validate_timing(record, profile, count)
+        groups.setdefault(key, []).append(record)
+    if set(groups) != expected_cases(profile): raise ValueError("calibration case catalog is incomplete")
+    counts = {}
+    for key, group in groups.items():
+        if not 1 <= len(group) <= 8 or group[0]["iterations"] != 1 or any(r.get("complete") is not False for r in group[:-1]) or group[-1].get("complete") is not True:
+            raise ValueError("invalid bounded calibration sequence")
+        if any(b["iterations"] <= a["iterations"] for a,b in zip(group, group[1:])):
+            raise ValueError("calibration must increase iteration counts")
+        last = group[-1]
+        if last["wall_ns"] < sampling.PROTOCOL["target_wall_ns"] or last["timed_ns"] < sampling.PROTOCOL["target_timed_ns"]:
+            raise ValueError("calibration did not reach its measurement interval")
+        counts[key] = last["iterations"]
+    return counts
 
 
 def capture(baseline, candidate, output, group):
     if output.exists(): raise ValueError("use a new evidence directory; old observations are preserved")
     output.mkdir(parents=True)
-    env = {k: v for k, v in os.environ.items() if not k.startswith(("RSE_", "RS_", "CARGO_PROFILE_")) and k not in ("CARGO_ENCODED_RUSTFLAGS", "RUSTC_WRAPPER", "RUSTC_WORKSPACE_WRAPPER")}
-    env.update(BASE_ENV)
+    env = {k:v for k,v in os.environ.items() if not k.startswith(("RSE_", "RS_", "CARGO_PROFILE_")) and k not in ("CARGO_ENCODED_RUSTFLAGS", "RUSTC_WRAPPER", "RUSTC_WORKSPACE_WRAPPER")}
+    env.update(SAMPLING_ENV)
     environment_context(candidate, env, group)
     sources = {"baseline": source_info(baseline), "candidate": source_info(candidate)}
-    if sources["baseline"]["commit"] != BASELINE_COMMIT: raise ValueError("baseline must be published 9.0.0")
-    if sources["baseline"]["commit"] == sources["candidate"]["commit"]: raise ValueError("different source revisions are required")
+    if sources["baseline"]["commit"] != BASELINE_COMMIT or sources["candidate"]["commit"] == BASELINE_COMMIT:
+        raise ValueError("published baseline and a different candidate are required")
     harness = harness_digest(candidate)
-    if harness_digest(baseline) != harness: raise ValueError("baseline and candidate need the same benchmark harness")
-    metadata = {"baseline_release": BASELINE_RELEASE, "schema_version": 1, "phase_order": list(PHASES), "sources": sources, "harness_sha256": harness, "contexts": {}, "files": {}}
-    for label, root in (("baseline", baseline), ("candidate", candidate)):
-        for filename in FILES.values():
-            if (root / "target/benchmark-smoke" / filename).exists(): raise ValueError("use fresh source worktrees without old result files")
-        args = ["cargo", "test", "--locked", "--release", "--features", "std simd-accel", "--lib", "--test", "benchmark_smoke", "--test", "benchmark_small_files", "--test", "benchmark_stream_paths", "--no-run"]
-        with (output / (label + "-build.log")).open("w") as log: subprocess.run(args, cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
+    if harness_digest(baseline) != harness or sampling.overlay_digest(baseline) != sampling.overlay_digest(candidate):
+        raise ValueError("both codecs require the same original harness and external overlay")
+    contract = dict(sampling.PROTOCOL, implementation_sha256=sampling.implementation_digest(), overlay_sha256=sampling.overlay_digest(candidate))
+    metadata = {"schema_version":2,"baseline_release":BASELINE_RELEASE,"phase_order":list(PHASES),"sources":sources,"harness_sha256":harness,"sampling":contract,"contexts":{},"files":{},"calibration":{}}
+    for role, root in (("baseline", baseline), ("candidate", candidate)):
+        sampling.generate(root)
+        args = ["cargo","test","--locked","--release","--features","std simd-accel","--test","rse_release_sampling","--no-run"]
+        with (output/(role+"-build.log")).open("w") as log:
+            subprocess.run(args,cwd=root,env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
+    def execute(root, folder, profile, mode, count_file=None):
+        run_env = dict(env,RSE_SAMPLER_PROFILE=profile,RSE_SAMPLER_MODE=mode)
+        if count_file: run_env["RSE_SAMPLER_COUNTS"] = str(count_file)
+        before = environment_context(root,env,group)
+        args=["cargo","test","--locked","--release","--features","std simd-accel","--test","rse_release_sampling","release_controlled_profile","--","--exact","--ignored","--nocapture","--test-threads=1"]
+        path=folder/(profile+".log")
+        with path.open("w") as log: subprocess.run(args,cwd=root,env=run_env,stdout=log,stderr=subprocess.STDOUT,check=True)
+        if environment_context(root,env,group)!=before: raise ValueError("measurement environment changed")
+        records=sampling.parse_log(path)
+        member=folder/(profile+"-samples.json")
+        member.write_text(json.dumps(records,indent=2)+"\n")
+        return records, {"path":member.relative_to(output).as_posix(),"sha256":digest(member.read_bytes())}
+    pilots={}
+    for role,root in (("baseline",baseline),("candidate",candidate)):
+        folder=output/("calibration-"+role);folder.mkdir()
+        metadata["calibration"][role]={};pilots[role]={}
+        for profile in FILES:
+            records,entry=execute(root,folder,profile,"calibrate")
+            metadata["calibration"][role][profile]=entry
+            pilots[role][profile]=calibration_counts(records,profile,sources[role]["commit"])
+    counts={p:{k:max(pilots[r][p][k] for r in pilots) for k in expected_cases(p)} for p in FILES}
+    contract["common_iterations"]=counts
+    count_files={}
+    for profile in FILES:
+        count_files[profile]=output/("counts-"+profile+".tsv")
+        count_files[profile].write_text("".join(f"{key}\t{value}\n" for key,value in sorted(counts[profile].items())))
     for phase in PHASES:
-        time.sleep(10)  # Fixed cooling interval before every complete phase.
-        root = baseline if phase.startswith("A") else candidate
-        metadata["contexts"][phase] = environment_context(root, env, group)
-        folder = output / phase
-        folder.mkdir()
-        metadata["files"][phase] = {}
-        for profile, filename in FILES.items():
-            result = root / "target/benchmark-smoke" / filename
-            if result.exists(): result.unlink()  # Only outputs already copied from this campaign.
-            args = ["cargo", "test", "--locked", "--release", "--features", "std simd-accel"]
-            if profile == "hotspot": args += ["--lib", "benchmark_reconstruction_hotspots"]
-            else:
-                target, name = {"smoke": ("benchmark_smoke", "benchmark_smoke_matrix_runs_and_exports_results"), "small_file": ("benchmark_small_files", "benchmark_small_file_matrix_runs_and_exports_results"), "stream": ("benchmark_stream_paths", "benchmark_stream_path_matrix_runs_and_exports_results")}[profile]
-                args += ["--test", target, name]
-            args += ["--", "--ignored", "--nocapture", "--test-threads=1"]
-            with (folder / (profile + ".log")).open("w") as log: subprocess.run(args, cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
-            if environment_context(root, env, group) != metadata["contexts"][phase]:
-                raise ValueError("resource or compiler context changed within a phase")
-            shutil.copyfile(result, folder / filename)
-            metadata["files"][phase][profile] = {"path": f"{phase}/{filename}", "sha256": digest(result.read_bytes())}
-            (output / "manifest.partial.json").write_text(json.dumps(metadata, indent=2) + "\n")
-            rows(profile, result, sources["baseline" if phase.startswith("A") else "candidate"]["commit"])
-    metadata["contexts"]["after"] = environment_context(candidate, env, group)
-    if source_info(baseline) != sources["baseline"] or source_info(candidate) != sources["candidate"]: raise ValueError("source changed during capture")
-    manifest = output / "manifest.json"
-    manifest.write_text(json.dumps(metadata, indent=2) + "\n")
-    _, _, report = verify(manifest, candidate)
-    (output / "report.json").write_text(json.dumps(report, indent=2) + "\n")
+        time.sleep(10)
+        role="baseline" if phase.startswith("A") else "candidate"
+        root=baseline if role=="baseline" else candidate
+        metadata["contexts"][phase]=environment_context(root,env,group)
+        folder=output/phase;folder.mkdir();metadata["files"][phase]={}
+        for profile,filename in FILES.items():
+            records,entry=execute(root,folder,profile,"sample",count_files[profile])
+            normalize=lambda p,row,rev: next(iter(indexed_rows(p,[row],rev,counts[p],complete=False)))
+            selected,_=sampling.selected_row(records,profile,METRICS[profile],sources[role]["commit"],expected_cases(profile),counts[profile],normalize)
+            result=folder/filename;result.write_text(json.dumps(selected,indent=2)+"\n")
+            metadata["files"][phase][profile]={"path":f"{phase}/{filename}","sha256":digest(result.read_bytes()),"samples":entry}
+            (output/"manifest.partial.json").write_text(json.dumps(metadata,indent=2)+"\n")
+    metadata["contexts"]["after"]=environment_context(candidate,env,group)
+    if any(source_info(root)!=sources[role] for role,root in (("baseline",baseline),("candidate",candidate))): raise ValueError("source changed during capture")
+    manifest=output/"manifest.json";manifest.write_text(json.dumps(metadata,indent=2)+"\n")
+    _,_,report=verify(manifest,candidate)
+    (output/"report.json").write_text(json.dumps(report,indent=2)+"\n")
 
 
 def materialize(manifest, repository, env_file):
