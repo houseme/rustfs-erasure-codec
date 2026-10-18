@@ -1,0 +1,313 @@
+{
+  "schema_version": "retained-vec-controls-v1",
+  "purpose": "scoped baseline diagnosis only; never release acceptance",
+  "candidate_attribution": null,
+  "release_approval": false,
+  "source": {
+    "commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "tree": "d44fe8c296972cf895375101f8975c99371db57a",
+    "lock_sha256": "972540efcf6bc23c0064252a9c0d937bf87dbe0edff9cdb688d2fdcbd5653d49"
+  },
+  "tool": {
+    "commit": "c011a9b36d6433f9a6769dfb98cffabc38217265",
+    "tree": "5664b26534b0ec5fef54974175c693b5fc206c4a",
+    "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+  },
+  "driver_sha256": "69e12d9a1b755752a8dc6c81c13d133b1151b358b382c040101b78aebaafde5f",
+  "context": {
+    "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+    "isolation": {
+      "scope": "exclusive-vm-cpu-partition",
+      "reserved_cpu_count": 8,
+      "cpu_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "physical_host_exclusivity_proven": false
+    },
+    "runtime": {
+      "libc": {
+        "name": "glibc",
+        "version": "2.39"
+      },
+      "allocator_environment": {}
+    },
+    "settings": {
+      "RUSTUP_TOOLCHAIN": "stable",
+      "RUSTFLAGS": "",
+      "RAYON_NUM_THREADS": "4",
+      "RS_PARALLEL_POLICY_MAX_JOBS": "4",
+      "RSE_BACKEND_OVERRIDE": "auto",
+      "RSE_STRICT_BACKEND_OVERRIDE": "1",
+      "RSE_SMOKE_PROFILE": "extended",
+      "RSE_SMALL_FILE_PROFILE": "fast",
+      "RSE_STREAM_PROFILE": "fast",
+      "RSE_STREAM_IO_MODE": "auto",
+      "RSE_BENCHMARK_ALLOW_MISSING_CASES": "0",
+      "CARGO_BUILD_JOBS": "4",
+      "RSE_SAMPLER_PROTOCOL": "duration-v5"
+    }
+  },
+  "measuring_affinity": [
+    24
+  ],
+  "protocol": {
+    "name": "shared-external-duration-sampler",
+    "version": 5,
+    "samples": 9,
+    "warmups": 3,
+    "case_isolation": "fresh-process-per-count",
+    "case_order": "lexicographic",
+    "max_calibration_batches": 12,
+    "max_calibration_records": 144,
+    "target_wall_ns": 100000000,
+    "target_timed_ns": 5000000,
+    "minimum_wall_ns": 50000000,
+    "minimum_timed_ns": 2000000,
+    "central_spread_limit": 0.1,
+    "fixture_layout": {
+      "scope": "small_file:verify_with_buffer",
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "offset_moduli": [
+        64,
+        4096
+      ],
+      "untracked_cases": "original allocation contract; no layout guarantee"
+    },
+    "timing_scope": {
+      "smoke": "original per-iteration workload",
+      "small_file": "operation loops excluding one-time fixture preparation",
+      "stream": "operation loops excluding one-time fixture preparation",
+      "hotspot": "original inner recovery intervals"
+    }
+  },
+  "renderer_sha256": "4706b4cb19a0bda37a3e6e96ae60b2cb5d3f10a16d74b7b03dcc5d75a9a2b82f",
+  "overlay_sha256": "054a9145e33603d798c7ca380203075e06c63538d5574e7c55ad036dea98de57",
+  "case_catalog": [
+    "verify_with_buffer:10:4:16384",
+    "verify_with_buffer:10:4:262144",
+    "verify_with_buffer:10:4:524288",
+    "verify_with_buffer:10:4:65536",
+    "verify_with_buffer:4:2:1024",
+    "verify_with_buffer:4:2:131072",
+    "verify_with_buffer:4:2:16384",
+    "verify_with_buffer:4:2:262144",
+    "verify_with_buffer:4:2:4096",
+    "verify_with_buffer:4:2:524288",
+    "verify_with_buffer:4:2:65536"
+  ],
+  "unit_tests": {
+    "baseline": {
+      "actual_passed": 6,
+      "required_passed": 6,
+      "failed": 0
+    },
+    "candidate": {
+      "actual_passed": 6,
+      "required_passed": 6,
+      "failed": 0
+    }
+  },
+  "phases": {
+    "A1": {
+      "case_count": 11,
+      "formal_samples": 99,
+      "cases": [
+        {
+          "case": "verify_with_buffer:10:4:16384",
+          "median_ns": 7691.314758300781,
+          "central_spread": 0.0017168579670049243,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:10:4:262144",
+          "median_ns": 142973.38504464287,
+          "central_spread": 0.0010314263582070506,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:10:4:524288",
+          "median_ns": 285640.43526785716,
+          "central_spread": 0.0004109655999756456,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:10:4:65536",
+          "median_ns": 32725.898177083334,
+          "central_spread": 0.0010577122481414845,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:4:2:1024",
+          "median_ns": 147.96534824371338,
+          "central_spread": 0.0018130887429744873,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:4:2:131072",
+          "median_ns": 14423.069986979166,
+          "central_spread": 0.0003142006719333093,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:4:2:16384",
+          "median_ns": 1694.4813774956597,
+          "central_spread": 0.008624763982195157,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:4:2:262144",
+          "median_ns": 35330.91685267857,
+          "central_spread": 0.0019129166879037175,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:4:2:4096",
+          "median_ns": 430.62797927856445,
+          "central_spread": 0.0006872209858923749,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:4:2:524288",
+          "median_ns": 71777.125,
+          "central_spread": 0.001092497012702237,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:4:2:65536",
+          "median_ns": 6543.0111328125,
+          "central_spread": 0.0014182594697819974,
+          "short_samples": 0
+        }
+      ]
+    },
+    "A2": {
+      "case_count": 11,
+      "formal_samples": 99,
+      "cases": [
+        {
+          "case": "verify_with_buffer:10:4:16384",
+          "median_ns": 7757.254333496094,
+          "central_spread": 0.0012563136407055973,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:10:4:262144",
+          "median_ns": 143152.12388392858,
+          "central_spread": 0.0009759457391663276,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:10:4:524288",
+          "median_ns": 286669.0848214286,
+          "central_spread": 0.0003333781055883767,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:10:4:65536",
+          "median_ns": 33298.16640625,
+          "central_spread": 0.000923458631070358,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:4:2:1024",
+          "median_ns": 151.00250816345215,
+          "central_spread": 0.0024705564892777273,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:4:2:131072",
+          "median_ns": 14918.766520182291,
+          "central_spread": 0.0010784260069710034,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:4:2:16384",
+          "median_ns": 1701.0716145833333,
+          "central_spread": 0.012445480904729939,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:4:2:262144",
+          "median_ns": 35344.05329241072,
+          "central_spread": 0.001811481865915065,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:4:2:4096",
+          "median_ns": 430.06419372558594,
+          "central_spread": 0.0007496712665285231,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:4:2:524288",
+          "median_ns": 71830.47600446429,
+          "central_spread": 0.0006284327699178061,
+          "short_samples": 0
+        },
+        {
+          "case": "verify_with_buffer:4:2:65536",
+          "median_ns": 6558.946826171875,
+          "central_spread": 0.003330501169937845,
+          "short_samples": 0
+        }
+      ]
+    }
+  },
+  "layout_mismatches": [],
+  "repeat_checks": [
+    {
+      "case": "verify_with_buffer:10:4:16384",
+      "drift": 0.008573251422866024
+    },
+    {
+      "case": "verify_with_buffer:10:4:262144",
+      "drift": 0.0012501546300376365
+    },
+    {
+      "case": "verify_with_buffer:10:4:524288",
+      "drift": 0.003601204264399138
+    },
+    {
+      "case": "verify_with_buffer:10:4:65536",
+      "drift": 0.017486708113252147
+    },
+    {
+      "case": "verify_with_buffer:4:2:1024",
+      "drift": 0.020526156669710804
+    },
+    {
+      "case": "verify_with_buffer:4:2:131072",
+      "drift": 0.03436830949656544
+    },
+    {
+      "case": "verify_with_buffer:4:2:16384",
+      "drift": 0.003889235476528752
+    },
+    {
+      "case": "verify_with_buffer:4:2:262144",
+      "drift": 0.00037181145869835674
+    },
+    {
+      "case": "verify_with_buffer:4:2:4096",
+      "drift": 0.001309217190027967
+    },
+    {
+      "case": "verify_with_buffer:4:2:524288",
+      "drift": 0.0007432870077241915
+    },
+    {
+      "case": "verify_with_buffer:4:2:65536",
+      "drift": 0.002435528999707559
+    }
+  ],
+  "repeat_failures": []
+}

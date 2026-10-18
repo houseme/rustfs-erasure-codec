@@ -1,0 +1,11 @@
+# Protocol 5 retained-Vec controls and complete layout diagnostic
+
+Tool commit: `c011a9b36d6433f9a6769dfb98cffabc38217265` (PR #16). The complete 9.0.0 baseline controls cover all 11 buffered-verification cases, both A1/A2 phases, all calibrations, three warmups and nine observations per worker. All 22 distributions pass the existing 10% width and interval checks; layouts match final calibration and both phases. Maximum repeat drift is 3.436831%, maximum distribution width 1.244549%. This is a scoped baseline control, not the original 126-case release ABBA or a candidate performance result.
+
+The independent slice-view grid retains all 16 source/scratch offsets for both lengths, in both orders: 64 groups, 192 warmups and 576 observations. One reverse-order 1KiB (source offset 48, scratch offset 16) distribution has width 37.207076%; it is retained and fails the 10% quality criterion. Same-layout repeat drifts remain below 2.374%. There is no whole-grid stability approval and no release acceptance.
+
+The native generated sampler tests pass six required cases on both source versions. The seventh local macOS test is architecture-conditional. `initial-unit-count-stop` preserves the earlier controller failure before any performance sample: an incorrect seven-test assertion stopped collection even though the six required native tests passed. Its initial controller source hash matches provenance; the corrected controller and complete fresh restart are retained alongside it. No failed attempt or observation is promoted to release evidence.
+
+Every copied numerical member is byte-for-byte unchanged, including partial snapshots and the failing cell. The generic scoped controller is public; the committed portable layout command and Rust source are linked through the tool commit. Ancillary build/unit/console logs and machine resource-management scripts remain private because they contain internal paths; completed numerical records, source bindings, configuration and cleanup outcomes are public. No absolute addresses, credentials or real user objects are included.
+
+Backlog task #2897 remains open for the other dynamic paths, layout matching across source versions, complete fresh release ABBA and positive strict preflight. All owned resources were restored. `release_approval` stays false.
