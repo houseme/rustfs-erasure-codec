@@ -1,4 +1,5 @@
 //! Shared external integration-test sampler; no codec implementation is replaced.
+use super::layout::OptionalFixture;
 use std::cell::Cell;
 use std::fs;
 use std::sync::OnceLock;
@@ -101,6 +102,7 @@ struct Observation<R> {
     timed_ns: f64,
     before: Telemetry,
     after: Telemetry,
+    fixture: OptionalFixture,
 }
 
 impl<R> Observation<R> {
@@ -109,10 +111,15 @@ impl<R> Observation<R> {
     }
 }
 
+pub(super) struct Output<R> {
+    pub(super) result: R,
+    pub(super) fixture: OptionalFixture,
+}
+
 fn measure_fixed<R>(
     key: &str,
     count: usize,
-    operation: &mut impl FnMut(usize) -> R,
+    operation: &mut impl FnMut(usize) -> Output<R>,
     ns_per_iter: &impl Fn(&R) -> f64,
 ) -> (Vec<Observation<R>>, std::thread::Result<()>) {
     let mut observations = Vec::with_capacity(WARMUPS + SAMPLES);
@@ -123,7 +130,7 @@ fn measure_fixed<R>(
             ITERATIONS.with(|n| n.set(count));
             let before = telemetry();
             let start = Instant::now();
-            let result = std::hint::black_box(operation(count));
+            let Output { result, fixture } = std::hint::black_box(operation(count));
             let wall_ns = start.elapsed().as_nanos();
             let after = telemetry();
             let timed_ns = ns_per_iter(&result) * count as f64;
@@ -131,7 +138,7 @@ fn measure_fixed<R>(
             // Keep a mode-independent timing journal even if a process is
             // interrupted before the deferred original artifact export.
             println!(
-                "\nRSE_TIMING {{\"case\":\"{key}\",\"index\":{index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"before\":{before},\"after\":{after}}}"
+                "\nRSE_TIMING {{\"case\":\"{key}\",\"index\":{index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"fixture\":{fixture},\"before\":{before},\"after\":{after}}}"
             );
             observations.push(Observation {
                 result,
@@ -139,6 +146,7 @@ fn measure_fixed<R>(
                 timed_ns,
                 before,
                 after,
+                fixture,
             });
         }
     }));
@@ -149,6 +157,27 @@ pub fn run<R>(
     key: &str,
     filename: &str,
     mut operation: impl FnMut(usize) -> R,
+    ns_per_iter: impl Fn(&R) -> f64,
+    export: impl Fn(&R),
+) {
+    run_prepared(
+        key,
+        filename,
+        || {
+            move |n| Output {
+                result: operation(n),
+                fixture: OptionalFixture(None),
+            }
+        },
+        ns_per_iter,
+        export,
+    );
+}
+
+pub(super) fn run_prepared<R, F: FnMut(usize) -> Output<R>>(
+    key: &str,
+    filename: &str,
+    prepare: impl FnOnce() -> F,
     ns_per_iter: impl Fn(&R) -> f64,
     export: impl Fn(&R),
 ) {
@@ -174,6 +203,7 @@ pub fn run<R>(
     } else {
         calibration_batch == 0
     });
+    let mut operation = prepare();
     let (observations, outcome) = measure_fixed(key, count, &mut operation, &ns_per_iter);
     let complete_batch = observations.len() == WARMUPS + SAMPLES
         && observations
@@ -191,6 +221,7 @@ pub fn run<R>(
             timed_ns,
             before,
             after,
+            fixture,
         } = observation;
         let warming = record_index < WARMUPS;
         let complete = if calibrating {
@@ -208,7 +239,7 @@ pub fn run<R>(
             (false, false) => "sample",
         };
         println!(
-            "\nRSE_SAMPLE {{\"kind\":\"{kind}\",\"case\":\"{key}\",\"revision\":\"{}\",\"index\":{record_index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"complete\":{complete},\"target_met\":{target_met},\"isolated_case\":{isolated_case},\"calibration_batch\":{calibration_batch},\"before\":{before},\"after\":{after},\"rows\":{}}}",
+            "\nRSE_SAMPLE {{\"kind\":\"{kind}\",\"case\":\"{key}\",\"revision\":\"{}\",\"index\":{record_index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"complete\":{complete},\"target_met\":{target_met},\"isolated_case\":{isolated_case},\"calibration_batch\":{calibration_batch},\"fixture\":{fixture},\"before\":{before},\"after\":{after},\"rows\":{}}}",
             revision(),
             raw.replace(['\n', '\r'], "")
         );
@@ -230,7 +261,10 @@ mod tests {
             1,
             &mut |_| {
                 calls += 1;
-                calls
+                Output {
+                    result: calls,
+                    fixture: OptionalFixture(None),
+                }
             },
             &|_| 1.0,
         );
@@ -248,7 +282,10 @@ mod tests {
             &mut |_| {
                 calls += 1;
                 assert!(calls != 3, "intentional workload failure");
-                calls
+                Output {
+                    result: calls,
+                    fixture: OptionalFixture(None),
+                }
             },
             &|_| 1.0,
         );

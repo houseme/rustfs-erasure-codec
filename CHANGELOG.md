@@ -13,6 +13,7 @@ All notable changes to this project are documented in this file.
 ## 9.1.0 (2026-10-18)
 
 ### Fixed
+- Retain the original Vec source/scratch buffers throughout buffered-verification release workers. Bind their lengths, capacities and address-free 64/4096-byte offsets to every observation; reject changed fixtures, calibration/phase mismatches and missing metadata under sampling protocol 5. Keep other operations' allocation contracts and all existing acceptance thresholds unchanged. Add a complete forward/reverse slice-layout diagnostic with corruption/guard checks, explicitly separate from release acceptance.
 - Isolate release cases in fresh processes and calibrate through the same three warmups and nine probes used for measurement, with bounded batches and complete raw retention. Defer Git/artifact export until after measurement, preserve timing journals and failed observations, and reject missing isolation/rehearsal records; retain all duration, distribution, drift and regression thresholds.
 - Reserve known legacy Cursor recovery output capacity on the first validated write, avoiding repeated block-growth reallocations while preserving generic stream bounds, cursor positions, and decode/length error ordering.
 - Bind libc identity and allocator/loader environment controls into release capture provenance and require them to remain identical throughout the complete campaign.
