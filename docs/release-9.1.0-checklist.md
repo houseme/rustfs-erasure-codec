@@ -1,9 +1,13 @@
 # 9.1.0 release preparation
 
-Status: **prepared candidate, not tagged or uploaded**. Main `253a611` after
-PR #10 has the previously tested tree and a successful ordinary CI run. These
-checks do not establish strict release acceptance. CHANGELOG's 2026-10-18 date is
-the prepared release date, not evidence of registry publication.
+Status: **prepared candidate, not tagged or uploaded**. Reference main before
+this candidate is `8f775a2` after PR #14, with successful ordinary CI. The
+[published raw protocol-2 audit snapshot](https://github.com/houseme/rustfs-erasure-codec/tree/f12cbb675e9379d58bfc7217c41f6415778e1c83)
+remains rejected: 10/504 distributions are unstable; diagnostic replay found
+11/252 repeat drifts above 5%. Its online negative preflight rejected the real
+data and skipped release-preflight/publication. These checks do not establish
+positive strict release acceptance. CHANGELOG's 2026-10-18 date is a prepared
+release date, not evidence of registry publication.
 
 ## Version and API boundary
 
@@ -44,8 +48,11 @@ cargo publish --dry-run --locked --registry crates-io --package rustfs-erasure-c
 Collect a new controlled whole-release A1/B1/B2/A2 campaign against published
 9.0.0, following [the evidence procedure](release-evidence.md). All four complete
 profiles, source/context/digest checks, both-side drift and existing regression
-thresholds must pass. Publish only the accepted data snapshot and configure its
-immutable `RSE_RELEASE_EVIDENCE_REF`. Missing inputs must fail; no extended-profile
+thresholds must pass. Only an accepted data snapshot may be configured as the
+immutable `RSE_RELEASE_EVIDENCE_REF`. Rejected snapshots may be published for
+audit and explicit negative checks, without promoting them to accepted inputs.
+Protocol 3 isolates every case in a fresh process and retains three fixed warmups
+plus all nine samples; collect a new complete campaign for this protocol. Missing inputs must fail; no extended-profile
 downgrade or partial-case release override is allowed. Run the manual strict
 preflight before tagging; ordinary branch/PR CI is not evidence it passed.
 

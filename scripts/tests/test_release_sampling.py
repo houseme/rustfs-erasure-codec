@@ -3,6 +3,7 @@ import copy
 import json
 import pathlib
 import sys
+import tempfile
 import unittest
 from unittest import mock
 
@@ -54,10 +55,12 @@ class SamplingContractTests(unittest.TestCase):
         original=copy.deepcopy(self.doc)
         profile='small_file';phase='B2'
         path=self.root/self.doc['files'][phase][profile]['samples']['path'];records=json.loads(path.read_text())
+        first = sampling.PROTOCOL['warmups']
         mutations=[lambda r:r.pop(1),lambda r:r.insert(1,copy.deepcopy(r[1])),
-                   lambda r:r[1].update(index=2),lambda r:r[1].update(wall_ns=1),
-                   lambda r:r[1].update(timed_ns=1),lambda r:r[1].update(iterations=2),
-                   lambda r:r[1]['after'].update(cpu=20),lambda r:r[1]['after'].update(run_ns=-1)]
+                   lambda r:r[first].update(index=2),lambda r:r[first].update(wall_ns=1),
+                   lambda r:r[first].update(timed_ns=1),lambda r:r[first].update(iterations=2),
+                   lambda r:r[first]['after'].update(cpu=20),lambda r:r[first]['after'].update(run_ns=-1),
+                   lambda r:r[first].update(isolated_case=False)]
         for change in mutations:
             self.doc=copy.deepcopy(original);updated=copy.deepcopy(records);change(updated)
             self.doc['files'][phase][profile]['samples']=self.write(phase,profile,updated)
@@ -72,9 +75,9 @@ class SamplingContractTests(unittest.TestCase):
 
     def test_broad_distribution_cannot_be_hidden_by_unchanged_median(self):
         def change(records):
-            for index in (1,2):
+            for index in (sampling.PROTOCOL['warmups'],sampling.PROTOCOL['warmups']+1):
                 records[index]['rows'][0]['ns_per_iter']*=.8;records[index]['timed_ns']*=.8
-            for index in (8,9):
+            for index in (sampling.PROTOCOL['warmups']+7,sampling.PROTOCOL['warmups']+8):
                 records[index]['rows'][0]['ns_per_iter']*=1.2;records[index]['timed_ns']*=1.2
         self.mutate(change)
         with self.assertRaisesRegex(ValueError,'distributions'):self.verify()
@@ -101,9 +104,40 @@ class SamplingContractTests(unittest.TestCase):
     def sources_commit(self,role):
         return self.doc['sources'][role]['commit']
 
+    def test_process_runner_isolates_each_case_and_rejects_wrong_workload(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = pathlib.Path(directory)/'runner.log'
+            observed = []
+            def emit(command, **kwargs):
+                case = kwargs['env']['RSE_SAMPLER_CASE']
+                observed.append(case)
+                kwargs['stdout'].write('RSE_SAMPLE '+json.dumps({'case':case,'isolated_case':True})+'\n')
+                kwargs['stdout'].flush()
+            with mock.patch('subprocess.run',side_effect=emit):
+                rows=sampling.run_profile(self.root,{},'smoke','sample',path,cases={'b','a'})
+            self.assertEqual(observed,['a','b'])
+            self.assertEqual([r['case'] for r in rows],observed)
+            def wrong_case(command, **kwargs):
+                kwargs['stdout'].write('RSE_SAMPLE {"case":"wrong","isolated_case":true}\n')
+                kwargs['stdout'].flush()
+            with mock.patch('subprocess.run',side_effect=wrong_case):
+                with self.assertRaisesRegex(ValueError,'selected workload'):
+                    sampling.run_profile(self.root,{},'smoke','sample',path,cases={'a'})
+
+    def test_missing_fixed_warmup_cannot_be_replaced_by_a_sample(self):
+        self.mutate(lambda records: records[0].update(kind='sample'))
+        with self.assertRaisesRegex(ValueError,'warmup'):
+            self.verify()
+
+    def test_same_process_calibration_cannot_enter_release_validation(self):
+        path=self.root/self.doc['calibration']['baseline']['smoke']['path']
+        records=json.loads(path.read_text());records[0]['isolated_case']=False
+        with self.assertRaisesRegex(ValueError,'calibration'):
+            evidence.calibration_counts(records,'smoke',self.sources_commit('baseline'))
+
     def test_calibration_and_protocol_cannot_be_changed(self):
         original=copy.deepcopy(self.doc)
-        for field in ('samples','target_timed_ns','central_spread_limit','implementation_sha256','overlay_sha256'):
+        for field in ('samples','warmups','case_isolation','case_order','target_timed_ns','central_spread_limit','implementation_sha256','overlay_sha256'):
             self.doc=copy.deepcopy(original);self.doc['sampling'][field]='invalid'
             with self.assertRaises(ValueError):self.verify()
         self.doc=copy.deepcopy(original)

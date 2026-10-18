@@ -5,7 +5,7 @@ import math
 import pathlib
 import re
 
-PROTOCOL = {"name": "shared-external-duration-sampler", "version": 2, "samples": 9, "calibration_confirmations": 2, "max_calibration_records": 12,
+PROTOCOL = {"name": "shared-external-duration-sampler", "version": 3, "samples": 9, "warmups": 3, "case_isolation": "fresh-process", "case_order": "lexicographic", "calibration_confirmations": 2, "max_calibration_records": 12,
             "target_wall_ns": 100_000_000, "target_timed_ns": 5_000_000,
             "minimum_wall_ns": 50_000_000, "minimum_timed_ns": 2_000_000,
             "central_spread_limit": .10,
@@ -91,8 +91,12 @@ def generate(root):
         (entry if name == "root.rs" else directory / name).write_text(text)
 
 
+def parse_output(output):
+    return [json.loads(line.removeprefix("RSE_SAMPLE ")) for line in output.splitlines() if line.startswith("RSE_SAMPLE ")]
+
+
 def parse_log(path):
-    return [json.loads(line.removeprefix("RSE_SAMPLE ")) for line in path.read_text().splitlines() if line.startswith("RSE_SAMPLE ")]
+    return parse_output(path.read_text())
 
 
 def validate_telemetry(record, allowed_cpus=None):
@@ -123,14 +127,28 @@ def validate_timing(record, profile, count):
     if abs(expected_timed - record["timed_ns"]) > tolerance:
         raise ValueError("timed interval differs from the raw exported measurement")
 
-def run_profile(root, environment, profile, mode, log_path, counts_file=None):
+def run_profile(root, environment, profile, mode, log_path, counts_file=None, *, cases):
     import subprocess
+    ordered = sorted(cases)
+    if not ordered or len(ordered) != len(set(ordered)):
+        raise ValueError("a nonempty unique case catalog is required")
     env = dict(environment, RSE_SAMPLER_PROFILE=profile, RSE_SAMPLER_MODE=mode)
     if counts_file is not None: env["RSE_SAMPLER_COUNTS"] = str(counts_file)
     command = ["cargo", "test", "--locked", "--release", "--features", "std simd-accel", "--test", "rse_release_sampling", "release_controlled_profile", "--", "--exact", "--ignored", "--nocapture", "--test-threads=1"]
+    records = []
     with log_path.open("w") as log:
-        subprocess.run(command, cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
-    return parse_log(log_path)
+        for case in ordered:
+            # A new test process owns exactly one workload. No previous case can
+            # seed its allocator arenas or worker pool. All observations remain.
+            offset = log.tell()
+            subprocess.run(command, cwd=root, env=dict(env, RSE_SAMPLER_CASE=case), stdout=log, stderr=subprocess.STDOUT, check=True)
+            with log_path.open() as reader:
+                reader.seek(offset)
+                current = parse_output(reader.read())
+            if not current or any(r.get("case") != case or r.get("isolated_case") is not True for r in current):
+                raise ValueError("case process did not emit exactly its selected workload")
+            records.extend(current)
+    return records
 
 
 def sample_groups(records, profile, revision, expected, counts, normalize, allowed_cpus=None):
@@ -142,11 +160,11 @@ def sample_groups(records, profile, revision, expected, counts, normalize, allow
     if set(groups) != expected:
         raise ValueError("complete sampling catalog is required")
     for case, group in groups.items():
-        if [r.get("kind") for r in group] != ["warmup"] + ["sample"] * PROTOCOL["samples"] or [r.get("index") for r in group] != list(range(PROTOCOL["samples"]+1)):
-            raise ValueError("one warmup and every fixed sample are required")
+        if [r.get("kind") for r in group] != ["warmup"] * PROTOCOL["warmups"] + ["sample"] * PROTOCOL["samples"] or [r.get("index") for r in group] != list(range(PROTOCOL["samples"]+PROTOCOL["warmups"])):
+            raise ValueError("every fixed warmup and sample is required")
         for record in group:
             validate_telemetry(record, allowed_cpus)
-            if record.get("iterations") != counts[case] or not isinstance(record.get("rows"), list) or len(record["rows"]) != 1:
+            if record.get("isolated_case") is not True or record.get("iterations") != counts[case] or not isinstance(record.get("rows"), list) or len(record["rows"]) != 1:
                 raise ValueError("sample count/iterations mismatch")
             row = record["rows"][0]
             if normalize(profile, row, revision) != case:
@@ -159,10 +177,10 @@ def selected_row(records, profile, metric, revision, expected, counts, normalize
     groups = sample_groups(records, profile, revision, expected, counts, normalize, allowed_cpus)
     selected, spread = [], []
     for case, group in groups.items():
-        for record in group[1:]:
+        for record in group[PROTOCOL["warmups"]:]:
             for field, minimum in (("wall_ns", PROTOCOL["minimum_wall_ns"]), ("timed_ns", PROTOCOL["minimum_timed_ns"])):
                 if record[field] < minimum: raise ValueError("sample measurement interval is insufficient")
-        samples = group[1:]
+        samples = group[PROTOCOL["warmups"]:]
         ordered = sorted(samples, key=lambda r: r["rows"][0][metric])
         median = ordered[len(ordered)//2]["rows"][0]
         width = (ordered[-2]["rows"][0][metric] - ordered[1]["rows"][0][metric]) / median[metric]

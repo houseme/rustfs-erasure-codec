@@ -89,7 +89,7 @@ class EvidenceTests(unittest.TestCase):
     def record(self, row, profile, role, kind, index):
         key = row.get('scenario') or ':'.join(str(row[f]) for f in ('operation','data_shards','parity_shards','shard_size','stream_block_size') if f in row)
         return {'kind':kind, 'case':key, 'revision':self.sources[role]['commit'], 'index':index, 'iterations':1,
-                'wall_ns':120_000_000, 'timed_ns':10_000_000.0, 'complete':True, 'target_met':True, 'rows':[copy.deepcopy(row)],
+                'wall_ns':120_000_000, 'timed_ns':10_000_000.0, 'complete':True, 'target_met':True, 'isolated_case':True, 'rows':[copy.deepcopy(row)],
                 'before':{'cpu':0, 'run_ns':index*100, 'wait_ns':index, 'switches':index},
                 'after':{'cpu':0, 'run_ns':index*100+99, 'wait_ns':index+1, 'switches':index+1}}
 
@@ -104,7 +104,7 @@ class EvidenceTests(unittest.TestCase):
         records = []
         for row in rows:
             records.extend(self.record(row, profile, 'baseline' if phase.startswith('A') else 'candidate', kind, i)
-                           for i, kind in enumerate(['warmup'] + ['sample'] * sampling.PROTOCOL['samples']))
+                           for i, kind in enumerate(['warmup'] * sampling.PROTOCOL['warmups'] + ['sample'] * sampling.PROTOCOL['samples']))
         self.doc['files'][phase][profile]['samples'] = self.write_samples(phase, profile, records)
 
     def verify(self):

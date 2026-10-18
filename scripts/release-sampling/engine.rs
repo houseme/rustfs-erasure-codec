@@ -8,6 +8,7 @@ use std::time::Instant;
 const TARGET_WALL_NS: f64 = 100_000_000.0;
 const TARGET_TIMED_NS: f64 = 5_000_000.0;
 const SAMPLES: usize = 9;
+const WARMUPS: usize = 3;
 const MAX_ITERATIONS: usize = 1_000_000_000;
 thread_local! { static ITERATIONS: Cell<usize> = const { Cell::new(1) }; }
 
@@ -86,6 +87,11 @@ pub fn run<R>(
     ns_per_iter: impl Fn(&R) -> f64,
     export: impl Fn(&R),
 ) {
+    let selected = std::env::var("RSE_SAMPLER_CASE").ok();
+    if selected.as_deref().is_some_and(|case| case != key) {
+        return;
+    }
+    let isolated_case = selected.is_some();
     let calibrating = std::env::var("RSE_SAMPLER_MODE").unwrap() == "calibrate";
     let mut count = if calibrating {
         1
@@ -118,13 +124,13 @@ pub fn run<R>(
         let raw = fs::read_to_string(format!("target/benchmark-smoke/{filename}")).unwrap();
         let kind = if calibrating {
             "calibration"
-        } else if sample_index == 0 {
+        } else if sample_index < WARMUPS {
             "warmup"
         } else {
             "sample"
         };
         println!(
-            "\nRSE_SAMPLE {{\"kind\":\"{kind}\",\"case\":\"{key}\",\"revision\":\"{}\",\"index\":{sample_index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"complete\":{complete},\"target_met\":{target_met},\"before\":{before},\"after\":{after},\"rows\":{}}}",
+            "\nRSE_SAMPLE {{\"kind\":\"{kind}\",\"case\":\"{key}\",\"revision\":\"{}\",\"index\":{sample_index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"complete\":{complete},\"target_met\":{target_met},\"isolated_case\":{isolated_case},\"before\":{before},\"after\":{after},\"rows\":{}}}",
             revision(),
             raw.replace(['\n', '\r'], "")
         );
@@ -145,7 +151,7 @@ pub fn run<R>(
                 .filter(|n| *n <= MAX_ITERATIONS)
                 .expect("calibration iteration budget exceeded");
         } else {
-            if sample_index == SAMPLES {
+            if sample_index + 1 == WARMUPS + SAMPLES {
                 break;
             }
             sample_index += 1;

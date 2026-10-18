@@ -13,6 +13,7 @@ All notable changes to this project are documented in this file.
 ## 9.1.0 (2026-10-18)
 
 ### Fixed
+- Isolate each release benchmark case in a fresh process, retain three fixed warmups and all nine samples, and reject observations without case-isolation markers. Preserve the existing duration, distribution, drift and regression thresholds.
 - Reserve known legacy Cursor recovery output capacity on the first validated write, avoiding repeated block-growth reallocations while preserving generic stream bounds, cursor positions, and decode/length error ordering.
 - Bind libc identity and allocator/loader environment controls into release capture provenance and require them to remain identical throughout the complete campaign.
 - Require sampled schema 2 evidence for release verification and materialization; remove the legacy mean-only acceptance path and migrate source/ABBA/regression tests to a shared complete sampling fixture.
