@@ -61,3 +61,11 @@ benchmark frees returning pages via madvise. It does not approve performance or
 a release. Protocol 8 separately removes ordinary telemetry's Rust heap activity;
 its native allocation regression and fresh baseline controls are tracked under
 `diagnostics/protocol8-observer-regression`.
+
+## Complete protocol-8 baseline control
+
+`diagnostics/protocol8-full-baseline` retains all calibration and the complete A1
+126-case cohort with the corrected zero-heap ordinary observer. All 1,134 measured
+samples meet minimum duration, but three distributions fail the 10% quality gate.
+The predeclared stop prevents A2 and candidate attribution. This remains rejected
+release data, with all raw records and resource restoration preserved.
