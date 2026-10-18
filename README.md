@@ -87,3 +87,13 @@ distributions fail quality, so A2 and candidate attribution stop. The source-clo
 bootstrap refusal precedes reservation and is retained. Protocol 10's subsequent
 bounded result metadata requires separate new qualification; this snapshot never
 approves the changed observer.
+
+## Complete protocol-10 qualification in two allocator contexts
+
+`diagnostics/protocol10-qualification-controls` retains the predeclared plan,
+both complete 103-case structural inventories, native metadata allocation oracles
+and restoration. `protocol10-default-baseline` retains the complete default A1
+rejection after seven wide distributions. `protocol10-retained-arena-baseline`
+retains complete A1/A2: all 252 distributions pass width, but seven repeat drifts
+exceed 5%. Both baseline prerequisites fail; candidate attribution remains null.
+The controlled allocator context never substitutes for default throughput evidence.

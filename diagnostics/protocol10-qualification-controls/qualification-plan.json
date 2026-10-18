@@ -1,0 +1,84 @@
+{
+  "schema_version": "protocol10-baseline-qualification-plan-v1",
+  "source": {
+    "commit": "63b6fa0a3d0b0dc6a7d206c9dbff82f5f729eea8",
+    "tree": "3c2eab5f8ec57890631b720bd4efd2ea09e48d27",
+    "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+  },
+  "baseline": {
+    "commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "tree": "d44fe8c296972cf895375101f8975c99371db57a",
+    "lock_sha256": "972540efcf6bc23c0064252a9c0d937bf87dbe0edff9cdb688d2fdcbd5653d49"
+  },
+  "policies": [
+    {
+      "name": "default",
+      "GLIBC_TUNABLES": null
+    },
+    {
+      "name": "retained_arena",
+      "GLIBC_TUNABLES": "glibc.malloc.arena_max=1:glibc.malloc.mmap_max=0:glibc.malloc.trim_threshold=1099511627776"
+    }
+  ],
+  "protocol": {
+    "name": "shared-external-duration-sampler",
+    "version": 10,
+    "samples": 9,
+    "warmups": 3,
+    "case_isolation": "fresh-process-per-count",
+    "case_order": "lexicographic",
+    "max_calibration_batches": 12,
+    "max_calibration_records": 144,
+    "target_wall_ns": 100000000,
+    "target_timed_ns": 5000000,
+    "minimum_wall_ns": 50000000,
+    "minimum_timed_ns": 2000000,
+    "central_spread_limit": 0.1,
+    "observer_buffer_policy": "bounded-stack-procfs-no-rust-heap",
+    "result_metadata_policy": "bounded-inline-hotspot-patterns-deferred-formatting",
+    "stream_output_policy": "independent-capacity-per-writer-per-iteration",
+    "fixture_layout": {
+      "scope": "small_file:all;stream:all;caller-storage-only",
+      "codec_lifetime": "worker",
+      "dynamic_outputs": "original per-iteration policy; offsets explicitly untracked",
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "construction": "caller-buffers-before-codec",
+      "offset_moduli": [
+        64,
+        4096,
+        "os_base_page_size"
+      ],
+      "page_size_source": "controller-sysconf",
+      "untracked_cases": "original allocation contract; no layout guarantee"
+    },
+    "timing_scope": {
+      "smoke": "original per-iteration workload",
+      "small_file": "operation loops excluding one-time fixture preparation",
+      "stream": "operation loops excluding one-time fixture preparation",
+      "hotspot": "original inner recovery intervals"
+    }
+  },
+  "controller_sha256": "c7eaa3a68eed81420423655cf1ce6d179dbceebe7cbb02fb05c43c3f7eae4106",
+  "purpose": "independent same-version qualification per declared allocator context; no cross-policy speedup comparison",
+  "release_approval": false,
+  "candidate_attribution": null,
+  "results": {
+    "default": {
+      "inventory_mismatches": 0,
+      "full_baseline_started": true,
+      "baseline_controls_passed": false,
+      "repeat_completed": false,
+      "release_approval": false,
+      "candidate_attribution": null
+    },
+    "retained_arena": {
+      "inventory_mismatches": 0,
+      "full_baseline_started": true,
+      "baseline_controls_passed": false,
+      "repeat_completed": true,
+      "release_approval": false,
+      "candidate_attribution": null
+    }
+  }
+}

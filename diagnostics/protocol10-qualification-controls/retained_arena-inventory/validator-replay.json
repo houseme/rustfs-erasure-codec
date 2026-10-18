@@ -1,0 +1,3719 @@
+{
+  "purpose": "one-iteration structural layout inventory; no timing inference",
+  "release_approval": false,
+  "candidate_attribution": null,
+  "case_count": 103,
+  "phase_count": 4,
+  "dynamic_output_layouts_observed": false,
+  "layout_checks": [
+    {
+      "case": "encode:10:4:16384",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:524288",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:1024",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:131072",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:16384",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:4096",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:524288",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:10:4:1048576:1048576",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:10:4:16777216:4194304",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:10:4:65536:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:4:2:1048576:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:4:2:65536:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:16384",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:524288",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:1024",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:131072",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:16384",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:4096",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:524288",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:16384",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:524288",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:1024",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:131072",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:16384",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:4096",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:524288",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:16384",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:524288",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:1024",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:131072",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:16384",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:4096",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:524288",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:16384",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:524288",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:1024",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:131072",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:16384",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:4096",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:524288",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:16384",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:524288",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:1024",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:131072",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:16384",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:4096",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:524288",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:10:4:1048576:1048576",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:10:4:16777216:4194304",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:10:4:65536:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:4:2:1048576:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:4:2:65536:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:16384",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:524288",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:1024",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:131072",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:16384",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:4096",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:524288",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:10:4:1048576:1048576",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:10:4:16777216:4194304",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:10:4:65536:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:4:2:1048576:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:4:2:65536:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:16384",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:524288",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:1024",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:131072",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:16384",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:4096",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:524288",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:16384",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:524288",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:1024",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:131072",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:16384",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:4096",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:524288",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:10:4:1048576:1048576",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:10:4:16777216:4194304",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:10:4:65536:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:4:2:1048576:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:4:2:65536:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:16384",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:524288",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:1024",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:131072",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:16384",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:4096",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:524288",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:16384",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:524288",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:1024",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:131072",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:16384",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:4096",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:524288",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:16384",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:524288",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:1024",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:131072",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:16384",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:4096",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:524288",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:16384",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:524288",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:1024",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:131072",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:16384",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:4096",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:524288",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:16384",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:524288",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:1024",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:131072",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:16384",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:4096",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:524288",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:10:4:1048576:1048576",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:10:4:16777216:4194304",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:10:4:65536:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:4:2:1048576:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:4:2:65536:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:16384",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:524288",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:1024",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:131072",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:16384",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:4096",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:524288",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:10:4:1048576:1048576",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:10:4:16777216:4194304",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:10:4:65536:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:4:2:1048576:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:4:2:65536:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:16384",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:524288",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:1024",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:131072",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:16384",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:4096",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:524288",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:16384",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:524288",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:1024",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:131072",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:16384",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:4096",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:524288",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:10:4:1048576:1048576",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:10:4:16777216:4194304",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:10:4:65536:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:4:2:1048576:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:4:2:65536:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:16384",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:524288",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:1024",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:131072",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:16384",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:4096",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:524288",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:16384",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:524288",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:1024",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:131072",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:16384",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:4096",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:524288",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:16384",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:524288",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:1024",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:131072",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:16384",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:4096",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:524288",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:16384",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:524288",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:1024",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:131072",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:16384",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:4096",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:524288",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:16384",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:524288",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:1024",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:131072",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:16384",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:4096",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:524288",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:10:4:1048576:1048576",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:10:4:16777216:4194304",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:10:4:65536:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:4:2:1048576:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:4:2:65536:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:16384",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:524288",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:1024",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:131072",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:16384",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:4096",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:524288",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:10:4:1048576:1048576",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:10:4:16777216:4194304",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:10:4:65536:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:4:2:1048576:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:4:2:65536:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:16384",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:524288",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:1024",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:131072",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:16384",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:4096",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:524288",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:65536",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:16384",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:524288",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:1024",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:131072",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:16384",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:4096",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:524288",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:10:4:1048576:1048576",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:10:4:16777216:4194304",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:10:4:65536:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:4:2:1048576:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:4:2:65536:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:16384",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:524288",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:1024",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:131072",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:16384",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:4096",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:524288",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:16384",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:524288",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:1024",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:131072",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:16384",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:4096",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:524288",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:16384",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:524288",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:1024",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:131072",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:16384",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:4096",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:524288",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:16384",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:524288",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:1024",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:131072",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:16384",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:4096",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:524288",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:16384",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:524288",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:1024",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:131072",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:16384",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:4096",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:524288",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:10:4:1048576:1048576",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:10:4:16777216:4194304",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:10:4:65536:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:4:2:1048576:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:4:2:65536:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:16384",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:524288",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:1024",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:131072",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:16384",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:4096",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:524288",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:10:4:1048576:1048576",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:10:4:16777216:4194304",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:10:4:65536:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:4:2:1048576:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:4:2:65536:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:16384",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:524288",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:1024",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:131072",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:16384",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:4096",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:524288",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:65536",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:16384",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:524288",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:1024",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:131072",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:16384",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:4096",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:524288",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:10:4:1048576:1048576",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:10:4:16777216:4194304",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:10:4:65536:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:4:2:1048576:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:4:2:65536:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:16384",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:524288",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:1024",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:131072",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:16384",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:4096",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:524288",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:16384",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:524288",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:1024",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:131072",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:16384",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:4096",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:524288",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:16384",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:524288",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:1024",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:131072",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:16384",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:4096",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:524288",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:16384",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:524288",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:1024",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:131072",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:16384",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:4096",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:524288",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:16384",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:524288",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:1024",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:131072",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:16384",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:4096",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:524288",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:10:4:1048576:1048576",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:10:4:16777216:4194304",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:10:4:65536:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:4:2:1048576:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:4:2:65536:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:16384",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:524288",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:1024",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:131072",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:16384",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:4096",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:524288",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:10:4:1048576:1048576",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:10:4:16777216:4194304",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:10:4:65536:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:4:2:1048576:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:4:2:65536:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:16384",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:524288",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:1024",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:131072",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:16384",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:4096",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:524288",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:65536",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:16384",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:524288",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:10:4:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:1024",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:131072",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:16384",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:4096",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:524288",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode:4:2:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:10:4:1048576:1048576",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:10:4:16777216:4194304",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:10:4:65536:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:4:2:1048576:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "encode_stream:4:2:65536:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:16384",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:524288",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:10:4:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:1024",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:131072",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:16384",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:4096",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:524288",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct:4:2:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:16384",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:524288",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:10:4:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:1024",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:131072",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:16384",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:4096",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:524288",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_data:4:2:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:16384",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:524288",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:10:4:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:1024",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:131072",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:16384",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:4096",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:524288",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_opt:4:2:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:16384",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:524288",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:10:4:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:1024",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:131072",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:16384",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:4096",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:524288",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_shard_slot:4:2:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:16384",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:524288",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:10:4:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:1024",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:131072",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:16384",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:4096",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:524288",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_some_data_only:4:2:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:10:4:1048576:1048576",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:10:4:16777216:4194304",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:10:4:65536:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:4:2:1048576:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "reconstruct_stream:4:2:65536:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:16384",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:524288",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:10:4:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:1024",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:131072",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:16384",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:4096",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:524288",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify:4:2:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:10:4:1048576:1048576",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:10:4:16777216:4194304",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:10:4:65536:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:4:2:1048576:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_stream:4:2:65536:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:16384",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:524288",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:1024",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:131072",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:16384",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:4096",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:524288",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:65536",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    }
+  ],
+  "layout_mismatches": []
+}
