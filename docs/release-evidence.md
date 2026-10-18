@@ -39,13 +39,18 @@ original per-iteration workload; hotspots keep their original inner recovery
 intervals. Timing scopes are recorded, so the older cohort is not quantitatively
 comparable to these new summaries. The candidate tree binds the committed renderer/templates. Both use
 locked release builds, `std simd-accel`, no instrumentation, four Rayon workers,
-a four-job policy and empty RUSTFLAGS.
+a four-job policy and empty RUSTFLAGS. The context also binds libc name/version
+and all inherited `MALLOC_*`, `GLIBC_TUNABLES` and `LD_*` allocator/loader controls.
+These must be present and identical in every phase and the final context. An
+allocator policy change requires a new complete campaign and calibration.
 
 Every case is calibrated on both releases before A1. Calibration targets at least
 100 ms wall time and 5 ms timed work, with bounded increasing iterations. Two consecutive probes at the same count
 must meet both targets before calibration is frozen; a warm shortfall increases
 the count and resets confirmation. This prevents a single cold probe from
-selecting an insufficient steady-state interval. The larger
+selecting an insufficient steady-state interval. Allocation state may still change
+between separate invocations; every formal sample must pass its own interval
+check. The larger
 iteration count for each case is frozen for **both releases and every phase**.
 Every phase then warms each case and collects exactly nine samples. All pilot,
 warmup and sample exports are retained. A sample needs at least 50 ms wall time
@@ -183,3 +188,13 @@ Linux counters are interpreted using the
 [schedstat definitions](https://docs.kernel.org/scheduler/sched-stats.html).
 Hardware cycles/cache misses and frequency were unavailable in the observed VM;
 no particular frequency or physical-host cause is inferred from that absence.
+
+Allocator state is a diagnostic variable: a separate syscall trace can identify
+page reclamation (`MADV_DONTNEED`) and repeated minor faults. Preserve the trace
+privately and state whether its interval includes fixture/observer work. Tracing
+and allocator-policy probes are separate experiments; neither is release
+acceptance. A probe that changes both mmap and trim controls identifies the
+combined policy effect, not either control in isolation. The
+[GNU libc tunables documentation](https://sourceware.org/glibc/manual/latest/html_node/Memory-Allocation-Tunables.html)
+describes the dynamic allocation thresholds. Do not remove allocation costs,
+relax gates, or selectively rerun cases to hide an unstable baseline.

@@ -24,6 +24,7 @@ class EvidenceTests(unittest.TestCase):
             "candidate": {"commit": "b" * 40, "tree": "c" * 40, "lock_sha256": "b" * 64},
         }
         context = {"compiler": "rustc fixture", "cpu_model": "fixture CPU", "settings": evidence.SAMPLING_ENV,
+                   "runtime": {"libc": {"name": "fixture", "version": "1"}, "allocator_environment": {}},
                    "isolation": {"scope": "exclusive-vm-cpu-partition", "reserved_cpu_count": 8, "cpu_affinity": list(range(8)), "physical_host_exclusivity_proven": False}}
         self.doc = {"schema_version": 2, "baseline_release": "9.0.0", "phase_order": list(evidence.PHASES),
                     "sources": self.sources, "harness_sha256": "d" * 64,
@@ -183,10 +184,34 @@ class EvidenceTests(unittest.TestCase):
     def test_environment_changes_including_after_reject(self):
         original = copy.deepcopy(self.doc)
         for phase in (*evidence.PHASES[1:], "after"):
-            for key in ("compiler", "cpu_model", "settings", "isolation"):
+            for key in ("compiler", "cpu_model", "settings", "isolation", "runtime"):
                 self.doc = copy.deepcopy(original)
                 self.doc["contexts"][phase][key] = "changed"
                 with self.assertRaises(ValueError): self.verify()
+
+    def test_allocator_runtime_records_controls_and_excludes_unrelated_environment(self):
+        env = {'MALLOC_TRIM_THRESHOLD_':'100', 'GLIBC_TUNABLES':'glibc.malloc.top_pad=100', 'LD_PRELOAD':'fixture.so', 'LD_LIBRARY_PATH':'fixture-libs', 'UNRELATED':'private'}
+        with mock.patch.object(evidence.platform, 'libc_ver', return_value=('glibc','2.39')):
+            runtime = evidence.runtime_context(env)
+        self.assertEqual(runtime['libc'], {'name':'glibc','version':'2.39'})
+        self.assertEqual(set(runtime['allocator_environment']), {'MALLOC_TRIM_THRESHOLD_','GLIBC_TUNABLES','LD_PRELOAD','LD_LIBRARY_PATH'})
+        with mock.patch.object(evidence.platform, 'libc_ver', return_value=('','')):
+            with self.assertRaisesRegex(ValueError, 'libc identity'):
+                evidence.runtime_context({})
+
+    def test_missing_malformed_or_changed_allocator_provenance_rejects(self):
+        original = copy.deepcopy(self.doc)
+        for runtime in (None, {}, {'libc':{}, 'allocator_environment':{}},
+                        {'libc':{'name':'glibc','version':'1'}, 'allocator_environment':{'UNRELATED':'value'}}):
+            self.doc = copy.deepcopy(original)
+            for context in self.doc['contexts'].values():
+                context['runtime'] = runtime
+            with self.assertRaisesRegex(ValueError, 'libc|allocator'):
+                self.verify()
+        self.doc = copy.deepcopy(original)
+        self.doc['contexts']['A2']['runtime']['allocator_environment']['GLIBC_TUNABLES'] = 'glibc.malloc.top_pad=100'
+        with self.assertRaisesRegex(ValueError, 'environment changed'):
+            self.verify()
 
     def test_either_side_drift_withholds_comparison(self):
         for phase in ("A2", "B2"):

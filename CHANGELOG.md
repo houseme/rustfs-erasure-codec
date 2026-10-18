@@ -13,6 +13,7 @@ All notable changes to this project are documented in this file.
 ## 9.1.0 (2026-10-18)
 
 ### Fixed
+- Bind libc identity and allocator/loader environment controls into release capture provenance and require them to remain identical throughout the complete campaign.
 - Require sampled schema 2 evidence for release verification and materialization; remove the legacy mean-only acceptance path and migrate source/ABBA/regression tests to a shared complete sampling fixture.
 - Require two consecutive same-count calibration confirmations before freezing release iterations; grow again after a cold/warm shortfall. Keep structurally valid short diagnostic samples with explicit flags while retaining strict release duration checks.
 - Add a private baseline-only VM diagnosis mode with anonymous per-thread runqueue/runtime counters and process page faults, outside benchmark timers. Diagnostic artifacts have a distinct non-release schema and cannot satisfy strict release evidence checks.
