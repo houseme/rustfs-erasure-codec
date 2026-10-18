@@ -5,10 +5,11 @@ import math
 import pathlib
 import re
 
-PROTOCOL = {"name": "shared-external-duration-sampler", "version": 4, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
+PROTOCOL = {"name": "shared-external-duration-sampler", "version": 5, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
             "target_wall_ns": 100_000_000, "target_timed_ns": 5_000_000,
             "minimum_wall_ns": 50_000_000, "minimum_timed_ns": 2_000_000,
             "central_spread_limit": .10,
+            "fixture_layout": {"scope": "small_file:verify_with_buffer", "entry": "Vec<Vec<u8>>", "lifetime": "worker", "offset_moduli": [64, 4096], "untracked_cases": "original allocation contract; no layout guarantee"},
             "timing_scope": {"smoke":"original per-iteration workload", "small_file":"operation loops excluding one-time fixture preparation", "stream":"operation loops excluding one-time fixture preparation", "hotspot":"original inner recovery intervals"}}
 TEMPLATES = pathlib.Path(__file__).resolve().parent / "release-sampling"
 HOTSPOT_BLOCKS = ("struct ReconstructionHotspotBenchResult", "fn benchmark_test_iterations", "macro_rules! make_random_shards",
@@ -50,12 +51,14 @@ def exclude_once_only_setup(text, name, loop_count):
 
 
 def render(root):
-    rendered = {name: (TEMPLATES / name).read_text() for name in ("engine.rs", "process.rs")}
+    rendered = {name: (TEMPLATES / name).read_text() for name in ("engine.rs", "process.rs", "layout.rs", "verify_layout.rs")}
     sources = {"smoke": "benchmark_smoke.rs", "small_file": "benchmark_small_files.rs", "stream": "benchmark_stream_paths.rs"}
     for profile, filename in sources.items():
         text = (root / "tests" / filename).read_text()
-        text = text.replace('#[path = "../benches/common/mod.rs"]', f'#[path = "{root}/benches/common/mod.rs"]')
-        text = text.replace('mod common;', f'#[path = "{root}/tests/common/mod.rs"]\nmod common;')
+        shared_modules = '#[path = "../benches/common/mod.rs"]\nmod bench_common;\nmod common;'
+        if text.count(shared_modules) != 1:
+            raise ValueError("benchmark common-module layout changed")
+        text = text.replace(shared_modules, 'use super::{bench_common, common};', 1)
         name = {"smoke": "fn smoke_iterations", "small_file": "fn small_file_iterations", "stream": "fn stream_iterations"}[profile]
         text = text.replace(block(text, name), name + "() -> usize { super::sampling::iterations() }")
         if profile in ("small_file", "stream"):
@@ -67,7 +70,7 @@ def render(root):
     text = text.replace(block(text, "fn benchmark_test_iterations"), 'fn benchmark_test_iterations() -> usize { super::sampling::iterations() }')
     prefix = 'use std::{fs, path::PathBuf, time::Instant};\nuse rustfs_erasure_codec::galois_8::ReedSolomon;\nfn benchmark_metrics_enabled() -> bool { cfg!(feature="benchmark-metrics") }\nconst BENCHMARK_ARTIFACT_SCHEMA_VERSION: u32 = 1;\n'
     rendered["hotspot.rs"] = prefix + text + "\n" + (TEMPLATES / "hotspot.rs").read_text()
-    root_source = '#![allow(dead_code)]\n' + '\n'.join(f'#[path="rse_release_sampling/{name}.rs"] mod {name};' for name in ("engine", "process", *sources, "hotspot"))
+    root_source = f'#![allow(dead_code)]\n#[path="{root}/benches/common/mod.rs"] mod bench_common;\n#[path="{root}/tests/common/mod.rs"] mod common;\n' + '\n'.join(f'#[path="rse_release_sampling/{name}.rs"] mod {name};' for name in ("engine", "process", "layout", "verify_layout", *sources, "hotspot"))
     root_source = root_source.replace('mod engine;', 'mod sampling;')
     root_source += '\n#[test]\n#[ignore]\nfn release_controlled_profile() { match std::env::var("RSE_SAMPLER_PROFILE").unwrap().as_str() {'
     root_source += ','.join(f'"{name}" => {name}::release_profile()' for name in (*sources, "hotspot"))
@@ -112,6 +115,35 @@ def validate_telemetry(record, allowed_cpus=None):
         raise ValueError("scheduling counters moved backwards")
 
 
+def validate_fixture(record, profile):
+    """Known layout-sensitive Vec cases require complete address-free metadata."""
+    fixture = record.get("fixture")
+    tracked = profile == "small_file" and record["case"].startswith("verify_with_buffer:")
+    if not tracked:
+        if fixture is not None: raise ValueError("unexpected fixture layout declaration")
+        return
+    if not isinstance(fixture, dict) or set(fixture) != {"entry", "lifetime", "source", "scratch"} or fixture.get("entry") != "Vec<Vec<u8>>" or fixture.get("lifetime") != "worker":
+        raise ValueError("buffered verification requires a retained Vec fixture layout")
+    _, data, parity, size = record["case"].split(":")
+    data, parity, size = int(data), int(parity), int(size)
+    for role, count in (("source", data + parity), ("scratch", parity)):
+        positions = fixture.get(role)
+        if not isinstance(positions, list) or len(positions) != count:
+            raise ValueError("incomplete fixture buffer layout")
+        for position in positions:
+            if not isinstance(position, dict) or set(position) != {"len", "capacity", "offset_64", "offset_4096"} or any(type(v) is not int for v in position.values()):
+                raise ValueError("invalid fixture buffer position")
+            if position["len"] != size or not size <= position["capacity"] <= 2**64 - 1 or not 0 <= position["offset_4096"] < 4096 or not 0 <= position["offset_64"] < 64 or position["offset_4096"] % 64 != position["offset_64"]:
+                raise ValueError("invalid fixture shape or offset")
+
+
+def fixture_catalog(records, *, calibration=False):
+    """Extract already-validated fixed layouts, never infer them from timing."""
+    return {r["case"]: r["fixture"] for r in records
+            if r.get("fixture") is not None and
+            (r.get("complete") is True if calibration else r.get("kind") == "sample")}
+
+
 def validate_timing(record, profile, count):
     row = record["rows"][0]
     for field in ("wall_ns", "timed_ns"):
@@ -143,6 +175,8 @@ def calibration_batch(records, count, batch):
         met = record["wall_ns"] >= PROTOCOL["target_wall_ns"] and record["timed_ns"] >= PROTOCOL["target_timed_ns"]
         if record.get("target_met") is not met:
             raise ValueError("calibration target flag differs from measured intervals")
+    if any(r.get("fixture") != records[0].get("fixture") for r in records):
+        raise ValueError("fixture layout changed inside a calibration worker")
     probes = records[PROTOCOL["warmups"]:]
     complete = all(r["target_met"] for r in probes)
     if any(r.get("complete") is not (complete and index == width-1) for index, r in enumerate(records)):
@@ -209,6 +243,9 @@ def sample_groups(records, profile, revision, expected, counts, normalize, allow
             raise ValueError("every fixed warmup and sample is required")
         for record in group:
             validate_telemetry(record, allowed_cpus)
+            validate_fixture(record, profile)
+            if record.get("fixture") != group[0].get("fixture"):
+                raise ValueError("fixture layout changed inside a measurement worker")
             if any(type(record.get(field)) is not int for field in ("index", "iterations", "calibration_batch")) or record.get("calibration_batch") != 0 or record.get("isolated_case") is not True or record.get("iterations") != counts[case] or not isinstance(record.get("rows"), list) or len(record["rows"]) != 1:
                 raise ValueError("sample count/iterations mismatch")
             row = record["rows"][0]
@@ -239,15 +276,13 @@ if __name__ == "__main__":
     import os
     import shutil
     import subprocess
-    parser=argparse.ArgumentParser(description="Compile the shared external sampler, then remove its generated sources")
+    parser=argparse.ArgumentParser(description="Compile and test the shared external sampler, then remove its generated sources")
     parser.add_argument("--check",action="store_true",required=True)
     args=parser.parse_args()
     root=TEMPLATES.parent.parent
     generate(root)
     try:
-        subprocess.run(["cargo","test","--locked","--release","--features","std simd-accel","--test","rse_release_sampling","--no-run"],cwd=root,env=dict(os.environ,RUSTUP_TOOLCHAIN="stable"),check=True)
-        for test_filter in ("process::tests::", "sampling::tests::"):
-            subprocess.run(["cargo","test","--locked","--release","--features","std simd-accel","--test","rse_release_sampling",test_filter],cwd=root,env=dict(os.environ,RUSTUP_TOOLCHAIN="stable"),check=True)
+        subprocess.run(["cargo","test","--locked","--release","--features","std simd-accel","--test","rse_release_sampling","--","--skip","release_controlled_profile"],cwd=root,env=dict(os.environ,RUSTUP_TOOLCHAIN="stable"),check=True)
     finally:
         (root/"tests/rse_release_sampling.rs").unlink()
         shutil.rmtree(root/"tests/rse_release_sampling")

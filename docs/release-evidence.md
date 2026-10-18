@@ -60,12 +60,47 @@ check. The larger
 iteration count for each case is frozen for **both releases and every phase**.
 Each proposed calibration count and each measurement case runs in a fresh test process, in a fixed
 lexicographic case order. This prevents another case from seeding its allocator
-arenas or worker-pool state. Protocol 4 records `isolated_case=true` on every
+arenas or worker-pool state. Protocol 5 records `isolated_case=true` on every
 observation; missing/false markers are rejected. Every phase performs exactly
 three warmup invocations at the frozen count, then collects exactly nine samples.
 Basic scheduling snapshots retain numeric counters instead of formatted heap
 strings. Extended process observation remains diagnostic-only and may affect
 allocation state; release qualification uses basic telemetry.
+The `small_file:verify_with_buffer` cases retain their original `Vec<Vec<u8>>`
+source and scratch for the complete worker, rather than reconstructing them before
+an observation. Preparation and pointer/shape checks stay outside the inner timed
+loop; the loop checks the returned codeword validity. Fixed-capacity metadata
+storage adds no observer allocation. The worker checks full pointer identity
+privately; every timing journal and exported sample records only lengths,
+capacities and offsets modulo 64 and 4096. The latter is a fixed offset modulus,
+not a claim about the OS page size. The verifier requires a stable Vec layout
+throughout each warmup/rehearsal/sample worker and an identical layout between
+final calibration and all four ABBA phases. Different layouts fail closed; they
+are never pooled or silently replaced by slice views. No allocator is replaced
+or address forced. Other operations retain their existing dynamic allocation
+contracts and do not acquire a layout guarantee from this scoped change.
+
+An independent diagnostic covers every combination of source/scratch offsets
+`0/16/32/48`, for 1KiB and 4KiB, in forward and reverse order with the same backing
+buffers per length. It runs against either source in its reserved CPU partition:
+
+```bash
+python3 candidate/scripts/diagnose_verify_layout.py \
+  --repository /test/baseline --output /test/new-layout-diagnostic \
+  --isolation-cgroup /sys/fs/cgroup/reserved-release
+```
+
+This diagnostic pins its measuring process to one reserved CPU. It retains all
+192 warmups and 576 formal observations, validates actual offsets and the full
+order, reports every wide/drifting cell, and preserves completed numerical rows
+on failure. Its explicit slice-view entry, distinct schema and always-false
+`release_approval` cannot replace any of the 126 original Vec/stream/hotspot
+release cases. Neither this diagnostic nor the scoped Vec fixture change
+completes [the remaining layout acceptance task](https://github.com/rustfs/backlog/issues/2897):
+other dynamic paths still need comparable layout/lifetime evidence, followed by
+a fresh complete 9.0.0/candidate ABBA and positive strict preflight. Historical
+protocol-2/3/4 failures remain rejected and available for audit.
+
 The original Git queries and JSON/CSV exporters run after the entire fixed kernel,
 so their allocations, output-file writes and child processes do not seed the
 next observation. A mode-independent `RSE_TIMING` journal preserves completed

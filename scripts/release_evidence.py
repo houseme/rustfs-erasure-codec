@@ -371,13 +371,17 @@ def verify_sampling(document, root, repository, summarized):
     counts = contract.get("common_iterations", {})
     if set(counts) != set(FILES): raise ValueError("complete common iteration counts are required")
     pilot_counts = {role: {} for role in ("baseline", "candidate")}
+    pilot_layouts = {role: {} for role in pilot_counts}
     for role in pilot_counts:
         for profile in FILES:
             name = f"calibration-{role}/{profile}-samples.json"
             records = evidence_member(root, document.get("calibration", {}).get(role, {}).get(profile), name)
             pilot_counts[role][profile] = calibration_counts(records, profile, document["sources"][role]["commit"])
+            pilot_layouts[role][profile] = sampling.fixture_catalog(records, calibration=True)
     spreads = []
+    layouts = {}
     for profile in FILES:
+        layouts[profile] = {}
         expected_counts = {key: max(pilot_counts[role][profile][key] for role in pilot_counts) for key in expected_cases(profile)}
         if counts[profile] != expected_counts: raise ValueError("common iterations differ from complete calibration")
         for phase in PHASES:
@@ -386,9 +390,15 @@ def verify_sampling(document, root, repository, summarized):
             records = evidence_member(root, entry, f"{phase}/{profile}-samples.json")
             normalize = lambda p, row, rev: next(iter(indexed_rows(p, [row], rev, counts[p], complete=False)))
             selected, widths = sampling.selected_row(records, profile, METRICS[profile], revision, expected_cases(profile), counts[profile], normalize, document["contexts"][phase]["isolation"].get("cpu_affinity"))
+            layouts[profile][phase] = sampling.fixture_catalog(records)
+            role = "baseline" if phase.startswith("A") else "candidate"
+            if layouts[profile][phase] != pilot_layouts[role][profile]:
+                raise ValueError(f"{profile}/{phase}: buffer layout differs from final calibration")
             recomputed = indexed_rows(profile, selected, revision, counts[profile])
             if recomputed != summarized[phase][profile]: raise ValueError("summary is not the median of all fixed samples")
             spreads.extend(dict(item, phase=phase, profile=profile) for item in widths)
+        if any(layout != layouts[profile]["A1"] for layout in layouts[profile].values()):
+            raise ValueError(f"{profile}: buffer layout differs between ABBA phases")
     unstable = [r for r in spreads if r["central_spread"] > sampling.PROTOCOL["central_spread_limit"]]
     if unstable:
         raise EvidenceFailure("sample distributions are unstable; no candidate attribution", {"sample_spreads": spreads, "candidate_attribution": None})
@@ -405,6 +415,7 @@ def calibration_counts(records, profile, revision):
         if not isinstance(record.get("rows"), list) or len(record["rows"]) != 1:
             raise ValueError("calibration must contain one raw row")
         sampling.validate_telemetry(record)
+        sampling.validate_fixture(record, profile)
         if set(indexed_rows(profile, record["rows"], revision, {key: count}, complete=False)) != {key}:
             raise ValueError("calibration row does not match declared case")
         sampling.validate_timing(record, profile, count)

@@ -36,6 +36,62 @@ class SamplingContractTests(unittest.TestCase):
         records=json.loads(path.read_text());change(records)
         self.doc['files'][phase][profile]['samples']=self.write(phase,profile,records)
 
+    def test_missing_invalid_and_replaced_vec_layouts_are_rejected(self):
+        original = copy.deepcopy(self.doc)
+        path = self.root/self.doc['files']['B2']['small_file']['samples']['path']
+        records = json.loads(path.read_text())
+        changes = [lambda r:r.pop('fixture'), lambda r:r.update(fixture=None),
+                   lambda r:r['fixture'].update(entry='slice'),
+                   lambda r:r['fixture'].update(lifetime='observation'),
+                   lambda r:r['fixture']['source'].pop(),
+                   lambda r:r['fixture']['scratch'][0].update(offset_64=True),
+                   lambda r:r['fixture']['scratch'][0].update(offset_4096=4096),
+                   lambda r:r['fixture']['scratch'][0].update(offset_4096=32),
+                   lambda r:r['fixture']['scratch'][0].update(capacity=0)]
+        for change in changes:
+            self.doc = copy.deepcopy(original)
+            updated = copy.deepcopy(records)
+            record = next(r for r in updated if r.get('fixture') is not None)
+            change(record)
+            self.doc['files']['B2']['small_file']['samples'] = self.write('B2','small_file',updated)
+            with self.assertRaises(ValueError): self.verify()
+
+    def test_fixture_changes_within_warmup_or_samples_reject(self):
+        def change(records):
+            record = next(r for r in records if r.get('fixture') is not None)
+            record['fixture']['scratch'][0].update(offset_64=32,offset_4096=32)
+        self.mutate(change)
+        with self.assertRaisesRegex(ValueError,'inside a measurement worker'): self.verify()
+
+    def test_fixed_layout_must_match_final_calibration(self):
+        def change(records):
+            for r in records:
+                if r.get('fixture') is not None:
+                    r['fixture']['scratch'][0].update(offset_64=32,offset_4096=32)
+        self.mutate(change)
+        with self.assertRaisesRegex(ValueError,'final calibration'): self.verify()
+
+    def test_both_candidate_phases_cannot_use_a_different_layout(self):
+        for folder in ('B1','B2','calibration-candidate'):
+            profile='small_file'
+            entry = self.doc['calibration']['candidate'][profile] if folder.startswith('calibration') else self.doc['files'][folder][profile]['samples']
+            records=json.loads((self.root/entry['path']).read_text())
+            for r in records:
+                if r.get('fixture') is not None:
+                    r['fixture']['scratch'][0].update(offset_64=32,offset_4096=32)
+            entry=self.write(folder,profile,records)
+            if folder.startswith('calibration'): self.doc['calibration']['candidate'][profile]=entry
+            else: self.doc['files'][folder][profile]['samples']=entry
+        with self.assertRaisesRegex(ValueError,'between ABBA phases'): self.verify()
+
+    def test_calibration_layout_cannot_change_during_rehearsal(self):
+        path=self.root/self.doc['calibration']['baseline']['small_file']['path']
+        records=json.loads(path.read_text())
+        record=next(r for r in records if r.get('fixture') is not None)
+        record['fixture']['scratch'][0].update(offset_64=32,offset_4096=32)
+        with self.assertRaisesRegex(ValueError,'inside a calibration worker'):
+            evidence.calibration_counts(records,'small_file',self.sources_commit('baseline'))
+
     def test_timing_adapter_preserves_every_operation_statement(self):
         root=pathlib.Path(__file__).resolve().parents[2]
         for filename,name,count in (("benchmark_small_files.rs","fn run_operation",11),("benchmark_stream_paths.rs","fn run_stream_operation",3)):
