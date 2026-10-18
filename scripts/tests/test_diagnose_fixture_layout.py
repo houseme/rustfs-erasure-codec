@@ -22,12 +22,12 @@ class FixtureInventoryTests(unittest.TestCase):
         self.phases={}
         for phase in evidence.PHASES:
             role='baseline' if phase.startswith('A') else 'candidate'
-            rows=[row for row in self.fixture.fixture_rows(phase,'small_file') if row['operation']=='verify_with_buffer']
+            rows=[(profile,row) for profile in inventory.PROFILES for row in self.fixture.fixture_rows(phase,profile)]
             records=[]
-            for row in rows:
+            for profile,row in rows:
                 for index in range(sampling.PROTOCOL['warmups']+sampling.PROTOCOL['samples']):
                     kind='warmup' if index<sampling.PROTOCOL['warmups'] else 'sample'
-                    records.append(self.fixture.record(row,'small_file',role,kind,index))
+                    records.append(self.fixture.record(row,profile,role,kind,index))
             self.phases[phase]=records
 
     def test_failed_inventory_keeps_completed_rows_and_cleans_only_owned_inputs(self):
@@ -56,8 +56,8 @@ class FixtureInventoryTests(unittest.TestCase):
 
     def test_complete_inventory_is_never_release_approval(self):
         report=inventory.analyze(self.phases,self.sources,{0})
-        self.assertEqual(report['case_count'],11)
-        self.assertEqual(len(report['layout_checks']),66)
+        self.assertEqual(report['case_count'],103)
+        self.assertEqual(len(report['layout_checks']),618)
         self.assertEqual(report['layout_mismatches'],[])
         self.assertFalse(report['release_approval'])
         self.assertIsNone(report['candidate_attribution'])
@@ -65,6 +65,7 @@ class FixtureInventoryTests(unittest.TestCase):
     def test_cross_version_layout_differences_are_retained_without_timing_attribution(self):
         for phase in ('B1','B2'):
             for record in self.phases[phase]:
+                if not record['case'].startswith('verify_with_buffer:'): continue
                 record['fixture']['scratch'][0].update(offset_64=32,offset_4096=32,offset_page=32)
         report=inventory.analyze(self.phases,self.sources,{0})
         self.assertEqual(len(report['layout_mismatches']),44)

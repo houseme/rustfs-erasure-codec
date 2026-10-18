@@ -80,3 +80,16 @@ confirmed observer allocation mechanism; it does not certify every dynamic
 fixture or all timing variability. All earlier failed campaigns remain preserved.
 New full baseline controls and source-bound paired evidence are required before
 changing the remaining #2897 conditions or creating a release tag.
+
+## Caller preparation under protocol 9
+
+The shared sampler now retains source storage and codec state for all 88 small-file
+and 15 stream cases, with construction before codec initialization. It derives the
+inner loops from the original benchmark files and keeps their per-iteration clone,
+missing-output allocation and I/O costs. Actual call entry, missing/required masks
+and output policy are recorded alongside caller geometry. Internal scratch and
+dynamic destinations remain explicitly untracked; smoke/hotspot retain their
+original contracts. This broadens the implementation of conditions 1/2/5 without
+completing their whole scope. The 103-case four-phase structural inventory is not
+performance ABBA. All earlier rejection evidence remains historical; new complete
+controls and paired measurements are required. See the [caller fixture contract](release-caller-fixtures.md).

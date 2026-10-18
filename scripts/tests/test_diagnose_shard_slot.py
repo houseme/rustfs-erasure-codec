@@ -16,7 +16,7 @@ import release_sampling as sampling
 def trace():
     buffers = [{'len': 65536, 'capacity': 65536, 'offset_64': 16,
                 'offset_4096': 16, 'offset_page': 16} for _ in range(6)]
-    return {'entry': 'Vec<ShardSlot<Vec<u8>>>', 'source_lifetime': 'observation',
+    return {'entry': 'Vec<ShardSlot<Vec<u8>>>', 'source_lifetime': 'worker',
             'clone_lifetime': 'iteration', 'page_size': 4096, 'iterations': 4096,
             'phase_ns': {'clone': 10, 'reconstruct': 20, 'drop': 5},
             'source': buffers, 'transitions': 1, 'overflow': 0,
@@ -31,9 +31,9 @@ class ShardSlotDiagnosticTests(unittest.TestCase):
         changed = {name for name in before if before[name] != after[name]}
         self.assertEqual(changed, {'root.rs', 'small_file.rs'})
         self.assertEqual(set(after)-set(before), {'slot_trace.rs'})
-        self.assertIn('let mut shards = shards_to_slots(&original);', after['small_file.rs'])
+        self.assertIn('let mut shards = shards_to_slots(original);', after['small_file.rs'])
         self.assertEqual(after['small_file.rs'].count('trace.before(&shards);'), 1)
-        self.assertEqual(after['small_file.rs'].count('trace.after(&shards, &original);'), 1)
+        self.assertEqual(after['small_file.rs'].count('trace.after(&shards, original);'), 1)
 
     def test_changed_original_workload_rejects_instead_of_silently_adapting(self):
         from unittest import mock

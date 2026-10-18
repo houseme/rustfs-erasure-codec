@@ -36,6 +36,48 @@ class SamplingContractTests(unittest.TestCase):
         records=json.loads(path.read_text());change(records)
         self.doc['files'][phase][profile]['samples']=self.write(phase,profile,records)
 
+    def test_every_retained_caller_case_requires_its_declared_api_contract(self):
+        covered = 0
+        for profile in ('small_file', 'stream'):
+            for row in self.cases('A1', profile):
+                record = self.record(row, profile, 'baseline', 'sample', 3)
+                sampling.validate_fixture(record, profile, 4096)
+                covered += 1
+                for field, value in (('call_entry', 'slice'), ('output_policy', 'reuse-everything'),
+                                     ('missing_mask', -1), ('required_mask', True)):
+                    changed = copy.deepcopy(record); changed['fixture'][field] = value
+                    with self.assertRaises(ValueError): sampling.validate_fixture(changed, profile, 4096)
+                changed = dict(record, fixture=None)
+                with self.assertRaises(ValueError): sampling.validate_fixture(changed, profile, 4096)
+        self.assertEqual(covered, 103)
+
+    def test_new_source_layouts_cannot_change_between_calibration_and_measurement(self):
+        original = copy.deepcopy(self.doc)
+        paths = [self.root/self.doc['files']['B1'][p]['samples']['path'] for p in ('small_file', 'stream')]
+        originals = {path: path.read_bytes() for path in paths}
+        for profile, key in (('small_file', 'reconstruct_opt:4:2:524288'),
+                             ('stream', 'reconstruct_stream:4:2:65536:65536')):
+            self.doc = copy.deepcopy(original)
+            for path, data in originals.items(): path.write_bytes(data)
+            path = self.root/self.doc['files']['B1'][profile]['samples']['path']
+            records = json.loads(path.read_text())
+            for record in records:
+                if record['case'] == key:
+                    record['fixture']['source'][0].update(offset_64=32, offset_4096=32, offset_page=32)
+            self.doc['files']['B1'][profile]['samples'] = self.write('B1', profile, records)
+            with self.assertRaisesRegex(ValueError, 'final calibration'): self.verify()
+
+    def test_shared_kernels_keep_preparation_outside_the_timed_loops(self):
+        root = pathlib.Path(__file__).resolve().parents[2]
+        rendered = sampling.render(root)
+        for profile in ('small_file', 'stream'):
+            kernel = sampling.block(rendered[profile+'.rs'], 'fn execute_release_kernel')
+            for preparation in ('ReedSolomon::new', 'make_full_shards', 'make_data_shards', 'make_encoded_shards'):
+                self.assertNotIn(preparation, kernel)
+            self.assertIn('.cloned()', kernel)
+        self.assertIn('Vec<Option<Vec<u8>>>', rendered['small_file.rs'])
+        self.assertIn('reserved_stream_outputs(case.parity_shards, case.shard_size)', rendered['stream.rs'])
+
     def test_base_page_size_is_required_and_bound_to_runtime(self):
         for value in (None, True, 0, 3000, 2**30):
             self.assertFalse(sampling.valid_page_size(value))
@@ -46,12 +88,12 @@ class SamplingContractTests(unittest.TestCase):
             self.doc=copy.deepcopy(original)
             def change(records):
                 for r in records:
-                    if r.get('fixture') is not None:r['fixture']['page_size']=value
+                    if r['case'].startswith('verify_with_buffer:'):r['fixture']['page_size']=value
             self.mutate(change)
             with self.assertRaises(ValueError):self.verify()
 
     def test_page_offsets_and_runtime_page_changes_are_rejected(self):
-        self.mutate(lambda records:next(r for r in records if r.get('fixture') is not None)['fixture']['source'][0].update(offset_page=4096))
+        self.mutate(lambda records:next(r for r in records if r['case'].startswith('verify_with_buffer:'))['fixture']['source'][0].update(offset_page=4096))
         with self.assertRaises(ValueError):self.verify()
         self.fixture.doc=self.doc
         self.doc['contexts']['B1']['runtime']['page_size']=16384
@@ -82,14 +124,14 @@ class SamplingContractTests(unittest.TestCase):
         for change in changes:
             self.doc = copy.deepcopy(original)
             updated = copy.deepcopy(records)
-            record = next(r for r in updated if r.get('fixture') is not None)
+            record = next(r for r in updated if r['case'].startswith('verify_with_buffer:'))
             change(record)
             self.doc['files']['B2']['small_file']['samples'] = self.write('B2','small_file',updated)
             with self.assertRaises(ValueError): self.verify()
 
     def test_fixture_changes_within_warmup_or_samples_reject(self):
         def change(records):
-            record = next(r for r in records if r.get('fixture') is not None)
+            record = next(r for r in records if r['case'].startswith('verify_with_buffer:'))
             record['fixture']['scratch'][0].update(offset_64=32,offset_4096=32,offset_page=32)
         self.mutate(change)
         with self.assertRaisesRegex(ValueError,'inside a measurement worker'): self.verify()
@@ -97,7 +139,7 @@ class SamplingContractTests(unittest.TestCase):
     def test_fixed_layout_must_match_final_calibration(self):
         def change(records):
             for r in records:
-                if r.get('fixture') is not None:
+                if r['case'].startswith('verify_with_buffer:'):
                     r['fixture']['scratch'][0].update(offset_64=32,offset_4096=32,offset_page=32)
         self.mutate(change)
         with self.assertRaisesRegex(ValueError,'final calibration'): self.verify()
@@ -108,7 +150,7 @@ class SamplingContractTests(unittest.TestCase):
             entry = self.doc['calibration']['candidate'][profile] if folder.startswith('calibration') else self.doc['files'][folder][profile]['samples']
             records=json.loads((self.root/entry['path']).read_text())
             for r in records:
-                if r.get('fixture') is not None:
+                if r['case'].startswith('verify_with_buffer:'):
                     r['fixture']['scratch'][0].update(offset_64=32,offset_4096=32,offset_page=32)
             entry=self.write(folder,profile,records)
             if folder.startswith('calibration'): self.doc['calibration']['candidate'][profile]=entry
@@ -118,7 +160,7 @@ class SamplingContractTests(unittest.TestCase):
     def test_calibration_layout_cannot_change_during_rehearsal(self):
         path=self.root/self.doc['calibration']['baseline']['small_file']['path']
         records=json.loads(path.read_text())
-        record=next(r for r in records if r.get('fixture') is not None)
+        record=next(r for r in records if r['case'].startswith('verify_with_buffer:'))
         record['fixture']['scratch'][0].update(offset_64=32,offset_4096=32,offset_page=32)
         with self.assertRaisesRegex(ValueError,'inside a calibration worker'):
             evidence.calibration_counts(records,'small_file',self.sources_commit('baseline'))
