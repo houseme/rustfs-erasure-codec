@@ -23,6 +23,15 @@ on:
   schedule:
     - cron: "0 3 * * 1"
   workflow_dispatch:
+    inputs:
+      release_preflight:
+        description: Run strict preflight before creating a release tag (never publishes)
+        type: boolean
+        default: false
+      evidence_ref:
+        description: Full commit of the controlled evidence snapshot (defaults to repository variable)
+        type: string
+        required: false
 
 permissions:
   contents: read
@@ -384,11 +393,74 @@ jobs:
       - name: Test std + simd
         run: cargo test --verbose --workspace --exclude rustfs-erasure-codec-fuzz --features simd-accel
 
+  release-inputs:
+    name: Validate controlled release evidence
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) || (github.event_name == 'workflow_dispatch' && inputs.release_preflight)
+    outputs:
+      evidence_ref: ${{ steps.input.outputs.evidence_ref }}
+    env:
+      RUSTFLAGS: ""
+      EVIDENCE_REF: ${{ inputs.evidence_ref || vars.RSE_RELEASE_EVIDENCE_REF }}
+    steps:
+      - name: Require an immutable evidence commit
+        id: input
+        shell: bash
+        run: |
+          if [[ ! "$EVIDENCE_REF" =~ ^[0-9a-f]{40}$ ]]; then
+            echo 'Configure RSE_RELEASE_EVIDENCE_REF or evidence_ref with a full evidence commit.' >&2
+            exit 1
+          fi
+          echo "evidence_ref=$EVIDENCE_REF" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout candidate and baseline history
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Checkout evidence data
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.input.outputs.evidence_ref }}
+          path: .release-evidence
+          persist-credentials: false
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Validate source, digests, complete profiles, drift and regressions
+        run: >-
+          python3 scripts/release_evidence.py verify
+          --manifest .release-evidence/release-evidence/manifest.json
+          --report target/release-preflight/evidence-validation.json
+
+      - name: Record evidence input outcome
+        if: always()
+        env:
+          INPUT_STATUS: ${{ job.status }}
+        run: |
+          mkdir -p target/release-preflight
+          python3 - <<'PYTHON'
+          import json, os, pathlib
+          pathlib.Path("target/release-preflight/input.json").write_text(json.dumps({
+              "status": os.environ["INPUT_STATUS"], "candidate_commit": os.environ["GITHUB_SHA"],
+              "evidence_ref": os.environ["EVIDENCE_REF"], "run_id": os.environ["GITHUB_RUN_ID"]}) + "\n")
+          PYTHON
+
+      - name: Upload evidence validation report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: target/release-preflight/*.json
+          if-no-files-found: warn
+
   release-preflight:
     name: Release preflight
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    if: (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) || (github.event_name == 'workflow_dispatch' && inputs.release_preflight)
     needs:
+      - release-inputs
       - typos
       - security
       - wasm-integration
@@ -400,34 +472,68 @@ jobs:
       - test-linux-aarch64
       - test-windows-native
       - test-macos-arm64
-
     env:
       RUSTFLAGS: ""
       VALIDATION_PROFILE: release
-      RUN_X86_SIMD_OVERRIDE_MATRIX: 1
-      RUN_AARCH64_SIMD_OVERRIDE_MATRIX: 1
-      RSE_SMOKE_BASELINE: ${{ vars.RSE_SMOKE_BASELINE }}
-      RSE_SMALL_FILE_BASELINE: ${{ vars.RSE_SMALL_FILE_BASELINE }}
-      RSE_RECONSTRUCTION_HOTSPOT_BASELINE: ${{ vars.RSE_RECONSTRUCTION_HOTSPOT_BASELINE }}
-      RSE_STREAM_PATH_BASELINE: ${{ vars.RSE_STREAM_PATH_BASELINE }}
+      RSE_RELEASE_EVIDENCE: .release-evidence/release-evidence/manifest.json
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v7 # v7
+      - name: Checkout candidate and baseline history
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Checkout validated evidence data
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.release-inputs.outputs.evidence_ref }}
+          path: .release-evidence
+          persist-credentials: false
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@master # v1
-        with:
-          toolchain: stable
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Cache Rust artifacts
-        uses: Swatinem/rust-cache@v2.9.1 # v2.9.1
+        uses: Swatinem/rust-cache@v2.9.1
 
-      - name: Verify release tag and versions
-        run: python3 scripts/check_release_manifest.py --tag "$GITHUB_REF_NAME"
+      - name: Verify release versions and optional tag
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+        run: |
+          if [[ "$REF_TYPE" == "tag" ]]; then
+            python3 scripts/check_release_manifest.py --tag "$GITHUB_REF_NAME"
+          else
+            python3 scripts/check_release_manifest.py
+          fi
 
       - name: Release preflight checks
         run: bash scripts/release-check.sh
+
+      - name: Record complete preflight outcome
+        if: always()
+        env:
+          PREFLIGHT_STATUS: ${{ job.status }}
+          EVIDENCE_REF: ${{ needs.release-inputs.outputs.evidence_ref }}
+        run: |
+          mkdir -p target/release-preflight
+          python3 - <<'PYTHON'
+          import json, os, pathlib, subprocess
+          report = {"status": os.environ["PREFLIGHT_STATUS"], "profile": "release",
+                    "candidate_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+                    "candidate_tree": subprocess.check_output(["git", "rev-parse", "HEAD^{tree}"], text=True).strip(),
+                    "evidence_ref": os.environ["EVIDENCE_REF"], "run_id": os.environ["GITHUB_RUN_ID"],
+                    "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"], "ref": os.environ["GITHUB_REF"],
+                    "registry_uploaded": False}
+          pathlib.Path("target/release-preflight/preflight.json").write_text(json.dumps(report, indent=2) + "\n")
+          PYTHON
+
+      - name: Upload preflight report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-preflight-${{ github.run_id }}-${{ github.run_attempt }}
+          path: target/release-preflight/*.json
+          if-no-files-found: error
 
   publish:
     name: Publish to crates.io

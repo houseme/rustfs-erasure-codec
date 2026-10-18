@@ -1,10 +1,9 @@
 # 9.1.0 release preparation
 
-Status: **prepared candidate, not tagged or uploaded**. Main review base is
-`500444a` after the PR #8 rebase merge (initial review base `26c1051`);
-[review and validation](erasure-codec-main-review-2026-10-18.md) records
-the justified recovery and follow-up stream refactors and their limits. CHANGELOG's 2026-10-18 date is the prepared
-release date, not evidence of registry publication.
+Status: **prepared candidate, not tagged or uploaded**. Main `253a611` after
+PR #10 has the previously tested tree and a successful ordinary CI run. These
+checks do not establish strict release acceptance. CHANGELOG's 2026-10-18 date is
+the prepared release date, not evidence of registry publication.
 
 ## Version and API boundary
 
@@ -42,11 +41,13 @@ cargo publish --dry-run --locked --registry crates-io --package rustfs-erasure-c
 
 ## Remaining publish gates
 
-The four baseline variables RSE_SMOKE_BASELINE, RSE_SMALL_FILE_BASELINE,
-RSE_RECONSTRUCTION_HOTSPOT_BASELINE and RSE_STREAM_PATH_BASELINE must name real,
-readable comparable files on the release runner. Missing inputs must fail; no
-extended-profile downgrade or partial-case release override is allowed. Ordinary
-branch/PR CI skips tag release-preflight/publish and is not evidence they passed.
+Collect a new controlled whole-release A1/B1/B2/A2 campaign against published
+9.0.0, following [the evidence procedure](release-evidence.md). All four complete
+profiles, source/context/digest checks, both-side drift and existing regression
+thresholds must pass. Publish only the accepted data snapshot and configure its
+immutable `RSE_RELEASE_EVIDENCE_REF`. Missing inputs must fail; no extended-profile
+downgrade or partial-case release override is allowed. Run the manual strict
+preflight before tagging; ordinary branch/PR CI is not evidence it passed.
 
 The historical full 66-case campaign has seven drift failures, with null candidate
 ratios. It has not been rerun under the same conditions. Dedicated ARM throughput
