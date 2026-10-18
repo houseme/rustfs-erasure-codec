@@ -22,31 +22,35 @@ def load_results(path: pathlib.Path, metric: str) -> Dict[str, dict]:
     try:
         with path.open() as f:
             rows = json.load(f, parse_constant=reject_nonfinite_json)
-        if not isinstance(rows, list) or not rows:
-            raise ValueError("expected a nonempty list of hotspot results")
-        result = {}
-        for row in rows:
-            if not isinstance(row, dict):
-                raise ValueError("each hotspot result must be an object")
-            scenario = row.get("scenario")
-            if not isinstance(scenario, str) or not scenario.strip():
-                raise ValueError("scenario must be a nonempty string")
-            if scenario in result:
-                raise ValueError(f"duplicate hotspot scenario: {scenario}")
-            # Use the same alias/boolean/thread normalization as the main gate.
-            for field in PROVENANCE_FIELDS:
-                provenance_value(row, field)
-            row[metric] = positive_metric(row[metric], metric)
-            for name in ("candidate_mb_s", "baseline_mb_s", "speedup"):
-                if name in row:
-                    row[name] = positive_metric(row[name], name)
-            for name in ("data_shards", "parity_shards", "shard_size", "useful_shards"):
-                if name in row:
-                    row[name] = positive_integer(row[name], name)
-            result[scenario] = row
-        return result
+        return index_results(rows, metric)
     except (OSError, ValueError, TypeError, KeyError) as error:
         raise SystemExit(f"{path}: {error}") from error
+
+
+def index_results(rows, metric):
+    if not isinstance(rows, list) or not rows:
+        raise ValueError("expected a nonempty list of hotspot results")
+    result = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            raise ValueError("each hotspot result must be an object")
+        scenario = row.get("scenario")
+        if not isinstance(scenario, str) or not scenario.strip():
+            raise ValueError("scenario must be a nonempty string")
+        if scenario in result:
+            raise ValueError(f"duplicate hotspot scenario: {scenario}")
+        # Use the same alias/boolean/thread normalization as the main gate.
+        for field in PROVENANCE_FIELDS:
+            provenance_value(row, field)
+        row[metric] = positive_metric(row[metric], metric)
+        for name in ("candidate_mb_s", "baseline_mb_s", "speedup"):
+            if name in row:
+                row[name] = positive_metric(row[name], name)
+        for name in ("data_shards", "parity_shards", "shard_size", "useful_shards"):
+            if name in row:
+                row[name] = positive_integer(row[name], name)
+        result[scenario] = row
+    return result
 
 
 def parse_key_value(items: Iterable[str], flag: str) -> Dict[str, float]:
