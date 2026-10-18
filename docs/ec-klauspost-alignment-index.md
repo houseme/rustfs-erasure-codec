@@ -5,7 +5,9 @@
 This index turns the Klauspost alignment work into independent execution documents.
 Use it as the entry point for planning, implementation, review, and validation.
 
-Current main/9.1.0 review: [2026-10-18 review](erasure-codec-main-review-2026-10-18.md) and [release checklist](release-9.1.0-checklist.md).
+Current main architecture follow-up: [post-merge review](erasure-codec-main-architecture-review-2026-10-18.md).
+
+Earlier main/9.1.0 review: [2026-10-18 review](erasure-codec-main-review-2026-10-18.md) and [release checklist](release-9.1.0-checklist.md).
 
 Current Rust declaration review: [2026-10-17 compatibility validation](erasure-codec-rust-compatibility-2026-10-17.md).
 
