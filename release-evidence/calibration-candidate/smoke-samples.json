@@ -1,0 +1,2394 @@
+[
+  {
+    "kind": "calibration",
+    "case": "encode:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 466635,
+    "timed_ns": 379034,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 0,
+      "wait_ns": 0,
+      "switches": 1
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 111962,
+      "wait_ns": 0,
+      "switches": 1
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 1,
+        "operation": "encode",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726495029,
+        "throughput_mb_s": 659.5714,
+        "ns_per_iter": 379034.0
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "encode:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 64,
+    "wall_ns": 15695647,
+    "timed_ns": 15668987,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 834530,
+      "wait_ns": 0,
+      "switches": 7
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 15946134,
+      "wait_ns": 0,
+      "switches": 7
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 64,
+        "operation": "encode",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726495029,
+        "throughput_mb_s": 1021.1254,
+        "ns_per_iter": 244827.92
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "encode:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 512,
+    "wall_ns": 125200295,
+    "timed_ns": 125176329,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 16644496,
+      "wait_ns": 0,
+      "switches": 11
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 141891237,
+      "wait_ns": 54111,
+      "switches": 15
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 512,
+        "operation": "encode",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726495029,
+        "throughput_mb_s": 1022.5575,
+        "ns_per_iter": 244485.02
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "encode:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 512,
+    "wall_ns": 125130640,
+    "timed_ns": 125105863,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 142050344,
+      "wait_ns": 54111,
+      "switches": 18
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 266831182,
+      "wait_ns": 115272,
+      "switches": 22
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 512,
+        "operation": "encode",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726495029,
+        "throughput_mb_s": 1023.1335,
+        "ns_per_iter": 244347.39
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "update:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 551804,
+    "timed_ns": 527067,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 267391177,
+      "wait_ns": 115272,
+      "switches": 26
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 267846536,
+      "wait_ns": 115272,
+      "switches": 26
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 1,
+        "operation": "update",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726495089,
+        "throughput_mb_s": 474.323,
+        "ns_per_iter": 527067.0
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "update:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 64,
+    "wall_ns": 16629659,
+    "timed_ns": 16606395,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 268272261,
+      "wait_ns": 119047,
+      "switches": 32
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 284020214,
+      "wait_ns": 171185,
+      "switches": 34
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 64,
+        "operation": "update",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726495089,
+        "throughput_mb_s": 963.4842,
+        "ns_per_iter": 259474.92
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "update:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 512,
+    "wall_ns": 130531868,
+    "timed_ns": 130508383,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 285076889,
+      "wait_ns": 171185,
+      "switches": 38
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 415037039,
+      "wait_ns": 208741,
+      "switches": 40
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 512,
+        "operation": "update",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726495089,
+        "throughput_mb_s": 980.7799,
+        "ns_per_iter": 254899.19
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "update:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 512,
+    "wall_ns": 130465908,
+    "timed_ns": 130441812,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 415768040,
+      "wait_ns": 208741,
+      "switches": 44
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 546006847,
+      "wait_ns": 247388,
+      "switches": 46
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 512,
+        "operation": "update",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726495089,
+        "throughput_mb_s": 981.2805,
+        "ns_per_iter": 254769.16
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "verify:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 284751,
+    "timed_ns": 260194,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 546454904,
+      "wait_ns": 247388,
+      "switches": 50
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 546454904,
+      "wait_ns": 247388,
+      "switches": 50
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 1,
+        "operation": "verify",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726494982,
+        "throughput_mb_s": 960.8215,
+        "ns_per_iter": 260194.0
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "verify:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 64,
+    "wall_ns": 16258558,
+    "timed_ns": 16235534,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 547065475,
+      "wait_ns": 250903,
+      "switches": 56
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 562996612,
+      "wait_ns": 285183,
+      "switches": 58
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 64,
+        "operation": "verify",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726494982,
+        "throughput_mb_s": 985.4927,
+        "ns_per_iter": 253680.22
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "verify:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 512,
+    "wall_ns": 129484965,
+    "timed_ns": 129461660,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 563453854,
+      "wait_ns": 285183,
+      "switches": 62
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 692979767,
+      "wait_ns": 335017,
+      "switches": 66
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 512,
+        "operation": "verify",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726494982,
+        "throughput_mb_s": 988.7097,
+        "ns_per_iter": 252854.8
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "verify:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 512,
+    "wall_ns": 129411444,
+    "timed_ns": 129386767,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 693153125,
+      "wait_ns": 335017,
+      "switches": 70
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 821906877,
+      "wait_ns": 386744,
+      "switches": 73
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 512,
+        "operation": "verify",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726494982,
+        "throughput_mb_s": 989.282,
+        "ns_per_iter": 252708.53
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 283769,
+    "timed_ns": 256979,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 822864334,
+      "wait_ns": 386744,
+      "switches": 77
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 822864334,
+      "wait_ns": 386744,
+      "switches": 77
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 1,
+        "operation": "reconstruct",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726494999,
+        "throughput_mb_s": 972.8421,
+        "ns_per_iter": 256979.0
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 64,
+    "wall_ns": 16051325,
+    "timed_ns": 16028180,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 823404891,
+      "wait_ns": 390179,
+      "switches": 83
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 839092945,
+      "wait_ns": 423899,
+      "switches": 85
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 64,
+        "operation": "reconstruct",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726494999,
+        "throughput_mb_s": 998.2418,
+        "ns_per_iter": 250440.31
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 512,
+    "wall_ns": 127933038,
+    "timed_ns": 127909583,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 839579981,
+      "wait_ns": 423899,
+      "switches": 88
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 967068324,
+      "wait_ns": 464751,
+      "switches": 91
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 512,
+        "operation": "reconstruct",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726494999,
+        "throughput_mb_s": 1000.7069,
+        "ns_per_iter": 249823.4
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 512,
+    "wall_ns": 128505878,
+    "timed_ns": 128481261,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 967727276,
+      "wait_ns": 464751,
+      "switches": 94
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 1096026479,
+      "wait_ns": 500204,
+      "switches": 96
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 512,
+        "operation": "reconstruct",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726494999,
+        "throughput_mb_s": 996.2542,
+        "ns_per_iter": 250939.96
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 277459,
+    "timed_ns": 252853,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 1096466083,
+      "wait_ns": 500204,
+      "switches": 99
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 1096466083,
+      "wait_ns": 500204,
+      "switches": 99
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 1,
+        "operation": "reconstruct_data",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726495072,
+        "throughput_mb_s": 988.7168,
+        "ns_per_iter": 252853.0
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 64,
+    "wall_ns": 16049531,
+    "timed_ns": 16026216,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 1097079488,
+      "wait_ns": 503650,
+      "switches": 105
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 1112921211,
+      "wait_ns": 537189,
+      "switches": 107
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 64,
+        "operation": "reconstruct_data",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726495072,
+        "throughput_mb_s": 998.3642,
+        "ns_per_iter": 250409.62
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 512,
+    "wall_ns": 127745998,
+    "timed_ns": 127722773,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 1113259526,
+      "wait_ns": 537189,
+      "switches": 111
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 1240942031,
+      "wait_ns": 572882,
+      "switches": 113
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 512,
+        "operation": "reconstruct_data",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726495072,
+        "throughput_mb_s": 1002.1705,
+        "ns_per_iter": 249458.54
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data:4:2:65536",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 512,
+    "wall_ns": 127826620,
+    "timed_ns": 127799479,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 1241239325,
+      "wait_ns": 572882,
+      "switches": 116
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 1368853056,
+      "wait_ns": 624089,
+      "switches": 119
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 512,
+        "operation": "reconstruct_data",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 65536,
+        "seed": 65406575726495072,
+        "throughput_mb_s": 1001.569,
+        "ns_per_iter": 249608.36
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "encode:10:4:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 14723055,
+    "timed_ns": 14686239,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 1369300624,
+      "wait_ns": 624089,
+      "switches": 122
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 1383752144,
+      "wait_ns": 662986,
+      "switches": 124
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 1,
+        "operation": "encode",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "seed": 64843600004252981,
+        "throughput_mb_s": 680.9095,
+        "ns_per_iter": 14686239.0
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "encode:10:4:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 9,
+    "wall_ns": 92038389,
+    "timed_ns": 92003635,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 1384270989,
+      "wait_ns": 662986,
+      "switches": 128
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 1475685532,
+      "wait_ns": 696376,
+      "switches": 130
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 9,
+        "operation": "encode",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "seed": 64843600004252981,
+        "throughput_mb_s": 978.2222,
+        "ns_per_iter": 10222626.11
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "encode:10:4:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 18,
+    "wall_ns": 181991603,
+    "timed_ns": 181961798,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 1476676190,
+      "wait_ns": 696376,
+      "switches": 134
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 1658623871,
+      "wait_ns": 745120,
+      "switches": 138
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 18,
+        "operation": "encode",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "seed": 64843600004252981,
+        "throughput_mb_s": 989.2186,
+        "ns_per_iter": 10108988.78
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "encode:10:4:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 18,
+    "wall_ns": 182039124,
+    "timed_ns": 182008348,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 1658778773,
+      "wait_ns": 745120,
+      "switches": 141
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 1840493568,
+      "wait_ns": 806311,
+      "switches": 146
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 18,
+        "operation": "encode",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "seed": 64843600004252981,
+        "throughput_mb_s": 988.9656,
+        "ns_per_iter": 10111574.89
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "update:10:4:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 19124391,
+    "timed_ns": 19095467,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 1841030428,
+      "wait_ns": 806311,
+      "switches": 150
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 1859432990,
+      "wait_ns": 844638,
+      "switches": 152
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 1,
+        "operation": "update",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "seed": 64843600004253041,
+        "throughput_mb_s": 523.6845,
+        "ns_per_iter": 19095467.0
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "update:10:4:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 7,
+    "wall_ns": 77850793,
+    "timed_ns": 77798433,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 1860466540,
+      "wait_ns": 844638,
+      "switches": 155
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 1938145371,
+      "wait_ns": 895704,
+      "switches": 157
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 7,
+        "operation": "update",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "seed": 64843600004253041,
+        "throughput_mb_s": 899.7611,
+        "ns_per_iter": 11114061.86
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "update:10:4:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 14,
+    "wall_ns": 155745912,
+    "timed_ns": 155686442,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 1938754941,
+      "wait_ns": 895704,
+      "switches": 160
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 2094587111,
+      "wait_ns": 956895,
+      "switches": 163
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 14,
+        "operation": "update",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "seed": 64843600004253041,
+        "throughput_mb_s": 899.2434,
+        "ns_per_iter": 11120460.14
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "update:10:4:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 14,
+    "wall_ns": 155521793,
+    "timed_ns": 155461982,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 2095086488,
+      "wait_ns": 956895,
+      "switches": 166
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 2249997585,
+      "wait_ns": 1043103,
+      "switches": 170
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 14,
+        "operation": "update",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "seed": 64843600004253041,
+        "throughput_mb_s": 900.5417,
+        "ns_per_iter": 11104427.29
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "verify:10:4:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 11310235,
+    "timed_ns": 11252407,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 2250911629,
+      "wait_ns": 1043103,
+      "switches": 173
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 2261493468,
+      "wait_ns": 1088901,
+      "switches": 175
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 1,
+        "operation": "verify",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "seed": 64843600004252934,
+        "throughput_mb_s": 888.6987,
+        "ns_per_iter": 11252407.0
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "verify:10:4:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 12,
+    "wall_ns": 129746653,
+    "timed_ns": 129702267,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 2262571787,
+      "wait_ns": 1088901,
+      "switches": 178
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 2392311678,
+      "wait_ns": 1136413,
+      "switches": 181
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 12,
+        "operation": "verify",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "seed": 64843600004252934,
+        "throughput_mb_s": 925.1959,
+        "ns_per_iter": 10808522.25
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "verify:10:4:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 12,
+    "wall_ns": 130066758,
+    "timed_ns": 130029081,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 2392585486,
+      "wait_ns": 1136413,
+      "switches": 184
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 2522147032,
+      "wait_ns": 1187790,
+      "switches": 187
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 12,
+        "operation": "verify",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "seed": 64843600004252934,
+        "throughput_mb_s": 922.8705,
+        "ns_per_iter": 10835756.75
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct:10:4:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 10613111,
+    "timed_ns": 10565378,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 2522954847,
+      "wait_ns": 1187790,
+      "switches": 190
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 2533800439,
+      "wait_ns": 1231165,
+      "switches": 192
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 1,
+        "operation": "reconstruct",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "seed": 64843600004252951,
+        "throughput_mb_s": 946.4877,
+        "ns_per_iter": 10565378.0
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct:10:4:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 12,
+    "wall_ns": 125317746,
+    "timed_ns": 125287621,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 2533867539,
+      "wait_ns": 1231165,
+      "switches": 195
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 2658769186,
+      "wait_ns": 1272818,
+      "switches": 198
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 12,
+        "operation": "reconstruct",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "seed": 64843600004252951,
+        "throughput_mb_s": 957.7961,
+        "ns_per_iter": 10440635.08
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct:10:4:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 12,
+    "wall_ns": 125356144,
+    "timed_ns": 125327060,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 2659416301,
+      "wait_ns": 1272818,
+      "switches": 202
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 2784668071,
+      "wait_ns": 1361150,
+      "switches": 207
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 12,
+        "operation": "reconstruct",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "seed": 64843600004252951,
+        "throughput_mb_s": 957.4947,
+        "ns_per_iter": 10443921.67
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data:10:4:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 10547851,
+    "timed_ns": 10518957,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 2784960336,
+      "wait_ns": 1361150,
+      "switches": 211
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 2795617348,
+      "wait_ns": 1399907,
+      "switches": 213
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 1,
+        "operation": "reconstruct_data",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "seed": 64843600004253024,
+        "throughput_mb_s": 950.6646,
+        "ns_per_iter": 10518957.0
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data:10:4:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 12,
+    "wall_ns": 125342764,
+    "timed_ns": 125316284,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 2795734052,
+      "wait_ns": 1399907,
+      "switches": 217
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 2920598595,
+      "wait_ns": 1449049,
+      "switches": 220
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 12,
+        "operation": "reconstruct_data",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "seed": 64843600004253024,
+        "throughput_mb_s": 957.5771,
+        "ns_per_iter": 10443023.67
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data:10:4:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 12,
+    "wall_ns": 125337056,
+    "timed_ns": 125306599,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 2921290356,
+      "wait_ns": 1449049,
+      "switches": 223
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 3046496978,
+      "wait_ns": 1488888,
+      "switches": 225
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 12,
+        "operation": "reconstruct_data",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "seed": 64843600004253024,
+        "throughput_mb_s": 957.6511,
+        "ns_per_iter": 10442216.58
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "encode:32:16:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 42675337,
+    "timed_ns": 42556357,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 3046906759,
+      "wait_ns": 1488888,
+      "switches": 228
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 3089268637,
+      "wait_ns": 1530430,
+      "switches": 230
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 1,
+        "operation": "encode",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "seed": 57525336509121845,
+        "throughput_mb_s": 751.9441,
+        "ns_per_iter": 42556357.0
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "encode:32:16:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 3,
+    "wall_ns": 119594752,
+    "timed_ns": 119456472,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 3089965636,
+      "wait_ns": 1530430,
+      "switches": 233
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 3209727459,
+      "wait_ns": 1602348,
+      "switches": 236
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 3,
+        "operation": "encode",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "seed": 57525336509121845,
+        "throughput_mb_s": 803.64,
+        "ns_per_iter": 39818824.0
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "encode:32:16:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 3,
+    "wall_ns": 119632899,
+    "timed_ns": 119495200,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 3210226063,
+      "wait_ns": 1602348,
+      "switches": 239
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 3329164149,
+      "wait_ns": 1662397,
+      "switches": 242
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 3,
+        "operation": "encode",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "seed": 57525336509121845,
+        "throughput_mb_s": 803.3795,
+        "ns_per_iter": 39831733.33
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "update:32:16:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 73616119,
+    "timed_ns": 73477439,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 3330105713,
+      "wait_ns": 1662397,
+      "switches": 245
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 3403584190,
+      "wait_ns": 1725742,
+      "switches": 248
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 1,
+        "operation": "update",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "seed": 57525336509121905,
+        "throughput_mb_s": 435.5078,
+        "ns_per_iter": 73477439.0
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "update:32:16:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 2,
+    "wall_ns": 136162316,
+    "timed_ns": 136019520,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 3404152387,
+      "wait_ns": 1725742,
+      "switches": 251
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 3540020547,
+      "wait_ns": 1787204,
+      "switches": 254
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 2,
+        "operation": "update",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "seed": 57525336509121905,
+        "throughput_mb_s": 470.5207,
+        "ns_per_iter": 68009760.0
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "update:32:16:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 2,
+    "wall_ns": 135860469,
+    "timed_ns": 135719877,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 3540750155,
+      "wait_ns": 1787204,
+      "switches": 257
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 3676405629,
+      "wait_ns": 1896306,
+      "switches": 261
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 2,
+        "operation": "update",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "seed": 57525336509121905,
+        "throughput_mb_s": 471.5595,
+        "ns_per_iter": 67859938.5
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "verify:32:16:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 55064683,
+    "timed_ns": 54923079,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 3677001828,
+      "wait_ns": 1896306,
+      "switches": 265
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 3731831127,
+      "wait_ns": 1966811,
+      "switches": 267
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 1,
+        "operation": "verify",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "seed": 57525336509121798,
+        "throughput_mb_s": 582.633,
+        "ns_per_iter": 54923079.0
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "verify:32:16:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 3,
+    "wall_ns": 164142540,
+    "timed_ns": 164003660,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 3732491913,
+      "wait_ns": 1966811,
+      "switches": 270
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 3896245354,
+      "wait_ns": 2053771,
+      "switches": 273
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 3,
+        "operation": "verify",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "seed": 57525336509121798,
+        "throughput_mb_s": 585.3528,
+        "ns_per_iter": 54667886.67
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "verify:32:16:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 3,
+    "wall_ns": 164117873,
+    "timed_ns": 163980725,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 3897036243,
+      "wait_ns": 2053771,
+      "switches": 276
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 4060681694,
+      "wait_ns": 2105909,
+      "switches": 279
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 3,
+        "operation": "verify",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "seed": 57525336509121798,
+        "throughput_mb_s": 585.4347,
+        "ns_per_iter": 54660241.67
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct:32:16:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 42512460,
+    "timed_ns": 42373972,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 4061608214,
+      "wait_ns": 2105909,
+      "switches": 282
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 4104057832,
+      "wait_ns": 2204997,
+      "switches": 285
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 1,
+        "operation": "reconstruct",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "seed": 57525336509121815,
+        "throughput_mb_s": 755.1806,
+        "ns_per_iter": 42373972.0
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct:32:16:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 3,
+    "wall_ns": 126685013,
+    "timed_ns": 126547416,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 4104566401,
+      "wait_ns": 2204997,
+      "switches": 288
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 4231477025,
+      "wait_ns": 2294009,
+      "switches": 291
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 3,
+        "operation": "reconstruct",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "seed": 57525336509121815,
+        "throughput_mb_s": 758.6089,
+        "ns_per_iter": 42182472.0
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct:32:16:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 3,
+    "wall_ns": 126571742,
+    "timed_ns": 126423779,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 4231661019,
+      "wait_ns": 2294009,
+      "switches": 294
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 4357932178,
+      "wait_ns": 2336383,
+      "switches": 296
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 3,
+        "operation": "reconstruct",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "seed": 57525336509121815,
+        "throughput_mb_s": 759.3508,
+        "ns_per_iter": 42141259.67
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data:32:16:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 42404617,
+    "timed_ns": 42268471,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 28,
+      "run_ns": 4358706933,
+      "wait_ns": 2344004,
+      "switches": 299
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 4401375719,
+      "wait_ns": 2395250,
+      "switches": 302
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 1,
+        "operation": "reconstruct_data",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "seed": 57525336509121888,
+        "throughput_mb_s": 757.0655,
+        "ns_per_iter": 42268471.0
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data:32:16:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 3,
+    "wall_ns": 126808470,
+    "timed_ns": 126673857,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 4401861954,
+      "wait_ns": 2395250,
+      "switches": 305
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 4527805095,
+      "wait_ns": 2449961,
+      "switches": 308
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 3,
+        "operation": "reconstruct_data",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "seed": 57525336509121888,
+        "throughput_mb_s": 757.8517,
+        "ns_per_iter": 42224619.0
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data:32:16:1048576",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 3,
+    "wall_ns": 126843754,
+    "timed_ns": 126705915,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 28,
+      "run_ns": 4528877514,
+      "wait_ns": 2449961,
+      "switches": 311
+    },
+    "after": {
+      "cpu": 28,
+      "run_ns": 4655255554,
+      "wait_ns": 2510591,
+      "switches": 314
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "smoke-results",
+        "git_revision": "fa63014",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "iterations": 3,
+        "operation": "reconstruct_data",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "seed": 57525336509121888,
+        "throughput_mb_s": 757.66,
+        "ns_per_iter": 42235305.0
+      }
+    ]
+  }
+]

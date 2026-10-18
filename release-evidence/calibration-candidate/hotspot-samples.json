@@ -1,0 +1,1094 @@
+[
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data_missing_1_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 55452237,
+    "timed_ns": 353665,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 25,
+      "run_ns": 0,
+      "wait_ns": 0,
+      "switches": 1
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 55430185,
+      "wait_ns": 0,
+      "switches": 1
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_data_missing_1_data",
+        "missing_pattern": "d0",
+        "required_pattern": "d0",
+        "baseline_operation": "reconstruct",
+        "candidate_operation": "reconstruct_data",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 1,
+        "baseline_mb_s": 1479.3731,
+        "candidate_mb_s": 2827.5345,
+        "speedup": 1.9113
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data_missing_1_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 18,
+    "wall_ns": 758921670,
+    "timed_ns": 6512531,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 25,
+      "run_ns": 55916812,
+      "wait_ns": 0,
+      "switches": 4
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 813955686,
+      "wait_ns": 49563,
+      "switches": 8
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_data_missing_1_data",
+        "missing_pattern": "d0",
+        "required_pattern": "d0",
+        "baseline_operation": "reconstruct",
+        "candidate_operation": "reconstruct_data",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 1,
+        "baseline_mb_s": 2875.1022,
+        "candidate_mb_s": 2763.9024,
+        "speedup": 0.9613
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data_missing_1_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 18,
+    "wall_ns": 752647881,
+    "timed_ns": 6480313,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 25,
+      "run_ns": 814959783,
+      "wait_ns": 49563,
+      "switches": 8
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 1566831640,
+      "wait_ns": 157895,
+      "switches": 13
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_data_missing_1_data",
+        "missing_pattern": "d0",
+        "required_pattern": "d0",
+        "baseline_operation": "reconstruct",
+        "candidate_operation": "reconstruct_data",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 1,
+        "baseline_mb_s": 2941.015,
+        "candidate_mb_s": 2777.6436,
+        "speedup": 0.9445
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data_missing_2_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 42630635,
+    "timed_ns": 672507,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 25,
+      "run_ns": 1567834024,
+      "wait_ns": 157895,
+      "switches": 13
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 1609773292,
+      "wait_ns": 217113,
+      "switches": 15
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_data_missing_2_data",
+        "missing_pattern": "d0|d2",
+        "required_pattern": "d0|d2",
+        "baseline_operation": "reconstruct",
+        "candidate_operation": "reconstruct_data",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 2,
+        "baseline_mb_s": 2976.6068,
+        "candidate_mb_s": 2973.9467,
+        "speedup": 0.9991
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data_missing_2_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 10,
+    "wall_ns": 426134029,
+    "timed_ns": 5693160,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 25,
+      "run_ns": 1610772763,
+      "wait_ns": 217113,
+      "switches": 15
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 2036397036,
+      "wait_ns": 593112,
+      "switches": 23
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_data_missing_2_data",
+        "missing_pattern": "d0|d2",
+        "required_pattern": "d0|d2",
+        "baseline_operation": "reconstruct",
+        "candidate_operation": "reconstruct_data",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 2,
+        "baseline_mb_s": 3580.5289,
+        "candidate_mb_s": 3512.9875,
+        "speedup": 0.9811
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data_missing_2_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 10,
+    "wall_ns": 426484509,
+    "timed_ns": 5750767.999999999,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 25,
+      "run_ns": 2036397036,
+      "wait_ns": 593112,
+      "switches": 23
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 2463247146,
+      "wait_ns": 731437,
+      "switches": 28
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_data_missing_2_data",
+        "missing_pattern": "d0|d2",
+        "required_pattern": "d0|d2",
+        "baseline_operation": "reconstruct",
+        "candidate_operation": "reconstruct_data",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 2,
+        "baseline_mb_s": 3577.3075,
+        "candidate_mb_s": 3477.7964,
+        "speedup": 0.9722
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data_missing_data_plus_parity",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 42862426,
+    "timed_ns": 358713,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 25,
+      "run_ns": 2463247146,
+      "wait_ns": 731437,
+      "switches": 28
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 2506168228,
+      "wait_ns": 810125,
+      "switches": 30
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_data_missing_data_plus_parity",
+        "missing_pattern": "d1|p0",
+        "required_pattern": "d1",
+        "baseline_operation": "reconstruct",
+        "candidate_operation": "reconstruct_data",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 1,
+        "baseline_mb_s": 1661.32,
+        "candidate_mb_s": 2787.744,
+        "speedup": 1.678
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data_missing_data_plus_parity",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 18,
+    "wall_ns": 758490280,
+    "timed_ns": 6837849,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 25,
+      "run_ns": 2506168228,
+      "wait_ns": 810125,
+      "switches": 30
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 3265058449,
+      "wait_ns": 901071,
+      "switches": 34
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_data_missing_data_plus_parity",
+        "missing_pattern": "d1|p0",
+        "required_pattern": "d1",
+        "baseline_operation": "reconstruct",
+        "candidate_operation": "reconstruct_data",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 1,
+        "baseline_mb_s": 1485.311,
+        "candidate_mb_s": 2632.4068,
+        "speedup": 1.7723
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data_missing_data_plus_parity",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 18,
+    "wall_ns": 758143312,
+    "timed_ns": 6742273.999999998,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 25,
+      "run_ns": 3265058449,
+      "wait_ns": 901071,
+      "switches": 34
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 4022901739,
+      "wait_ns": 1040611,
+      "switches": 42
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_data_missing_data_plus_parity",
+        "missing_pattern": "d1|p0",
+        "required_pattern": "d1",
+        "baseline_operation": "reconstruct",
+        "candidate_operation": "reconstruct_data",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 1,
+        "baseline_mb_s": 1499.1397,
+        "candidate_mb_s": 2669.7224,
+        "speedup": 1.7808
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data_32x16_missing_2_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 190916409,
+    "timed_ns": 2517617,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 25,
+      "run_ns": 4023902491,
+      "wait_ns": 1040611,
+      "switches": 42
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 4214797584,
+      "wait_ns": 1133170,
+      "switches": 44
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_data_32x16_missing_2_data",
+        "missing_pattern": "d0|d2",
+        "required_pattern": "d0|d2",
+        "baseline_operation": "reconstruct",
+        "candidate_operation": "reconstruct_data",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "useful_shards": 2,
+        "baseline_mb_s": 733.9231,
+        "candidate_mb_s": 794.402,
+        "speedup": 1.0824
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data_32x16_missing_2_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 3,
+    "wall_ns": 552452071,
+    "timed_ns": 7406010,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 25,
+      "run_ns": 4214797584,
+      "wait_ns": 1133170,
+      "switches": 44
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 4767640788,
+      "wait_ns": 1278076,
+      "switches": 50
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_data_32x16_missing_2_data",
+        "missing_pattern": "d0|d2",
+        "required_pattern": "d0|d2",
+        "baseline_operation": "reconstruct",
+        "candidate_operation": "reconstruct_data",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "useful_shards": 2,
+        "baseline_mb_s": 793.9492,
+        "candidate_mb_s": 810.1528,
+        "speedup": 1.0204
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_data_32x16_missing_2_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 3,
+    "wall_ns": 551604559,
+    "timed_ns": 7338369,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 25,
+      "run_ns": 4767640788,
+      "wait_ns": 1278076,
+      "switches": 50
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 5319406855,
+      "wait_ns": 1407941,
+      "switches": 54
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_data_32x16_missing_2_data",
+        "missing_pattern": "d0|d2",
+        "required_pattern": "d0|d2",
+        "baseline_operation": "reconstruct",
+        "candidate_operation": "reconstruct_data",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "useful_shards": 2,
+        "baseline_mb_s": 796.2211,
+        "candidate_mb_s": 817.6204,
+        "speedup": 1.0269
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_some_required_1_of_2_missing_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 43038065,
+    "timed_ns": 393765,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 25,
+      "run_ns": 5319605391,
+      "wait_ns": 1410695,
+      "switches": 55
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 5362429830,
+      "wait_ns": 1487649,
+      "switches": 57
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_some_required_1_of_2_missing_data",
+        "missing_pattern": "d0|d2",
+        "required_pattern": "d2",
+        "baseline_operation": "reconstruct_data",
+        "candidate_operation": "reconstruct_some",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 1,
+        "baseline_mb_s": 1498.7134,
+        "candidate_mb_s": 2539.5858,
+        "speedup": 1.6945
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_some_required_1_of_2_missing_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 16,
+    "wall_ns": 680066539,
+    "timed_ns": 6136832.000000001,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 25,
+      "run_ns": 5362429830,
+      "wait_ns": 1487649,
+      "switches": 57
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 6042258859,
+      "wait_ns": 1636682,
+      "switches": 64
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_some_required_1_of_2_missing_data",
+        "missing_pattern": "d0|d2",
+        "required_pattern": "d2",
+        "baseline_operation": "reconstruct_data",
+        "candidate_operation": "reconstruct_some",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 1,
+        "baseline_mb_s": 1523.6612,
+        "candidate_mb_s": 2607.2084,
+        "speedup": 1.7111
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_some_required_1_of_2_missing_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 16,
+    "wall_ns": 678591087,
+    "timed_ns": 5866541.000000001,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 25,
+      "run_ns": 6043260242,
+      "wait_ns": 1636682,
+      "switches": 64
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 6721112613,
+      "wait_ns": 1770323,
+      "switches": 70
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_some_required_1_of_2_missing_data",
+        "missing_pattern": "d0|d2",
+        "required_pattern": "d2",
+        "baseline_operation": "reconstruct_data",
+        "candidate_operation": "reconstruct_some",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 1,
+        "baseline_mb_s": 1546.8827,
+        "candidate_mb_s": 2727.3311,
+        "speedup": 1.7631
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_some_required_2_of_3_missing_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 43196314,
+    "timed_ns": 729423,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 25,
+      "run_ns": 6722112954,
+      "wait_ns": 1770323,
+      "switches": 70
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 6765044020,
+      "wait_ns": 1837394,
+      "switches": 72
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_some_required_2_of_3_missing_data",
+        "missing_pattern": "d0|d2|d4",
+        "required_pattern": "d0|d4",
+        "baseline_operation": "reconstruct_data",
+        "candidate_operation": "reconstruct_some",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 2,
+        "baseline_mb_s": 2064.5907,
+        "candidate_mb_s": 2741.8932,
+        "speedup": 1.3281
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_some_required_2_of_3_missing_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 9,
+    "wall_ns": 386831557,
+    "timed_ns": 5110558,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 25,
+      "run_ns": 6765044020,
+      "wait_ns": 1837394,
+      "switches": 72
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 7151961495,
+      "wait_ns": 1920126,
+      "switches": 75
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_some_required_2_of_3_missing_data",
+        "missing_pattern": "d0|d2|d4",
+        "required_pattern": "d0|d4",
+        "baseline_operation": "reconstruct_data",
+        "candidate_operation": "reconstruct_some",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 2,
+        "baseline_mb_s": 2641.1407,
+        "candidate_mb_s": 3522.1203,
+        "speedup": 1.3336
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_some_required_2_of_3_missing_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 9,
+    "wall_ns": 387989478,
+    "timed_ns": 4965929.000000001,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 25,
+      "run_ns": 7151961495,
+      "wait_ns": 1920126,
+      "switches": 75
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 7539573734,
+      "wait_ns": 2295546,
+      "switches": 81
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_some_required_2_of_3_missing_data",
+        "missing_pattern": "d0|d2|d4",
+        "required_pattern": "d0|d4",
+        "baseline_operation": "reconstruct_data",
+        "candidate_operation": "reconstruct_some",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 2,
+        "baseline_mb_s": 2653.6387,
+        "candidate_mb_s": 3624.6994,
+        "speedup": 1.3659
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_some_required_2_of_3_missing_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 18,
+    "wall_ns": 772963425,
+    "timed_ns": 10150871,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 25,
+      "run_ns": 7540572664,
+      "wait_ns": 2295546,
+      "switches": 81
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 8313445547,
+      "wait_ns": 2407803,
+      "switches": 85
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_some_required_2_of_3_missing_data",
+        "missing_pattern": "d0|d2|d4",
+        "required_pattern": "d0|d4",
+        "baseline_operation": "reconstruct_data",
+        "candidate_operation": "reconstruct_some",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 2,
+        "baseline_mb_s": 2695.0041,
+        "candidate_mb_s": 3546.4937,
+        "speedup": 1.316
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_some_required_2_of_3_missing_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 18,
+    "wall_ns": 773184779,
+    "timed_ns": 10050330,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 25,
+      "run_ns": 8313445547,
+      "wait_ns": 2407803,
+      "switches": 85
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 9086067255,
+      "wait_ns": 2767079,
+      "switches": 93
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_some_required_2_of_3_missing_data",
+        "missing_pattern": "d0|d2|d4",
+        "required_pattern": "d0|d4",
+        "baseline_operation": "reconstruct_data",
+        "candidate_operation": "reconstruct_some",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 2,
+        "baseline_mb_s": 2674.0234,
+        "candidate_mb_s": 3581.9719,
+        "speedup": 1.3395
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_some_required_data_and_skip_parity",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 42470827,
+    "timed_ns": 351241.00000000006,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 25,
+      "run_ns": 9087066364,
+      "wait_ns": 2767079,
+      "switches": 93
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 9128998581,
+      "wait_ns": 2837755,
+      "switches": 95
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_some_required_data_and_skip_parity",
+        "missing_pattern": "d1|p0",
+        "required_pattern": "d1",
+        "baseline_operation": "reconstruct_data",
+        "candidate_operation": "reconstruct_some",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 1,
+        "baseline_mb_s": 2828.5823,
+        "candidate_mb_s": 2847.048,
+        "speedup": 1.0065
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_some_required_data_and_skip_parity",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 18,
+    "wall_ns": 759396798,
+    "timed_ns": 6690468.999999999,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 25,
+      "run_ns": 9129998182,
+      "wait_ns": 2837755,
+      "switches": 95
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 9888649617,
+      "wait_ns": 3168679,
+      "switches": 104
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_some_required_data_and_skip_parity",
+        "missing_pattern": "d1|p0",
+        "required_pattern": "d1",
+        "baseline_operation": "reconstruct_data",
+        "candidate_operation": "reconstruct_some",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 1,
+        "baseline_mb_s": 2766.327,
+        "candidate_mb_s": 2690.3944,
+        "speedup": 0.9726
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_some_required_data_and_skip_parity",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 18,
+    "wall_ns": 757769918,
+    "timed_ns": 6518427.000000001,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 25,
+      "run_ns": 9888649617,
+      "wait_ns": 3168679,
+      "switches": 104
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 10646322605,
+      "wait_ns": 3477579,
+      "switches": 110
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_some_required_data_and_skip_parity",
+        "missing_pattern": "d1|p0",
+        "required_pattern": "d1",
+        "baseline_operation": "reconstruct_data",
+        "candidate_operation": "reconstruct_some",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 1048576,
+        "useful_shards": 1,
+        "baseline_mb_s": 2796.6708,
+        "candidate_mb_s": 2761.4024,
+        "speedup": 0.9874
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_some_32x16_required_2_of_4_missing_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 1,
+    "wall_ns": 186159314,
+    "timed_ns": 2439018,
+    "complete": false,
+    "target_met": false,
+    "before": {
+      "cpu": 25,
+      "run_ns": 10646322605,
+      "wait_ns": 3477579,
+      "switches": 110
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 10833220228,
+      "wait_ns": 3570688,
+      "switches": 112
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_some_32x16_required_2_of_4_missing_data",
+        "missing_pattern": "d0|d2|d4|d6",
+        "required_pattern": "d2|d6",
+        "baseline_operation": "reconstruct_data",
+        "candidate_operation": "reconstruct_some",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "useful_shards": 2,
+        "baseline_mb_s": 402.6558,
+        "candidate_mb_s": 820.0021,
+        "speedup": 2.0365
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_some_32x16_required_2_of_4_missing_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 3,
+    "wall_ns": 559434606,
+    "timed_ns": 7366398.999999999,
+    "complete": false,
+    "target_met": true,
+    "before": {
+      "cpu": 25,
+      "run_ns": 10833220228,
+      "wait_ns": 3570688,
+      "switches": 112
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 11391902771,
+      "wait_ns": 3875702,
+      "switches": 116
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_some_32x16_required_2_of_4_missing_data",
+        "missing_pattern": "d0|d2|d4|d6",
+        "required_pattern": "d2|d6",
+        "baseline_operation": "reconstruct_data",
+        "candidate_operation": "reconstruct_some",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "useful_shards": 2,
+        "baseline_mb_s": 413.3943,
+        "candidate_mb_s": 814.5092,
+        "speedup": 1.9703
+      }
+    ]
+  },
+  {
+    "kind": "calibration",
+    "case": "reconstruct_some_32x16_required_2_of_4_missing_data",
+    "revision": "fa63014d7f769a495357dac09706c47ed211dcaa",
+    "index": 0,
+    "iterations": 3,
+    "wall_ns": 562679263,
+    "timed_ns": 7384977.999999999,
+    "complete": true,
+    "target_met": true,
+    "before": {
+      "cpu": 25,
+      "run_ns": 11392903503,
+      "wait_ns": 3875702,
+      "switches": 116
+    },
+    "after": {
+      "cpu": 25,
+      "run_ns": 11955754231,
+      "wait_ns": 4012645,
+      "switches": 124
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "reconstruction-hotspot-results",
+        "benchmark_metrics_enabled": false,
+        "scenario": "reconstruct_some_32x16_required_2_of_4_missing_data",
+        "missing_pattern": "d0|d2|d4|d6",
+        "required_pattern": "d2|d6",
+        "baseline_operation": "reconstruct_data",
+        "candidate_operation": "reconstruct_some",
+        "data_shards": 32,
+        "parity_shards": 16,
+        "shard_size": 1048576,
+        "useful_shards": 2,
+        "baseline_mb_s": 410.279,
+        "candidate_mb_s": 812.4601,
+        "speedup": 1.9803
+      }
+    ]
+  }
+]
