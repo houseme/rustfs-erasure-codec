@@ -1,0 +1,123 @@
+{
+  "schema_version": "slot-derived-diagnosis-v1",
+  "basis": "all complete original observations; no favorable subset",
+  "source": {
+    "commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "tree": "d44fe8c296972cf895375101f8975c99371db57a",
+    "lock_sha256": "972540efcf6bc23c0064252a9c0d937bf87dbe0edff9cdb688d2fdcbd5653d49"
+  },
+  "tool": {
+    "commit": "13f30d5da9b2f58102fd0609444d9672a52b5377",
+    "tree": "8ed78cd5c706e2097e0779db16bd5d451341a62a",
+    "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+  },
+  "stage": 2,
+  "release_approval": false,
+  "candidate_attribution": null,
+  "workers": [
+    {
+      "arm": "plain",
+      "worker": 0,
+      "mode": "calibrate",
+      "median_timed_ns": 438792486,
+      "central_spread": 0.03513360755224965
+    },
+    {
+      "arm": "plain",
+      "worker": 1,
+      "mode": "sample",
+      "median_timed_ns": 422178542,
+      "central_spread": 0.0004854604855781609
+    },
+    {
+      "arm": "plain",
+      "worker": 2,
+      "mode": "sample",
+      "median_timed_ns": 423109169,
+      "central_spread": 0.0016696234725180348
+    },
+    {
+      "arm": "plain",
+      "worker": 3,
+      "mode": "calibrate",
+      "median_timed_ns": 432970898,
+      "central_spread": 0.004526110205217534
+    },
+    {
+      "arm": "traced",
+      "worker": 0,
+      "mode": "calibrate",
+      "median_timed_ns": 428724692,
+      "central_spread": 0.0036469721226133622,
+      "phase_medians_ns": {
+        "clone": 347146879,
+        "reconstruct": 21756878,
+        "drop": 59235330
+      },
+      "first_warmup_phase_ns": {
+        "clone": 19523648,
+        "reconstruct": 19491025,
+        "drop": 466814
+      },
+      "histogram_overflow": 0,
+      "counted_clones": 49152
+    },
+    {
+      "arm": "traced",
+      "worker": 1,
+      "mode": "sample",
+      "median_timed_ns": 427904644,
+      "central_spread": 0.0015611422062528492,
+      "phase_medians_ns": {
+        "clone": 346167604,
+        "reconstruct": 21685700,
+        "drop": 59456884
+      },
+      "first_warmup_phase_ns": {
+        "clone": 14815689,
+        "reconstruct": 19738287,
+        "drop": 475806
+      },
+      "histogram_overflow": 0,
+      "counted_clones": 49152
+    },
+    {
+      "arm": "traced",
+      "worker": 2,
+      "mode": "sample",
+      "median_timed_ns": 426811413,
+      "central_spread": 0.002048145793139791,
+      "phase_medians_ns": {
+        "clone": 343910409,
+        "reconstruct": 22452472,
+        "drop": 59665899
+      },
+      "first_warmup_phase_ns": {
+        "clone": 15999564,
+        "reconstruct": 19869233,
+        "drop": 466666
+      },
+      "histogram_overflow": 0,
+      "counted_clones": 49152
+    },
+    {
+      "arm": "traced",
+      "worker": 3,
+      "mode": "calibrate",
+      "median_timed_ns": 419372826,
+      "central_spread": 0.012953066253272213,
+      "phase_medians_ns": {
+        "clone": 338584657,
+        "reconstruct": 21702049,
+        "drop": 58608276
+      },
+      "first_warmup_phase_ns": {
+        "clone": 13425136,
+        "reconstruct": 19312299,
+        "drop": 492257
+      },
+      "histogram_overflow": 0,
+      "counted_clones": 49152
+    }
+  ]
+}

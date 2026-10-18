@@ -51,3 +51,13 @@ Only complete numerical journal lines are public; incomplete console fragments a
 ## Fresh complete main/protocol-6 baseline prerequisite
 
 `diagnostics/protocol6-main2fb-full-baseline` retains all 126 A1 cases and complete calibrations: four unstable distributions and nine short observations cause the predeclared stop before A2 or candidate collection. The complete raw data, matched controller and actual timing-validator replay remain public. This rejected default-allocator control is distinct from later fixture changes and never approves release.
+
+## ShardSlot allocation and observer diagnosis
+
+`diagnostics/protocol7-shard-slot-state` preserves all four diagnostic stages,
+288 observations, 393,216 traced clone iterations, syscall counts and every
+bounded stack event. The evidence locates ordinary procfs String growth and
+benchmark frees returning pages via madvise. It does not approve performance or
+a release. Protocol 8 separately removes ordinary telemetry's Rust heap activity;
+its native allocation regression and fresh baseline controls are tracked under
+`diagnostics/protocol8-observer-regression`.

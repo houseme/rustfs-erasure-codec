@@ -1,0 +1,83 @@
+{
+  "schema_version": "slot-derived-diagnosis-v1",
+  "basis": "all complete original observations; no favorable subset",
+  "source": {
+    "commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "tree": "d44fe8c296972cf895375101f8975c99371db57a",
+    "lock_sha256": "972540efcf6bc23c0064252a9c0d937bf87dbe0edff9cdb688d2fdcbd5653d49"
+  },
+  "tool": {
+    "commit": "be43a489683ae2cf751991fc87238f9c9ec3de65",
+    "tree": "b0e2f12f85fb1bd2db8f70f91feb3eac6ad9db26",
+    "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+  },
+  "stage": 1,
+  "release_approval": false,
+  "candidate_attribution": null,
+  "workers": [
+    {
+      "arm": "plain",
+      "worker": 0,
+      "mode": "calibrate",
+      "median_timed_ns": 424297486,
+      "central_spread": 0.0033352495517732102
+    },
+    {
+      "arm": "plain",
+      "worker": 1,
+      "mode": "sample",
+      "median_timed_ns": 424207482,
+      "central_spread": 0.0024159380574055975
+    },
+    {
+      "arm": "plain",
+      "worker": 2,
+      "mode": "sample",
+      "median_timed_ns": 424384881,
+      "central_spread": 0.003203994913287215
+    },
+    {
+      "arm": "plain",
+      "worker": 3,
+      "mode": "calibrate",
+      "median_timed_ns": 440162754,
+      "central_spread": 0.005466639278615564
+    },
+    {
+      "arm": "traced",
+      "worker": 0,
+      "mode": "calibrate",
+      "median_timed_ns": 428291113,
+      "central_spread": 0.016231275384880565,
+      "histogram_overflow": 0,
+      "counted_clones": 49152
+    },
+    {
+      "arm": "traced",
+      "worker": 1,
+      "mode": "sample",
+      "median_timed_ns": 432929146,
+      "central_spread": 0.008318765399084495,
+      "histogram_overflow": 0,
+      "counted_clones": 49152
+    },
+    {
+      "arm": "traced",
+      "worker": 2,
+      "mode": "sample",
+      "median_timed_ns": 429882374,
+      "central_spread": 0.0066560672710903,
+      "histogram_overflow": 0,
+      "counted_clones": 49152
+    },
+    {
+      "arm": "traced",
+      "worker": 3,
+      "mode": "calibrate",
+      "median_timed_ns": 449882916,
+      "central_spread": 0.005327037135146514,
+      "histogram_overflow": 0,
+      "counted_clones": 49152
+    }
+  ]
+}

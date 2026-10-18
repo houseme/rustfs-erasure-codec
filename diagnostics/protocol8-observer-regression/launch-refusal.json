@@ -1,0 +1,9 @@
+{
+  "schema_version": "observer-control-launch-refusal-v1",
+  "tool_commit": "4722b753abcd46a347be058624fd2bc2ffe97c6b",
+  "performance_observations": 0,
+  "cause": "baseline controller rejected the still-present ancestor qualification coordinator as another workload; isolation validation was not changed",
+  "resolution": "preserve this refusal and restored resources; start a new complete campaign with a direct controller and no ancestor coordinator",
+  "release_approval": false,
+  "candidate_attribution": null
+}

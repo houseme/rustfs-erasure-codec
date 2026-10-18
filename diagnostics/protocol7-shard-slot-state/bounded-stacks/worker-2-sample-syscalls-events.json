@@ -1,0 +1,2004 @@
+{
+  "schema_version": "address-free-syscall-stacks-v1",
+  "derivation": "all first 64 captured madvise calls; remove only full addresses, process IDs, object paths and instruction offsets; normalize sampler object name",
+  "events": [
+    {
+      "sequence": 0,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "realloc"
+        },
+        {
+          "object": "sampler",
+          "symbol": "<alloc::raw_vec::RawVecInner>::finish_grow"
+        },
+        {
+          "object": "sampler",
+          "symbol": "alloc::io::read::default_read_to_end::<std::fs::File>"
+        },
+        {
+          "object": "sampler",
+          "symbol": "std::fs::read_to_string::inner"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::sampling::telemetry"
+        }
+      ],
+      "stack_truncated": true
+    },
+    {
+      "sequence": 1,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 2,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 3,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 4,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 5,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 6,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 7,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 8,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 9,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 10,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 11,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 12,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 13,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 14,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 15,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 16,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 17,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 18,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 19,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 20,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 21,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 22,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 23,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 24,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 25,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 26,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 27,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 28,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 29,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 30,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 31,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 32,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 33,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 34,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 35,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 36,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 37,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 38,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 39,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 40,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 41,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 42,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 43,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 44,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 45,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 46,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 47,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 48,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 49,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 50,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 51,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 52,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 53,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 54,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 55,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 56,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 57,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 58,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 59,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 60,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 61,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 62,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    },
+    {
+      "sequence": 63,
+      "thread_slot": 0,
+      "syscall": "madvise",
+      "length": 262144,
+      "advice": "MADV_DONTNEED",
+      "result": 0,
+      "frames": [
+        {
+          "object": "libc.so.6",
+          "symbol": "__madvise"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__default_morecore"
+        },
+        {
+          "object": "libc.so.6",
+          "symbol": "__libc_free"
+        },
+        {
+          "object": "sampler",
+          "symbol": "rse_release_sampling::small_file::run_operation"
+        }
+      ],
+      "stack_truncated": false
+    }
+  ],
+  "release_approval": false,
+  "candidate_attribution": null
+}

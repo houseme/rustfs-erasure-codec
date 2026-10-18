@@ -1,0 +1,98 @@
+{
+  "schema_version": "shard-slot-diagnostic-v2",
+  "source": {
+    "commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "tree": "d44fe8c296972cf895375101f8975c99371db57a",
+    "lock_sha256": "972540efcf6bc23c0064252a9c0d937bf87dbe0edff9cdb688d2fdcbd5653d49"
+  },
+  "tool": {
+    "commit": "13f30d5da9b2f58102fd0609444d9672a52b5377",
+    "tree": "8ed78cd5c706e2097e0779db16bd5d451341a62a",
+    "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+  },
+  "context": {
+    "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+    "isolation": {
+      "scope": "exclusive-vm-cpu-partition",
+      "reserved_cpu_count": 8,
+      "cpu_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "physical_host_exclusivity_proven": false
+    },
+    "runtime": {
+      "libc": {
+        "name": "glibc",
+        "version": "2.39"
+      },
+      "page_size": 4096,
+      "allocator_environment": {}
+    },
+    "settings": {
+      "RUSTUP_TOOLCHAIN": "stable",
+      "RUSTFLAGS": "",
+      "RAYON_NUM_THREADS": "4",
+      "RS_PARALLEL_POLICY_MAX_JOBS": "4",
+      "RSE_BACKEND_OVERRIDE": "auto",
+      "RSE_STRICT_BACKEND_OVERRIDE": "1",
+      "RSE_SMOKE_PROFILE": "extended",
+      "RSE_SMALL_FILE_PROFILE": "fast",
+      "RSE_STREAM_PROFILE": "fast",
+      "RSE_STREAM_IO_MODE": "auto",
+      "RSE_BENCHMARK_ALLOW_MISSING_CASES": "0",
+      "CARGO_BUILD_JOBS": "4",
+      "RSE_SAMPLER_PROTOCOL": "duration-v7"
+    }
+  },
+  "measuring_cpu": 24,
+  "iterations": 4096,
+  "protocol": {
+    "name": "shared-external-duration-sampler",
+    "version": 7,
+    "samples": 9,
+    "warmups": 3,
+    "case_isolation": "fresh-process-per-count",
+    "case_order": "lexicographic",
+    "max_calibration_batches": 12,
+    "max_calibration_records": 144,
+    "target_wall_ns": 100000000,
+    "target_timed_ns": 5000000,
+    "minimum_wall_ns": 50000000,
+    "minimum_timed_ns": 2000000,
+    "central_spread_limit": 0.1,
+    "stream_output_policy": "independent-capacity-per-writer-per-iteration",
+    "fixture_layout": {
+      "scope": "small_file:verify_with_buffer",
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "construction": "caller-buffers-before-codec",
+      "offset_moduli": [
+        64,
+        4096,
+        "os_base_page_size"
+      ],
+      "page_size_source": "controller-sysconf",
+      "untracked_cases": "original allocation contract; no layout guarantee"
+    },
+    "timing_scope": {
+      "smoke": "original per-iteration workload",
+      "small_file": "operation loops excluding one-time fixture preparation",
+      "stream": "operation loops excluding one-time fixture preparation",
+      "hotspot": "original inner recovery intervals"
+    }
+  },
+  "renderer_sha256": "fc6a1b07a7bf9f8c40d46b43574118120969b5d8a9394484145303e6ca194056",
+  "controller_sha256": "ee950450991e0ddce6c5c81ade26a169b62e77d1481d7a5b843ded284233de05",
+  "trace_sha256": "be3cf8b05eb7ea1d6a2f255b7aaaf28f4819ceea517ec8e26db3b07662ae2e5c",
+  "purpose": "within-version fixed-count diagnosis; instrumented timings are perturbed",
+  "release_approval": false,
+  "candidate_attribution": null
+}
