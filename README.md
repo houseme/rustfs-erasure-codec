@@ -43,3 +43,7 @@ Only complete numerical journal lines are public; incomplete console fragments a
 ## Protocol 5 retained Vec controls and complete layout grid
 
 `diagnostics/protocol5-retained-vec-and-grid` contains all scoped baseline calibration and repeated Vec observations, all complete slice-grid records, and an earlier premeasurement unit-count stop. All 11 Vec cases match their retained layouts and pass the scoped timing/distribution/repeat checks. One of the 64 full-grid distributions still fails quality and remains visible. The full original release campaign and positive strict preflight are outstanding; there is no candidate attribution or release approval. See that directory for exact counts, original numerical files and matched controller sources.
+
+## Protocol 6 cross-version structural qualification
+
+`diagnostics/protocol6-cross-version-fixture-inventory` retains both complete four-phase structural inventories: the main/protocol-5 source has 24 mismatching comparisons across six cases, while the candidate/protocol-6 source has all 66 comparisons matching, including OS base page provenance. Every inventory keeps all 528 raw observations. They use one iteration for geometry inspection and cannot establish performance or release acceptance. The earlier initialization stop and controller sources remain available.

@@ -1,0 +1,105 @@
+{
+  "schema_version": "fixture-layout-inventory-v1",
+  "sources": {
+    "baseline": {
+      "commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+      "tree": "d44fe8c296972cf895375101f8975c99371db57a",
+      "lock_sha256": "972540efcf6bc23c0064252a9c0d937bf87dbe0edff9cdb688d2fdcbd5653d49"
+    },
+    "candidate": {
+      "commit": "d3cb05d4299ae2604325af38be2b29e1b51ac0cd",
+      "tree": "02581f92d260e197b74759d460e9878a3b5b78d9",
+      "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+    }
+  },
+  "tool": {
+    "commit": "d3cb05d4299ae2604325af38be2b29e1b51ac0cd",
+    "tree": "02581f92d260e197b74759d460e9878a3b5b78d9",
+    "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+  },
+  "context": {
+    "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+    "isolation": {
+      "scope": "exclusive-vm-cpu-partition",
+      "reserved_cpu_count": 8,
+      "cpu_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "physical_host_exclusivity_proven": false
+    },
+    "runtime": {
+      "libc": {
+        "name": "glibc",
+        "version": "2.39"
+      },
+      "page_size": 4096,
+      "allocator_environment": {}
+    },
+    "settings": {
+      "RUSTUP_TOOLCHAIN": "stable",
+      "RUSTFLAGS": "",
+      "RAYON_NUM_THREADS": "4",
+      "RS_PARALLEL_POLICY_MAX_JOBS": "4",
+      "RSE_BACKEND_OVERRIDE": "auto",
+      "RSE_STRICT_BACKEND_OVERRIDE": "1",
+      "RSE_SMOKE_PROFILE": "extended",
+      "RSE_SMALL_FILE_PROFILE": "fast",
+      "RSE_STREAM_PROFILE": "fast",
+      "RSE_STREAM_IO_MODE": "auto",
+      "RSE_BENCHMARK_ALLOW_MISSING_CASES": "0",
+      "CARGO_BUILD_JOBS": "4",
+      "RSE_SAMPLER_PROTOCOL": "duration-v6"
+    }
+  },
+  "measuring_affinity": [
+    24
+  ],
+  "protocol": {
+    "name": "shared-external-duration-sampler",
+    "version": 6,
+    "samples": 9,
+    "warmups": 3,
+    "case_isolation": "fresh-process-per-count",
+    "case_order": "lexicographic",
+    "max_calibration_batches": 12,
+    "max_calibration_records": 144,
+    "target_wall_ns": 100000000,
+    "target_timed_ns": 5000000,
+    "minimum_wall_ns": 50000000,
+    "minimum_timed_ns": 2000000,
+    "central_spread_limit": 0.1,
+    "fixture_layout": {
+      "scope": "small_file:verify_with_buffer",
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "construction": "caller-buffers-before-codec",
+      "offset_moduli": [
+        64,
+        4096,
+        "os_base_page_size"
+      ],
+      "page_size_source": "controller-sysconf",
+      "untracked_cases": "original allocation contract; no layout guarantee"
+    },
+    "timing_scope": {
+      "smoke": "original per-iteration workload",
+      "small_file": "operation loops excluding one-time fixture preparation",
+      "stream": "operation loops excluding one-time fixture preparation",
+      "hotspot": "original inner recovery intervals"
+    }
+  },
+  "overlay_sha256": "c2ab1eafa8d0ac438754328621ab25bee059e13691d590ab85fd7ac1c6b515e1",
+  "renderer_sha256": "392161df447df3e1ebeaf134aa3595660ea81043bf5fee21659a7e718a87d174",
+  "controller_sha256": "a2d27942d0ad7170cd5e8345221ef4d67eaf50a47e40774c90e20c0d668384bb",
+  "purpose": "one-iteration structural layout inventory; no timing inference",
+  "candidate_attribution": null,
+  "release_approval": false
+}

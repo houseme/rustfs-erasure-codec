@@ -1,0 +1,5047 @@
+{
+  "schema_version": "fixture-layout-inventory-v1",
+  "sources": {
+    "baseline": {
+      "commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+      "tree": "d44fe8c296972cf895375101f8975c99371db57a",
+      "lock_sha256": "972540efcf6bc23c0064252a9c0d937bf87dbe0edff9cdb688d2fdcbd5653d49"
+    },
+    "candidate": {
+      "commit": "bc3a3dcb6e7c1a7a2a8a3a612dbef2d742ed7b09",
+      "tree": "5664b26534b0ec5fef54974175c693b5fc206c4a",
+      "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+    }
+  },
+  "tool": {
+    "commit": "bc3a3dcb6e7c1a7a2a8a3a612dbef2d742ed7b09",
+    "tree": "5664b26534b0ec5fef54974175c693b5fc206c4a",
+    "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+  },
+  "context": {
+    "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+    "isolation": {
+      "scope": "exclusive-vm-cpu-partition",
+      "reserved_cpu_count": 8,
+      "cpu_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "physical_host_exclusivity_proven": false
+    },
+    "runtime": {
+      "libc": {
+        "name": "glibc",
+        "version": "2.39"
+      },
+      "allocator_environment": {}
+    },
+    "settings": {
+      "RUSTUP_TOOLCHAIN": "stable",
+      "RUSTFLAGS": "",
+      "RAYON_NUM_THREADS": "4",
+      "RS_PARALLEL_POLICY_MAX_JOBS": "4",
+      "RSE_BACKEND_OVERRIDE": "auto",
+      "RSE_STRICT_BACKEND_OVERRIDE": "1",
+      "RSE_SMOKE_PROFILE": "extended",
+      "RSE_SMALL_FILE_PROFILE": "fast",
+      "RSE_STREAM_PROFILE": "fast",
+      "RSE_STREAM_IO_MODE": "auto",
+      "RSE_BENCHMARK_ALLOW_MISSING_CASES": "0",
+      "CARGO_BUILD_JOBS": "4",
+      "RSE_SAMPLER_PROTOCOL": "duration-v5"
+    }
+  },
+  "measuring_affinity": [
+    24
+  ],
+  "protocol": {
+    "name": "shared-external-duration-sampler",
+    "version": 5,
+    "samples": 9,
+    "warmups": 3,
+    "case_isolation": "fresh-process-per-count",
+    "case_order": "lexicographic",
+    "max_calibration_batches": 12,
+    "max_calibration_records": 144,
+    "target_wall_ns": 100000000,
+    "target_timed_ns": 5000000,
+    "minimum_wall_ns": 50000000,
+    "minimum_timed_ns": 2000000,
+    "central_spread_limit": 0.1,
+    "fixture_layout": {
+      "scope": "small_file:verify_with_buffer",
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "offset_moduli": [
+        64,
+        4096
+      ],
+      "untracked_cases": "original allocation contract; no layout guarantee"
+    },
+    "timing_scope": {
+      "smoke": "original per-iteration workload",
+      "small_file": "operation loops excluding one-time fixture preparation",
+      "stream": "operation loops excluding one-time fixture preparation",
+      "hotspot": "original inner recovery intervals"
+    }
+  },
+  "overlay_sha256": "054a9145e33603d798c7ca380203075e06c63538d5574e7c55ad036dea98de57",
+  "renderer_sha256": "4706b4cb19a0bda37a3e6e96ae60b2cb5d3f10a16d74b7b03dcc5d75a9a2b82f",
+  "controller_sha256": "bb8222ed6d6e30287be1ad44ff92a4c3110dbf36214972a1ebb33458d7f63adb",
+  "purpose": "one-iteration structural layout inventory; no timing inference",
+  "candidate_attribution": null,
+  "release_approval": false,
+  "case_count": 11,
+  "phase_count": 4,
+  "layout_checks": [
+    {
+      "case": "verify_with_buffer:10:4:16384",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:524288",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:1024",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:131072",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:16384",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:262144",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:4096",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:524288",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:65536",
+      "pair": "A1/A2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:16384",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:524288",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:1024",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:131072",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:16384",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:262144",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:4096",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:524288",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:65536",
+      "pair": "B1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:16384",
+      "pair": "A1/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 6,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 7,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 8,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 9,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 10,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 11,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 12,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 13,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:10:4:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:524288",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:65536",
+      "pair": "A1/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 6,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 7,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 8,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 9,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 10,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 11,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 12,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 13,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:1024",
+      "pair": "A1/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:131072",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:16384",
+      "pair": "A1/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:262144",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:4096",
+      "pair": "A1/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:524288",
+      "pair": "A1/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:65536",
+      "pair": "A1/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:10:4:16384",
+      "pair": "A1/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 6,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 7,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 8,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 9,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 10,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 11,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 12,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 13,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:10:4:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:524288",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:65536",
+      "pair": "A1/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 6,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 7,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 8,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 9,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 10,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 11,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 12,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 13,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:1024",
+      "pair": "A1/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:131072",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:16384",
+      "pair": "A1/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:262144",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:4096",
+      "pair": "A1/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:524288",
+      "pair": "A1/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:65536",
+      "pair": "A1/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:10:4:16384",
+      "pair": "A2/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 6,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 7,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 8,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 9,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 10,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 11,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 12,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 13,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:10:4:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:524288",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:65536",
+      "pair": "A2/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 6,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 7,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 8,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 9,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 10,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 11,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 12,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 13,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:1024",
+      "pair": "A2/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:131072",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:16384",
+      "pair": "A2/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:262144",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:4096",
+      "pair": "A2/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:524288",
+      "pair": "A2/B1",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:65536",
+      "pair": "A2/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:10:4:16384",
+      "pair": "A2/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 6,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 7,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 8,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 9,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 10,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 11,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 12,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 13,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:10:4:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:524288",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:10:4:65536",
+      "pair": "A2/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 6,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 7,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 8,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 9,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 10,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 11,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 12,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 13,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:1024",
+      "pair": "A2/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:131072",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:16384",
+      "pair": "A2/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:262144",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:4096",
+      "pair": "A2/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:524288",
+      "pair": "A2/B2",
+      "matches": true,
+      "different_buffers": []
+    },
+    {
+      "case": "verify_with_buffer:4:2:65536",
+      "pair": "A2/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    }
+  ],
+  "layout_mismatches": [
+    {
+      "case": "verify_with_buffer:10:4:16384",
+      "pair": "A1/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 6,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 7,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 8,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 9,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 10,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 11,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 12,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 13,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:10:4:65536",
+      "pair": "A1/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 6,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 7,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 8,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 9,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 10,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 11,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 12,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 13,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:1024",
+      "pair": "A1/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:16384",
+      "pair": "A1/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:4096",
+      "pair": "A1/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:65536",
+      "pair": "A1/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:10:4:16384",
+      "pair": "A1/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 6,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 7,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 8,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 9,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 10,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 11,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 12,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 13,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:10:4:65536",
+      "pair": "A1/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 6,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 7,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 8,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 9,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 10,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 11,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 12,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 13,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:1024",
+      "pair": "A1/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:16384",
+      "pair": "A1/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:4096",
+      "pair": "A1/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:65536",
+      "pair": "A1/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:10:4:16384",
+      "pair": "A2/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 6,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 7,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 8,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 9,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 10,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 11,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 12,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 13,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:10:4:65536",
+      "pair": "A2/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 6,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 7,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 8,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 9,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 10,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 11,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 12,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 13,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:1024",
+      "pair": "A2/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:16384",
+      "pair": "A2/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:4096",
+      "pair": "A2/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:65536",
+      "pair": "A2/B1",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:10:4:16384",
+      "pair": "A2/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 6,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 7,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 8,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 9,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 10,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 11,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 12,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 13,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:10:4:65536",
+      "pair": "A2/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 6,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 7,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 8,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 9,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 10,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 11,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 12,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 13,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:1024",
+      "pair": "A2/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:16384",
+      "pair": "A2/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:4096",
+      "pair": "A2/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    },
+    {
+      "case": "verify_with_buffer:4:2:65536",
+      "pair": "A2/B2",
+      "matches": false,
+      "different_buffers": [
+        {
+          "role": "source",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 2,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 3,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 4,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "source",
+          "index": 5,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 0,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        },
+        {
+          "role": "scratch",
+          "index": 1,
+          "fields": [
+            "offset_4096",
+            "offset_64"
+          ]
+        }
+      ]
+    }
+  ]
+}
