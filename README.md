@@ -22,6 +22,10 @@ These rejected observations exposed the missing calibration warmup rehearsal. Th
 
 `diagnostics/protocol4-initial-rehearsal` preserves the complete first 126-case baseline phase from tool d8cf3f6: nine short samples and 14 unstable distributions. The predeclared quality stop prevented the repeat and any candidate attribution. This historical implementation still had different count-loading paths and between-sample export activity; it does not validate later worker changes.
 
-`diagnostics/independent-cpu-control` contains the standalone source and all three warmups/nine samples on each of eight pinned guest CPUs in two waves. It performs integer computation without codec calls or heap allocation in the work loop. Maximum same-CPU median drift was 0.1164%, maximum between-CPU median spread 0.1464%; no major faults were observed. This control does not establish SIMD/memory-path stability or codec performance. It cannot satisfy release-evidence validation.
+`diagnostics/independent-cpu-control` contains the standalone source and all three warmups/nine samples on each of eight pinned guest CPUs in two waves. It performs integer computation without codec calls or heap allocation in the work loop. Maximum same-CPU median drift was below 0.1164%, maximum between-CPU median spread below 0.1464%; no major faults were observed. This control does not establish SIMD/memory-path stability or codec performance. It cannot satisfy release-evidence validation.
 
 All copied numerical observations remain byte-for-byte unchanged. Build/launcher logs and environment management remain private. These experiments are diagnostic records, not accepted release inputs.
+
+## Complete basic-telemetry baseline prerequisite
+
+`diagnostics/protocol4-basic-baseline` retains the complete 126-case first phase using the final worker (tool 877a27a; main 7c2c232 has the identical source tree) and the same numeric basic telemetry as formal capture. All 1,134 samples met minimum intervals; five distributions remained unstable. The predeclared quality stop prevented A2 and any candidate comparison. The driver, source bindings, calibration, three warmups and all nine samples remain available. It is not release evidence. The default allocator result is retained regardless of any separately controlled allocation-policy experiment.

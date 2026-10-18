@@ -1,0 +1,136 @@
+{
+  "schema_version": "baseline-basic-controls-v1",
+  "purpose": "complete baseline prerequisites only; never release acceptance",
+  "candidate_attribution": null,
+  "observer": "basic numeric telemetry; identical worker instrumentation to formal capture",
+  "source": {
+    "commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "tree": "d44fe8c296972cf895375101f8975c99371db57a",
+    "lock_sha256": "972540efcf6bc23c0064252a9c0d937bf87dbe0edff9cdb688d2fdcbd5653d49"
+  },
+  "tool": {
+    "commit": "877a27a12f85bf4ec2c9a045c9978e46b825c98e",
+    "tree": "e339206e517e6ad20805483621e2b48de04b5602",
+    "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+  },
+  "driver_sha256": "fe0adda53ba3e3a0ec856704750ad981b8e70f885496655fb2c21275ada128d0",
+  "protocol": {
+    "name": "shared-external-duration-sampler",
+    "version": 4,
+    "samples": 9,
+    "warmups": 3,
+    "case_isolation": "fresh-process-per-count",
+    "case_order": "lexicographic",
+    "max_calibration_batches": 12,
+    "max_calibration_records": 144,
+    "target_wall_ns": 100000000,
+    "target_timed_ns": 5000000,
+    "minimum_wall_ns": 50000000,
+    "minimum_timed_ns": 2000000,
+    "central_spread_limit": 0.1,
+    "timing_scope": {
+      "smoke": "original per-iteration workload",
+      "small_file": "operation loops excluding one-time fixture preparation",
+      "stream": "operation loops excluding one-time fixture preparation",
+      "hotspot": "original inner recovery intervals"
+    }
+  },
+  "renderer_sha256": "19aa20d2a073093ddfb1c0cd3669f63e04c5cc467cbab447340171210d48369c",
+  "overlay_sha256": "4ace831731fa5ef813613d4e529bbc46156925fd2b1dfad41ed79254f5581114",
+  "context": {
+    "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+    "isolation": {
+      "scope": "exclusive-vm-cpu-partition",
+      "reserved_cpu_count": 8,
+      "cpu_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "physical_host_exclusivity_proven": false
+    },
+    "runtime": {
+      "libc": {
+        "name": "glibc",
+        "version": "2.39"
+      },
+      "allocator_environment": {}
+    },
+    "settings": {
+      "RUSTUP_TOOLCHAIN": "stable",
+      "RUSTFLAGS": "",
+      "RAYON_NUM_THREADS": "4",
+      "RS_PARALLEL_POLICY_MAX_JOBS": "4",
+      "RSE_BACKEND_OVERRIDE": "auto",
+      "RSE_STRICT_BACKEND_OVERRIDE": "1",
+      "RSE_SMOKE_PROFILE": "extended",
+      "RSE_SMALL_FILE_PROFILE": "fast",
+      "RSE_STREAM_PROFILE": "fast",
+      "RSE_STREAM_IO_MODE": "auto",
+      "RSE_BENCHMARK_ALLOW_MISSING_CASES": "0",
+      "CARGO_BUILD_JOBS": "4",
+      "RSE_SAMPLER_PROTOCOL": "duration-v4"
+    }
+  },
+  "phases": {
+    "A1": {
+      "smoke": {
+        "case_count": 15,
+        "sample_count": 135,
+        "short_samples": 0,
+        "wide_cases": []
+      },
+      "small_file": {
+        "case_count": 88,
+        "sample_count": 792,
+        "short_samples": 0,
+        "wide_cases": [
+          {
+            "case": "verify_with_buffer:4:2:4096",
+            "central_spread": 0.1753206593347495
+          }
+        ]
+      },
+      "hotspot": {
+        "case_count": 8,
+        "sample_count": 72,
+        "short_samples": 0,
+        "wide_cases": []
+      },
+      "stream": {
+        "case_count": 15,
+        "sample_count": 135,
+        "short_samples": 0,
+        "wide_cases": [
+          {
+            "case": "encode_stream:10:4:1048576:1048576",
+            "central_spread": 0.45707637653397054
+          },
+          {
+            "case": "encode_stream:10:4:16777216:4194304",
+            "central_spread": 0.12243477256945545
+          },
+          {
+            "case": "encode_stream:4:2:1048576:262144",
+            "central_spread": 0.3418924968640004
+          },
+          {
+            "case": "reconstruct_stream:4:2:65536:65536",
+            "central_spread": 0.1501542040721392
+          }
+        ]
+      }
+    }
+  },
+  "repeat_checks": [],
+  "repeat_failures": [],
+  "baseline_controls_passed": false,
+  "repeat_completed": false,
+  "stop_reason": "complete first phase failed quality; no repeat or candidate attribution"
+}
