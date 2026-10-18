@@ -1,105 +1,135 @@
 # 9.1.0 publication blockers and completion criteria
 
-Audit date: 2026-10-19 (Asia/Shanghai). Reference main:
-`2fb7f38926d7c95395707cc060785a9f0e23f8a6`, after PR #17.
-This is a release-readiness analysis, not release approval.
+Audit date: 2026-10-19 (Asia/Shanghai). Main includes PR #18 at
+`19037b31f74de4081e41ec48baf06fce9dad420c`. PR #19 contains the shared
+protocol-10 measurement corrections described below. This document is a current
+readiness assessment, not release approval; historical evidence keeps its original
+source and protocol bindings.
 
-## What currently prevents publication
+## Implementation and acceptance are separate
+
+The shared sampler now prepares one codec and caller fixture per worker for all
+88 small-file and 15 stream cases. Caller byte storage precedes codec construction;
+the generated inner kernels reuse the original benchmark loops. Original timed
+per-iteration clones, missing-output allocations and I/O remain present. Each
+stream writer receives its own reservation. Ordinary procfs telemetry uses bounded
+stack storage, and hotspot result patterns use bounded inline metadata with deferred
+formatting. Separate native probes check the original formatter's exact bytes and
+zero replacement heap activity. Production algorithms, matrices, APIs, dependencies
+and benchmark source files are unchanged by PR #19.
+
+The [caller contract](release-caller-fixtures.md) records concrete API entries,
+lifetimes, missing/required masks and source/scratch geometry. All 103 caller cases
+have matching structural inventories under both declared allocator contexts:
+4,944 observations and 618 comparisons per context. These use one iteration and
+cannot qualify sample duration, repeat drift or throughput. Dynamic destinations,
+internal scratch and smoke/hotspot source layouts remain outside this tracked scope.
+The separate 16-offset 1/4 KiB diagnostic is not four-phase paired acceptance.
+
+## Current release gates
 
 | Layer | Verified state | Required next result |
 | --- | --- | --- |
-| Functional compatibility | The normal-format 200-case published-9.0.0 parity/roundtrip probe and core correctness tests pass; this work changes no production algorithm. Historical inconsistent fast/custom/mixed-entry codewords retain the documented migration boundary. | Preserve the tests and state the compatibility boundary in release notes. |
-| Known Vec geometry | Protocol 6 records base-page provenance and all 66 structural comparisons across the eleven known buffered-verification cases match. The workers use one iteration. | Qualify real sample durations, distributions and both-version repeat drift; structural matches are insufficient. |
-| Other workload contracts | Dynamic clone/output/recovery paths and complete per-layout coverage remain partial in backlog #2897. Stream output reservation also needed a fixture correction: cloning an empty reserved Vec loses the reservation. | Complete the relevant allocation/lifetime evidence and use one explicit shared workload on both versions. |
-| Quantitative evidence | No accepted complete campaign for the final source tree and current sampler has been established. Historical failures are retained; they cannot qualify changed code or protocols. | A fresh complete 9.0.0/candidate A1/B1/B2/A2 with all 126 original cases, both calibrations and raw observations; all existing gates must pass. |
-| Workflow input | Repository variable `RSE_RELEASE_EVIDENCE_REF` was absent when checked. Audit snapshots and structural inventories have not been promoted to accepted inputs. | Publish accepted evidence at `release-evidence/manifest.json` on a data commit, then configure its full immutable SHA or supply `evidence_ref` during manual dispatch. |
-| Strict preflight | Ordinary CI runs do not execute the tag/manual-only evidence and release-preflight jobs. The earlier real-data negative check proved rejection, not positive acceptance. | Dispatch with `release_preflight=true` against the final main and accepted evidence; verify actual success before tagging. |
-| Upload configuration | The repository contains a secret named `CRATES_IO_TOKEN`; its contents were not read. Version/packaging checks are already part of CI. | After all gates pass, tag the validated source and verify the actual publish job. A secret name or dry-run alone is not an upload. |
+| Functional compatibility | The normal-format 200-case published-9.0.0 parity/roundtrip probe and core tests pass. PR #19 changes no production algorithm. | Preserve the declared compatibility boundary: the normal-format probe disables `fast_one_parity` and does not promise recovery of historically inconsistent fast/custom/mixed-entry codewords. |
+| Workload comparability | The 103 caller cases share an explicit preparation contract; dynamic/internal buffers and full per-layout coverage remain partial in backlog #2897. | Complete the agreed dynamic/lifetime and per-layout acceptance scope; caller matching alone is insufficient. |
+| Baseline stability | Both complete protocol-10 9.0.0 qualifications failed their original gates; details below. | Qualify the entire baseline before candidate attribution. Preserve every failed case and allocator context. |
+| Quantitative evidence | No accepted complete campaign for the final source tree and shared harness exists. | Fresh baseline/candidate A1/B1/B2/A2, both calibrations and all 126 original cases, with every duration/distribution/drift/regression gate passing. |
+| Workflow input | `RSE_RELEASE_EVIDENCE_REF` was absent at the last live check. Rejected audit data is not accepted evidence. | Verify accepted `release-evidence/manifest.json` on a data commit, then supply its full immutable SHA through the variable or manual `evidence_ref`. |
+| Strict preflight | Ordinary CI skips tag/manual-only evidence and release-preflight jobs. The historical real-data negative run proves rejection only. | Run `release_preflight=true` against the final main and accepted evidence, and verify actual success before tagging. |
+| Upload | The repository has a secret named `CRATES_IO_TOKEN`; its value was not read. Package dry-runs are in ordinary CI. | After all gates pass, tag the validated source and verify actual publication; neither a secret name nor a dry-run is an upload. |
 
-The immediate automated stop is explicit in `.github/workflows/ci.yml`:
-`release-inputs` requires a full immutable evidence SHA, validates its complete
-source-bound campaign, and is a dependency of `release-preflight`. `publish`
-depends on `release-preflight` and runs only for a tag. Missing or rejected
-evidence stops this chain even when ordinary CI is green. GitHub does not inspect
-issue checkboxes; those represent the additional agreed acceptance scope.
+The automated chain in `.github/workflows/ci.yml` requires source-bound immutable
+evidence in `release-inputs`, then strict `release-preflight`, before a tag can
+reach `publish`. GitHub does not read issue checkboxes; those describe the agreed
+additional acceptance scope. No new blocking algorithm defect has been established
+by these baseline controls. An unstable published-9.0.0 control cannot establish a
+9.1.0 regression or speedup.
 
-No new blocking algorithm defect is established by the current layout diagnosis.
-The confirmed historical causes include incomplete calibration rehearsal,
-measurement-only state/export effects, changing Vec fixtures, and codec setup
-allocations affecting cross-version buffer placement. The latter issues have
-been addressed for the eleven known Vec cases. Remaining timing variability
-cannot all be attributed to alignment: a same-buffer layout diagnostic retained
-an unstable distribution. Scalar/register CPU controls do not establish the
-stability of allocation, memory or downstream paths. New complete measurements
-are needed before assigning remaining causes or asserting a speedup.
+## Latest complete baseline controls
 
-## What is still required
+Frozen measured tool: `63b6fa0a3d0b0dc6a7d206c9dbff82f5f729eea8`, protocol 10.
+Both measured codecs are published 9.0.0. Allocator contexts were predeclared in
+order: default, then retained arena (one arena, malloc mmap disabled, 1 TiB trim
+threshold, child-process environment only). No cross-context speedup is inferred.
 
-1. Finish the remaining #2897 workload contracts and per-layout coverage. Keep
-   the original Vec cases; a slice diagnostic cannot silently replace them.
-   The shared release stream fixture independently reserves each writer while
-   retaining its original per-iteration allocation cost and timing scope.
-2. Run complete baseline controls with the declared protocol and allocator policy.
-   Stop attribution when duration, distribution, layout or repeat controls fail.
-   A new main/protocol-6 full baseline control was started for this audit and is
-   recorded separately from the subsequent stream-fixture correction.
-3. Freeze the final candidate tree, lockfile and shared harness, then collect the
-   complete paired campaign. Keep the 5% repeat-drift limit, 10% distribution-width
-   limit, minimum intervals and existing per-operation regression thresholds.
-   Do not drop failed cases or compare different workload policies.
-4. Preserve and publish every raw observation and provenance member. Verify the
-   immutable accepted snapshot locally and in the manual strict preflight.
-   Code or documentation changes after capture require new evidence; an unchanged
-   complete tree after rebase merging is accepted under the recorded policy.
-5. Confirm the validated final main, tag/version/lock consistency and successful
-   strict preflight; only then create the release tag and verify upload.
+- Default: 4,800 calibration observations and complete A1 (1,512 observations,
+  including 1,134 measured samples). Zero short samples or caller mismatches, but
+  seven distributions exceed 10%; the declared stop prevents A2 and attribution.
+- Retained arena: 4,980 calibration observations and complete A1/A2 (3,024
+  observations, including 2,268 measured samples). All 252 distributions pass
+  10%, with zero short samples/caller mismatches; seven of 126 repeat drifts exceed
+  5%, maximum 28.181878%. This context also fails the baseline prerequisite.
 
-Native ARM performance and downstream/S3 throughput remain independently tracked
-in #2853. The existing release checklist allows a correctness/API release to keep
-that P2 task open if the actual release gates pass and the notes make no unsupported
-throughput claims. An open P2 task is not itself an automated tag gate. The full
-performance evidence and strict preflight requirements above still apply under
-the current repository policy; this work does not weaken them.
+[Complete qualifications and inventories](https://github.com/houseme/rustfs-erasure-codec/tree/75456a77a57953f8b069bab3d2eb788643ca21d1/diagnostics/protocol10-qualification-controls),
+[default raw data](https://github.com/houseme/rustfs-erasure-codec/tree/75456a77a57953f8b069bab3d2eb788643ca21d1/diagnostics/protocol10-default-baseline),
+and [retained-arena raw data](https://github.com/houseme/rustfs-erasure-codec/tree/75456a77a57953f8b069bab3d2eb788643ca21d1/diagnostics/protocol10-retained-arena-baseline)
+retain all calibration, warmup, measured values, failures and source bindings.
+The audit branch has 671 verified members at that commit; all 1,767 isolation
+checks and resource restoration were recorded. It is a data-only branch and must
+not be merged into main or configured as accepted release evidence.
 
-## Issue status accounting
+## Reproducible variability diagnosis
 
-The top-level conditions in #2897 remain: condition 4 checked within its declared
-normal-format compatibility scope; conditions 1/2/3/5 partially complete and
-unchecked; condition 6 incomplete. PR #17 is merged, so references to it as pending
-must be removed. Additional fixture fixes and observations update the evidence
-under each condition, rather than automatically completing the whole condition.
+Run the offline analyzer against either complete baseline capture with its matching
+protocol/renderer. It starts no workers and changes no sampling or acceptance policy:
 
-## Subsequent ordinary-telemetry correction
+```sh
+python3 scripts/analyze_baseline_variability.py \
+  --capture /path/to/complete-baseline-control \
+  --output /path/to/new-variability-report.json
+```
 
-A fixed-count protocol-7 diagnosis located observer procfs String growth under
-libc realloc/madvise and repeated buffer-drop page returns. Clone/drop diagnostic
-subintervals account for most of the extra time in the observed slow state.
-Protocol 8 replaces those ordinary observer reads with bounded stack buffers and
-adds a separate Linux alloc/realloc/dealloc regression check. This fixes a
-confirmed observer allocation mechanism; it does not certify every dynamic
-fixture or all timing variability. All earlier failed campaigns remain preserved.
-New full baseline controls and source-bound paired evidence are required before
-changing the remaining #2897 conditions or creating a release tag.
+The analyzer validates all calibration and fixed warmup/sample records through the
+shared validators, binds input hashes, and retains every case and full scheduling
+trace. It reports incomplete repeat coverage explicitly, preserves width/duration/
+layout failures and refuses to overwrite reports. `release_approval` is always
+false and `candidate_attribution` is always null. It supplements original
+provenance/isolation verification; it is not another release gate.
 
-## Caller preparation under protocol 9
+Retained-arena replay groups all 126 cases by their nine measured CPU endpoints:
 
-The shared sampler now retains source storage and codec state for all 88 small-file
-and 15 stream cases, with construction before codec initialization. It derives the
-inner loops from the original benchmark files and keeps their per-iteration clone,
-missing-output allocation and I/O costs. Actual call entry, missing/required masks
-and output policy are recorded alongside caller geometry. Internal scratch and
-dynamic destinations remain explicitly untracked; smoke/hotspot retain their
-original contracts. This broadens the implementation of conditions 1/2/5 without
-completing their whole scope. The 103-case four-phase structural inventory is not
-performance ABBA. All earlier rejection evidence remains historical; new complete
-controls and paired measurements are required. See the [caller fixture contract](release-caller-fixtures.md).
+| Endpoint observation | All cases | Repeat failures over 5% |
+| --- | ---: | ---: |
+| One identical endpoint CPU in A1 and A2 | 16 | 2 |
+| One endpoint CPU per phase, different between phases | 100 | 4 |
+| Multiple endpoint CPUs in at least one phase | 10 | 1 |
 
-## Deferred hotspot result metadata under protocol 10
+The first group includes ordinary encode 10+4/512 KiB (CPU 29, 15.827029% drift)
+and optimized recovery 4+2/64 KiB (CPU 31, 18.164593% drift). The maximum observed
+main-thread runnable-wait/wall ratio across these two failed cases is 0.019055%.
+Changing endpoint CPUs or recorded main-thread runqueue delay alone therefore
+cannot explain all failures. Equal endpoints do not exclude intermediate migration;
+main-thread counters omit Rayon worker scheduling. Counter reads bracket the wall
+timer, so run/wall ratios slightly above one are retained without clamping.
 
-The hotspot result previously created and retained two String patterns after each
-inner observation. Protocol 10 uses bounded inline patterns and formats them only
-during deferred export. Exact original labels and zero replacement heap activity
-are checked in the separate allocation executable. Hotspot inputs, recovery calls
-and timing intervals are preserved. This removes another observer allocation
-mechanism without claiming to resolve all unstable distributions; protocol-9
-captures remain bound to their earlier source and need separate qualification.
+Next diagnosis must distinguish actual worker placement/execution paths and
+physical/page/cache state while preserving real API and allocation contracts.
+Do not simply taskset the entire worker to one CPU: both codec versions read
+`std::thread::available_parallelism()` during construction and cache that budget,
+which can silently turn a parallel workload into a serial one. No existing result
+uniquely assigns the residual variability to the CPU, allocator or physical host.
+
+## Merge and release decisions
+
+PR #19's measurement correctness and architecture can be reviewed and merged
+independently of performance approval. A green ordinary CI supports that code
+review, not a tag. The failed controls above measure 9.0.0 itself and do not by
+themselves block merging an otherwise correct, fail-closed measurement tool.
+
+Backlog #2897 stays open: only condition 4 is checked within its declared normal-
+format scope; conditions 1/2/3/5 are partial and unchecked; condition 6 is incomplete.
+Merging PR #19 changes pending implementation status, not those completion marks.
+
+Complete the remaining contracts and baseline qualification, freeze the final
+complete candidate tree/lock/harness, then collect and verify the entire paired
+campaign. Keep repeat drift at 5%, central spread at 10%, all minimum intervals
+and per-operation regression limits. Code/document changes after capture require
+new source binding and evidence; an unchanged complete tree after rebase merging
+is accepted under the existing policy. Only a successful strict positive preflight
+permits evaluating the tag and upload.
+
+Native ARM and downstream/S3 throughput remain independently tracked in #2853.
+The existing release checklist allows a correctness/API release to retain that
+P2 task if actual release gates pass and notes make no unsupported throughput
+claims. Open P2 tasks are not automatic tag gates; ARM Docker and ordinary CI
+cannot replace native throughput acceptance.
