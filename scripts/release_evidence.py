@@ -12,6 +12,7 @@ import json
 import math
 import os
 import pathlib
+import platform
 import re
 import shutil
 import subprocess
@@ -59,7 +60,7 @@ BASE_ENV = {
 }
 
 SAMPLING_ENV = {k: v for k, v in BASE_ENV.items() if not k.endswith("_ITERATIONS")}
-SAMPLING_ENV["RSE_SAMPLER_PROTOCOL"] = "duration-v1"
+SAMPLING_ENV["RSE_SAMPLER_PROTOCOL"] = f"duration-v{sampling.PROTOCOL['version']}"
 
 # Complete exported profile catalogs; harness changes require an explicit review.
 def expected_cases(profile):
@@ -155,13 +156,25 @@ def isolation_context(group):
     return {"scope": "exclusive-vm-cpu-partition", "reserved_cpu_count": len(cpus), "cpu_affinity": sorted(cpus), "physical_host_exclusivity_proven": False}
 
 
+def allocator_override_key(key):
+    return key.startswith(("MALLOC_", "LD_")) or key == "GLIBC_TUNABLES"
+
+
+def runtime_context(env):
+    name, version = platform.libc_ver()
+    if not name or not version:
+        raise ValueError("libc identity must be available for release evidence")
+    return {"libc": {"name": name, "version": version},
+            "allocator_environment": {k: env[k] for k in sorted(env) if allocator_override_key(k)}}
+
+
 def environment_context(root, env, group):
     isolation = isolation_context(group)
     cpu = next((line.split(":", 1)[1].strip() for line in pathlib.Path("/proc/cpuinfo").read_text().splitlines() if line.startswith("model name")), "")
     if not cpu:
         raise ValueError("CPU model must be available for release evidence")
     return {"compiler": command(["rustc", "--version"], root, env), "cpu_model": cpu,
-            "isolation": isolation, "settings": {k: env[k] for k in (SAMPLING_ENV if env.get("RSE_SAMPLER_PROTOCOL") else BASE_ENV)}}
+            "isolation": isolation, "runtime": runtime_context(env), "settings": {k: env[k] for k in SAMPLING_ENV}}
 
 
 def rows(profile, path, revision, iteration_counts=None):
@@ -286,6 +299,15 @@ def verify(manifest, repository, compiler=True):
     expected_env = SAMPLING_ENV
     if reference.get("settings") != expected_env or not reference.get("cpu_model") or not reference.get("compiler") or type(isolation.get("reserved_cpu_count")) is not int or isolation["reserved_cpu_count"] < 2 or isolation.get("physical_host_exclusivity_proven") is not False:
         raise ValueError("incomplete or unexpected controlled capture settings")
+    runtime = reference.get("runtime")
+    if not isinstance(runtime, dict) or set(runtime) != {"libc", "allocator_environment"}:
+        raise ValueError("libc and allocator provenance is required")
+    libc = runtime["libc"]
+    if not isinstance(libc, dict) or set(libc) != {"name", "version"} or any(not isinstance(v, str) or not v for v in libc.values()):
+        raise ValueError("invalid libc identity")
+    allocator = runtime["allocator_environment"]
+    if not isinstance(allocator, dict) or any(not allocator_override_key(k) or not isinstance(v, str) for k, v in allocator.items()):
+        raise ValueError("invalid allocator environment")
     if any(contexts.get(phase) != reference for phase in PHASES + ("after",)):
         raise ValueError("measurement environment changed during the campaign")
     if compiler and reference.get("compiler") != command(["rustc", "--version"], repository, dict(os.environ, RUSTUP_TOOLCHAIN="stable")):
