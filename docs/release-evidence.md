@@ -42,7 +42,10 @@ locked release builds, `std simd-accel`, no instrumentation, four Rayon workers,
 a four-job policy and empty RUSTFLAGS.
 
 Every case is calibrated on both releases before A1. Calibration targets at least
-100 ms wall time and 5 ms timed work, with bounded increasing iterations. The larger
+100 ms wall time and 5 ms timed work, with bounded increasing iterations. Two consecutive probes at the same count
+must meet both targets before calibration is frozen; a warm shortfall increases
+the count and resets confirmation. This prevents a single cold probe from
+selecting an insufficient steady-state interval. The larger
 iteration count for each case is frozen for **both releases and every phase**.
 Every phase then warms each case and collects exactly nine samples. All pilot,
 warmup and sample exports are retained. A sample needs at least 50 ms wall time
@@ -165,7 +168,9 @@ The complete 126-case catalog is calibrated, warmed and sampled nine times on
 published 9.0.0. A new output directory is created with mode 0700; retain these
 observations privately. The manifest identifies baseline and diagnostic-tool
 sources and uses `baseline-vm-diagnostic-v1`, not a release-evidence schema.
-Successful collection means data is available, not that performance passed.
+Short diagnostic samples are retained and flagged, not discarded. Formal release
+checks still reject insufficient intervals. Successful collection means data is
+available, not that performance passed.
 The extra process observation is deliberately rejected by the formal release
 telemetry validator. It cannot substitute for complete A1/B1/B2/A2 acceptance.
 

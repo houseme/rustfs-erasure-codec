@@ -5,7 +5,7 @@ import math
 import pathlib
 import re
 
-PROTOCOL = {"name": "shared-external-duration-sampler", "version": 1, "samples": 9,
+PROTOCOL = {"name": "shared-external-duration-sampler", "version": 2, "samples": 9, "calibration_confirmations": 2, "max_calibration_records": 12,
             "target_wall_ns": 100_000_000, "target_timed_ns": 5_000_000,
             "minimum_wall_ns": 50_000_000, "minimum_timed_ns": 2_000_000,
             "central_spread_limit": .10,
@@ -110,6 +110,10 @@ def validate_telemetry(record, allowed_cpus=None):
 
 def validate_timing(record, profile, count):
     row = record["rows"][0]
+    for field in ("wall_ns", "timed_ns"):
+        value = record.get(field)
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
+            raise ValueError("invalid measured interval")
     if profile == "hotspot":
         expected_timed = row["useful_shards"] * row["shard_size"] * 1e9 * count / (1048576.0 * row["candidate_mb_s"])
         tolerance = expected_timed * .00001 + 1
@@ -129,7 +133,7 @@ def run_profile(root, environment, profile, mode, log_path, counts_file=None):
     return parse_log(log_path)
 
 
-def selected_row(records, profile, metric, revision, expected, counts, normalize, allowed_cpus=None):
+def sample_groups(records, profile, revision, expected, counts, normalize, allowed_cpus=None):
     groups = {}
     for record in records:
         if record.get("revision") != revision or record.get("case") not in expected:
@@ -137,7 +141,6 @@ def selected_row(records, profile, metric, revision, expected, counts, normalize
         groups.setdefault(record["case"], []).append(record)
     if set(groups) != expected:
         raise ValueError("complete sampling catalog is required")
-    selected, spread = [], []
     for case, group in groups.items():
         if [r.get("kind") for r in group] != ["warmup"] + ["sample"] * PROTOCOL["samples"] or [r.get("index") for r in group] != list(range(PROTOCOL["samples"]+1)):
             raise ValueError("one warmup and every fixed sample are required")
@@ -149,12 +152,16 @@ def selected_row(records, profile, metric, revision, expected, counts, normalize
             if normalize(profile, row, revision) != case:
                 raise ValueError("raw sample workload mismatch")
             validate_timing(record, profile, counts[case])
-            if record["kind"] == "sample":
-                for field, minimum in (("wall_ns", PROTOCOL["minimum_wall_ns"]), ("timed_ns", PROTOCOL["minimum_timed_ns"])):
-                    value = record.get(field)
-                    if isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value) or value < minimum:
-                        raise ValueError("sample measurement interval is insufficient")
-                if row.get("iterations", counts[case]) != counts[case]: raise ValueError("raw iterations mismatch")
+    return groups
+
+
+def selected_row(records, profile, metric, revision, expected, counts, normalize, allowed_cpus=None):
+    groups = sample_groups(records, profile, revision, expected, counts, normalize, allowed_cpus)
+    selected, spread = [], []
+    for case, group in groups.items():
+        for record in group[1:]:
+            for field, minimum in (("wall_ns", PROTOCOL["minimum_wall_ns"]), ("timed_ns", PROTOCOL["minimum_timed_ns"])):
+                if record[field] < minimum: raise ValueError("sample measurement interval is insufficient")
         samples = group[1:]
         ordered = sorted(samples, key=lambda r: r["rows"][0][metric])
         median = ordered[len(ordered)//2]["rows"][0]

@@ -390,13 +390,25 @@ def calibration_counts(records, profile, revision):
     if set(groups) != expected_cases(profile): raise ValueError("calibration case catalog is incomplete")
     counts = {}
     for key, group in groups.items():
-        if not 1 <= len(group) <= 8 or group[0]["iterations"] != 1 or any(r.get("complete") is not False for r in group[:-1]) or group[-1].get("complete") is not True:
+        if not 1 <= len(group) <= sampling.PROTOCOL["max_calibration_records"] or group[0]["iterations"] != 1:
             raise ValueError("invalid bounded calibration sequence")
-        if any(b["iterations"] <= a["iterations"] for a,b in zip(group, group[1:])):
-            raise ValueError("calibration must increase iteration counts")
+        confirmations = 0
+        for index, record in enumerate(group):
+            if index:
+                previous = group[index-1]
+                expected = previous["iterations"]
+                if not previous["target_met"]:
+                    desired = max(sampling.PROTOCOL["target_wall_ns"]/previous["wall_ns"], sampling.PROTOCOL["target_timed_ns"]/previous["timed_ns"])*1.25
+                    expected *= math.ceil(min(64, max(2, desired)))
+                if record["iterations"] != expected: raise ValueError("calibration did not follow bounded confirmation/growth")
+            met = record["wall_ns"] >= sampling.PROTOCOL["target_wall_ns"] and record["timed_ns"] >= sampling.PROTOCOL["target_timed_ns"]
+            if record.get("target_met") is not met: raise ValueError("calibration target flag differs from measured intervals")
+            confirmations = confirmations+1 if met else 0
+            complete = confirmations >= sampling.PROTOCOL["calibration_confirmations"]
+            if record.get("complete") is not complete or (complete and index != len(group)-1):
+                raise ValueError("calibration lacks consecutive steady confirmations")
         last = group[-1]
-        if last["wall_ns"] < sampling.PROTOCOL["target_wall_ns"] or last["timed_ns"] < sampling.PROTOCOL["target_timed_ns"]:
-            raise ValueError("calibration did not reach its measurement interval")
+        if last.get("complete") is not True: raise ValueError("calibration is incomplete")
         counts[key] = last["iterations"]
     return counts
 

@@ -94,6 +94,7 @@ pub fn run<R>(
     };
     let mut sample_index = 0;
     let mut calibration_steps = 0;
+    let mut confirmations = 0;
     loop {
         ITERATIONS.with(|n| n.set(count));
         let before = telemetry();
@@ -103,7 +104,15 @@ pub fn run<R>(
         let after = telemetry();
         let timed_ns = ns_per_iter(&result) * count as f64;
         assert!(timed_ns.is_finite() && timed_ns > 0.0);
-        let complete = wall_ns as f64 >= TARGET_WALL_NS && timed_ns >= TARGET_TIMED_NS;
+        let target_met = wall_ns as f64 >= TARGET_WALL_NS && timed_ns >= TARGET_TIMED_NS;
+        if calibrating {
+            confirmations = if target_met { confirmations + 1 } else { 0 };
+        }
+        let complete = if calibrating {
+            confirmations >= 2
+        } else {
+            target_met
+        };
         // Export after timing using the unchanged original artifact writer.
         export(&result);
         let raw = fs::read_to_string(format!("target/benchmark-smoke/{filename}")).unwrap();
@@ -115,7 +124,7 @@ pub fn run<R>(
             "sample"
         };
         println!(
-            "\nRSE_SAMPLE {{\"kind\":\"{kind}\",\"case\":\"{key}\",\"revision\":\"{}\",\"index\":{sample_index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"complete\":{complete},\"before\":{before},\"after\":{after},\"rows\":{}}}",
+            "\nRSE_SAMPLE {{\"kind\":\"{kind}\",\"case\":\"{key}\",\"revision\":\"{}\",\"index\":{sample_index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"complete\":{complete},\"target_met\":{target_met},\"before\":{before},\"after\":{after},\"rows\":{}}}",
             revision(),
             raw.replace(['\n', '\r'], "")
         );
@@ -124,7 +133,10 @@ pub fn run<R>(
                 break;
             }
             calibration_steps += 1;
-            assert!(calibration_steps < 8, "bounded calibration failed");
+            assert!(calibration_steps < 12, "bounded calibration failed");
+            if target_met {
+                continue;
+            }
             let factor = ((TARGET_WALL_NS / wall_ns as f64).max(TARGET_TIMED_NS / timed_ns) * 1.25)
                 .ceil()
                 .clamp(2.0, 64.0) as usize;

@@ -57,6 +57,12 @@ class DiagnosticTests(unittest.TestCase):
         self.assertEqual(row['process_faults'],{'minor_faults':1,'major_faults':0})
         self.assertTrue(row['stable_thread_set'])
 
+    def test_short_samples_are_diagnostic_flags_not_release_approval(self):
+        rows=self.records()
+        report=diagnostic.analyze(rows,'fixture')
+        self.assertFalse(report[0]['samples'][0]['interval_sufficient'])
+        self.assertNotIn('status',report[0])
+
     def test_missing_samples_and_reset_counters_reject(self):
         rows=self.records();rows.pop()
         with self.assertRaises(ValueError):diagnostic.analyze(rows,'fixture')

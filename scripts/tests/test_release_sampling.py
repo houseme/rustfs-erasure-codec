@@ -30,7 +30,10 @@ class SamplingContractTests(unittest.TestCase):
             self.doc['calibration'][role]={}
             for profile in evidence.FILES:
                 rows=self.cases('A1' if role=='baseline' else 'B1',profile)
-                records=[self.record(row,profile,role,'calibration',0) for row in rows]
+                records=[]
+                for row in rows:
+                    first=self.record(row,profile,role,'calibration',0);first['complete']=False
+                    records.extend((first,self.record(row,profile,role,'calibration',0)))
                 self.doc['calibration'][role][profile]=self.write(folder,profile,records)
         for phase in evidence.PHASES:
             for profile in evidence.FILES:
@@ -53,7 +56,7 @@ class SamplingContractTests(unittest.TestCase):
     def record(self,row,profile,role,kind,index):
         key=row.get('scenario') or ':'.join(str(row[f]) for f in ('operation','data_shards','parity_shards','shard_size','stream_block_size') if f in row)
         return {'kind':kind,'case':key,'revision':self.doc['sources'][role]['commit'],'index':index,'iterations':1,
-                'wall_ns':120_000_000,'timed_ns':10_000_000.0,'complete':True,'rows':[copy.deepcopy(row)],
+                'wall_ns':120_000_000,'timed_ns':10_000_000.0,'complete':True,'target_met':True,'rows':[copy.deepcopy(row)],
                 'before':{'cpu':0,'run_ns':index*100,'wait_ns':index,'switches':index},
                 'after':{'cpu':0,'run_ns':index*100+99,'wait_ns':index+1,'switches':index+1}}
 
@@ -113,6 +116,28 @@ class SamplingContractTests(unittest.TestCase):
                 records[index]['rows'][0]['ns_per_iter']*=1.2;records[index]['timed_ns']*=1.2
         self.mutate(change)
         with self.assertRaisesRegex(ValueError,'distributions'):self.verify()
+
+    def test_a_single_cold_completion_does_not_freeze_calibration(self):
+        path=self.root/self.doc['calibration']['baseline']['smoke']['path']
+        records=json.loads(path.read_text())
+        records.pop(0)
+        with self.assertRaisesRegex(ValueError,'confirmations'):
+            evidence.calibration_counts(records,'smoke',self.sources_commit('baseline'))
+
+    def test_cold_success_followed_by_warm_shortfall_grows_then_confirms(self):
+        path=self.root/self.doc['calibration']['baseline']['smoke']['path']
+        records=json.loads(path.read_text());first=records[0];case=first['case']
+        replacement=[]
+        for count,ns,wall,met,complete in ((1,102000000,106000000,True,False),(1,42000000,42000000,False,False),(3,42000000,126000000,True,False),(3,42000000,126000000,True,True)):
+            row=copy.deepcopy(first);row.update(iterations=count,timed_ns=ns*count,wall_ns=wall,target_met=met,complete=complete)
+            row['rows'][0].update(iterations=count,ns_per_iter=ns)
+            replacement.append(row)
+        records=replacement+[r for r in records if r['case']!=case]
+        counts=evidence.calibration_counts(records,'smoke',self.sources_commit('baseline'))
+        self.assertEqual(counts[case],3)
+
+    def sources_commit(self,role):
+        return self.doc['sources'][role]['commit']
 
     def test_calibration_and_protocol_cannot_be_changed(self):
         original=copy.deepcopy(self.doc)

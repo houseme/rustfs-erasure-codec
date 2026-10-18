@@ -52,7 +52,7 @@ def analyze(records,profile):
             fault_delta={key:after[key]-before[key] for key in ('minor_faults','major_faults')}
             if any(v<0 for v in fault_delta.values()):raise ValueError('process fault counters reset')
             trace.append({'index':record['index'],'relative_ns':value/median,'timed_ms':record['timed_ns']/1e6,
-                'wall_ms':record['wall_ns']/1e6,'process_faults':fault_delta,'stable_thread_set':stable,
+                'wall_ms':record['wall_ns']/1e6,'interval_sufficient':record['wall_ns']>=sampling.PROTOCOL['minimum_wall_ns'] and record['timed_ns']>=sampling.PROTOCOL['minimum_timed_ns'],'process_faults':fault_delta,'stable_thread_set':stable,
                 'thread_count':len(new),'shared_thread_run_ms':deltas['run_ns']/1e6,'shared_thread_wait_ms':deltas['wait_ns']/1e6,
                 'thread_cpu_migrations':sum(old[t]['cpu']!=new[t]['cpu'] for t in shared),
                 'observer_ms':(before['snapshot_ns']+after['snapshot_ns'])/1e6})
@@ -87,7 +87,7 @@ def capture(baseline,output,group):
         records=sampling.run_profile(baseline,env,profile,'sample',output/(profile+'.log'),path)
         (output/(profile+'-samples.json')).write_text(json.dumps(records,indent=2)+'\n')
         normalize=lambda p,row,rev: next(iter(evidence.indexed_rows(p,[row],rev,counts[p],complete=False)))
-        sampling.selected_row(basic_records(records),profile,evidence.METRICS[profile],source['commit'],evidence.expected_cases(profile),counts[profile],normalize,context['isolation']['cpu_affinity'])
+        sampling.sample_groups(basic_records(records),profile,source['commit'],evidence.expected_cases(profile),counts[profile],normalize,context['isolation']['cpu_affinity'])
         report['cases'].extend(analyze(records,profile))
         (output/'diagnosis.partial.json').write_text(json.dumps(report,indent=2)+'\n')
         if evidence.environment_context(baseline,env,group)!=context:raise ValueError('resource context changed')
