@@ -39,8 +39,10 @@ def render(root, traced):
         }'''
     changed = original.replace('            let start = Instant::now();',
         '            let mut trace = super::slot_trace::Trace::for_process(&original, iterations);\n            let start = Instant::now();')
+    changed = changed.replace('                let mut shards = shards_to_slots(&original);',
+        '                let clone_start = Instant::now();\n                let mut shards = shards_to_slots(&original);')
     changed = changed.replace('                rs.reconstruct(&mut shards).unwrap();',
-        '                trace.before(&shards);\n                rs.reconstruct(&mut shards).unwrap();\n                trace.after(&shards, &original);')
+        '                let clone_ns = clone_start.elapsed().as_nanos();\n                trace.before(&shards);\n                let reconstruct_start = Instant::now();\n                rs.reconstruct(&mut shards).unwrap();\n                let reconstruct_ns = reconstruct_start.elapsed().as_nanos();\n                trace.after(&shards, &original);\n                let drop_start = Instant::now();\n                drop(shards);\n                trace.phases(clone_ns, reconstruct_ns, drop_start.elapsed().as_nanos());')
     changed = changed.replace('            measured += start.elapsed();',
         '            measured += start.elapsed();\n            trace.finish();')
     if result['small_file.rs'].count(original) != 1:
@@ -85,6 +87,9 @@ def layouts(records, iterations, page_size):
             raise ValueError('incorrect Slot workload contract')
         if type(record.get('overflow')) is not int or record['overflow'] < 0 or type(record.get('transitions')) is not int or not 0 <= record['transitions'] < iterations:
             raise ValueError('invalid bounded histogram counters')
+        phases = record.get('phase_ns')
+        if not isinstance(phases, dict) or set(phases) != {'clone', 'reconstruct', 'drop'} or any(type(v) is not int or v <= 0 for v in phases.values()):
+            raise ValueError('complete positive phase intervals are required')
         buckets = record.get('layouts')
         if not isinstance(buckets, list) or not 1 <= len(buckets) <= 128:
             raise ValueError('invalid bounded histogram')
@@ -124,7 +129,7 @@ def capture(tool, repository, output, group, iterations):
     if page_size < 4096: raise ValueError('Slot diagnosis requires a base page of at least 4096 bytes')
     cpu = min(context['isolation']['cpu_affinity'])
     def save(name, value): (output/name).write_text(json.dumps(value, indent=2)+'\n')
-    metadata = {'schema_version': 'shard-slot-diagnostic-v1', 'source': source, 'tool': controller,
+    metadata = {'schema_version': 'shard-slot-diagnostic-v2', 'source': source, 'tool': controller,
                 'context': context, 'measuring_cpu': cpu, 'iterations': iterations,
                 'protocol': sampling.PROTOCOL, 'renderer_sha256': sampling.implementation_digest(),
                 'controller_sha256': hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest(),
@@ -169,6 +174,8 @@ def capture(tool, repository, output, group, iterations):
                 else:
                     sampling.sample_groups(records, 'small_file', source['commit'], {CASE}, counts, normalize, {cpu}, page_size)
                 detail = layouts(traces, iterations, page_size) if traced else {}
+                if traced and any(sum(trace['phase_ns'].values()) > row['timed_ns'] + 1 for trace, row in zip(traces, records)):
+                    raise ValueError('phase intervals exceed the enclosing diagnostic timer')
                 if not traced and traces: raise ValueError('plain arm was instrumented')
                 reports.append({'arm': arm, 'worker': worker, 'mode': mode,
                                 'wall_ns': [r['wall_ns'] for r in records],

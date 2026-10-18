@@ -20,7 +20,7 @@ clone layouts and transitions without allocating observer storage in the loop.
 Overflow is reported explicitly; it cannot appear as a complete inventory.
 Every reconstruction checks that existing slot storage retains its complete
 pointer identity and becomes present. Full codeword bytes are checked on the
-first and last iteration of every observation. Full addresses are never exported.
+first and last iteration of every observation. Full addresses are never exported. Separate aggregate intervals cover clone/mark-missing, reconstruction, and dropping the cloned slots; the observer checks remain outside these subintervals but inside the enclosing diagnostic timer. They help distinguish adapter allocation costs from reconstruction and cannot establish an allocator or kernel root cause on their own.
 
 Instrumentation and its output perturb execution and allocation history. Its
 numbers must not be pooled with the plain arm or used for throughput claims.

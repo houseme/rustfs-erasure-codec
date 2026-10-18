@@ -18,6 +18,7 @@ def trace():
                 'offset_4096': 16, 'offset_page': 16} for _ in range(6)]
     return {'entry': 'Vec<ShardSlot<Vec<u8>>>', 'source_lifetime': 'observation',
             'clone_lifetime': 'iteration', 'page_size': 4096, 'iterations': 4096,
+            'phase_ns': {'clone': 10, 'reconstruct': 20, 'drop': 5},
             'source': buffers, 'transitions': 1, 'overflow': 0,
             'layouts': [{'count': 4096, 'buffers': copy.deepcopy(buffers)}]}
 
@@ -50,6 +51,8 @@ class ShardSlotDiagnosticTests(unittest.TestCase):
         for mutate in (lambda r: r.pop(), lambda r: r[0].update(iterations=True),
                        lambda r: r[0].update(page_size=16384),
                        lambda r: r[0].update(transitions=4096),
+                       lambda r: r[0]['phase_ns'].update(clone=-1),
+                       lambda r: r[0]['phase_ns'].pop('drop'),
                        lambda r: r[0]['layouts'][0].update(count=4095),
                        lambda r: r[0]['layouts'][0]['buffers'].pop(),
                        lambda r: r[0]['source'][0].update(offset_page=4096),
