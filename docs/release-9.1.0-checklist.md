@@ -1,7 +1,7 @@
 # 9.1.0 release preparation
 
 Status: **prepared candidate, not tagged or uploaded**. Reference main before
-this candidate is `bc3a3dc` after PR #16, with successful ordinary CI. The
+this candidate is `2fb7f38` after PR #17, with successful ordinary CI. The
 [published raw protocol-2 audit snapshot](https://github.com/houseme/rustfs-erasure-codec/tree/f12cbb675e9379d58bfc7217c41f6415778e1c83)
 remains rejected: 10/504 distributions are unstable; diagnostic replay found
 11/252 repeat drifts above 5%. Its online negative preflight rejected the real
@@ -45,10 +45,15 @@ cargo publish --dry-run --locked --registry crates-io --package rustfs-erasure-c
 
 ## Remaining publish gates
 
+See [the current blocker analysis](release-9.1.0-blockers.md) for the distinction
+between confirmed code/method issues, missing accepted evidence, workflow input,
+and independently tracked ARM/downstream performance. Protocol 7 corrects stream
+writer reservation on both measured sources and requires fresh calibration.
+
 Collect a new controlled whole-release A1/B1/B2/A2 campaign against published
 9.0.0, following [the evidence procedure](release-evidence.md). All four complete
 profiles, source/context/digest checks, both-side drift and existing regression
-thresholds must pass. Protocol 6 also requires retained buffered-verification Vec
+thresholds must pass. Protocol 7 also requires retained buffered-verification Vec
 layouts, lengths, capacities and OS base page metadata to match the final
 calibration and every phase; this scoped guard does
 not complete [#2897](https://github.com/rustfs/backlog/issues/2897) or establish
@@ -56,7 +61,7 @@ layout comparability for the other dynamic operations. The full counterbalanced
 slice diagnostic remains separate from original release cases. Only an accepted data snapshot may be configured as the
 immutable `RSE_RELEASE_EVIDENCE_REF`. Rejected snapshots may be published for
 audit and explicit negative checks, without promoting them to accepted inputs.
-Protocol 6 isolates every case in a fresh process and retains three fixed warmups
+Protocol 7 isolates every case in a fresh process and retains three fixed warmups
 plus all nine samples. Allocate caller buffers before codec initialization; run
 `diagnose_fixture_layout.py` to inspect all 11 known Vec cases across both sources
 before full performance capture. The one-iteration inventory is structural only,

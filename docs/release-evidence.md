@@ -32,7 +32,15 @@ The collector builds the same external integration test against each unmodified
 codec using the original benchmark functions and writers. Generated overlay files
 are untracked test inputs, recorded through the renderer and normalized overlay
 digests; neither release's production code nor original benchmark files are
-edited. The external adapter excludes one-time fixture preparation from the
+edited. The stream adapter corrects one explicit fixture constructor on both sources:
+cloning an empty `Vec::with_capacity` discards its reservation. Every parity writer
+now receives an independent reservation; these allocations remain inside each
+original timed iteration. The original benchmark files stay untouched for source
+comparison. Protocol 7 binds this output policy; earlier policies require new
+calibration and cannot be mixed with the corrected workload. This fixture fix
+is not a production algorithm change or an attributed speedup.
+
+The external adapter excludes one-time fixture preparation from the
 small-file and stream timers on both versions, with a checked reversible transform
 that preserves all loop bodies and per-iteration allocations. Smoke keeps its
 original per-iteration workload; hotspots keep their original inner recovery
@@ -60,7 +68,7 @@ check. The larger
 iteration count for each case is frozen for **both releases and every phase**.
 Each proposed calibration count and each measurement case runs in a fresh test process, in a fixed
 lexicographic case order. This prevents another case from seeding its allocator
-arenas or worker-pool state. Protocol 6 records `isolated_case=true` on every
+arenas or worker-pool state. Protocol 7 records `isolated_case=true` on every
 observation; missing/false markers are rejected. Every phase performs exactly
 three warmup invocations at the frozen count, then collects exactly nine samples.
 Basic scheduling snapshots retain numeric counters instead of formatted heap
