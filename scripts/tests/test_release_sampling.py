@@ -16,53 +16,15 @@ class SamplingContractTests(unittest.TestCase):
     def setUp(self):
         self.fixture=fixtures.EvidenceTests(); self.fixture.setUp(); self.addCleanup(self.fixture.doCleanups)
         self.root=self.fixture.root; self.doc=self.fixture.doc
-        self.doc['schema_version']=2
-        self.doc['sampling']=dict(sampling.PROTOCOL,implementation_sha256='e'*64,overlay_sha256='f'*64,
-                                  common_iterations={p:{k:1 for k in evidence.expected_cases(p)} for p in evidence.FILES})
-        for name,value in (('implementation_digest','e'*64),('overlay_digest','f'*64)):
-            patch=mock.patch.object(sampling,name,return_value=value);patch.start();self.addCleanup(patch.stop)
-        for context in self.doc['contexts'].values():
-            context['settings']=evidence.SAMPLING_ENV
-            context['isolation']['cpu_affinity']=list(range(8))
-        self.doc['calibration']={}
-        for role in ('baseline','candidate'):
-            folder='calibration-'+role;(self.root/folder).mkdir()
-            self.doc['calibration'][role]={}
-            for profile in evidence.FILES:
-                rows=self.cases('A1' if role=='baseline' else 'B1',profile)
-                records=[]
-                for row in rows:
-                    first=self.record(row,profile,role,'calibration',0);first['complete']=False
-                    records.extend((first,self.record(row,profile,role,'calibration',0)))
-                self.doc['calibration'][role][profile]=self.write(folder,profile,records)
-        for phase in evidence.PHASES:
-            for profile in evidence.FILES:
-                rows=self.cases(phase,profile)
-                self.fixture.write_rows(phase,profile,rows)
-                records=[]
-                for row in rows:
-                    records.extend(self.record(row,profile,'baseline' if phase.startswith('A') else 'candidate',kind,i)
-                                   for i,kind in enumerate(['warmup']+['sample']*sampling.PROTOCOL['samples']))
-                self.doc['files'][phase][profile]['samples']=self.write(phase,profile,records)
 
     def cases(self,phase,profile):
-        rows=self.fixture.fixture_rows(phase,profile)
-        for row in rows:
-            if profile!='hotspot':
-                row['iterations']=1;row['ns_per_iter']=10_000_000.0
-                if profile=='stream':row['ns_per_block']=10_000_000.0
-        return rows
+        return self.fixture.fixture_rows(phase,profile)
 
     def record(self,row,profile,role,kind,index):
-        key=row.get('scenario') or ':'.join(str(row[f]) for f in ('operation','data_shards','parity_shards','shard_size','stream_block_size') if f in row)
-        return {'kind':kind,'case':key,'revision':self.doc['sources'][role]['commit'],'index':index,'iterations':1,
-                'wall_ns':120_000_000,'timed_ns':10_000_000.0,'complete':True,'target_met':True,'rows':[copy.deepcopy(row)],
-                'before':{'cpu':0,'run_ns':index*100,'wait_ns':index,'switches':index},
-                'after':{'cpu':0,'run_ns':index*100+99,'wait_ns':index+1,'switches':index+1}}
+        return self.fixture.record(row,profile,role,kind,index)
 
     def write(self,folder,profile,records):
-        name=folder+'/'+profile+'-samples.json';p=self.root/name;p.write_text(json.dumps(records))
-        return {'path':name,'sha256':evidence.digest(p.read_bytes())}
+        return self.fixture.write_samples(folder,profile,records)
 
     def verify(self):
         self.fixture.manifest.write_text(json.dumps(self.doc))
