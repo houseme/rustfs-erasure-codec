@@ -46,6 +46,7 @@ pub(super) struct Trace {
     addresses: [usize; SHARDS],
     page_size: usize,
     iterations: usize,
+    phase_ns: [u128; 3],
 }
 
 impl Trace {
@@ -71,6 +72,7 @@ impl Trace {
             addresses: [0; SHARDS],
             page_size,
             iterations,
+            phase_ns: [0; 3],
         }
     }
 
@@ -127,6 +129,16 @@ impl Trace {
         }
     }
 
+    pub(super) fn phases(&mut self, clone_ns: u128, reconstruct_ns: u128, drop_ns: u128) {
+        for (total, value) in self
+            .phase_ns
+            .iter_mut()
+            .zip([clone_ns, reconstruct_ns, drop_ns])
+        {
+            *total += value;
+        }
+    }
+
     pub(super) fn finish(&self) {
         assert_eq!(self.observed, self.iterations);
         println!("\nRSE_SLOT_LAYOUT {self}");
@@ -176,7 +188,11 @@ impl fmt::Display for Trace {
                 JsonLayout(&bucket.layout)
             )?;
         }
-        f.write_str("]}")
+        write!(
+            f,
+            "],\"phase_ns\":{{\"clone\":{},\"reconstruct\":{},\"drop\":{}}}}}",
+            self.phase_ns[0], self.phase_ns[1], self.phase_ns[2]
+        )
     }
 }
 
@@ -207,6 +223,9 @@ mod tests {
                     .sum::<usize>(),
             3
         );
+        trace.phases(7, 11, 13);
+        trace.phases(1, 2, 3);
+        assert_eq!(trace.phase_ns, [8, 13, 16]);
         let json = trace.to_string();
         assert!(!json.contains("address"));
         assert!(json.contains("\"offset_page\":"));
