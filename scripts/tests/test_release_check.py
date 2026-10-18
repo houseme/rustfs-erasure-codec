@@ -18,12 +18,13 @@ class ReleaseCheckTests(unittest.TestCase):
             binary.mkdir()
             trace = root / "trace"
             stub = '#!/bin/sh\nprintf "%s|profile=%s|simd=%s|x86=%s|arm=%s\\n" "$0 $*" "${RSE_SMOKE_PROFILE:-}" "${RUN_SIMD_ACCEL_TESTS:-}" "${RUN_X86_SIMD_OVERRIDE_MATRIX:-}" "${RUN_AARCH64_SIMD_OVERRIDE_MATRIX:-}" >> "$TRACE"\ncase "$*" in *"${FAIL_ON:-__never__}"*) exit 42 ;; esac\n'
+            stub += '\ncase "$*" in *"release_evidence.py materialize"*) for item do output="$item"; done; : > "$output"; for name in RSE_SMOKE_BASELINE RSE_SMALL_FILE_BASELINE RSE_RECONSTRUCTION_HOTSPOT_BASELINE RSE_STREAM_PATH_BASELINE; do value=$(printenv "$name"); printf "%s=%s\\n" "$name" "$value" >> "$output"; done ;; esac\n'
             for command in ("cargo", "python3", "bash"):
                 path = binary / command
                 path.write_text(stub)
                 path.chmod(0o755)
             environment = dict(os.environ)
-            for name in BASELINES + SWITCHES + ("RSE_BENCHMARK_ALLOW_MISSING_CASES", "FAIL_ON"):
+            for name in BASELINES + SWITCHES + ("RSE_BENCHMARK_ALLOW_MISSING_CASES", "FAIL_ON", "RSE_RELEASE_EVIDENCE"):
                 environment.pop(name, None)
             environment.update(PATH=str(binary) + os.pathsep + environment["PATH"], TRACE=str(trace), VALIDATION_PROFILE=profile)
             if baselines:
@@ -77,6 +78,28 @@ class ReleaseCheckTests(unittest.TestCase):
         self.assertIn("--release --features std simd-accel", smoke)
         golden = next(line for line in trace.splitlines() if "--test golden_vectors" in line)
         self.assertNotIn("--ignored", golden)
+
+    def test_evidence_requires_release_profile_and_failure_precedes_cargo(self):
+        result, trace = self.run_checks("fast", RSE_RELEASE_EVIDENCE="fixture")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(trace, "")
+        result, trace = self.run_checks("release", RSE_RELEASE_EVIDENCE="fixture", FAIL_ON="release_evidence.py")
+        self.assertEqual(result.returncode, 42)
+        self.assertNotIn("cargo", trace)
+
+    def test_verified_evidence_reuses_quantitative_results_and_keeps_functional_gates(self):
+        result, trace = self.run_checks("release", RSE_RELEASE_EVIDENCE="fixture")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("benchmark_smoke_matrix_runs_and_exports_results", trace)
+        self.assertNotIn("benchmark_small_file_matrix_runs_and_exports_results", trace)
+        self.assertNotIn("benchmark_reconstruction_hotspots --", trace)
+        self.assertNotIn("benchmark_stream_path_matrix_runs_and_exports_results", trace)
+        self.assertEqual(trace.count("check_benchmark_regression.py"), 3)
+        self.assertEqual(trace.count("check_reconstruction_hotspot_gate.py"), 1)
+        self.assertIn("check_backend_consistency.sh", trace)
+        self.assertIn("cargo test --features std simd-accel", trace)
+        self.assertIn("--test golden_vectors", trace)
+        self.assertIn("using verified controlled campaign", result.stdout)
 
     def test_fast_profile_keeps_quick_optional_checks(self):
         result, trace = self.run_checks("fast", baselines=False)

@@ -4,6 +4,7 @@ set -euo pipefail
 
 VALIDATION_PROFILE="${VALIDATION_PROFILE:-fast}"
 STRICT_RELEASE=0
+VERIFIED_EVIDENCE=0
 case "${VALIDATION_PROFILE}" in
   fast|extended|release) ;;
   *) echo "[release-check] ERROR: unknown VALIDATION_PROFILE=${VALIDATION_PROFILE}" >&2; exit 1 ;;
@@ -44,6 +45,19 @@ run() {
   echo
   echo "[release-check] $*"
   "$@"
+}
+
+# Frozen quantitative data must pass provenance, completeness, ABBA and all
+# regression comparisons before this provider can reuse it. Functional checks
+# still run on the current source and verification runner.
+run_benchmark() {
+  local profile="$1"
+  shift
+  if [[ "${VERIFIED_EVIDENCE}" == "1" ]]; then
+    echo "[release-check] ${profile}: using verified controlled campaign (no runner timing)"
+  else
+    run "$@"
+  fi
 }
 
 run_benchmark_regression_gate() {
@@ -92,7 +106,7 @@ run_reconstruction_hotspot_gate() {
     return
   fi
 
-  run cargo test --release --features "std simd-accel" \
+  run_benchmark hotspot cargo test --release --features "std simd-accel" --lib \
     benchmark_reconstruction_hotspots -- --ignored --nocapture
 
   if [[ -n "${RSE_RECONSTRUCTION_HOTSPOT_BASELINE:-}" ]]; then
@@ -122,7 +136,7 @@ run_small_file_gate() {
     return
   fi
 
-  run env RSE_SMALL_FILE_PROFILE="${RSE_SMALL_FILE_PROFILE:-fast}" \
+  run_benchmark small_file env RSE_SMALL_FILE_PROFILE="${RSE_SMALL_FILE_PROFILE:-fast}" \
     cargo test --release --features "std simd-accel" \
     --test benchmark_small_files \
     benchmark_small_file_matrix_runs_and_exports_results -- --ignored --nocapture
@@ -156,7 +170,7 @@ run_stream_path_gate() {
     return
   fi
 
-  run env RSE_STREAM_PROFILE="${RSE_STREAM_PROFILE:-fast}" \
+  run_benchmark stream env RSE_STREAM_PROFILE="${RSE_STREAM_PROFILE:-fast}" \
     RSE_STREAM_IO_MODE="${RSE_STREAM_IO_MODE:-auto}" \
     cargo test --release --features "std simd-accel" \
     --test benchmark_stream_paths \
@@ -188,7 +202,7 @@ run_fast_checks() {
     run_smoke_profile quick cargo test --test benchmark_smoke \
       benchmark_smoke_matrix_runs_and_exports_results -- --ignored --nocapture
   else
-    run_smoke_profile extended cargo test --release --features "std simd-accel" \
+    run_benchmark smoke env RSE_SMOKE_PROFILE=extended cargo test --release --features "std simd-accel" \
       --test benchmark_smoke benchmark_smoke_matrix_runs_and_exports_results -- --ignored --nocapture
   fi
   run cargo test --no-default-features
@@ -231,11 +245,29 @@ run_extended_checks() {
   fi
 }
 
+if [[ -n "${RSE_RELEASE_EVIDENCE:-}" && "${STRICT_RELEASE}" != "1" ]]; then
+  echo "[release-check] ERROR: controlled evidence requires the release profile" >&2
+  exit 1
+fi
+
 # Validate every required input before the first Cargo/build/benchmark command.
 if [[ "${STRICT_RELEASE}" == "1" ]]; then
   if [[ "${RSE_BENCHMARK_ALLOW_MISSING_CASES:-0}" != "0" ]]; then
     echo "[release-check] ERROR: release profile cannot omit baseline cases" >&2
     exit 1
+  fi
+  if [[ -n "${RSE_RELEASE_EVIDENCE:-}" ]]; then
+    evidence_env="$(mktemp)"
+    trap 'rm -f "$evidence_env"' EXIT
+    run python3 scripts/release_evidence.py materialize \
+      --manifest "${RSE_RELEASE_EVIDENCE}" --repository "$PWD" --env-file "$evidence_env"
+    while IFS='=' read -r name value; do
+      case "$name" in
+        RSE_SMOKE_BASELINE|RSE_SMALL_FILE_BASELINE|RSE_RECONSTRUCTION_HOTSPOT_BASELINE|RSE_STREAM_PATH_BASELINE) export "$name=$value" ;;
+        *) echo "[release-check] ERROR: invalid evidence environment variable" >&2; exit 1 ;;
+      esac
+    done < "$evidence_env"
+    VERIFIED_EVIDENCE=1
   fi
   for baseline_variable in RSE_SMOKE_BASELINE RSE_SMALL_FILE_BASELINE RSE_RECONSTRUCTION_HOTSPOT_BASELINE RSE_STREAM_PATH_BASELINE; do
     require_strict_baseline "${baseline_variable}" "release regression gate"
