@@ -1,6 +1,6 @@
 # Retained caller fixtures for release workers
 
-Protocol 9 prepares one codec and caller fixture for the complete three-warmup,
+Protocol 10 retains the caller contract introduced in protocol 9: it prepares one codec and caller fixture for the complete three-warmup,
 nine-observation schedule of each small-file/stream worker. Caller byte storage
 is allocated before version-dependent codec setup. Retained source/scratch buffers
 are checked by full pointer identity, length and capacity before and after every
@@ -45,3 +45,11 @@ preserves mismatches and interruptions and always reports no performance approva
 It does not replace full minimum-duration baseline/candidate ABBA, the separate
 16-layout 1/4 KiB acceptance, or remaining #2897 dynamic-layout work. Conditions
 1/2/3/5 stay partially complete until their whole scope is actually validated.
+
+Hotspot missing/required result patterns use bounded inline metadata in protocol
+10. Their original labels are formatted only in deferred exporters, after all
+observations finish. A separate executable tests exact bytes against the actual
+original String formatter and counts zero allocation/reallocation/free requests
+for constructing and formatting the replacement. The original hotspot random
+inputs, recovery calls and inner timing are untouched. This observer change needs
+fresh evidence and does not extend the caller-layout scope to hotspot buffers.

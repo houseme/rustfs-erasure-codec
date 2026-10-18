@@ -53,6 +53,17 @@ unsafe impl GlobalAlloc for CountingAllocator {
 #[cfg(target_os = "linux")]
 fn normal_telemetry_does_not_touch_the_rust_heap() {
     assert!(std::env::var_os("RSE_SAMPLER_DIAGNOSTIC_PROCESS").is_none());
+    let (observation, counts) =
+        count_heap(|| (0..16).map(|_| sampling::telemetry()).last().unwrap());
+    assert_ne!(
+        observation.to_string(),
+        "null",
+        "real Linux telemetry must be available"
+    );
+    assert_eq!(counts, Counts::default());
+}
+
+fn count_heap<R>(work: impl FnOnce() -> R) -> (R, Counts) {
     struct Reset;
     impl Drop for Reset {
         fn drop(&mut self) {
@@ -61,13 +72,66 @@ fn normal_telemetry_does_not_touch_the_rust_heap() {
     }
     COUNTS.with(|state| state.set(Some(Counts::default())));
     let reset = Reset;
-    let observation = (0..16).map(|_| sampling::telemetry()).last().unwrap();
+    let result = work();
     let counts = COUNTS.with(|state| state.replace(None).unwrap());
     drop(reset);
-    assert_ne!(
-        observation.to_string(),
-        "null",
-        "real Linux telemetry must be available"
-    );
-    assert_eq!(counts, Counts::default());
+    (result, counts)
+}
+
+#[test]
+fn hotspot_patterns_match_the_actual_original_formatter_without_heap_activity() {
+    use std::fmt::Write;
+    struct FixedWriter {
+        bytes: [u8; 128],
+        len: usize,
+    }
+    impl std::fmt::Write for FixedWriter {
+        fn write_str(&mut self, value: &str) -> std::fmt::Result {
+            let end = self.len.checked_add(value.len()).ok_or(std::fmt::Error)?;
+            let destination = self.bytes.get_mut(self.len..end).ok_or(std::fmt::Error)?;
+            destination.copy_from_slice(value.as_bytes());
+            self.len = end;
+            Ok(())
+        }
+    }
+    for (data, indices) in [
+        (10, &[][..]),
+        (10, &[0][..]),
+        (10, &[0, 2][..]),
+        (10, &[1, 10][..]),
+        (10, &[2][..]),
+        (10, &[0, 2, 4][..]),
+        (10, &[0, 4][..]),
+        (10, &[1][..]),
+        (32, &[0, 2][..]),
+        (32, &[2, 6][..]),
+        (4, &[6, 0, 6, 3][..]),
+        (32, &[0, 2, 4, 6][..]),
+    ] {
+        let (original, old_counts) = count_heap(|| original_pattern(data, indices));
+        assert!(
+            old_counts.alloc > 0,
+            "the actual original formatter must allocate"
+        );
+        let (writer, counts) = count_heap(|| {
+            let value = pattern::ShardPattern::new(data, indices);
+            let mut writer = FixedWriter {
+                bytes: [0; 128],
+                len: 0,
+            };
+            write!(&mut writer, "{value}").unwrap();
+            writer
+        });
+        assert_eq!(counts, Counts::default());
+        assert_eq!(&writer.bytes[..writer.len], original.as_bytes());
+        println!(
+            "RSE_METADATA_ALLOCATION {{\"data_shards\":{data},\"indices\":{indices:?},\"original_alloc\":{},\"original_realloc\":{},\"original_dealloc\":{},\"new_alloc\":{},\"new_realloc\":{},\"new_dealloc\":{}}}",
+            old_counts.alloc,
+            old_counts.realloc,
+            old_counts.dealloc,
+            counts.alloc,
+            counts.realloc,
+            counts.dealloc
+        );
+    }
 }

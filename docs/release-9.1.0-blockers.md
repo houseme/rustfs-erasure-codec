@@ -93,3 +93,13 @@ original contracts. This broadens the implementation of conditions 1/2/5 without
 completing their whole scope. The 103-case four-phase structural inventory is not
 performance ABBA. All earlier rejection evidence remains historical; new complete
 controls and paired measurements are required. See the [caller fixture contract](release-caller-fixtures.md).
+
+## Deferred hotspot result metadata under protocol 10
+
+The hotspot result previously created and retained two String patterns after each
+inner observation. Protocol 10 uses bounded inline patterns and formats them only
+during deferred export. Exact original labels and zero replacement heap activity
+are checked in the separate allocation executable. Hotspot inputs, recovery calls
+and timing intervals are preserved. This removes another observer allocation
+mechanism without claiming to resolve all unstable distributions; protocol-9
+captures remain bound to their earlier source and need separate qualification.
