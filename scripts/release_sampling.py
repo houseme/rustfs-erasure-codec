@@ -2,14 +2,15 @@
 import hashlib
 import json
 import math
+import os
 import pathlib
 import re
 
-PROTOCOL = {"name": "shared-external-duration-sampler", "version": 5, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
+PROTOCOL = {"name": "shared-external-duration-sampler", "version": 6, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
             "target_wall_ns": 100_000_000, "target_timed_ns": 5_000_000,
             "minimum_wall_ns": 50_000_000, "minimum_timed_ns": 2_000_000,
             "central_spread_limit": .10,
-            "fixture_layout": {"scope": "small_file:verify_with_buffer", "entry": "Vec<Vec<u8>>", "lifetime": "worker", "offset_moduli": [64, 4096], "untracked_cases": "original allocation contract; no layout guarantee"},
+            "fixture_layout": {"scope": "small_file:verify_with_buffer", "entry": "Vec<Vec<u8>>", "lifetime": "worker", "construction": "caller-buffers-before-codec", "offset_moduli": [64, 4096, "os_base_page_size"], "page_size_source": "controller-sysconf", "untracked_cases": "original allocation contract; no layout guarantee"},
             "timing_scope": {"smoke":"original per-iteration workload", "small_file":"operation loops excluding one-time fixture preparation", "stream":"operation loops excluding one-time fixture preparation", "hotspot":"original inner recovery intervals"}}
 TEMPLATES = pathlib.Path(__file__).resolve().parent / "release-sampling"
 HOTSPOT_BLOCKS = ("struct ReconstructionHotspotBenchResult", "fn benchmark_test_iterations", "macro_rules! make_random_shards",
@@ -94,8 +95,27 @@ def generate(root):
         (entry if name == "root.rs" else directory / name).write_text(text)
 
 
-def parse_output(output):
-    return [json.loads(line.removeprefix("RSE_SAMPLE ")) for line in output.splitlines() if line.startswith("RSE_SAMPLE ")]
+def parse_output(output, prefix="RSE_SAMPLE "):
+    """Keep completed journal records; ignore only one interrupted final fragment."""
+    records = []
+    lines = output.splitlines(keepends=True)
+    for index, line in enumerate(lines):
+        if not line.startswith(prefix): continue
+        try:
+            records.append(json.loads(line.removeprefix(prefix)))
+        except json.JSONDecodeError:
+            if index != len(lines)-1 or line.endswith('\n'): raise
+    return records
+
+
+def valid_page_size(value):
+    return type(value) is int and 1024 <= value <= 1048576 and value & (value-1) == 0
+
+
+def base_page_size():
+    value = os.sysconf('SC_PAGE_SIZE')
+    if not valid_page_size(value): raise ValueError("invalid OS base page size")
+    return value
 
 
 def parse_log(path):
@@ -115,15 +135,18 @@ def validate_telemetry(record, allowed_cpus=None):
         raise ValueError("scheduling counters moved backwards")
 
 
-def validate_fixture(record, profile):
+def validate_fixture(record, profile, expected_page_size=None):
     """Known layout-sensitive Vec cases require complete address-free metadata."""
     fixture = record.get("fixture")
     tracked = profile == "small_file" and record["case"].startswith("verify_with_buffer:")
     if not tracked:
         if fixture is not None: raise ValueError("unexpected fixture layout declaration")
         return
-    if not isinstance(fixture, dict) or set(fixture) != {"entry", "lifetime", "source", "scratch"} or fixture.get("entry") != "Vec<Vec<u8>>" or fixture.get("lifetime") != "worker":
+    if not isinstance(fixture, dict) or set(fixture) != {"entry", "lifetime", "page_size", "source", "scratch"} or fixture.get("entry") != "Vec<Vec<u8>>" or fixture.get("lifetime") != "worker":
         raise ValueError("buffered verification requires a retained Vec fixture layout")
+    page_size = fixture.get("page_size")
+    if not valid_page_size(page_size) or expected_page_size is not None and page_size != expected_page_size:
+        raise ValueError("fixture page size differs from the recorded runtime")
     _, data, parity, size = record["case"].split(":")
     data, parity, size = int(data), int(parity), int(size)
     for role, count in (("source", data + parity), ("scratch", parity)):
@@ -131,9 +154,9 @@ def validate_fixture(record, profile):
         if not isinstance(positions, list) or len(positions) != count:
             raise ValueError("incomplete fixture buffer layout")
         for position in positions:
-            if not isinstance(position, dict) or set(position) != {"len", "capacity", "offset_64", "offset_4096"} or any(type(v) is not int for v in position.values()):
+            if not isinstance(position, dict) or set(position) != {"len", "capacity", "offset_64", "offset_4096", "offset_page"} or any(type(v) is not int for v in position.values()):
                 raise ValueError("invalid fixture buffer position")
-            if position["len"] != size or not size <= position["capacity"] <= 2**64 - 1 or not 0 <= position["offset_4096"] < 4096 or not 0 <= position["offset_64"] < 64 or position["offset_4096"] % 64 != position["offset_64"]:
+            if position["len"] != size or not size <= position["capacity"] <= 2**64 - 1 or not 0 <= position["offset_4096"] < 4096 or not 0 <= position["offset_64"] < 64 or position["offset_4096"] % 64 != position["offset_64"] or not 0 <= position["offset_page"] < page_size or position["offset_page"] % min(page_size, 4096) != position["offset_4096"] % min(page_size, 4096):
                 raise ValueError("invalid fixture shape or offset")
 
 
@@ -195,7 +218,7 @@ def run_profile(root, environment, profile, mode, log_path, counts_file=None, *,
     ordered = sorted(cases)
     if mode not in ("calibrate", "sample") or not ordered or len(ordered) != len(set(ordered)):
         raise ValueError("a valid mode and nonempty unique case catalog are required")
-    env = dict(environment, RSE_SAMPLER_PROFILE=profile, RSE_SAMPLER_MODE=mode)
+    env = dict(environment, RSE_SAMPLER_PROFILE=profile, RSE_SAMPLER_MODE=mode, RSE_SAMPLER_PAGE_SIZE=str(base_page_size()))
     counts = {}
     if mode == "sample":
         if counts_file is None: raise ValueError("frozen counts are required")
@@ -230,7 +253,7 @@ def run_profile(root, environment, profile, mode, log_path, counts_file=None, *,
     return records
 
 
-def sample_groups(records, profile, revision, expected, counts, normalize, allowed_cpus=None):
+def sample_groups(records, profile, revision, expected, counts, normalize, allowed_cpus=None, expected_page_size=None):
     groups = {}
     for record in records:
         if record.get("revision") != revision or record.get("case") not in expected:
@@ -243,7 +266,7 @@ def sample_groups(records, profile, revision, expected, counts, normalize, allow
             raise ValueError("every fixed warmup and sample is required")
         for record in group:
             validate_telemetry(record, allowed_cpus)
-            validate_fixture(record, profile)
+            validate_fixture(record, profile, expected_page_size)
             if record.get("fixture") != group[0].get("fixture"):
                 raise ValueError("fixture layout changed inside a measurement worker")
             if any(type(record.get(field)) is not int for field in ("index", "iterations", "calibration_batch")) or record.get("calibration_batch") != 0 or record.get("isolated_case") is not True or record.get("iterations") != counts[case] or not isinstance(record.get("rows"), list) or len(record["rows"]) != 1:
@@ -255,8 +278,8 @@ def sample_groups(records, profile, revision, expected, counts, normalize, allow
     return groups
 
 
-def selected_row(records, profile, metric, revision, expected, counts, normalize, allowed_cpus=None):
-    groups = sample_groups(records, profile, revision, expected, counts, normalize, allowed_cpus)
+def selected_row(records, profile, metric, revision, expected, counts, normalize, allowed_cpus=None, expected_page_size=None):
+    groups = sample_groups(records, profile, revision, expected, counts, normalize, allowed_cpus, expected_page_size)
     selected, spread = [], []
     for case, group in groups.items():
         for record in group[PROTOCOL["warmups"]:]:

@@ -36,6 +36,37 @@ class SamplingContractTests(unittest.TestCase):
         records=json.loads(path.read_text());change(records)
         self.doc['files'][phase][profile]['samples']=self.write(phase,profile,records)
 
+    def test_base_page_size_is_required_and_bound_to_runtime(self):
+        for value in (None, True, 0, 3000, 2**30):
+            self.assertFalse(sampling.valid_page_size(value))
+        self.assertTrue(sampling.valid_page_size(4096))
+        self.assertTrue(sampling.valid_page_size(16384))
+        original=copy.deepcopy(self.doc)
+        for value in (None, True, 3000, 16384):
+            self.doc=copy.deepcopy(original)
+            def change(records):
+                for r in records:
+                    if r.get('fixture') is not None:r['fixture']['page_size']=value
+            self.mutate(change)
+            with self.assertRaises(ValueError):self.verify()
+
+    def test_page_offsets_and_runtime_page_changes_are_rejected(self):
+        self.mutate(lambda records:next(r for r in records if r.get('fixture') is not None)['fixture']['source'][0].update(offset_page=4096))
+        with self.assertRaises(ValueError):self.verify()
+        self.fixture.doc=self.doc
+        self.doc['contexts']['B1']['runtime']['page_size']=16384
+        with self.assertRaises(ValueError):self.verify()
+
+    def test_consistent_runtime_page_change_cannot_hide_mismatched_fixture_pages(self):
+        for context in self.doc['contexts'].values():context['runtime']['page_size']=16384
+        with self.assertRaisesRegex(ValueError,'page size differs'):self.verify()
+
+    def test_interrupted_sample_journal_preserves_completed_records(self):
+        row={'case':'fixture'}
+        text='log\nRSE_SAMPLE '+json.dumps(row)+'\nRSE_SAMPLE {"case":'
+        self.assertEqual(sampling.parse_output(text),[row])
+        with self.assertRaises(json.JSONDecodeError):sampling.parse_output(text+'\n')
+
     def test_missing_invalid_and_replaced_vec_layouts_are_rejected(self):
         original = copy.deepcopy(self.doc)
         path = self.root/self.doc['files']['B2']['small_file']['samples']['path']
@@ -59,7 +90,7 @@ class SamplingContractTests(unittest.TestCase):
     def test_fixture_changes_within_warmup_or_samples_reject(self):
         def change(records):
             record = next(r for r in records if r.get('fixture') is not None)
-            record['fixture']['scratch'][0].update(offset_64=32,offset_4096=32)
+            record['fixture']['scratch'][0].update(offset_64=32,offset_4096=32,offset_page=32)
         self.mutate(change)
         with self.assertRaisesRegex(ValueError,'inside a measurement worker'): self.verify()
 
@@ -67,7 +98,7 @@ class SamplingContractTests(unittest.TestCase):
         def change(records):
             for r in records:
                 if r.get('fixture') is not None:
-                    r['fixture']['scratch'][0].update(offset_64=32,offset_4096=32)
+                    r['fixture']['scratch'][0].update(offset_64=32,offset_4096=32,offset_page=32)
         self.mutate(change)
         with self.assertRaisesRegex(ValueError,'final calibration'): self.verify()
 
@@ -78,7 +109,7 @@ class SamplingContractTests(unittest.TestCase):
             records=json.loads((self.root/entry['path']).read_text())
             for r in records:
                 if r.get('fixture') is not None:
-                    r['fixture']['scratch'][0].update(offset_64=32,offset_4096=32)
+                    r['fixture']['scratch'][0].update(offset_64=32,offset_4096=32,offset_page=32)
             entry=self.write(folder,profile,records)
             if folder.startswith('calibration'): self.doc['calibration']['candidate'][profile]=entry
             else: self.doc['files'][folder][profile]['samples']=entry
@@ -88,7 +119,7 @@ class SamplingContractTests(unittest.TestCase):
         path=self.root/self.doc['calibration']['baseline']['small_file']['path']
         records=json.loads(path.read_text())
         record=next(r for r in records if r.get('fixture') is not None)
-        record['fixture']['scratch'][0].update(offset_64=32,offset_4096=32)
+        record['fixture']['scratch'][0].update(offset_64=32,offset_4096=32,offset_page=32)
         with self.assertRaisesRegex(ValueError,'inside a calibration worker'):
             evidence.calibration_counts(records,'small_file',self.sources_commit('baseline'))
 
@@ -256,7 +287,7 @@ class SamplingContractTests(unittest.TestCase):
 
     def test_calibration_and_protocol_cannot_be_changed(self):
         original=copy.deepcopy(self.doc)
-        for field in ('samples','warmups','case_isolation','case_order','max_calibration_batches','target_timed_ns','central_spread_limit','implementation_sha256','overlay_sha256'):
+        for field in ('samples','warmups','case_isolation','case_order','max_calibration_batches','target_timed_ns','central_spread_limit','implementation_sha256','overlay_sha256','fixture_layout'):
             self.doc=copy.deepcopy(original);self.doc['sampling'][field]='invalid'
             with self.assertRaises(ValueError):self.verify()
         self.doc=copy.deepcopy(original)

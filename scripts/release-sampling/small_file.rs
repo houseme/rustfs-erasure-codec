@@ -22,7 +22,7 @@ pub(super) fn release_profile() {
                 super::sampling::run_prepared(
                     &key,
                     "small-file-results.json",
-                    || prepare_buffered_verify(case),
+                    |page_size| prepare_buffered_verify(case, page_size),
                     |r| r.ns_per_iter,
                     |r| write_results(std::slice::from_ref(r)),
                 );
@@ -43,16 +43,23 @@ pub(super) fn release_profile() {
 // The remaining operations keep their original allocation/timing contracts.
 fn prepare_buffered_verify(
     case: BenchCase,
+    page_size: usize,
 ) -> impl FnMut(usize) -> super::sampling::Output<SmallFileResult> {
     let seed = derived_seed(Operation::Verify, case);
-    let codec = ReedSolomon::new(case.data_shards, case.parity_shards).unwrap();
+    // Construct every caller buffer before version-dependent codec allocation.
+    // Keep the Vec API and assert that setup never replaces these allocations.
     let mut shards = make_full_shards(seed, case.data_shards, case.parity_shards, case.shard_size);
-    codec.encode(&mut shards).unwrap();
     let mut scratch = vec![vec![0u8; case.shard_size]; case.parity_shards];
-    let fixture = super::layout::Fixture::vec_buffers(&shards, &scratch);
+    let fixture = super::layout::Fixture::vec_buffers(&shards, &scratch, page_size);
+    let codec = ReedSolomon::new(case.data_shards, case.parity_shards).unwrap();
+    codec.encode(&mut shards).unwrap();
+    assert_eq!(
+        super::layout::Fixture::vec_buffers(&shards, &scratch, page_size),
+        fixture
+    );
     move |iterations| {
         assert_eq!(
-            super::layout::Fixture::vec_buffers(&shards, &scratch),
+            super::layout::Fixture::vec_buffers(&shards, &scratch, page_size),
             fixture
         );
         let start = Instant::now();
@@ -68,7 +75,7 @@ fn prepare_buffered_verify(
         }
         let ns_per_iter = start.elapsed().as_nanos() as f64 / iterations as f64;
         assert_eq!(
-            super::layout::Fixture::vec_buffers(&shards, &scratch),
+            super::layout::Fixture::vec_buffers(&shards, &scratch, page_size),
             fixture
         );
         let logical_data_bytes = case.shard_size * case.data_shards;
@@ -97,12 +104,19 @@ fn buffered_verify_preserves_vec_fixture_for_the_entire_worker() {
         shard_size: 1061,
         label: "test",
     };
-    let mut operation = prepare_buffered_verify(case);
-    let initial = operation(1).fixture.0.unwrap();
-    for _ in 0..12 {
-        let output = operation(2);
-        assert_eq!(output.fixture.0.unwrap(), initial);
-        assert_eq!(output.result.operation, "verify_with_buffer");
-        assert_eq!(output.result.seed, derived_seed(Operation::Verify, case));
+    for page_size in [4096, 16384, 65536] {
+        let mut operation = prepare_buffered_verify(case, page_size);
+        let initial = operation(1).fixture.0.unwrap();
+        assert!(
+            initial
+                .to_string()
+                .contains(&format!("\"page_size\":{page_size}"))
+        );
+        for _ in 0..12 {
+            let output = operation(2);
+            assert_eq!(output.fixture.0.unwrap(), initial);
+            assert_eq!(output.result.operation, "verify_with_buffer");
+            assert_eq!(output.result.seed, derived_seed(Operation::Verify, case));
+        }
     }
 }

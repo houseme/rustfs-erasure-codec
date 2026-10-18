@@ -165,6 +165,7 @@ def runtime_context(env):
     if not name or not version:
         raise ValueError("libc identity must be available for release evidence")
     return {"libc": {"name": name, "version": version},
+            "page_size": sampling.base_page_size(),
             "allocator_environment": {k: env[k] for k in sorted(env) if allocator_override_key(k)}}
 
 
@@ -300,8 +301,10 @@ def verify(manifest, repository, compiler=True):
     if reference.get("settings") != expected_env or not reference.get("cpu_model") or not reference.get("compiler") or type(isolation.get("reserved_cpu_count")) is not int or isolation["reserved_cpu_count"] < 2 or isolation.get("physical_host_exclusivity_proven") is not False:
         raise ValueError("incomplete or unexpected controlled capture settings")
     runtime = reference.get("runtime")
-    if not isinstance(runtime, dict) or set(runtime) != {"libc", "allocator_environment"}:
-        raise ValueError("libc and allocator provenance is required")
+    if not isinstance(runtime, dict) or set(runtime) != {"libc", "allocator_environment", "page_size"}:
+        raise ValueError("libc, allocator and base page provenance is required")
+    if not sampling.valid_page_size(runtime["page_size"]):
+        raise ValueError("invalid recorded OS base page size")
     libc = runtime["libc"]
     if not isinstance(libc, dict) or set(libc) != {"name", "version"} or any(not isinstance(v, str) or not v for v in libc.values()):
         raise ValueError("invalid libc identity")
@@ -376,7 +379,7 @@ def verify_sampling(document, root, repository, summarized):
         for profile in FILES:
             name = f"calibration-{role}/{profile}-samples.json"
             records = evidence_member(root, document.get("calibration", {}).get(role, {}).get(profile), name)
-            pilot_counts[role][profile] = calibration_counts(records, profile, document["sources"][role]["commit"])
+            pilot_counts[role][profile] = calibration_counts(records, profile, document["sources"][role]["commit"], document["contexts"]["A1"]["runtime"]["page_size"])
             pilot_layouts[role][profile] = sampling.fixture_catalog(records, calibration=True)
     spreads = []
     layouts = {}
@@ -389,7 +392,7 @@ def verify_sampling(document, root, repository, summarized):
             entry = document["files"][phase][profile].get("samples")
             records = evidence_member(root, entry, f"{phase}/{profile}-samples.json")
             normalize = lambda p, row, rev: next(iter(indexed_rows(p, [row], rev, counts[p], complete=False)))
-            selected, widths = sampling.selected_row(records, profile, METRICS[profile], revision, expected_cases(profile), counts[profile], normalize, document["contexts"][phase]["isolation"].get("cpu_affinity"))
+            selected, widths = sampling.selected_row(records, profile, METRICS[profile], revision, expected_cases(profile), counts[profile], normalize, document["contexts"][phase]["isolation"].get("cpu_affinity"), document["contexts"][phase]["runtime"]["page_size"])
             layouts[profile][phase] = sampling.fixture_catalog(records)
             role = "baseline" if phase.startswith("A") else "candidate"
             if layouts[profile][phase] != pilot_layouts[role][profile]:
@@ -405,7 +408,7 @@ def verify_sampling(document, root, repository, summarized):
     return spreads
 
 
-def calibration_counts(records, profile, revision):
+def calibration_counts(records, profile, revision, expected_page_size=None):
     groups = {}
     for record in records:
         key = record.get("case")
@@ -415,7 +418,7 @@ def calibration_counts(records, profile, revision):
         if not isinstance(record.get("rows"), list) or len(record["rows"]) != 1:
             raise ValueError("calibration must contain one raw row")
         sampling.validate_telemetry(record)
-        sampling.validate_fixture(record, profile)
+        sampling.validate_fixture(record, profile, expected_page_size)
         if set(indexed_rows(profile, record["rows"], revision, {key: count}, complete=False)) != {key}:
             raise ValueError("calibration row does not match declared case")
         sampling.validate_timing(record, profile, count)
