@@ -1,0 +1,185 @@
+{
+  "kind": "derived analysis of complete unchanged raw observations; not release acceptance",
+  "candidate_attribution": null,
+  "release_approval": false,
+  "verifier_source": "2fb7f38926d7c95395707cc060785a9f0e23f8a6",
+  "actual_gate_results": {
+    "smoke": {
+      "interval_check": "passed",
+      "wide_cases": [
+        {
+          "case": "update:32:16:1048576",
+          "central_spread": 0.28434731588073214
+        }
+      ]
+    },
+    "small_file": {
+      "interval_check": "rejected",
+      "reason": "sample measurement interval is insufficient"
+    },
+    "hotspot": {
+      "interval_check": "passed",
+      "wide_cases": []
+    },
+    "stream": {
+      "interval_check": "passed",
+      "wide_cases": [
+        {
+          "case": "encode_stream:10:4:1048576:1048576",
+          "central_spread": 0.4635344386588288
+        },
+        {
+          "case": "encode_stream:10:4:16777216:4194304",
+          "central_spread": 0.22780855962160632
+        },
+        {
+          "case": "encode_stream:4:2:1048576:262144",
+          "central_spread": 0.3546044748876369
+        }
+      ]
+    }
+  },
+  "short_cases": [
+    {
+      "case": "reconstruct_shard_slot:4:2:65536",
+      "iterations": 4096,
+      "same_exported_backend_features_seed_iterations": true,
+      "final_calibration": [
+        {
+          "kind": "calibration_warmup",
+          "wall_ns": 49063702,
+          "timed_ns": 48615585
+        },
+        {
+          "kind": "calibration_warmup",
+          "wall_ns": 443343844,
+          "timed_ns": 443055247
+        },
+        {
+          "kind": "calibration_warmup",
+          "wall_ns": 445124717,
+          "timed_ns": 444839205
+        },
+        {
+          "kind": "calibration",
+          "wall_ns": 444226929,
+          "timed_ns": 443943030
+        },
+        {
+          "kind": "calibration",
+          "wall_ns": 443044120,
+          "timed_ns": 442756666
+        },
+        {
+          "kind": "calibration",
+          "wall_ns": 444188201,
+          "timed_ns": 443896870
+        },
+        {
+          "kind": "calibration",
+          "wall_ns": 443256301,
+          "timed_ns": 442971520
+        },
+        {
+          "kind": "calibration",
+          "wall_ns": 443585820,
+          "timed_ns": 443304955
+        },
+        {
+          "kind": "calibration",
+          "wall_ns": 438817790,
+          "timed_ns": 438536374
+        },
+        {
+          "kind": "calibration",
+          "wall_ns": 428370773,
+          "timed_ns": 428090549
+        },
+        {
+          "kind": "calibration",
+          "wall_ns": 428390793,
+          "timed_ns": 428109657
+        },
+        {
+          "kind": "calibration",
+          "wall_ns": 429027135,
+          "timed_ns": 428733681
+        }
+      ],
+      "measurement": [
+        {
+          "kind": "warmup",
+          "wall_ns": 50752506,
+          "timed_ns": 50292460,
+          "wait_ns": 13019
+        },
+        {
+          "kind": "warmup",
+          "wall_ns": 48191474,
+          "timed_ns": 47905040,
+          "wait_ns": 0
+        },
+        {
+          "kind": "warmup",
+          "wall_ns": 48146525,
+          "timed_ns": 47872622,
+          "wait_ns": 0
+        },
+        {
+          "kind": "sample",
+          "wall_ns": 47833712,
+          "timed_ns": 47563244,
+          "wait_ns": 0
+        },
+        {
+          "kind": "sample",
+          "wall_ns": 48100005,
+          "timed_ns": 47829156,
+          "wait_ns": 6640
+        },
+        {
+          "kind": "sample",
+          "wall_ns": 48261920,
+          "timed_ns": 47990309,
+          "wait_ns": 0
+        },
+        {
+          "kind": "sample",
+          "wall_ns": 48150441,
+          "timed_ns": 47876126,
+          "wait_ns": 0
+        },
+        {
+          "kind": "sample",
+          "wall_ns": 48385296,
+          "timed_ns": 48114347,
+          "wait_ns": 0
+        },
+        {
+          "kind": "sample",
+          "wall_ns": 48320369,
+          "timed_ns": 48046734,
+          "wait_ns": 8072
+        },
+        {
+          "kind": "sample",
+          "wall_ns": 47949928,
+          "timed_ns": 47678768,
+          "wait_ns": 0
+        },
+        {
+          "kind": "sample",
+          "wall_ns": 48109951,
+          "timed_ns": 47839461,
+          "wait_ns": 6500
+        },
+        {
+          "kind": "sample",
+          "wall_ns": 48163801,
+          "timed_ns": 47891240,
+          "wait_ns": 0
+        }
+      ]
+    }
+  ]
+}

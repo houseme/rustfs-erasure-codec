@@ -47,3 +47,7 @@ Only complete numerical journal lines are public; incomplete console fragments a
 ## Protocol 6 cross-version structural qualification
 
 `diagnostics/protocol6-cross-version-fixture-inventory` retains both complete four-phase structural inventories: the main/protocol-5 source has 24 mismatching comparisons across six cases, while the candidate/protocol-6 source has all 66 comparisons matching, including OS base page provenance. Every inventory keeps all 528 raw observations. They use one iteration for geometry inspection and cannot establish performance or release acceptance. The earlier initialization stop and controller sources remain available.
+
+## Fresh complete main/protocol-6 baseline prerequisite
+
+`diagnostics/protocol6-main2fb-full-baseline` retains all 126 A1 cases and complete calibrations: four unstable distributions and nine short observations cause the predeclared stop before A2 or candidate collection. The complete raw data, matched controller and actual timing-validator replay remain public. This rejected default-allocator control is distinct from later fixture changes and never approves release.
