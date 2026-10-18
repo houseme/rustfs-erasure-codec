@@ -11,3 +11,9 @@ The measured candidate commit is recorded in the manifest. Main 8f775a2dff51740e
 The snapshot intentionally excludes ancillary build/launcher logs, SSH/controller scripts and unrelated process/host telemetry containing internal paths or identities. Those private diagnostic files do not participate in release-evidence validation; all validator inputs and raw performance observations are present. The small isolation summary contains restoration outcomes only. No user objects, customer data or credentials are included.
 
 Use main's `scripts/release_evidence.py verify --manifest <checkout>/release-evidence/manifest.json` to reproduce the rejection. Manual workflow dispatch with `release_preflight=true` and this immutable data commit tests online rejection only; it never publishes. A fresh accepted complete campaign and positive strict preflight are still required before tagging 9.1.0.
+
+## Additional complete protocol-3 baseline diagnosis
+
+`diagnostics/protocol3-baseline` retains all JSON and frozen counts from two complete published-9.0.0-only phases: 126 cases per phase, 2,268 formal samples, 101 short samples, 21 unstable distributions and 12/126 repeat drifts above 5%. It has a diagnostic schema and no candidate attribution. The captured tool commit and protocol identify the exact historical implementation; current source changes require new measurements.
+
+These rejected observations exposed the missing calibration warmup rehearsal. They are preserved without numerical edits, including all calibration probes and three warmups per measurement case. Logs and environment-management scripts remain private. This diagnostic data cannot satisfy the strict release evidence schema.

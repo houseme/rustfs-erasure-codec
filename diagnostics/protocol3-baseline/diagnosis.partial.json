@@ -1,0 +1,217 @@
+{
+  "schema_version": "isolated-baseline-repeat-diagnostic-v1",
+  "purpose": "baseline controls only; never release acceptance",
+  "candidate_attribution": null,
+  "protocol": {
+    "name": "shared-external-duration-sampler",
+    "version": 3,
+    "samples": 9,
+    "warmups": 3,
+    "case_isolation": "fresh-process",
+    "case_order": "lexicographic",
+    "calibration_confirmations": 2,
+    "max_calibration_records": 12,
+    "target_wall_ns": 100000000,
+    "target_timed_ns": 5000000,
+    "minimum_wall_ns": 50000000,
+    "minimum_timed_ns": 2000000,
+    "central_spread_limit": 0.1,
+    "timing_scope": {
+      "smoke": "original per-iteration workload",
+      "small_file": "operation loops excluding one-time fixture preparation",
+      "stream": "operation loops excluding one-time fixture preparation",
+      "hotspot": "original inner recovery intervals"
+    }
+  },
+  "source": {
+    "commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "tree": "d44fe8c296972cf895375101f8975c99371db57a",
+    "lock_sha256": "972540efcf6bc23c0064252a9c0d937bf87dbe0edff9cdb688d2fdcbd5653d49"
+  },
+  "context": {
+    "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+    "isolation": {
+      "scope": "exclusive-vm-cpu-partition",
+      "reserved_cpu_count": 8,
+      "cpu_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "physical_host_exclusivity_proven": false
+    },
+    "runtime": {
+      "libc": {
+        "name": "glibc",
+        "version": "2.39"
+      },
+      "allocator_environment": {}
+    },
+    "settings": {
+      "RUSTUP_TOOLCHAIN": "stable",
+      "RUSTFLAGS": "",
+      "RAYON_NUM_THREADS": "4",
+      "RS_PARALLEL_POLICY_MAX_JOBS": "4",
+      "RSE_BACKEND_OVERRIDE": "auto",
+      "RSE_STRICT_BACKEND_OVERRIDE": "1",
+      "RSE_SMOKE_PROFILE": "extended",
+      "RSE_SMALL_FILE_PROFILE": "fast",
+      "RSE_STREAM_PROFILE": "fast",
+      "RSE_STREAM_IO_MODE": "auto",
+      "RSE_BENCHMARK_ALLOW_MISSING_CASES": "0",
+      "CARGO_BUILD_JOBS": "4",
+      "RSE_SAMPLER_PROTOCOL": "duration-v3"
+    }
+  },
+  "phases": {
+    "A1": {
+      "smoke": {
+        "case_count": 15,
+        "sample_count": 135,
+        "short_samples": 0,
+        "wide_cases": [
+          {
+            "case": "reconstruct:10:4:1048576",
+            "central_spread": 0.39091893493666363
+          },
+          {
+            "case": "verify:32:16:1048576",
+            "central_spread": 0.27434494944126625
+          }
+        ]
+      },
+      "small_file": {
+        "case_count": 88,
+        "sample_count": 792,
+        "short_samples": 40,
+        "wide_cases": [
+          {
+            "case": "reconstruct_opt:4:2:524288",
+            "central_spread": 0.9760444270104822
+          },
+          {
+            "case": "reconstruct_shard_slot:10:4:524288",
+            "central_spread": 0.1384136153486336
+          },
+          {
+            "case": "reconstruct_some_data_only:10:4:65536",
+            "central_spread": 3.0753147071783897
+          },
+          {
+            "case": "verify:4:2:131072",
+            "central_spread": 0.10419057334675147
+          },
+          {
+            "case": "verify:4:2:16384",
+            "central_spread": 0.1444077118867206
+          },
+          {
+            "case": "verify:4:2:4096",
+            "central_spread": 0.1181592715291732
+          }
+        ]
+      },
+      "hotspot": {
+        "case_count": 8,
+        "sample_count": 72,
+        "short_samples": 0,
+        "wide_cases": []
+      },
+      "stream": {
+        "case_count": 15,
+        "sample_count": 135,
+        "short_samples": 3,
+        "wide_cases": [
+          {
+            "case": "encode_stream:10:4:16777216:4194304",
+            "central_spread": 0.18984898150005008
+          },
+          {
+            "case": "reconstruct_stream:4:2:65536:65536",
+            "central_spread": 0.9379106643247356
+          },
+          {
+            "case": "verify_stream:10:4:1048576:1048576",
+            "central_spread": 0.44429151307465503
+          }
+        ]
+      }
+    },
+    "A2": {
+      "smoke": {
+        "case_count": 15,
+        "sample_count": 135,
+        "short_samples": 0,
+        "wide_cases": [
+          {
+            "case": "reconstruct:10:4:1048576",
+            "central_spread": 0.27757410063556065
+          },
+          {
+            "case": "verify:32:16:1048576",
+            "central_spread": 0.32142641455691345
+          }
+        ]
+      },
+      "small_file": {
+        "case_count": 88,
+        "sample_count": 792,
+        "short_samples": 49,
+        "wide_cases": [
+          {
+            "case": "reconstruct_opt:10:4:262144",
+            "central_spread": 1.015809514764449
+          },
+          {
+            "case": "reconstruct_opt:10:4:524288",
+            "central_spread": 0.39160588050724615
+          },
+          {
+            "case": "reconstruct_opt:4:2:524288",
+            "central_spread": 0.44055589598410183
+          },
+          {
+            "case": "reconstruct_some_data_only:10:4:65536",
+            "central_spread": 3.10104191159438
+          },
+          {
+            "case": "verify:4:2:16384",
+            "central_spread": 0.13587451856643046
+          },
+          {
+            "case": "verify:4:2:4096",
+            "central_spread": 0.11141573925434253
+          },
+          {
+            "case": "verify_with_buffer:4:2:16384",
+            "central_spread": 0.11651716526558024
+          }
+        ]
+      },
+      "hotspot": {
+        "case_count": 8,
+        "sample_count": 72,
+        "short_samples": 0,
+        "wide_cases": []
+      },
+      "stream": {
+        "case_count": 15,
+        "sample_count": 135,
+        "short_samples": 9,
+        "wide_cases": [
+          {
+            "case": "encode_stream:10:4:16777216:4194304",
+            "central_spread": 0.20989166633043493
+          }
+        ]
+      }
+    }
+  },
+  "repeat_checks": []
+}
