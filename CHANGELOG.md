@@ -13,11 +13,11 @@ All notable changes to this project are documented in this file.
 ## 9.1.0 (2026-10-18)
 
 ### Fixed
-- Isolate each release benchmark case in a fresh process, retain three fixed warmups and all nine samples, and reject observations without case-isolation markers. Preserve the existing duration, distribution, drift and regression thresholds.
+- Isolate release cases in fresh processes and calibrate through the same three warmups and nine probes used for measurement, with bounded batches and complete raw retention. Reject missing isolation/rehearsal records; retain all duration, distribution, drift and regression thresholds.
 - Reserve known legacy Cursor recovery output capacity on the first validated write, avoiding repeated block-growth reallocations while preserving generic stream bounds, cursor positions, and decode/length error ordering.
 - Bind libc identity and allocator/loader environment controls into release capture provenance and require them to remain identical throughout the complete campaign.
 - Require sampled schema 2 evidence for release verification and materialization; remove the legacy mean-only acceptance path and migrate source/ABBA/regression tests to a shared complete sampling fixture.
-- Require two consecutive same-count calibration confirmations before freezing release iterations; grow again after a cold/warm shortfall. Keep structurally valid short diagnostic samples with explicit flags while retaining strict release duration checks.
+- Keep structurally valid short diagnostic samples with explicit flags while retaining strict release duration checks; insufficient calibration probes grow iterations and restart the complete warmup schedule.
 - Add a private baseline-only VM diagnosis mode with anonymous per-thread runqueue/runtime counters and process page faults, outside benchmark timers. Diagnostic artifacts have a distinct non-release schema and cannot satisfy strict release evidence checks.
 - Replace single-batch release timing with a shared external sampler over unchanged benchmark operations: calibrate both revisions to common per-case iteration counts, warm each case, retain nine samples and scheduling counters, recompute medians, and reject unstable sample distributions while retaining the 5% ABBA drift limit.
 - Provision strict release performance evidence through a pinned data commit instead of runner-local path variables. Validate complete controlled 9.0.0/candidate ABBAs, source trees, lockfiles, harness, provenance, digests, both-side drift and existing regression thresholds; support pre-tag manual preflight and auditable failure reports without publishing.

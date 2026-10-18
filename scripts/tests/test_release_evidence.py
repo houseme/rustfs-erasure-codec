@@ -44,9 +44,12 @@ class EvidenceTests(unittest.TestCase):
             for profile in evidence.FILES:
                 records = []
                 for row in self.fixture_rows('A1' if role == 'baseline' else 'B1', profile):
-                    first = self.record(row, profile, role, 'calibration', 0)
-                    first['complete'] = False
-                    records.extend((first, self.record(row, profile, role, 'calibration', 0)))
+                    kinds = ['calibration_warmup'] * sampling.PROTOCOL['warmups'] + ['calibration'] * sampling.PROTOCOL['samples']
+                    for index, kind in enumerate(kinds):
+                        record = self.record(row, profile, role, kind, index)
+                        record['complete'] = index == len(kinds)-1
+                        record['calibration_batch'] = 1
+                        records.append(record)
                 self.doc['calibration'][role][profile] = self.write_samples(folder, profile, records)
         for name, value in (('implementation_digest', 'e'*64), ('overlay_digest', 'f'*64)):
             patch = mock.patch.object(sampling, name, return_value=value)
@@ -89,7 +92,7 @@ class EvidenceTests(unittest.TestCase):
     def record(self, row, profile, role, kind, index):
         key = row.get('scenario') or ':'.join(str(row[f]) for f in ('operation','data_shards','parity_shards','shard_size','stream_block_size') if f in row)
         return {'kind':kind, 'case':key, 'revision':self.sources[role]['commit'], 'index':index, 'iterations':1,
-                'wall_ns':120_000_000, 'timed_ns':10_000_000.0, 'complete':True, 'target_met':True, 'isolated_case':True, 'rows':[copy.deepcopy(row)],
+                'wall_ns':120_000_000, 'timed_ns':10_000_000.0, 'complete':True, 'target_met':True, 'isolated_case':True, 'calibration_batch':0, 'rows':[copy.deepcopy(row)],
                 'before':{'cpu':0, 'run_ns':index*100, 'wait_ns':index, 'switches':index},
                 'after':{'cpu':0, 'run_ns':index*100+99, 'wait_ns':index+1, 'switches':index+1}}
 

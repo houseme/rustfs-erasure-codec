@@ -9,6 +9,7 @@ const TARGET_WALL_NS: f64 = 100_000_000.0;
 const TARGET_TIMED_NS: f64 = 5_000_000.0;
 const SAMPLES: usize = 9;
 const WARMUPS: usize = 3;
+const MAX_CALIBRATION_BATCHES: usize = 12;
 const MAX_ITERATIONS: usize = 1_000_000_000;
 thread_local! { static ITERATIONS: Cell<usize> = const { Cell::new(1) }; }
 
@@ -93,15 +94,28 @@ pub fn run<R>(
     }
     let isolated_case = selected.is_some();
     let calibrating = std::env::var("RSE_SAMPLER_MODE").unwrap() == "calibrate";
-    let mut count = if calibrating {
-        1
+    let count = if calibrating {
+        let count = std::env::var("RSE_SAMPLER_INITIAL_COUNT")
+            .unwrap()
+            .parse::<usize>()
+            .unwrap();
+        assert!((1..=MAX_ITERATIONS).contains(&count));
+        count
     } else {
         common_iterations(key)
     };
-    let mut sample_index = 0;
-    let mut calibration_steps = 0;
-    let mut confirmations = 0;
-    loop {
+    let calibration_batch = if calibrating {
+        let batch = std::env::var("RSE_SAMPLER_BATCH")
+            .unwrap()
+            .parse::<usize>()
+            .unwrap();
+        assert!((1..=MAX_CALIBRATION_BATCHES).contains(&batch));
+        batch
+    } else {
+        0
+    };
+    let mut all_targets_met = true;
+    for record_index in 0..WARMUPS + SAMPLES {
         ITERATIONS.with(|n| n.set(count));
         let before = telemetry();
         let start = Instant::now();
@@ -111,50 +125,28 @@ pub fn run<R>(
         let timed_ns = ns_per_iter(&result) * count as f64;
         assert!(timed_ns.is_finite() && timed_ns > 0.0);
         let target_met = wall_ns as f64 >= TARGET_WALL_NS && timed_ns >= TARGET_TIMED_NS;
-        if calibrating {
-            confirmations = if target_met { confirmations + 1 } else { 0 };
+        let warming = record_index < WARMUPS;
+        if !warming {
+            all_targets_met &= target_met;
         }
         let complete = if calibrating {
-            confirmations >= 2
+            record_index + 1 == WARMUPS + SAMPLES && all_targets_met
         } else {
             target_met
         };
         // Export after timing using the unchanged original artifact writer.
         export(&result);
         let raw = fs::read_to_string(format!("target/benchmark-smoke/{filename}")).unwrap();
-        let kind = if calibrating {
-            "calibration"
-        } else if sample_index < WARMUPS {
-            "warmup"
-        } else {
-            "sample"
+        let kind = match (calibrating, warming) {
+            (true, true) => "calibration_warmup",
+            (true, false) => "calibration",
+            (false, true) => "warmup",
+            (false, false) => "sample",
         };
         println!(
-            "\nRSE_SAMPLE {{\"kind\":\"{kind}\",\"case\":\"{key}\",\"revision\":\"{}\",\"index\":{sample_index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"complete\":{complete},\"target_met\":{target_met},\"isolated_case\":{isolated_case},\"before\":{before},\"after\":{after},\"rows\":{}}}",
+            "\nRSE_SAMPLE {{\"kind\":\"{kind}\",\"case\":\"{key}\",\"revision\":\"{}\",\"index\":{record_index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"complete\":{complete},\"target_met\":{target_met},\"isolated_case\":{isolated_case},\"calibration_batch\":{calibration_batch},\"before\":{before},\"after\":{after},\"rows\":{}}}",
             revision(),
             raw.replace(['\n', '\r'], "")
         );
-        if calibrating {
-            if complete {
-                break;
-            }
-            calibration_steps += 1;
-            assert!(calibration_steps < 12, "bounded calibration failed");
-            if target_met {
-                continue;
-            }
-            let factor = ((TARGET_WALL_NS / wall_ns as f64).max(TARGET_TIMED_NS / timed_ns) * 1.25)
-                .ceil()
-                .clamp(2.0, 64.0) as usize;
-            count = count
-                .checked_mul(factor)
-                .filter(|n| *n <= MAX_ITERATIONS)
-                .expect("calibration iteration budget exceeded");
-        } else {
-            if sample_index + 1 == WARMUPS + SAMPLES {
-                break;
-            }
-            sample_index += 1;
-        }
     }
 }
