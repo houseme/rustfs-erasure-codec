@@ -256,8 +256,8 @@ def verify(manifest, repository, compiler=True):
     for field in ("sources", "contexts", "files"):
         if not isinstance(document.get(field), dict):
             raise ValueError("invalid manifest container: " + field)
-    if type(document.get("schema_version")) is not int or document["schema_version"] not in (1, 2) or document.get("phase_order") != list(PHASES):
-        raise ValueError("complete A1/B1/B2/A2 evidence is required")
+    if type(document.get("schema_version")) is not int or document["schema_version"] != 2 or document.get("phase_order") != list(PHASES):
+        raise ValueError("sampled schema 2 A1/B1/B2/A2 evidence is required; legacy mean-only records cannot approve release")
     if document.get("baseline_release") != BASELINE_RELEASE:
         raise ValueError("release baseline must be the published 9.0.0")
     sources = document.get("sources", {})
@@ -283,7 +283,7 @@ def verify(manifest, repository, compiler=True):
     if not isinstance(reference, dict) or not isinstance(reference.get("isolation"), dict) or reference["isolation"].get("scope") != "exclusive-vm-cpu-partition":
         raise ValueError("controlled resource provenance is required")
     isolation = reference["isolation"]
-    expected_env = SAMPLING_ENV if document["schema_version"] == 2 else BASE_ENV
+    expected_env = SAMPLING_ENV
     if reference.get("settings") != expected_env or not reference.get("cpu_model") or not reference.get("compiler") or type(isolation.get("reserved_cpu_count")) is not int or isolation["reserved_cpu_count"] < 2 or isolation.get("physical_host_exclusivity_proven") is not False:
         raise ValueError("incomplete or unexpected controlled capture settings")
     if any(contexts.get(phase) != reference for phase in PHASES + ("after",)):
@@ -310,9 +310,9 @@ def verify(manifest, repository, compiler=True):
             json_data(path)
             if digest(path.read_bytes()) != entry["sha256"]: raise ValueError("evidence digest mismatch")
             paths[phase][profile] = path
-            counts = document.get("sampling", {}).get("common_iterations", {}).get(profile) if document["schema_version"] == 2 else None
+            counts = document.get("sampling", {}).get("common_iterations", {}).get(profile)
             data[phase][profile] = rows(profile, path, sources[role]["commit"], counts)
-    sample_spreads = verify_sampling(document, root, repository, data) if document["schema_version"] == 2 else []
+    sample_spreads = verify_sampling(document, root, repository, data)
     drifts = []
     for profile in FILES:
         for phase in PHASES[1:]: compatible(profile, data["A1"][profile], data[phase][profile])

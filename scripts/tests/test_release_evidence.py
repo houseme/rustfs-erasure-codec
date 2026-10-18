@@ -10,6 +10,7 @@ from unittest import mock
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 import release_evidence as evidence
+import release_sampling as sampling
 
 
 class EvidenceTests(unittest.TestCase):
@@ -22,16 +23,34 @@ class EvidenceTests(unittest.TestCase):
             "baseline": {"commit": evidence.BASELINE_COMMIT, "tree": "a" * 40, "lock_sha256": "a" * 64},
             "candidate": {"commit": "b" * 40, "tree": "c" * 40, "lock_sha256": "b" * 64},
         }
-        context = {"compiler": "rustc fixture", "cpu_model": "fixture CPU", "settings": evidence.BASE_ENV,
-                   "isolation": {"scope": "exclusive-vm-cpu-partition", "reserved_cpu_count": 8, "physical_host_exclusivity_proven": False}}
-        self.doc = {"schema_version": 1, "baseline_release": "9.0.0", "phase_order": list(evidence.PHASES),
+        context = {"compiler": "rustc fixture", "cpu_model": "fixture CPU", "settings": evidence.SAMPLING_ENV,
+                   "isolation": {"scope": "exclusive-vm-cpu-partition", "reserved_cpu_count": 8, "cpu_affinity": list(range(8)), "physical_host_exclusivity_proven": False}}
+        self.doc = {"schema_version": 2, "baseline_release": "9.0.0", "phase_order": list(evidence.PHASES),
                     "sources": self.sources, "harness_sha256": "d" * 64,
                     "contexts": {p: copy.deepcopy(context) for p in (*evidence.PHASES, "after")}, "files": {}}
         for phase in evidence.PHASES:
             (self.root / phase).mkdir()
             self.doc["files"][phase] = {}
             for profile in evidence.FILES:
-                self.write_rows(phase, profile, self.fixture_rows(phase, profile))
+                self.write_sampled_rows(phase, profile, self.fixture_rows(phase, profile))
+        self.doc['sampling'] = dict(sampling.PROTOCOL, implementation_sha256='e'*64, overlay_sha256='f'*64,
+                                    common_iterations={p:{k:1 for k in evidence.expected_cases(p)} for p in evidence.FILES})
+        self.doc['calibration'] = {}
+        for role in ('baseline', 'candidate'):
+            folder = 'calibration-' + role
+            (self.root / folder).mkdir()
+            self.doc['calibration'][role] = {}
+            for profile in evidence.FILES:
+                records = []
+                for row in self.fixture_rows('A1' if role == 'baseline' else 'B1', profile):
+                    first = self.record(row, profile, role, 'calibration', 0)
+                    first['complete'] = False
+                    records.extend((first, self.record(row, profile, role, 'calibration', 0)))
+                self.doc['calibration'][role][profile] = self.write_samples(folder, profile, records)
+        for name, value in (('implementation_digest', 'e'*64), ('overlay_digest', 'f'*64)):
+            patch = mock.patch.object(sampling, name, return_value=value)
+            patch.start()
+            self.addCleanup(patch.stop)
         for name, value in (("source_info", self.sources["candidate"]), ("source_at", self.sources["baseline"]),
                             ("harness_digest", "d" * 64), ("command", "rustc fixture")):
             patch = mock.patch.object(evidence, name, return_value=value)
@@ -50,13 +69,13 @@ class EvidenceTests(unittest.TestCase):
             else:
                 operation, data, parity, size, *block = key.split(":")
                 row.update(operation=operation, data_shards=int(data), parity_shards=int(parity), shard_size=int(size),
-                           throughput_mb_s=100.0, ns_per_iter=100.0, git_revision=revision[:12],
+                           throughput_mb_s=100.0, ns_per_iter=10_000_000.0, git_revision=revision[:12],
                            features="std|simd-accel", target_triple="x86_64-linux-unknown", backend="fixture",
                            backend_id="fixture", backend_kind="fixture", backend_override="auto", override_honored=True,
-                           iterations=int(evidence.BASE_ENV[{"smoke": "RSE_SMOKE_ITERATIONS", "small_file": "RSE_SMALL_FILE_ITERATIONS", "stream": "RSE_STREAM_ITERATIONS"}[profile]]))
+                           iterations=1)
                 if profile != "smoke": row["profile"] = "fast"
                 if block:
-                    row.update(stream_block_size=int(block[0]), stream_io_backend="fixture", stream_io_mode="auto", ns_per_block=100.0)
+                    row.update(stream_block_size=int(block[0]), stream_io_backend="fixture", stream_io_mode="auto", ns_per_block=10_000_000.0)
             result.append(row)
         return result
 
@@ -64,7 +83,28 @@ class EvidenceTests(unittest.TestCase):
         name = f"{phase}/{evidence.FILES[profile]}"
         path = self.root / name
         path.write_text(json.dumps(rows) + "\n")
-        self.doc["files"][phase][profile] = {"path": name, "sha256": evidence.digest(path.read_bytes())}
+        self.doc["files"][phase].setdefault(profile, {}).update(path=name, sha256=evidence.digest(path.read_bytes()))
+
+    def record(self, row, profile, role, kind, index):
+        key = row.get('scenario') or ':'.join(str(row[f]) for f in ('operation','data_shards','parity_shards','shard_size','stream_block_size') if f in row)
+        return {'kind':kind, 'case':key, 'revision':self.sources[role]['commit'], 'index':index, 'iterations':1,
+                'wall_ns':120_000_000, 'timed_ns':10_000_000.0, 'complete':True, 'target_met':True, 'rows':[copy.deepcopy(row)],
+                'before':{'cpu':0, 'run_ns':index*100, 'wait_ns':index, 'switches':index},
+                'after':{'cpu':0, 'run_ns':index*100+99, 'wait_ns':index+1, 'switches':index+1}}
+
+    def write_samples(self, folder, profile, records):
+        name = folder + '/' + profile + '-samples.json'
+        path = self.root / name
+        path.write_text(json.dumps(records))
+        return {'path':name, 'sha256':evidence.digest(path.read_bytes())}
+
+    def write_sampled_rows(self, phase, profile, rows):
+        self.write_rows(phase, profile, rows)
+        records = []
+        for row in rows:
+            records.extend(self.record(row, profile, 'baseline' if phase.startswith('A') else 'candidate', kind, i)
+                           for i, kind in enumerate(['warmup'] + ['sample'] * sampling.PROTOCOL['samples']))
+        self.doc['files'][phase][profile]['samples'] = self.write_samples(phase, profile, records)
 
     def verify(self):
         self.manifest.write_text(json.dumps(self.doc))
@@ -75,6 +115,7 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(report["status"], "passed")
         self.assertEqual(report["case_counts"], {"smoke": 15, "small_file": 88, "hotspot": 8, "stream": 15})
         self.assertEqual(report["drift_checks"], 252)
+        self.assertEqual(report["sample_distribution_checks"], 504)
 
     def test_wrong_source_lock_harness_baseline_and_self_comparison(self):
         original = copy.deepcopy(self.doc)
@@ -113,9 +154,9 @@ class EvidenceTests(unittest.TestCase):
                 self.write_rows("A1", "small_file", rows)
                 with self.assertRaises(ValueError): self.verify()
 
-    def test_legacy_smoke_uses_exact_catalog_iterations_and_manifest_profile(self):
+    def test_original_smoke_export_uses_exact_catalog_iterations_and_manifest_profile(self):
         self.assertNotIn("profile", self.fixture_rows("A1", "smoke")[0])
-        for field, value in (("iterations", 1), ("profile", "quick")):
+        for field, value in (("iterations", 2), ("profile", "quick")):
             rows = self.fixture_rows("A1", "smoke")
             rows[0][field] = value
             self.write_rows("A1", "smoke", rows)
@@ -152,17 +193,17 @@ class EvidenceTests(unittest.TestCase):
             original = self.fixture_rows(phase, "smoke")
             rows = copy.deepcopy(original)
             rows[0]["throughput_mb_s"] *= 1.06
-            self.write_rows(phase, "smoke", rows)
+            self.write_sampled_rows(phase, "smoke", rows)
             with mock.patch.object(evidence.subprocess, "run") as gate:
                 with self.assertRaisesRegex(ValueError, "drift"): self.verify()
                 gate.assert_not_called()
-            self.write_rows(phase, "smoke", original)
+            self.write_sampled_rows(phase, "smoke", original)
 
     def test_stable_regression_rejected_by_existing_gate(self):
         for phase in ("B1", "B2"):
             rows = self.fixture_rows(phase, "smoke")
             rows[0]["throughput_mb_s"] = 50.0
-            self.write_rows(phase, "smoke", rows)
+            self.write_sampled_rows(phase, "smoke", rows)
         with self.assertRaises(subprocess.CalledProcessError): self.verify()
 
     def test_materialize_uses_verified_raw_files(self):
@@ -174,6 +215,21 @@ class EvidenceTests(unittest.TestCase):
         for profile, filename in evidence.FILES.items():
             self.assertEqual(pathlib.Path(lines[evidence.VARIABLES[profile]]).read_bytes(), (self.root / "A1" / filename).read_bytes())
             self.assertEqual((self.root / "target/benchmark-smoke" / filename).read_bytes(), (self.root / "B2" / filename).read_bytes())
+
+    def test_legacy_schema_cannot_bypass_sampling_or_materialize_release_inputs(self):
+        self.doc['schema_version'] = 1
+        self.doc.pop('sampling')
+        self.doc.pop('calibration')
+        for context in self.doc['contexts'].values():
+            context['settings'] = evidence.BASE_ENV
+        with mock.patch.object(evidence.subprocess, 'run') as gate:
+            with self.assertRaisesRegex(ValueError, 'sampled schema 2'):
+                self.verify()
+            with self.assertRaisesRegex(ValueError, 'sampled schema 2'):
+                evidence.materialize(self.manifest, self.root, self.root/'inputs.env')
+            gate.assert_not_called()
+        self.assertFalse((self.root/'inputs.env').exists())
+        self.assertFalse((self.root/'target/release-preflight/inputs').exists())
 
     def test_capture_refuses_to_reuse_any_existing_output(self):
         report = self.root / "report.json"

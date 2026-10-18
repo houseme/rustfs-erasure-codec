@@ -132,6 +132,10 @@ Existing local baseline file inputs remain available for direct measurements;
 they do not replace the mandatory immutable snapshot input in release CI.
 
 
+Formal verification and materialization require manifest schema 2 and the current
+sampling protocol. Legacy schema 1 mean-only campaigns are rejected before release
+inputs are staged; they remain historical diagnostic records.
+
 ## Why the earlier single-batch campaign was rejected
 
 The complete earlier cohort remains rejected: 18/252 repeat checks exceeded 5%,

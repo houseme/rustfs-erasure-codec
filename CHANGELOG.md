@@ -13,6 +13,7 @@ All notable changes to this project are documented in this file.
 ## 9.1.0 (2026-10-18)
 
 ### Fixed
+- Require sampled schema 2 evidence for release verification and materialization; remove the legacy mean-only acceptance path and migrate source/ABBA/regression tests to a shared complete sampling fixture.
 - Require two consecutive same-count calibration confirmations before freezing release iterations; grow again after a cold/warm shortfall. Keep structurally valid short diagnostic samples with explicit flags while retaining strict release duration checks.
 - Add a private baseline-only VM diagnosis mode with anonymous per-thread runqueue/runtime counters and process page faults, outside benchmark timers. Diagnostic artifacts have a distinct non-release schema and cannot satisfy strict release evidence checks.
 - Replace single-batch release timing with a shared external sampler over unchanged benchmark operations: calibrate both revisions to common per-case iteration counts, warm each case, retain nine samples and scheduling counters, recompute medians, and reject unstable sample distributions while retaining the 5% ABBA drift limit.
