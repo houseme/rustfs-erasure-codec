@@ -246,7 +246,8 @@ if __name__ == "__main__":
     generate(root)
     try:
         subprocess.run(["cargo","test","--locked","--release","--features","std simd-accel","--test","rse_release_sampling","--no-run"],cwd=root,env=dict(os.environ,RUSTUP_TOOLCHAIN="stable"),check=True)
-        subprocess.run(["cargo","test","--locked","--release","--features","std simd-accel","--test","rse_release_sampling","process::tests::"],cwd=root,env=dict(os.environ,RUSTUP_TOOLCHAIN="stable"),check=True)
+        for test_filter in ("process::tests::", "sampling::tests::"):
+            subprocess.run(["cargo","test","--locked","--release","--features","std simd-accel","--test","rse_release_sampling",test_filter],cwd=root,env=dict(os.environ,RUSTUP_TOOLCHAIN="stable"),check=True)
     finally:
         (root/"tests/rse_release_sampling.rs").unlink()
         shutil.rmtree(root/"tests/rse_release_sampling")

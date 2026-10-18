@@ -76,6 +76,7 @@ def capture(baseline,output,group):
             'candidate_attribution':None,'source':source,'context':context,'diagnostic_tool':evidence.source_info(pathlib.Path(__file__).resolve().parents[1]),'renderer_sha256':sampling.implementation_digest(),
             'diagnostic_process_observer':True,'observer':'anonymous live threads plus process minor/major faults; snapshots outside timers; counters may include observation/setup effects',
             'cases':[]}
+    (output/'diagnosis.partial.json').write_text(json.dumps(report,indent=2)+'\n')
     counts={}
     for profile in evidence.FILES:
         records=sampling.run_profile(baseline,env,profile,'calibrate',output/(profile+'-calibration.log'),cases=evidence.expected_cases(profile))

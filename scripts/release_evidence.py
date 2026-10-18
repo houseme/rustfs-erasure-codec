@@ -444,6 +444,10 @@ def capture(baseline, candidate, output, group):
         raise ValueError("both codecs require the same original harness and external overlay")
     contract = dict(sampling.PROTOCOL, implementation_sha256=sampling.implementation_digest(), overlay_sha256=sampling.overlay_digest(candidate))
     metadata = {"schema_version":2,"baseline_release":BASELINE_RELEASE,"phase_order":list(PHASES),"sources":sources,"harness_sha256":harness,"sampling":contract,"contexts":{},"files":{},"calibration":{}}
+    (output/"capture-provenance.json").write_text(json.dumps({
+        "purpose":"capture setup only; never release acceptance", "sources":sources,
+        "harness_sha256":harness, "sampling":contract,
+        "initial_context":environment_context(candidate,env,group)},indent=2)+"\n")
     for role, root in (("baseline", baseline), ("candidate", candidate)):
         sampling.generate(root)
         args = ["cargo","test","--locked","--release","--features","std simd-accel","--test","rse_release_sampling","--no-run"]

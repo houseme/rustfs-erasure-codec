@@ -63,6 +63,16 @@ lexicographic case order. This prevents another case from seeding its allocator
 arenas or worker-pool state. Protocol 4 records `isolated_case=true` on every
 observation; missing/false markers are rejected. Every phase performs exactly
 three warmup invocations at the frozen count, then collects exactly nine samples.
+Basic scheduling snapshots retain numeric counters instead of formatted heap
+strings. Extended process observation remains diagnostic-only and may affect
+allocation state; release qualification uses basic telemetry.
+The original Git queries and JSON/CSV exporters run after the entire fixed kernel,
+so their allocations, output-file writes and child processes do not seed the
+next observation. A mode-independent `RSE_TIMING` journal preserves completed
+timing observations if a process is interrupted; original rows are exported for
+all completed observations before a workload panic is rethrown. The controller
+writes source/protocol/context provenance before calibration, so an interrupted
+attempt retains its source binding even without a final manifest.
 All three warmups are retained, and none of the nine samples can be replaced or
 silently retried. All pilot,
 warmup and sample exports are retained. A sample needs at least 50 ms wall time
