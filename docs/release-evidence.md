@@ -51,8 +51,9 @@ for measurement. All nine probes must meet both duration targets before the
 count is frozen. Any short probe increases the count and restarts the full warmup
 schedule. Calibration is bounded to 12 batches / 144 records per case, and every
 observation is retained. The Python controller chooses counts; the Rust worker
-executes one fixed schedule, with no adaptive loop or inherited previous-count
-heap/worker state. This avoids freezing a count from cold probes that
+executes one fixed schedule and receives the same scalar case/count inputs in
+both modes. Frozen-table parsing and adaptive selection stay in the controller,
+so no previous-count state or measurement-only count map changes the worker heap. This avoids freezing a count from cold probes that
 precede the actual measurement warmup schedule. Allocation state may still change
 between separate invocations; every formal sample must pass its own interval
 check. The larger

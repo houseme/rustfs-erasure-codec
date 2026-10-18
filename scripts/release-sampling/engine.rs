@@ -1,6 +1,5 @@
 //! Shared external integration-test sampler; no codec implementation is replaced.
 use std::cell::Cell;
-use std::collections::BTreeMap;
 use std::fs;
 use std::sync::OnceLock;
 use std::time::Instant;
@@ -63,24 +62,6 @@ fn telemetry() -> String {
     )
 }
 
-fn common_iterations(key: &str) -> usize {
-    static COUNTS: OnceLock<BTreeMap<String, usize>> = OnceLock::new();
-    let counts = COUNTS.get_or_init(|| {
-        let text = fs::read_to_string(std::env::var("RSE_SAMPLER_COUNTS").unwrap()).unwrap();
-        let mut values = BTreeMap::new();
-        for line in text.lines() {
-            let (name, count) = line.split_once('\t').unwrap();
-            let count: usize = count.parse().unwrap();
-            assert!((1..=MAX_ITERATIONS).contains(&count));
-            assert!(values.insert(name.to_owned(), count).is_none());
-        }
-        values
-    });
-    *counts
-        .get(key)
-        .expect("all cases need frozen common iteration counts")
-}
-
 pub fn run<R>(
     key: &str,
     filename: &str,
@@ -94,26 +75,22 @@ pub fn run<R>(
     }
     let isolated_case = selected.is_some();
     let calibrating = std::env::var("RSE_SAMPLER_MODE").unwrap() == "calibrate";
-    let count = if calibrating {
-        let count = std::env::var("RSE_SAMPLER_INITIAL_COUNT")
-            .unwrap()
-            .parse::<usize>()
-            .unwrap();
-        assert!((1..=MAX_ITERATIONS).contains(&count));
-        count
+    // Both modes receive identical primitive inputs. Frozen-count parsing and
+    // adaptive calibration live in the controller, outside the measured process.
+    let count = std::env::var("RSE_SAMPLER_ITERATIONS")
+        .unwrap()
+        .parse::<usize>()
+        .unwrap();
+    assert!((1..=MAX_ITERATIONS).contains(&count));
+    let calibration_batch = std::env::var("RSE_SAMPLER_BATCH")
+        .unwrap()
+        .parse::<usize>()
+        .unwrap();
+    assert!(if calibrating {
+        (1..=MAX_CALIBRATION_BATCHES).contains(&calibration_batch)
     } else {
-        common_iterations(key)
-    };
-    let calibration_batch = if calibrating {
-        let batch = std::env::var("RSE_SAMPLER_BATCH")
-            .unwrap()
-            .parse::<usize>()
-            .unwrap();
-        assert!((1..=MAX_CALIBRATION_BATCHES).contains(&batch));
-        batch
-    } else {
-        0
-    };
+        calibration_batch == 0
+    });
     let mut all_targets_met = true;
     for record_index in 0..WARMUPS + SAMPLES {
         ITERATIONS.with(|n| n.set(count));
