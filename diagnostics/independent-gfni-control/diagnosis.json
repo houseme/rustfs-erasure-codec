@@ -1,0 +1,184 @@
+{
+  "schema_version": "independent-gfni-control-diagnostic-v1",
+  "purpose": "codec-independent AVX512 GFNI register execution diagnosis only; never release acceptance",
+  "candidate_attribution": null,
+  "source_sha256": "47142c28895e665a3a4db31ac6936f02c8d0e8a0d0974ba9fcf1e5440ab0a46c",
+  "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "iterations": 256000000,
+  "warmups": 3,
+  "samples": 9,
+  "affinity_before": [
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31
+  ],
+  "phases": {
+    "A1": {
+      "24": {
+        "median_ns": 227374955,
+        "central_spread": 0.00035052233435296337,
+        "minimum_ns": 227299050,
+        "maximum_ns": 227439201,
+        "maximum_wait_ratio": 0.0001351709172172201,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "25": {
+        "median_ns": 227371239,
+        "central_spread": 0.00037814809110487367,
+        "minimum_ns": 227294823,
+        "maximum_ns": 227515627,
+        "maximum_wait_ratio": 0.0001752917373095066,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "26": {
+        "median_ns": 227081205,
+        "central_spread": 0.0005101963414365359,
+        "minimum_ns": 227007764,
+        "maximum_ns": 227168698,
+        "maximum_wait_ratio": 0.0003185259639650261,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "27": {
+        "median_ns": 227161537,
+        "central_spread": 0.004028120306299917,
+        "minimum_ns": 227097560,
+        "maximum_ns": 228229363,
+        "maximum_wait_ratio": 0.00010033333565305203,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "28": {
+        "median_ns": 227390765,
+        "central_spread": 0.0017739418749041986,
+        "minimum_ns": 227305667,
+        "maximum_ns": 227758090,
+        "maximum_wait_ratio": 0.0004473211028420549,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "29": {
+        "median_ns": 227247464,
+        "central_spread": 0.00045437690781006913,
+        "minimum_ns": 227219752,
+        "maximum_ns": 228483130,
+        "maximum_wait_ratio": 0.00017482751373370888,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "30": {
+        "median_ns": 227225110,
+        "central_spread": 0.00043569128429512036,
+        "minimum_ns": 227171358,
+        "maximum_ns": 227422979,
+        "maximum_wait_ratio": 0.00018869048040814603,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "31": {
+        "median_ns": 227268766,
+        "central_spread": 0.0004089123271782978,
+        "minimum_ns": 227217508,
+        "maximum_ns": 227385051,
+        "maximum_wait_ratio": 0.00014366819567219482,
+        "minor_faults": 0,
+        "major_faults": 0
+      }
+    },
+    "A2": {
+      "24": {
+        "median_ns": 227405114,
+        "central_spread": 0.00038782329231171116,
+        "minimum_ns": 227357072,
+        "maximum_ns": 227954967,
+        "maximum_wait_ratio": 0.00029035846572913923,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "25": {
+        "median_ns": 227337836,
+        "central_spread": 0.00047900077662391404,
+        "minimum_ns": 227230544,
+        "maximum_ns": 227387030,
+        "maximum_wait_ratio": 0.00015617425496959963,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "26": {
+        "median_ns": 227247270,
+        "central_spread": 0.0016448338411282125,
+        "minimum_ns": 227186138,
+        "maximum_ns": 228034378,
+        "maximum_wait_ratio": 8.48469559663707e-05,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "27": {
+        "median_ns": 227298015,
+        "central_spread": 0.0005257415028459444,
+        "minimum_ns": 227207378,
+        "maximum_ns": 227375503,
+        "maximum_wait_ratio": 0.0001107376646504993,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "28": {
+        "median_ns": 227430535,
+        "central_spread": 0.0002826225598950466,
+        "minimum_ns": 227353920,
+        "maximum_ns": 227610257,
+        "maximum_wait_ratio": 0.00012034167686915796,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "29": {
+        "median_ns": 227310104,
+        "central_spread": 0.00034294999926620065,
+        "minimum_ns": 227219657,
+        "maximum_ns": 227324625,
+        "maximum_wait_ratio": 7.158699814178665e-05,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "30": {
+        "median_ns": 227515236,
+        "central_spread": 0.00015543574409232093,
+        "minimum_ns": 227468846,
+        "maximum_ns": 227805716,
+        "maximum_wait_ratio": 0.0001449004990129876,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "31": {
+        "median_ns": 227484200,
+        "central_spread": 0.0014945389613872085,
+        "minimum_ns": 227307392,
+        "maximum_ns": 227716150,
+        "maximum_wait_ratio": 0.0003585252956366951,
+        "minor_faults": 0,
+        "major_faults": 0
+      }
+    }
+  },
+  "same_cpu_repeat_drifts": {
+    "24": 0.0001326399382903798,
+    "25": 0.00014690952183271655,
+    "26": 0.0007313022669577229,
+    "27": 0.0006007971323067629,
+    "28": 0.00017489716435936664,
+    "29": 0.000275646640439442,
+    "30": 0.0012768219146201965,
+    "31": 0.0009479261219731416
+  },
+  "between_cpu_median_spread": {
+    "A1": 0.0013632127766805002,
+    "A2": 0.0011791824825881925
+  }
+}

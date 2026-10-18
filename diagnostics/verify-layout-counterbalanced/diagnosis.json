@@ -1,0 +1,523 @@
+{
+  "schema_version": "baseline-layout-control-diagnostic-v1",
+  "purpose": "same-version persistent-buffer forward/reverse alignment diagnosis only; never release acceptance",
+  "candidate_attribution": null,
+  "source_sha256": "492f69ecb4a2742e94d24126e90d742cf41a6d10be6d6daf90fa3e28bd02025f",
+  "baseline_commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+  "pinned_cpu": 26,
+  "context": "same frozen buffers per layout; all source/scratch offsets retained; instrumented code uses slice views",
+  "cases": [
+    {
+      "pass": 0,
+      "len": 1024,
+      "source_offset": 0,
+      "scratch_offset": 0,
+      "median_ns": 106.16413879394531,
+      "central_spread": 0.0016539531816626286
+    },
+    {
+      "pass": 0,
+      "len": 1024,
+      "source_offset": 0,
+      "scratch_offset": 16,
+      "median_ns": 124.51899719238281,
+      "central_spread": 0.0015132387481761177
+    },
+    {
+      "pass": 0,
+      "len": 1024,
+      "source_offset": 0,
+      "scratch_offset": 32,
+      "median_ns": 120.12552642822266,
+      "central_spread": 0.0020192640335627106
+    },
+    {
+      "pass": 0,
+      "len": 1024,
+      "source_offset": 0,
+      "scratch_offset": 48,
+      "median_ns": 123.60834884643555,
+      "central_spread": 0.00264572740946747
+    },
+    {
+      "pass": 0,
+      "len": 1024,
+      "source_offset": 16,
+      "scratch_offset": 0,
+      "median_ns": 125.45524597167969,
+      "central_spread": 0.0010369339691200321
+    },
+    {
+      "pass": 0,
+      "len": 1024,
+      "source_offset": 16,
+      "scratch_offset": 16,
+      "median_ns": 130.67481231689453,
+      "central_spread": 0.0017565002038497743
+    },
+    {
+      "pass": 0,
+      "len": 1024,
+      "source_offset": 16,
+      "scratch_offset": 32,
+      "median_ns": 138.44424438476562,
+      "central_spread": 0.004322042939764018
+    },
+    {
+      "pass": 0,
+      "len": 1024,
+      "source_offset": 16,
+      "scratch_offset": 48,
+      "median_ns": 135.4985809326172,
+      "central_spread": 0.0035912865208301546
+    },
+    {
+      "pass": 0,
+      "len": 1024,
+      "source_offset": 32,
+      "scratch_offset": 0,
+      "median_ns": 121.49211120605469,
+      "central_spread": 0.0011462104189255433
+    },
+    {
+      "pass": 0,
+      "len": 1024,
+      "source_offset": 32,
+      "scratch_offset": 16,
+      "median_ns": 138.5148468017578,
+      "central_spread": 0.0013164940625437541
+    },
+    {
+      "pass": 0,
+      "len": 1024,
+      "source_offset": 32,
+      "scratch_offset": 32,
+      "median_ns": 128.80932235717773,
+      "central_spread": 0.0023253753984226596
+    },
+    {
+      "pass": 0,
+      "len": 1024,
+      "source_offset": 32,
+      "scratch_offset": 48,
+      "median_ns": 137.55289840698242,
+      "central_spread": 0.00255583491203377
+    },
+    {
+      "pass": 0,
+      "len": 1024,
+      "source_offset": 48,
+      "scratch_offset": 0,
+      "median_ns": 125.39286041259766,
+      "central_spread": 0.001693134486443455
+    },
+    {
+      "pass": 0,
+      "len": 1024,
+      "source_offset": 48,
+      "scratch_offset": 16,
+      "median_ns": 135.44632720947266,
+      "central_spread": 0.0027972388785111164
+    },
+    {
+      "pass": 0,
+      "len": 1024,
+      "source_offset": 48,
+      "scratch_offset": 32,
+      "median_ns": 138.1148910522461,
+      "central_spread": 0.002051621844893621
+    },
+    {
+      "pass": 0,
+      "len": 1024,
+      "source_offset": 48,
+      "scratch_offset": 48,
+      "median_ns": 130.0124282836914,
+      "central_spread": 0.0019946905663749915
+    },
+    {
+      "pass": 0,
+      "len": 4096,
+      "source_offset": 0,
+      "scratch_offset": 0,
+      "median_ns": 284.51076889038086,
+      "central_spread": 0.0008411323732843411
+    },
+    {
+      "pass": 0,
+      "len": 4096,
+      "source_offset": 0,
+      "scratch_offset": 16,
+      "median_ns": 363.3064155578613,
+      "central_spread": 0.011608434340963675
+    },
+    {
+      "pass": 0,
+      "len": 4096,
+      "source_offset": 0,
+      "scratch_offset": 32,
+      "median_ns": 350.991153717041,
+      "central_spread": 0.07446803874243324
+    },
+    {
+      "pass": 0,
+      "len": 4096,
+      "source_offset": 0,
+      "scratch_offset": 48,
+      "median_ns": 362.37146759033203,
+      "central_spread": 0.0005282045280021563
+    },
+    {
+      "pass": 0,
+      "len": 4096,
+      "source_offset": 16,
+      "scratch_offset": 0,
+      "median_ns": 376.7766799926758,
+      "central_spread": 0.028079094179304664
+    },
+    {
+      "pass": 0,
+      "len": 4096,
+      "source_offset": 16,
+      "scratch_offset": 16,
+      "median_ns": 365.8664741516113,
+      "central_spread": 0.008142461000894998
+    },
+    {
+      "pass": 0,
+      "len": 4096,
+      "source_offset": 16,
+      "scratch_offset": 32,
+      "median_ns": 432.73368072509766,
+      "central_spread": 0.011956703814359808
+    },
+    {
+      "pass": 0,
+      "len": 4096,
+      "source_offset": 16,
+      "scratch_offset": 48,
+      "median_ns": 422.4600028991699,
+      "central_spread": 0.01066859192423917
+    },
+    {
+      "pass": 0,
+      "len": 4096,
+      "source_offset": 32,
+      "scratch_offset": 0,
+      "median_ns": 362.30693435668945,
+      "central_spread": 0.0007491109203763888
+    },
+    {
+      "pass": 0,
+      "len": 4096,
+      "source_offset": 32,
+      "scratch_offset": 16,
+      "median_ns": 434.34481048583984,
+      "central_spread": 0.0010837435429757677
+    },
+    {
+      "pass": 0,
+      "len": 4096,
+      "source_offset": 32,
+      "scratch_offset": 32,
+      "median_ns": 360.5132637023926,
+      "central_spread": 0.0009283287715077126
+    },
+    {
+      "pass": 0,
+      "len": 4096,
+      "source_offset": 32,
+      "scratch_offset": 48,
+      "median_ns": 430.8954963684082,
+      "central_spread": 0.0008080886308713653
+    },
+    {
+      "pass": 0,
+      "len": 4096,
+      "source_offset": 48,
+      "scratch_offset": 0,
+      "median_ns": 379.7803764343262,
+      "central_spread": 0.005410339852346311
+    },
+    {
+      "pass": 0,
+      "len": 4096,
+      "source_offset": 48,
+      "scratch_offset": 16,
+      "median_ns": 425.972957611084,
+      "central_spread": 0.012485669909857727
+    },
+    {
+      "pass": 0,
+      "len": 4096,
+      "source_offset": 48,
+      "scratch_offset": 32,
+      "median_ns": 434.7707099914551,
+      "central_spread": 0.006688830895773809
+    },
+    {
+      "pass": 0,
+      "len": 4096,
+      "source_offset": 48,
+      "scratch_offset": 48,
+      "median_ns": 365.5973892211914,
+      "central_spread": 0.0009748728812966874
+    },
+    {
+      "pass": 1,
+      "len": 1024,
+      "source_offset": 0,
+      "scratch_offset": 0,
+      "median_ns": 106.2608413696289,
+      "central_spread": 0.006116426970162813
+    },
+    {
+      "pass": 1,
+      "len": 1024,
+      "source_offset": 0,
+      "scratch_offset": 16,
+      "median_ns": 124.1215591430664,
+      "central_spread": 0.0015833007608830145
+    },
+    {
+      "pass": 1,
+      "len": 1024,
+      "source_offset": 0,
+      "scratch_offset": 32,
+      "median_ns": 120.09344482421875,
+      "central_spread": 0.001902402202467866
+    },
+    {
+      "pass": 1,
+      "len": 1024,
+      "source_offset": 0,
+      "scratch_offset": 48,
+      "median_ns": 123.52847290039062,
+      "central_spread": 0.0027457945476793335
+    },
+    {
+      "pass": 1,
+      "len": 1024,
+      "source_offset": 16,
+      "scratch_offset": 0,
+      "median_ns": 125.39358901977539,
+      "central_spread": 0.0017561890162922976
+    },
+    {
+      "pass": 1,
+      "len": 1024,
+      "source_offset": 16,
+      "scratch_offset": 16,
+      "median_ns": 130.51688385009766,
+      "central_spread": 0.0017563166283677738
+    },
+    {
+      "pass": 1,
+      "len": 1024,
+      "source_offset": 16,
+      "scratch_offset": 32,
+      "median_ns": 138.499267578125,
+      "central_spread": 0.003058053774680809
+    },
+    {
+      "pass": 1,
+      "len": 1024,
+      "source_offset": 16,
+      "scratch_offset": 48,
+      "median_ns": 135.06676483154297,
+      "central_spread": 0.0030039589411590528
+    },
+    {
+      "pass": 1,
+      "len": 1024,
+      "source_offset": 32,
+      "scratch_offset": 0,
+      "median_ns": 121.3232536315918,
+      "central_spread": 0.003001619630738278
+    },
+    {
+      "pass": 1,
+      "len": 1024,
+      "source_offset": 32,
+      "scratch_offset": 16,
+      "median_ns": 138.37116622924805,
+      "central_spread": 0.003201153822476673
+    },
+    {
+      "pass": 1,
+      "len": 1024,
+      "source_offset": 32,
+      "scratch_offset": 32,
+      "median_ns": 129.12489318847656,
+      "central_spread": 0.0010257814367652216
+    },
+    {
+      "pass": 1,
+      "len": 1024,
+      "source_offset": 32,
+      "scratch_offset": 48,
+      "median_ns": 137.50712966918945,
+      "central_spread": 0.0034068335135210414
+    },
+    {
+      "pass": 1,
+      "len": 1024,
+      "source_offset": 48,
+      "scratch_offset": 0,
+      "median_ns": 125.45464324951172,
+      "central_spread": 0.001370716408599557
+    },
+    {
+      "pass": 1,
+      "len": 1024,
+      "source_offset": 48,
+      "scratch_offset": 16,
+      "median_ns": 135.3099365234375,
+      "central_spread": 0.00233643621460063
+    },
+    {
+      "pass": 1,
+      "len": 1024,
+      "source_offset": 48,
+      "scratch_offset": 32,
+      "median_ns": 138.08979034423828,
+      "central_spread": 0.0007843774249359312
+    },
+    {
+      "pass": 1,
+      "len": 1024,
+      "source_offset": 48,
+      "scratch_offset": 48,
+      "median_ns": 129.96956253051758,
+      "central_spread": 0.002936331792725025
+    },
+    {
+      "pass": 1,
+      "len": 4096,
+      "source_offset": 0,
+      "scratch_offset": 0,
+      "median_ns": 285.1376533508301,
+      "central_spread": 0.015004670748206035
+    },
+    {
+      "pass": 1,
+      "len": 4096,
+      "source_offset": 0,
+      "scratch_offset": 16,
+      "median_ns": 367.0672378540039,
+      "central_spread": 0.0011926591565468052
+    },
+    {
+      "pass": 1,
+      "len": 4096,
+      "source_offset": 0,
+      "scratch_offset": 32,
+      "median_ns": 352.9595603942871,
+      "central_spread": 0.0005273639644956466
+    },
+    {
+      "pass": 1,
+      "len": 4096,
+      "source_offset": 0,
+      "scratch_offset": 48,
+      "median_ns": 366.61137771606445,
+      "central_spread": 0.0009743720546074135
+    },
+    {
+      "pass": 1,
+      "len": 4096,
+      "source_offset": 16,
+      "scratch_offset": 0,
+      "median_ns": 377.2509765625,
+      "central_spread": 0.00919979234348507
+    },
+    {
+      "pass": 1,
+      "len": 4096,
+      "source_offset": 16,
+      "scratch_offset": 16,
+      "median_ns": 365.880558013916,
+      "central_spread": 0.0006919992914858094
+    },
+    {
+      "pass": 1,
+      "len": 4096,
+      "source_offset": 16,
+      "scratch_offset": 32,
+      "median_ns": 436.01836013793945,
+      "central_spread": 0.002389912188404304
+    },
+    {
+      "pass": 1,
+      "len": 4096,
+      "source_offset": 16,
+      "scratch_offset": 48,
+      "median_ns": 422.39773178100586,
+      "central_spread": 0.00043378867823741724
+    },
+    {
+      "pass": 1,
+      "len": 4096,
+      "source_offset": 32,
+      "scratch_offset": 0,
+      "median_ns": 366.1179428100586,
+      "central_spread": 0.0006375785717752368
+    },
+    {
+      "pass": 1,
+      "len": 4096,
+      "source_offset": 32,
+      "scratch_offset": 16,
+      "median_ns": 437.7472915649414,
+      "central_spread": 0.0016268183234110505
+    },
+    {
+      "pass": 1,
+      "len": 4096,
+      "source_offset": 32,
+      "scratch_offset": 32,
+      "median_ns": 360.6669235229492,
+      "central_spread": 0.010467380818383132
+    },
+    {
+      "pass": 1,
+      "len": 4096,
+      "source_offset": 32,
+      "scratch_offset": 48,
+      "median_ns": 434.5950927734375,
+      "central_spread": 0.000622743632877114
+    },
+    {
+      "pass": 1,
+      "len": 4096,
+      "source_offset": 48,
+      "scratch_offset": 0,
+      "median_ns": 376.5685806274414,
+      "central_spread": 0.0010322017905369258
+    },
+    {
+      "pass": 1,
+      "len": 4096,
+      "source_offset": 48,
+      "scratch_offset": 16,
+      "median_ns": 425.83912658691406,
+      "central_spread": 0.0017603237203314501
+    },
+    {
+      "pass": 1,
+      "len": 4096,
+      "source_offset": 48,
+      "scratch_offset": 32,
+      "median_ns": 434.78171157836914,
+      "central_spread": 0.007833101413439006
+    },
+    {
+      "pass": 1,
+      "len": 4096,
+      "source_offset": 48,
+      "scratch_offset": 48,
+      "median_ns": 365.65515518188477,
+      "central_spread": 0.0009301095031673329
+    }
+  ]
+}

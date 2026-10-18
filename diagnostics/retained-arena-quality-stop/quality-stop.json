@@ -1,0 +1,20 @@
+{
+  "schema_version": "baseline-quality-stop-diagnostic-v1",
+  "purpose": "complete A1 failed distribution; stop before candidate attribution",
+  "candidate_attribution": null,
+  "case_counts": {
+    "smoke": 15,
+    "small_file": 88,
+    "hotspot": 8,
+    "stream": 15
+  },
+  "failed_distributions": [
+    {
+      "profile": "small_file",
+      "case": "verify_with_buffer:4:2:1024",
+      "central_spread": 0.14900211672210467
+    }
+  ],
+  "action": "cancel owned controller and retain every produced file; no selective retries",
+  "utc": "2026-10-18T12:00:37Z"
+}

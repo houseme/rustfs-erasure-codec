@@ -29,3 +29,13 @@ All copied numerical observations remain byte-for-byte unchanged. Build/launcher
 ## Complete basic-telemetry baseline prerequisite
 
 `diagnostics/protocol4-basic-baseline` retains the complete 126-case first phase using the final worker (tool 877a27a; main 7c2c232 has the identical source tree) and the same numeric basic telemetry as formal capture. All 1,134 samples met minimum intervals; five distributions remained unstable. The predeclared quality stop prevented A2 and any candidate comparison. The driver, source bindings, calibration, three warmups and all nine samples remain available. It is not release evidence. The default allocator result is retained regardless of any separately controlled allocation-policy experiment.
+
+## Quality-stopped retained-arena attempt and layout attribution
+
+`diagnostics/retained-arena-quality-stop` retains both complete calibrations, the complete A1 phase, all subsequently produced partial candidate data and extracted numerical timing/sample journals. The controlled allocator uses one arena, disables malloc mmap and retains top chunks. A1 still has one buffered 1KiB verification distribution above 10%; the owned controller was stopped and all resources restored. B1 completed and B2 started before cancellation; the cohort is incomplete, has no candidate attribution and cannot approve release. Default-allocator failures remain above.
+
+`diagnostics/independent-gfni-control` preserves all AVX512/GFNI register-control observations and guarded standalone source. It does not call codec APIs or allocate in its work loop. Same-CPU median drift stayed below 0.13%, while this does not establish memory-path stability.
+
+`diagnostics/verify-layout-first` and `diagnostics/verify-layout-counterbalanced` retain every same-version persistent-buffer layout observation, page-offset metadata and safe Rust source. The latter tests all 16 source/scratch offset combinations in forward and reverse order using the same underlying buffers. Same-layout reverse-order median differences are at most about 0.32% (1KiB) and 1.17% (4KiB); different-layout medians span about 30.5% and 53.6%. These slice-view diagnostics establish layout sensitivity and are not a candidate comparison or a replacement release case. The original Vec fixture layout was not captured, so not every historical outlier can be attributed retroactively. Matching and recording layout in the release harness remains necessary.
+
+Only complete numerical journal lines are public; incomplete console fragments and build/launcher/environment-management logs remain private. No failing case is dropped to approve a release.

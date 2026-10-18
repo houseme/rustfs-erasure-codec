@@ -1,0 +1,431 @@
+{
+  "schema_version": 2,
+  "baseline_release": "9.0.0",
+  "phase_order": [
+    "A1",
+    "B1",
+    "B2",
+    "A2"
+  ],
+  "sources": {
+    "baseline": {
+      "commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+      "tree": "d44fe8c296972cf895375101f8975c99371db57a",
+      "lock_sha256": "972540efcf6bc23c0064252a9c0d937bf87dbe0edff9cdb688d2fdcbd5653d49"
+    },
+    "candidate": {
+      "commit": "877a27a12f85bf4ec2c9a045c9978e46b825c98e",
+      "tree": "e339206e517e6ad20805483621e2b48de04b5602",
+      "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+    }
+  },
+  "harness_sha256": "9b6a1878c5182597644cb8f26dbc8726de20a9b03aa9c7c079f9b17ddc535e97",
+  "sampling": {
+    "name": "shared-external-duration-sampler",
+    "version": 4,
+    "samples": 9,
+    "warmups": 3,
+    "case_isolation": "fresh-process-per-count",
+    "case_order": "lexicographic",
+    "max_calibration_batches": 12,
+    "max_calibration_records": 144,
+    "target_wall_ns": 100000000,
+    "target_timed_ns": 5000000,
+    "minimum_wall_ns": 50000000,
+    "minimum_timed_ns": 2000000,
+    "central_spread_limit": 0.1,
+    "timing_scope": {
+      "smoke": "original per-iteration workload",
+      "small_file": "operation loops excluding one-time fixture preparation",
+      "stream": "operation loops excluding one-time fixture preparation",
+      "hotspot": "original inner recovery intervals"
+    },
+    "implementation_sha256": "19aa20d2a073093ddfb1c0cd3669f63e04c5cc467cbab447340171210d48369c",
+    "overlay_sha256": "4ace831731fa5ef813613d4e529bbc46156925fd2b1dfad41ed79254f5581114",
+    "common_iterations": {
+      "smoke": {
+        "encode:32:16:1048576": 4,
+        "verify:32:16:1048576": 3,
+        "reconstruct_data:32:16:1048576": 4,
+        "verify:4:2:65536": 512,
+        "update:10:4:1048576": 12,
+        "reconstruct:4:2:65536": 512,
+        "encode:4:2:65536": 576,
+        "verify:10:4:1048576": 12,
+        "reconstruct:10:4:1048576": 12,
+        "reconstruct:32:16:1048576": 3,
+        "reconstruct_data:10:4:1048576": 13,
+        "encode:10:4:1048576": 13,
+        "update:4:2:65536": 512,
+        "reconstruct_data:4:2:65536": 512,
+        "update:32:16:1048576": 3
+      },
+      "small_file": {
+        "reconstruct_some_data_only:4:2:1024": 786432,
+        "reconstruct_some_data_only:4:2:16384": 77824,
+        "reconstruct_data:4:2:4096": 159744,
+        "reconstruct_data:4:2:131072": 8192,
+        "verify_with_buffer:4:2:131072": 12288,
+        "reconstruct_data:4:2:262144": 3712,
+        "reconstruct_opt:10:4:262144": 1410,
+        "reconstruct_some_data_only:4:2:524288": 2304,
+        "reconstruct_data:4:2:65536": 16384,
+        "reconstruct_data:10:4:262144": 1560,
+        "reconstruct_data:4:2:1024": 524288,
+        "verify_with_buffer:4:2:65536": 20480,
+        "reconstruct:4:2:16384": 53248,
+        "encode:4:2:4096": 258048,
+        "reconstruct_shard_slot:4:2:524288": 1800,
+        "verify:10:4:524288": 528,
+        "reconstruct:10:4:524288": 528,
+        "verify_with_buffer:4:2:524288": 2560,
+        "reconstruct_opt:10:4:65536": 6912,
+        "encode:4:2:65536": 20480,
+        "reconstruct_some_data_only:4:2:4096": 204800,
+        "verify_with_buffer:4:2:16384": 77824,
+        "reconstruct:4:2:4096": 151552,
+        "reconstruct_some_data_only:4:2:262144": 4736,
+        "verify:4:2:131072": 8192,
+        "verify_with_buffer:10:4:262144": 1316,
+        "encode:4:2:16384": 73728,
+        "verify:4:2:262144": 4736,
+        "reconstruct_data:10:4:16384": 28672,
+        "reconstruct_data:10:4:524288": 572,
+        "reconstruct_some_data_only:10:4:262144": 1920,
+        "verify_with_buffer:4:2:4096": 524288,
+        "verify:10:4:262144": 1316,
+        "encode:4:2:262144": 6016,
+        "reconstruct_opt:4:2:524288": 840,
+        "verify_with_buffer:4:2:1024": 1048576,
+        "verify:4:2:4096": 253952,
+        "reconstruct_opt:4:2:65536": 16384,
+        "encode:4:2:524288": 2944,
+        "reconstruct_shard_slot:4:2:4096": 172032,
+        "reconstruct:10:4:262144": 1316,
+        "encode:10:4:16384": 16384,
+        "verify:10:4:16384": 20480,
+        "reconstruct_opt:4:2:1024": 524288,
+        "reconstruct_some_data_only:10:4:16384": 49152,
+        "reconstruct_data:4:2:16384": 57344,
+        "reconstruct_shard_slot:4:2:262144": 1856,
+        "reconstruct_data:4:2:524288": 1800,
+        "reconstruct_shard_slot:10:4:16384": 28672,
+        "reconstruct_some_data_only:10:4:65536": 8192,
+        "verify:4:2:65536": 20480,
+        "reconstruct_shard_slot:10:4:65536": 7168,
+        "reconstruct_opt:4:2:4096": 151552,
+        "reconstruct_shard_slot:4:2:65536": 16384,
+        "reconstruct_shard_slot:4:2:1024": 524288,
+        "reconstruct:4:2:524288": 900,
+        "reconstruct_opt:10:4:16384": 24576,
+        "verify:4:2:16384": 69632,
+        "reconstruct_some_data_only:10:4:524288": 792,
+        "reconstruct_shard_slot:4:2:16384": 57344,
+        "verify:4:2:1024": 786432,
+        "reconstruct_shard_slot:10:4:524288": 528,
+        "reconstruct_opt:4:2:16384": 53248,
+        "verify_with_buffer:10:4:16384": 20480,
+        "reconstruct_data:10:4:65536": 7296,
+        "reconstruct_shard_slot:4:2:131072": 8192,
+        "reconstruct_opt:4:2:262144": 1408,
+        "reconstruct:4:2:262144": 3456,
+        "reconstruct:10:4:65536": 7040,
+        "verify:10:4:65536": 6016,
+        "reconstruct:4:2:131072": 8192,
+        "verify_with_buffer:4:2:262144": 4992,
+        "verify_with_buffer:10:4:65536": 6144,
+        "reconstruct_shard_slot:10:4:262144": 1440,
+        "encode:4:2:131072": 12288,
+        "verify_with_buffer:10:4:524288": 528,
+        "encode:10:4:262144": 650,
+        "reconstruct_some_data_only:4:2:65536": 24576,
+        "reconstruct_opt:4:2:131072": 8064,
+        "reconstruct:10:4:16384": 24576,
+        "encode:4:2:1024": 786432,
+        "verify:4:2:524288": 2432,
+        "encode:10:4:524288": 500,
+        "reconstruct_some_data_only:4:2:131072": 8192,
+        "reconstruct:4:2:65536": 16384,
+        "reconstruct:4:2:1024": 524288,
+        "reconstruct_opt:10:4:524288": 576,
+        "encode:10:4:65536": 5504
+      },
+      "hotspot": {
+        "reconstruct_data_missing_2_data": 14,
+        "reconstruct_data_32x16_missing_2_data": 4,
+        "reconstruct_data_missing_1_data": 19,
+        "reconstruct_some_required_data_and_skip_parity": 20,
+        "reconstruct_data_missing_data_plus_parity": 18,
+        "reconstruct_some_required_1_of_2_missing_data": 18,
+        "reconstruct_some_32x16_required_2_of_4_missing_data": 4,
+        "reconstruct_some_required_2_of_3_missing_data": 13
+      },
+      "stream": {
+        "reconstruct_stream:10:4:1048576:1048576": 110,
+        "reconstruct_stream:10:4:65536:65536": 2240,
+        "verify_stream:10:4:1048576:1048576": 132,
+        "encode_stream:4:2:65536:65536": 12288,
+        "encode_stream:10:4:16777216:4194304": 1,
+        "reconstruct_stream:4:2:1048576:262144": 540,
+        "verify_stream:10:4:16777216:4194304": 1,
+        "reconstruct_stream:10:4:16777216:4194304": 1,
+        "encode_stream:10:4:65536:65536": 2240,
+        "reconstruct_stream:4:2:65536:65536": 8192,
+        "verify_stream:4:2:65536:65536": 12288,
+        "verify_stream:4:2:1048576:262144": 600,
+        "verify_stream:10:4:65536:65536": 1984,
+        "encode_stream:4:2:1048576:262144": 682,
+        "encode_stream:10:4:1048576:1048576": 182
+      }
+    }
+  },
+  "contexts": {
+    "A1": {
+      "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+      "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+      "isolation": {
+        "scope": "exclusive-vm-cpu-partition",
+        "reserved_cpu_count": 8,
+        "cpu_affinity": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "physical_host_exclusivity_proven": false
+      },
+      "runtime": {
+        "libc": {
+          "name": "glibc",
+          "version": "2.39"
+        },
+        "allocator_environment": {
+          "GLIBC_TUNABLES": "glibc.malloc.arena_max=1:glibc.malloc.mmap_max=0:glibc.malloc.trim_threshold=1099511627776"
+        }
+      },
+      "settings": {
+        "RUSTUP_TOOLCHAIN": "stable",
+        "RUSTFLAGS": "",
+        "RAYON_NUM_THREADS": "4",
+        "RS_PARALLEL_POLICY_MAX_JOBS": "4",
+        "RSE_BACKEND_OVERRIDE": "auto",
+        "RSE_STRICT_BACKEND_OVERRIDE": "1",
+        "RSE_SMOKE_PROFILE": "extended",
+        "RSE_SMALL_FILE_PROFILE": "fast",
+        "RSE_STREAM_PROFILE": "fast",
+        "RSE_STREAM_IO_MODE": "auto",
+        "RSE_BENCHMARK_ALLOW_MISSING_CASES": "0",
+        "CARGO_BUILD_JOBS": "4",
+        "RSE_SAMPLER_PROTOCOL": "duration-v4"
+      }
+    },
+    "B1": {
+      "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+      "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+      "isolation": {
+        "scope": "exclusive-vm-cpu-partition",
+        "reserved_cpu_count": 8,
+        "cpu_affinity": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "physical_host_exclusivity_proven": false
+      },
+      "runtime": {
+        "libc": {
+          "name": "glibc",
+          "version": "2.39"
+        },
+        "allocator_environment": {
+          "GLIBC_TUNABLES": "glibc.malloc.arena_max=1:glibc.malloc.mmap_max=0:glibc.malloc.trim_threshold=1099511627776"
+        }
+      },
+      "settings": {
+        "RUSTUP_TOOLCHAIN": "stable",
+        "RUSTFLAGS": "",
+        "RAYON_NUM_THREADS": "4",
+        "RS_PARALLEL_POLICY_MAX_JOBS": "4",
+        "RSE_BACKEND_OVERRIDE": "auto",
+        "RSE_STRICT_BACKEND_OVERRIDE": "1",
+        "RSE_SMOKE_PROFILE": "extended",
+        "RSE_SMALL_FILE_PROFILE": "fast",
+        "RSE_STREAM_PROFILE": "fast",
+        "RSE_STREAM_IO_MODE": "auto",
+        "RSE_BENCHMARK_ALLOW_MISSING_CASES": "0",
+        "CARGO_BUILD_JOBS": "4",
+        "RSE_SAMPLER_PROTOCOL": "duration-v4"
+      }
+    },
+    "B2": {
+      "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+      "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+      "isolation": {
+        "scope": "exclusive-vm-cpu-partition",
+        "reserved_cpu_count": 8,
+        "cpu_affinity": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "physical_host_exclusivity_proven": false
+      },
+      "runtime": {
+        "libc": {
+          "name": "glibc",
+          "version": "2.39"
+        },
+        "allocator_environment": {
+          "GLIBC_TUNABLES": "glibc.malloc.arena_max=1:glibc.malloc.mmap_max=0:glibc.malloc.trim_threshold=1099511627776"
+        }
+      },
+      "settings": {
+        "RUSTUP_TOOLCHAIN": "stable",
+        "RUSTFLAGS": "",
+        "RAYON_NUM_THREADS": "4",
+        "RS_PARALLEL_POLICY_MAX_JOBS": "4",
+        "RSE_BACKEND_OVERRIDE": "auto",
+        "RSE_STRICT_BACKEND_OVERRIDE": "1",
+        "RSE_SMOKE_PROFILE": "extended",
+        "RSE_SMALL_FILE_PROFILE": "fast",
+        "RSE_STREAM_PROFILE": "fast",
+        "RSE_STREAM_IO_MODE": "auto",
+        "RSE_BENCHMARK_ALLOW_MISSING_CASES": "0",
+        "CARGO_BUILD_JOBS": "4",
+        "RSE_SAMPLER_PROTOCOL": "duration-v4"
+      }
+    }
+  },
+  "files": {
+    "A1": {
+      "smoke": {
+        "path": "A1/smoke-results.json",
+        "sha256": "21102f1d85a4f24f4d843e11192b57923511776f7d4833f2f6e3585ec5469afb",
+        "samples": {
+          "path": "A1/smoke-samples.json",
+          "sha256": "df994439168d988e604ddbc9f224e79bd00b9f8257e4fee1e9fafc1cee090c6b"
+        }
+      },
+      "small_file": {
+        "path": "A1/small-file-results.json",
+        "sha256": "d963e268f304b3abf1a5e725bfe31006eba7f68ffef5ba30d8bfa2b412ae9d9d",
+        "samples": {
+          "path": "A1/small_file-samples.json",
+          "sha256": "6cb03aff45c77fbbed1269a16c4e054be7cea745f1ad8ba27ff4fd4d5ef9be92"
+        }
+      },
+      "hotspot": {
+        "path": "A1/reconstruction-hotspot-results.json",
+        "sha256": "162815cf55a935d32424c552811842fb571a798ae09705cf5d2e4459e5796711",
+        "samples": {
+          "path": "A1/hotspot-samples.json",
+          "sha256": "e10964a052c27f68d0d63668521212b6ff35a948f0cc51e343c06f1d1d7e0092"
+        }
+      },
+      "stream": {
+        "path": "A1/stream-path-results.json",
+        "sha256": "7c98a008c04112d324b60ce8d9e1b9122069fad26237ee1b07c9bd6447149834",
+        "samples": {
+          "path": "A1/stream-samples.json",
+          "sha256": "6253abfc7220e0a16f4a810e31f6221c5118080e019496203a8ecc898ae3008c"
+        }
+      }
+    },
+    "B1": {
+      "smoke": {
+        "path": "B1/smoke-results.json",
+        "sha256": "0ede11f6d4702deabc1ef8f1a630da84e97b3829918dc3df44b3c28d98f2f21a",
+        "samples": {
+          "path": "B1/smoke-samples.json",
+          "sha256": "386f84944190e5818e837509603567d38c628c2e6335d6dc1f8e2dd1f27be1d2"
+        }
+      },
+      "small_file": {
+        "path": "B1/small-file-results.json",
+        "sha256": "aaa015bb452c2c7a4c5d37bb71b4baeff03c6b65fb0f9fb1b3678ac9fde21afd",
+        "samples": {
+          "path": "B1/small_file-samples.json",
+          "sha256": "bc601d21b712320ce78aa9db775e5acc69cc7a48dd446dd00e4d196d13933b5d"
+        }
+      },
+      "hotspot": {
+        "path": "B1/reconstruction-hotspot-results.json",
+        "sha256": "b9fbdb688a3b6c537cb072a40635df397819cb96ef1e13bf8bcec896f8c00d7d",
+        "samples": {
+          "path": "B1/hotspot-samples.json",
+          "sha256": "0cadf19b4e235f8df1bc3c33f79e5e3792aa8f0bc3bde2ae4338d2224df809e7"
+        }
+      },
+      "stream": {
+        "path": "B1/stream-path-results.json",
+        "sha256": "3cf38e2b3e6a17f321b598438dd48e8ab20e98c84cb398777380942a50a229db",
+        "samples": {
+          "path": "B1/stream-samples.json",
+          "sha256": "514c522fa342f7653310579a02f982aade0c066d2ba175e62b63d9d0278da26a"
+        }
+      }
+    },
+    "B2": {
+      "smoke": {
+        "path": "B2/smoke-results.json",
+        "sha256": "eaa2bd1540a6c838a882abf574459bcce746ac46bf3d8556d3c6877dd4138166",
+        "samples": {
+          "path": "B2/smoke-samples.json",
+          "sha256": "dae3f4f10890daafd550f68c614da93285e121edb67087f806db5183f7fe3adf"
+        }
+      }
+    }
+  },
+  "calibration": {
+    "baseline": {
+      "smoke": {
+        "path": "calibration-baseline/smoke-samples.json",
+        "sha256": "6e3ca0ec2147420531aeedf305aba6e183c5b89ce0c6918db10f7078ad598958"
+      },
+      "small_file": {
+        "path": "calibration-baseline/small_file-samples.json",
+        "sha256": "49dccdac36bf62c7a21cb06f7ab5205224b3972060faa5969e980387388b7985"
+      },
+      "hotspot": {
+        "path": "calibration-baseline/hotspot-samples.json",
+        "sha256": "70e5290a84f799e7521ff11c1257de762e82be422865f8fa53ed1a6fd58c6ea2"
+      },
+      "stream": {
+        "path": "calibration-baseline/stream-samples.json",
+        "sha256": "c8ad5fc4a0904aa890bb63af19897ffa01a9b607487643058ed2bd6ec453db4f"
+      }
+    },
+    "candidate": {
+      "smoke": {
+        "path": "calibration-candidate/smoke-samples.json",
+        "sha256": "46a758b22ab7f2b772bf86426cc2e93a570cda6528a466977f5e2c3ff5fe1145"
+      },
+      "small_file": {
+        "path": "calibration-candidate/small_file-samples.json",
+        "sha256": "4426a994e54cbe80decaac71667884593e66fd20f2dc9570a4f2368f73032f00"
+      },
+      "hotspot": {
+        "path": "calibration-candidate/hotspot-samples.json",
+        "sha256": "f125f4bd949251cf3deef815f1cae688c41366fd608408ce1bc82061f758a8cb"
+      },
+      "stream": {
+        "path": "calibration-candidate/stream-samples.json",
+        "sha256": "fd81ec6536fc62f43cf8ba7ea8610f9f073147d041c305acf6a953494ec2e4f7"
+      }
+    }
+  }
+}

@@ -1,0 +1,235 @@
+{
+  "schema_version": "baseline-layout-control-diagnostic-v1",
+  "purpose": "same-version persistent-buffer alignment diagnosis only; never release acceptance",
+  "candidate_attribution": null,
+  "source_sha256": "267bb2ce78daf908aeadd6b409fa912cb98686ec3adf932d463a93773655725a",
+  "baseline_commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+  "pinned_cpu": 26,
+  "context": "same frozen buffers per layout; all source/scratch offsets retained; instrumented code uses slice views",
+  "cases": [
+    {
+      "len": 1024,
+      "source_offset": 0,
+      "scratch_offset": 0,
+      "median_ns": 107.42306518554688,
+      "central_spread": 0.016166617756223724
+    },
+    {
+      "len": 1024,
+      "source_offset": 0,
+      "scratch_offset": 16,
+      "median_ns": 124.39621353149414,
+      "central_spread": 0.0007512177120435958
+    },
+    {
+      "len": 1024,
+      "source_offset": 0,
+      "scratch_offset": 32,
+      "median_ns": 120.81009674072266,
+      "central_spread": 0.002112148915355595
+    },
+    {
+      "len": 1024,
+      "source_offset": 0,
+      "scratch_offset": 48,
+      "median_ns": 124.06646728515625,
+      "central_spread": 0.0015101182906521113
+    },
+    {
+      "len": 1024,
+      "source_offset": 16,
+      "scratch_offset": 0,
+      "median_ns": 126.44864273071289,
+      "central_spread": 0.002079296294985666
+    },
+    {
+      "len": 1024,
+      "source_offset": 16,
+      "scratch_offset": 16,
+      "median_ns": 131.07378005981445,
+      "central_spread": 0.0017065963372453687
+    },
+    {
+      "len": 1024,
+      "source_offset": 16,
+      "scratch_offset": 32,
+      "median_ns": 138.28998947143555,
+      "central_spread": 0.0011183416611287946
+    },
+    {
+      "len": 1024,
+      "source_offset": 16,
+      "scratch_offset": 48,
+      "median_ns": 136.3017807006836,
+      "central_spread": 0.0010816470567294326
+    },
+    {
+      "len": 1024,
+      "source_offset": 32,
+      "scratch_offset": 0,
+      "median_ns": 122.30546569824219,
+      "central_spread": 0.0010992574179914168
+    },
+    {
+      "len": 1024,
+      "source_offset": 32,
+      "scratch_offset": 16,
+      "median_ns": 137.5769386291504,
+      "central_spread": 0.0007200893476436927
+    },
+    {
+      "len": 1024,
+      "source_offset": 32,
+      "scratch_offset": 32,
+      "median_ns": 128.88212966918945,
+      "central_spread": 0.0015704879911093686
+    },
+    {
+      "len": 1024,
+      "source_offset": 32,
+      "scratch_offset": 48,
+      "median_ns": 137.22694396972656,
+      "central_spread": 0.0014012090104805741
+    },
+    {
+      "len": 1024,
+      "source_offset": 48,
+      "scratch_offset": 0,
+      "median_ns": 126.03022766113281,
+      "central_spread": 0.0011231588965795458
+    },
+    {
+      "len": 1024,
+      "source_offset": 48,
+      "scratch_offset": 16,
+      "median_ns": 135.49944305419922,
+      "central_spread": 0.011184287909645976
+    },
+    {
+      "len": 1024,
+      "source_offset": 48,
+      "scratch_offset": 32,
+      "median_ns": 137.73949813842773,
+      "central_spread": 0.0016239802038258834
+    },
+    {
+      "len": 1024,
+      "source_offset": 48,
+      "scratch_offset": 48,
+      "median_ns": 130.3665313720703,
+      "central_spread": 0.0013342870964234352
+    },
+    {
+      "len": 4096,
+      "source_offset": 0,
+      "scratch_offset": 0,
+      "median_ns": 287.8946723937988,
+      "central_spread": 0.0015555481147633225
+    },
+    {
+      "len": 4096,
+      "source_offset": 0,
+      "scratch_offset": 16,
+      "median_ns": 397.3854179382324,
+      "central_spread": 0.0016449493729147689
+    },
+    {
+      "len": 4096,
+      "source_offset": 0,
+      "scratch_offset": 32,
+      "median_ns": 382.63883209228516,
+      "central_spread": 0.0031726965100976434
+    },
+    {
+      "len": 4096,
+      "source_offset": 0,
+      "scratch_offset": 48,
+      "median_ns": 396.62155532836914,
+      "central_spread": 0.0008552594290301017
+    },
+    {
+      "len": 4096,
+      "source_offset": 16,
+      "scratch_offset": 0,
+      "median_ns": 431.85307693481445,
+      "central_spread": 0.0007819609927039146
+    },
+    {
+      "len": 4096,
+      "source_offset": 16,
+      "scratch_offset": 16,
+      "median_ns": 370.40152740478516,
+      "central_spread": 0.004736075428859701
+    },
+    {
+      "len": 4096,
+      "source_offset": 16,
+      "scratch_offset": 32,
+      "median_ns": 478.3534126281738,
+      "central_spread": 0.0012890530484915578
+    },
+    {
+      "len": 4096,
+      "source_offset": 16,
+      "scratch_offset": 48,
+      "median_ns": 465.23984146118164,
+      "central_spread": 0.0006818966372313744
+    },
+    {
+      "len": 4096,
+      "source_offset": 32,
+      "scratch_offset": 0,
+      "median_ns": 417.6533966064453,
+      "central_spread": 0.0010277175759032268
+    },
+    {
+      "len": 4096,
+      "source_offset": 32,
+      "scratch_offset": 16,
+      "median_ns": 487.4159126281738,
+      "central_spread": 0.00045335813374322435
+    },
+    {
+      "len": 4096,
+      "source_offset": 32,
+      "scratch_offset": 32,
+      "median_ns": 369.2317123413086,
+      "central_spread": 0.0014844943911512907
+    },
+    {
+      "len": 4096,
+      "source_offset": 32,
+      "scratch_offset": 48,
+      "median_ns": 477.97935485839844,
+      "central_spread": 0.0005695796516855385
+    },
+    {
+      "len": 4096,
+      "source_offset": 48,
+      "scratch_offset": 0,
+      "median_ns": 432.2068977355957,
+      "central_spread": 0.0010251063003327127
+    },
+    {
+      "len": 4096,
+      "source_offset": 48,
+      "scratch_offset": 16,
+      "median_ns": 474.39124298095703,
+      "central_spread": 0.001312411959399614
+    },
+    {
+      "len": 4096,
+      "source_offset": 48,
+      "scratch_offset": 32,
+      "median_ns": 487.73664474487305,
+      "central_spread": 0.0008082921549179442
+    },
+    {
+      "len": 4096,
+      "source_offset": 48,
+      "scratch_offset": 48,
+      "median_ns": 370.80796813964844,
+      "central_spread": 0.0006143814453161729
+    }
+  ]
+}
