@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "review_base": "03e804943667b42f646cd97187b3c9d3f6a52034",
+  "prior_prs": {
+    "8": "500444a84ce9178c473aea18634218cf643c8f1b",
+    "9": "03e804943667b42f646cd97187b3c9d3f6a52034"
+  },
+  "finding_record": "https://github.com/rustfs/backlog/issues/2708#issuecomment-6245351022",
+  "profile": "release",
+  "compiler": "Rust 1.99.1 stable",
+  "local_platform": "macOS ARM64",
+  "features": [
+    "std",
+    "simd-accel",
+    "benchmark-metrics"
+  ],
+  "scope": {
+    "operation": "generic reconstruct_data over retained ShardSlot buffers",
+    "inverse_cache": false,
+    "shard_elements": 65,
+    "repetitions_per_layout": 2,
+    "counter": "current-thread alloc, alloc_zeroed and realloc requests",
+    "input_output_storage": "prepared outside measurement",
+    "baseline": "latest main plus only final regression tests; production implementation unchanged",
+    "baseline_result": {
+      "passed": 0,
+      "failed": 2
+    },
+    "candidate_classic_result": {
+      "passed": 17,
+      "failed": 0
+    },
+    "rows": [
+      {
+        "field": "tower GF16",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 1,
+        "maximum_budget": 1
+      },
+      {
+        "field": "tower GF16",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 1,
+        "maximum_budget": 1
+      },
+      {
+        "field": "tower GF16",
+        "data_shards": 10,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 1,
+        "maximum_budget": 1
+      },
+      {
+        "field": "tower GF16",
+        "data_shards": 10,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 1,
+        "maximum_budget": 1
+      },
+      {
+        "field": "tower GF16",
+        "data_shards": 22,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 1,
+        "maximum_budget": 1
+      },
+      {
+        "field": "tower GF16",
+        "data_shards": 22,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 1,
+        "maximum_budget": 1
+      },
+      {
+        "field": "tower GF16",
+        "data_shards": 23,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 2,
+        "maximum_budget": 2
+      },
+      {
+        "field": "tower GF16",
+        "data_shards": 23,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 2,
+        "maximum_budget": 2
+      },
+      {
+        "field": "tower GF16",
+        "data_shards": 32,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 2,
+        "maximum_budget": 2
+      },
+      {
+        "field": "tower GF16",
+        "data_shards": 32,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 2,
+        "maximum_budget": 2
+      },
+      {
+        "field": "GF8",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 1,
+        "maximum_budget": 1
+      },
+      {
+        "field": "GF8",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 1,
+        "maximum_budget": 1
+      },
+      {
+        "field": "GF8",
+        "data_shards": 10,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 1,
+        "maximum_budget": 1
+      },
+      {
+        "field": "GF8",
+        "data_shards": 10,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 1,
+        "maximum_budget": 1
+      },
+      {
+        "field": "GF8",
+        "data_shards": 22,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 1,
+        "maximum_budget": 1
+      },
+      {
+        "field": "GF8",
+        "data_shards": 22,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 1,
+        "maximum_budget": 1
+      },
+      {
+        "field": "GF8",
+        "data_shards": 23,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 2,
+        "maximum_budget": 2
+      },
+      {
+        "field": "GF8",
+        "data_shards": 23,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 2,
+        "maximum_budget": 2
+      },
+      {
+        "field": "GF8",
+        "data_shards": 32,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 2,
+        "maximum_budget": 2
+      },
+      {
+        "field": "GF8",
+        "data_shards": 32,
+        "parity_shards": 2,
+        "baseline_requests": 5,
+        "candidate_requests": 2,
+        "maximum_budget": 2
+      }
+    ]
+  },
+  "baseline_matrix_sha256": "fade25379fd447768e890848ba53f7d89e26b587873af82e97c0c4b2f803e3b5",
+  "candidate_source_sha256": {
+    "src/matrix.rs": "d50489dec9ee257cbc0e0102626a5fa9761caf9a2ad68aec236dc375bed251e2",
+    "tests/classic_recovery_plan_regressions.rs": "7e9ce3b34f768c938efeab6799552911c4c9fb14f2865ef696a6ee415923327e"
+  },
+  "validation": {
+    "workspace": {
+      "passed": 502,
+      "failed": 0,
+      "ignored": 43,
+      "core_passed": 495,
+      "wasm_rust_passed": 7,
+      "nested_summaries_excluded": 5
+    },
+    "no_std_simd": {
+      "passed": 297,
+      "failed": 0,
+      "ignored": 20
+    },
+    "focused_release_passed": 45,
+    "published_9_0_0_non_fast_cases": 200,
+    "all_target_all_feature_clippy": "passed",
+    "wasm32_check": "passed",
+    "default_debug_new_regressions": "2 passed",
+    "python_gate_tests": 79
+  },
+  "retained_contract": {
+    "matrix_inline_elements": 1024,
+    "owned_inverse": "Arc retained independently of the codec cache",
+    "large_matrices": "existing heap storage remains",
+    "encoding_algorithms_and_matrices": "unchanged"
+  },
+  "new_latency_or_throughput_attribution": false,
+  "prior_full_66_case_campaign": "still rejected after seven drift failures; no selected timing rerun"
+}

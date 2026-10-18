@@ -23,7 +23,10 @@ release date, not evidence of registry publication.
 
 ## Executed candidate checks
 
-Workspace 500 / no_std297 tests, focused 43 release regressions, all-feature Clippy,
+The post-merge main [architecture review](erasure-codec-main-architecture-review-2026-10-18.md)
+also validates direct matrix initialization on base `03e8049`.
+
+Workspace 502 / no_std297 tests, focused 45 release regressions, all-feature Clippy,
 wasm32 and 79 Python gate tests pass locally. The independent published-version
 probe passes all 200 non-fast byte/roundtrip cases. Original-main release tests
 reproduce the allocation defect; candidate budgets pass. Formatting, actionlint

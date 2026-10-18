@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 extern crate alloc;
 
+#[cfg(test)]
 use alloc::vec;
 use alloc::vec::Vec;
 
@@ -56,7 +57,7 @@ impl<F: Field> Matrix<F> {
     }
 
     pub fn new(rows: usize, cols: usize) -> Matrix<F> {
-        let data = SmallVec::from_vec(vec![F::zero(); rows * cols]);
+        let data = SmallVec::from_elem(F::zero(), rows * cols);
 
         Matrix {
             row_count: rows,

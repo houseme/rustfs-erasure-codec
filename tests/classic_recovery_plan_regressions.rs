@@ -482,6 +482,61 @@ mod allocation_regressions {
         check_wide_recovery(WideRecovery::All, 7);
     }
 
+    fn check_uncached_matrix_storage<F: rustfs_erasure_codec::Field>() {
+        let mut observed = Vec::new();
+        for data in [4, 10, 22, 23, 32] {
+            let codec = rustfs_erasure_codec::ReedSolomon::<F>::with_options(
+                data,
+                2,
+                CodecOptions::builder().inversion_cache(false).build(),
+            )
+            .unwrap();
+            let mut expected: Vec<Vec<F::Elem>> = (0..data + 2)
+                .map(|shard| {
+                    (0..65)
+                        .map(|offset| F::nth((shard * 71 + offset * 19) % F::ORDER))
+                        .collect()
+                })
+                .collect();
+            codec.encode(&mut expected).unwrap();
+            let mut slots: Vec<_> = expected
+                .iter()
+                .cloned()
+                .map(ShardSlot::new_present)
+                .collect();
+            let budget = if data <= 22 { 1 } else { 2 };
+            for _ in 0..2 {
+                slots[0].mark_missing();
+                slots[0].as_inner_mut().fill(F::one());
+                let calls = allocation_calls(|| codec.reconstruct_data(&mut slots).unwrap());
+                // The owned inverse needs one Arc. Its augmented work matrix
+                // exceeds 1024 elements starting at 23 data shards; that case
+                // additionally needs its actual heap storage. Inline matrices
+                // must not allocate temporary Vec storage on their way there.
+                observed.push((data, calls, budget));
+                for (slot, original) in slots.iter().zip(&expected) {
+                    assert!(slot.is_present());
+                    assert_eq!(slot.as_inner(), original);
+                }
+            }
+        }
+        eprintln!("(data shards, uncached recovery requests, maximum budget): {observed:?}");
+        assert!(
+            observed.iter().all(|&(_, calls, budget)| calls <= budget),
+            "{observed:?}"
+        );
+    }
+
+    #[test]
+    fn uncached_gf8_recovery_uses_final_matrix_storage_directly() {
+        check_uncached_matrix_storage::<rustfs_erasure_codec::galois_8::Field>();
+    }
+
+    #[test]
+    fn uncached_gf16_recovery_uses_final_matrix_storage_directly() {
+        check_uncached_matrix_storage::<rustfs_erasure_codec::galois_16::Field>();
+    }
+
     #[test]
     fn complete_layouts_do_not_allocate_recovery_metadata() {
         for (data, parity) in [(10, 4), (40, 8), (128, 64)] {
