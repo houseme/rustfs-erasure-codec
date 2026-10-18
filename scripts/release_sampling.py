@@ -6,10 +6,11 @@ import os
 import pathlib
 import re
 
-PROTOCOL = {"name": "shared-external-duration-sampler", "version": 6, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
+PROTOCOL = {"name": "shared-external-duration-sampler", "version": 7, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
             "target_wall_ns": 100_000_000, "target_timed_ns": 5_000_000,
             "minimum_wall_ns": 50_000_000, "minimum_timed_ns": 2_000_000,
             "central_spread_limit": .10,
+            "stream_output_policy": "independent-capacity-per-writer-per-iteration",
             "fixture_layout": {"scope": "small_file:verify_with_buffer", "entry": "Vec<Vec<u8>>", "lifetime": "worker", "construction": "caller-buffers-before-codec", "offset_moduli": [64, 4096, "os_base_page_size"], "page_size_source": "controller-sysconf", "untracked_cases": "original allocation contract; no layout guarantee"},
             "timing_scope": {"smoke":"original per-iteration workload", "small_file":"operation loops excluding one-time fixture preparation", "stream":"operation loops excluding one-time fixture preparation", "hotspot":"original inner recovery intervals"}}
 TEMPLATES = pathlib.Path(__file__).resolve().parent / "release-sampling"
@@ -51,6 +52,15 @@ def exclude_once_only_setup(text, name, loop_count):
     return text.replace(original, updated, 1)
 
 
+def reserve_stream_outputs(text):
+    """Correct one declared fixture constructor on both untouched source trees."""
+    original = "let mut writers = vec![Vec::with_capacity(case.shard_size); case.parity_shards];"
+    replacement = "let mut writers = reserved_stream_outputs(case.parity_shards, case.shard_size);"
+    if text.count(original) != 1:
+        raise ValueError("stream output construction changed; review the shared fixture adapter")
+    return text.replace(original, replacement, 1)
+
+
 def render(root):
     rendered = {name: (TEMPLATES / name).read_text() for name in ("engine.rs", "process.rs", "layout.rs", "verify_layout.rs")}
     sources = {"smoke": "benchmark_smoke.rs", "small_file": "benchmark_small_files.rs", "stream": "benchmark_stream_paths.rs"}
@@ -64,6 +74,7 @@ def render(root):
         text = text.replace(block(text, name), name + "() -> usize { super::sampling::iterations() }")
         if profile in ("small_file", "stream"):
             text = exclude_once_only_setup(text, "fn run_operation" if profile == "small_file" else "fn run_stream_operation", 11 if profile == "small_file" else 3)
+        if profile == "stream": text = reserve_stream_outputs(text)
         rendered[profile + ".rs"] = text + "\n" + (TEMPLATES / (profile + ".rs")).read_text()
     original = (root / "src/tests/mod.rs").read_text()
     parts = [block(original, name) for name in HOTSPOT_BLOCKS]

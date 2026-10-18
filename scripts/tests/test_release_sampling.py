@@ -123,6 +123,16 @@ class SamplingContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'inside a calibration worker'):
             evidence.calibration_counts(records,'small_file',self.sources_commit('baseline'))
 
+    def test_stream_fixture_correction_is_explicit_and_shared(self):
+        root=pathlib.Path(__file__).resolve().parents[2]
+        source=(root/'tests/benchmark_stream_paths.rs').read_text()
+        updated=sampling.reserve_stream_outputs(source)
+        self.assertNotEqual(updated,source)
+        old='let mut writers = vec![Vec::with_capacity(case.shard_size); case.parity_shards];'
+        new='let mut writers = reserved_stream_outputs(case.parity_shards, case.shard_size);'
+        self.assertEqual(updated.replace(new,old),source)
+        with self.assertRaises(ValueError):sampling.reserve_stream_outputs(updated)
+
     def test_timing_adapter_preserves_every_operation_statement(self):
         root=pathlib.Path(__file__).resolve().parents[2]
         for filename,name,count in (("benchmark_small_files.rs","fn run_operation",11),("benchmark_stream_paths.rs","fn run_stream_operation",3)):
@@ -287,7 +297,7 @@ class SamplingContractTests(unittest.TestCase):
 
     def test_calibration_and_protocol_cannot_be_changed(self):
         original=copy.deepcopy(self.doc)
-        for field in ('samples','warmups','case_isolation','case_order','max_calibration_batches','target_timed_ns','central_spread_limit','implementation_sha256','overlay_sha256','fixture_layout'):
+        for field in ('samples','warmups','case_isolation','case_order','max_calibration_batches','target_timed_ns','central_spread_limit','implementation_sha256','overlay_sha256','fixture_layout','stream_output_policy'):
             self.doc=copy.deepcopy(original);self.doc['sampling'][field]='invalid'
             with self.assertRaises(ValueError):self.verify()
         self.doc=copy.deepcopy(original)
