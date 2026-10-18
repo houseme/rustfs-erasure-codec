@@ -179,10 +179,20 @@ def rows(profile, path, revision):
         if profile == "hotspot" and any(field not in row for field in CASE_FIELDS):
             raise ValueError("missing hotspot workload fields")
         if profile != "hotspot":
-            required = ("target_triple", "backend", "backend_id", "backend_kind", "backend_override", "override_honored", "features", "profile")
+            required = ("target_triple", "backend", "backend_id", "backend_kind", "backend_override", "override_honored", "features")
             if any(provenance_value(row, field) is None for field in required):
                 raise ValueError("missing native benchmark provenance")
-            if provenance_value(row, "features") != "simd-accel|std" or row["profile"] != ("extended" if profile == "smoke" else "fast"):
+            # Schema 1 smoke exports no profile label. Its full case catalog,
+            # exact iterations and captured settings bind the extended profile.
+            expected_profile = "extended" if profile == "smoke" else "fast"
+            if profile != "smoke" and row.get("profile") != expected_profile:
+                raise ValueError("unexpected benchmark profile")
+            if "profile" in row and row["profile"] != expected_profile:
+                raise ValueError("unexpected benchmark profile")
+            iteration_setting = {"smoke": "RSE_SMOKE_ITERATIONS", "small_file": "RSE_SMALL_FILE_ITERATIONS", "stream": "RSE_STREAM_ITERATIONS"}[profile]
+            if type(row.get("iterations")) is not int or row["iterations"] != int(BASE_ENV[iteration_setting]):
+                raise ValueError("benchmark iterations differ from captured settings")
+            if provenance_value(row, "features") != "simd-accel|std":
                 raise ValueError("unexpected features or benchmark profile")
         if row.get("artifact_kind") != KINDS[profile]:
             raise ValueError("wrong benchmark artifact kind")
@@ -346,10 +356,10 @@ def capture(baseline, candidate, output, group):
             with (folder / (profile + ".log")).open("w") as log: subprocess.run(args, cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
             if environment_context(root, env, group) != metadata["contexts"][phase]:
                 raise ValueError("resource or compiler context changed within a phase")
-            rows(profile, result, sources["baseline" if phase.startswith("A") else "candidate"]["commit"])
             shutil.copyfile(result, folder / filename)
             metadata["files"][phase][profile] = {"path": f"{phase}/{filename}", "sha256": digest(result.read_bytes())}
             (output / "manifest.partial.json").write_text(json.dumps(metadata, indent=2) + "\n")
+            rows(profile, result, sources["baseline" if phase.startswith("A") else "candidate"]["commit"])
     metadata["contexts"]["after"] = environment_context(candidate, env, group)
     if source_info(baseline) != sources["baseline"] or source_info(candidate) != sources["candidate"]: raise ValueError("source changed during capture")
     manifest = output / "manifest.json"
