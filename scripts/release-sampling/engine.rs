@@ -2,6 +2,7 @@
 use super::layout::OptionalFixture;
 use std::cell::Cell;
 use std::fs;
+use std::io::{self, Read};
 use std::sync::OnceLock;
 use std::time::Instant;
 
@@ -30,7 +31,7 @@ fn revision() -> &'static str {
 }
 
 #[derive(Default)]
-struct Telemetry {
+pub(super) struct Telemetry {
     available: bool,
     cpu: u64,
     run_ns: u64,
@@ -56,8 +57,30 @@ impl std::fmt::Display for Telemetry {
     }
 }
 
-fn telemetry() -> Telemetry {
-    let Ok(stat) = fs::read_to_string("/proc/thread-self/stat") else {
+// Procfs reports a zero file size. read_to_string/read_to_end can grow and
+// shrink heap buffers, changing glibc arena trimming before the next sample.
+// Keep the ordinary observer entirely in bounded stack storage instead.
+fn read_bounded<'a>(path: &str, buffer: &'a mut [u8]) -> io::Result<&'a str> {
+    let mut file = fs::File::open(path)?;
+    let mut used = 0;
+    while used < buffer.len() {
+        match file.read(&mut buffer[used..]) {
+            Ok(0) => {
+                return std::str::from_utf8(&buffer[..used])
+                    .map_err(|_| io::Error::from(io::ErrorKind::InvalidData));
+            }
+            Ok(count) => used += count,
+            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+            Err(error) => return Err(error),
+        }
+    }
+    // Fail closed instead of parsing a truncated stat/schedstat record.
+    Err(io::ErrorKind::InvalidData.into())
+}
+
+pub(super) fn telemetry() -> Telemetry {
+    let mut stat_buffer = [0u8; 4096];
+    let Ok(stat) = read_bounded("/proc/thread-self/stat", &mut stat_buffer) else {
         return Telemetry::default();
     };
     let cpu = stat
@@ -69,7 +92,8 @@ fn telemetry() -> Telemetry {
         .unwrap()
         .parse()
         .unwrap();
-    let sched = fs::read_to_string("/proc/thread-self/schedstat").unwrap();
+    let mut sched_buffer = [0u8; 256];
+    let sched = read_bounded("/proc/thread-self/schedstat", &mut sched_buffer).unwrap();
     let mut counters = sched.split_whitespace().map(|s| s.parse::<u64>().unwrap());
     let (run_ns, wait_ns, switches) = (
         counters.next().unwrap(),
@@ -257,6 +281,29 @@ pub(super) fn run_prepared<R, F: FnMut(usize) -> Output<R>>(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn bounded_procfs_read_rejects_truncation_and_matches_all_text() {
+        let mut buffer = [0u8; 4096];
+        let actual = read_bounded("/proc/thread-self/stat", &mut buffer).unwrap();
+        assert!(actual.contains(") "));
+        assert!(actual.ends_with('\n'));
+        let mut tiny = [0u8; 1];
+        assert_eq!(
+            read_bounded("/proc/thread-self/stat", &mut tiny)
+                .unwrap_err()
+                .kind(),
+            io::ErrorKind::InvalidData
+        );
+        let mut empty = [];
+        assert_eq!(
+            read_bounded("/proc/thread-self/stat", &mut empty)
+                .unwrap_err()
+                .kind(),
+            io::ErrorKind::InvalidData
+        );
+    }
 
     #[test]
     fn kernel_keeps_the_complete_fixed_schedule() {

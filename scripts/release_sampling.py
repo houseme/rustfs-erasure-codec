@@ -6,10 +6,11 @@ import os
 import pathlib
 import re
 
-PROTOCOL = {"name": "shared-external-duration-sampler", "version": 7, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
+PROTOCOL = {"name": "shared-external-duration-sampler", "version": 8, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
             "target_wall_ns": 100_000_000, "target_timed_ns": 5_000_000,
             "minimum_wall_ns": 50_000_000, "minimum_timed_ns": 2_000_000,
             "central_spread_limit": .10,
+            "observer_buffer_policy": "bounded-stack-procfs-no-rust-heap",
             "stream_output_policy": "independent-capacity-per-writer-per-iteration",
             "fixture_layout": {"scope": "small_file:verify_with_buffer", "entry": "Vec<Vec<u8>>", "lifetime": "worker", "construction": "caller-buffers-before-codec", "offset_moduli": [64, 4096, "os_base_page_size"], "page_size_source": "controller-sysconf", "untracked_cases": "original allocation contract; no layout guarantee"},
             "timing_scope": {"smoke":"original per-iteration workload", "small_file":"operation loops excluding one-time fixture preparation", "stream":"operation loops excluding one-time fixture preparation", "hotspot":"original inner recovery intervals"}}
