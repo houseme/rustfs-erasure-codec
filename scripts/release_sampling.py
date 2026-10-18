@@ -162,16 +162,23 @@ def run_profile(root, environment, profile, mode, log_path, counts_file=None, *,
     if mode not in ("calibrate", "sample") or not ordered or len(ordered) != len(set(ordered)):
         raise ValueError("a valid mode and nonempty unique case catalog are required")
     env = dict(environment, RSE_SAMPLER_PROFILE=profile, RSE_SAMPLER_MODE=mode)
-    if counts_file is not None: env["RSE_SAMPLER_COUNTS"] = str(counts_file)
+    counts = {}
+    if mode == "sample":
+        if counts_file is None: raise ValueError("frozen counts are required")
+        for line in counts_file.read_text().splitlines():
+            name, value = line.split("\t")
+            if name in counts: raise ValueError("duplicate frozen case count")
+            count = int(value)
+            if not 1 <= count <= 1_000_000_000: raise ValueError("invalid frozen case count")
+            counts[name] = count
+        if set(counts) != set(ordered): raise ValueError("complete frozen case counts are required")
     command = ["cargo", "test", "--locked", "--release", "--features", "std simd-accel", "--test", "rse_release_sampling", "release_controlled_profile", "--", "--exact", "--ignored", "--nocapture", "--test-threads=1"]
     records = []
     with log_path.open("w") as log:
         for case in ordered:
-            count, batch = 1, 1
+            count, batch = (1, 1) if mode == "calibrate" else (counts[case], 0)
             while True:
-                worker = dict(env, RSE_SAMPLER_CASE=case)
-                if mode == "calibrate":
-                    worker.update(RSE_SAMPLER_INITIAL_COUNT=str(count), RSE_SAMPLER_BATCH=str(batch))
+                worker = dict(env, RSE_SAMPLER_CASE=case, RSE_SAMPLER_ITERATIONS=str(count), RSE_SAMPLER_BATCH=str(batch))
                 offset = log.tell()
                 subprocess.run(command, cwd=root, env=worker, stdout=log, stderr=subprocess.STDOUT, check=True)
                 with log_path.open() as reader:

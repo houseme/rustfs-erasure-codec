@@ -127,6 +127,7 @@ class SamplingContractTests(unittest.TestCase):
     def test_process_runner_isolates_each_case_and_rejects_wrong_workload(self):
         with tempfile.TemporaryDirectory() as directory:
             path = pathlib.Path(directory)/'runner.log'
+            counts=pathlib.Path(directory)/'counts.tsv';counts.write_text('a\t1\nb\t1\n')
             observed = []
             def emit(command, **kwargs):
                 case = kwargs['env']['RSE_SAMPLER_CASE']
@@ -134,7 +135,7 @@ class SamplingContractTests(unittest.TestCase):
                 kwargs['stdout'].write('RSE_SAMPLE '+json.dumps({'case':case,'isolated_case':True})+'\n')
                 kwargs['stdout'].flush()
             with mock.patch('subprocess.run',side_effect=emit):
-                rows=sampling.run_profile(self.root,{},'smoke','sample',path,cases={'b','a'})
+                rows=sampling.run_profile(self.root,{},'smoke','sample',path,counts,cases={'b','a'})
             self.assertEqual(observed,['a','b'])
             self.assertEqual([r['case'] for r in rows],observed)
             def wrong_case(command, **kwargs):
@@ -142,13 +143,23 @@ class SamplingContractTests(unittest.TestCase):
                 kwargs['stdout'].flush()
             with mock.patch('subprocess.run',side_effect=wrong_case):
                 with self.assertRaisesRegex(ValueError,'selected workload'):
-                    sampling.run_profile(self.root,{},'smoke','sample',path,cases={'a'})
+                    sampling.run_profile(self.root,{},'smoke','sample',path,counts,cases={'a','b'})
+
+    def test_controller_rejects_bad_frozen_counts_before_launching_workers(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root=pathlib.Path(directory);counts=root/'counts.tsv'
+            for content in ('a\t1\na\t2\n','b\t1\n','a\t0\n'):
+                counts.write_text(content)
+                with mock.patch('subprocess.run') as workers:
+                    with self.assertRaises(ValueError):
+                        sampling.run_profile(self.root,{},'smoke','sample',root/'output.log',counts,cases={'a'})
+                    workers.assert_not_called()
 
     def test_calibration_controller_uses_a_new_worker_for_each_proposed_count(self):
         with tempfile.TemporaryDirectory() as directory:
             path=pathlib.Path(directory)/'calibration.log';observed=[]
             def emit(command, **kwargs):
-                count=int(kwargs['env']['RSE_SAMPLER_INITIAL_COUNT']);batch=int(kwargs['env']['RSE_SAMPLER_BATCH'])
+                count=int(kwargs['env']['RSE_SAMPLER_ITERATIONS']);batch=int(kwargs['env']['RSE_SAMPLER_BATCH'])
                 observed.append((count,batch))
                 width=sampling.PROTOCOL['warmups']+sampling.PROTOCOL['samples']
                 for index in range(width):
@@ -165,7 +176,7 @@ class SamplingContractTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             path=pathlib.Path(directory)/'failed.log'
             def emit(command, **kwargs):
-                count=int(kwargs['env']['RSE_SAMPLER_INITIAL_COUNT']);batch=int(kwargs['env']['RSE_SAMPLER_BATCH'])
+                count=int(kwargs['env']['RSE_SAMPLER_ITERATIONS']);batch=int(kwargs['env']['RSE_SAMPLER_BATCH'])
                 for index in range(sampling.PROTOCOL['warmups']+sampling.PROTOCOL['samples']):
                     row={'case':'a','isolated_case':True,'kind':'calibration_warmup' if index<sampling.PROTOCOL['warmups'] else 'calibration','iterations':count,'calibration_batch':batch,'index':index,'wall_ns':40000000,'timed_ns':10000000,'target_met':False,'complete':False}
                     kwargs['stdout'].write('RSE_SAMPLE '+json.dumps(row)+'\n')
