@@ -25,29 +25,19 @@ def render(root, traced):
     result = sampling.render(root)
     if not traced:
         return result
-    original = '''        SmallFileOp::ReconstructShardSlot => {
-            let mut original =
-                make_full_shards(seed, case.data_shards, case.parity_shards, case.shard_size);
-            rs.encode(&mut original).unwrap();
-            let start = Instant::now();
-            for _ in 0..iterations {
-                let mut shards = shards_to_slots(&original);
-                mark_missing_slots(&mut shards, &[0, case.data_shards]);
-                rs.reconstruct(&mut shards).unwrap();
-            }
-            measured += start.elapsed();
-        }'''
-    changed = original.replace('            let start = Instant::now();',
-        '            let mut trace = super::slot_trace::Trace::for_process(&original, iterations);\n            let start = Instant::now();')
-    changed = changed.replace('                let mut shards = shards_to_slots(&original);',
-        '                let clone_start = Instant::now();\n                let mut shards = shards_to_slots(&original);')
-    changed = changed.replace('                rs.reconstruct(&mut shards).unwrap();',
-        '                let clone_ns = clone_start.elapsed().as_nanos();\n                trace.before(&shards);\n                let reconstruct_start = Instant::now();\n                rs.reconstruct(&mut shards).unwrap();\n                let reconstruct_ns = reconstruct_start.elapsed().as_nanos();\n                trace.after(&shards, &original);\n                let drop_start = Instant::now();\n                drop(shards);\n                trace.phases(clone_ns, reconstruct_ns, drop_start.elapsed().as_nanos());')
-    changed = changed.replace('            measured += start.elapsed();',
-        '            measured += start.elapsed();\n            trace.finish();')
-    if result['small_file.rs'].count(original) != 1:
+    kernel = sampling.block(result['small_file.rs'], 'fn execute_release_kernel')
+    original = sampling.original_loop(kernel, 'SmallFileOp::ReconstructShardSlot')
+    if any(original.count(fragment) != 1 for fragment in ('let mut shards = shards_to_slots(original);', 'mark_missing_slots(&mut shards, &[0, case.data_shards]);', 'rs.reconstruct(&mut shards).unwrap();')):
         raise ValueError('ShardSlot workload changed; review the diagnostic adapter')
-    result['small_file.rs'] = result['small_file.rs'].replace(original, changed, 1)
+    changed = '            let mut trace = super::slot_trace::Trace::for_process(original, iterations);\n'+original
+    changed = changed.replace('                let mut shards = shards_to_slots(original);',
+        '                let clone_start = Instant::now();\n                let mut shards = shards_to_slots(original);')
+    changed = changed.replace('                rs.reconstruct(&mut shards).unwrap();',
+        '                let clone_ns = clone_start.elapsed().as_nanos();\n                trace.before(&shards);\n                let reconstruct_start = Instant::now();\n                rs.reconstruct(&mut shards).unwrap();\n                let reconstruct_ns = reconstruct_start.elapsed().as_nanos();\n                trace.after(&shards, original);\n                let drop_start = Instant::now();\n                drop(shards);\n                trace.phases(clone_ns, reconstruct_ns, drop_start.elapsed().as_nanos());')
+    changed += '\n            trace.finish();'
+    if kernel.count(original) != 1 or changed == original:
+        raise ValueError('ShardSlot workload changed; review the diagnostic adapter')
+    result['small_file.rs'] = result['small_file.rs'].replace(kernel, kernel.replace(original, changed, 1), 1)
     result['slot_trace.rs'] = TEMPLATE.read_text()
     result['root.rs'] += '\n#[path="rse_release_sampling/slot_trace.rs"] mod slot_trace;\n'
     return result
@@ -83,7 +73,7 @@ def layouts(records, iterations, page_size):
     if len(records) != 12:
         raise ValueError('all twelve instrumented observations are required')
     for record in records:
-        if record.get('entry') != 'Vec<ShardSlot<Vec<u8>>>' or record.get('source_lifetime') != 'observation' or record.get('clone_lifetime') != 'iteration' or type(record.get('iterations')) is not int or record['iterations'] != iterations or type(record.get('page_size')) is not int or record['page_size'] != page_size:
+        if record.get('entry') != 'Vec<ShardSlot<Vec<u8>>>' or record.get('source_lifetime') != 'worker' or record.get('clone_lifetime') != 'iteration' or type(record.get('iterations')) is not int or record['iterations'] != iterations or type(record.get('page_size')) is not int or record['page_size'] != page_size:
             raise ValueError('incorrect Slot workload contract')
         if type(record.get('overflow')) is not int or record['overflow'] < 0 or type(record.get('transitions')) is not int or not 0 <= record['transitions'] < iterations:
             raise ValueError('invalid bounded histogram counters')
@@ -103,7 +93,8 @@ def layouts(records, iterations, page_size):
             # to be an accepted retained Vec workload.
             synthetic = {'case': 'verify_with_buffer:4:2:65536', 'fixture': {
                 'entry': 'Vec<Vec<u8>>', 'lifetime': 'worker', 'page_size': page_size,
-                'source': buffers, 'scratch': buffers[:2] if isinstance(buffers, list) else None}}
+                'source': buffers, 'scratch': buffers[:2] if isinstance(buffers, list) else None,
+                **sampling.fixture_contract('small_file', 'verify_with_buffer:4:2:65536')}}
             sampling.validate_fixture(synthetic, 'small_file', page_size)
     return {'histogram_complete': all(r['overflow'] == 0 for r in records),
             'source_layouts': [r['source'] for r in records],
@@ -129,7 +120,7 @@ def capture(tool, repository, output, group, iterations):
     if page_size < 4096: raise ValueError('Slot diagnosis requires a base page of at least 4096 bytes')
     cpu = min(context['isolation']['cpu_affinity'])
     def save(name, value): (output/name).write_text(json.dumps(value, indent=2)+'\n')
-    metadata = {'schema_version': 'shard-slot-diagnostic-v2', 'source': source, 'tool': controller,
+    metadata = {'schema_version': 'shard-slot-diagnostic-v3', 'source': source, 'tool': controller,
                 'context': context, 'measuring_cpu': cpu, 'iterations': iterations,
                 'protocol': sampling.PROTOCOL, 'renderer_sha256': sampling.implementation_digest(),
                 'controller_sha256': hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest(),
@@ -170,6 +161,7 @@ def capture(tool, repository, output, group, iterations):
                     for record in records:
                         sampling.validate_telemetry(record, {cpu})
                         sampling.validate_timing(record, 'small_file', iterations)
+                        sampling.validate_fixture(record, 'small_file', page_size)
                         normalize('small_file', record['rows'][0], source['commit'])
                 else:
                     sampling.sample_groups(records, 'small_file', source['commit'], {CASE}, counts, normalize, {cpu}, page_size)

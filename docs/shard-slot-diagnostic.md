@@ -9,9 +9,9 @@ identify the cause or exclude host effects.
 
 `scripts/diagnose_shard_slot.py` runs the published 9.0.0 baseline at the same
 fixed count in four fresh processes: calibrate, sample, sample, calibrate. It
-first uses the unmodified shared sampler, then repeats with a separate checked
-instrumentation adapter. The adapter retains the original Vec source creation
-per observation, six per-iteration clones, missing slots 0/4, and reconstruction.
+first uses the current shared sampler, then repeats with a separate checked
+instrumentation adapter. Under protocol 9 the source and codec live for the worker;
+the adapter retains six per-iteration clones, missing slots 0/4, and reconstruction.
 It does not replace this workload with preallocated/reused slots.
 
 The trace records source and clone lengths, capacities and offsets modulo 64,
@@ -65,3 +65,9 @@ is never linked into formal capture. Optional extended process diagnostics keep
 their distinct observer contract. No allocator tunable, production algorithm,
 codeword format, timing threshold or original per-iteration clone policy changes.
 Fresh baseline controls and the complete release campaign are still required.
+
+Protocol 9 extends retained caller fixtures to all small-file/stream release cases.
+The current tracer follows its worker-lived source; historical observation-lived
+traces remain bound to their earlier schemas and archived controllers. See
+[caller fixture contracts](release-caller-fixtures.md) for the exact scope and
+untracked dynamic destinations. None of these diagnostic schemas approves release.

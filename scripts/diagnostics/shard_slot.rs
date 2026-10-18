@@ -170,7 +170,7 @@ impl fmt::Display for Trace {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "{{\"entry\":\"Vec<ShardSlot<Vec<u8>>>\",\"source_lifetime\":\"observation\",\"clone_lifetime\":\"iteration\",\"page_size\":{},\"iterations\":{},\"transitions\":{},\"overflow\":{},\"source\":{},\"layouts\":[",
+            "{{\"entry\":\"Vec<ShardSlot<Vec<u8>>>\",\"source_lifetime\":\"worker\",\"clone_lifetime\":\"iteration\",\"page_size\":{},\"iterations\":{},\"transitions\":{},\"overflow\":{},\"source\":{},\"layouts\":[",
             self.page_size,
             self.iterations,
             self.transitions,

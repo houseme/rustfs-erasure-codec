@@ -74,29 +74,27 @@ three warmup invocations at the frozen count, then collects exactly nine samples
 Basic scheduling snapshots retain numeric counters instead of formatted heap
 strings. Extended process observation remains diagnostic-only and may affect
 allocation state; release qualification uses basic telemetry.
-The `small_file:verify_with_buffer` cases retain their original `Vec<Vec<u8>>`
-source and scratch for the complete worker, rather than reconstructing them before
-an observation. All caller buffers are allocated before constructing the codec or
-pre-encoding; setup must preserve their full pointer identities. This prevents
-version-dependent setup allocations from being interleaved with caller-buffer creation. Preparation and pointer/shape checks stay outside the inner timed
-loop; the loop checks the returned codeword validity. Fixed-capacity metadata
-storage adds no observer allocation. The worker checks full pointer identity
-privately; every timing journal and exported sample records only lengths,
-capacities and offsets modulo 64, 4096 and the recorded OS base page size.
-The controller reads the base page size through `sysconf`, passes the same scalar
-to every worker, and binds it into runtime provenance. The verifier rejects a
-missing/invalid size, inconsistent page offsets, or a fixture size differing from
-the recorded runtime. The fixed 4096 modulus remains separately named; base page
-size does not assert physical or huge-page placement. The verifier requires a stable Vec layout
-throughout each warmup/rehearsal/sample worker and an identical layout between
-final calibration and all four ABBA phases. Different layouts fail closed; they
-are never pooled or silently replaced by slice views. No allocator is replaced
-or address forced. Other operations retain their existing dynamic allocation
-contracts and do not acquire a layout guarantee from this scoped change.
+Protocol 9 retains one codec and caller source fixture for all 88 small-file and
+15 stream cases for the complete worker; buffered verify also retains caller
+scratch. Caller buffers precede codec construction and encoding setup. The shared
+inner loops are extracted from the unchanged benchmark sources, preserving timed
+per-iteration clones, missing-output allocation and I/O. Verification booleans are
+observed. Codec caches now live for the worker; this explicit workload change
+requires new calibration and measurements.
 
-A structural inventory checks every one of the 11 buffered-verification cases
-in A1/B1/B2/A2 order against both sources before committing time to performance
-capture:
+Fixed storage records source/scratch lengths, capacities and offsets modulo 64,
+4096 and the actual OS base page size, with full pointer identity checked privately
+outside the inner timer. Every record also requires the actual call entry, output
+policy and missing/required masks. Layouts must stay stable within a worker and
+match final calibration and all four phases. API/policy mismatch fails closed.
+The controller supplies the page size from sysconf; inconsistent or missing page
+metadata is rejected. Base-page offsets do not assert physical/huge-page placement.
+Dynamic destination/internal-scratch offsets remain explicitly untracked, and
+smoke/hotspot retain their original contracts. See the complete [caller fixture
+contract](release-caller-fixtures.md) for this scope and its limits.
+
+The structural inventory checks all 103 retained caller cases in A1/B1/B2/A2 order
+against both sources before performance capture:
 
 ```bash
 python3 candidate/scripts/diagnose_fixture_layout.py \

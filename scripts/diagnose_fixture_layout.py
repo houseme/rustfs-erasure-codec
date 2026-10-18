@@ -11,9 +11,11 @@ import release_evidence as evidence
 import release_sampling as sampling
 
 
-def case_catalog():
-    return {case for case in evidence.expected_cases('small_file')
-            if case.startswith('verify_with_buffer:')}
+PROFILES = ('small_file', 'stream')
+
+
+def case_catalog(profile=None):
+    return evidence.expected_cases(profile) if profile else set().union(*(evidence.expected_cases(p) for p in PROFILES))
 
 
 def analyze(phases, sources, cpus, page_size=None):
@@ -24,7 +26,11 @@ def analyze(phases, sources, cpus, page_size=None):
     for phase in evidence.PHASES:
         revision = sources['baseline' if phase.startswith('A') else 'candidate']['commit']
         normalize = lambda p, row, rev: next(iter(evidence.indexed_rows(p, [row], rev, counts, complete=False)))
-        sampling.sample_groups(phases[phase], 'small_file', revision, case_catalog(), counts, normalize, cpus, page_size)
+        if any(r.get('case') not in case_catalog() for r in phases[phase]):
+            raise ValueError('unexpected inventory case')
+        for profile in PROFILES:
+            records = [r for r in phases[phase] if r['case'] in case_catalog(profile)]
+            sampling.sample_groups(records, profile, revision, case_catalog(profile), counts, normalize, cpus, page_size)
         layouts[phase] = sampling.fixture_catalog(phases[phase])
     checks = []
     for left, right in (('A1', 'A2'), ('B1', 'B2'), ('A1', 'B1'), ('A1', 'B2'), ('A2', 'B1'), ('A2', 'B2')):
@@ -39,7 +45,7 @@ def analyze(phases, sources, cpus, page_size=None):
                            'different_buffers': changed})
     return {'purpose': 'one-iteration structural layout inventory; no timing inference',
             'release_approval': False, 'candidate_attribution': None,
-            'case_count': len(counts), 'phase_count': len(phases),
+            'case_count': len(counts), 'phase_count': len(phases), 'dynamic_output_layouts_observed': False,
             'layout_checks': checks, 'layout_mismatches': [c for c in checks if not c['matches']]}
 
 
@@ -62,7 +68,7 @@ def capture(tool, baseline, candidate, output, group):
     overlay = sampling.overlay_digest(candidate)
     if sampling.overlay_digest(baseline) != overlay or evidence.harness_digest(baseline) != evidence.harness_digest(candidate):
         raise ValueError('both sources require identical harness inputs')
-    metadata = {'schema_version': 'fixture-layout-inventory-v1', 'sources': sources,
+    metadata = {'schema_version': 'fixture-layout-inventory-v2', 'sources': sources,
                 'tool': evidence.source_info(tool), 'context': context, 'measuring_affinity': [cpu],
                 'protocol': sampling.PROTOCOL, 'overlay_sha256': overlay,
                 'renderer_sha256': sampling.implementation_digest(),
@@ -75,12 +81,15 @@ def capture(tool, baseline, candidate, output, group):
         if evidence.environment_context(candidate, env, group) != context or any(evidence.source_info(root) != sources[role] for role, root in roots.items()):
             raise ValueError('source or resource context changed')
     save('provenance.json', metadata)
-    counts = output/'counts.tsv'
-    counts.write_text(''.join(case+'\t1\n' for case in sorted(case_catalog())))
+    counts = {}
+    for profile in PROFILES:
+        counts[profile] = output/('counts-'+profile+'.tsv')
+        counts[profile].write_text(''.join(case+'\t1\n' for case in sorted(case_catalog(profile))))
     owned, phases = [], {}
     try:
         for role, root in roots.items():
-            sampling.generate(root); owned.append(root)
+            rendered = sampling.render(root)
+            sampling.generate(root); owned.append((root, rendered))
             with (output/(role+'-build.log')).open('x') as log:
                 subprocess.run(['cargo', 'test', '--locked', '--release', '--features', 'std simd-accel',
                                 '--test', 'rse_release_sampling', '--no-run'], cwd=root, env=env,
@@ -88,26 +97,33 @@ def capture(tool, baseline, candidate, output, group):
         for phase in evidence.PHASES:
             role = 'baseline' if phase.startswith('A') else 'candidate'
             affinity = os.sched_getaffinity(0)
-            log = output/(phase+'.log')
-            try:
-                os.sched_setaffinity(0, {cpu})
-                phases[phase] = sampling.run_profile(roots[role], env, 'small_file', 'sample', log,
-                                                    counts, cases=case_catalog())
-            finally:
-                os.sched_setaffinity(0, affinity)
-                if log.exists():
-                    text = log.read_text()
-                    save(phase+'-samples.partial.json', sampling.parse_output(text))
-                    save(phase+'-timing.partial.json', sampling.parse_output(text, 'RSE_TIMING '))
+            phases[phase], timings = [], []
+            for profile in PROFILES:
+                log = output/(phase+'-'+profile+'.log')
+                try:
+                    os.sched_setaffinity(0, {cpu})
+                    current = sampling.run_profile(roots[role], env, profile, 'sample', log,
+                                                   counts[profile], cases=case_catalog(profile))
+                finally:
+                    os.sched_setaffinity(0, affinity)
+                    if log.exists():
+                        text = log.read_text()
+                        partial = sampling.parse_output(text)
+                        journal = sampling.parse_output(text, 'RSE_TIMING ')
+                        save(phase+'-'+profile+'-samples.partial.json', partial)
+                        save(phase+'-'+profile+'-timing.partial.json', journal)
+                        save(phase+'-samples.partial.json', phases[phase]+partial)
+                        save(phase+'-timing.partial.json', timings+journal)
+                phases[phase].extend(current); timings.extend(journal)
             save(phase+'-samples.json', phases[phase]); unchanged()
         report = analyze(phases, sources, {cpu}, context['runtime']['page_size'])
         save('inventory.json', dict(metadata, **report)); unchanged()
         return report
     finally:
-        for root in owned:
+        for root, rendered in owned:
             directory = root/'tests/rse_release_sampling'
-            expected = set(sampling.render(root))-{'root.rs'}
-            if {p.name for p in directory.iterdir()} != expected:
+            expected = set(rendered)-{'root.rs'}
+            if {p.name for p in directory.iterdir()} != expected or any((root/'tests/rse_release_sampling.rs' if name == 'root.rs' else directory/name).read_text() != value for name, value in rendered.items()):
                 raise ValueError('unexpected generated input; preserve it for inspection')
             for path in directory.iterdir(): path.unlink()
             directory.rmdir(); (root/'tests/rse_release_sampling.rs').unlink()

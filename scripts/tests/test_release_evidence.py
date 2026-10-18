@@ -92,11 +92,11 @@ class EvidenceTests(unittest.TestCase):
     def record(self, row, profile, role, kind, index):
         key = row.get('scenario') or ':'.join(str(row[f]) for f in ('operation','data_shards','parity_shards','shard_size','stream_block_size') if f in row)
         fixture = None
-        if profile == 'small_file' and row['operation'] == 'verify_with_buffer':
+        if profile in ('small_file', 'stream'):
             position = {'len':row['shard_size'], 'capacity':row['shard_size'], 'offset_64':16, 'offset_4096':16, 'offset_page':16}
             fixture = {'entry':'Vec<Vec<u8>>', 'lifetime':'worker', 'page_size':4096,
-                       'source':[copy.deepcopy(position) for _ in range(row['data_shards']+row['parity_shards'])],
-                       'scratch':[copy.deepcopy(position) for _ in range(row['parity_shards'])]}
+                       'source':[copy.deepcopy(position) for _ in range(row['data_shards'] if row['operation']=='encode_stream' else row['data_shards']+row['parity_shards'])],
+                       'scratch':[copy.deepcopy(position) for _ in range(row['parity_shards'] if row['operation']=='verify_with_buffer' else 0)], **sampling.fixture_contract(profile,key)}
         return {'fixture':fixture, 'kind':kind, 'case':key, 'revision':self.sources[role]['commit'], 'index':index, 'iterations':1,
                 'wall_ns':120_000_000, 'timed_ns':10_000_000.0, 'complete':True, 'target_met':True, 'isolated_case':True, 'calibration_batch':0, 'rows':[copy.deepcopy(row)],
                 'before':{'cpu':0, 'run_ns':index*100, 'wait_ns':index, 'switches':index},

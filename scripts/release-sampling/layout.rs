@@ -17,9 +17,22 @@ pub(super) struct Fixture {
     source_count: usize,
     scratch_count: usize,
     page_size: usize,
+    contract: (&'static str, &'static str, u64, u64),
 }
 
 impl Fixture {
+    pub(super) fn page_size(&self) -> usize {
+        self.page_size
+    }
+
+    pub(super) fn with_contract(
+        mut self,
+        contract: (&'static str, &'static str, u64, u64),
+    ) -> Self {
+        self.contract = contract;
+        self
+    }
+
     pub(super) fn vec_buffers(source: &[Vec<u8>], scratch: &[Vec<u8>], page_size: usize) -> Self {
         assert!(page_size.is_power_of_two() && (1024..=1048576).contains(&page_size));
         assert!(source.len() + scratch.len() <= MAX_BUFFERS);
@@ -28,6 +41,7 @@ impl Fixture {
             source_count: source.len(),
             scratch_count: scratch.len(),
             page_size,
+            contract: ("Vec<Vec<u8>>", "retained-caller-scratch", 0, 0),
         };
         for (position, buffer) in fixture
             .positions
@@ -55,8 +69,8 @@ impl fmt::Display for Fixture {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "{{\"entry\":\"Vec<Vec<u8>>\",\"lifetime\":\"worker\",\"page_size\":{},\"source\":[",
-            self.page_size
+            "{{\"entry\":\"Vec<Vec<u8>>\",\"lifetime\":\"worker\",\"page_size\":{},\"call_entry\":\"{}\",\"output_policy\":\"{}\",\"missing_mask\":{},\"required_mask\":{},\"source\":[",
+            self.page_size, self.contract.0, self.contract.1, self.contract.2, self.contract.3
         )?;
         let mut positions = self.positions.iter();
         for (name, count) in [

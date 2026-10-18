@@ -6,13 +6,13 @@ import os
 import pathlib
 import re
 
-PROTOCOL = {"name": "shared-external-duration-sampler", "version": 8, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
+PROTOCOL = {"name": "shared-external-duration-sampler", "version": 9, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
             "target_wall_ns": 100_000_000, "target_timed_ns": 5_000_000,
             "minimum_wall_ns": 50_000_000, "minimum_timed_ns": 2_000_000,
             "central_spread_limit": .10,
             "observer_buffer_policy": "bounded-stack-procfs-no-rust-heap",
             "stream_output_policy": "independent-capacity-per-writer-per-iteration",
-            "fixture_layout": {"scope": "small_file:verify_with_buffer", "entry": "Vec<Vec<u8>>", "lifetime": "worker", "construction": "caller-buffers-before-codec", "offset_moduli": [64, 4096, "os_base_page_size"], "page_size_source": "controller-sysconf", "untracked_cases": "original allocation contract; no layout guarantee"},
+            "fixture_layout": {"scope": "small_file:all;stream:all;caller-storage-only", "codec_lifetime": "worker", "dynamic_outputs": "original per-iteration policy; offsets explicitly untracked", "entry": "Vec<Vec<u8>>", "lifetime": "worker", "construction": "caller-buffers-before-codec", "offset_moduli": [64, 4096, "os_base_page_size"], "page_size_source": "controller-sysconf", "untracked_cases": "original allocation contract; no layout guarantee"},
             "timing_scope": {"smoke":"original per-iteration workload", "small_file":"operation loops excluding one-time fixture preparation", "stream":"operation loops excluding one-time fixture preparation", "hotspot":"original inner recovery intervals"}}
 TEMPLATES = pathlib.Path(__file__).resolve().parent / "release-sampling"
 HOTSPOT_BLOCKS = ("struct ReconstructionHotspotBenchResult", "fn benchmark_test_iterations", "macro_rules! make_random_shards",
@@ -62,6 +62,109 @@ def reserve_stream_outputs(text):
     return text.replace(original, replacement, 1)
 
 
+# The loop body remains authoritative in the original benchmark source. These
+# descriptors define only the explicit caller-fixture and API contracts.
+SMALL_KERNELS = (
+    ("SmallFileOp::Standard(Operation::Encode)", "encode"),
+    ("SmallFileOp::Standard(Operation::Verify)", "verify"),
+    ("SmallFileOp::VerifyWithBuffer", "verify_with_buffer"),
+    ("SmallFileOp::Standard(Operation::Reconstruct)", "reconstruct"),
+    ("SmallFileOp::ReconstructOpt", "reconstruct_opt"),
+    ("SmallFileOp::ReconstructShardSlot", "reconstruct_shard_slot"),
+    ("SmallFileOp::ReconstructSomeDataOnly", "reconstruct_some_data_only"),
+    ("SmallFileOp::Standard(Operation::ReconstructData)", "reconstruct_data"),
+)
+STREAM_KERNELS = tuple(("StreamOperation::"+name, name.lower()+"_stream")
+                       for name in ("Encode", "Verify", "Reconstruct"))
+
+
+def fixture_contract(profile, case):
+    if profile not in ("small_file", "stream"): return None
+    parts = case.split(":")
+    if len(parts) != (4 if profile == "small_file" else 5):
+        raise ValueError("invalid caller-fixture case")
+    operation, data, parity, size = parts[:4]
+    data, parity, size = int(data), int(parity), int(size)
+    if not 1 <= data < data+parity <= 32 or size <= 0:
+        raise ValueError("invalid caller-fixture shape")
+    all_mask = (1 << (data+parity))-1
+    contracts = {
+        "encode": ("Vec<Vec<u8>>", "caller-parity-in-place", 0, 0),
+        "verify": ("Vec<Vec<u8>>", "internal-scratch-untracked", 0, 0),
+        "verify_with_buffer": ("Vec<Vec<u8>>", "retained-caller-scratch", 0, 0),
+        "reconstruct": ("Vec<Option<Vec<u8>>>", "iteration-clones-drop-missing-new-output-untracked", 1 | (1 << data), all_mask),
+        "reconstruct_opt": ("Vec<Option<Vec<u8>>>", "iteration-clones-drop-missing-new-output-untracked", 1 | (1 << data), all_mask),
+        "reconstruct_shard_slot": ("Vec<ShardSlot<Vec<u8>>>", "iteration-clones-retain-missing-storage-untracked", 1 | (1 << data), all_mask),
+        "reconstruct_some_data_only": ("Vec<Option<Vec<u8>>>", "iteration-clones-drop-missing-new-output-untracked", 1 | (1 << data), 1),
+        "reconstruct_data": ("Vec<Option<Vec<u8>>>", "iteration-clones-drop-missing-new-output-untracked", 3, (1 << data)-1),
+        "encode_stream": ("Vec<&[u8]> -> Vec<Vec<u8>>", "iteration-reserved-writers-untracked", 0, 0),
+        "verify_stream": ("Vec<&[u8]>", "iteration-readers-internal-scratch-untracked", 0, 0),
+        "reconstruct_stream": ("Vec<Cursor<Vec<u8>>>", "iteration-cloned-cursors-empty-missing-untracked", 1 | (1 << data), all_mask),
+    }
+    allowed = dict(SMALL_KERNELS if profile == "small_file" else STREAM_KERNELS).values()
+    if operation not in allowed: raise ValueError("unexpected caller-fixture operation")
+    return dict(zip(("call_entry", "output_policy", "missing_mask", "required_mask"), contracts[operation]))
+
+
+def original_loop(text, pattern):
+    """Extract exactly one rustfmt-shaped loop, never copy one-time setup."""
+    marker = "        "+pattern+" => {"
+    if text.count(marker) != 1: raise ValueError("benchmark operation arm changed")
+    arm = text[text.index(marker):]
+    arm = arm[:re.search(r"(?m)^        }", arm).start()]
+    match = re.search(r"(?ms)^            for _ in 0\.\.iterations \{.*?^            }", arm)
+    if match is None or arm.count("for _ in 0..iterations {") != 1:
+        raise ValueError("benchmark operation loop changed")
+    return match.group()
+
+
+def prepared_kernel(text, profile):
+    arms = []
+    descriptor = []
+    kernels = SMALL_KERNELS if profile == "small_file" else STREAM_KERNELS
+    for pattern, operation in kernels:
+        loop = original_loop(text, pattern)
+        replacements = {}
+        if profile == "small_file":
+            if operation == "encode": replacements = {"rs.encode(&mut shards)": "rs.encode(&mut *original)"}
+            elif operation == "verify": replacements = {"rs.verify(&shards)": "rs.verify(&*original)"}
+            elif operation == "verify_with_buffer": replacements = {"rs.verify_with_buffer(&shards, &mut buffer)": "rs.verify_with_buffer(&*original, &mut *scratch)"}
+            elif operation == "reconstruct_shard_slot": replacements = {"shards_to_slots(&original)": "shards_to_slots(original)"}
+            elif operation == "reconstruct_some_data_only": replacements = {"&required)": "required)"}
+        else:
+            if operation == "encode_stream": replacements = {"data.iter()": "original.iter()"}
+            else: replacements = {"shards.iter()": "original.iter()"}
+            if operation == "reconstruct_stream": replacements["&shards[0]"] = "&original[0]"
+        for before, after in replacements.items():
+            if loop.count(before) != 1: raise ValueError("benchmark operand layout changed")
+            loop = loop.replace(before, after, 1)
+        # Existing buffered verify observes its boolean result. Apply the same
+        # explicit correctness oracle to ordinary verify; no call is removed.
+        if operation in ("verify", "verify_with_buffer"):
+            old = "rs."+operation+"(&*original"+("" if operation == "verify" else ", &mut *scratch")+").unwrap();"
+            if loop.count(old) != 1: raise ValueError("benchmark verification oracle changed")
+            loop = loop.replace(old, "assert!(std::hint::black_box("+old[:-1]+"));")
+        arms.append("        "+pattern+" => {\n"+loop+"\n        }")
+        contract = fixture_contract(profile, operation+":4:2:1024"+(":1024" if profile == "stream" else ""))
+        missing = "0" if contract["missing_mask"] == 0 else ("3" if operation == "reconstruct_data" else "1 | (1 << case.data_shards)")
+        required = "0" if contract["required_mask"] == 0 else ("1" if operation == "reconstruct_some_data_only" else "(1 << case.data_shards)-1" if operation == "reconstruct_data" else "(1 << (case.data_shards+case.parity_shards))-1")
+        descriptor.append(f'        {pattern} => ("{contract["call_entry"]}", "{contract["output_policy"]}", {missing}, {required}),')
+    if profile == "small_file":
+        signature = "prepared: &mut PreparedSmallFile, iterations: usize"
+        bindings = "    let case = prepared.case; let operation = prepared.operation; let rs = &prepared.codec; let original = &mut prepared.source; let scratch = &mut prepared.scratch; let required = &prepared.required;\n"
+        arms.append('        _ => panic!("unsupported small-file release operation"),')
+        descriptor.append('        _ => panic!("unsupported small-file release operation"),')
+        contract_signature = "case: BenchCase, operation: SmallFileOp"
+    else:
+        signature = "prepared: &mut PreparedStream, iterations: usize"
+        bindings = "    let case = prepared.stream_case.case; let operation = prepared.operation; let rs = &prepared.codec; let original = &mut prepared.source; let options = &prepared.options;\n"
+        # The original code already takes &options; the generated parameter is
+        # a reference, so remove this extra borrow explicitly.
+        arms = [arm.replace("&options", "options") for arm in arms]
+        contract_signature = "case: BenchCase, operation: StreamOperation"
+    return "\nfn execute_release_kernel("+signature+") -> std::time::Duration {\n"+bindings+"    let start = Instant::now();\n    match operation {\n"+"\n".join(arms)+"\n    }\n    start.elapsed()\n}\n"+"fn release_contract("+contract_signature+") -> (&'static str, &'static str, u64, u64) {\n    match operation {\n"+"\n".join(descriptor)+"\n    }\n}\n"
+
+
 def render(root):
     rendered = {name: (TEMPLATES / name).read_text() for name in ("engine.rs", "process.rs", "layout.rs", "verify_layout.rs")}
     sources = {"smoke": "benchmark_smoke.rs", "small_file": "benchmark_small_files.rs", "stream": "benchmark_stream_paths.rs"}
@@ -77,6 +180,7 @@ def render(root):
             text = exclude_once_only_setup(text, "fn run_operation" if profile == "small_file" else "fn run_stream_operation", 11 if profile == "small_file" else 3)
         if profile == "stream": text = reserve_stream_outputs(text)
         rendered[profile + ".rs"] = text + "\n" + (TEMPLATES / (profile + ".rs")).read_text()
+        if profile in ("small_file", "stream"): rendered[profile+".rs"] += prepared_kernel(text, profile)
     original = (root / "src/tests/mod.rs").read_text()
     parts = [block(original, name) for name in HOTSPOT_BLOCKS]
     text = '\n'.join(parts)
@@ -148,20 +252,25 @@ def validate_telemetry(record, allowed_cpus=None):
 
 
 def validate_fixture(record, profile, expected_page_size=None):
-    """Known layout-sensitive Vec cases require complete address-free metadata."""
+    """Require the complete retained caller contract; dynamic outputs stay explicit."""
     fixture = record.get("fixture")
-    tracked = profile == "small_file" and record["case"].startswith("verify_with_buffer:")
+    contract = fixture_contract(profile, record["case"])
+    tracked = contract is not None
     if not tracked:
         if fixture is not None: raise ValueError("unexpected fixture layout declaration")
         return
-    if not isinstance(fixture, dict) or set(fixture) != {"entry", "lifetime", "page_size", "source", "scratch"} or fixture.get("entry") != "Vec<Vec<u8>>" or fixture.get("lifetime") != "worker":
-        raise ValueError("buffered verification requires a retained Vec fixture layout")
+    if not isinstance(fixture, dict) or set(fixture) != {"entry", "lifetime", "page_size", "source", "scratch", *contract} or fixture.get("entry") != "Vec<Vec<u8>>" or fixture.get("lifetime") != "worker":
+        raise ValueError("caller storage requires a retained Vec fixture layout")
+    if any(type(fixture.get(key)) is not type(value) or fixture[key] != value for key, value in contract.items()):
+        raise ValueError("API entry or destination allocation contract differs")
     page_size = fixture.get("page_size")
     if not valid_page_size(page_size) or expected_page_size is not None and page_size != expected_page_size:
         raise ValueError("fixture page size differs from the recorded runtime")
-    _, data, parity, size = record["case"].split(":")
+    operation, data, parity, size = record["case"].split(":")[:4]
     data, parity, size = int(data), int(parity), int(size)
-    for role, count in (("source", data + parity), ("scratch", parity)):
+    source_count = data if operation == "encode_stream" else data+parity
+    scratch_count = parity if operation == "verify_with_buffer" else 0
+    for role, count in (("source", source_count), ("scratch", scratch_count)):
         positions = fixture.get(role)
         if not isinstance(positions, list) or len(positions) != count:
             raise ValueError("incomplete fixture buffer layout")
