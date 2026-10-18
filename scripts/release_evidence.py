@@ -400,7 +400,7 @@ def calibration_counts(records, profile, revision):
     for record in records:
         key = record.get("case")
         count = record.get("iterations")
-        if record.get("isolated_case") is not True or record.get("kind") != "calibration" or record.get("revision") != revision or key not in expected_cases(profile) or type(count) is not int or not 0 < count <= 1_000_000_000:
+        if record.get("isolated_case") is not True or record.get("kind") not in ("calibration", "calibration_warmup") or record.get("revision") != revision or key not in expected_cases(profile) or type(count) is not int or not 0 < count <= 1_000_000_000:
             raise ValueError("invalid calibration sample")
         if not isinstance(record.get("rows"), list) or len(record["rows"]) != 1:
             raise ValueError("calibration must contain one raw row")
@@ -411,27 +411,22 @@ def calibration_counts(records, profile, revision):
         groups.setdefault(key, []).append(record)
     if set(groups) != expected_cases(profile): raise ValueError("calibration case catalog is incomplete")
     counts = {}
+    width = sampling.PROTOCOL["warmups"] + sampling.PROTOCOL["samples"]
     for key, group in groups.items():
-        if not 1 <= len(group) <= sampling.PROTOCOL["max_calibration_records"] or group[0]["iterations"] != 1:
-            raise ValueError("invalid bounded calibration sequence")
-        confirmations = 0
-        for index, record in enumerate(group):
-            if index:
-                previous = group[index-1]
-                expected = previous["iterations"]
-                if not previous["target_met"]:
-                    desired = max(sampling.PROTOCOL["target_wall_ns"]/previous["wall_ns"], sampling.PROTOCOL["target_timed_ns"]/previous["timed_ns"])*1.25
-                    expected *= math.ceil(min(64, max(2, desired)))
-                if record["iterations"] != expected: raise ValueError("calibration did not follow bounded confirmation/growth")
-            met = record["wall_ns"] >= sampling.PROTOCOL["target_wall_ns"] and record["timed_ns"] >= sampling.PROTOCOL["target_timed_ns"]
-            if record.get("target_met") is not met: raise ValueError("calibration target flag differs from measured intervals")
-            confirmations = confirmations+1 if met else 0
-            complete = confirmations >= sampling.PROTOCOL["calibration_confirmations"]
-            if record.get("complete") is not complete or (complete and index != len(group)-1):
-                raise ValueError("calibration lacks consecutive steady confirmations")
-        last = group[-1]
-        if last.get("complete") is not True: raise ValueError("calibration is incomplete")
-        counts[key] = last["iterations"]
+        if not 1 <= len(group) <= sampling.PROTOCOL["max_calibration_records"] or len(group) % width:
+            raise ValueError("calibration rehearsal is incomplete or exceeds its budget")
+        count = 1
+        for offset in range(0, len(group), width):
+            following = sampling.calibration_batch(group[offset:offset+width], count, offset//width+1)
+            if following is None:
+                if offset+width != len(group):
+                    raise ValueError("extra calibration records after a complete rehearsal")
+                counts[key] = count
+            else:
+                count = following
+        if key not in counts:
+            raise ValueError("calibration rehearsal is incomplete")
+
     return counts
 
 

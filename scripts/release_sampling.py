@@ -5,7 +5,7 @@ import math
 import pathlib
 import re
 
-PROTOCOL = {"name": "shared-external-duration-sampler", "version": 3, "samples": 9, "warmups": 3, "case_isolation": "fresh-process", "case_order": "lexicographic", "calibration_confirmations": 2, "max_calibration_records": 12,
+PROTOCOL = {"name": "shared-external-duration-sampler", "version": 4, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
             "target_wall_ns": 100_000_000, "target_timed_ns": 5_000_000,
             "minimum_wall_ns": 50_000_000, "minimum_timed_ns": 2_000_000,
             "central_spread_limit": .10,
@@ -127,27 +127,65 @@ def validate_timing(record, profile, count):
     if abs(expected_timed - record["timed_ns"]) > tolerance:
         raise ValueError("timed interval differs from the raw exported measurement")
 
+def calibration_batch(records, count, batch):
+    """Replay one complete worker schedule; return the next count, or None."""
+    width = PROTOCOL["warmups"] + PROTOCOL["samples"]
+    if type(count) is not int or not 1 <= count <= 1_000_000_000 or type(batch) is not int or not 1 <= batch <= PROTOCOL["max_calibration_batches"] or len(records) != width:
+        raise ValueError("invalid bounded calibration batch")
+    for index, record in enumerate(records):
+        kind = "calibration_warmup" if index < PROTOCOL["warmups"] else "calibration"
+        if record.get("kind") != kind or any(type(record.get(field)) is not int for field in ("index", "iterations", "calibration_batch")) or record.get("index") != index or record.get("iterations") != count or record.get("calibration_batch") != batch or record.get("isolated_case") is not True:
+            raise ValueError("calibration requires the complete fixed warmup and rehearsal schedule")
+        for field in ("wall_ns", "timed_ns"):
+            value = record.get(field)
+            if type(value) not in (int, float) or not math.isfinite(value) or value <= 0:
+                raise ValueError("invalid calibration interval")
+        met = record["wall_ns"] >= PROTOCOL["target_wall_ns"] and record["timed_ns"] >= PROTOCOL["target_timed_ns"]
+        if record.get("target_met") is not met:
+            raise ValueError("calibration target flag differs from measured intervals")
+    probes = records[PROTOCOL["warmups"]:]
+    complete = all(r["target_met"] for r in probes)
+    if any(r.get("complete") is not (complete and index == width-1) for index, r in enumerate(records)):
+        raise ValueError("calibration lacks the complete measurement rehearsal")
+    if complete:
+        return None
+    desired = max(max(PROTOCOL["target_wall_ns"]/r["wall_ns"], PROTOCOL["target_timed_ns"]/r["timed_ns"]) for r in probes)*1.25
+    following = count * math.ceil(min(64, max(2, desired)))
+    if following > 1_000_000_000:
+        raise ValueError("calibration iteration budget exceeded")
+    return following
+
+
 def run_profile(root, environment, profile, mode, log_path, counts_file=None, *, cases):
     import subprocess
     ordered = sorted(cases)
-    if not ordered or len(ordered) != len(set(ordered)):
-        raise ValueError("a nonempty unique case catalog is required")
+    if mode not in ("calibrate", "sample") or not ordered or len(ordered) != len(set(ordered)):
+        raise ValueError("a valid mode and nonempty unique case catalog are required")
     env = dict(environment, RSE_SAMPLER_PROFILE=profile, RSE_SAMPLER_MODE=mode)
     if counts_file is not None: env["RSE_SAMPLER_COUNTS"] = str(counts_file)
     command = ["cargo", "test", "--locked", "--release", "--features", "std simd-accel", "--test", "rse_release_sampling", "release_controlled_profile", "--", "--exact", "--ignored", "--nocapture", "--test-threads=1"]
     records = []
     with log_path.open("w") as log:
         for case in ordered:
-            # A new test process owns exactly one workload. No previous case can
-            # seed its allocator arenas or worker pool. All observations remain.
-            offset = log.tell()
-            subprocess.run(command, cwd=root, env=dict(env, RSE_SAMPLER_CASE=case), stdout=log, stderr=subprocess.STDOUT, check=True)
-            with log_path.open() as reader:
-                reader.seek(offset)
-                current = parse_output(reader.read())
-            if not current or any(r.get("case") != case or r.get("isolated_case") is not True for r in current):
-                raise ValueError("case process did not emit exactly its selected workload")
-            records.extend(current)
+            count, batch = 1, 1
+            while True:
+                worker = dict(env, RSE_SAMPLER_CASE=case)
+                if mode == "calibrate":
+                    worker.update(RSE_SAMPLER_INITIAL_COUNT=str(count), RSE_SAMPLER_BATCH=str(batch))
+                offset = log.tell()
+                subprocess.run(command, cwd=root, env=worker, stdout=log, stderr=subprocess.STDOUT, check=True)
+                with log_path.open() as reader:
+                    reader.seek(offset)
+                    current = parse_output(reader.read())
+                if not current or any(r.get("case") != case or r.get("isolated_case") is not True for r in current):
+                    raise ValueError("case process did not emit exactly its selected workload")
+                records.extend(current)
+                if mode != "calibrate": break
+                following = calibration_batch(current, count, batch)
+                if following is None: break
+                count, batch = following, batch+1
+                if batch > PROTOCOL["max_calibration_batches"]:
+                    raise ValueError("calibration batch budget exceeded; observations preserved")
     return records
 
 
@@ -164,7 +202,7 @@ def sample_groups(records, profile, revision, expected, counts, normalize, allow
             raise ValueError("every fixed warmup and sample is required")
         for record in group:
             validate_telemetry(record, allowed_cpus)
-            if record.get("isolated_case") is not True or record.get("iterations") != counts[case] or not isinstance(record.get("rows"), list) or len(record["rows"]) != 1:
+            if any(type(record.get(field)) is not int for field in ("index", "iterations", "calibration_batch")) or record.get("calibration_batch") != 0 or record.get("isolated_case") is not True or record.get("iterations") != counts[case] or not isinstance(record.get("rows"), list) or len(record["rows"]) != 1:
                 raise ValueError("sample count/iterations mismatch")
             row = record["rows"][0]
             if normalize(profile, row, revision) != case:

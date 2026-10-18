@@ -45,16 +45,21 @@ These must be present and identical in every phase and the final context. An
 allocator policy change requires a new complete campaign and calibration.
 
 Every case is calibrated on both releases before A1. Calibration targets at least
-100 ms wall time and 5 ms timed work, with bounded increasing iterations. Two consecutive probes at the same count
-must meet both targets before calibration is frozen; a warm shortfall increases
-the count and resets confirmation. This prevents a single cold probe from
-selecting an insufficient steady-state interval. Allocation state may still change
+100 ms wall time and 5 ms timed work, with bounded increasing iterations. For each
+proposed count, calibration retains the same three warmups and nine probes used
+for measurement. All nine probes must meet both duration targets before the
+count is frozen. Any short probe increases the count and restarts the full warmup
+schedule. Calibration is bounded to 12 batches / 144 records per case, and every
+observation is retained. The Python controller chooses counts; the Rust worker
+executes one fixed schedule, with no adaptive loop or inherited previous-count
+heap/worker state. This avoids freezing a count from cold probes that
+precede the actual measurement warmup schedule. Allocation state may still change
 between separate invocations; every formal sample must pass its own interval
 check. The larger
 iteration count for each case is frozen for **both releases and every phase**.
-Each calibration and measurement case runs in a fresh test process, in a fixed
+Each proposed calibration count and each measurement case runs in a fresh test process, in a fixed
 lexicographic case order. This prevents another case from seeding its allocator
-arenas or worker-pool state. Protocol 3 records `isolated_case=true` on every
+arenas or worker-pool state. Protocol 4 records `isolated_case=true` on every
 observation; missing/false markers are rejected. Every phase performs exactly
 three warmup invocations at the frozen count, then collects exactly nine samples.
 All three warmups are retained, and none of the nine samples can be replaced or
@@ -215,5 +220,11 @@ rejected unstable distributions on main `8f775a2`, and skipped release-preflight
 and publication. The input's complete validator file set was reviewed for
 credentials, internal addresses and private paths; ancillary SSH/launcher logs
 remain private. Do not configure this rejected commit as accepted evidence.
-Protocol 3 requires new complete calibration and capture on both releases;
+Protocol 4 requires new complete calibration and capture on both releases;
 previous timing distributions cannot establish its acceptance.
+
+A complete protocol-3 baseline diagnostic was also rejected: 101 short samples,
+21 unstable distributions across two phases, and 12/126 repeat drifts above 5%.
+Its raw traces exposed the missing warmup rehearsal in calibration. Protocol 4
+repairs that contract; its implementation and unit tests are not performance
+acceptance, and the earlier rejected observations are not discarded.

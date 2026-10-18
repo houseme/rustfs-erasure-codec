@@ -51,8 +51,9 @@ profiles, source/context/digest checks, both-side drift and existing regression
 thresholds must pass. Only an accepted data snapshot may be configured as the
 immutable `RSE_RELEASE_EVIDENCE_REF`. Rejected snapshots may be published for
 audit and explicit negative checks, without promoting them to accepted inputs.
-Protocol 3 isolates every case in a fresh process and retains three fixed warmups
-plus all nine samples; collect a new complete campaign for this protocol. Missing inputs must fail; no extended-profile
+Protocol 4 isolates every case in a fresh process and retains three fixed warmups
+plus all nine samples. Calibration rehearses that identical schedule before
+freezing a count; collect a new complete campaign for this protocol. Missing inputs must fail; no extended-profile
 downgrade or partial-case release override is allowed. Run the manual strict
 preflight before tagging; ordinary branch/PR CI is not evidence it passed.
 

@@ -60,7 +60,8 @@ class SamplingContractTests(unittest.TestCase):
                    lambda r:r[first].update(index=2),lambda r:r[first].update(wall_ns=1),
                    lambda r:r[first].update(timed_ns=1),lambda r:r[first].update(iterations=2),
                    lambda r:r[first]['after'].update(cpu=20),lambda r:r[first]['after'].update(run_ns=-1),
-                   lambda r:r[first].update(isolated_case=False)]
+                   lambda r:r[first].update(isolated_case=False),lambda r:r[first].update(calibration_batch=False),
+                   lambda r:r[1].update(index=True)]
         for change in mutations:
             self.doc=copy.deepcopy(original);updated=copy.deepcopy(records);change(updated)
             self.doc['files'][phase][profile]['samples']=self.write(phase,profile,updated)
@@ -82,24 +83,43 @@ class SamplingContractTests(unittest.TestCase):
         self.mutate(change)
         with self.assertRaisesRegex(ValueError,'distributions'):self.verify()
 
-    def test_a_single_cold_completion_does_not_freeze_calibration(self):
+    def test_incomplete_rehearsal_does_not_freeze_calibration(self):
         path=self.root/self.doc['calibration']['baseline']['smoke']['path']
         records=json.loads(path.read_text())
-        records.pop(0)
-        with self.assertRaisesRegex(ValueError,'confirmations'):
+        records.pop(sampling.PROTOCOL['warmups']+sampling.PROTOCOL['samples']-1)
+        with self.assertRaisesRegex(ValueError,'incomplete'):
             evidence.calibration_counts(records,'smoke',self.sources_commit('baseline'))
 
-    def test_cold_success_followed_by_warm_shortfall_grows_then_confirms(self):
+    def test_late_short_probe_grows_a_fresh_complete_rehearsal(self):
         path=self.root/self.doc['calibration']['baseline']['smoke']['path']
         records=json.loads(path.read_text());first=records[0];case=first['case']
         replacement=[]
-        for count,ns,wall,met,complete in ((1,102000000,106000000,True,False),(1,42000000,42000000,False,False),(3,42000000,126000000,True,False),(3,42000000,126000000,True,True)):
-            row=copy.deepcopy(first);row.update(iterations=count,timed_ns=ns*count,wall_ns=wall,target_met=met,complete=complete)
-            row['rows'][0].update(iterations=count,ns_per_iter=ns)
-            replacement.append(row)
+        width=sampling.PROTOCOL['warmups']+sampling.PROTOCOL['samples']
+        for batch,count in ((1,1),(2,3)):
+            for index in range(width):
+                row=copy.deepcopy(first)
+                warming=index<sampling.PROTOCOL['warmups']
+                ns=102000000 if batch==1 else 42000000
+                wall=106000000 if batch==1 else 126000000
+                if batch==1 and index==width-1:ns=42000000;wall=42000000
+                row.update(index=index,kind='calibration_warmup' if warming else 'calibration',iterations=count,calibration_batch=batch,timed_ns=ns*count,wall_ns=wall,target_met=wall>=sampling.PROTOCOL['target_wall_ns'] and ns*count>=sampling.PROTOCOL['target_timed_ns'],complete=batch==2 and index==width-1)
+                row['rows'][0].update(iterations=count,ns_per_iter=ns)
+                replacement.append(row)
         records=replacement+[r for r in records if r['case']!=case]
         counts=evidence.calibration_counts(records,'smoke',self.sources_commit('baseline'))
         self.assertEqual(counts[case],3)
+
+    def test_calibration_must_warm_before_rehearsal_and_finish_every_probe(self):
+        path=self.root/self.doc['calibration']['baseline']['smoke']['path']
+        records=json.loads(path.read_text())
+        early=copy.deepcopy(records);early[0]['kind']='calibration'
+        with self.assertRaisesRegex(ValueError,'warmup'):
+            evidence.calibration_counts(early,'smoke',self.sources_commit('baseline'))
+        late=copy.deepcopy(records)
+        last=sampling.PROTOCOL['warmups']+sampling.PROTOCOL['samples']-1
+        late[last].update(wall_ns=40000000,target_met=False)
+        with self.assertRaisesRegex(ValueError,'rehearsal'):
+            evidence.calibration_counts(late,'smoke',self.sources_commit('baseline'))
 
     def sources_commit(self,role):
         return self.doc['sources'][role]['commit']
@@ -124,6 +144,38 @@ class SamplingContractTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError,'selected workload'):
                     sampling.run_profile(self.root,{},'smoke','sample',path,cases={'a'})
 
+    def test_calibration_controller_uses_a_new_worker_for_each_proposed_count(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=pathlib.Path(directory)/'calibration.log';observed=[]
+            def emit(command, **kwargs):
+                count=int(kwargs['env']['RSE_SAMPLER_INITIAL_COUNT']);batch=int(kwargs['env']['RSE_SAMPLER_BATCH'])
+                observed.append((count,batch))
+                width=sampling.PROTOCOL['warmups']+sampling.PROTOCOL['samples']
+                for index in range(width):
+                    warming=index<sampling.PROTOCOL['warmups'];met=not(batch==1 and index==width-1)
+                    row={'case':'a','isolated_case':True,'kind':'calibration_warmup' if warming else 'calibration','iterations':count,'calibration_batch':batch,'index':index,'wall_ns':120000000 if met else 42000000,'timed_ns':10000000,'target_met':met,'complete':batch==2 and index==width-1}
+                    kwargs['stdout'].write('RSE_SAMPLE '+json.dumps(row)+'\n')
+                kwargs['stdout'].flush()
+            with mock.patch('subprocess.run',side_effect=emit):
+                rows=sampling.run_profile(self.root,{},'smoke','calibrate',path,cases={'a'})
+            self.assertEqual(observed,[(1,1),(3,2)])
+            self.assertEqual(len(rows),2*(sampling.PROTOCOL['warmups']+sampling.PROTOCOL['samples']))
+
+    def test_calibration_budget_failure_preserves_every_observation(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path=pathlib.Path(directory)/'failed.log'
+            def emit(command, **kwargs):
+                count=int(kwargs['env']['RSE_SAMPLER_INITIAL_COUNT']);batch=int(kwargs['env']['RSE_SAMPLER_BATCH'])
+                for index in range(sampling.PROTOCOL['warmups']+sampling.PROTOCOL['samples']):
+                    row={'case':'a','isolated_case':True,'kind':'calibration_warmup' if index<sampling.PROTOCOL['warmups'] else 'calibration','iterations':count,'calibration_batch':batch,'index':index,'wall_ns':40000000,'timed_ns':10000000,'target_met':False,'complete':False}
+                    kwargs['stdout'].write('RSE_SAMPLE '+json.dumps(row)+'\n')
+                kwargs['stdout'].flush()
+            with mock.patch('subprocess.run',side_effect=emit) as workers:
+                with self.assertRaisesRegex(ValueError,'batch budget'):
+                    sampling.run_profile(self.root,{},'smoke','calibrate',path,cases={'a'})
+            self.assertEqual(workers.call_count,sampling.PROTOCOL['max_calibration_batches'])
+            self.assertEqual(len(sampling.parse_log(path)),sampling.PROTOCOL['max_calibration_records'])
+
     def test_missing_fixed_warmup_cannot_be_replaced_by_a_sample(self):
         self.mutate(lambda records: records[0].update(kind='sample'))
         with self.assertRaisesRegex(ValueError,'warmup'):
@@ -137,7 +189,7 @@ class SamplingContractTests(unittest.TestCase):
 
     def test_calibration_and_protocol_cannot_be_changed(self):
         original=copy.deepcopy(self.doc)
-        for field in ('samples','warmups','case_isolation','case_order','target_timed_ns','central_spread_limit','implementation_sha256','overlay_sha256'):
+        for field in ('samples','warmups','case_isolation','case_order','max_calibration_batches','target_timed_ns','central_spread_limit','implementation_sha256','overlay_sha256'):
             self.doc=copy.deepcopy(original);self.doc['sampling'][field]='invalid'
             with self.assertRaises(ValueError):self.verify()
         self.doc=copy.deepcopy(original)
