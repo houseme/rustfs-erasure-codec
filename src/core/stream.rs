@@ -400,6 +400,30 @@ fn read_present_streams_with_mode<R: std::io::Read + Send>(
     Ok((actual_len == 0, actual_len))
 }
 
+// Legacy in-memory recovery knows the complete output length. Reserve lazily
+// on the first validated write so invalid layouts, lengths or decode plans do
+// not allocate full-shard outputs, and generic writers retain bounded scratch.
+struct RecoveryVecWriter<'a> {
+    bytes: &'a mut Vec<u8>,
+    reserve_len: usize,
+}
+
+impl std::io::Write for RecoveryVecWriter<'_> {
+    fn write(&mut self, buffer: &[u8]) -> std::io::Result<usize> {
+        // Each legacy missing shard starts empty; no bytes are initialized by
+        // reserve_exact, and subsequent blocks reuse the same allocation.
+        if self.reserve_len != 0 {
+            self.bytes
+                .reserve_exact(core::mem::take(&mut self.reserve_len));
+        }
+        std::io::Write::write(self.bytes, buffer)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        std::io::Write::flush(self.bytes)
+    }
+}
+
 fn write_missing_streams_with_mode<W: std::io::Write + Send>(
     writers: &mut [Option<W>],
     buffers: &[Vec<u8>],
@@ -827,10 +851,19 @@ impl super::ReedSolomon<crate::galois_8::Field> {
             return Err(StreamError::codec(0, crate::Error::UnsupportedCodecFamily));
         }
 
-        let present_count = shards
-            .iter()
-            .filter(|shard| !shard.get_ref().is_empty())
-            .count();
+        let mut present_count = 0;
+        let mut known_len = 0;
+        let mut equal_lengths = true;
+        for shard in shards.iter() {
+            let len = shard.get_ref().len();
+            if len != 0 {
+                present_count += 1;
+                if known_len == 0 {
+                    known_len = len;
+                }
+                equal_lengths &= known_len == len;
+            }
+        }
         // An empty dataset (no present shards) has nothing to recover; return Ok,
         // consistent with encode_stream returning Ok for empty input (rather than
         // TooFewShardsPresent).
@@ -841,15 +874,22 @@ impl super::ReedSolomon<crate::galois_8::Field> {
             return Err(StreamError::codec(0, crate::Error::TooFewShardsPresent));
         }
 
+        // An inconsistent layout must keep its existing block-by-block error
+        // and partial-output behavior, so it receives no capacity hint.
+        let output_len = if equal_lengths { known_len } else { 0 };
         let mut readers: SmallVec<[Option<&mut std::io::Cursor<Vec<u8>>>; 32]> =
             SmallVec::with_capacity(total);
-        let mut writers: SmallVec<[Option<&mut Vec<u8>>; 32]> = SmallVec::with_capacity(total);
+        let mut writers: SmallVec<[Option<RecoveryVecWriter<'_>>; 32]> =
+            SmallVec::with_capacity(total);
         for shard in shards {
             // Each cursor contributes only one mutable reference. Writing via
             // the underlying Vec preserves the legacy missing-cursor position.
             if shard.get_ref().is_empty() {
                 readers.push(None);
-                writers.push(Some(shard.get_mut()));
+                writers.push(Some(RecoveryVecWriter {
+                    bytes: shard.get_mut(),
+                    reserve_len: output_len,
+                }));
             } else {
                 shard.set_position(0);
                 readers.push(Some(shard));
