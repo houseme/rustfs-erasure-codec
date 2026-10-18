@@ -212,6 +212,10 @@ fn stream_plan_rejects_singular_survivor_matrix_before_recovered_output() {
     let expected = encoded(&codec, BLOCK_SIZE * 2 + 37);
     for mode in [StreamIoMode::Serial, StreamIoMode::Parallel] {
         let mut shards = cursors(&expected, (1 << 0) | (1 << 1));
+        // A failed decode plan must not preallocate complete missing outputs.
+        for shard in &mut shards[..2] {
+            *shard = Cursor::new(Vec::new());
+        }
         let err = codec
             .reconstruct_stream(&mut shards, &options(mode))
             .unwrap_err();
@@ -219,7 +223,11 @@ fn stream_plan_rejects_singular_survivor_matrix_before_recovered_output() {
             err.kind,
             StreamErrorKind::Codec(Error::InvalidCustomMatrix)
         ));
-        assert!(shards[..2].iter().all(|shard| shard.get_ref().is_empty()));
+        assert!(
+            shards[..2]
+                .iter()
+                .all(|shard| { shard.get_ref().is_empty() && shard.get_ref().capacity() == 0 })
+        );
         assert!(
             shards[2..]
                 .iter()

@@ -17,6 +17,7 @@ thread_local! {
     static COUNT_ALLOCATIONS: Cell<bool> = const { Cell::new(false) };
     static BLOCK_ALLOCATIONS: Cell<usize> = const { Cell::new(0) };
     static HEAP_REQUESTS: Cell<usize> = const { Cell::new(0) };
+    static LARGE_REALLOCATIONS: Cell<usize> = const { Cell::new(0) };
 }
 
 struct CountingAllocator;
@@ -54,6 +55,11 @@ unsafe impl GlobalAlloc for CountingAllocator {
 
     unsafe fn realloc(&self, ptr: *mut u8, layout: Layout, new_size: usize) -> *mut u8 {
         record_allocation(new_size);
+        let _ = COUNT_ALLOCATIONS.try_with(|enabled| {
+            if enabled.get() && new_size >= BLOCK_SIZE * 2 {
+                let _ = LARGE_REALLOCATIONS.try_with(|count| count.set(count.get() + 1));
+            }
+        });
         // SAFETY: The caller supplies a live allocation and valid new size.
         unsafe { System.realloc(ptr, layout, new_size) }
     }
@@ -72,6 +78,7 @@ fn count_allocations(operation: impl FnOnce()) -> (usize, usize) {
 
     BLOCK_ALLOCATIONS.with(|count| count.set(0));
     HEAP_REQUESTS.with(|count| count.set(0));
+    LARGE_REALLOCATIONS.with(|count| count.set(0));
     COUNT_ALLOCATIONS.with(|enabled| enabled.set(true));
     let guard = StopCounting;
     operation();
@@ -201,6 +208,87 @@ fn streaming_reconstruct_reuses_missing_buffers_across_blocks_and_tail() {
                     len as u64
                 };
                 assert_eq!(shard.position(), position);
+            }
+        }
+    }
+}
+
+#[test]
+fn cursor_recovery_avoids_repeated_output_growth() {
+    let codec = ReedSolomon::new(4, 2).unwrap();
+    let opts = options(StreamIoMode::Serial);
+    for len in [BLOCK_SIZE + 37, BLOCK_SIZE * 17 + 37] {
+        let expected = encoded_shards(&codec, len);
+        for missing in [[0, 4], [4, 5]] {
+            for initial_capacity in [0, BLOCK_SIZE, len] {
+                let mut shards: Vec<_> = expected
+                    .iter()
+                    .enumerate()
+                    .map(|(index, data)| {
+                        let mut cursor = Cursor::new(if missing.contains(&index) {
+                            Vec::with_capacity(initial_capacity)
+                        } else {
+                            data.clone()
+                        });
+                        cursor.set_position(17);
+                        cursor
+                    })
+                    .collect();
+                count_allocations(|| codec.reconstruct_stream(&mut shards, &opts).unwrap());
+                let growth = LARGE_REALLOCATIONS.with(Cell::get);
+                let budget = if initial_capacity > 0 && initial_capacity < len {
+                    missing.len()
+                } else {
+                    0
+                };
+                assert!(
+                    growth <= budget,
+                    "len={len}, missing={missing:?}, capacity={initial_capacity}: {growth} growing requests exceed {budget}"
+                );
+                for (index, shard) in shards.iter().enumerate() {
+                    assert_eq!(shard.get_ref(), &expected[index]);
+                    assert_eq!(
+                        shard.position(),
+                        if missing.contains(&index) {
+                            17
+                        } else {
+                            len as u64
+                        }
+                    );
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn cursor_recovery_keeps_length_errors_and_partial_outputs() {
+    let codec = ReedSolomon::new(4, 2).unwrap();
+    let len = BLOCK_SIZE * 3 + 37;
+    let expected = encoded_shards(&codec, len);
+    for mode in [StreamIoMode::Serial, StreamIoMode::Parallel] {
+        for short_len in [31, len - 1] {
+            let mut shards: Vec<_> = expected.iter().cloned().map(Cursor::new).collect();
+            for index in [0, 4] {
+                shards[index] = Cursor::new(Vec::new());
+                shards[index].set_position(17);
+            }
+            shards[1].get_mut().truncate(short_len);
+            let error = codec
+                .reconstruct_stream(&mut shards, &options(mode))
+                .unwrap_err();
+            assert_eq!(error.shard_index, 1);
+            assert!(matches!(
+                error.kind,
+                StreamErrorKind::Codec(Error::IncorrectShardSize)
+            ));
+            let published = short_len / BLOCK_SIZE * BLOCK_SIZE;
+            for index in [0, 4] {
+                assert_eq!(shards[index].get_ref(), &expected[index][..published]);
+                assert_eq!(shards[index].position(), 17);
+                if published == 0 {
+                    assert_eq!(shards[index].get_ref().capacity(), 0);
+                }
             }
         }
     }
