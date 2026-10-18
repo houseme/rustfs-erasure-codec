@@ -69,3 +69,11 @@ its native allocation regression and fresh baseline controls are tracked under
 samples meet minimum duration, but three distributions fail the 10% quality gate.
 The predeclared stop prevents A2 and candidate attribution. This remains rejected
 release data, with all raw records and resource restoration preserved.
+
+## Protocol-9 complete retained caller inventory
+
+`diagnostics/protocol9-caller-inventory` retains all 103 small-file/stream caller
+cases in all four structural phases, 4,944 observations and 618 matching layout
+comparisons, plus native checks and exact controller sources. Dynamic destinations
+remain explicitly untracked. This one-iteration inventory cannot approve release
+performance or close the remaining #2897 conditions. Fresh full controls are separate.

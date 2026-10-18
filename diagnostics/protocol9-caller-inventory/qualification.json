@@ -1,0 +1,24 @@
+{
+  "source": {
+    "commit": "00b6560a18490b12ca211475532e4df6ac9bb157",
+    "tree": "697adf7f9339b06f0781f489eb7fbe8f7b216e72",
+    "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+  },
+  "checks": {
+    "check_sampler_telemetry.py": {
+      "passed": 6,
+      "scope": "per executable; includes shared unit tests; do not sum as unique tests"
+    },
+    "release_sampling.py": {
+      "passed": 9,
+      "scope": "per executable; includes shared unit tests; do not sum as unique tests"
+    },
+    "diagnose_shard_slot.py": {
+      "passed": 2,
+      "scope": "per executable; includes shared unit tests; do not sum as unique tests"
+    }
+  },
+  "controller_sha256": "cdf1fbc99b9becb9b2fde0e105ec751ccb2600bf11bdb060f84a73927d2c9661",
+  "release_approval": false,
+  "candidate_attribution": null
+}
