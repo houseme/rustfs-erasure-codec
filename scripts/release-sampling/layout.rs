@@ -16,15 +16,18 @@ pub(super) struct Fixture {
     positions: [Position; MAX_BUFFERS],
     source_count: usize,
     scratch_count: usize,
+    page_size: usize,
 }
 
 impl Fixture {
-    pub(super) fn vec_buffers(source: &[Vec<u8>], scratch: &[Vec<u8>]) -> Self {
+    pub(super) fn vec_buffers(source: &[Vec<u8>], scratch: &[Vec<u8>], page_size: usize) -> Self {
+        assert!(page_size.is_power_of_two() && (1024..=1048576).contains(&page_size));
         assert!(source.len() + scratch.len() <= MAX_BUFFERS);
         let mut fixture = Self {
             positions: [Position::default(); MAX_BUFFERS],
             source_count: source.len(),
             scratch_count: scratch.len(),
+            page_size,
         };
         for (position, buffer) in fixture
             .positions
@@ -50,7 +53,11 @@ impl fmt::Debug for Fixture {
 
 impl fmt::Display for Fixture {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("{\"entry\":\"Vec<Vec<u8>>\",\"lifetime\":\"worker\",\"source\":[")?;
+        write!(
+            f,
+            "{{\"entry\":\"Vec<Vec<u8>>\",\"lifetime\":\"worker\",\"page_size\":{},\"source\":[",
+            self.page_size
+        )?;
         let mut positions = self.positions.iter();
         for (name, count) in [
             ("source", self.source_count),
@@ -66,11 +73,12 @@ impl fmt::Display for Fixture {
                 let p = positions.next().unwrap();
                 write!(
                     f,
-                    "{{\"len\":{},\"capacity\":{},\"offset_64\":{},\"offset_4096\":{}}}",
+                    "{{\"len\":{},\"capacity\":{},\"offset_64\":{},\"offset_4096\":{},\"offset_page\":{}}}",
                     p.len,
                     p.capacity,
                     p.address % 64,
-                    p.address % 4096
+                    p.address % 4096,
+                    p.address % self.page_size
                 )?;
             }
         }
@@ -98,11 +106,11 @@ mod tests {
     fn retained_vec_metadata_records_shape_and_detects_growth() {
         let source = vec![vec![1; 1024]; 6];
         let mut scratch = vec![vec![0; 1024]; 2];
-        let original = Fixture::vec_buffers(&source, &scratch);
+        let original = Fixture::vec_buffers(&source, &scratch, 4096);
         scratch[0].fill(9);
-        assert_eq!(Fixture::vec_buffers(&source, &scratch), original);
+        assert_eq!(Fixture::vec_buffers(&source, &scratch, 4096), original);
         scratch[0].reserve_exact(4096);
-        assert_ne!(Fixture::vec_buffers(&source, &scratch), original);
+        assert_ne!(Fixture::vec_buffers(&source, &scratch, 4096), original);
         let json = original.to_string();
         assert!(json.contains("\"entry\":\"Vec<Vec<u8>>\""));
         assert!(json.contains("\"offset_4096\":"));

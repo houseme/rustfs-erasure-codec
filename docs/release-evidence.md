@@ -39,7 +39,7 @@ original per-iteration workload; hotspots keep their original inner recovery
 intervals. Timing scopes are recorded, so the older cohort is not quantitatively
 comparable to these new summaries. The candidate tree binds the committed renderer/templates. Both use
 locked release builds, `std simd-accel`, no instrumentation, four Rayon workers,
-a four-job policy and empty RUSTFLAGS. The context also binds libc name/version
+a four-job policy and empty RUSTFLAGS. The context also binds libc name/version, the OS base page size,
 and all inherited `MALLOC_*`, `GLIBC_TUNABLES` and `LD_*` allocator/loader controls.
 These must be present and identical in every phase and the final context. An
 allocator policy change requires a new complete campaign and calibration.
@@ -60,7 +60,7 @@ check. The larger
 iteration count for each case is frozen for **both releases and every phase**.
 Each proposed calibration count and each measurement case runs in a fresh test process, in a fixed
 lexicographic case order. This prevents another case from seeding its allocator
-arenas or worker-pool state. Protocol 5 records `isolated_case=true` on every
+arenas or worker-pool state. Protocol 6 records `isolated_case=true` on every
 observation; missing/false markers are rejected. Every phase performs exactly
 three warmup invocations at the frozen count, then collects exactly nine samples.
 Basic scheduling snapshots retain numeric counters instead of formatted heap
@@ -68,17 +68,44 @@ strings. Extended process observation remains diagnostic-only and may affect
 allocation state; release qualification uses basic telemetry.
 The `small_file:verify_with_buffer` cases retain their original `Vec<Vec<u8>>`
 source and scratch for the complete worker, rather than reconstructing them before
-an observation. Preparation and pointer/shape checks stay outside the inner timed
+an observation. All caller buffers are allocated before constructing the codec or
+pre-encoding; setup must preserve their full pointer identities. This prevents
+version-dependent setup allocations from being interleaved with caller-buffer creation. Preparation and pointer/shape checks stay outside the inner timed
 loop; the loop checks the returned codeword validity. Fixed-capacity metadata
 storage adds no observer allocation. The worker checks full pointer identity
 privately; every timing journal and exported sample records only lengths,
-capacities and offsets modulo 64 and 4096. The latter is a fixed offset modulus,
-not a claim about the OS page size. The verifier requires a stable Vec layout
+capacities and offsets modulo 64, 4096 and the recorded OS base page size.
+The controller reads the base page size through `sysconf`, passes the same scalar
+to every worker, and binds it into runtime provenance. The verifier rejects a
+missing/invalid size, inconsistent page offsets, or a fixture size differing from
+the recorded runtime. The fixed 4096 modulus remains separately named; base page
+size does not assert physical or huge-page placement. The verifier requires a stable Vec layout
 throughout each warmup/rehearsal/sample worker and an identical layout between
 final calibration and all four ABBA phases. Different layouts fail closed; they
 are never pooled or silently replaced by slice views. No allocator is replaced
 or address forced. Other operations retain their existing dynamic allocation
 contracts and do not acquire a layout guarantee from this scoped change.
+
+A structural inventory checks every one of the 11 buffered-verification cases
+in A1/B1/B2/A2 order against both sources before committing time to performance
+capture:
+
+```bash
+python3 candidate/scripts/diagnose_fixture_layout.py \
+  --tool /test/candidate --baseline /test/baseline --candidate /test/candidate \
+  --output /test/new-fixture-inventory \
+  --isolation-cgroup /sys/fs/cgroup/reserved-release
+```
+
+It compares same-version and cross-version layouts, including capacity and base
+page metadata. Its one-iteration workers retain the full warmup/sample schedule
+for structural inspection only; they do not meet release-duration qualification.
+Every mismatch is retained and the report always has `release_approval=false` and
+no candidate performance attribution. Both sources must remain clean and use the
+same external harness. A failed or interrupted worker preserves its completed
+sample/timing journals and the controller removes only its generated inputs.
+The inventory is a separate diagnostic schema and cannot replace calibration or
+any of the original full release cases.
 
 An independent diagnostic covers every combination of source/scratch offsets
 `0/16/32/48`, for 1KiB and 4KiB, in forward and reverse order with the same backing
@@ -99,7 +126,7 @@ release cases. Neither this diagnostic nor the scoped Vec fixture change
 completes [the remaining layout acceptance task](https://github.com/rustfs/backlog/issues/2897):
 other dynamic paths still need comparable layout/lifetime evidence, followed by
 a fresh complete 9.0.0/candidate ABBA and positive strict preflight. Historical
-protocol-2/3/4 failures remain rejected and available for audit.
+protocol-2/3/4 failures and the later unstable protocol-5 grid remain rejected and available for audit.
 
 The original Git queries and JSON/CSV exporters run after the entire fixed kernel,
 so their allocations, output-file writes and child processes do not seed the

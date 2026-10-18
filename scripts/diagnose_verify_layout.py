@@ -18,17 +18,7 @@ PREFIX = "RSE_LAYOUT_SAMPLE "
 
 
 def parse_output(output):
-    records = []
-    lines = output.splitlines(keepends=True)
-    for index, line in enumerate(lines):
-        if not line.startswith(PREFIX): continue
-        try:
-            records.append(json.loads(line.removeprefix(PREFIX)))
-        except json.JSONDecodeError:
-            if index != len(lines)-1 or line.endswith('\n'): raise
-            # A killed writer may leave one incomplete final console fragment.
-            # Preserve the log and every earlier complete numeric record.
-    return records
+    return sampling.parse_output(output, PREFIX)
 
 
 def analyze(records, iterations):

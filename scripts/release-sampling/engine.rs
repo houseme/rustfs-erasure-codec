@@ -163,7 +163,7 @@ pub fn run<R>(
     run_prepared(
         key,
         filename,
-        || {
+        |_| {
             move |n| Output {
                 result: operation(n),
                 fixture: OptionalFixture(None),
@@ -177,7 +177,7 @@ pub fn run<R>(
 pub(super) fn run_prepared<R, F: FnMut(usize) -> Output<R>>(
     key: &str,
     filename: &str,
-    prepare: impl FnOnce() -> F,
+    prepare: impl FnOnce(usize) -> F,
     ns_per_iter: impl Fn(&R) -> f64,
     export: impl Fn(&R),
 ) {
@@ -203,7 +203,12 @@ pub(super) fn run_prepared<R, F: FnMut(usize) -> Output<R>>(
     } else {
         calibration_batch == 0
     });
-    let mut operation = prepare();
+    let page_size = std::env::var("RSE_SAMPLER_PAGE_SIZE")
+        .unwrap()
+        .parse::<usize>()
+        .unwrap();
+    assert!(page_size.is_power_of_two() && (1024..=1048576).contains(&page_size));
+    let mut operation = prepare(page_size);
     let (observations, outcome) = measure_fixed(key, count, &mut operation, &ns_per_iter);
     let complete_batch = observations.len() == WARMUPS + SAMPLES
         && observations

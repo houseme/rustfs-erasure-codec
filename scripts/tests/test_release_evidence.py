@@ -24,7 +24,7 @@ class EvidenceTests(unittest.TestCase):
             "candidate": {"commit": "b" * 40, "tree": "c" * 40, "lock_sha256": "b" * 64},
         }
         context = {"compiler": "rustc fixture", "cpu_model": "fixture CPU", "settings": evidence.SAMPLING_ENV,
-                   "runtime": {"libc": {"name": "fixture", "version": "1"}, "allocator_environment": {}},
+                   "runtime": {"libc": {"name": "fixture", "version": "1"}, "allocator_environment": {}, "page_size":4096},
                    "isolation": {"scope": "exclusive-vm-cpu-partition", "reserved_cpu_count": 8, "cpu_affinity": list(range(8)), "physical_host_exclusivity_proven": False}}
         self.doc = {"schema_version": 2, "baseline_release": "9.0.0", "phase_order": list(evidence.PHASES),
                     "sources": self.sources, "harness_sha256": "d" * 64,
@@ -93,8 +93,8 @@ class EvidenceTests(unittest.TestCase):
         key = row.get('scenario') or ':'.join(str(row[f]) for f in ('operation','data_shards','parity_shards','shard_size','stream_block_size') if f in row)
         fixture = None
         if profile == 'small_file' and row['operation'] == 'verify_with_buffer':
-            position = {'len':row['shard_size'], 'capacity':row['shard_size'], 'offset_64':16, 'offset_4096':16}
-            fixture = {'entry':'Vec<Vec<u8>>', 'lifetime':'worker',
+            position = {'len':row['shard_size'], 'capacity':row['shard_size'], 'offset_64':16, 'offset_4096':16, 'offset_page':16}
+            fixture = {'entry':'Vec<Vec<u8>>', 'lifetime':'worker', 'page_size':4096,
                        'source':[copy.deepcopy(position) for _ in range(row['data_shards']+row['parity_shards'])],
                        'scratch':[copy.deepcopy(position) for _ in range(row['parity_shards'])]}
         return {'fixture':fixture, 'kind':kind, 'case':key, 'revision':self.sources[role]['commit'], 'index':index, 'iterations':1,
