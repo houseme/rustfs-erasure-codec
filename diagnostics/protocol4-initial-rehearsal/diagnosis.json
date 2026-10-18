@@ -1,0 +1,164 @@
+{
+  "schema_version": "rehearsed-baseline-control-diagnostic-v1",
+  "purpose": "baseline controls only; never release acceptance",
+  "candidate_attribution": null,
+  "protocol": {
+    "name": "shared-external-duration-sampler",
+    "version": 4,
+    "samples": 9,
+    "warmups": 3,
+    "case_isolation": "fresh-process-per-count",
+    "case_order": "lexicographic",
+    "max_calibration_batches": 12,
+    "max_calibration_records": 144,
+    "target_wall_ns": 100000000,
+    "target_timed_ns": 5000000,
+    "minimum_wall_ns": 50000000,
+    "minimum_timed_ns": 2000000,
+    "central_spread_limit": 0.1,
+    "timing_scope": {
+      "smoke": "original per-iteration workload",
+      "small_file": "operation loops excluding one-time fixture preparation",
+      "stream": "operation loops excluding one-time fixture preparation",
+      "hotspot": "original inner recovery intervals"
+    }
+  },
+  "source": {
+    "commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "tree": "d44fe8c296972cf895375101f8975c99371db57a",
+    "lock_sha256": "972540efcf6bc23c0064252a9c0d937bf87dbe0edff9cdb688d2fdcbd5653d49"
+  },
+  "context": {
+    "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+    "isolation": {
+      "scope": "exclusive-vm-cpu-partition",
+      "reserved_cpu_count": 8,
+      "cpu_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "physical_host_exclusivity_proven": false
+    },
+    "runtime": {
+      "libc": {
+        "name": "glibc",
+        "version": "2.39"
+      },
+      "allocator_environment": {}
+    },
+    "settings": {
+      "RUSTUP_TOOLCHAIN": "stable",
+      "RUSTFLAGS": "",
+      "RAYON_NUM_THREADS": "4",
+      "RS_PARALLEL_POLICY_MAX_JOBS": "4",
+      "RSE_BACKEND_OVERRIDE": "auto",
+      "RSE_STRICT_BACKEND_OVERRIDE": "1",
+      "RSE_SMOKE_PROFILE": "extended",
+      "RSE_SMALL_FILE_PROFILE": "fast",
+      "RSE_STREAM_PROFILE": "fast",
+      "RSE_STREAM_IO_MODE": "auto",
+      "RSE_BENCHMARK_ALLOW_MISSING_CASES": "0",
+      "CARGO_BUILD_JOBS": "4",
+      "RSE_SAMPLER_PROTOCOL": "duration-v4"
+    }
+  },
+  "phases": {
+    "A1": {
+      "smoke": {
+        "case_count": 15,
+        "sample_count": 135,
+        "short_samples": 0,
+        "wide_cases": [
+          {
+            "case": "update:32:16:1048576",
+            "central_spread": 0.32591010894951405
+          }
+        ]
+      },
+      "small_file": {
+        "case_count": 88,
+        "sample_count": 792,
+        "short_samples": 9,
+        "wide_cases": [
+          {
+            "case": "reconstruct:4:2:1024",
+            "central_spread": 0.10553287981859415
+          },
+          {
+            "case": "reconstruct_opt:10:4:16384",
+            "central_spread": 0.301568476665102
+          },
+          {
+            "case": "reconstruct_opt:4:2:262144",
+            "central_spread": 3.3294523580018955
+          },
+          {
+            "case": "reconstruct_opt:4:2:524288",
+            "central_spread": 4.098262062876159
+          },
+          {
+            "case": "reconstruct_some_data_only:10:4:262144",
+            "central_spread": 2.1034054751750846
+          },
+          {
+            "case": "reconstruct_some_data_only:10:4:524288",
+            "central_spread": 1.9951483231924887
+          },
+          {
+            "case": "reconstruct_some_data_only:10:4:65536",
+            "central_spread": 0.7559772733855412
+          },
+          {
+            "case": "verify:10:4:16384",
+            "central_spread": 0.16460290052034363
+          },
+          {
+            "case": "verify:4:2:16384",
+            "central_spread": 0.14678743803096808
+          },
+          {
+            "case": "verify:4:2:4096",
+            "central_spread": 0.10194520120078433
+          },
+          {
+            "case": "verify_with_buffer:4:2:65536",
+            "central_spread": 0.12449692992967344
+          }
+        ]
+      },
+      "hotspot": {
+        "case_count": 8,
+        "sample_count": 72,
+        "short_samples": 0,
+        "wide_cases": []
+      },
+      "stream": {
+        "case_count": 15,
+        "sample_count": 135,
+        "short_samples": 0,
+        "wide_cases": [
+          {
+            "case": "encode_stream:4:2:1048576:262144",
+            "central_spread": 0.590158141761881
+          },
+          {
+            "case": "verify_stream:10:4:1048576:1048576",
+            "central_spread": 0.3910772315548901
+          }
+        ]
+      }
+    }
+  },
+  "repeat_checks": [],
+  "baseline_controls_passed": false,
+  "repeat_completed": false,
+  "repeat_failures": [],
+  "stop_reason": "complete first baseline phase failed quality; no repeat or candidate attribution"
+}

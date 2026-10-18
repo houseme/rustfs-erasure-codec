@@ -1,0 +1,184 @@
+{
+  "schema_version": "independent-cpu-control-diagnostic-v1",
+  "purpose": "codec-independent integer execution diagnosis only; never release acceptance",
+  "candidate_attribution": null,
+  "source_sha256": "7347baa3f3aaaa5b9a78038e31c228bd3986bbba35b656c280e993a4f5dd7b55",
+  "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "iterations": 64000000,
+  "warmups": 3,
+  "samples": 9,
+  "affinity_before": [
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31
+  ],
+  "phases": {
+    "A1": {
+      "24": {
+        "median_ns": 85178089,
+        "central_spread": 0.0013856615167781,
+        "minimum_ns": 85131478,
+        "maximum_ns": 86170950,
+        "maximum_wait_ratio": 0.0004344093288171779,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "25": {
+        "median_ns": 85250187,
+        "central_spread": 0.0007761859806829515,
+        "minimum_ns": 85204439,
+        "maximum_ns": 85763734,
+        "maximum_wait_ratio": 0.0001972132425918631,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "26": {
+        "median_ns": 85160151,
+        "central_spread": 0.0005615537248166693,
+        "minimum_ns": 85118949,
+        "maximum_ns": 85454366,
+        "maximum_wait_ratio": 0.0002739986666768117,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "27": {
+        "median_ns": 85164842,
+        "central_spread": 0.004567001956041907,
+        "minimum_ns": 85080594,
+        "maximum_ns": 91699342,
+        "maximum_wait_ratio": 0.00020590656411949897,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "28": {
+        "median_ns": 85175397,
+        "central_spread": 0.0006021457111611702,
+        "minimum_ns": 85151771,
+        "maximum_ns": 85214016,
+        "maximum_wait_ratio": 0.0001315159233898799,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "29": {
+        "median_ns": 85125963,
+        "central_spread": 0.00043131376968974787,
+        "minimum_ns": 85089157,
+        "maximum_ns": 85153985,
+        "maximum_wait_ratio": 0.0002654332101071149,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "30": {
+        "median_ns": 85225042,
+        "central_spread": 0.0007701844253711251,
+        "minimum_ns": 85176789,
+        "maximum_ns": 86045934,
+        "maximum_wait_ratio": 0.0008165987250484143,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "31": {
+        "median_ns": 85212443,
+        "central_spread": 0.0007684206401640193,
+        "minimum_ns": 85178272,
+        "maximum_ns": 85962057,
+        "maximum_wait_ratio": 0.00015742856417888046,
+        "minor_faults": 0,
+        "major_faults": 0
+      }
+    },
+    "A2": {
+      "24": {
+        "median_ns": 85231702,
+        "central_spread": 0.0031776908549825743,
+        "minimum_ns": 85113573,
+        "maximum_ns": 85495462,
+        "maximum_wait_ratio": 0.0001567020262017031,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "25": {
+        "median_ns": 85178462,
+        "central_spread": 0.0007716622072842781,
+        "minimum_ns": 85150260,
+        "maximum_ns": 85246365,
+        "maximum_wait_ratio": 0.00030056273091358317,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "26": {
+        "median_ns": 85107975,
+        "central_spread": 0.00048752188029382675,
+        "minimum_ns": 85090168,
+        "maximum_ns": 85157360,
+        "maximum_wait_ratio": 0.0004118610534661948,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "27": {
+        "median_ns": 85107163,
+        "central_spread": 0.0004923557374365775,
+        "minimum_ns": 85069195,
+        "maximum_ns": 86629915,
+        "maximum_wait_ratio": 0.00045514899992260305,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "28": {
+        "median_ns": 85199622,
+        "central_spread": 0.00047419224465573335,
+        "minimum_ns": 85173963,
+        "maximum_ns": 85226823,
+        "maximum_wait_ratio": 0.00018102207648906327,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "29": {
+        "median_ns": 85198761,
+        "central_spread": 0.04255840058519161,
+        "minimum_ns": 85184490,
+        "maximum_ns": 110120586,
+        "maximum_wait_ratio": 0.00027364076972595796,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "30": {
+        "median_ns": 85189918,
+        "central_spread": 0.001414392721918103,
+        "minimum_ns": 85173193,
+        "maximum_ns": 86734143,
+        "maximum_wait_ratio": 9.496696670532318e-05,
+        "minor_faults": 0,
+        "major_faults": 0
+      },
+      "31": {
+        "median_ns": 85113332,
+        "central_spread": 0.00025309783430873086,
+        "minimum_ns": 85103047,
+        "maximum_ns": 85209547,
+        "maximum_wait_ratio": 0.00018993176903052894,
+        "minor_faults": 0,
+        "major_faults": 0
+      }
+    }
+  },
+  "same_cpu_repeat_drifts": {
+    "24": 0.000629422432804283,
+    "25": 0.0008413471280713791,
+    "26": 0.0006126809239688225,
+    "27": 0.0006772630424183301,
+    "28": 0.00028441311520976953,
+    "29": 0.0008551797528564276,
+    "30": 0.0004121323870981408,
+    "31": 0.001163104782713531
+  },
+  "between_cpu_median_spread": {
+    "A1": 0.0014592962666395426,
+    "A2": 0.0014633198383078305
+  }
+}

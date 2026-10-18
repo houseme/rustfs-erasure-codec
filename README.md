@@ -17,3 +17,11 @@ Use main's `scripts/release_evidence.py verify --manifest <checkout>/release-evi
 `diagnostics/protocol3-baseline` retains all JSON and frozen counts from two complete published-9.0.0-only phases: 126 cases per phase, 2,268 formal samples, 101 short samples, 21 unstable distributions and 12/126 repeat drifts above 5%. It has a diagnostic schema and no candidate attribution. The captured tool commit and protocol identify the exact historical implementation; current source changes require new measurements.
 
 These rejected observations exposed the missing calibration warmup rehearsal. They are preserved without numerical edits, including all calibration probes and three warmups per measurement case. Logs and environment-management scripts remain private. This diagnostic data cannot satisfy the strict release evidence schema.
+
+## Subsequent rejected rehearsal and independent CPU control
+
+`diagnostics/protocol4-initial-rehearsal` preserves the complete first 126-case baseline phase from tool d8cf3f6: nine short samples and 14 unstable distributions. The predeclared quality stop prevented the repeat and any candidate attribution. This historical implementation still had different count-loading paths and between-sample export activity; it does not validate later worker changes.
+
+`diagnostics/independent-cpu-control` contains the standalone source and all three warmups/nine samples on each of eight pinned guest CPUs in two waves. It performs integer computation without codec calls or heap allocation in the work loop. Maximum same-CPU median drift was 0.1164%, maximum between-CPU median spread 0.1464%; no major faults were observed. This control does not establish SIMD/memory-path stability or codec performance. It cannot satisfy release-evidence validation.
+
+All copied numerical observations remain byte-for-byte unchanged. Build/launcher logs and environment management remain private. These experiments are diagnostic records, not accepted release inputs.
