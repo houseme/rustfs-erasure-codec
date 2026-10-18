@@ -68,3 +68,15 @@ normal-format compatibility scope; conditions 1/2/3/5 partially complete and
 unchecked; condition 6 incomplete. PR #17 is merged, so references to it as pending
 must be removed. Additional fixture fixes and observations update the evidence
 under each condition, rather than automatically completing the whole condition.
+
+## Subsequent ordinary-telemetry correction
+
+A fixed-count protocol-7 diagnosis located observer procfs String growth under
+libc realloc/madvise and repeated buffer-drop page returns. Clone/drop diagnostic
+subintervals account for most of the extra time in the observed slow state.
+Protocol 8 replaces those ordinary observer reads with bounded stack buffers and
+adds a separate Linux alloc/realloc/dealloc regression check. This fixes a
+confirmed observer allocation mechanism; it does not certify every dynamic
+fixture or all timing variability. All earlier failed campaigns remain preserved.
+New full baseline controls and source-bound paired evidence are required before
+changing the remaining #2897 conditions or creating a release tag.

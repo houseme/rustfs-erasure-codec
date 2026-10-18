@@ -44,6 +44,24 @@ python3 scripts/diagnose_shard_slot.py \
 
 `python3 scripts/diagnose_shard_slot.py --check` runs the real generated Rust
 adapter tests without reserving resources or collecting performance evidence.
-The formal sampler protocol and workload remain unchanged by this diagnostic.
+The diagnostic adapter itself does not change the formal workload. A subsequent ordinary-telemetry correction is explicitly bound to sampling protocol 8; earlier protocol-7 observations remain historical diagnostics and cannot validate the new observer.
 The pending #2897 completion conditions stay unchecked until their whole scope
 has actual acceptance evidence.
+
+## Ordinary observer correction
+
+The protocol-7 investigation found Rust `read_to_string` growth in the procfs
+observer reaching glibc `realloc` and `madvise(MADV_DONTNEED)`. Independent
+four-worker syscall counts found 45,073 `madvise` calls per worker; bounded
+call stacks also locate repeated page returns under the benchmark's `free`.
+Instrumented subintervals place most of the additional time in cloning and
+freeing buffers, rather than reconstruction. These findings do not uniquely
+attribute every historical regression or establish a candidate speedup.
+
+Protocol 8 replaces ordinary stat/schedstat reads with bounded stack storage,
+retries interrupted reads and refuses truncation. A separate check executable
+counts alloc/realloc/dealloc on the observing Linux thread; its test allocator
+is never linked into formal capture. Optional extended process diagnostics keep
+their distinct observer contract. No allocator tunable, production algorithm,
+codeword format, timing threshold or original per-iteration clone policy changes.
+Fresh baseline controls and the complete release campaign are still required.

@@ -100,6 +100,9 @@ jobs:
       - name: Compile and test the shared external duration sampler
         run: python3 scripts/release_sampling.py --check
 
+      - name: Verify ordinary sampler telemetry has no Rust heap activity
+        run: python3 scripts/check_sampler_telemetry.py
+
       - name: Compile and test the isolated ShardSlot diagnostic
         run: python3 scripts/diagnose_shard_slot.py --check
 
