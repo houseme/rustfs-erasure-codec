@@ -28,9 +28,36 @@ fn revision() -> &'static str {
     })
 }
 
-fn telemetry() -> String {
+#[derive(Default)]
+struct Telemetry {
+    available: bool,
+    cpu: u64,
+    run_ns: u64,
+    wait_ns: u64,
+    switches: u64,
+    process: Option<String>,
+}
+
+impl std::fmt::Display for Telemetry {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if !self.available {
+            return f.write_str("null");
+        }
+        write!(
+            f,
+            "{{\"cpu\":{},\"run_ns\":{},\"wait_ns\":{},\"switches\":{}",
+            self.cpu, self.run_ns, self.wait_ns, self.switches
+        )?;
+        if let Some(process) = &self.process {
+            write!(f, ",\"process\":{process}")?;
+        }
+        f.write_str("}")
+    }
+}
+
+fn telemetry() -> Telemetry {
     let Ok(stat) = fs::read_to_string("/proc/thread-self/stat") else {
-        return "null".into();
+        return Telemetry::default();
     };
     let cpu = stat
         .rsplit_once(") ")
@@ -39,27 +66,83 @@ fn telemetry() -> String {
         .split_whitespace()
         .nth(36)
         .unwrap()
-        .parse::<u64>()
+        .parse()
         .unwrap();
-    let counters: Vec<u64> = fs::read_to_string("/proc/thread-self/schedstat")
-        .unwrap()
-        .split_whitespace()
-        .map(|s| s.parse().unwrap())
-        .collect();
-    assert_eq!(counters.len(), 3);
-    let extra = if std::env::var("RSE_SAMPLER_DIAGNOSTIC_PROCESS")
+    let sched = fs::read_to_string("/proc/thread-self/schedstat").unwrap();
+    let mut counters = sched.split_whitespace().map(|s| s.parse::<u64>().unwrap());
+    let (run_ns, wait_ns, switches) = (
+        counters.next().unwrap(),
+        counters.next().unwrap(),
+        counters.next().unwrap(),
+    );
+    assert!(counters.next().is_none());
+    let process = if std::env::var("RSE_SAMPLER_DIAGNOSTIC_PROCESS")
         .ok()
         .as_deref()
         == Some("1")
     {
-        format!(",\"process\":{}", super::process::snapshot())
+        Some(super::process::snapshot())
     } else {
-        String::new()
+        None
     };
-    format!(
-        "{{\"cpu\":{cpu},\"run_ns\":{},\"wait_ns\":{},\"switches\":{}{extra}}}",
-        counters[0], counters[1], counters[2]
-    )
+    Telemetry {
+        available: true,
+        cpu,
+        run_ns,
+        wait_ns,
+        switches,
+        process,
+    }
+}
+
+struct Observation<R> {
+    result: R,
+    wall_ns: u128,
+    timed_ns: f64,
+    before: Telemetry,
+    after: Telemetry,
+}
+
+impl<R> Observation<R> {
+    fn target_met(&self) -> bool {
+        self.wall_ns as f64 >= TARGET_WALL_NS && self.timed_ns >= TARGET_TIMED_NS
+    }
+}
+
+fn measure_fixed<R>(
+    key: &str,
+    count: usize,
+    operation: &mut impl FnMut(usize) -> R,
+    ns_per_iter: &impl Fn(&R) -> f64,
+) -> (Vec<Observation<R>>, std::thread::Result<()>) {
+    let mut observations = Vec::with_capacity(WARMUPS + SAMPLES);
+    // A failed operation is rethrown after completed observations are exported.
+    // No further workload runs against possibly interrupted mutable state.
+    let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        for index in 0..WARMUPS + SAMPLES {
+            ITERATIONS.with(|n| n.set(count));
+            let before = telemetry();
+            let start = Instant::now();
+            let result = std::hint::black_box(operation(count));
+            let wall_ns = start.elapsed().as_nanos();
+            let after = telemetry();
+            let timed_ns = ns_per_iter(&result) * count as f64;
+            assert!(timed_ns.is_finite() && timed_ns > 0.0);
+            // Keep a mode-independent timing journal even if a process is
+            // interrupted before the deferred original artifact export.
+            println!(
+                "\nRSE_TIMING {{\"case\":\"{key}\",\"index\":{index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"before\":{before},\"after\":{after}}}"
+            );
+            observations.push(Observation {
+                result,
+                wall_ns,
+                timed_ns,
+                before,
+                after,
+            });
+        }
+    }));
+    (observations, outcome)
 }
 
 pub fn run<R>(
@@ -91,23 +174,27 @@ pub fn run<R>(
     } else {
         calibration_batch == 0
     });
-    let mut all_targets_met = true;
-    for record_index in 0..WARMUPS + SAMPLES {
-        ITERATIONS.with(|n| n.set(count));
-        let before = telemetry();
-        let start = Instant::now();
-        let result = std::hint::black_box(operation(count));
-        let wall_ns = start.elapsed().as_nanos();
-        let after = telemetry();
-        let timed_ns = ns_per_iter(&result) * count as f64;
-        assert!(timed_ns.is_finite() && timed_ns > 0.0);
-        let target_met = wall_ns as f64 >= TARGET_WALL_NS && timed_ns >= TARGET_TIMED_NS;
+    let (observations, outcome) = measure_fixed(key, count, &mut operation, &ns_per_iter);
+    let complete_batch = observations.len() == WARMUPS + SAMPLES
+        && observations
+            .iter()
+            .skip(WARMUPS)
+            .all(Observation::target_met);
+    // Git queries and original JSON/CSV writers run only after the complete
+    // measurement kernel, so their heap/file/child-process state cannot seed
+    // another observation in this worker.
+    for (record_index, observation) in observations.into_iter().enumerate() {
+        let target_met = observation.target_met();
+        let Observation {
+            result,
+            wall_ns,
+            timed_ns,
+            before,
+            after,
+        } = observation;
         let warming = record_index < WARMUPS;
-        if !warming {
-            all_targets_met &= target_met;
-        }
         let complete = if calibrating {
-            record_index + 1 == WARMUPS + SAMPLES && all_targets_met
+            record_index + 1 == WARMUPS + SAMPLES && complete_batch
         } else {
             target_met
         };
@@ -124,6 +211,51 @@ pub fn run<R>(
             "\nRSE_SAMPLE {{\"kind\":\"{kind}\",\"case\":\"{key}\",\"revision\":\"{}\",\"index\":{record_index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"complete\":{complete},\"target_met\":{target_met},\"isolated_case\":{isolated_case},\"calibration_batch\":{calibration_batch},\"before\":{before},\"after\":{after},\"rows\":{}}}",
             revision(),
             raw.replace(['\n', '\r'], "")
+        );
+    }
+    if let Err(error) = outcome {
+        std::panic::resume_unwind(error);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn kernel_keeps_the_complete_fixed_schedule() {
+        let mut calls = 0;
+        let (observations, outcome) = measure_fixed(
+            "test",
+            1,
+            &mut |_| {
+                calls += 1;
+                calls
+            },
+            &|_| 1.0,
+        );
+        assert!(outcome.is_ok());
+        assert_eq!(calls, WARMUPS + SAMPLES);
+        assert_eq!(observations.len(), calls);
+    }
+
+    #[test]
+    fn kernel_preserves_completed_observations_before_failure() {
+        let mut calls = 0;
+        let (observations, outcome) = measure_fixed(
+            "test",
+            1,
+            &mut |_| {
+                calls += 1;
+                assert!(calls != 3, "intentional workload failure");
+                calls
+            },
+            &|_| 1.0,
+        );
+        assert!(outcome.is_err());
+        assert_eq!(
+            observations.iter().map(|r| r.result).collect::<Vec<_>>(),
+            [1, 2]
         );
     }
 }
