@@ -1,0 +1,104 @@
+{
+  "schema_version": "baseline-basic-controls-v1",
+  "purpose": "complete baseline prerequisites only; never release acceptance",
+  "candidate_attribution": null,
+  "observer": "basic numeric telemetry; identical worker instrumentation to formal capture",
+  "source": {
+    "commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "tree": "d44fe8c296972cf895375101f8975c99371db57a",
+    "lock_sha256": "972540efcf6bc23c0064252a9c0d937bf87dbe0edff9cdb688d2fdcbd5653d49"
+  },
+  "tool": {
+    "commit": "00b6560a18490b12ca211475532e4df6ac9bb157",
+    "tree": "697adf7f9339b06f0781f489eb7fbe8f7b216e72",
+    "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+  },
+  "driver_sha256": "a20289049024c38f87d1c031ceef5e5eb4b2133847f64bb2605a6444c953f48f",
+  "protocol": {
+    "name": "shared-external-duration-sampler",
+    "version": 9,
+    "samples": 9,
+    "warmups": 3,
+    "case_isolation": "fresh-process-per-count",
+    "case_order": "lexicographic",
+    "max_calibration_batches": 12,
+    "max_calibration_records": 144,
+    "target_wall_ns": 100000000,
+    "target_timed_ns": 5000000,
+    "minimum_wall_ns": 50000000,
+    "minimum_timed_ns": 2000000,
+    "central_spread_limit": 0.1,
+    "observer_buffer_policy": "bounded-stack-procfs-no-rust-heap",
+    "stream_output_policy": "independent-capacity-per-writer-per-iteration",
+    "fixture_layout": {
+      "scope": "small_file:all;stream:all;caller-storage-only",
+      "codec_lifetime": "worker",
+      "dynamic_outputs": "original per-iteration policy; offsets explicitly untracked",
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "construction": "caller-buffers-before-codec",
+      "offset_moduli": [
+        64,
+        4096,
+        "os_base_page_size"
+      ],
+      "page_size_source": "controller-sysconf",
+      "untracked_cases": "original allocation contract; no layout guarantee"
+    },
+    "timing_scope": {
+      "smoke": "original per-iteration workload",
+      "small_file": "operation loops excluding one-time fixture preparation",
+      "stream": "operation loops excluding one-time fixture preparation",
+      "hotspot": "original inner recovery intervals"
+    }
+  },
+  "renderer_sha256": "a7c622bdda2ab49703c6033dab0e400510bb839cc94695ae5444ad03f2ec46a6",
+  "overlay_sha256": "767b527b09928ee525b80e4226765ce424a31b1dcb97057908126e6954711012",
+  "context": {
+    "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+    "isolation": {
+      "scope": "exclusive-vm-cpu-partition",
+      "reserved_cpu_count": 8,
+      "cpu_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "physical_host_exclusivity_proven": false
+    },
+    "runtime": {
+      "libc": {
+        "name": "glibc",
+        "version": "2.39"
+      },
+      "page_size": 4096,
+      "allocator_environment": {}
+    },
+    "settings": {
+      "RUSTUP_TOOLCHAIN": "stable",
+      "RUSTFLAGS": "",
+      "RAYON_NUM_THREADS": "4",
+      "RS_PARALLEL_POLICY_MAX_JOBS": "4",
+      "RSE_BACKEND_OVERRIDE": "auto",
+      "RSE_STRICT_BACKEND_OVERRIDE": "1",
+      "RSE_SMOKE_PROFILE": "extended",
+      "RSE_SMALL_FILE_PROFILE": "fast",
+      "RSE_STREAM_PROFILE": "fast",
+      "RSE_STREAM_IO_MODE": "auto",
+      "RSE_BENCHMARK_ALLOW_MISSING_CASES": "0",
+      "CARGO_BUILD_JOBS": "4",
+      "RSE_SAMPLER_PROTOCOL": "duration-v9"
+    }
+  },
+  "phases": {},
+  "repeat_checks": [],
+  "repeat_failures": [],
+  "layout_mismatches": [],
+  "release_approval": false
+}

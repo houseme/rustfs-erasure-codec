@@ -77,3 +77,13 @@ cases in all four structural phases, 4,944 observations and 618 matching layout
 comparisons, plus native checks and exact controller sources. Dynamic destinations
 remain explicitly untracked. This one-iteration inventory cannot approve release
 performance or close the remaining #2897 conditions. Fresh full controls are separate.
+
+## Complete protocol-9 default-allocator baseline
+
+`diagnostics/protocol9-full-baseline` retains all 4,812 calibration observations
+and the complete 126-case A1 cohort (1,512 observations, 1,134 measured samples).
+Every minimum interval and all 103 tracked caller comparisons pass, but six
+distributions fail quality, so A2 and candidate attribution stop. The source-clone
+bootstrap refusal precedes reservation and is retained. Protocol 10's subsequent
+bounded result metadata requires separate new qualification; this snapshot never
+approves the changed observer.
