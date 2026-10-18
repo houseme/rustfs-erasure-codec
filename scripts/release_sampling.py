@@ -50,7 +50,7 @@ def exclude_once_only_setup(text, name, loop_count):
 
 
 def render(root):
-    rendered = {"engine.rs": (TEMPLATES / "engine.rs").read_text()}
+    rendered = {name: (TEMPLATES / name).read_text() for name in ("engine.rs", "process.rs")}
     sources = {"smoke": "benchmark_smoke.rs", "small_file": "benchmark_small_files.rs", "stream": "benchmark_stream_paths.rs"}
     for profile, filename in sources.items():
         text = (root / "tests" / filename).read_text()
@@ -67,7 +67,7 @@ def render(root):
     text = text.replace(block(text, "fn benchmark_test_iterations"), 'fn benchmark_test_iterations() -> usize { super::sampling::iterations() }')
     prefix = 'use std::{fs, path::PathBuf, time::Instant};\nuse rustfs_erasure_codec::galois_8::ReedSolomon;\nfn benchmark_metrics_enabled() -> bool { cfg!(feature="benchmark-metrics") }\nconst BENCHMARK_ARTIFACT_SCHEMA_VERSION: u32 = 1;\n'
     rendered["hotspot.rs"] = prefix + text + "\n" + (TEMPLATES / "hotspot.rs").read_text()
-    root_source = '#![allow(dead_code)]\n' + '\n'.join(f'#[path="rse_release_sampling/{name}.rs"] mod {name};' for name in ("engine", *sources, "hotspot"))
+    root_source = '#![allow(dead_code)]\n' + '\n'.join(f'#[path="rse_release_sampling/{name}.rs"] mod {name};' for name in ("engine", "process", *sources, "hotspot"))
     root_source = root_source.replace('mod engine;', 'mod sampling;')
     root_source += '\n#[test]\n#[ignore]\nfn release_controlled_profile() { match std::env::var("RSE_SAMPLER_PROFILE").unwrap().as_str() {'
     root_source += ','.join(f'"{name}" => {name}::release_profile()' for name in (*sources, "hotspot"))
@@ -119,6 +119,16 @@ def validate_timing(record, profile, count):
     if abs(expected_timed - record["timed_ns"]) > tolerance:
         raise ValueError("timed interval differs from the raw exported measurement")
 
+def run_profile(root, environment, profile, mode, log_path, counts_file=None):
+    import subprocess
+    env = dict(environment, RSE_SAMPLER_PROFILE=profile, RSE_SAMPLER_MODE=mode)
+    if counts_file is not None: env["RSE_SAMPLER_COUNTS"] = str(counts_file)
+    command = ["cargo", "test", "--locked", "--release", "--features", "std simd-accel", "--test", "rse_release_sampling", "release_controlled_profile", "--", "--exact", "--ignored", "--nocapture", "--test-threads=1"]
+    with log_path.open("w") as log:
+        subprocess.run(command, cwd=root, env=env, stdout=log, stderr=subprocess.STDOUT, check=True)
+    return parse_log(log_path)
+
+
 def selected_row(records, profile, metric, revision, expected, counts, normalize, allowed_cpus=None):
     groups = {}
     for record in records:
@@ -166,6 +176,7 @@ if __name__ == "__main__":
     generate(root)
     try:
         subprocess.run(["cargo","test","--locked","--release","--features","std simd-accel","--test","rse_release_sampling","--no-run"],cwd=root,env=dict(os.environ,RUSTUP_TOOLCHAIN="stable"),check=True)
+        subprocess.run(["cargo","test","--locked","--release","--features","std simd-accel","--test","rse_release_sampling","process::tests::"],cwd=root,env=dict(os.environ,RUSTUP_TOOLCHAIN="stable"),check=True)
     finally:
         (root/"tests/rse_release_sampling.rs").unlink()
         shutil.rmtree(root/"tests/rse_release_sampling")

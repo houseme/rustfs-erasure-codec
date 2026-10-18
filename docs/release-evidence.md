@@ -140,3 +140,37 @@ failure. Whole-campaign CPU snapshots cannot determine the per-case effects of
 migration, scheduler delay or clock frequency. The new protocol addresses the
 confirmed measurement gaps and adds diagnostics; its implementation alone is not
 accepted performance evidence or permission to publish.
+
+
+## Private diagnosis on the existing VM
+
+When the same baseline remains variable, collect a separate complete 9.0.0-only
+resource diagnosis under the same reserved CPU partition:
+
+```bash
+python3 candidate/scripts/diagnose_release_vm.py \
+  --baseline /test/fresh-baseline --output /test/new-private-diagnosis \
+  --isolation-cgroup /sys/fs/cgroup/reserved-diagnosis
+```
+
+The sampler is shared, but diagnostic mode adds observations of every live
+process thread and minor/major page faults, with anonymous stable thread slots.
+It stores no raw process/thread IDs or start times. Snapshots occur outside the
+operation timers and their cost is reported. They span the full invocation,
+including input preparation and observation effects, so they cannot be treated
+as hardware counters for the inner codec interval. New/departed threads are
+reported rather than silently included in cumulative differences.
+
+The complete 126-case catalog is calibrated, warmed and sampled nine times on
+published 9.0.0. A new output directory is created with mode 0700; retain these
+observations privately. The manifest identifies baseline and diagnostic-tool
+sources and uses `baseline-vm-diagnostic-v1`, not a release-evidence schema.
+Successful collection means data is available, not that performance passed.
+The extra process observation is deliberately rejected by the formal release
+telemetry validator. It cannot substitute for complete A1/B1/B2/A2 acceptance.
+
+Linux counters are interpreted using the
+[/proc stat definitions](https://docs.kernel.org/filesystems/proc.html) and
+[schedstat definitions](https://docs.kernel.org/scheduler/sched-stats.html).
+Hardware cycles/cache misses and frequency were unavailable in the observed VM;
+no particular frequency or physical-host cause is inferred from that absence.
