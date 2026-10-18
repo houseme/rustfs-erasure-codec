@@ -71,7 +71,9 @@ by this data snapshot.
 Checks bind 9.0.0's source, candidate tree, lockfile, unchanged benchmark harness,
 compiler, CPU/resource context, backend, features, profile and I/O metadata. Every
 file is bounded, digest-checked and required to match the complete profile
-catalog. Empty, duplicate, missing, extra, malformed, non-finite, self-comparison
+catalog. Schema 1 smoke omits its profile label; the manifest settings, complete
+15-case catalog and exact exported iteration count bind its extended profile.
+Empty, duplicate, missing, extra, malformed, non-finite, self-comparison
 or incompatible data fails closed. The snapshot is trusted maintainer-supplied
 measurement evidence; hashes detect changes, not fraudulent measurements.
 

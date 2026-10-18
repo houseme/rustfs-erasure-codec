@@ -53,7 +53,8 @@ class EvidenceTests(unittest.TestCase):
                            throughput_mb_s=100.0, ns_per_iter=100.0, git_revision=revision[:12],
                            features="std|simd-accel", target_triple="x86_64-linux-unknown", backend="fixture",
                            backend_id="fixture", backend_kind="fixture", backend_override="auto", override_honored=True,
-                           profile="extended" if profile == "smoke" else "fast")
+                           iterations=int(evidence.BASE_ENV[{"smoke": "RSE_SMOKE_ITERATIONS", "small_file": "RSE_SMALL_FILE_ITERATIONS", "stream": "RSE_STREAM_ITERATIONS"}[profile]]))
+                if profile != "smoke": row["profile"] = "fast"
                 if block:
                     row.update(stream_block_size=int(block[0]), stream_io_backend="fixture", stream_io_mode="auto", ns_per_block=100.0)
             result.append(row)
@@ -111,6 +112,14 @@ class EvidenceTests(unittest.TestCase):
                 else: rows[0]["features"] = "std"
                 self.write_rows("A1", "small_file", rows)
                 with self.assertRaises(ValueError): self.verify()
+
+    def test_legacy_smoke_uses_exact_catalog_iterations_and_manifest_profile(self):
+        self.assertNotIn("profile", self.fixture_rows("A1", "smoke")[0])
+        for field, value in (("iterations", 1), ("profile", "quick")):
+            rows = self.fixture_rows("A1", "smoke")
+            rows[0][field] = value
+            self.write_rows("A1", "smoke", rows)
+            with self.assertRaises(ValueError): self.verify()
 
     def test_every_phase_and_profile_required(self):
         original = copy.deepcopy(self.doc)
