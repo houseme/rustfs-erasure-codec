@@ -10,7 +10,7 @@ identify the cause or exclude host effects.
 `scripts/diagnose_shard_slot.py` runs the published 9.0.0 baseline at the same
 fixed count in four fresh processes: calibrate, sample, sample, calibrate. It
 first uses the current shared sampler, then repeats with a separate checked
-instrumentation adapter. Under protocol 9 the source and codec live for the worker;
+instrumentation adapter. Under protocol 9 and later the source and codec live for the worker;
 the adapter retains six per-iteration clones, missing slots 0/4, and reconstruction.
 It does not replace this workload with preallocated/reused slots.
 

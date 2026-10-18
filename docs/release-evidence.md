@@ -74,7 +74,7 @@ three warmup invocations at the frozen count, then collects exactly nine samples
 Basic scheduling snapshots retain numeric counters instead of formatted heap
 strings. Extended process observation remains diagnostic-only and may affect
 allocation state; release qualification uses basic telemetry.
-Protocol 9 retains one codec and caller source fixture for all 88 small-file and
+Protocol 10 retains the protocol-9 caller contract: one codec and caller source fixture for all 88 small-file and
 15 stream cases for the complete worker; buffered verify also retains caller
 scratch. Caller buffers precede codec construction and encoding setup. The shared
 inner loops are extracted from the unchanged benchmark sources, preserving timed
@@ -92,6 +92,12 @@ metadata is rejected. Base-page offsets do not assert physical/huge-page placeme
 Dynamic destination/internal-scratch offsets remain explicitly untracked, and
 smoke/hotspot retain their original contracts. See the complete [caller fixture
 contract](release-caller-fixtures.md) for this scope and its limits.
+
+Hotspot result pattern metadata stays in bounded inline storage until deferred
+export, instead of retaining new Strings between observations. Its labels match
+the actual original formatter; a separate executable checks zero Rust heap
+activity for construction/formatting. Hotspot input generation and recovery
+intervals remain unchanged. Earlier observer protocols cannot approve protocol 10.
 
 The structural inventory checks all 103 retained caller cases in A1/B1/B2/A2 order
 against both sources before performance capture:

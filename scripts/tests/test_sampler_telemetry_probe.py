@@ -15,6 +15,8 @@ class TelemetryProbeTests(unittest.TestCase):
         (root/'tests').mkdir()
         (root/'scripts/diagnostics').mkdir(parents=True)
         (root/'scripts/diagnostics/telemetry_allocations.rs').write_text('test-only-counter')
+        (root/'src/tests').mkdir(parents=True)
+        (root/'src/tests/mod.rs').write_text('fn shard_index_pattern() {\n}\n')
         return root
 
     def test_counter_is_never_included_in_the_formal_overlay(self):

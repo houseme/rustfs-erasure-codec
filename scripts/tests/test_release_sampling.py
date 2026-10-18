@@ -78,6 +78,18 @@ class SamplingContractTests(unittest.TestCase):
         self.assertIn('Vec<Option<Vec<u8>>>', rendered['small_file.rs'])
         self.assertIn('reserved_stream_outputs(case.parity_shards, case.shard_size)', rendered['stream.rs'])
 
+    def test_hotspot_deferred_result_metadata_uses_no_owned_strings(self):
+        root = pathlib.Path(__file__).resolve().parents[2]
+        rendered = sampling.render(root)
+        result = sampling.block(rendered['hotspot.rs'], 'struct ReconstructionHotspotBenchResult')
+        self.assertNotIn(': String,', result)
+        self.assertEqual(result.count('super::pattern::ShardPattern'), 2)
+        pattern = sampling.block(rendered['hotspot.rs'], 'fn shard_index_pattern')
+        self.assertNotIn('format!', pattern)
+        self.assertNotIn('Vec::', pattern)
+        self.assertIn('mod pattern;', rendered['root.rs'])
+        self.assertEqual(sampling.PROTOCOL['result_metadata_policy'], 'bounded-inline-hotspot-patterns-deferred-formatting')
+
     def test_base_page_size_is_required_and_bound_to_runtime(self):
         for value in (None, True, 0, 3000, 2**30):
             self.assertFalse(sampling.valid_page_size(value))
@@ -339,7 +351,7 @@ class SamplingContractTests(unittest.TestCase):
 
     def test_calibration_and_protocol_cannot_be_changed(self):
         original=copy.deepcopy(self.doc)
-        for field in ('samples','warmups','case_isolation','case_order','max_calibration_batches','target_timed_ns','central_spread_limit','implementation_sha256','overlay_sha256','fixture_layout','stream_output_policy'):
+        for field in ('samples','warmups','case_isolation','case_order','max_calibration_batches','target_timed_ns','central_spread_limit','implementation_sha256','overlay_sha256','fixture_layout','stream_output_policy','result_metadata_policy'):
             self.doc=copy.deepcopy(original);self.doc['sampling'][field]='invalid'
             with self.assertRaises(ValueError):self.verify()
         self.doc=copy.deepcopy(original)
