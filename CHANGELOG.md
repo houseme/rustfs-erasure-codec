@@ -13,6 +13,7 @@ All notable changes to this project are documented in this file.
 ## 9.1.0 (2026-10-18)
 
 ### Fixed
+- Add a private baseline-only VM diagnosis mode with anonymous per-thread runqueue/runtime counters and process page faults, outside benchmark timers. Diagnostic artifacts have a distinct non-release schema and cannot satisfy strict release evidence checks.
 - Replace single-batch release timing with a shared external sampler over unchanged benchmark operations: calibrate both revisions to common per-case iteration counts, warm each case, retain nine samples and scheduling counters, recompute medians, and reject unstable sample distributions while retaining the 5% ABBA drift limit.
 - Provision strict release performance evidence through a pinned data commit instead of runner-local path variables. Validate complete controlled 9.0.0/candidate ABBAs, source trees, lockfiles, harness, provenance, digests, both-side drift and existing regression thresholds; support pre-tag manual preflight and auditable failure reports without publishing.
 - Keep tag release preflight in the strict release profile. Reject missing, unreadable or empty baseline files and partial comparisons before running Cargo, force required checks, and generate the full release smoke matrix while running golden tests normally. Validate tag/package/workspace/lock versions and replace unchecked dirty packaging with locked publish dry-runs; exercise release tooling in branch/PR CI.

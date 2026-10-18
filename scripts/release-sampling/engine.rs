@@ -46,8 +46,17 @@ fn telemetry() -> String {
         .map(|s| s.parse().unwrap())
         .collect();
     assert_eq!(counters.len(), 3);
+    let extra = if std::env::var("RSE_SAMPLER_DIAGNOSTIC_PROCESS")
+        .ok()
+        .as_deref()
+        == Some("1")
+    {
+        format!(",\"process\":{}", super::process::snapshot())
+    } else {
+        String::new()
+    };
     format!(
-        "{{\"cpu\":{cpu},\"run_ns\":{},\"wait_ns\":{},\"switches\":{}}}",
+        "{{\"cpu\":{cpu},\"run_ns\":{},\"wait_ns\":{},\"switches\":{}{extra}}}",
         counters[0], counters[1], counters[2]
     )
 }

@@ -421,14 +421,9 @@ def capture(baseline, candidate, output, group):
         with (output/(role+"-build.log")).open("w") as log:
             subprocess.run(args,cwd=root,env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
     def execute(root, folder, profile, mode, count_file=None):
-        run_env = dict(env,RSE_SAMPLER_PROFILE=profile,RSE_SAMPLER_MODE=mode)
-        if count_file: run_env["RSE_SAMPLER_COUNTS"] = str(count_file)
         before = environment_context(root,env,group)
-        args=["cargo","test","--locked","--release","--features","std simd-accel","--test","rse_release_sampling","release_controlled_profile","--","--exact","--ignored","--nocapture","--test-threads=1"]
-        path=folder/(profile+".log")
-        with path.open("w") as log: subprocess.run(args,cwd=root,env=run_env,stdout=log,stderr=subprocess.STDOUT,check=True)
+        records = sampling.run_profile(root,env,profile,mode,folder/(profile+".log"),count_file)
         if environment_context(root,env,group)!=before: raise ValueError("measurement environment changed")
-        records=sampling.parse_log(path)
         member=folder/(profile+"-samples.json")
         member.write_text(json.dumps(records,indent=2)+"\n")
         return records, {"path":member.relative_to(output).as_posix(),"sha256":digest(member.read_bytes())}
