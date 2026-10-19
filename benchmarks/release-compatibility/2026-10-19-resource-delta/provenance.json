@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "measurement_program_commit": "a6184b79ddb8bd54c4038c3c6d21b61323958746",
+  "candidate_production_base": "722064f45862ce90d55d63a1e5a17cbd12a3e9ab",
+  "production_source_objects": {
+    "src": "5833a71194a1069655da26c09ce4e008b52d2093",
+    "build.rs": "418524ecc0feb88378a985dbc7f9bcf52e153e27",
+    "Cargo.toml": "e59a784380d11d3c3ec9de3dfc4e73a0c2553f95",
+    "Cargo.lock": "fa0a5dd99332c79068eab7a8097e3b7e36c2d4ee"
+  },
+  "baseline_registry_version": "9.0.0",
+  "baseline_registry_checksum": "10c0115cfe221ffc1e45002a935afc95bce48e01206b642800f0968928bf9b97",
+  "dependency_features": [
+    "std",
+    "simd-accel"
+  ],
+  "RUSTFLAGS": "",
+  "RAYON_NUM_THREADS": 4,
+  "RS_PARALLEL_POLICY_MAX_JOBS": 4,
+  "toolchain": {
+    "aarch64": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "x86_64": "rustc 1.99.1 (58cf8f9c3 2026-10-13)"
+  },
+  "native_platforms": {
+    "aarch64": "macOS ARM64 native; no Linux/throughput claim",
+    "x86_64": "Linux VM native; request counts only, no resource isolation or timing claim"
+  },
+  "raw_files_sha256": {
+    "aarch64.json": "ebb37dd2f3eda4d86947dbca129335ffb27974c4e820f319d5b32798069ed561",
+    "x86_64.json": "7a4cf141cd96188ac09ba66c4bb00ef57dacaffb50701e36c7b148dbe51115d6"
+  },
+  "complete_case_records_match_across_architectures": true,
+  "warmups_per_api_case": 2,
+  "retained_repetitions_per_api_case_per_version": 3,
+  "caller_preparation_counted": false,
+  "latency_claim": null,
+  "release_approval": false
+}
