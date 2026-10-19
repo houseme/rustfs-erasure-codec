@@ -5,6 +5,7 @@ import sys
 import subprocess
 import tempfile
 import unittest
+from unittest import mock
 
 sys.path.insert(0,str(pathlib.Path(__file__).resolve().parents[1]))
 sys.path.insert(0,str(pathlib.Path(__file__).resolve().parent))
@@ -36,6 +37,29 @@ class WorkloadContractTests(unittest.TestCase):
                     changed=dict(row,workload=value)
                     with self.assertRaises(ValueError):sampling.validate_workload(changed,profile)
         self.assertEqual(covered,126)
+
+    def test_all_126_cases_require_real_thread_placement(self):
+        for profile in evidence.FILES:
+            for case in evidence.expected_cases(profile):
+                row=self.records(profile,case)[0]
+                sampling.validate_placement(row,range(8))
+                for field,value in (('cpu',True),('constructor_budget',0),('constructor_budget',9),('pool_threads',1),('affinity_checked',False),('constructor_affinity',[0]),('constructor_affinity',None)):
+                    changed=copy.deepcopy(row);changed['placement'][field]=value
+                    with self.assertRaises(ValueError):sampling.validate_placement(changed,range(8))
+                changed=dict(row,placement=None)
+                with self.assertRaises(ValueError):sampling.validate_placement(changed,range(8))
+                changed=copy.deepcopy(row)
+                changed['placement']['cpu']=changed['before']['cpu']=changed['after']['cpu']=1
+                with self.assertRaisesRegex(ValueError,'reservation'):sampling.validate_placement(changed,range(8))
+                changed=copy.deepcopy(row);changed['after']['cpu']=1
+                with self.assertRaisesRegex(ValueError,'fixed measuring thread'):sampling.validate_placement(changed,range(8))
+
+    def test_worker_uses_the_same_minimum_reserved_cpu_without_mutating_caller(self):
+        caller={'RSE_SAMPLER_CPU':'999','RAYON_NUM_THREADS':'4'}
+        with mock.patch.object(sampling.os,'sched_getaffinity',return_value={24,25,31},create=True):
+            worker=sampling.worker_environment(caller)
+        self.assertEqual(worker,{'RSE_SAMPLER_CPU':'24','RAYON_NUM_THREADS':'4'})
+        self.assertEqual(caller['RSE_SAMPLER_CPU'],'999')
 
     def test_hotspot_rng_must_keep_original_generation_volume_and_continue(self):
         for _,_,case,_,_ in sampling.HOTSPOT_CASES:

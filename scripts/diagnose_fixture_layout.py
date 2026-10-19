@@ -70,6 +70,7 @@ def capture(tool, baseline, candidate, output, group):
         raise ValueError('both sources require identical harness inputs')
     metadata = {'schema_version': 'fixture-layout-inventory-v2', 'sources': sources,
                 'tool': evidence.source_info(tool), 'context': context, 'measuring_affinity': [cpu],
+                'constructor_affinity': context['isolation']['cpu_affinity'],
                 'protocol': sampling.PROTOCOL, 'overlay_sha256': overlay,
                 'renderer_sha256': sampling.implementation_digest(),
                 'controller_sha256': hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest(),
@@ -92,20 +93,17 @@ def capture(tool, baseline, candidate, output, group):
             sampling.generate(root); owned.append((root, rendered))
             with (output/(role+'-build.log')).open('x') as log:
                 subprocess.run(['cargo', 'test', '--locked', '--release', '--features', 'std simd-accel',
-                                '--test', 'rse_release_sampling', '--no-run'], cwd=root, env=env,
+                                '--test', 'rse_release_sampling', '--no-run'], cwd=root, env=sampling.build_environment(root,env),
                                stdout=log, stderr=subprocess.STDOUT, check=True)
         for phase in evidence.PHASES:
             role = 'baseline' if phase.startswith('A') else 'candidate'
-            affinity = os.sched_getaffinity(0)
             phases[phase], timings = [], []
             for profile in PROFILES:
                 log = output/(phase+'-'+profile+'.log')
                 try:
-                    os.sched_setaffinity(0, {cpu})
                     current = sampling.run_profile(roots[role], env, profile, 'sample', log,
                                                    counts[profile], cases=case_catalog(profile))
                 finally:
-                    os.sched_setaffinity(0, affinity)
                     if log.exists():
                         text = log.read_text()
                         partial = sampling.parse_output(text)
@@ -116,7 +114,7 @@ def capture(tool, baseline, candidate, output, group):
                         save(phase+'-timing.partial.json', timings+journal)
                 phases[phase].extend(current); timings.extend(journal)
             save(phase+'-samples.json', phases[phase]); unchanged()
-        report = analyze(phases, sources, {cpu}, context['runtime']['page_size'])
+        report = analyze(phases, sources, context['isolation']['cpu_affinity'], context['runtime']['page_size'])
         save('inventory.json', dict(metadata, **report)); unchanged()
         return report
     finally:

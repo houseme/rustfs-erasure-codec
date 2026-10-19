@@ -121,6 +121,12 @@ class SamplingContractTests(unittest.TestCase):
         self.mutate(change,profile='hotspot')
         with self.assertRaisesRegex(ValueError,'random input differs from final calibration'):self.verify()
 
+    def test_placement_budget_cannot_change_between_calibration_and_measurement(self):
+        def change(records):
+            for row in records:row['placement']['constructor_budget']=4
+        self.mutate(change,profile='smoke')
+        with self.assertRaisesRegex(ValueError,'preparation or initial input state'):self.verify()
+
     def test_base_page_size_is_required_and_bound_to_runtime(self):
         for value in (None, True, 0, 3000, 2**30):
             self.assertFalse(sampling.valid_page_size(value))

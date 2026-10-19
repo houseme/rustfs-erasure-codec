@@ -78,7 +78,7 @@ three warmup invocations at the frozen count, then collects exactly nine samples
 Basic scheduling snapshots retain numeric counters instead of formatted heap
 strings. Extended process observation remains diagnostic-only and may affect
 allocation state; release qualification uses basic telemetry.
-Protocol 12 retains the protocol-9/10 caller contract: one codec and caller source fixture for all 88 small-file and
+Protocol 13 retains the protocol-9/10/12 caller contract: one codec and caller source fixture for all 88 small-file and
 15 stream cases for the complete worker; buffered verify also retains caller
 scratch. Caller buffers precede codec construction and encoding setup. The shared
 inner loops are extracted from the unchanged benchmark sources, preserving timed
@@ -112,11 +112,30 @@ Hotspot result pattern metadata stays in bounded inline storage until deferred
 export, instead of retaining new Strings between observations. Its labels match
 the actual original formatter; a separate executable checks zero Rust heap
 activity for construction/formatting. Hotspot random preparation changes explicitly in protocol 12; recovery intervals
-remain unchanged. Earlier observer protocols cannot approve protocol 12.
+remain unchanged. Earlier observer protocols cannot approve protocol 13.
 Protocol 11 removes the unused diagnostic template from the formal sampler overlay
 and its implementation digest; layout tests now use one separate diagnostic fixture.
 The full-profile operation loops and limits are unchanged. Fresh source-bound
 evidence is required for the changed renderer; earlier captures stay historical.
+
+Protocol 13 also fixes formal measuring-thread placement. Both calibration and
+measurement construct the codec on the complete reservation, initialize the global
+Rayon pool there and verify every worker's inherited CPU mask, then pin only the
+measuring TID to the minimum reserved CPU. Pool workers are checked again after the
+pin; lazy pool creation on a single inherited CPU is prohibited. Actual measuring
+thread affinity is checked with bounded stack reads before/after each timer.
+Records require the measuring CPU, constructor budget, four-worker pool width and
+successful affinity checks. These must match final calibration and all phases;
+endpoints merely belonging to an eight-CPU reservation no longer suffice. The
+103-case inventory uses this same worker preparation without pinning its controller
+before construction. One-time taskset/affinity preparation is outside timers;
+per-observation affinity checks use no Rust heap storage. Non-Linux native checks
+may emit null placement and never qualify as formal Linux evidence.
+
+This changes preparation and observer work, requiring fresh full calibration and
+evidence. It closes a known comparability gap, but earlier same-buffer, fixed-CPU
+controls still drifted. It does not prove the remaining service-time cause or
+performance acceptance. See the [hot-path review](hotpath-service-time-review-2026-10-19.md).
 
 The structural inventory checks all 103 retained caller cases in A1/B1/B2/A2 order
 against both sources before performance capture:
@@ -309,7 +328,7 @@ they do not replace the mandatory immutable snapshot input in release CI.
 
 
 Formal verification and materialization require manifest schema 3 and the current
-sampling protocol (12). All acceptance thresholds remain unchanged; the new envelope makes the already required layout acceptance part of
+sampling protocol (13). All acceptance thresholds remain unchanged; the new envelope makes the already required layout acceptance part of
 the same automatic verification path. The snapshot must include the complete
 `layout-pair/` directory, its four phases' provenance/samples/journals and its
 manifest. Missing, changed, failed or independently collected incompatible

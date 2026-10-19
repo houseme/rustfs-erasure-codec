@@ -13,7 +13,7 @@ use rustfs_erasure_codec::galois_8::{
     shards_to_slots,
 };
 use rustfs_erasure_codec::stream::{StreamIoMode, StreamOptions};
-use rustfs_erasure_codec::{CodecFamily, CodecOptions, Error, ShardSlot};
+use rustfs_erasure_codec::{CodecFamily, CodecOptions, Error, ShardSlot, VerifyWorkspace};
 
 const FIXTURE_SEED: u64 = 0x817a_bdef_7649_2104;
 const WARMUP_ITERATIONS: usize = 20;
@@ -362,9 +362,86 @@ fn assert_complete_options(shards: &[Option<Vec<u8>>], original: &[Vec<u8>]) {
     }
 }
 
+// The selected downstream decode engine calls ordinary verify after recovery.
+// Keep each existing API as a distinct case: reusable scratch is a caller
+// lifecycle choice, not an implicit replacement for the ordinary release case.
+fn verification_cases(config: &Config) -> usize {
+    let mut completed = 0;
+    for (data, parity, size) in [(4, 2, 16384), (10, 4, 32768)] {
+        if ![
+            "verify.ordinary",
+            "verify.caller_buffer",
+            "verify.workspace",
+        ]
+        .iter()
+        .any(|&operation| {
+            config.includes(&Case {
+                operation,
+                data_shards: data,
+                parity_shards: parity,
+                shard_size: size,
+                missing_data_shards: 0,
+                missing_parity_shards: 0,
+                stream_block_size: None,
+            })
+        }) {
+            continue;
+        }
+        let codec = ReedSolomon::new(data, parity).expect("construct verification codec");
+        let source = fixture(&codec, size);
+        let mut corrupt = source.clone();
+        corrupt[data][size - 1] ^= 0x5a;
+        // One retained source and reference adapter are shared by every API.
+        let inputs: Vec<_> = source.iter().map(Vec::as_slice).collect();
+        let invalid: Vec<_> = corrupt.iter().map(Vec::as_slice).collect();
+        let mut scratch: Vec<_> = (0..parity).map(|_| vec![0u8; size]).collect();
+        let mut workspace = VerifyWorkspace::new(&codec, size);
+        for operation in [
+            "verify.ordinary",
+            "verify.caller_buffer",
+            "verify.workspace",
+        ] {
+            let case = Case {
+                operation,
+                data_shards: data,
+                parity_shards: parity,
+                shard_size: size,
+                missing_data_shards: 0,
+                missing_parity_shards: 0,
+                stream_block_size: None,
+            };
+            if !config.includes(&case) {
+                continue;
+            }
+            let mut verify = |shards: &[&[u8]]| {
+                match operation {
+                    "verify.ordinary" => codec.verify(shards),
+                    "verify.caller_buffer" => codec.verify_with_buffer(shards, &mut scratch),
+                    "verify.workspace" => codec.verify_with_workspace(shards, &mut workspace),
+                    _ => unreachable!(),
+                }
+                .expect("verification API")
+            };
+            // Validate a damaged parity tail too; successful no-op verification
+            // cannot satisfy these oracles. Preparation is outside every timer.
+            assert!(verify(&inputs));
+            assert!(!verify(&invalid));
+            let measurement = measure(config, || {
+                assert!(black_box(verify(black_box(&inputs))));
+            });
+            assert!(verify(&inputs));
+            assert!(!verify(&invalid));
+            report(config, &case, measurement);
+            completed += 1;
+        }
+        assert_eq!(source[data][size - 1], corrupt[data][size - 1] ^ 0x5a);
+    }
+    completed
+}
+
 fn main() -> Result<(), String> {
     let config = Config::read()?;
-    let mut completed = 0;
+    let mut completed = verification_cases(&config);
     for (family, operation) in [
         (CodecFamily::LeopardGF8, "gf8.reconstruct"),
         (CodecFamily::LeopardGF16, "gf16.reconstruct"),

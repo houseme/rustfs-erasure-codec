@@ -130,6 +130,26 @@ jobs:
           path: ${{ runner.temp }}/codec-resources-*.json
           if-no-files-found: error
 
+      - name: Check reusable verification scratch without throughput approval
+        env:
+          RAYON_NUM_THREADS: "4"
+          RSE_RECOVERY_CASE_FILTER: "verify."
+          RSE_RECOVERY_SAMPLE_MS: "1"
+        run: |
+          cargo bench --locked --features "std simd-accel" --bench recovery_paths > target/verification-resource-screen.log
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          rows = [json.loads(line) for line in Path('target/verification-resource-screen.log').read_text().splitlines() if line.startswith('{')]
+          expected = {(op,k,m,size) for op in ('verify.ordinary','verify.caller_buffer','verify.workspace') for k,m,size in ((4,2,16384),(10,4,32768))}
+          assert len(rows) == 6 and {(r['operation'],r['data_shards'],r['parity_shards'],r['shard_size']) for r in rows} == expected
+          for row in rows:
+              ordinary = row['operation'] == 'verify.ordinary'
+              assert row['allocations'] == int(ordinary)
+              assert row['allocated_bytes'] == (row['parity_shards']*row['shard_size'] if ordinary else 0)
+          print('Six verification byte/corruption and allocation cases passed; no timing acceptance')
+          PY
+
       - name: Verify the actual distributable without uploading
         run: cargo publish --dry-run --locked --registry crates-io --package rustfs-erasure-codec
 
