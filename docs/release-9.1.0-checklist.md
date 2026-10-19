@@ -53,7 +53,7 @@ writer reservation on both measured sources and requires fresh calibration.
 Collect a new controlled whole-release A1/B1/B2/A2 campaign against published
 9.0.0, following [the evidence procedure](release-evidence.md). All four complete
 profiles, source/context/digest checks, both-side drift and existing regression
-thresholds must pass. Protocol 14 requires exact measuring-thread placement after full-reservation
+thresholds must pass. Protocol 15 requires exact measuring-thread placement after full-reservation
 codec/pool preparation, all 126 API/mask/seed/preparation contracts
 and hotspot random-stream replay, plus retained small-file/stream caller
 layouts, lengths, capacities, API/output policies, masks and OS base page metadata
@@ -63,12 +63,16 @@ layout comparability for the other dynamic operations. The full counterbalanced
 slice diagnostic remains separate from original release cases. Only an accepted data snapshot may be configured as the
 immutable `RSE_RELEASE_EVIDENCE_REF`. Rejected snapshots may be published for
 audit and explicit negative checks, without promoting them to accepted inputs.
-Protocol 14 isolates every case in a fresh process and retains three fixed warmups
+Protocol 15 isolates every case in a fresh process and retains three fixed warmups
 plus all nine samples. Allocate caller buffers before codec initialization; run
 `diagnose_fixture_layout.py` to inspect all 103 retained caller cases across both sources
 before full performance capture. The one-iteration inventory is structural only,
 has no performance approval and does not complete dynamic-output/internal-scratch coverage. Calibration rehearses that identical schedule before
-freezing a count; collect a new complete campaign for this protocol. Missing inputs must fail; no extended-profile
+freezing a count. Its uniform calibration targets are 2 s wall / 100 ms measured,
+and every formal sample must meet 1 s / 40 ms floors. No case/count exceptions or
+fixed-call minimum are allowed; the current full qualification has not yet established
+a passing baseline. Collect a complete final paired campaign only after it passes.
+Missing inputs must fail; no extended-profile
 downgrade or partial-case release override is allowed. Run the manual strict
 preflight before tagging; ordinary branch/PR CI is not evidence it passed.
 

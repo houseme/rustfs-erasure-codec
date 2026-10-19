@@ -78,11 +78,18 @@ def analyze(capture):
             sampling.validate_telemetry(record, cpus)
             sampling.validate_placement(record, cpus)
         layouts = sampling.fixture_catalog(calibration, calibration=True)
+        contracts = evidence.observation_contracts(profile, [r for r in calibration if r['complete']])
+        workload = sampling.workload_catalog(calibration, calibration=True)
+        inputs = sampling.workload_traces(calibration, calibration=True)
         normalize = lambda p, row, rev: next(iter(evidence.indexed_rows(p, [row], rev, counts, complete=False)))
         for phase in phases:
             records = load(f'{phase}/{profile}-samples.json')
             groups = sampling.sample_groups(records, profile, evidence.BASELINE_COMMIT,
                                             evidence.expected_cases(profile), counts, normalize, cpus, page_size)
+            evidence.observation_contracts(profile, records, contracts)
+            if (sampling.workload_catalog(records) != workload or
+                    sampling.workload_traces(records) != inputs):
+                raise ValueError(f'{phase}/{profile}: preparation or input replay differs from calibration')
             for case, group in sorted(groups.items()):
                 key = (profile, case)
                 detail = describe(group, evidence.METRICS[profile])
