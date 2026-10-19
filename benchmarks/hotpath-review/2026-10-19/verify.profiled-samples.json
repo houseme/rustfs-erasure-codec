@@ -1,0 +1,1610 @@
+[
+  {
+    "kind": "warmup",
+    "case": "verify:4:2:16384",
+    "revision": "a62c6c36ae15a05fb73b5bf6893261978b6ce325",
+    "index": 0,
+    "iterations": 250000,
+    "wall_ns": 466144379,
+    "timed_ns": 466142917,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 240,
+          "offset_page": 240
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 256,
+          "offset_page": 256
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 16,
+          "offset_4096": 272,
+          "offset_page": 272
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 32,
+          "offset_4096": 288,
+          "offset_page": 288
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 304,
+          "offset_page": 304
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 320,
+          "offset_page": 320
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 65406575726445830,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 797593,
+      "wait_ns": 0,
+      "switches": 8
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 466778202,
+      "wait_ns": 8903,
+      "switches": 9
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "small-file-results",
+        "git_revision": "a62c6c3",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 250000,
+        "operation": "verify",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 16384,
+        "logical_data_bytes": 65536,
+        "case_label": "4x2_16k",
+        "seed": 65406575726445830,
+        "throughput_mb_s": 33519.7628,
+        "ns_per_iter": 1864.57
+      }
+    ]
+  },
+  {
+    "kind": "warmup",
+    "case": "verify:4:2:16384",
+    "revision": "a62c6c36ae15a05fb73b5bf6893261978b6ce325",
+    "index": 1,
+    "iterations": 250000,
+    "wall_ns": 457523663,
+    "timed_ns": 457522901,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 240,
+          "offset_page": 240
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 256,
+          "offset_page": 256
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 16,
+          "offset_4096": 272,
+          "offset_page": 272
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 32,
+          "offset_4096": 288,
+          "offset_page": 288
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 304,
+          "offset_page": 304
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 320,
+          "offset_page": 320
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 65406575726445830,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 466778202,
+      "wait_ns": 8903,
+      "switches": 9
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 923704851,
+      "wait_ns": 72617,
+      "switches": 14
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "small-file-results",
+        "git_revision": "a62c6c3",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 250000,
+        "operation": "verify",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 16384,
+        "logical_data_bytes": 65536,
+        "case_label": "4x2_16k",
+        "seed": 65406575726445830,
+        "throughput_mb_s": 34151.296,
+        "ns_per_iter": 1830.09
+      }
+    ]
+  },
+  {
+    "kind": "warmup",
+    "case": "verify:4:2:16384",
+    "revision": "a62c6c36ae15a05fb73b5bf6893261978b6ce325",
+    "index": 2,
+    "iterations": 250000,
+    "wall_ns": 456854020,
+    "timed_ns": 456853279,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 240,
+          "offset_page": 240
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 256,
+          "offset_page": 256
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 16,
+          "offset_4096": 272,
+          "offset_page": 272
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 32,
+          "offset_4096": 288,
+          "offset_page": 288
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 304,
+          "offset_page": 304
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 320,
+          "offset_page": 320
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 65406575726445830,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 923704851,
+      "wait_ns": 72617,
+      "switches": 14
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 1380673031,
+      "wait_ns": 94810,
+      "switches": 17
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "small-file-results",
+        "git_revision": "a62c6c3",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 250000,
+        "operation": "verify",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 16384,
+        "logical_data_bytes": 65536,
+        "case_label": "4x2_16k",
+        "seed": 65406575726445830,
+        "throughput_mb_s": 34201.3524,
+        "ns_per_iter": 1827.41
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "verify:4:2:16384",
+    "revision": "a62c6c36ae15a05fb73b5bf6893261978b6ce325",
+    "index": 3,
+    "iterations": 250000,
+    "wall_ns": 455087839,
+    "timed_ns": 455087278,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 240,
+          "offset_page": 240
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 256,
+          "offset_page": 256
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 16,
+          "offset_4096": 272,
+          "offset_page": 272
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 32,
+          "offset_4096": 288,
+          "offset_page": 288
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 304,
+          "offset_page": 304
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 320,
+          "offset_page": 320
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 65406575726445830,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 1380673031,
+      "wait_ns": 94810,
+      "switches": 17
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 1835601561,
+      "wait_ns": 157442,
+      "switches": 21
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "small-file-results",
+        "git_revision": "a62c6c3",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 250000,
+        "operation": "verify",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 16384,
+        "logical_data_bytes": 65536,
+        "case_label": "4x2_16k",
+        "seed": 65406575726445830,
+        "throughput_mb_s": 34334.0734,
+        "ns_per_iter": 1820.35
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "verify:4:2:16384",
+    "revision": "a62c6c36ae15a05fb73b5bf6893261978b6ce325",
+    "index": 4,
+    "iterations": 250000,
+    "wall_ns": 459891273,
+    "timed_ns": 459890711,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 240,
+          "offset_page": 240
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 256,
+          "offset_page": 256
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 16,
+          "offset_4096": 272,
+          "offset_page": 272
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 32,
+          "offset_4096": 288,
+          "offset_page": 288
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 304,
+          "offset_page": 304
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 320,
+          "offset_page": 320
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 65406575726445830,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 1836602153,
+      "wait_ns": 157442,
+      "switches": 21
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 2295554712,
+      "wait_ns": 193886,
+      "switches": 25
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "small-file-results",
+        "git_revision": "a62c6c3",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 250000,
+        "operation": "verify",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 16384,
+        "logical_data_bytes": 65536,
+        "case_label": "4x2_16k",
+        "seed": 65406575726445830,
+        "throughput_mb_s": 33975.4634,
+        "ns_per_iter": 1839.56
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "verify:4:2:16384",
+    "revision": "a62c6c36ae15a05fb73b5bf6893261978b6ce325",
+    "index": 5,
+    "iterations": 250000,
+    "wall_ns": 462736445,
+    "timed_ns": 462735714,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 240,
+          "offset_page": 240
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 256,
+          "offset_page": 256
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 16,
+          "offset_4096": 272,
+          "offset_page": 272
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 32,
+          "offset_4096": 288,
+          "offset_page": 288
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 304,
+          "offset_page": 304
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 320,
+          "offset_page": 320
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 65406575726445830,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 2296555364,
+      "wait_ns": 193886,
+      "switches": 25
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 2758023475,
+      "wait_ns": 715383,
+      "switches": 31
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "small-file-results",
+        "git_revision": "a62c6c3",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 250000,
+        "operation": "verify",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 16384,
+        "logical_data_bytes": 65536,
+        "case_label": "4x2_16k",
+        "seed": 65406575726445830,
+        "throughput_mb_s": 33766.5746,
+        "ns_per_iter": 1850.94
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "verify:4:2:16384",
+    "revision": "a62c6c36ae15a05fb73b5bf6893261978b6ce325",
+    "index": 6,
+    "iterations": 250000,
+    "wall_ns": 455348774,
+    "timed_ns": 455348312,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 240,
+          "offset_page": 240
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 256,
+          "offset_page": 256
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 16,
+          "offset_4096": 272,
+          "offset_page": 272
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 32,
+          "offset_4096": 288,
+          "offset_page": 288
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 304,
+          "offset_page": 304
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 320,
+          "offset_page": 320
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 65406575726445830,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 2758023475,
+      "wait_ns": 715383,
+      "switches": 31
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 3213991073,
+      "wait_ns": 738067,
+      "switches": 34
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "small-file-results",
+        "git_revision": "a62c6c3",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 250000,
+        "operation": "verify",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 16384,
+        "logical_data_bytes": 65536,
+        "case_label": "4x2_16k",
+        "seed": 65406575726445830,
+        "throughput_mb_s": 34314.391,
+        "ns_per_iter": 1821.39
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "verify:4:2:16384",
+    "revision": "a62c6c36ae15a05fb73b5bf6893261978b6ce325",
+    "index": 7,
+    "iterations": 250000,
+    "wall_ns": 457235006,
+    "timed_ns": 457234645,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 240,
+          "offset_page": 240
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 256,
+          "offset_page": 256
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 16,
+          "offset_4096": 272,
+          "offset_page": 272
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 32,
+          "offset_4096": 288,
+          "offset_page": 288
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 304,
+          "offset_page": 304
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 320,
+          "offset_page": 320
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 65406575726445830,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 3213991073,
+      "wait_ns": 738067,
+      "switches": 34
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 3670956308,
+      "wait_ns": 763425,
+      "switches": 37
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "small-file-results",
+        "git_revision": "a62c6c3",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 250000,
+        "operation": "verify",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 16384,
+        "logical_data_bytes": 65536,
+        "case_label": "4x2_16k",
+        "seed": 65406575726445830,
+        "throughput_mb_s": 34172.8261,
+        "ns_per_iter": 1828.94
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "verify:4:2:16384",
+    "revision": "a62c6c36ae15a05fb73b5bf6893261978b6ce325",
+    "index": 8,
+    "iterations": 250000,
+    "wall_ns": 454223903,
+    "timed_ns": 454223492,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 240,
+          "offset_page": 240
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 256,
+          "offset_page": 256
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 16,
+          "offset_4096": 272,
+          "offset_page": 272
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 32,
+          "offset_4096": 288,
+          "offset_page": 288
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 304,
+          "offset_page": 304
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 320,
+          "offset_page": 320
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 65406575726445830,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 3670956308,
+      "wait_ns": 763425,
+      "switches": 37
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 4124908051,
+      "wait_ns": 802322,
+      "switches": 41
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "small-file-results",
+        "git_revision": "a62c6c3",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 250000,
+        "operation": "verify",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 16384,
+        "logical_data_bytes": 65536,
+        "case_label": "4x2_16k",
+        "seed": 65406575726445830,
+        "throughput_mb_s": 34399.3657,
+        "ns_per_iter": 1816.89
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "verify:4:2:16384",
+    "revision": "a62c6c36ae15a05fb73b5bf6893261978b6ce325",
+    "index": 9,
+    "iterations": 250000,
+    "wall_ns": 455435505,
+    "timed_ns": 455434684,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 240,
+          "offset_page": 240
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 256,
+          "offset_page": 256
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 16,
+          "offset_4096": 272,
+          "offset_page": 272
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 32,
+          "offset_4096": 288,
+          "offset_page": 288
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 304,
+          "offset_page": 304
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 320,
+          "offset_page": 320
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 65406575726445830,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 4124908051,
+      "wait_ns": 802322,
+      "switches": 41
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 4580878063,
+      "wait_ns": 822712,
+      "switches": 43
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "small-file-results",
+        "git_revision": "a62c6c3",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 250000,
+        "operation": "verify",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 16384,
+        "logical_data_bytes": 65536,
+        "case_label": "4x2_16k",
+        "seed": 65406575726445830,
+        "throughput_mb_s": 34307.8833,
+        "ns_per_iter": 1821.74
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "verify:4:2:16384",
+    "revision": "a62c6c36ae15a05fb73b5bf6893261978b6ce325",
+    "index": 10,
+    "iterations": 250000,
+    "wall_ns": 454662846,
+    "timed_ns": 454662225,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 240,
+          "offset_page": 240
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 256,
+          "offset_page": 256
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 16,
+          "offset_4096": 272,
+          "offset_page": 272
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 32,
+          "offset_4096": 288,
+          "offset_page": 288
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 304,
+          "offset_page": 304
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 320,
+          "offset_page": 320
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 65406575726445830,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 4580878063,
+      "wait_ns": 822712,
+      "switches": 43
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 5035845629,
+      "wait_ns": 847680,
+      "switches": 47
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "small-file-results",
+        "git_revision": "a62c6c3",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 250000,
+        "operation": "verify",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 16384,
+        "logical_data_bytes": 65536,
+        "case_label": "4x2_16k",
+        "seed": 65406575726445830,
+        "throughput_mb_s": 34366.1715,
+        "ns_per_iter": 1818.65
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "verify:4:2:16384",
+    "revision": "a62c6c36ae15a05fb73b5bf6893261978b6ce325",
+    "index": 11,
+    "iterations": 250000,
+    "wall_ns": 455941580,
+    "timed_ns": 455941320,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 240,
+          "offset_page": 240
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 256,
+          "offset_page": 256
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 16,
+          "offset_4096": 272,
+          "offset_page": 272
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 32,
+          "offset_4096": 288,
+          "offset_page": 288
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 48,
+          "offset_4096": 304,
+          "offset_page": 304
+        },
+        {
+          "len": 16384,
+          "capacity": 16384,
+          "offset_64": 0,
+          "offset_4096": 320,
+          "offset_page": 320
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 65406575726445830,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "internal-scratch-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 5035845629,
+      "wait_ns": 847680,
+      "switches": 47
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 5491815550,
+      "wait_ns": 866658,
+      "switches": 49
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "small-file-results",
+        "git_revision": "a62c6c3",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 250000,
+        "operation": "verify",
+        "data_shards": 4,
+        "parity_shards": 2,
+        "shard_size": 16384,
+        "logical_data_bytes": 65536,
+        "case_label": "4x2_16k",
+        "seed": 65406575726445830,
+        "throughput_mb_s": 34269.7609,
+        "ns_per_iter": 1823.77
+      }
+    ]
+  }
+]

@@ -1,0 +1,67 @@
+{
+  "schema_version": "hotpath-review-diagnostic-v1",
+  "purpose": "warm synchronous verification allocation requests only; caller reference/scratch setup excluded",
+  "source": "a62c6c36ae15a05fb73b5bf6893261978b6ce325",
+  "architecture": "x86_64",
+  "backend": "rust-gfni-avx512",
+  "warmups": 20,
+  "counted_calls_per_case": 1,
+  "latency_claim": null,
+  "release_approval": false,
+  "cases": [
+    {
+      "case_id": "verify.ordinary/4x2/16384/missing0+0/block0",
+      "operation": "verify.ordinary",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "shard_size": 16384,
+      "allocations": 1,
+      "allocated_bytes": 32768
+    },
+    {
+      "case_id": "verify.caller_buffer/4x2/16384/missing0+0/block0",
+      "operation": "verify.caller_buffer",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "shard_size": 16384,
+      "allocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "case_id": "verify.workspace/4x2/16384/missing0+0/block0",
+      "operation": "verify.workspace",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "shard_size": 16384,
+      "allocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "case_id": "verify.ordinary/10x4/32768/missing0+0/block0",
+      "operation": "verify.ordinary",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 32768,
+      "allocations": 1,
+      "allocated_bytes": 131072
+    },
+    {
+      "case_id": "verify.caller_buffer/10x4/32768/missing0+0/block0",
+      "operation": "verify.caller_buffer",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 32768,
+      "allocations": 0,
+      "allocated_bytes": 0
+    },
+    {
+      "case_id": "verify.workspace/10x4/32768/missing0+0/block0",
+      "operation": "verify.workspace",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 32768,
+      "allocations": 0,
+      "allocated_bytes": 0
+    }
+  ]
+}

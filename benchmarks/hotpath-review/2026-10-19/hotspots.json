@@ -1,0 +1,226 @@
+{
+  "purpose": "current-codec qualitative API profiles, not request frequency or throughput comparison",
+  "profiles": [
+    {
+      "operation": "verify",
+      "case": "verify:4:2:16384",
+      "event": "cpu-clock:u",
+      "frequency": 499,
+      "samples": 2738,
+      "source": "a62c6c36ae15a05fb73b5bf6893261978b6ce325",
+      "constructor_and_pool": {
+        "cpu": 24,
+        "constructor_budget": 8,
+        "constructor_affinity": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "pool_threads": 4,
+        "affinity_checked": true
+      },
+      "functions": [
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::gfni::rust_gfni_avx512_mul_impl::<true>",
+          "samples": 1304,
+          "sample_fraction": 0.4762600438276114
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "samples": 589,
+          "sample_fraction": 0.21512052593133674
+        },
+        {
+          "symbol": "<smallvec::SmallVec<[u8; 4096]>>::resize",
+          "samples": 384,
+          "sample_fraction": 0.14024835646457268
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::gfni::rust_gfni_avx512_mul_impl::<false>",
+          "samples": 299,
+          "sample_fraction": 0.10920379839298758
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::verify::<alloc::vec::Vec<u8>>",
+          "samples": 90,
+          "sample_fraction": 0.03287070854638422
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::get_parity_rows",
+          "samples": 22,
+          "sample_fraction": 0.008035062089116142
+        },
+        {
+          "symbol": "malloc",
+          "samples": 17,
+          "sample_fraction": 0.00620891161431702
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::galois_8::Field as rustfs_erasure_codec::Field>::mul_slice_add",
+          "samples": 7,
+          "sample_fraction": 0.002556610664718773
+        },
+        {
+          "symbol": "<smallvec::SmallVec<[&mut [u8]; 32]> as core::iter::traits::collect::Extend<&mut [u8]>>::extend::<core::slice::iter::ChunksMut<u8>>",
+          "samples": 6,
+          "sample_fraction": 0.002191380569758948
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::gfni::rust_gfni_avx512_mul_slice_xor",
+          "samples": 5,
+          "sample_fraction": 0.0018261504747991235
+        },
+        {
+          "symbol": "cfree",
+          "samples": 3,
+          "sample_fraction": 0.001095690284879474
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::scalar::mul_slice_xor_pure_rust",
+          "samples": 3,
+          "sample_fraction": 0.001095690284879474
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::gfni::rust_gfni_avx512_mul_slice",
+          "samples": 3,
+          "sample_fraction": 0.001095690284879474
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::galois_8::Field as rustfs_erasure_codec::Field>::mul_slice",
+          "samples": 2,
+          "sample_fraction": 0.0007304601899196494
+        },
+        {
+          "symbol": "<smallvec::SmallVec<[u8; 4096]>>::try_grow",
+          "samples": 2,
+          "sample_fraction": 0.0007304601899196494
+        },
+        {
+          "symbol": "<rse_release_sampling::small_file::PreparedSmallFile>::run",
+          "samples": 1,
+          "sample_fraction": 0.0003652300949598247
+        },
+        {
+          "symbol": "<smallvec::SmallVec<[u8; 4096]>>::try_reserve_exact",
+          "samples": 1,
+          "sample_fraction": 0.0003652300949598247
+        }
+      ],
+      "unresolved_fraction": 0.21512052593133674,
+      "record_counts": {
+        "PERF_RECORD_SAMPLE": 2738,
+        "PERF_RECORD_LOST": 0,
+        "PERF_RECORD_LOST_SAMPLES": 0,
+        "PERF_RECORD_THROTTLE": 0,
+        "PERF_RECORD_UNTHROTTLE": 0
+      }
+    },
+    {
+      "operation": "verify_with_buffer",
+      "case": "verify_with_buffer:4:2:16384",
+      "event": "cpu-clock:u",
+      "frequency": 499,
+      "samples": 2507,
+      "source": "a62c6c36ae15a05fb73b5bf6893261978b6ce325",
+      "constructor_and_pool": {
+        "cpu": 24,
+        "constructor_budget": 8,
+        "constructor_affinity": [
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31
+        ],
+        "pool_threads": 4,
+        "affinity_checked": true
+      },
+      "functions": [
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::gfni::rust_gfni_avx512_mul_impl::<true>",
+          "samples": 1534,
+          "sample_fraction": 0.6118867171918628
+        },
+        {
+          "symbol": "[unresolved leaf]",
+          "samples": 444,
+          "sample_fraction": 0.1771041084962106
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::gfni::rust_gfni_avx512_mul_impl::<false>",
+          "samples": 427,
+          "sample_fraction": 0.17032309533306741
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::code_some_slices_chunked::<alloc::vec::Vec<u8>, alloc::vec::Vec<u8>>",
+          "samples": 41,
+          "sample_fraction": 0.016354208216992423
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::get_parity_rows",
+          "samples": 21,
+          "sample_fraction": 0.008376545672118069
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::verify_with_buffer::<alloc::vec::Vec<u8>, alloc::vec::Vec<u8>>",
+          "samples": 15,
+          "sample_fraction": 0.005983246908655764
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::galois_8::Field as rustfs_erasure_codec::Field>::mul_slice",
+          "samples": 7,
+          "sample_fraction": 0.002792181890706023
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::galois_8::Field as rustfs_erasure_codec::Field>::mul_slice_add",
+          "samples": 5,
+          "sample_fraction": 0.001994415636218588
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::gfni::rust_gfni_avx512_mul_slice_xor",
+          "samples": 5,
+          "sample_fraction": 0.001994415636218588
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::scalar::mul_slice_xor_pure_rust",
+          "samples": 3,
+          "sample_fraction": 0.0011966493817311527
+        },
+        {
+          "symbol": "<rse_release_sampling::small_file::PreparedSmallFile>::run",
+          "samples": 2,
+          "sample_fraction": 0.0007977662544874351
+        },
+        {
+          "symbol": "rustfs_erasure_codec::galois_8::x86::gfni::rust_gfni_avx512_mul_slice",
+          "samples": 2,
+          "sample_fraction": 0.0007977662544874351
+        },
+        {
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::check_some_slices_with_buffer::<alloc::vec::Vec<u8>, alloc::vec::Vec<u8>>",
+          "samples": 1,
+          "sample_fraction": 0.00039888312724371757
+        }
+      ],
+      "unresolved_fraction": 0.1771041084962106,
+      "record_counts": {
+        "PERF_RECORD_SAMPLE": 2507,
+        "PERF_RECORD_LOST": 0,
+        "PERF_RECORD_LOST_SAMPLES": 0,
+        "PERF_RECORD_THROTTLE": 0,
+        "PERF_RECORD_UNTHROTTLE": 0
+      }
+    }
+  ],
+  "latency_claim": null,
+  "release_approval": false,
+  "schema_version": "hotpath-review-diagnostic-v1"
+}

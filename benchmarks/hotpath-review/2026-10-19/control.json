@@ -1,0 +1,33 @@
+{
+  "purpose": "one predeclared unchanged-version repeatability diagnosis; not a release campaign",
+  "source": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+  "tool": "a62c6c36ae15a05fb73b5bf6893261978b6ce325",
+  "sampling_protocol": 13,
+  "case": "encode:10:4:524288",
+  "iterations": 512,
+  "repetitions": [
+    {
+      "median_ns": 351773.529296875,
+      "central_spread": 0.01033771134057103,
+      "wall_ns_per_iteration": 351774.095703125,
+      "thread_run_ns_per_iteration": 351540.626953125,
+      "maximum_wait_to_wall": 0.0002573142949648049,
+      "short_samples": 0
+    },
+    {
+      "median_ns": 349718.64453125,
+      "central_spread": 0.008549205062422223,
+      "wall_ns_per_iteration": 349719.349609375,
+      "thread_run_ns_per_iteration": 349568.193359375,
+      "maximum_wait_to_wall": 0.00033731288783924265,
+      "short_samples": 0
+    }
+  ],
+  "absolute_repeat_drift": 0.005841499130796749,
+  "layout_equal": true,
+  "workload_equal": true,
+  "targeted_control_passed": true,
+  "release_approval": false,
+  "candidate_attribution": null,
+  "schema_version": "hotpath-review-diagnostic-v1"
+}
