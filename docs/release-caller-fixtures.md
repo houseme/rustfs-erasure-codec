@@ -1,6 +1,6 @@
 # Retained caller fixtures for release workers
 
-Protocol 13 retains the caller contract introduced in protocols 9 and 12: it prepares one codec and caller fixture for the complete three-warmup,
+Protocol 14 retains the caller contract introduced in protocols 9 and 12: it prepares one codec and caller fixture for the complete three-warmup,
 nine-observation schedule of each small-file/stream worker. Caller byte storage
 is allocated before version-dependent codec setup. Retained source/scratch buffers
 are checked by full pointer identity, length and capacity before and after every
@@ -75,3 +75,8 @@ thread affinity, and binds the CPU/constructor budget/pool width across calibrat
 and phases. The structural inventory now uses this same construction order;
 controller-wide pinning before codec/pool setup is removed. This extends execution
 comparability, not dynamic-output/internal-scratch geometry or throughput approval.
+
+Protocol 14 adds only bounded-stack process minor/major fault counters to ordinary
+observations. These include worker faults but are endpoint differences, not actual
+dynamic buffer-view geometry. They do not complete the untracked scope above or
+make the allocating process diagnostic interchangeable with formal capture.
