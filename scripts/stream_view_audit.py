@@ -15,8 +15,11 @@ def native_template():
     # Reuse the exact ordinary parser implementations without changing its
     # visibility, source, protocol or formal overlay digest.
     engine=(sampling.TEMPLATES/'engine.rs').read_text()
-    return TEMPLATE.read_text()+''.join('\n#[cfg(target_os = "linux")]\n'+sampling.block(engine, declaration)+'\n'
+    helpers=''.join('\n#[cfg(target_os = "linux")]\n'+sampling.block(engine, declaration)+'\n'
         for declaration in ('fn read_bounded','fn process_faults'))
+    text=TEMPLATE.read_text();marker='\n#[cfg(test)]\nmod tests {'
+    if text.count(marker)!=1:raise ValueError('stream diagnostic test boundary changed')
+    return text.replace(marker,helpers+marker,1)
 
 
 def implementation_digest():
