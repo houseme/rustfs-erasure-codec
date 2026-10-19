@@ -6,6 +6,7 @@ import subprocess
 from contextlib import contextmanager
 import release_sampling as sampling
 import stream_view_audit
+import verify_scratch_audit
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -17,8 +18,9 @@ def probe(root):
     modules = ''.join(f'#[path="{root}/scripts/release-sampling/{name}.rs"] mod {name};\n'
                       for name in ('engine', 'layout', 'process', 'pattern', 'workload')).replace('mod engine;', 'mod sampling;')
     modules += 'mod stream_views {\n'+stream_view_audit.native_template()+'\n}\n'
+    modules += 'mod verify_scratch {\n'+verify_scratch_audit.native_template()+'\n}\n'
     original = sampling.block((root/'src/tests/mod.rs').read_text(), 'fn shard_index_pattern').replace('fn shard_index_pattern', 'fn original_pattern', 1)
-    text = (root/'scripts/diagnostics/telemetry_allocations.rs').read_text()+'\n'+modules+'\n'+original+'\n'+(root/'scripts/diagnostics/stream_view_allocations.rs').read_text()
+    text = (root/'scripts/diagnostics/telemetry_allocations.rs').read_text()+'\n'+modules+'\n'+original+'\n'+(root/'scripts/diagnostics/stream_view_allocations.rs').read_text()+'\n'+(root/'scripts/diagnostics/verify_scratch_allocations.rs').read_text()
     with target.open('x') as file: file.write(text)
     try:
         yield

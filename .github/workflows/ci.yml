@@ -105,6 +105,23 @@ jobs:
       - name: Check real stream views against both codec sources
         run: python3 scripts/diagnose_fixture_layout.py --check-stream-views --baseline-ref 9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6
 
+      - name: Check ordinary verify scratch in both diagnostic source copies
+        run: python3 scripts/verify_scratch_audit.py --check --output "$RUNNER_TEMP/verify-scratch-audit"
+
+      - name: Preserve ordinary verify scratch numeric observations
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: verify-scratch-observations
+          path: |
+            ${{ runner.temp }}/verify-scratch-audit/result.json
+            ${{ runner.temp }}/verify-scratch-audit/replay.json
+            ${{ runner.temp }}/verify-scratch-audit/diagnostic-status.json
+            ${{ runner.temp }}/verify-scratch-audit/*-smoke-*.json
+            ${{ runner.temp }}/verify-scratch-audit/*-small_file-*.json
+            ${{ runner.temp }}/verify-scratch-audit/*-journal.jsonl
+          if-no-files-found: ignore
+
       - name: Verify page-controlled slice fixtures without performance capture
         run: python3 scripts/diagnose_verify_layout.py --check
 
