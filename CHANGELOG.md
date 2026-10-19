@@ -10,6 +10,12 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Consolidate full-catalog 9.0.0 baseline qualification into the release controller,
+  sharing formal capture ownership, build isolation and failure retention. Require
+  unchanged caller/input/placement contracts and existing quality/drift thresholds;
+  retain per-case wall, measured, thread-runtime and runnable-wait summaries without
+  treating qualification as candidate or release approval.
+
 ## 9.1.0 (2026-10-18)
 
 ### Fixed

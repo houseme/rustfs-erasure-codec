@@ -412,3 +412,31 @@ A complete protocol-3 baseline diagnostic was also rejected: 101 short samples,
 Its raw traces exposed the missing warmup rehearsal in calibration. Protocol 4
 repairs that contract; its implementation and unit tests are not performance
 acceptance, and the earlier rejected observations are not discarded.
+
+## Same-version qualification before candidate capture
+
+Use the existing controller to qualify published 9.0.0 once after a concrete
+execution-contract or environment correction. Run inside the authorized exclusive
+VM CPU partition with a clean frozen tool checkout and a clean baseline checkout:
+
+```sh
+python3 scripts/release_evidence.py qualify-baseline \
+  --baseline /path/to/published-9.0.0 --output /path/to/new-qualification \
+  --isolation-cgroup /sys/fs/cgroup/owned-reservation
+```
+
+This shares the formal renderer, source-specific Cargo build, complete calibration,
+raw journal preservation and overlay ownership with candidate capture. It requires
+all 126 cases, matching caller/preparation/random-input contracts, actual fixed TID
+placement, the existing minimum durations and 10% distribution width. It stops
+after a complete unstable phase. A1/A2 drift must be at most 5%, including the exact
+boundary. It keeps every row and case check; there is no automatic retry or stable
+subset. Thread runtime and runnable-wait summaries are exported separately from
+wall and inner measured time; they do not identify CPU frequency or host effects.
+
+Success is written only after safe overlay cleanup. `qualification.json` is a
+same-version prerequisite, always `release_approval=false` and
+`candidate_attribution=null`. It is not a release manifest, cannot be materialized
+as evidence, and does not waive dynamic-buffer geometry, paired-layout or full
+candidate ABBA acceptance. A failure preserves its logs and completed sample files;
+the CLI also writes `report.json` with the original refusal.
