@@ -407,7 +407,7 @@ def _verify_profiles(document, root, repository, compiler=True):
         for first, second in (("A1", "A2"), ("B1", "B2")):
             for case, row in data[first][profile].items():
                 old, new = float(row[METRICS[profile]]), float(data[second][profile][case][METRICS[profile]])
-                drift = abs(new / old - 1)
+                drift = abs(new - old) / old
                 drifts.append({"profile": profile, "case": case, "pair": first + second, "drift": drift})
     if any(item["drift"] > .05 for item in drifts):
         raise EvidenceFailure("ABBA drift exceeds 5%; no candidate attribution or release approval",

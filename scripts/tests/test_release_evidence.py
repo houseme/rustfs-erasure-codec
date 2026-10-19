@@ -392,6 +392,21 @@ class EvidenceTests(unittest.TestCase):
                 gate.assert_not_called()
             self.write_sampled_rows(phase, "smoke", original)
 
+    def test_exact_five_percent_repeat_boundary_is_inclusive_on_both_sides(self):
+        for phase in ('A2', 'B2'):
+            original = self.fixture_rows(phase, 'smoke')
+            for factor in (.95, 1.05):
+                rows = copy.deepcopy(original)
+                rows[0]['throughput_mb_s'] *= factor
+                self.write_sampled_rows(phase, 'smoke', rows)
+                self.assertEqual(self.verify()[2]['status'], 'passed')
+            for factor in (.94999999, 1.05000001):
+                rows = copy.deepcopy(original)
+                rows[0]['throughput_mb_s'] *= factor
+                self.write_sampled_rows(phase, 'smoke', rows)
+                with self.assertRaises(evidence.EvidenceFailure): self.verify()
+            self.write_sampled_rows(phase, 'smoke', original)
+
     def test_stable_regression_rejected_by_existing_gate(self):
         for phase in ("B1", "B2"):
             rows = self.fixture_rows(phase, "smoke")
