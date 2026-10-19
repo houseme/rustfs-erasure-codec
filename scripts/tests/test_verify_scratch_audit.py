@@ -120,9 +120,28 @@ class ReplayTests(unittest.TestCase):
         import json
         import test_release_evidence as fixtures
         self.json=json;self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
-        self.root=pathlib.Path(self.temp.name);self.repository=pathlib.Path(__file__).resolve().parents[2]
+        self.root=pathlib.Path(self.temp.name)
+        # Contract fixtures must work before CI fetches the real published
+        # baseline. Actual codec execution remains a separate native CI step.
+        repository_temp=tempfile.TemporaryDirectory();self.addCleanup(repository_temp.cleanup)
+        self.repository=pathlib.Path(repository_temp.name)
+        actual=pathlib.Path(__file__).resolve().parents[2]
+        names=('Cargo.lock','src/lib.rs','src/core/verify.rs','src/tests/mod.rs',
+               'tests/benchmark_smoke.rs','tests/benchmark_small_files.rs','tests/benchmark_stream_paths.rs',
+               'tests/common/mod.rs','benches/common/mod.rs')
+        for name in names:
+            target=self.repository/name;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes((actual/name).read_bytes())
+        git=['git','-c','core.hooksPath=/dev/null','-c','commit.gpgsign=false',
+             '-c','user.name=Diagnostic fixture','-c','user.email=fixture@example.invalid']
+        def run(*args):
+            return audit.subprocess.check_output([*git,*args],cwd=self.repository).decode().strip()
+        run('init','--quiet');run('add','.')
+        tree=run('write-tree');baseline=run('commit-tree',tree,'-m','Synthetic baseline fixture')
+        lib=self.repository/'src/lib.rs';lib.write_text(lib.read_text()+'\n// Synthetic candidate fixture.\n')
+        run('add','.');tree=run('write-tree');candidate=run('commit-tree',tree,'-p',baseline,'-m','Synthetic candidate fixture')
         e=audit.evidence
-        sources={role:e.source_at(self.repository,ref) for role,ref in {'candidate':'HEAD','baseline':e.BASELINE_COMMIT}.items()}
+        patch=mock.patch.object(e,'BASELINE_COMMIT',baseline);patch.start();self.addCleanup(patch.stop)
+        sources={role:e.source_at(self.repository,revision) for role,revision in {'candidate':candidate,'baseline':baseline}.items()}
         self.report={'schema':'verify-scratch-check-v1','release_approval':False,'candidate_attribution':None,'formal_performance_geometry_equivalence':False,'source_copies':True,
                      'sources':sources,'cases':{},'page_size':4096,'cpu_affinity':list(range(8)),
                      'native_sha256':e.digest(audit.native_template().encode()),'sampler_implementation_sha256':sampling.implementation_digest(),
