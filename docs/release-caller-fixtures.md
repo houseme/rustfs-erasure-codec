@@ -1,6 +1,6 @@
 # Retained caller fixtures for release workers
 
-Protocol 12 retains the caller contract introduced in protocol 9: it prepares one codec and caller fixture for the complete three-warmup,
+Protocol 13 retains the caller contract introduced in protocols 9 and 12: it prepares one codec and caller fixture for the complete three-warmup,
 nine-observation schedule of each small-file/stream worker. Caller byte storage
 is allocated before version-dependent codec setup. Retained source/scratch buffers
 are checked by full pointer identity, length and capacity before and after every
@@ -68,3 +68,10 @@ for constructing and formatting the replacement. Protocol 12 changes hotspot ran
 and inner timing remain original. Fixed-storage workload metadata also has a
 separate zero-heap-activity test. These checks do not extend caller-layout coverage
 to hotspot buffers.
+
+Protocol 13 prepares the codec and Rayon pool with the full reservation before
+pinning only the measuring thread. It checks pool inheritance and actual measuring
+thread affinity, and binds the CPU/constructor budget/pool width across calibration
+and phases. The structural inventory now uses this same construction order;
+controller-wide pinning before codec/pool setup is removed. This extends execution
+comparability, not dynamic-output/internal-scratch geometry or throughput approval.

@@ -6,7 +6,7 @@ import os
 import pathlib
 import re
 
-PROTOCOL = {"name": "shared-external-duration-sampler", "version": 12, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
+PROTOCOL = {"name": "shared-external-duration-sampler", "version": 13, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
             "target_wall_ns": 100_000_000, "target_timed_ns": 5_000_000,
             "minimum_wall_ns": 50_000_000, "minimum_timed_ns": 2_000_000,
             "central_spread_limit": .10,
@@ -14,6 +14,7 @@ PROTOCOL = {"name": "shared-external-duration-sampler", "version": 12, "samples"
             "result_metadata_policy": "bounded-inline-hotspot-patterns-deferred-formatting",
             "stream_output_policy": "independent-capacity-per-writer-per-iteration",
             "workload_contract": {"scope":"all-126-cases", "codec_lifetime":"worker", "hotspot_input":"worker-seeded-SmallRng-u32-low-byte", "state_witness":"generated-byte-count-and-next-two-u64-words", "geometry_scope":"unchanged-caller-only; dynamic destinations and internal views untracked"},
+            "thread_placement": {"measuring_cpu":"minimum-reserved-cpu", "pin":"thread-only-after-codec-and-pool-preparation", "pool_affinity":"complete-reservation", "observation_checks":"actual-mask-before-and-after-timer"},
             "fixture_layout": {"scope": "small_file:all;stream:all;caller-storage-only", "codec_lifetime": "worker", "dynamic_outputs": "original per-iteration policy; offsets explicitly untracked", "entry": "Vec<Vec<u8>>", "lifetime": "worker", "construction": "caller-buffers-before-codec", "offset_moduli": [64, 4096, "os_base_page_size"], "page_size_source": "controller-sysconf", "untracked_cases": "original allocation contract; no layout guarantee"},
             "timing_scope": {"smoke":"original per-iteration workload", "small_file":"operation loops excluding one-time fixture preparation", "stream":"operation loops excluding one-time fixture preparation", "hotspot":"original inner recovery intervals"}}
 TEMPLATES = pathlib.Path(__file__).resolve().parent / "release-sampling"
@@ -190,7 +191,7 @@ def workload_catalog(records, *, calibration=False):
     selected = {}
     for record in records:
         if record['index'] == 0: selected[record['case']] = record
-    return {case:{k:v for k,v in row['workload'].items() if k != 'rng'} | {'initial_rng':row['workload']['rng']['next_before'] if row['workload']['rng'] else None}
+    return {case:{k:v for k,v in row['workload'].items() if k != 'rng'} | {'initial_rng':row['workload']['rng']['next_before'] if row['workload']['rng'] else None, 'placement':row['placement']}
             for case,row in selected.items()}
 
 
@@ -428,6 +429,28 @@ def parse_log(path):
     return parse_output(path.read_text())
 
 
+def validate_placement(record, allowed_cpus=None):
+    placement = record.get('placement')
+    if not isinstance(placement,dict) or set(placement) != {'cpu','constructor_budget','constructor_affinity','pool_threads','affinity_checked'}:
+        raise ValueError('actual measuring-thread placement is required')
+    if any(type(placement.get(k)) is not int or placement[k] < (0 if k == 'cpu' else 1) for k in ('cpu','constructor_budget','pool_threads')) or placement.get('pool_threads') != 4 or placement.get('affinity_checked') is not True:
+        raise ValueError('invalid prepared codec/pool placement')
+    mask = placement.get('constructor_affinity')
+    if not isinstance(mask,list) or not 1 <= len(mask) <= 65536 or any(type(cpu) is not int or cpu < 0 for cpu in mask) or mask != sorted(set(mask)) or placement['cpu'] not in mask or placement['constructor_budget'] > len(mask):
+        raise ValueError('invalid actual constructor/pool CPU mask')
+    if allowed_cpus is not None and (placement['cpu'] != min(allowed_cpus) or mask != sorted(allowed_cpus)):
+        raise ValueError('measuring-thread placement differs from the reservation')
+    if any(not isinstance(record.get(k),dict) or record[k].get('cpu') != placement['cpu'] for k in ('before','after')):
+        raise ValueError('sample CPU differs from the fixed measuring thread')
+
+
+def worker_environment(environment):
+    result = dict(environment)
+    if hasattr(os,'sched_getaffinity'):
+        result['RSE_SAMPLER_CPU'] = str(min(os.sched_getaffinity(0)))
+    return result
+
+
 def validate_telemetry(record, allowed_cpus=None):
     before, after = record.get("before"), record.get("after")
     for point in (before, after):
@@ -534,7 +557,7 @@ def run_profile(root, environment, profile, mode, log_path, counts_file=None, *,
     ordered = sorted(cases)
     if mode not in ("calibrate", "sample") or not ordered or len(ordered) != len(set(ordered)):
         raise ValueError("a valid mode and nonempty unique case catalog are required")
-    env = dict(build_environment(root, environment), RSE_SAMPLER_PROFILE=profile, RSE_SAMPLER_MODE=mode, RSE_SAMPLER_PAGE_SIZE=str(base_page_size()))
+    env = dict(build_environment(root, worker_environment(environment)), RSE_SAMPLER_PROFILE=profile, RSE_SAMPLER_MODE=mode, RSE_SAMPLER_PAGE_SIZE=str(base_page_size()))
     counts = {}
     if mode == "sample":
         if counts_file is None: raise ValueError("frozen counts are required")
@@ -583,6 +606,7 @@ def sample_groups(records, profile, revision, expected, counts, normalize, allow
             raise ValueError("every fixed warmup and sample is required")
         for record in group:
             validate_telemetry(record, allowed_cpus)
+            validate_placement(record, allowed_cpus)
             validate_fixture(record, profile, expected_page_size)
             if record.get("fixture") != group[0].get("fixture"):
                 raise ValueError("fixture layout changed inside a measurement worker")
@@ -632,7 +656,7 @@ def check(root, workers=False):
             from release_evidence import SAMPLING_ENV, expected_cases
             for profile in ('smoke','hotspot'):
                 for case in sorted(expected_cases(profile)):
-                    env=dict(build_environment(root,dict(os.environ,**SAMPLING_ENV)),RSE_SAMPLER_PROFILE=profile,RSE_SAMPLER_MODE='sample',RSE_SAMPLER_CASE=case,RSE_SAMPLER_ITERATIONS='1',RSE_SAMPLER_BATCH='0',RSE_SAMPLER_PAGE_SIZE=str(base_page_size()))
+                    env=dict(build_environment(root,worker_environment(dict(os.environ,**SAMPLING_ENV))),RSE_SAMPLER_PROFILE=profile,RSE_SAMPLER_MODE='sample',RSE_SAMPLER_CASE=case,RSE_SAMPLER_ITERATIONS='1',RSE_SAMPLER_BATCH='0',RSE_SAMPLER_PAGE_SIZE=str(base_page_size()))
                     process=subprocess.run(['cargo','test','--locked','--release','--features','std simd-accel','--test','rse_release_sampling','release_controlled_profile','--','--exact','--ignored','--nocapture','--test-threads=1'],cwd=root,env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
                     if process.returncode:
                         print(process.stdout,end='');process.check_returncode()
@@ -640,11 +664,17 @@ def check(root, workers=False):
                     if len(rows)!=12 or [r['index'] for r in rows]!=list(range(12)) or any(r['case'] != case or r['iterations'] != 1 for r in rows):
                         raise ValueError('complete one-iteration worker output is required')
                     validate_workload_sequence(rows,profile)
-                    actual[case]=[r['workload'] for r in rows]
+                    if hasattr(os,'sched_getaffinity'):
+                        for row in rows:validate_placement(row,os.sched_getaffinity(0))
+                    actual[case]=[{'workload':r['workload'],'placement':r['placement']} for r in rows]
             print('All 23 smoke/hotspot workers executed at one iteration; input/preparation correctness only')
     records = parse_output(result.stdout,'RSE_INPUT_REPLAY ')
     if len(records) != len(HOTSPOT_CASES) or {r['case'] for r in records} != {row[2] for row in HOTSPOT_CASES}:
         raise ValueError('complete native input replay witnesses are required')
+    if workers and hasattr(os,'sched_getaffinity'):
+        placements={json.dumps(row['placement'],sort_keys=True) for rows in actual.values() for row in rows}
+        if len(placements) != 1: raise ValueError('native workers changed their constructor/pool placement')
+        print('RSE_PLACEMENT_CHECK '+next(iter(placements)))
     return {'prefixes':sorted(records,key=lambda row:row['case']),'workers':actual}
 
 

@@ -1,13 +1,13 @@
 # 9.1.0 publication blockers and completion criteria
 
-Audit date: 2026-10-19 (Asia/Shanghai). Main includes PR #23 at `b22d17f`;
-the current protocol-12 preparation correction is pending review. This is a
+Audit date: 2026-10-19 (Asia/Shanghai). Main includes PR #24 at `94c6951`;
+the protocol-13 measuring-thread placement correction is pending review. This is a
 readiness assessment, not release approval. Historical evidence retains its
 original source and protocol bindings.
 
 ## Implementation and acceptance are separate
 
-Protocol 12 uses one prepared worker entry for all 126 cases. It extends the
+Protocol 13 retains one prepared worker entry for all 126 cases. It extends the
 existing 103 small-file/stream caller contracts to the 15 smoke and eight hotspot
 cases: codec lifetime, actual API/output policy, masks, seed, source lifetime and
 construction order are mandatory. Hotspot per-byte random generation now borrows
@@ -35,12 +35,19 @@ input contract match. Generated-sampler Clippy with warnings denied, formatting,
 actionlint and manifest checks also pass. These results do not certify Linux
 performance; final PR CI remains separate.
 
+The [current hot-path review](hotpath-service-time-review-2026-10-19.md) identifies
+an additional formal placement gap: endpoint membership alone allowed measuring
+thread migration. Protocol 13 initializes codec/pool with the complete reservation,
+then pins only the measuring TID and validates masks, constructor budget and pool
+width. Previous exact fixed-CPU controls still drifted, so this change does not
+establish the remaining root cause or replace accepted full performance evidence.
+
 ## Current release gates
 
 | Layer | Verified state | Required next result |
 | --- | --- | --- |
 | Functional compatibility | The normal-format 200-case published-9.0.0 parity/roundtrip probe and core tests pass. PR #19 changes no production algorithm. | Preserve the declared compatibility boundary: the normal-format probe disables `fast_one_parity` and does not promise recovery of historically inconsistent fast/custom/mixed-entry codewords. |
-| Workload comparability | All 126 cases have explicit preparation/input contracts in protocol 12; geometry covers only the 103 retained caller cases. Dynamic/internal buffers and real per-layout acceptance remain partial in backlog #2897. | Complete the agreed dynamic/lifetime and per-layout acceptance scope; caller matching alone is insufficient. |
+| Workload comparability | All 126 cases have explicit preparation/input contracts in protocol 13; geometry covers only the 103 retained caller cases. Dynamic/internal buffers and real per-layout acceptance remain partial in backlog #2897. | Complete the agreed dynamic/lifetime and per-layout acceptance scope; caller matching alone is insufficient. |
 | Baseline stability | Both complete protocol-10 9.0.0 qualifications failed their original gates; details below. | Qualify the entire baseline before candidate attribution. Preserve every failed case and allocator context. |
 | Quantitative evidence | No accepted complete campaign for the final source tree and shared harness exists. | Fresh baseline/candidate A1/B1/B2/A2, both calibrations and all 126 original cases, with every duration/distribution/drift/regression gate passing. |
 | Workflow input | `RSE_RELEASE_EVIDENCE_REF` was absent at the last live check. Rejected audit data is not accepted evidence. | Verify accepted `release-evidence/manifest.json` on a data commit, then supply its full immutable SHA through the variable or manual `evidence_ref`. |

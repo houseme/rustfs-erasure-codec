@@ -139,7 +139,7 @@ class EvidenceTests(unittest.TestCase):
             preview = lambda count:[(workload['seed']+count) % 2**64,(workload['seed']^count) % 2**64]
             workload['rng'] = {'bytes_before':index*step,'bytes_after':(index+1)*step,'next_before':preview(index*step),'next_after':preview((index+1)*step)}
             timed = row['useful_shards']*row['shard_size']*1e9/(1048576.0*row['candidate_mb_s'])
-        return {'fixture':fixture, 'workload':workload, 'kind':kind, 'case':key, 'revision':self.sources[role]['commit'], 'index':index, 'iterations':1,
+        return {'fixture':fixture, 'workload':workload, 'placement':{'cpu':0,'constructor_budget':8,'constructor_affinity':list(range(8)),'pool_threads':4,'affinity_checked':True}, 'kind':kind, 'case':key, 'revision':self.sources[role]['commit'], 'index':index, 'iterations':1,
                 'wall_ns':120_000_000, 'timed_ns':timed, 'complete':True, 'target_met':True, 'isolated_case':True, 'calibration_batch':0, 'rows':[copy.deepcopy(row)],
                 'before':{'cpu':0, 'run_ns':index*100, 'wait_ns':index, 'switches':index},
                 'after':{'cpu':0, 'run_ns':index*100+99, 'wait_ns':index+1, 'switches':index+1}}

@@ -57,7 +57,7 @@ class BaselineVariabilityTests(unittest.TestCase):
         self.assertEqual(case['repeat']['endpoint_category'], 'single_endpoint_cpu_same')
         self.assertEqual(report['repeat_endpoint_counts']['single_endpoint_cpu_same']['repeat_failures'], 1)
 
-    def test_changed_and_multiple_endpoints_are_described_not_filtered(self):
+    def test_fixed_thread_contract_rejects_changed_and_multiple_endpoints(self):
         def change(records):
             for record in records:
                 if record['case'] == 'encode:4:2:1024':
@@ -65,10 +65,8 @@ class BaselineVariabilityTests(unittest.TestCase):
                 if record['case'] == 'encode:4:2:4096' and record['index'] == 3:
                     record['after']['cpu'] = 1
         self.mutate('A2/small_file-samples.json', change)
-        report = analysis.analyze(self.root)
-        self.assertEqual(report['repeat_endpoint_counts']['single_endpoint_cpu_changed']['cases'], 1)
-        self.assertEqual(report['repeat_endpoint_counts']['multiple_endpoint_cpus']['cases'], 1)
-        self.assertEqual(report['case_count'], 126)
+        with self.assertRaisesRegex(ValueError, 'fixed measuring thread'):
+            analysis.analyze(self.root)
 
     def test_complete_first_phase_without_repeat_has_no_repeat_claim(self):
         shutil.rmtree(self.root/'A2')

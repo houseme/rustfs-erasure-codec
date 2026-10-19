@@ -446,6 +446,8 @@ def verify_sampling(document, root, repository, summarized):
             records = evidence_member(root, document.get("calibration", {}).get(role, {}).get(profile), name)
             pilot_counts[role][profile] = calibration_counts(records, profile, document["sources"][role]["commit"], document["contexts"]["A1"]["runtime"]["page_size"])
             pilot_layouts[role][profile] = sampling.fixture_catalog(records, calibration=True)
+            for record in records:
+                sampling.validate_placement(record, document["contexts"]["A1"]["isolation"]["cpu_affinity"])
             pilot_workloads[role][profile] = sampling.workload_catalog(records, calibration=True)
             pilot_traces[role][profile] = sampling.workload_traces(records, calibration=True)
     spreads = []
@@ -495,6 +497,7 @@ def calibration_counts(records, profile, revision, expected_page_size=None):
         if not isinstance(record.get("rows"), list) or len(record["rows"]) != 1:
             raise ValueError("calibration must contain one raw row")
         sampling.validate_telemetry(record)
+        sampling.validate_placement(record)
         sampling.validate_fixture(record, profile, expected_page_size)
         if set(indexed_rows(profile, record["rows"], revision, {key: count}, complete=False)) != {key}:
             raise ValueError("calibration row does not match declared case")

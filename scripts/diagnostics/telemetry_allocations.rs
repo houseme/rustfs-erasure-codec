@@ -170,3 +170,14 @@ fn workload_state_and_metadata_keep_the_rust_heap_untouched() {
     });
     assert_eq!(counts, Counts::default());
 }
+
+#[test]
+#[cfg(target_os = "linux")]
+fn fixed_affinity_checks_do_not_touch_the_rust_heap() {
+    let (_, counts) = count_heap(|| {
+        for _ in 0..16 {
+            std::hint::black_box(sampling::affinity_cpu());
+        }
+    });
+    assert_eq!(counts, Counts::default());
+}

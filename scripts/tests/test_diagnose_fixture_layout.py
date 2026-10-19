@@ -55,7 +55,7 @@ class FixtureInventoryTests(unittest.TestCase):
                 self.assertFalse((source/'tests/rse_release_sampling.rs').exists())
 
     def test_complete_inventory_is_never_release_approval(self):
-        report=inventory.analyze(self.phases,self.sources,{0})
+        report=inventory.analyze(self.phases,self.sources,range(8))
         self.assertEqual(report['case_count'],103)
         self.assertEqual(len(report['layout_checks']),618)
         self.assertEqual(report['layout_mismatches'],[])
@@ -67,7 +67,7 @@ class FixtureInventoryTests(unittest.TestCase):
             for record in self.phases[phase]:
                 if not record['case'].startswith('verify_with_buffer:'): continue
                 record['fixture']['scratch'][0].update(offset_64=32,offset_4096=32,offset_page=32)
-        report=inventory.analyze(self.phases,self.sources,{0})
+        report=inventory.analyze(self.phases,self.sources,range(8))
         self.assertEqual(len(report['layout_mismatches']),44)
         self.assertTrue(all(check['pair'] not in ('A1/A2','B1/B2') for check in report['layout_mismatches']))
         self.assertTrue(all(check['different_buffers'] for check in report['layout_mismatches']))
@@ -78,12 +78,12 @@ class FixtureInventoryTests(unittest.TestCase):
         for change in (lambda phases:phases.pop('A2'),lambda phases:phases['B2'].pop(),
                        lambda phases:phases['A1'][0]['fixture']['source'][0].update(capacity=2048)):
             phases=copy.deepcopy(original);change(phases)
-            with self.assertRaises(ValueError):inventory.analyze(phases,self.sources,{0})
+            with self.assertRaises(ValueError):inventory.analyze(phases,self.sources,range(8))
 
     def test_invalid_cpu_or_more_than_one_iteration_cannot_enter_inventory(self):
         for change in (lambda r:r.update(iterations=2),lambda r:r['after'].update(cpu=7)):
             phases=copy.deepcopy(self.phases);change(phases['B1'][0])
-            with self.assertRaises(ValueError):inventory.analyze(phases,self.sources,{0})
+            with self.assertRaises(ValueError):inventory.analyze(phases,self.sources,range(8))
 
 
 if __name__=='__main__':unittest.main()

@@ -121,6 +121,118 @@ pub(super) fn telemetry() -> Telemetry {
     }
 }
 
+// Read the measuring thread's mask, never infer placement from CPU endpoints.
+fn affinity_list(status: &str) -> Option<&str> {
+    status
+        .lines()
+        .find_map(|line| line.strip_prefix("Cpus_allowed_list:").map(str::trim))
+}
+
+pub(super) fn affinity_cpu() -> Option<usize> {
+    let mut buffer = [0u8; 4096];
+    affinity_list(read_bounded("/proc/thread-self/status", &mut buffer).ok()?)?
+        .parse()
+        .ok()
+}
+
+struct Placement {
+    cpu: usize,
+    constructor_budget: usize,
+    constructor_affinity: Vec<usize>,
+    pool_threads: usize,
+}
+impl Placement {
+    fn prepare(constructor_budget: usize) -> Option<Self> {
+        #[cfg(target_os = "linux")]
+        {
+            assert_eq!(
+                std::thread::available_parallelism().unwrap().get(),
+                constructor_budget
+            );
+            let cpu = std::env::var("RSE_SAMPLER_CPU")
+                .unwrap()
+                .parse::<usize>()
+                .unwrap();
+            let mut buffer = [0u8; 4096];
+            let inherited =
+                affinity_list(read_bounded("/proc/thread-self/status", &mut buffer).unwrap())
+                    .unwrap()
+                    .to_owned();
+            // A lazily-created pool would otherwise inherit the pinned single
+            // CPU. Start and check every worker before changing only this TID.
+            rayon::broadcast(|_| {
+                let mut buffer = [0u8; 4096];
+                assert_eq!(
+                    affinity_list(read_bounded("/proc/thread-self/status", &mut buffer).unwrap()),
+                    Some(inherited.as_str())
+                );
+            });
+            let pool_threads = rayon::current_num_threads();
+            let tid = fs::read_link("/proc/thread-self").unwrap();
+            let output = std::process::Command::new("taskset")
+                .args(["--pid", "--cpu-list"])
+                .arg(cpu.to_string())
+                .arg(tid.file_name().unwrap())
+                .output()
+                .unwrap();
+            assert!(
+                output.status.success(),
+                "measuring-thread affinity change failed"
+            );
+            assert_eq!(affinity_cpu(), Some(cpu));
+            assert_eq!(std::thread::available_parallelism().unwrap().get(), 1);
+            // Existing workers must keep the complete reservation after the
+            // measuring thread is pinned, including on parallel API paths.
+            rayon::broadcast(|_| {
+                let mut buffer = [0u8; 4096];
+                assert_eq!(
+                    affinity_list(read_bounded("/proc/thread-self/status", &mut buffer).unwrap()),
+                    Some(inherited.as_str())
+                );
+            });
+            let constructor_affinity = inherited
+                .split(',')
+                .flat_map(|part| {
+                    let (first, last) = part.split_once('-').unwrap_or((part, part));
+                    first.parse::<usize>().unwrap()..=last.parse::<usize>().unwrap()
+                })
+                .collect();
+            Some(Self {
+                cpu,
+                constructor_budget,
+                constructor_affinity,
+                pool_threads,
+            })
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            let _ = constructor_budget;
+            None
+        }
+    }
+    fn check(&self) {
+        assert_eq!(
+            affinity_cpu(),
+            Some(self.cpu),
+            "measuring thread escaped its fixed CPU"
+        );
+    }
+}
+#[derive(Clone, Copy)]
+struct OptionalPlacement<'a>(Option<&'a Placement>);
+impl std::fmt::Display for OptionalPlacement<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.0 {
+            Some(p) => write!(
+                f,
+                "{{\"cpu\":{},\"constructor_budget\":{},\"constructor_affinity\":{:?},\"pool_threads\":{},\"affinity_checked\":true}}",
+                p.cpu, p.constructor_budget, p.constructor_affinity, p.pool_threads
+            ),
+            None => f.write_str("null"),
+        }
+    }
+}
+
 struct Observation<R> {
     result: R,
     wall_ns: u128,
@@ -148,6 +260,7 @@ fn measure_fixed<R>(
     count: usize,
     operation: &mut impl FnMut(usize) -> Output<R>,
     ns_per_iter: &impl Fn(&R) -> f64,
+    placement: OptionalPlacement<'_>,
 ) -> (Vec<Observation<R>>, std::thread::Result<()>) {
     let mut observations = Vec::with_capacity(WARMUPS + SAMPLES);
     // A failed operation is rethrown after completed observations are exported.
@@ -155,6 +268,9 @@ fn measure_fixed<R>(
     let outcome = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         for index in 0..WARMUPS + SAMPLES {
             ITERATIONS.with(|n| n.set(count));
+            if let Some(p) = placement.0 {
+                p.check();
+            }
             let before = telemetry();
             let start = Instant::now();
             let Output {
@@ -164,12 +280,15 @@ fn measure_fixed<R>(
             } = std::hint::black_box(operation(count));
             let wall_ns = start.elapsed().as_nanos();
             let after = telemetry();
+            if let Some(p) = placement.0 {
+                p.check();
+            }
             let timed_ns = ns_per_iter(&result) * count as f64;
             assert!(timed_ns.is_finite() && timed_ns > 0.0);
             // Keep a mode-independent timing journal even if a process is
             // interrupted before the deferred original artifact export.
             println!(
-                "\nRSE_TIMING {{\"case\":\"{key}\",\"index\":{index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"fixture\":{fixture},\"workload\":{workload},\"before\":{before},\"after\":{after}}}"
+                "\nRSE_TIMING {{\"case\":\"{key}\",\"index\":{index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"fixture\":{fixture},\"workload\":{workload},\"placement\":{placement},\"before\":{before},\"after\":{after}}}"
             );
             observations.push(Observation {
                 result,
@@ -219,8 +338,12 @@ pub(super) fn run_prepared<R, F: FnMut(usize) -> Output<R>>(
         .parse::<usize>()
         .unwrap();
     assert!(page_size.is_power_of_two() && (1024..=1048576).contains(&page_size));
+    let constructor_budget = std::thread::available_parallelism().unwrap().get();
     let mut operation = prepare(page_size);
-    let (observations, outcome) = measure_fixed(key, count, &mut operation, &ns_per_iter);
+    let prepared_placement = Placement::prepare(constructor_budget);
+    let placement = OptionalPlacement(prepared_placement.as_ref());
+    let (observations, outcome) =
+        measure_fixed(key, count, &mut operation, &ns_per_iter, placement);
     let complete_batch = observations.len() == WARMUPS + SAMPLES
         && observations
             .iter()
@@ -256,7 +379,7 @@ pub(super) fn run_prepared<R, F: FnMut(usize) -> Output<R>>(
             (false, false) => "sample",
         };
         println!(
-            "\nRSE_SAMPLE {{\"kind\":\"{kind}\",\"case\":\"{key}\",\"revision\":\"{}\",\"index\":{record_index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"complete\":{complete},\"target_met\":{target_met},\"isolated_case\":{isolated_case},\"calibration_batch\":{calibration_batch},\"fixture\":{fixture},\"workload\":{workload},\"before\":{before},\"after\":{after},\"rows\":{}}}",
+            "\nRSE_SAMPLE {{\"kind\":\"{kind}\",\"case\":\"{key}\",\"revision\":\"{}\",\"index\":{record_index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"complete\":{complete},\"target_met\":{target_met},\"isolated_case\":{isolated_case},\"calibration_batch\":{calibration_batch},\"fixture\":{fixture},\"workload\":{workload},\"placement\":{placement},\"before\":{before},\"after\":{after},\"rows\":{}}}",
             revision(),
             raw.replace(['\n', '\r'], "")
         );
@@ -294,6 +417,23 @@ mod tests {
     }
 
     #[test]
+    fn affinity_masks_distinguish_single_cpu_from_sets() {
+        assert_eq!(
+            affinity_list("Name: test\nCpus_allowed_list:\t24\n"),
+            Some("24")
+        );
+        for mask in ["24-31", "24,26", ""] {
+            assert!(
+                affinity_list(&format!("Cpus_allowed_list:\t{mask}\n"))
+                    .unwrap()
+                    .parse::<usize>()
+                    .is_err()
+            );
+        }
+        assert_eq!(affinity_list("Name: test\n"), None);
+    }
+
+    #[test]
     fn kernel_keeps_the_complete_fixed_schedule() {
         let mut calls = 0;
         let (observations, outcome) = measure_fixed(
@@ -308,6 +448,7 @@ mod tests {
                 }
             },
             &|_| 1.0,
+            OptionalPlacement(None),
         );
         assert!(outcome.is_ok());
         assert_eq!(calls, WARMUPS + SAMPLES);
@@ -330,6 +471,7 @@ mod tests {
                 }
             },
             &|_| 1.0,
+            OptionalPlacement(None),
         );
         assert!(outcome.is_err());
         assert_eq!(
