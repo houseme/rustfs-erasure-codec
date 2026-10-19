@@ -7,8 +7,8 @@ use std::io::{self, Read};
 use std::sync::OnceLock;
 use std::time::Instant;
 
-const TARGET_WALL_NS: f64 = 100_000_000.0;
-const TARGET_TIMED_NS: f64 = 5_000_000.0;
+mod service_window;
+use service_window::{TARGET_TIMED_NS, TARGET_WALL_NS};
 const SAMPLES: usize = 9;
 const WARMUPS: usize = 3;
 const MAX_CALIBRATION_BATCHES: usize = 12;
@@ -297,7 +297,7 @@ struct Observation<R> {
 
 impl<R> Observation<R> {
     fn target_met(&self) -> bool {
-        self.wall_ns as f64 >= TARGET_WALL_NS && self.timed_ns >= TARGET_TIMED_NS
+        self.wall_ns as f64 >= TARGET_WALL_NS as f64 && self.timed_ns >= TARGET_TIMED_NS as f64
     }
 }
 
