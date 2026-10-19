@@ -61,6 +61,13 @@ fn normal_telemetry_does_not_touch_the_rust_heap() {
         "real Linux telemetry must be available"
     );
     assert_eq!(counts, Counts::default());
+    let json: serde_json::Value = serde_json::from_str(&observation.to_string()).unwrap();
+    for field in ["process_minor_faults", "process_major_faults"] {
+        assert!(
+            json[field].as_u64().is_some(),
+            "real process fault counter missing"
+        );
+    }
 }
 
 fn count_heap<R>(work: impl FnOnce() -> R) -> (R, Counts) {

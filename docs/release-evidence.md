@@ -447,3 +447,13 @@ sampler protocol/renderer; it preserves every warmup/sample and source/member
 digest, distinguishes a missing A2 from a completed repeat, and never changes the
 qualification or release decision. A descriptive replay cannot prove physical-host
 exclusivity or internal/dynamic-buffer equivalence.
+
+Protocol 14 adds bounded-stack `/proc/self/stat` process minor/major fault counters
+at every observation endpoint, including worker faults and excluding child
+processes. This reuses the ordinary observer and allocates no Rust heap storage;
+the opt-in allocating thread diagnostic is not substituted for formal telemetry.
+Counters bracket the wall timer and are not exact inner-operation event counts.
+They expose page-fault transitions without claiming a unique physical cause. All
+calibration and phase rows require nonnegative monotonic counters. Historical
+protocol-13 failures stay bound to their frozen renderer; no performance success
+is transferred to protocol 14, and no warmup, sample or threshold is relaxed.

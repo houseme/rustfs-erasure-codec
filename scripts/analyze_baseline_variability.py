@@ -24,6 +24,8 @@ def describe(group, metric):
             'main_run_ns': after['run_ns']-before['run_ns'],
             'main_wait_ns': after['wait_ns']-before['wait_ns'],
             'main_switches': after['switches']-before['switches'],
+            'process_minor_faults': after['process_minor_faults']-before['process_minor_faults'],
+            'process_major_faults': after['process_major_faults']-before['process_major_faults'],
             'main_run_to_wall': (after['run_ns']-before['run_ns'])/record['wall_ns'],
             'main_wait_to_wall': (after['wait_ns']-before['wait_ns'])/record['wall_ns'],
         })

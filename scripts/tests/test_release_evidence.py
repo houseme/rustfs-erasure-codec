@@ -141,8 +141,8 @@ class EvidenceTests(unittest.TestCase):
             timed = row['useful_shards']*row['shard_size']*1e9/(1048576.0*row['candidate_mb_s'])
         return {'fixture':fixture, 'workload':workload, 'placement':{'cpu':0,'constructor_budget':8,'constructor_affinity':list(range(8)),'pool_threads':4,'affinity_checked':True}, 'kind':kind, 'case':key, 'revision':self.sources[role]['commit'], 'index':index, 'iterations':1,
                 'wall_ns':120_000_000, 'timed_ns':timed, 'complete':True, 'target_met':True, 'isolated_case':True, 'calibration_batch':0, 'rows':[copy.deepcopy(row)],
-                'before':{'cpu':0, 'run_ns':index*100, 'wait_ns':index, 'switches':index},
-                'after':{'cpu':0, 'run_ns':index*100+99, 'wait_ns':index+1, 'switches':index+1}}
+                'before':{'cpu':0, 'run_ns':index*100, 'wait_ns':index, 'switches':index, 'process_minor_faults':0, 'process_major_faults':0},
+                'after':{'cpu':0, 'run_ns':index*100+99, 'wait_ns':index+1, 'switches':index+1, 'process_minor_faults':0, 'process_major_faults':0}}
 
     def write_samples(self, folder, profile, records):
         name = folder + '/' + profile + '-samples.json'
