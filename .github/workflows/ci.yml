@@ -109,8 +109,21 @@ jobs:
       - name: Compile and test the post-construction CPU placement diagnostic
         run: python3 scripts/diagnose_cpu_placement.py --check
 
-      - name: Compare with published 9.0.0 encoding
-        run: cargo run --locked --quiet --manifest-path scripts/release-compatibility/Cargo.toml --target-dir target
+      - name: Compare published 9.0.0 encoding and allocation requests
+        env:
+          RAYON_NUM_THREADS: "4"
+          RS_PARALLEL_POLICY_MAX_JOBS: "4"
+        run: >-
+          cargo run --locked --quiet --release
+          --manifest-path scripts/release-compatibility/Cargo.toml --target-dir target
+          -- --allocation-report "$RUNNER_TEMP/codec-resources-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"
+
+      - name: Preserve codec resource comparison (not release performance evidence)
+        uses: actions/upload-artifact@v7
+        with:
+          name: codec-resource-counts-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/codec-resources-*.json
+          if-no-files-found: error
 
       - name: Verify the actual distributable without uploading
         run: cargo publish --dry-run --locked --registry crates-io --package rustfs-erasure-codec
