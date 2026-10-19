@@ -1,0 +1,1576 @@
+{
+  "schema_version": "baseline-qualification-v1",
+  "source": {
+    "commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "tree": "d44fe8c296972cf895375101f8975c99371db57a",
+    "lock_sha256": "972540efcf6bc23c0064252a9c0d937bf87dbe0edff9cdb688d2fdcbd5653d49"
+  },
+  "tool": {
+    "commit": "121b39d09774a51c79a21f51f5570ef4ef2a782c",
+    "tree": "e1b3fbc13514c37f6ede367c5c7caef72831d6e4",
+    "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+  },
+  "context": {
+    "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+    "isolation": {
+      "scope": "exclusive-vm-cpu-partition",
+      "reserved_cpu_count": 8,
+      "cpu_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "physical_host_exclusivity_proven": false
+    },
+    "runtime": {
+      "libc": {
+        "name": "glibc",
+        "version": "2.39"
+      },
+      "page_size": 4096,
+      "allocator_environment": {}
+    },
+    "settings": {
+      "RUSTUP_TOOLCHAIN": "stable",
+      "RUSTFLAGS": "",
+      "RAYON_NUM_THREADS": "4",
+      "RS_PARALLEL_POLICY_MAX_JOBS": "4",
+      "RSE_BACKEND_OVERRIDE": "auto",
+      "RSE_STRICT_BACKEND_OVERRIDE": "1",
+      "RSE_SMOKE_PROFILE": "extended",
+      "RSE_SMALL_FILE_PROFILE": "fast",
+      "RSE_STREAM_PROFILE": "fast",
+      "RSE_STREAM_IO_MODE": "auto",
+      "RSE_BENCHMARK_ALLOW_MISSING_CASES": "0",
+      "CARGO_BUILD_JOBS": "4",
+      "RSE_SAMPLER_PROTOCOL": "duration-v13"
+    }
+  },
+  "sampling": {
+    "name": "shared-external-duration-sampler",
+    "version": 13,
+    "samples": 9,
+    "warmups": 3,
+    "case_isolation": "fresh-process-per-count",
+    "case_order": "lexicographic",
+    "max_calibration_batches": 12,
+    "max_calibration_records": 144,
+    "target_wall_ns": 100000000,
+    "target_timed_ns": 5000000,
+    "minimum_wall_ns": 50000000,
+    "minimum_timed_ns": 2000000,
+    "central_spread_limit": 0.1,
+    "observer_buffer_policy": "bounded-stack-procfs-no-rust-heap",
+    "result_metadata_policy": "bounded-inline-hotspot-patterns-deferred-formatting",
+    "stream_output_policy": "independent-capacity-per-writer-per-iteration",
+    "workload_contract": {
+      "scope": "all-126-cases",
+      "codec_lifetime": "worker",
+      "hotspot_input": "worker-seeded-SmallRng-u32-low-byte",
+      "state_witness": "generated-byte-count-and-next-two-u64-words",
+      "geometry_scope": "unchanged-caller-only; dynamic destinations and internal views untracked"
+    },
+    "thread_placement": {
+      "measuring_cpu": "minimum-reserved-cpu",
+      "pin": "thread-only-after-codec-and-pool-preparation",
+      "pool_affinity": "complete-reservation",
+      "observation_checks": "actual-mask-before-and-after-timer"
+    },
+    "fixture_layout": {
+      "scope": "small_file:all;stream:all;caller-storage-only",
+      "codec_lifetime": "worker",
+      "dynamic_outputs": "original per-iteration policy; offsets explicitly untracked",
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "construction": "caller-buffers-before-codec",
+      "offset_moduli": [
+        64,
+        4096,
+        "os_base_page_size"
+      ],
+      "page_size_source": "controller-sysconf",
+      "untracked_cases": "original allocation contract; no layout guarantee"
+    },
+    "timing_scope": {
+      "smoke": "original per-iteration workload",
+      "small_file": "operation loops excluding one-time fixture preparation",
+      "stream": "operation loops excluding one-time fixture preparation",
+      "hotspot": "original inner recovery intervals"
+    },
+    "implementation_sha256": "b6d0b734dd1fead28f569ba9d6cbccec4a5131ff1b7cd66951536d7222395b65",
+    "overlay_sha256": "e2dbee0d5aed42e8bf0d78c5d9596b193e274dff04f39f7e06beb72926f83456",
+    "common_iterations": {
+      "smoke": {
+        "encode:10:4:1048576": 12,
+        "encode:32:16:1048576": 3,
+        "encode:4:2:65536": 512,
+        "reconstruct:10:4:1048576": 9,
+        "reconstruct:32:16:1048576": 3,
+        "reconstruct:4:2:65536": 512,
+        "reconstruct_data:10:4:1048576": 9,
+        "reconstruct_data:32:16:1048576": 3,
+        "reconstruct_data:4:2:65536": 512,
+        "update:10:4:1048576": 7,
+        "update:32:16:1048576": 2,
+        "update:4:2:65536": 384,
+        "verify:10:4:1048576": 12,
+        "verify:32:16:1048576": 2,
+        "verify:4:2:65536": 512
+      },
+      "small_file": {
+        "encode:10:4:16384": 16384,
+        "encode:10:4:262144": 768,
+        "encode:10:4:524288": 384,
+        "encode:10:4:65536": 3520,
+        "encode:4:2:1024": 786432,
+        "encode:4:2:131072": 12288,
+        "encode:4:2:16384": 69632,
+        "encode:4:2:262144": 4096,
+        "encode:4:2:4096": 262144,
+        "encode:4:2:524288": 2112,
+        "encode:4:2:65536": 20480,
+        "reconstruct:10:4:16384": 20480,
+        "reconstruct:10:4:262144": 128,
+        "reconstruct:10:4:524288": 49,
+        "reconstruct:10:4:65536": 4096,
+        "reconstruct:4:2:1024": 262144,
+        "reconstruct:4:2:131072": 768,
+        "reconstruct:4:2:16384": 49152,
+        "reconstruct:4:2:262144": 384,
+        "reconstruct:4:2:4096": 122880,
+        "reconstruct:4:2:524288": 192,
+        "reconstruct:4:2:65536": 16384,
+        "reconstruct_data:10:4:16384": 24576,
+        "reconstruct_data:10:4:262144": 128,
+        "reconstruct_data:10:4:524288": 51,
+        "reconstruct_data:10:4:65536": 4096,
+        "reconstruct_data:4:2:1024": 524288,
+        "reconstruct_data:4:2:131072": 768,
+        "reconstruct_data:4:2:16384": 53248,
+        "reconstruct_data:4:2:262144": 384,
+        "reconstruct_data:4:2:4096": 135168,
+        "reconstruct_data:4:2:524288": 192,
+        "reconstruct_data:4:2:65536": 16384,
+        "reconstruct_opt:10:4:16384": 24576,
+        "reconstruct_opt:10:4:262144": 192,
+        "reconstruct_opt:10:4:524288": 90,
+        "reconstruct_opt:10:4:65536": 4096,
+        "reconstruct_opt:4:2:1024": 262144,
+        "reconstruct_opt:4:2:131072": 768,
+        "reconstruct_opt:4:2:16384": 49152,
+        "reconstruct_opt:4:2:262144": 384,
+        "reconstruct_opt:4:2:4096": 118784,
+        "reconstruct_opt:4:2:524288": 192,
+        "reconstruct_opt:4:2:65536": 16384,
+        "reconstruct_shard_slot:10:4:16384": 24576,
+        "reconstruct_shard_slot:10:4:262144": 128,
+        "reconstruct_shard_slot:10:4:524288": 45,
+        "reconstruct_shard_slot:10:4:65536": 4096,
+        "reconstruct_shard_slot:4:2:1024": 262144,
+        "reconstruct_shard_slot:4:2:131072": 512,
+        "reconstruct_shard_slot:4:2:16384": 53248,
+        "reconstruct_shard_slot:4:2:262144": 256,
+        "reconstruct_shard_slot:4:2:4096": 131072,
+        "reconstruct_shard_slot:4:2:524288": 128,
+        "reconstruct_shard_slot:4:2:65536": 16384,
+        "reconstruct_some_data_only:10:4:16384": 32768,
+        "reconstruct_some_data_only:10:4:262144": 128,
+        "reconstruct_some_data_only:10:4:524288": 46,
+        "reconstruct_some_data_only:10:4:65536": 1728,
+        "reconstruct_some_data_only:4:2:1024": 524288,
+        "reconstruct_some_data_only:4:2:131072": 512,
+        "reconstruct_some_data_only:4:2:16384": 73728,
+        "reconstruct_some_data_only:4:2:262144": 256,
+        "reconstruct_some_data_only:4:2:4096": 172032,
+        "reconstruct_some_data_only:4:2:524288": 128,
+        "reconstruct_some_data_only:4:2:65536": 20480,
+        "verify:10:4:16384": 16384,
+        "verify:10:4:262144": 768,
+        "verify:10:4:524288": 384,
+        "verify:10:4:65536": 3648,
+        "verify:4:2:1024": 786432,
+        "verify:4:2:131072": 8192,
+        "verify:4:2:16384": 73728,
+        "verify:4:2:262144": 3072,
+        "verify:4:2:4096": 237568,
+        "verify:4:2:524288": 1600,
+        "verify:4:2:65536": 20480,
+        "verify_with_buffer:10:4:16384": 16384,
+        "verify_with_buffer:10:4:262144": 896,
+        "verify_with_buffer:10:4:524288": 448,
+        "verify_with_buffer:10:4:65536": 3776,
+        "verify_with_buffer:4:2:1024": 1048576,
+        "verify_with_buffer:4:2:131072": 12288,
+        "verify_with_buffer:4:2:16384": 73728,
+        "verify_with_buffer:4:2:262144": 3584,
+        "verify_with_buffer:4:2:4096": 262144,
+        "verify_with_buffer:4:2:524288": 1664,
+        "verify_with_buffer:4:2:65536": 20480
+      },
+      "hotspot": {
+        "reconstruct_data_32x16_missing_2_data": 4,
+        "reconstruct_data_missing_1_data": 18,
+        "reconstruct_data_missing_2_data": 13,
+        "reconstruct_data_missing_data_plus_parity": 18,
+        "reconstruct_some_32x16_required_2_of_4_missing_data": 4,
+        "reconstruct_some_required_1_of_2_missing_data": 18,
+        "reconstruct_some_required_2_of_3_missing_data": 14,
+        "reconstruct_some_required_data_and_skip_parity": 18
+      },
+      "stream": {
+        "encode_stream:10:4:1048576:1048576": 153,
+        "encode_stream:10:4:16777216:4194304": 6,
+        "encode_stream:10:4:65536:65536": 2560,
+        "encode_stream:4:2:1048576:262144": 192,
+        "encode_stream:4:2:65536:65536": 12288,
+        "reconstruct_stream:10:4:1048576:1048576": 20,
+        "reconstruct_stream:10:4:16777216:4194304": 1,
+        "reconstruct_stream:10:4:65536:65536": 320,
+        "reconstruct_stream:4:2:1048576:262144": 39,
+        "reconstruct_stream:4:2:65536:65536": 768,
+        "verify_stream:10:4:1048576:1048576": 128,
+        "verify_stream:10:4:16777216:4194304": 3,
+        "verify_stream:10:4:65536:65536": 2176,
+        "verify_stream:4:2:1048576:262144": 192,
+        "verify_stream:4:2:65536:65536": 12288
+      }
+    }
+  },
+  "harness_sha256": "6f8d8b2684c388fb70628513e3901d9f9dcff26d3cd3e42fc986609f51153d71",
+  "calibration": {
+    "smoke": {
+      "path": "calibration/smoke-samples.json",
+      "sha256": "104b08b2533bc3602ed08ead339cea0bbf87a8f147a621402aa9554674b64da4"
+    },
+    "small_file": {
+      "path": "calibration/small_file-samples.json",
+      "sha256": "61e277428ebaf7f43f7206dcf93caa3477b2e5d9aaf4f2676a54dca5876d9b50"
+    },
+    "hotspot": {
+      "path": "calibration/hotspot-samples.json",
+      "sha256": "c33877f75e1048ae8d8e7c022a0e45d311ea6c83672805c7764d7db885cfcf8f"
+    },
+    "stream": {
+      "path": "calibration/stream-samples.json",
+      "sha256": "26d185499b4ccd7ac5e52034d14f362419da904d20abda34e43f01ae9b3f2cc2"
+    }
+  },
+  "phases": {
+    "A1": {
+      "smoke": {
+        "samples": {
+          "path": "A1/smoke-samples.json",
+          "sha256": "c5613e26469642973c42b9dd252dfbb90b76f859661e73e8d09fda721f44cfdf"
+        },
+        "case_count": 15,
+        "sample_spreads": [
+          {
+            "case": "encode:10:4:1048576",
+            "central_spread": 0.027788655670422588
+          },
+          {
+            "case": "encode:32:16:1048576",
+            "central_spread": 0.02751427418669133
+          },
+          {
+            "case": "encode:4:2:65536",
+            "central_spread": 0.032555216390436216
+          },
+          {
+            "case": "reconstruct:10:4:1048576",
+            "central_spread": 0.013370095177556966
+          },
+          {
+            "case": "reconstruct:32:16:1048576",
+            "central_spread": 0.008826907744489972
+          },
+          {
+            "case": "reconstruct:4:2:65536",
+            "central_spread": 0.05462777534665104
+          },
+          {
+            "case": "reconstruct_data:10:4:1048576",
+            "central_spread": 0.019200152606887715
+          },
+          {
+            "case": "reconstruct_data:32:16:1048576",
+            "central_spread": 0.02387064883798861
+          },
+          {
+            "case": "reconstruct_data:4:2:65536",
+            "central_spread": 0.02436946105326057
+          },
+          {
+            "case": "update:10:4:1048576",
+            "central_spread": 0.02226642432011107
+          },
+          {
+            "case": "update:32:16:1048576",
+            "central_spread": 0.0798623903089388
+          },
+          {
+            "case": "update:4:2:65536",
+            "central_spread": 0.1514671814902695
+          },
+          {
+            "case": "verify:10:4:1048576",
+            "central_spread": 0.04763223169811625
+          },
+          {
+            "case": "verify:32:16:1048576",
+            "central_spread": 0.02309627290561162
+          },
+          {
+            "case": "verify:4:2:65536",
+            "central_spread": 0.04592614278034534
+          }
+        ],
+        "service_times": {
+          "encode:10:4:1048576": {
+            "timed_ns_per_iteration": 10655894.833333334,
+            "wall_ns_per_iteration": 10655930.0,
+            "thread_run_ns_per_iteration": 10666078.916666666,
+            "maximum_runnable_wait_fraction": 0.00012453406273556358
+          },
+          "encode:32:16:1048576": {
+            "timed_ns_per_iteration": 58766075.0,
+            "wall_ns_per_iteration": 58766499.333333336,
+            "thread_run_ns_per_iteration": 58646230.333333336,
+            "maximum_runnable_wait_fraction": 0.0003777586548150411
+          },
+          "encode:4:2:65536": {
+            "timed_ns_per_iteration": 244809.9296875,
+            "wall_ns_per_iteration": 244810.359375,
+            "thread_run_ns_per_iteration": 246040.14453125,
+            "maximum_runnable_wait_fraction": 0.0001968271794679447
+          },
+          "reconstruct:10:4:1048576": {
+            "timed_ns_per_iteration": 14949510.888888888,
+            "wall_ns_per_iteration": 14949530.888888888,
+            "thread_run_ns_per_iteration": 14888115.0,
+            "maximum_runnable_wait_fraction": 0.00022816704714847605
+          },
+          "reconstruct:32:16:1048576": {
+            "timed_ns_per_iteration": 61775229.666666664,
+            "wall_ns_per_iteration": 61775576.666666664,
+            "thread_run_ns_per_iteration": 61665029.0,
+            "maximum_runnable_wait_fraction": 0.00019946369385291003
+          },
+          "reconstruct:4:2:65536": {
+            "timed_ns_per_iteration": 256628.439453125,
+            "wall_ns_per_iteration": 256628.888671875,
+            "thread_run_ns_per_iteration": 255817.92578125,
+            "maximum_runnable_wait_fraction": 0.0003836458185668832
+          },
+          "reconstruct_data:10:4:1048576": {
+            "timed_ns_per_iteration": 15713228.555555556,
+            "wall_ns_per_iteration": 15713258.666666666,
+            "thread_run_ns_per_iteration": 15774712.444444444,
+            "maximum_runnable_wait_fraction": 0.0003097748767355328
+          },
+          "reconstruct_data:32:16:1048576": {
+            "timed_ns_per_iteration": 61523281.666666664,
+            "wall_ns_per_iteration": 61523652.333333336,
+            "thread_run_ns_per_iteration": 61332366.333333336,
+            "maximum_runnable_wait_fraction": 0.0001976150559808822
+          },
+          "reconstruct_data:4:2:65536": {
+            "timed_ns_per_iteration": 264527.765625,
+            "wall_ns_per_iteration": 264527.9609375,
+            "thread_run_ns_per_iteration": 263666.779296875,
+            "maximum_runnable_wait_fraction": 0.0016487355314010802
+          },
+          "update:10:4:1048576": {
+            "timed_ns_per_iteration": 20863168.42857143,
+            "wall_ns_per_iteration": 20863278.57142857,
+            "thread_run_ns_per_iteration": 20856835.0,
+            "maximum_runnable_wait_fraction": 0.00028121705596105903
+          },
+          "update:32:16:1048576": {
+            "timed_ns_per_iteration": 93787474.0,
+            "wall_ns_per_iteration": 93788195.0,
+            "thread_run_ns_per_iteration": 93998266.0,
+            "maximum_runnable_wait_fraction": 0.0001588403479565251
+          },
+          "update:4:2:65536": {
+            "timed_ns_per_iteration": 373739.4791666667,
+            "wall_ns_per_iteration": 373739.8958333333,
+            "thread_run_ns_per_iteration": 372388.3359375,
+            "maximum_runnable_wait_fraction": 0.0017772984650104345
+          },
+          "verify:10:4:1048576": {
+            "timed_ns_per_iteration": 10798192.833333334,
+            "wall_ns_per_iteration": 10798217.916666666,
+            "thread_run_ns_per_iteration": 10748733.0,
+            "maximum_runnable_wait_fraction": 0.0015205496583590324
+          },
+          "verify:32:16:1048576": {
+            "timed_ns_per_iteration": 75532785.5,
+            "wall_ns_per_iteration": 75533471.5,
+            "thread_run_ns_per_iteration": 75498330.0,
+            "maximum_runnable_wait_fraction": 0.0011072351042273239
+          },
+          "verify:4:2:65536": {
+            "timed_ns_per_iteration": 260456.828125,
+            "wall_ns_per_iteration": 260457.0234375,
+            "thread_run_ns_per_iteration": 259759.587890625,
+            "maximum_runnable_wait_fraction": 0.002092756777498347
+          }
+        }
+      },
+      "small_file": {
+        "samples": {
+          "path": "A1/small_file-samples.json",
+          "sha256": "b877839b309d41b22a649e4bb3e12cb9f3f9466be49adaba9293faca7b9b6c74"
+        },
+        "case_count": 88,
+        "sample_spreads": [
+          {
+            "case": "encode:10:4:16384",
+            "central_spread": 0.019324133119503217
+          },
+          {
+            "case": "encode:10:4:262144",
+            "central_spread": 0.024077159027003317
+          },
+          {
+            "case": "encode:10:4:524288",
+            "central_spread": 0.07283558966631966
+          },
+          {
+            "case": "encode:10:4:65536",
+            "central_spread": 0.1170136879743493
+          },
+          {
+            "case": "encode:4:2:1024",
+            "central_spread": 0.073824372155739
+          },
+          {
+            "case": "encode:4:2:131072",
+            "central_spread": 0.031169586566735713
+          },
+          {
+            "case": "encode:4:2:16384",
+            "central_spread": 0.005922745816428575
+          },
+          {
+            "case": "encode:4:2:262144",
+            "central_spread": 0.03311679709735322
+          },
+          {
+            "case": "encode:4:2:4096",
+            "central_spread": 0.02325722123608192
+          },
+          {
+            "case": "encode:4:2:524288",
+            "central_spread": 0.03417415076932104
+          },
+          {
+            "case": "encode:4:2:65536",
+            "central_spread": 0.050408285437082145
+          },
+          {
+            "case": "reconstruct:10:4:16384",
+            "central_spread": 0.006160232132352413
+          },
+          {
+            "case": "reconstruct:10:4:262144",
+            "central_spread": 0.02816423867478798
+          },
+          {
+            "case": "reconstruct:10:4:524288",
+            "central_spread": 0.030276524123146072
+          },
+          {
+            "case": "reconstruct:10:4:65536",
+            "central_spread": 0.037144390729342454
+          },
+          {
+            "case": "reconstruct:4:2:1024",
+            "central_spread": 0.031038787722243784
+          },
+          {
+            "case": "reconstruct:4:2:131072",
+            "central_spread": 0.03169925917032954
+          },
+          {
+            "case": "reconstruct:4:2:16384",
+            "central_spread": 0.042558763341700834
+          },
+          {
+            "case": "reconstruct:4:2:262144",
+            "central_spread": 0.012840752312959891
+          },
+          {
+            "case": "reconstruct:4:2:4096",
+            "central_spread": 0.03670325615718104
+          },
+          {
+            "case": "reconstruct:4:2:524288",
+            "central_spread": 0.013526864323186172
+          },
+          {
+            "case": "reconstruct:4:2:65536",
+            "central_spread": 0.02020059316457841
+          },
+          {
+            "case": "reconstruct_data:10:4:16384",
+            "central_spread": 0.03506040635568491
+          },
+          {
+            "case": "reconstruct_data:10:4:262144",
+            "central_spread": 0.032945955314864495
+          },
+          {
+            "case": "reconstruct_data:10:4:524288",
+            "central_spread": 0.0305933045008226
+          },
+          {
+            "case": "reconstruct_data:10:4:65536",
+            "central_spread": 0.014771506487067184
+          },
+          {
+            "case": "reconstruct_data:4:2:1024",
+            "central_spread": 0.04543753059402813
+          },
+          {
+            "case": "reconstruct_data:4:2:131072",
+            "central_spread": 0.017969344975542655
+          },
+          {
+            "case": "reconstruct_data:4:2:16384",
+            "central_spread": 0.04329801405625569
+          },
+          {
+            "case": "reconstruct_data:4:2:262144",
+            "central_spread": 0.015090075762319122
+          },
+          {
+            "case": "reconstruct_data:4:2:4096",
+            "central_spread": 0.008032002673852703
+          },
+          {
+            "case": "reconstruct_data:4:2:524288",
+            "central_spread": 0.009869909043445485
+          },
+          {
+            "case": "reconstruct_data:4:2:65536",
+            "central_spread": 0.03235016718658564
+          },
+          {
+            "case": "reconstruct_opt:10:4:16384",
+            "central_spread": 0.044118339454107626
+          },
+          {
+            "case": "reconstruct_opt:10:4:262144",
+            "central_spread": 0.03649660107546705
+          },
+          {
+            "case": "reconstruct_opt:10:4:524288",
+            "central_spread": 0.2330443560225463
+          },
+          {
+            "case": "reconstruct_opt:10:4:65536",
+            "central_spread": 0.05750754252367421
+          },
+          {
+            "case": "reconstruct_opt:4:2:1024",
+            "central_spread": 0.02766673679781186
+          },
+          {
+            "case": "reconstruct_opt:4:2:131072",
+            "central_spread": 0.02714820964636667
+          },
+          {
+            "case": "reconstruct_opt:4:2:16384",
+            "central_spread": 0.03425801651445755
+          },
+          {
+            "case": "reconstruct_opt:4:2:262144",
+            "central_spread": 0.08314308341155538
+          },
+          {
+            "case": "reconstruct_opt:4:2:4096",
+            "central_spread": 0.04282049531315544
+          },
+          {
+            "case": "reconstruct_opt:4:2:524288",
+            "central_spread": 0.0352002739868621
+          },
+          {
+            "case": "reconstruct_opt:4:2:65536",
+            "central_spread": 0.03467528859743575
+          },
+          {
+            "case": "reconstruct_shard_slot:10:4:16384",
+            "central_spread": 0.04922759427372988
+          },
+          {
+            "case": "reconstruct_shard_slot:10:4:262144",
+            "central_spread": 0.049504096269369614
+          },
+          {
+            "case": "reconstruct_shard_slot:10:4:524288",
+            "central_spread": 0.1719391438703534
+          },
+          {
+            "case": "reconstruct_shard_slot:10:4:65536",
+            "central_spread": 0.029974143263194565
+          },
+          {
+            "case": "reconstruct_shard_slot:4:2:1024",
+            "central_spread": 0.03669490660406246
+          },
+          {
+            "case": "reconstruct_shard_slot:4:2:131072",
+            "central_spread": 0.03578328497332403
+          },
+          {
+            "case": "reconstruct_shard_slot:4:2:16384",
+            "central_spread": 0.04621681055546516
+          },
+          {
+            "case": "reconstruct_shard_slot:4:2:262144",
+            "central_spread": 0.041036279147459304
+          },
+          {
+            "case": "reconstruct_shard_slot:4:2:4096",
+            "central_spread": 0.0022508038585208026
+          },
+          {
+            "case": "reconstruct_shard_slot:4:2:524288",
+            "central_spread": 0.020555237649431634
+          },
+          {
+            "case": "reconstruct_shard_slot:4:2:65536",
+            "central_spread": 0.01879888310910248
+          },
+          {
+            "case": "reconstruct_some_data_only:10:4:16384",
+            "central_spread": 0.10152550640801387
+          },
+          {
+            "case": "reconstruct_some_data_only:10:4:262144",
+            "central_spread": 0.03384517122153291
+          },
+          {
+            "case": "reconstruct_some_data_only:10:4:524288",
+            "central_spread": 0.017783032282403962
+          },
+          {
+            "case": "reconstruct_some_data_only:10:4:65536",
+            "central_spread": 0.044515167321918875
+          },
+          {
+            "case": "reconstruct_some_data_only:4:2:1024",
+            "central_spread": 0.026029180080827337
+          },
+          {
+            "case": "reconstruct_some_data_only:4:2:131072",
+            "central_spread": 0.03908854966163882
+          },
+          {
+            "case": "reconstruct_some_data_only:4:2:16384",
+            "central_spread": 0.026864028992918485
+          },
+          {
+            "case": "reconstruct_some_data_only:4:2:262144",
+            "central_spread": 0.010518957536598423
+          },
+          {
+            "case": "reconstruct_some_data_only:4:2:4096",
+            "central_spread": 0.01957790046595403
+          },
+          {
+            "case": "reconstruct_some_data_only:4:2:524288",
+            "central_spread": 0.053694614982824934
+          },
+          {
+            "case": "reconstruct_some_data_only:4:2:65536",
+            "central_spread": 0.04321213800005359
+          },
+          {
+            "case": "verify:10:4:16384",
+            "central_spread": 0.008794694876065316
+          },
+          {
+            "case": "verify:10:4:262144",
+            "central_spread": 0.012404425833451539
+          },
+          {
+            "case": "verify:10:4:524288",
+            "central_spread": 0.02210862604286473
+          },
+          {
+            "case": "verify:10:4:65536",
+            "central_spread": 0.020039199300680023
+          },
+          {
+            "case": "verify:4:2:1024",
+            "central_spread": 0.04025174318572845
+          },
+          {
+            "case": "verify:4:2:131072",
+            "central_spread": 0.036626233927075424
+          },
+          {
+            "case": "verify:4:2:16384",
+            "central_spread": 0.03948891605630146
+          },
+          {
+            "case": "verify:4:2:262144",
+            "central_spread": 0.044231943680079704
+          },
+          {
+            "case": "verify:4:2:4096",
+            "central_spread": 0.026209073293513664
+          },
+          {
+            "case": "verify:4:2:524288",
+            "central_spread": 0.019911997663410008
+          },
+          {
+            "case": "verify:4:2:65536",
+            "central_spread": 0.014488111930436842
+          },
+          {
+            "case": "verify_with_buffer:10:4:16384",
+            "central_spread": 0.02753273883288406
+          },
+          {
+            "case": "verify_with_buffer:10:4:262144",
+            "central_spread": 0.03683907851793018
+          },
+          {
+            "case": "verify_with_buffer:10:4:524288",
+            "central_spread": 0.03889290304999029
+          },
+          {
+            "case": "verify_with_buffer:10:4:65536",
+            "central_spread": 0.02273706699274951
+          },
+          {
+            "case": "verify_with_buffer:4:2:1024",
+            "central_spread": 0.034671532846715314
+          },
+          {
+            "case": "verify_with_buffer:4:2:131072",
+            "central_spread": 0.029663992853087417
+          },
+          {
+            "case": "verify_with_buffer:4:2:16384",
+            "central_spread": 0.01190233325367362
+          },
+          {
+            "case": "verify_with_buffer:4:2:262144",
+            "central_spread": 0.052744007460176365
+          },
+          {
+            "case": "verify_with_buffer:4:2:4096",
+            "central_spread": 0.014128244636719163
+          },
+          {
+            "case": "verify_with_buffer:4:2:524288",
+            "central_spread": 0.11949453296665731
+          },
+          {
+            "case": "verify_with_buffer:4:2:65536",
+            "central_spread": 0.03647877032987848
+          }
+        ],
+        "service_times": {
+          "encode:10:4:16384": {
+            "timed_ns_per_iteration": 8686.0283203125,
+            "wall_ns_per_iteration": 8686.07177734375,
+            "thread_run_ns_per_iteration": 8714.49365234375,
+            "maximum_runnable_wait_fraction": 0.0015349730101199754
+          },
+          "encode:10:4:262144": {
+            "timed_ns_per_iteration": 174244.80989583334,
+            "wall_ns_per_iteration": 174245.1875,
+            "thread_run_ns_per_iteration": 174463.82552083334,
+            "maximum_runnable_wait_fraction": 0.0014560633804019062
+          },
+          "encode:10:4:524288": {
+            "timed_ns_per_iteration": 321655.3880208333,
+            "wall_ns_per_iteration": 321656.2473958333,
+            "thread_run_ns_per_iteration": 320266.7083333333,
+            "maximum_runnable_wait_fraction": 0.0013013039750714088
+          },
+          "encode:10:4:65536": {
+            "timed_ns_per_iteration": 35635.663636363635,
+            "wall_ns_per_iteration": 35635.80568181818,
+            "thread_run_ns_per_iteration": 35791.899715909094,
+            "maximum_runnable_wait_fraction": 0.0016973171035763808
+          },
+          "encode:4:2:1024": {
+            "timed_ns_per_iteration": 177.98687235514322,
+            "wall_ns_per_iteration": 177.9872029622396,
+            "thread_run_ns_per_iteration": 177.9596735636393,
+            "maximum_runnable_wait_fraction": 0.0011197766376819021
+          },
+          "encode:4:2:131072": {
+            "timed_ns_per_iteration": 13341.205485026041,
+            "wall_ns_per_iteration": 13341.229899088541,
+            "thread_run_ns_per_iteration": 13344.128255208334,
+            "maximum_runnable_wait_fraction": 0.000516522424518046
+          },
+          "encode:4:2:16384": {
+            "timed_ns_per_iteration": 1779.5765739889705,
+            "wall_ns_per_iteration": 1779.5797478170955,
+            "thread_run_ns_per_iteration": 1766.3779009650734,
+            "maximum_runnable_wait_fraction": 0.0007038515085124393
+          },
+          "encode:4:2:262144": {
+            "timed_ns_per_iteration": 27704.374267578125,
+            "wall_ns_per_iteration": 27704.489013671875,
+            "thread_run_ns_per_iteration": 27584.624267578125,
+            "maximum_runnable_wait_fraction": 0.0004900493359570577
+          },
+          "encode:4:2:4096": {
+            "timed_ns_per_iteration": 495.7632522583008,
+            "wall_ns_per_iteration": 495.7643623352051,
+            "thread_run_ns_per_iteration": 495.7946968078613,
+            "maximum_runnable_wait_fraction": 0.000425535678735421
+          },
+          "encode:4:2:524288": {
+            "timed_ns_per_iteration": 56557.661458333336,
+            "wall_ns_per_iteration": 56557.79924242424,
+            "thread_run_ns_per_iteration": 56343.33001893939,
+            "maximum_runnable_wait_fraction": 0.00023458079289784563
+          },
+          "encode:4:2:65536": {
+            "timed_ns_per_iteration": 6782.015966796875,
+            "wall_ns_per_iteration": 6782.03798828125,
+            "thread_run_ns_per_iteration": 6786.018359375,
+            "maximum_runnable_wait_fraction": 0.0003273080026156617
+          },
+          "reconstruct:10:4:16384": {
+            "timed_ns_per_iteration": 6051.71875,
+            "wall_ns_per_iteration": 6051.73095703125,
+            "thread_run_ns_per_iteration": 6053.111083984375,
+            "maximum_runnable_wait_fraction": 0.00039977996123877825
+          },
+          "reconstruct:10:4:262144": {
+            "timed_ns_per_iteration": 1208833.671875,
+            "wall_ns_per_iteration": 1208837.1953125,
+            "thread_run_ns_per_iteration": 1210582.6640625,
+            "maximum_runnable_wait_fraction": 0.0002757608233941223
+          },
+          "reconstruct:10:4:524288": {
+            "timed_ns_per_iteration": 2542163.0204081633,
+            "wall_ns_per_iteration": 2542174.06122449,
+            "thread_run_ns_per_iteration": 2550738.448979592,
+            "maximum_runnable_wait_fraction": 9.196852532382415e-05
+          },
+          "reconstruct:10:4:65536": {
+            "timed_ns_per_iteration": 28076.107666015625,
+            "wall_ns_per_iteration": 28076.180908203125,
+            "thread_run_ns_per_iteration": 28075.619873046875,
+            "maximum_runnable_wait_fraction": 0.0006405793614218935
+          },
+          "reconstruct:4:2:1024": {
+            "timed_ns_per_iteration": 464.5761947631836,
+            "wall_ns_per_iteration": 464.5770378112793,
+            "thread_run_ns_per_iteration": 465.2435760498047,
+            "maximum_runnable_wait_fraction": 0.0005134748831739674
+          },
+          "reconstruct:4:2:131072": {
+            "timed_ns_per_iteration": 171087.91145833334,
+            "wall_ns_per_iteration": 171088.47135416666,
+            "thread_run_ns_per_iteration": 170569.00520833334,
+            "maximum_runnable_wait_fraction": 0.0013840667981431425
+          },
+          "reconstruct:4:2:16384": {
+            "timed_ns_per_iteration": 2673.0055338541665,
+            "wall_ns_per_iteration": 2673.0124715169272,
+            "thread_run_ns_per_iteration": 2685.5047403971353,
+            "maximum_runnable_wait_fraction": 0.0004792388563774103
+          },
+          "reconstruct:4:2:262144": {
+            "timed_ns_per_iteration": 386164.2864583333,
+            "wall_ns_per_iteration": 386165.1510416667,
+            "thread_run_ns_per_iteration": 385409.1302083333,
+            "maximum_runnable_wait_fraction": 0.0002950688641702562
+          },
+          "reconstruct:4:2:4096": {
+            "timed_ns_per_iteration": 1084.1002278645833,
+            "wall_ns_per_iteration": 1084.1030843098958,
+            "thread_run_ns_per_iteration": 1082.2690999348958,
+            "maximum_runnable_wait_fraction": 0.00024083578173903473
+          },
+          "reconstruct:4:2:524288": {
+            "timed_ns_per_iteration": 848101.2135416666,
+            "wall_ns_per_iteration": 848102.9322916666,
+            "thread_run_ns_per_iteration": 848936.515625,
+            "maximum_runnable_wait_fraction": 0.0002663386960971596
+          },
+          "reconstruct:4:2:65536": {
+            "timed_ns_per_iteration": 10121.9833984375,
+            "wall_ns_per_iteration": 10122.01025390625,
+            "thread_run_ns_per_iteration": 10131.334899902344,
+            "maximum_runnable_wait_fraction": 0.0001947915778831084
+          },
+          "reconstruct_data:10:4:16384": {
+            "timed_ns_per_iteration": 5703.8739827473955,
+            "wall_ns_per_iteration": 5703.884195963542,
+            "thread_run_ns_per_iteration": 5696.4911702473955,
+            "maximum_runnable_wait_fraction": 0.00014330149139136567
+          },
+          "reconstruct_data:10:4:262144": {
+            "timed_ns_per_iteration": 1237444.15625,
+            "wall_ns_per_iteration": 1237457.140625,
+            "thread_run_ns_per_iteration": 1234341.21875,
+            "maximum_runnable_wait_fraction": 0.0002097696464803587
+          },
+          "reconstruct_data:10:4:524288": {
+            "timed_ns_per_iteration": 2594869.411764706,
+            "wall_ns_per_iteration": 2594902.0196078434,
+            "thread_run_ns_per_iteration": 2607581.2352941176,
+            "maximum_runnable_wait_fraction": 0.0003858479129108115
+          },
+          "reconstruct_data:10:4:65536": {
+            "timed_ns_per_iteration": 26622.201904296875,
+            "wall_ns_per_iteration": 26622.32421875,
+            "thread_run_ns_per_iteration": 26606.87939453125,
+            "maximum_runnable_wait_fraction": 0.0015096569391239213
+          },
+          "reconstruct_data:4:2:1024": {
+            "timed_ns_per_iteration": 347.29243659973145,
+            "wall_ns_per_iteration": 347.2927989959717,
+            "thread_run_ns_per_iteration": 347.1318168640137,
+            "maximum_runnable_wait_fraction": 0.0009803240326572082
+          },
+          "reconstruct_data:4:2:131072": {
+            "timed_ns_per_iteration": 172459.81510416666,
+            "wall_ns_per_iteration": 172460.45442708334,
+            "thread_run_ns_per_iteration": 171871.20833333334,
+            "maximum_runnable_wait_fraction": 0.00028651245194350443
+          },
+          "reconstruct_data:4:2:16384": {
+            "timed_ns_per_iteration": 2612.359393780048,
+            "wall_ns_per_iteration": 2612.363525390625,
+            "thread_run_ns_per_iteration": 2610.3623798076924,
+            "maximum_runnable_wait_fraction": 0.0003987688730677073
+          },
+          "reconstruct_data:4:2:262144": {
+            "timed_ns_per_iteration": 399275.0026041667,
+            "wall_ns_per_iteration": 399276.1510416667,
+            "thread_run_ns_per_iteration": 400971.1380208333,
+            "maximum_runnable_wait_fraction": 0.00017937388916277713
+          },
+          "reconstruct_data:4:2:4096": {
+            "timed_ns_per_iteration": 957.416074810606,
+            "wall_ns_per_iteration": 957.4192560369319,
+            "thread_run_ns_per_iteration": 961.5985810250947,
+            "maximum_runnable_wait_fraction": 0.0002670378860630092
+          },
+          "reconstruct_data:4:2:524288": {
+            "timed_ns_per_iteration": 840125.2708333334,
+            "wall_ns_per_iteration": 840126.9375,
+            "thread_run_ns_per_iteration": 838481.65625,
+            "maximum_runnable_wait_fraction": 0.0002735659358391489
+          },
+          "reconstruct_data:4:2:65536": {
+            "timed_ns_per_iteration": 9722.667602539062,
+            "wall_ns_per_iteration": 9722.689636230469,
+            "thread_run_ns_per_iteration": 9704.391357421875,
+            "maximum_runnable_wait_fraction": 0.0010634334567888335
+          },
+          "reconstruct_opt:10:4:16384": {
+            "timed_ns_per_iteration": 5946.962483723958,
+            "wall_ns_per_iteration": 5947.011800130208,
+            "thread_run_ns_per_iteration": 5940.467447916667,
+            "maximum_runnable_wait_fraction": 0.00017033656644319418
+          },
+          "reconstruct_opt:10:4:262144": {
+            "timed_ns_per_iteration": 971254.2760416666,
+            "wall_ns_per_iteration": 971260.015625,
+            "thread_run_ns_per_iteration": 895890.7239583334,
+            "maximum_runnable_wait_fraction": 0.000210443376020157
+          },
+          "reconstruct_opt:10:4:524288": {
+            "timed_ns_per_iteration": 1921547.6333333333,
+            "wall_ns_per_iteration": 1921567.5444444444,
+            "thread_run_ns_per_iteration": 1806892.6,
+            "maximum_runnable_wait_fraction": 0.00018448236772009117
+          },
+          "reconstruct_opt:10:4:65536": {
+            "timed_ns_per_iteration": 27228.9482421875,
+            "wall_ns_per_iteration": 27229.02392578125,
+            "thread_run_ns_per_iteration": 27340.87939453125,
+            "maximum_runnable_wait_fraction": 0.0006396101800198759
+          },
+          "reconstruct_opt:4:2:1024": {
+            "timed_ns_per_iteration": 475.29723358154297,
+            "wall_ns_per_iteration": 475.29861068725586,
+            "thread_run_ns_per_iteration": 476.65211486816406,
+            "maximum_runnable_wait_fraction": 0.00036170305951734077
+          },
+          "reconstruct_opt:4:2:131072": {
+            "timed_ns_per_iteration": 167665.19661458334,
+            "wall_ns_per_iteration": 167665.94010416666,
+            "thread_run_ns_per_iteration": 167954.86067708334,
+            "maximum_runnable_wait_fraction": 0.0004523793474117145
+          },
+          "reconstruct_opt:4:2:16384": {
+            "timed_ns_per_iteration": 2741.8374837239585,
+            "wall_ns_per_iteration": 2741.842569986979,
+            "thread_run_ns_per_iteration": 2745.517537434896,
+            "maximum_runnable_wait_fraction": 0.00036213365427920996
+          },
+          "reconstruct_opt:4:2:262144": {
+            "timed_ns_per_iteration": 359181.0520833333,
+            "wall_ns_per_iteration": 359182.25,
+            "thread_run_ns_per_iteration": 313509.5052083333,
+            "maximum_runnable_wait_fraction": 0.00038607902769942495
+          },
+          "reconstruct_opt:4:2:4096": {
+            "timed_ns_per_iteration": 1025.2093884698277,
+            "wall_ns_per_iteration": 1025.2111563846984,
+            "thread_run_ns_per_iteration": 1026.797817887931,
+            "maximum_runnable_wait_fraction": 0.0002950442467032756
+          },
+          "reconstruct_opt:4:2:524288": {
+            "timed_ns_per_iteration": 705902.4635416666,
+            "wall_ns_per_iteration": 705905.125,
+            "thread_run_ns_per_iteration": 642876.8229166666,
+            "maximum_runnable_wait_fraction": 0.0002556453420583579
+          },
+          "reconstruct_opt:4:2:65536": {
+            "timed_ns_per_iteration": 9863.219543457031,
+            "wall_ns_per_iteration": 9863.234252929688,
+            "thread_run_ns_per_iteration": 9886.810668945312,
+            "maximum_runnable_wait_fraction": 0.00021243211614173398
+          },
+          "reconstruct_shard_slot:10:4:16384": {
+            "timed_ns_per_iteration": 5368.9387613932295,
+            "wall_ns_per_iteration": 5368.9497477213545,
+            "thread_run_ns_per_iteration": 5370.721354166667,
+            "maximum_runnable_wait_fraction": 0.00028727498342918825
+          },
+          "reconstruct_shard_slot:10:4:262144": {
+            "timed_ns_per_iteration": 1424137.3046875,
+            "wall_ns_per_iteration": 1424139.9609375,
+            "thread_run_ns_per_iteration": 1429579.3046875,
+            "maximum_runnable_wait_fraction": 0.0004634137092742067
+          },
+          "reconstruct_shard_slot:10:4:524288": {
+            "timed_ns_per_iteration": 2939115.6,
+            "wall_ns_per_iteration": 2939127.4,
+            "thread_run_ns_per_iteration": 2933079.888888889,
+            "maximum_runnable_wait_fraction": 0.0002754710273683422
+          },
+          "reconstruct_shard_slot:10:4:65536": {
+            "timed_ns_per_iteration": 25010.888671875,
+            "wall_ns_per_iteration": 25011.040283203125,
+            "thread_run_ns_per_iteration": 24901.79541015625,
+            "maximum_runnable_wait_fraction": 0.00043549234048404086
+          },
+          "reconstruct_shard_slot:4:2:1024": {
+            "timed_ns_per_iteration": 391.87682723999023,
+            "wall_ns_per_iteration": 391.8776664733887,
+            "thread_run_ns_per_iteration": 392.8492889404297,
+            "maximum_runnable_wait_fraction": 0.00027699741839611996
+          },
+          "reconstruct_shard_slot:4:2:131072": {
+            "timed_ns_per_iteration": 261586.65625,
+            "wall_ns_per_iteration": 261587.49609375,
+            "thread_run_ns_per_iteration": 261696.205078125,
+            "maximum_runnable_wait_fraction": 0.00017909381044178198
+          },
+          "reconstruct_shard_slot:4:2:16384": {
+            "timed_ns_per_iteration": 2455.600078876202,
+            "wall_ns_per_iteration": 2455.606651893029,
+            "thread_run_ns_per_iteration": 2441.358661358173,
+            "maximum_runnable_wait_fraction": 0.0001740362851427803
+          },
+          "reconstruct_shard_slot:4:2:262144": {
+            "timed_ns_per_iteration": 579271.328125,
+            "wall_ns_per_iteration": 579272.50390625,
+            "thread_run_ns_per_iteration": 578106.3046875,
+            "maximum_runnable_wait_fraction": 0.00021538698773061548
+          },
+          "reconstruct_shard_slot:4:2:4096": {
+            "timed_ns_per_iteration": 933.0009002685547,
+            "wall_ns_per_iteration": 933.0025863647461,
+            "thread_run_ns_per_iteration": 930.7786483764648,
+            "maximum_runnable_wait_fraction": 0.0002074516698718232
+          },
+          "reconstruct_shard_slot:4:2:524288": {
+            "timed_ns_per_iteration": 1183473.0625,
+            "wall_ns_per_iteration": 1183477.4453125,
+            "thread_run_ns_per_iteration": 1179664.21875,
+            "maximum_runnable_wait_fraction": 0.000152642325483628
+          },
+          "reconstruct_shard_slot:4:2:65536": {
+            "timed_ns_per_iteration": 9146.815673828125,
+            "wall_ns_per_iteration": 9146.835815429688,
+            "thread_run_ns_per_iteration": 9154.559631347656,
+            "maximum_runnable_wait_fraction": 0.0002056650183533637
+          },
+          "reconstruct_some_data_only:10:4:16384": {
+            "timed_ns_per_iteration": 4058.9835205078125,
+            "wall_ns_per_iteration": 4058.9917602539062,
+            "thread_run_ns_per_iteration": 4058.7352905273438,
+            "maximum_runnable_wait_fraction": 0.00031433402432973353
+          },
+          "reconstruct_some_data_only:10:4:262144": {
+            "timed_ns_per_iteration": 1386271.609375,
+            "wall_ns_per_iteration": 1386275.5234375,
+            "thread_run_ns_per_iteration": 1382580.859375,
+            "maximum_runnable_wait_fraction": 0.00017137282428727503
+          },
+          "reconstruct_some_data_only:10:4:524288": {
+            "timed_ns_per_iteration": 2747805.282608696,
+            "wall_ns_per_iteration": 2747842.934782609,
+            "thread_run_ns_per_iteration": 2739074.3695652173,
+            "maximum_runnable_wait_fraction": 0.00032540939721295223
+          },
+          "reconstruct_some_data_only:10:4:65536": {
+            "timed_ns_per_iteration": 76530.31886574074,
+            "wall_ns_per_iteration": 76530.55613425926,
+            "thread_run_ns_per_iteration": 76380.52662037036,
+            "maximum_runnable_wait_fraction": 0.0006053286624015905
+          },
+          "reconstruct_some_data_only:4:2:1024": {
+            "timed_ns_per_iteration": 291.9764747619629,
+            "wall_ns_per_iteration": 291.9772758483887,
+            "thread_run_ns_per_iteration": 291.77682876586914,
+            "maximum_runnable_wait_fraction": 0.00043205267249471973
+          },
+          "reconstruct_some_data_only:4:2:131072": {
+            "timed_ns_per_iteration": 250938.9609375,
+            "wall_ns_per_iteration": 250939.52734375,
+            "thread_run_ns_per_iteration": 249996.396484375,
+            "maximum_runnable_wait_fraction": 0.00021062252003287832
+          },
+          "reconstruct_some_data_only:4:2:16384": {
+            "timed_ns_per_iteration": 1799.0601671006943,
+            "wall_ns_per_iteration": 1799.0632866753472,
+            "thread_run_ns_per_iteration": 1803.6906873914932,
+            "maximum_runnable_wait_fraction": 0.00032076441821508097
+          },
+          "reconstruct_some_data_only:4:2:262144": {
+            "timed_ns_per_iteration": 571946.40625,
+            "wall_ns_per_iteration": 571949.26171875,
+            "thread_run_ns_per_iteration": 570312.453125,
+            "maximum_runnable_wait_fraction": 0.00021818887985795778
+          },
+          "reconstruct_some_data_only:4:2:4096": {
+            "timed_ns_per_iteration": 766.1671375093006,
+            "wall_ns_per_iteration": 766.1689976283482,
+            "thread_run_ns_per_iteration": 767.2803722563244,
+            "maximum_runnable_wait_fraction": 0.00042680345591924746
+          },
+          "reconstruct_some_data_only:4:2:524288": {
+            "timed_ns_per_iteration": 1206312.03125,
+            "wall_ns_per_iteration": 1206315.0859375,
+            "thread_run_ns_per_iteration": 1203098.6953125,
+            "maximum_runnable_wait_fraction": 0.00037384604175724463
+          },
+          "reconstruct_some_data_only:4:2:65536": {
+            "timed_ns_per_iteration": 6714.777197265625,
+            "wall_ns_per_iteration": 6714.789892578125,
+            "thread_run_ns_per_iteration": 6688.8857421875,
+            "maximum_runnable_wait_fraction": 0.0006418815385216009
+          },
+          "verify:10:4:16384": {
+            "timed_ns_per_iteration": 8195.847717285156,
+            "wall_ns_per_iteration": 8195.886169433594,
+            "thread_run_ns_per_iteration": 8178.5296630859375,
+            "maximum_runnable_wait_fraction": 0.0012366845369661326
+          },
+          "verify:10:4:262144": {
+            "timed_ns_per_iteration": 168803.4609375,
+            "wall_ns_per_iteration": 168803.85286458334,
+            "thread_run_ns_per_iteration": 169208.85286458334,
+            "maximum_runnable_wait_fraction": 0.0003460502419250456
+          },
+          "verify:10:4:524288": {
+            "timed_ns_per_iteration": 337564.1744791667,
+            "wall_ns_per_iteration": 337565.1953125,
+            "thread_run_ns_per_iteration": 338491.2526041667,
+            "maximum_runnable_wait_fraction": 0.00026226281678174996
+          },
+          "verify:10:4:65536": {
+            "timed_ns_per_iteration": 36378.20339912281,
+            "wall_ns_per_iteration": 36378.35718201754,
+            "thread_run_ns_per_iteration": 36454.960252192985,
+            "maximum_runnable_wait_fraction": 0.00023107709329831227
+          },
+          "verify:4:2:1024": {
+            "timed_ns_per_iteration": 220.8577740987142,
+            "wall_ns_per_iteration": 220.85806783040366,
+            "thread_run_ns_per_iteration": 221.22722752888998,
+            "maximum_runnable_wait_fraction": 0.00017199409032029852
+          },
+          "verify:4:2:131072": {
+            "timed_ns_per_iteration": 18118.980102539062,
+            "wall_ns_per_iteration": 18119.0693359375,
+            "thread_run_ns_per_iteration": 18066.0419921875,
+            "maximum_runnable_wait_fraction": 0.0005884991166527427
+          },
+          "verify:4:2:16384": {
+            "timed_ns_per_iteration": 1848.6157633463542,
+            "wall_ns_per_iteration": 1848.6220160590278,
+            "thread_run_ns_per_iteration": 1844.4232313368057,
+            "maximum_runnable_wait_fraction": 0.00015918861347090902
+          },
+          "verify:4:2:262144": {
+            "timed_ns_per_iteration": 41410.573893229164,
+            "wall_ns_per_iteration": 41410.697591145836,
+            "thread_run_ns_per_iteration": 41336.117513020836,
+            "maximum_runnable_wait_fraction": 0.0002267209301252492
+          },
+          "verify:4:2:4096": {
+            "timed_ns_per_iteration": 500.5891660492996,
+            "wall_ns_per_iteration": 500.59017628636855,
+            "thread_run_ns_per_iteration": 500.8091241244612,
+            "maximum_runnable_wait_fraction": 0.00017617938832103719
+          },
+          "verify:4:2:524288": {
+            "timed_ns_per_iteration": 81006.941875,
+            "wall_ns_per_iteration": 81007.13625,
+            "thread_run_ns_per_iteration": 81247.4525,
+            "maximum_runnable_wait_fraction": 0.0003481103410194281
+          },
+          "verify:4:2:65536": {
+            "timed_ns_per_iteration": 7930.64345703125,
+            "wall_ns_per_iteration": 7930.662060546875,
+            "thread_run_ns_per_iteration": 7909.65927734375,
+            "maximum_runnable_wait_fraction": 0.00015337719179969866
+          },
+          "verify_with_buffer:10:4:16384": {
+            "timed_ns_per_iteration": 7908.044372558594,
+            "wall_ns_per_iteration": 7908.059020996094,
+            "thread_run_ns_per_iteration": 7933.957214355469,
+            "maximum_runnable_wait_fraction": 0.00016780683650238472
+          },
+          "verify_with_buffer:10:4:262144": {
+            "timed_ns_per_iteration": 145909.7299107143,
+            "wall_ns_per_iteration": 145910.0982142857,
+            "thread_run_ns_per_iteration": 146202.06138392858,
+            "maximum_runnable_wait_fraction": 0.00027521887477873933
+          },
+          "verify_with_buffer:10:4:524288": {
+            "timed_ns_per_iteration": 291800.28125,
+            "wall_ns_per_iteration": 291801.109375,
+            "thread_run_ns_per_iteration": 290171.28348214284,
+            "maximum_runnable_wait_fraction": 0.0004393938780050121
+          },
+          "verify_with_buffer:10:4:65536": {
+            "timed_ns_per_iteration": 34412.52886652543,
+            "wall_ns_per_iteration": 34412.61626059322,
+            "thread_run_ns_per_iteration": 34423.63532838983,
+            "maximum_runnable_wait_fraction": 0.00022438528638803743
+          },
+          "verify_with_buffer:4:2:1024": {
+            "timed_ns_per_iteration": 142.4768352508545,
+            "wall_ns_per_iteration": 142.47706413269043,
+            "thread_run_ns_per_iteration": 142.09383583068848,
+            "maximum_runnable_wait_fraction": 0.0001756314992908541
+          },
+          "verify_with_buffer:4:2:131072": {
+            "timed_ns_per_iteration": 14865.158447265625,
+            "wall_ns_per_iteration": 14865.185302734375,
+            "thread_run_ns_per_iteration": 14889.596110026041,
+            "maximum_runnable_wait_fraction": 0.00021550831960186743
+          },
+          "verify_with_buffer:4:2:16384": {
+            "timed_ns_per_iteration": 1715.6320665147568,
+            "wall_ns_per_iteration": 1715.6349283854167,
+            "thread_run_ns_per_iteration": 1722.2875569661458,
+            "maximum_runnable_wait_fraction": 0.0013354008723496901
+          },
+          "verify_with_buffer:4:2:262144": {
+            "timed_ns_per_iteration": 37071.50864955357,
+            "wall_ns_per_iteration": 37071.58677455357,
+            "thread_run_ns_per_iteration": 37108.93443080357,
+            "maximum_runnable_wait_fraction": 0.0001852234649607245
+          },
+          "verify_with_buffer:4:2:4096": {
+            "timed_ns_per_iteration": 421.8484802246094,
+            "wall_ns_per_iteration": 421.84928131103516,
+            "thread_run_ns_per_iteration": 419.60965728759766,
+            "maximum_runnable_wait_fraction": 0.00010847315219983697
+          },
+          "verify_with_buffer:4:2:524288": {
+            "timed_ns_per_iteration": 74609.02223557692,
+            "wall_ns_per_iteration": 74609.31069711539,
+            "thread_run_ns_per_iteration": 74513.14723557692,
+            "maximum_runnable_wait_fraction": 0.00021757781166290415
+          },
+          "verify_with_buffer:4:2:65536": {
+            "timed_ns_per_iteration": 7021.065673828125,
+            "wall_ns_per_iteration": 7021.0818359375,
+            "thread_run_ns_per_iteration": 7029.67421875,
+            "maximum_runnable_wait_fraction": 0.0002021307211924855
+          }
+        }
+      },
+      "hotspot": {
+        "samples": {
+          "path": "A1/hotspot-samples.json",
+          "sha256": "951afadbb73172496e0e057de513af5487087d0d2a975b0ba194600d0404e50a"
+        },
+        "case_count": 8,
+        "sample_spreads": [
+          {
+            "case": "reconstruct_data_32x16_missing_2_data",
+            "central_spread": 0.026099666268677494
+          },
+          {
+            "case": "reconstruct_data_missing_1_data",
+            "central_spread": 0.03225857313084199
+          },
+          {
+            "case": "reconstruct_data_missing_2_data",
+            "central_spread": 0.01615837808179747
+          },
+          {
+            "case": "reconstruct_data_missing_data_plus_parity",
+            "central_spread": 0.016736247605188544
+          },
+          {
+            "case": "reconstruct_some_32x16_required_2_of_4_missing_data",
+            "central_spread": 0.01951066274994622
+          },
+          {
+            "case": "reconstruct_some_required_1_of_2_missing_data",
+            "central_spread": 0.12137248680998798
+          },
+          {
+            "case": "reconstruct_some_required_2_of_3_missing_data",
+            "central_spread": 0.008649840221611785
+          },
+          {
+            "case": "reconstruct_some_required_data_and_skip_parity",
+            "central_spread": 0.014586340631552406
+          }
+        ],
+        "service_times": {
+          "reconstruct_data_32x16_missing_2_data": {
+            "timed_ns_per_iteration": 1767270.25,
+            "wall_ns_per_iteration": 103980148.5,
+            "thread_run_ns_per_iteration": 103982018.25,
+            "maximum_runnable_wait_fraction": 0.0005830304970560176
+          },
+          "reconstruct_data_missing_1_data": {
+            "timed_ns_per_iteration": 392215.3333333334,
+            "wall_ns_per_iteration": 27250687.111111112,
+            "thread_run_ns_per_iteration": 27273186.333333332,
+            "maximum_runnable_wait_fraction": 0.0005822501912023571
+          },
+          "reconstruct_data_missing_2_data": {
+            "timed_ns_per_iteration": 513980.9230769231,
+            "wall_ns_per_iteration": 27613465.923076924,
+            "thread_run_ns_per_iteration": 27613170.846153848,
+            "maximum_runnable_wait_fraction": 0.00048502213057484254
+          },
+          "reconstruct_data_missing_data_plus_parity": {
+            "timed_ns_per_iteration": 388012.22222222225,
+            "wall_ns_per_iteration": 27546199.777777776,
+            "thread_run_ns_per_iteration": 27550626.055555556,
+            "maximum_runnable_wait_fraction": 0.0002478476510968862
+          },
+          "reconstruct_some_32x16_required_2_of_4_missing_data": {
+            "timed_ns_per_iteration": 1723655.7499999998,
+            "wall_ns_per_iteration": 103022287.5,
+            "thread_run_ns_per_iteration": 103233910.0,
+            "maximum_runnable_wait_fraction": 0.00034480978690753215
+          },
+          "reconstruct_some_required_1_of_2_missing_data": {
+            "timed_ns_per_iteration": 381470.55555555556,
+            "wall_ns_per_iteration": 26558925.111111112,
+            "thread_run_ns_per_iteration": 26553310.111111112,
+            "maximum_runnable_wait_fraction": 0.0002572496017906126
+          },
+          "reconstruct_some_required_2_of_3_missing_data": {
+            "timed_ns_per_iteration": 496522.2857142856,
+            "wall_ns_per_iteration": 26665734.35714286,
+            "thread_run_ns_per_iteration": 26638776.785714287,
+            "maximum_runnable_wait_fraction": 0.00028378679486389417
+          },
+          "reconstruct_some_required_data_and_skip_parity": {
+            "timed_ns_per_iteration": 376765.8888888889,
+            "wall_ns_per_iteration": 26528715.611111112,
+            "thread_run_ns_per_iteration": 26498039.333333332,
+            "maximum_runnable_wait_fraction": 0.0004378831861267985
+          }
+        }
+      },
+      "stream": {
+        "samples": {
+          "path": "A1/stream-samples.json",
+          "sha256": "48bfc3b547d30e0c6038524635e4c70aabddbbc5986b961ff268f3d4f288e7fd"
+        },
+        "case_count": 15,
+        "sample_spreads": [
+          {
+            "case": "encode_stream:10:4:1048576:1048576",
+            "central_spread": 0.2522862295348883
+          },
+          {
+            "case": "encode_stream:10:4:16777216:4194304",
+            "central_spread": 0.5910336813311848
+          },
+          {
+            "case": "encode_stream:10:4:65536:65536",
+            "central_spread": 0.030512790038385657
+          },
+          {
+            "case": "encode_stream:4:2:1048576:262144",
+            "central_spread": 0.022727702105149246
+          },
+          {
+            "case": "encode_stream:4:2:65536:65536",
+            "central_spread": 0.0946055726032447
+          },
+          {
+            "case": "reconstruct_stream:10:4:1048576:1048576",
+            "central_spread": 0.04342829774492472
+          },
+          {
+            "case": "reconstruct_stream:10:4:16777216:4194304",
+            "central_spread": 0.03133775255842393
+          },
+          {
+            "case": "reconstruct_stream:10:4:65536:65536",
+            "central_spread": 0.04979842207101247
+          },
+          {
+            "case": "reconstruct_stream:4:2:1048576:262144",
+            "central_spread": 0.038450581002584264
+          },
+          {
+            "case": "reconstruct_stream:4:2:65536:65536",
+            "central_spread": 0.0387077409842087
+          },
+          {
+            "case": "verify_stream:10:4:1048576:1048576",
+            "central_spread": 0.021779445207780062
+          },
+          {
+            "case": "verify_stream:10:4:16777216:4194304",
+            "central_spread": 0.012181611827013538
+          },
+          {
+            "case": "verify_stream:10:4:65536:65536",
+            "central_spread": 0.00939607208609052
+          },
+          {
+            "case": "verify_stream:4:2:1048576:262144",
+            "central_spread": 0.00866152988888521
+          },
+          {
+            "case": "verify_stream:4:2:65536:65536",
+            "central_spread": 0.021270754428547325
+          }
+        ],
+        "service_times": {
+          "encode_stream:10:4:1048576:1048576": {
+            "timed_ns_per_iteration": 4478609.797385621,
+            "wall_ns_per_iteration": 4478629.431372549,
+            "thread_run_ns_per_iteration": 4095623.633986928,
+            "maximum_runnable_wait_fraction": 0.00022711230709760938
+          },
+          "encode_stream:10:4:16777216:4194304": {
+            "timed_ns_per_iteration": 36587957.666666664,
+            "wall_ns_per_iteration": 36588466.833333336,
+            "thread_run_ns_per_iteration": 20931734.5,
+            "maximum_runnable_wait_fraction": 0.00036940467224152594
+          },
+          "encode_stream:10:4:65536:65536": {
+            "timed_ns_per_iteration": 46949.819921875,
+            "wall_ns_per_iteration": 46949.933203125,
+            "thread_run_ns_per_iteration": 46873.978125,
+            "maximum_runnable_wait_fraction": 0.0016869948148645298
+          },
+          "encode_stream:4:2:1048576:262144": {
+            "timed_ns_per_iteration": 940049.28125,
+            "wall_ns_per_iteration": 940051.4739583334,
+            "thread_run_ns_per_iteration": 785262.3229166666,
+            "maximum_runnable_wait_fraction": 0.000931773983952694
+          },
+          "encode_stream:4:2:65536:65536": {
+            "timed_ns_per_iteration": 11718.763997395834,
+            "wall_ns_per_iteration": 11718.78759765625,
+            "thread_run_ns_per_iteration": 11717.81396484375,
+            "maximum_runnable_wait_fraction": 0.0011737103271927413
+          },
+          "reconstruct_stream:10:4:1048576:1048576": {
+            "timed_ns_per_iteration": 6573804.75,
+            "wall_ns_per_iteration": 6573898.35,
+            "thread_run_ns_per_iteration": 6597870.45,
+            "maximum_runnable_wait_fraction": 0.00030229194003942786
+          },
+          "reconstruct_stream:10:4:16777216:4194304": {
+            "timed_ns_per_iteration": 131034285.0,
+            "wall_ns_per_iteration": 131036558.0,
+            "thread_run_ns_per_iteration": 120586644.0,
+            "maximum_runnable_wait_fraction": 0.0019667075243497275
+          },
+          "reconstruct_stream:10:4:65536:65536": {
+            "timed_ns_per_iteration": 448947.95625,
+            "wall_ns_per_iteration": 448949.3625,
+            "thread_run_ns_per_iteration": 449960.209375,
+            "maximum_runnable_wait_fraction": 0.0014462946435608317
+          },
+          "reconstruct_stream:4:2:1048576:262144": {
+            "timed_ns_per_iteration": 3263389.9487179485,
+            "wall_ns_per_iteration": 3263411.512820513,
+            "thread_run_ns_per_iteration": 3256381.4102564105,
+            "maximum_runnable_wait_fraction": 0.0016991296398690243
+          },
+          "reconstruct_stream:4:2:65536:65536": {
+            "timed_ns_per_iteration": 170216.34244791666,
+            "wall_ns_per_iteration": 170216.94270833334,
+            "thread_run_ns_per_iteration": 169258.171875,
+            "maximum_runnable_wait_fraction": 0.0018993072351634111
+          },
+          "verify_stream:10:4:1048576:1048576": {
+            "timed_ns_per_iteration": 4575008.640625,
+            "wall_ns_per_iteration": 4575026.25,
+            "thread_run_ns_per_iteration": 4196231.0546875,
+            "maximum_runnable_wait_fraction": 0.0004136776127787245
+          },
+          "verify_stream:10:4:16777216:4194304": {
+            "timed_ns_per_iteration": 44582031.333333336,
+            "wall_ns_per_iteration": 44582769.333333336,
+            "thread_run_ns_per_iteration": 28378994.333333332,
+            "maximum_runnable_wait_fraction": 0.00021710815054271567
+          },
+          "verify_stream:10:4:65536:65536": {
+            "timed_ns_per_iteration": 58070.007352941175,
+            "wall_ns_per_iteration": 58070.273897058825,
+            "thread_run_ns_per_iteration": 58348.541819852944,
+            "maximum_runnable_wait_fraction": 0.00024458512155768164
+          },
+          "verify_stream:4:2:1048576:262144": {
+            "timed_ns_per_iteration": 706217.0364583334,
+            "wall_ns_per_iteration": 706220.6875,
+            "thread_run_ns_per_iteration": 554343.1197916666,
+            "maximum_runnable_wait_fraction": 0.0005409991760007223
+          },
+          "verify_stream:4:2:65536:65536": {
+            "timed_ns_per_iteration": 14424.033528645834,
+            "wall_ns_per_iteration": 14424.0546875,
+            "thread_run_ns_per_iteration": 14474.66748046875,
+            "maximum_runnable_wait_fraction": 0.0007420668815493216
+          }
+        }
+      }
+    }
+  },
+  "repeat_checks": [],
+  "baseline_controls_passed": false,
+  "release_approval": false,
+  "candidate_attribution": null
+}

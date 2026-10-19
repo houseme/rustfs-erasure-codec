@@ -1,0 +1,108 @@
+{
+  "schema_version": "baseline-qualification-audit-v1",
+  "purpose": "complete default-allocator baseline refusal plus one separate descriptive process profile",
+  "baseline": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+  "tool": {
+    "commit": "121b39d09774a51c79a21f51f5570ef4ef2a782c",
+    "tree": "e1b3fbc13514c37f6ede367c5c7caef72831d6e4",
+    "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+  },
+  "analyzer_commit": "9a353a3cff525237f7b2c7a31eca5b1a3276b2c5",
+  "sampling_protocol": 13,
+  "case_count": 126,
+  "calibration_observations": 4800,
+  "A1_observations": 1512,
+  "measured_samples": 1134,
+  "short_samples": 0,
+  "caller_layout_mismatches": 0,
+  "wide_cases": [
+    {
+      "profile": "smoke",
+      "case": "update:4:2:65536",
+      "central_spread": 0.1514671814902695
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:10:4:65536",
+      "central_spread": 0.1170136879743493
+    },
+    {
+      "profile": "small_file",
+      "case": "reconstruct_opt:10:4:524288",
+      "central_spread": 0.2330443560225463
+    },
+    {
+      "profile": "small_file",
+      "case": "reconstruct_shard_slot:10:4:524288",
+      "central_spread": 0.1719391438703534
+    },
+    {
+      "profile": "small_file",
+      "case": "reconstruct_some_data_only:10:4:16384",
+      "central_spread": 0.10152550640801387
+    },
+    {
+      "profile": "small_file",
+      "case": "verify_with_buffer:4:2:524288",
+      "central_spread": 0.11949453296665731
+    },
+    {
+      "profile": "hotspot",
+      "case": "reconstruct_some_required_1_of_2_missing_data",
+      "central_spread": 0.12137248680998798
+    },
+    {
+      "profile": "stream",
+      "case": "encode_stream:10:4:1048576:1048576",
+      "central_spread": 0.2522862295348883
+    },
+    {
+      "profile": "stream",
+      "case": "encode_stream:10:4:16777216:4194304",
+      "central_spread": 0.5910336813311848
+    }
+  ],
+  "A2_executed": false,
+  "candidate_executed": false,
+  "baseline_controls_passed": false,
+  "release_approval": false,
+  "candidate_attribution": null,
+  "numeric_journal_rows_checked": 6312,
+  "members_sha256": {
+    "README.md": "7acd9cf7c81ce4d81205c0c369f82e77001d75a700d1caa1ac65f5595d51636e",
+    "analysis.json": "db6663853e2b04102fa2caf1b7d7364721ae3c09d2d8d9adfa70eb2129fbaadc",
+    "campaign/A1/hotspot-samples.json": "951afadbb73172496e0e057de513af5487087d0d2a975b0ba194600d0404e50a",
+    "campaign/A1/hotspot-timing.log": "d129a97c1e6f495b2632c10a171473f3a6673971b9511c051385dd8c3dac251e",
+    "campaign/A1/small_file-samples.json": "b877839b309d41b22a649e4bb3e12cb9f3f9466be49adaba9293faca7b9b6c74",
+    "campaign/A1/small_file-timing.log": "4c5be818105187560c5da17949e15a057ef8cc18231fbc4ee70c24d807e4ccff",
+    "campaign/A1/smoke-samples.json": "c5613e26469642973c42b9dd252dfbb90b76f859661e73e8d09fda721f44cfdf",
+    "campaign/A1/smoke-timing.log": "3172627ee4a38ddbe6cefb450fca61001f4aa52ec11e9bd681f1509550c02c36",
+    "campaign/A1/stream-samples.json": "48bfc3b547d30e0c6038524635e4c70aabddbbc5986b961ff268f3d4f288e7fd",
+    "campaign/A1/stream-timing.log": "9af261bbe6ed33377a750eae0b6fa9a099a52ba8bdcdbd056613fee114496d85",
+    "campaign/calibration/hotspot-samples.json": "c33877f75e1048ae8d8e7c022a0e45d311ea6c83672805c7764d7db885cfcf8f",
+    "campaign/calibration/hotspot-timing.log": "898db429ee4ab41910fedd605f5bec6131ef7487b9f6e397d9771450f66f5935",
+    "campaign/calibration/small_file-samples.json": "61e277428ebaf7f43f7206dcf93caa3477b2e5d9aaf4f2676a54dca5876d9b50",
+    "campaign/calibration/small_file-timing.log": "11768829748442077e353af6847f9662bfe5d09cf7af1fe77cd53c308ebcec0b",
+    "campaign/calibration/smoke-samples.json": "104b08b2533bc3602ed08ead339cea0bbf87a8f147a621402aa9554674b64da4",
+    "campaign/calibration/smoke-timing.log": "448cddc0adcfaf0f89915e6064fb90d4084600adc0eff02541c4e2c6451a0695",
+    "campaign/calibration/stream-samples.json": "26d185499b4ccd7ac5e52034d14f362419da904d20abda34e43f01ae9b3f2cc2",
+    "campaign/calibration/stream-timing.log": "88b2d7c998695146edede772c1f684db4281617c3b81529e4879e9b84902fc9a",
+    "campaign/counts-hotspot.tsv": "e244ac022b11283d292638f8c34864894629d9365fa5781cd8076069d5b1efdc",
+    "campaign/counts-small_file.tsv": "efdc8931f247a9e3a753dccbfd983cf4669fe888757550c1ba4cc0f294f76fd3",
+    "campaign/counts-smoke.tsv": "78b4b9c3b4bbf6a58831a676a177b1cbedffcf7f126eaf2259c0f82c250981e4",
+    "campaign/counts-stream.tsv": "d1313ca4f78529d8d8c50cdd9930fa7958c5140199e9169c6c9ee86657f902ae",
+    "campaign/provenance.json": "6bd66de4712c2e692d984d3d14af3102d3dd221d35cf114075517429f8ab6331",
+    "campaign/qualification.partial.json": "8635e667171d896b7c66a03f4d879a04f5ecc1f38ff97dcc1f3f531094a1d5cf",
+    "campaign/report.json": "a54ddaa644d6e7d19e37573b70a2847dbfd16b0533e344d547969e8946e98a9b",
+    "reservation/cleanup.json": "0f4225a6f4c472499c116255dd9e2a140bb294bc6e4d425666a0c3346fa426ed",
+    "reservation/status.json": "4b12ffab3903376f26e8323107bee4139efdff2f02cdc677fbcaa947ad259969",
+    "service-profile/functions.json": "298faa6484810bd0ba605639fd28e74d79f2d2c92f19f6084c158b110c2b3e67",
+    "service-profile/process-analysis.json": "d7373e0881605dc6e9a0f96814cdc7bad77bad08e65ec4ac9eedb3a5a2d156aa",
+    "service-profile/processing.json": "0b54a50cbc8c832079744d2183f9ce719aa0340ebf1cd32de54b61c3eae999fe",
+    "service-profile/provenance.json": "69993cb4b6755cfb40c176880e527963dbd2965e9da285bdcb98c91a7cbba8eb",
+    "service-profile/record-counts.json": "1d829ac7aef3d0f5f4047d78bfc754c1e0e1464af0d56f01507c236b563fa1f1",
+    "service-profile/reservation/cleanup.json": "0f4225a6f4c472499c116255dd9e2a140bb294bc6e4d425666a0c3346fa426ed",
+    "service-profile/reservation/status.json": "4fbf213ad44a2b590095b2644fa78865411fa1ab99b154f31be5d4a09f152992",
+    "service-profile/samples.json": "272fe96288a7d80c421242b20d5fad103e9f10d596e8ea79c0f45698a1905a6a"
+  }
+}

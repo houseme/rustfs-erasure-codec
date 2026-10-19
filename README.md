@@ -105,3 +105,14 @@ The controlled allocator context never substitutes for default throughput eviden
 ## Actual post-construction CPU placement controls
 
 `diagnostics/post-construction-cpu-placement` preserves both complete predeclared allocator contexts: 1,152 baseline-only observations, 96 actual-affinity gates and unchanged construction budgets. Same-buffer, same-codec and truly pinned-CPU repeat drift still reaches 15.543619% (default) and 10.035545% (retained arena), with zero recorded measuring-thread faults in all measured samples. This narrows the diagnosis without assigning a unique cause or approving a release. Both contexts, all failures and complete restoration remain visible.
+
+## Protocol-13 complete default-allocator baseline qualification
+
+[`diagnostics/protocol13-baseline-qualification`](diagnostics/protocol13-baseline-qualification/README.md)
+adds the complete frozen-tool 121b39d control after actual measuring-TID placement
+was corrected. All 126 cases calibrated (4,800 records); complete A1 retains all
+1,512 observations, with zero short samples and no recorded caller mismatch.
+Nine distributions fail, maximum 59.103368%; A2 and candidate were stopped.
+A separate single-case diagnostic exposes minor-fault state changes but allocates
+and cannot replace formal observations. All 6,312 numeric journals were matched;
+all resources restored. Old evidence and failures are unchanged. No release claim.

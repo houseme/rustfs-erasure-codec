@@ -1,0 +1,3662 @@
+[
+  {
+    "kind": "warmup",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 0,
+    "iterations": 6,
+    "wall_ns": 330640119,
+    "timed_ns": 330636874,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 210224023,
+      "wait_ns": 18638,
+      "switches": 8,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 41158,
+        "major_faults": 0,
+        "snapshot_ns": 177418,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 40999,
+            "major_faults": 0,
+            "run_ns": 210299546,
+            "wait_ns": 18638,
+            "timeslices": 8
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 5,
+            "major_faults": 0,
+            "run_ns": 274675,
+            "wait_ns": 0,
+            "timeslices": 4
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 4,
+            "major_faults": 0,
+            "run_ns": 236433,
+            "wait_ns": 0,
+            "timeslices": 4
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 4,
+            "major_faults": 0,
+            "run_ns": 184439,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 4,
+            "major_faults": 0,
+            "run_ns": 217284,
+            "wait_ns": 0,
+            "timeslices": 2
+          }
+        ]
+      }
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 437295653,
+      "wait_ns": 57085,
+      "switches": 63,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 225388,
+        "major_faults": 0,
+        "snapshot_ns": 169156,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 163834,
+            "major_faults": 0,
+            "run_ns": 437431786,
+            "wait_ns": 57085,
+            "timeslices": 63
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 16378,
+            "major_faults": 0,
+            "run_ns": 99964093,
+            "wait_ns": 0,
+            "timeslices": 50
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 16376,
+            "major_faults": 0,
+            "run_ns": 99675161,
+            "wait_ns": 0,
+            "timeslices": 61
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 13306,
+            "major_faults": 0,
+            "run_ns": 90166151,
+            "wait_ns": 5808,
+            "timeslices": 75
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 15352,
+            "major_faults": 0,
+            "run_ns": 94585168,
+            "wait_ns": 0,
+            "timeslices": 68
+          }
+        ]
+      }
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 6,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 2903.4874,
+        "ns_per_iter": 55106145.67,
+        "ns_per_block": 13776536.42
+      }
+    ]
+  },
+  {
+    "kind": "warmup",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 1,
+    "iterations": 6,
+    "wall_ns": 237742461,
+    "timed_ns": 237739156,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 437431786,
+      "wait_ns": 57085,
+      "switches": 63,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 225390,
+        "major_faults": 0,
+        "snapshot_ns": 127453,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 163835,
+            "major_faults": 0,
+            "run_ns": 437687418,
+            "wait_ns": 57085,
+            "timeslices": 63
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 16378,
+            "major_faults": 0,
+            "run_ns": 99964093,
+            "wait_ns": 0,
+            "timeslices": 50
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 16376,
+            "major_faults": 0,
+            "run_ns": 99675161,
+            "wait_ns": 0,
+            "timeslices": 61
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 13306,
+            "major_faults": 0,
+            "run_ns": 90166151,
+            "wait_ns": 5808,
+            "timeslices": 75
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 15352,
+            "major_faults": 0,
+            "run_ns": 94585168,
+            "wait_ns": 0,
+            "timeslices": 68
+          }
+        ]
+      }
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 570527303,
+      "wait_ns": 57085,
+      "switches": 117,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 348251,
+        "major_faults": 0,
+        "snapshot_ns": 166201,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 225316,
+            "major_faults": 0,
+            "run_ns": 570852297,
+            "wait_ns": 57085,
+            "timeslices": 117
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 28654,
+            "major_faults": 0,
+            "run_ns": 195074154,
+            "wait_ns": 7672,
+            "timeslices": 99
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 32744,
+            "major_faults": 0,
+            "run_ns": 198867896,
+            "wait_ns": 0,
+            "timeslices": 124
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 31720,
+            "major_faults": 0,
+            "run_ns": 189846461,
+            "wait_ns": 5808,
+            "timeslices": 146
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 29674,
+            "major_faults": 0,
+            "run_ns": 186892365,
+            "wait_ns": 3405,
+            "timeslices": 140
+          }
+        ]
+      }
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 6,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 4038.0391,
+        "ns_per_iter": 39623192.67,
+        "ns_per_block": 9905798.17
+      }
+    ]
+  },
+  {
+    "kind": "warmup",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 2,
+    "iterations": 6,
+    "wall_ns": 342156544,
+    "timed_ns": 342153980,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 570852297,
+      "wait_ns": 57085,
+      "switches": 117,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 348253,
+        "major_faults": 0,
+        "snapshot_ns": 127894,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 225318,
+            "major_faults": 0,
+            "run_ns": 571120547,
+            "wait_ns": 57085,
+            "timeslices": 117
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 28654,
+            "major_faults": 0,
+            "run_ns": 195074154,
+            "wait_ns": 7672,
+            "timeslices": 99
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 32744,
+            "major_faults": 0,
+            "run_ns": 198867896,
+            "wait_ns": 0,
+            "timeslices": 124
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 31720,
+            "major_faults": 0,
+            "run_ns": 189846461,
+            "wait_ns": 5808,
+            "timeslices": 146
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 29674,
+            "major_faults": 0,
+            "run_ns": 186892365,
+            "wait_ns": 3405,
+            "timeslices": 140
+          }
+        ]
+      }
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 790759339,
+      "wait_ns": 80149,
+      "switches": 173,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 507883,
+        "major_faults": 0,
+        "snapshot_ns": 177378,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 323567,
+            "major_faults": 0,
+            "run_ns": 791759591,
+            "wait_ns": 80149,
+            "timeslices": 173
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 41953,
+            "major_faults": 0,
+            "run_ns": 308034445,
+            "wait_ns": 7672,
+            "timeslices": 151
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 48089,
+            "major_faults": 0,
+            "run_ns": 312856218,
+            "wait_ns": 0,
+            "timeslices": 186
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 46042,
+            "major_faults": 0,
+            "run_ns": 298251763,
+            "wait_ns": 88001,
+            "timeslices": 220
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 48088,
+            "major_faults": 0,
+            "run_ns": 300639025,
+            "wait_ns": 144715,
+            "timeslices": 208
+          }
+        ]
+      }
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 6,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 2805.7543,
+        "ns_per_iter": 57025663.33,
+        "ns_per_block": 14256415.83
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 3,
+    "iterations": 6,
+    "wall_ns": 331989840,
+    "timed_ns": 331987908,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 791759591,
+      "wait_ns": 80149,
+      "switches": 173,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 507884,
+        "major_faults": 0,
+        "snapshot_ns": 129937,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 323569,
+            "major_faults": 0,
+            "run_ns": 791982473,
+            "wait_ns": 80149,
+            "timeslices": 173
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 41953,
+            "major_faults": 0,
+            "run_ns": 308034445,
+            "wait_ns": 7672,
+            "timeslices": 151
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 48089,
+            "major_faults": 0,
+            "run_ns": 312856218,
+            "wait_ns": 0,
+            "timeslices": 186
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 46042,
+            "major_faults": 0,
+            "run_ns": 298251763,
+            "wait_ns": 88001,
+            "timeslices": 220
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 48088,
+            "major_faults": 0,
+            "run_ns": 300639025,
+            "wait_ns": 144715,
+            "timeslices": 208
+          }
+        ]
+      }
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 1020344999,
+      "wait_ns": 114210,
+      "switches": 229,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 692025,
+        "major_faults": 0,
+        "snapshot_ns": 169516,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 446329,
+            "major_faults": 0,
+            "run_ns": 1020755862,
+            "wait_ns": 114210,
+            "timeslices": 229
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 56275,
+            "major_faults": 0,
+            "run_ns": 404372137,
+            "wait_ns": 29875,
+            "timeslices": 202
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 66503,
+            "major_faults": 0,
+            "run_ns": 414543523,
+            "wait_ns": 0,
+            "timeslices": 243
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 58318,
+            "major_faults": 0,
+            "run_ns": 386761882,
+            "wait_ns": 88001,
+            "timeslices": 296
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 64456,
+            "major_faults": 0,
+            "run_ns": 395580373,
+            "wait_ns": 144715,
+            "timeslices": 280
+          }
+        ]
+      }
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 6,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 2891.6716,
+        "ns_per_iter": 55331318.0,
+        "ns_per_block": 13832829.5
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 4,
+    "iterations": 6,
+    "wall_ns": 200477299,
+    "timed_ns": 200474674,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 1020755862,
+      "wait_ns": 114210,
+      "switches": 229,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 692025,
+        "major_faults": 0,
+        "snapshot_ns": 127963,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 446329,
+            "major_faults": 0,
+            "run_ns": 1021014688,
+            "wait_ns": 114210,
+            "timeslices": 229
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 56275,
+            "major_faults": 0,
+            "run_ns": 404372137,
+            "wait_ns": 29875,
+            "timeslices": 202
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 66503,
+            "major_faults": 0,
+            "run_ns": 414543523,
+            "wait_ns": 0,
+            "timeslices": 243
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 58318,
+            "major_faults": 0,
+            "run_ns": 386761882,
+            "wait_ns": 88001,
+            "timeslices": 296
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 64456,
+            "major_faults": 0,
+            "run_ns": 395580373,
+            "wait_ns": 144715,
+            "timeslices": 280
+          }
+        ]
+      }
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 1125282782,
+      "wait_ns": 161951,
+      "switches": 285,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 784163,
+        "major_faults": 0,
+        "snapshot_ns": 171268,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 497547,
+            "major_faults": 0,
+            "run_ns": 1125628347,
+            "wait_ns": 161951,
+            "timeslices": 285
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 67528,
+            "major_faults": 0,
+            "run_ns": 498059720,
+            "wait_ns": 29875,
+            "timeslices": 256
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 75710,
+            "major_faults": 0,
+            "run_ns": 503843862,
+            "wait_ns": 0,
+            "timeslices": 307
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 66502,
+            "major_faults": 0,
+            "run_ns": 471000124,
+            "wait_ns": 88001,
+            "timeslices": 368
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 76732,
+            "major_faults": 0,
+            "run_ns": 485588313,
+            "wait_ns": 144715,
+            "timeslices": 350
+          }
+        ]
+      }
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 6,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 4788.6348,
+        "ns_per_iter": 33412445.67,
+        "ns_per_block": 8353111.42
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 5,
+    "iterations": 6,
+    "wall_ns": 141989174,
+    "timed_ns": 141986190,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 1125628347,
+      "wait_ns": 161951,
+      "switches": 285,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 784164,
+        "major_faults": 0,
+        "snapshot_ns": 128765,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 497548,
+            "major_faults": 0,
+            "run_ns": 1125901224,
+            "wait_ns": 161951,
+            "timeslices": 285
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 67528,
+            "major_faults": 0,
+            "run_ns": 498059720,
+            "wait_ns": 29875,
+            "timeslices": 256
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 75710,
+            "major_faults": 0,
+            "run_ns": 503843862,
+            "wait_ns": 0,
+            "timeslices": 307
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 66502,
+            "major_faults": 0,
+            "run_ns": 471000124,
+            "wait_ns": 88001,
+            "timeslices": 368
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 76732,
+            "major_faults": 0,
+            "run_ns": 485588313,
+            "wait_ns": 144715,
+            "timeslices": 350
+          }
+        ]
+      }
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 1185997673,
+      "wait_ns": 168120,
+      "switches": 340,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 808746,
+        "major_faults": 0,
+        "snapshot_ns": 166872,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 522130,
+            "major_faults": 0,
+            "run_ns": 1186806869,
+            "wait_ns": 168120,
+            "timeslices": 340
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 67528,
+            "major_faults": 0,
+            "run_ns": 576425811,
+            "wait_ns": 38277,
+            "timeslices": 311
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 75710,
+            "major_faults": 0,
+            "run_ns": 584178396,
+            "wait_ns": 11858,
+            "timeslices": 367
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 66502,
+            "major_faults": 0,
+            "run_ns": 546245542,
+            "wait_ns": 99878,
+            "timeslices": 439
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 76732,
+            "major_faults": 0,
+            "run_ns": 560806160,
+            "wait_ns": 153008,
+            "timeslices": 417
+          }
+        ]
+      }
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 6,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 6761.2209,
+        "ns_per_iter": 23664365.0,
+        "ns_per_block": 5916091.25
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 6,
+    "iterations": 6,
+    "wall_ns": 141737403,
+    "timed_ns": 141734859,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 1186999006,
+      "wait_ns": 168120,
+      "switches": 340,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 808746,
+        "major_faults": 0,
+        "snapshot_ns": 126672,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 522130,
+            "major_faults": 0,
+            "run_ns": 1187083772,
+            "wait_ns": 168120,
+            "timeslices": 340
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 67528,
+            "major_faults": 0,
+            "run_ns": 576425811,
+            "wait_ns": 38277,
+            "timeslices": 311
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 75710,
+            "major_faults": 0,
+            "run_ns": 584178396,
+            "wait_ns": 11858,
+            "timeslices": 367
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 66502,
+            "major_faults": 0,
+            "run_ns": 546245542,
+            "wait_ns": 99878,
+            "timeslices": 439
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 76732,
+            "major_faults": 0,
+            "run_ns": 560806160,
+            "wait_ns": 153008,
+            "timeslices": 417
+          }
+        ]
+      }
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 1246706903,
+      "wait_ns": 168120,
+      "switches": 394,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 833328,
+        "major_faults": 0,
+        "snapshot_ns": 165961,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 546712,
+            "major_faults": 0,
+            "run_ns": 1247742907,
+            "wait_ns": 168120,
+            "timeslices": 394
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 67528,
+            "major_faults": 0,
+            "run_ns": 655087139,
+            "wait_ns": 38277,
+            "timeslices": 368
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 75710,
+            "major_faults": 0,
+            "run_ns": 664282954,
+            "wait_ns": 17005,
+            "timeslices": 426
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 66502,
+            "major_faults": 0,
+            "run_ns": 621740571,
+            "wait_ns": 99878,
+            "timeslices": 514
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 76732,
+            "major_faults": 0,
+            "run_ns": 635887269,
+            "wait_ns": 162522,
+            "timeslices": 489
+          }
+        ]
+      }
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 6,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 6773.2103,
+        "ns_per_iter": 23622476.5,
+        "ns_per_block": 5905619.12
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 7,
+    "iterations": 6,
+    "wall_ns": 142681821,
+    "timed_ns": 142679528,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 1247742907,
+      "wait_ns": 168120,
+      "switches": 394,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 833328,
+        "major_faults": 0,
+        "snapshot_ns": 128234,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 546712,
+            "major_faults": 0,
+            "run_ns": 1248007822,
+            "wait_ns": 168120,
+            "timeslices": 394
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 67528,
+            "major_faults": 0,
+            "run_ns": 655087139,
+            "wait_ns": 38277,
+            "timeslices": 368
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 75710,
+            "major_faults": 0,
+            "run_ns": 664282954,
+            "wait_ns": 17005,
+            "timeslices": 426
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 66502,
+            "major_faults": 0,
+            "run_ns": 621740571,
+            "wait_ns": 99878,
+            "timeslices": 514
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 76732,
+            "major_faults": 0,
+            "run_ns": 635887269,
+            "wait_ns": 162522,
+            "timeslices": 489
+          }
+        ]
+      }
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 1309200888,
+      "wait_ns": 168120,
+      "switches": 448,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 857911,
+        "major_faults": 0,
+        "snapshot_ns": 167584,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 571294,
+            "major_faults": 0,
+            "run_ns": 1309383350,
+            "wait_ns": 168120,
+            "timeslices": 448
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 67528,
+            "major_faults": 0,
+            "run_ns": 732913508,
+            "wait_ns": 38277,
+            "timeslices": 424
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 75711,
+            "major_faults": 0,
+            "run_ns": 744479198,
+            "wait_ns": 17005,
+            "timeslices": 485
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 66502,
+            "major_faults": 0,
+            "run_ns": 698344708,
+            "wait_ns": 109202,
+            "timeslices": 581
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 76732,
+            "major_faults": 0,
+            "run_ns": 711100732,
+            "wait_ns": 168951,
+            "timeslices": 562
+          }
+        ]
+      }
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 6,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 6728.3654,
+        "ns_per_iter": 23779921.33,
+        "ns_per_block": 5944980.33
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 8,
+    "iterations": 6,
+    "wall_ns": 142270980,
+    "timed_ns": 142268516,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 1309383350,
+      "wait_ns": 168120,
+      "switches": 448,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 857912,
+        "major_faults": 0,
+        "snapshot_ns": 128103,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 571295,
+            "major_faults": 0,
+            "run_ns": 1309653813,
+            "wait_ns": 168120,
+            "timeslices": 448
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 67528,
+            "major_faults": 0,
+            "run_ns": 732913508,
+            "wait_ns": 38277,
+            "timeslices": 424
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 75711,
+            "major_faults": 0,
+            "run_ns": 744479198,
+            "wait_ns": 17005,
+            "timeslices": 485
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 66502,
+            "major_faults": 0,
+            "run_ns": 698344708,
+            "wait_ns": 109202,
+            "timeslices": 581
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 76732,
+            "major_faults": 0,
+            "run_ns": 711100732,
+            "wait_ns": 168951,
+            "timeslices": 562
+          }
+        ]
+      }
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 1369711762,
+      "wait_ns": 168120,
+      "switches": 502,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 882494,
+        "major_faults": 0,
+        "snapshot_ns": 177308,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 595877,
+            "major_faults": 0,
+            "run_ns": 1370637622,
+            "wait_ns": 168120,
+            "timeslices": 502
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 67528,
+            "major_faults": 0,
+            "run_ns": 811760663,
+            "wait_ns": 65818,
+            "timeslices": 481
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 75711,
+            "major_faults": 0,
+            "run_ns": 825292032,
+            "wait_ns": 23184,
+            "timeslices": 543
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 66502,
+            "major_faults": 0,
+            "run_ns": 774371583,
+            "wait_ns": 110644,
+            "timeslices": 649
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 76732,
+            "major_faults": 0,
+            "run_ns": 785420019,
+            "wait_ns": 168951,
+            "timeslices": 634
+          }
+        ]
+      }
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 6,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 6747.8036,
+        "ns_per_iter": 23711419.33,
+        "ns_per_block": 5927854.83
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 9,
+    "iterations": 6,
+    "wall_ns": 141999440,
+    "timed_ns": 141996906,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 1370710121,
+      "wait_ns": 168120,
+      "switches": 502,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 882494,
+        "major_faults": 0,
+        "snapshot_ns": 125920,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 595877,
+            "major_faults": 0,
+            "run_ns": 1370906583,
+            "wait_ns": 168120,
+            "timeslices": 502
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 67528,
+            "major_faults": 0,
+            "run_ns": 811760663,
+            "wait_ns": 65818,
+            "timeslices": 481
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 75711,
+            "major_faults": 0,
+            "run_ns": 825292032,
+            "wait_ns": 23184,
+            "timeslices": 543
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 66502,
+            "major_faults": 0,
+            "run_ns": 774371583,
+            "wait_ns": 110644,
+            "timeslices": 649
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 76732,
+            "major_faults": 0,
+            "run_ns": 785420019,
+            "wait_ns": 168951,
+            "timeslices": 634
+          }
+        ]
+      }
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 1431393757,
+      "wait_ns": 168120,
+      "switches": 556,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 907076,
+        "major_faults": 0,
+        "snapshot_ns": 167604,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 620459,
+            "major_faults": 0,
+            "run_ns": 1431788335,
+            "wait_ns": 168120,
+            "timeslices": 556
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 67528,
+            "major_faults": 0,
+            "run_ns": 890759887,
+            "wait_ns": 65818,
+            "timeslices": 535
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 75711,
+            "major_faults": 0,
+            "run_ns": 905434360,
+            "wait_ns": 23184,
+            "timeslices": 599
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 66502,
+            "major_faults": 0,
+            "run_ns": 849806978,
+            "wait_ns": 110644,
+            "timeslices": 720
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 76732,
+            "major_faults": 0,
+            "run_ns": 860391773,
+            "wait_ns": 172977,
+            "timeslices": 704
+          }
+        ]
+      }
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 6,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 6760.7107,
+        "ns_per_iter": 23666151.0,
+        "ns_per_block": 5916537.75
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 10,
+    "iterations": 6,
+    "wall_ns": 142333955,
+    "timed_ns": 142331141,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 1431788335,
+      "wait_ns": 168120,
+      "switches": 556,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 907076,
+        "major_faults": 0,
+        "snapshot_ns": 127463,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 620459,
+            "major_faults": 0,
+            "run_ns": 1432035934,
+            "wait_ns": 168120,
+            "timeslices": 556
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 67528,
+            "major_faults": 0,
+            "run_ns": 890759887,
+            "wait_ns": 65818,
+            "timeslices": 535
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 75711,
+            "major_faults": 0,
+            "run_ns": 905434360,
+            "wait_ns": 23184,
+            "timeslices": 599
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 66502,
+            "major_faults": 0,
+            "run_ns": 849806978,
+            "wait_ns": 110644,
+            "timeslices": 720
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 76732,
+            "major_faults": 0,
+            "run_ns": 860391773,
+            "wait_ns": 172977,
+            "timeslices": 704
+          }
+        ]
+      }
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 1493024065,
+      "wait_ns": 168120,
+      "switches": 610,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 931658,
+        "major_faults": 0,
+        "snapshot_ns": 169747,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 645041,
+            "major_faults": 0,
+            "run_ns": 1493195851,
+            "wait_ns": 168120,
+            "timeslices": 610
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 67528,
+            "major_faults": 0,
+            "run_ns": 969668905,
+            "wait_ns": 65818,
+            "timeslices": 589
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 75711,
+            "major_faults": 0,
+            "run_ns": 985924447,
+            "wait_ns": 27660,
+            "timeslices": 657
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 66502,
+            "major_faults": 0,
+            "run_ns": 925073367,
+            "wait_ns": 114950,
+            "timeslices": 791
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 76732,
+            "major_faults": 0,
+            "run_ns": 935119544,
+            "wait_ns": 176552,
+            "timeslices": 774
+          }
+        ]
+      }
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 6,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 6744.8346,
+        "ns_per_iter": 23721856.83,
+        "ns_per_block": 5930464.21
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 11,
+    "iterations": 6,
+    "wall_ns": 142400125,
+    "timed_ns": 142397922,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 1493195851,
+      "wait_ns": 168120,
+      "switches": 610,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 931658,
+        "major_faults": 0,
+        "snapshot_ns": 127643,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 645041,
+            "major_faults": 0,
+            "run_ns": 1493457391,
+            "wait_ns": 168120,
+            "timeslices": 610
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 67528,
+            "major_faults": 0,
+            "run_ns": 969668905,
+            "wait_ns": 65818,
+            "timeslices": 589
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 75711,
+            "major_faults": 0,
+            "run_ns": 985924447,
+            "wait_ns": 27660,
+            "timeslices": 657
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 66502,
+            "major_faults": 0,
+            "run_ns": 925073367,
+            "wait_ns": 114950,
+            "timeslices": 791
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 76732,
+            "major_faults": 0,
+            "run_ns": 935119544,
+            "wait_ns": 176552,
+            "timeslices": 774
+          }
+        ]
+      }
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 1554716618,
+      "wait_ns": 168120,
+      "switches": 664,
+      "process": {
+        "available": true,
+        "complete": true,
+        "minor_faults": 956240,
+        "major_faults": 0,
+        "snapshot_ns": 168174,
+        "threads": [
+          {
+            "slot": 0,
+            "measuring_thread": false,
+            "cpu": 25,
+            "minor_faults": 144,
+            "major_faults": 0,
+            "run_ns": 1654201,
+            "wait_ns": 0,
+            "timeslices": 2
+          },
+          {
+            "slot": 1,
+            "measuring_thread": true,
+            "cpu": 24,
+            "minor_faults": 669623,
+            "major_faults": 0,
+            "run_ns": 1554764709,
+            "wait_ns": 168120,
+            "timeslices": 664
+          },
+          {
+            "slot": 2,
+            "measuring_thread": false,
+            "cpu": 28,
+            "minor_faults": 67528,
+            "major_faults": 0,
+            "run_ns": 1049943782,
+            "wait_ns": 74642,
+            "timeslices": 636
+          },
+          {
+            "slot": 3,
+            "measuring_thread": false,
+            "cpu": 29,
+            "minor_faults": 75711,
+            "major_faults": 0,
+            "run_ns": 1066521475,
+            "wait_ns": 35011,
+            "timeslices": 712
+          },
+          {
+            "slot": 4,
+            "measuring_thread": false,
+            "cpu": 30,
+            "minor_faults": 66502,
+            "major_faults": 0,
+            "run_ns": 999088905,
+            "wait_ns": 119507,
+            "timeslices": 862
+          },
+          {
+            "slot": 5,
+            "measuring_thread": false,
+            "cpu": 31,
+            "minor_faults": 76732,
+            "major_faults": 0,
+            "run_ns": 1009896290,
+            "wait_ns": 180748,
+            "timeslices": 841
+          }
+        ]
+      }
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 6,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 6741.6714,
+        "ns_per_iter": 23732987.0,
+        "ns_per_block": 5933246.75
+      }
+    ]
+  }
+]
