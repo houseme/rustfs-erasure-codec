@@ -45,6 +45,7 @@ All notable changes to this project are documented in this file.
 
 
 ### Changed
+- Extend the published-9.0.0 compatibility executable with an optional allocation-request report for 15 identical API scenarios. Preserve all three warmed repetitions, compare actual parity bytes and recovered data, and report request volume separately from latency, RSS and release performance approval. Keep caller preparation and report formatting outside counting scopes and retain reports as ordinary CI artifacts.
 - Execute generic Classic output recovery through one checked row executor. Consume data-only/composed-parity outputs without retaining unused data views; ordinary mixed recovery still retains required dependencies. Wide warmed regressions reduce allocation requests from 6 to at most 5 and from 7 to at most 6 while preserving late-error and selective-publication behavior.
 - Remove the workspace rust-version declaration and all member inheritance entries. Keep Edition 2024, dependency versions and encoded-data compatibility unchanged; document that this does not certify an older Rust toolchain.
 - Borrow Classic coefficient rows and serial destination references through iteration instead of returning and moving temporary inline view collections. Bulk and stream adapters collect only where contiguous slices are required, retaining exact reservation hints and publication/error behavior. Add an end-to-end wide-parity allocation regression that reproduces four requests on the prior source and enforces a three-request budget.
