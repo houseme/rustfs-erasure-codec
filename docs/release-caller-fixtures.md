@@ -144,3 +144,8 @@ Ordinary verify scratch, internal verify/recovery scratch and dynamic buffers in
 other profiles remain unobserved. Observed stream signatures may differ between
 versions; a descriptive match does not establish physical-page equality or replace
 full per-layout and baseline/candidate acceptance. Backlog #2897 remains open.
+
+The [focused scratch lifecycle review](stream-scratch-service-review-2026-10-19.md)
+records allocator page-return evidence, profiler coverage failures and a separate
+longer-window same-version control. None of them upgrades unobserved scratch
+residency or qualifies a candidate release.

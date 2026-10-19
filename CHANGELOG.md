@@ -10,6 +10,12 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Add offline, address-free stream allocator and software-stack audits. Conserve
+  actual events/periods, intern repeated frames, bind syscall intervals to the real
+  deferred sampler output, and retain unknown caller/residency scope explicitly.
+  Reject lost/throttled records and zero-exit corrupted captures. Preserve formal
+  protocol 14, original allocation/free costs and all runtime/release contracts.
+
 - Extend the existing stream inventory with bounded writer reserve/append/drop
   fault and scheduler windows, preserving original allocation, copy and drop costs.
   Reject incomplete, overlapping or mismatched windows and report the remaining
