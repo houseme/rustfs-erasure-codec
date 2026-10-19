@@ -45,6 +45,8 @@ Protocol 13 makes preparation common to every formal case:
 4. Check actual measuring-thread affinity before/after every timer using bounded
    stack storage. Export fixed CPU, constructor budget, pool width and checks.
 5. Require matching placement through calibration and all four measured phases.
+   If a post-timer mask check fails, retain the completed numeric observation with
+   affinity_checked=false before stopping; do not promote it to a complete batch.
 
 Initializing the pool before pinning matters: lazy workers otherwise inherit the
 single CPU even if the codec's cached budget was constructed on the full set.

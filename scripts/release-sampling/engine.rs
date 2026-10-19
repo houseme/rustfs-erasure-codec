@@ -210,23 +210,22 @@ impl Placement {
             None
         }
     }
+    fn is_current(&self) -> bool {
+        affinity_cpu() == Some(self.cpu)
+    }
     fn check(&self) {
-        assert_eq!(
-            affinity_cpu(),
-            Some(self.cpu),
-            "measuring thread escaped its fixed CPU"
-        );
+        assert!(self.is_current(), "measuring thread escaped its fixed CPU");
     }
 }
 #[derive(Clone, Copy)]
-struct OptionalPlacement<'a>(Option<&'a Placement>);
+struct OptionalPlacement<'a>(Option<&'a Placement>, bool);
 impl std::fmt::Display for OptionalPlacement<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.0 {
             Some(p) => write!(
                 f,
-                "{{\"cpu\":{},\"constructor_budget\":{},\"constructor_affinity\":{:?},\"pool_threads\":{},\"affinity_checked\":true}}",
-                p.cpu, p.constructor_budget, p.constructor_affinity, p.pool_threads
+                "{{\"cpu\":{},\"constructor_budget\":{},\"constructor_affinity\":{:?},\"pool_threads\":{},\"affinity_checked\":{}}}",
+                p.cpu, p.constructor_budget, p.constructor_affinity, p.pool_threads, self.1
             ),
             None => f.write_str("null"),
         }
@@ -241,6 +240,7 @@ struct Observation<R> {
     after: Telemetry,
     fixture: OptionalFixture,
     workload: OptionalWorkload,
+    affinity_checked: bool,
 }
 
 impl<R> Observation<R> {
@@ -280,15 +280,14 @@ fn measure_fixed<R>(
             } = std::hint::black_box(operation(count));
             let wall_ns = start.elapsed().as_nanos();
             let after = telemetry();
-            if let Some(p) = placement.0 {
-                p.check();
-            }
+            let affinity_checked = placement.0.is_none_or(Placement::is_current);
+            let record_placement = OptionalPlacement(placement.0, affinity_checked);
             let timed_ns = ns_per_iter(&result) * count as f64;
             assert!(timed_ns.is_finite() && timed_ns > 0.0);
             // Keep a mode-independent timing journal even if a process is
             // interrupted before the deferred original artifact export.
             println!(
-                "\nRSE_TIMING {{\"case\":\"{key}\",\"index\":{index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"fixture\":{fixture},\"workload\":{workload},\"placement\":{placement},\"before\":{before},\"after\":{after}}}"
+                "\nRSE_TIMING {{\"case\":\"{key}\",\"index\":{index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"fixture\":{fixture},\"workload\":{workload},\"placement\":{record_placement},\"before\":{before},\"after\":{after}}}"
             );
             observations.push(Observation {
                 result,
@@ -298,7 +297,14 @@ fn measure_fixed<R>(
                 after,
                 fixture,
                 workload,
+                affinity_checked,
             });
+            // Keep the completed numeric row, marked invalid, before stopping.
+            // A failed mask check must not erase an operation that already ran.
+            assert!(
+                affinity_checked,
+                "measuring thread escaped after timing; completed row retained"
+            );
         }
     }));
     (observations, outcome)
@@ -341,14 +347,14 @@ pub(super) fn run_prepared<R, F: FnMut(usize) -> Output<R>>(
     let constructor_budget = std::thread::available_parallelism().unwrap().get();
     let mut operation = prepare(page_size);
     let prepared_placement = Placement::prepare(constructor_budget);
-    let placement = OptionalPlacement(prepared_placement.as_ref());
+    let placement = OptionalPlacement(prepared_placement.as_ref(), true);
     let (observations, outcome) =
         measure_fixed(key, count, &mut operation, &ns_per_iter, placement);
     let complete_batch = observations.len() == WARMUPS + SAMPLES
         && observations
             .iter()
             .skip(WARMUPS)
-            .all(Observation::target_met);
+            .all(|r| r.target_met() && r.affinity_checked);
     // Git queries and original JSON/CSV writers run only after the complete
     // measurement kernel, so their heap/file/child-process state cannot seed
     // another observation in this worker.
@@ -362,12 +368,14 @@ pub(super) fn run_prepared<R, F: FnMut(usize) -> Output<R>>(
             after,
             fixture,
             workload,
+            affinity_checked,
         } = observation;
+        let placement = OptionalPlacement(prepared_placement.as_ref(), affinity_checked);
         let warming = record_index < WARMUPS;
         let complete = if calibrating {
             record_index + 1 == WARMUPS + SAMPLES && complete_batch
         } else {
-            target_met
+            target_met && affinity_checked
         };
         // Export after timing using the unchanged original artifact writer.
         export(&result);
@@ -434,6 +442,84 @@ mod tests {
     }
 
     #[test]
+    #[cfg(target_os = "linux")]
+    fn post_timer_affinity_failure_retains_completed_invalid_observation() {
+        fn set_mask(mask: &str, tid: &std::ffi::OsStr) {
+            assert!(
+                std::process::Command::new("taskset")
+                    .args(["--pid", "--cpu-list", mask])
+                    .arg(tid)
+                    .output()
+                    .unwrap()
+                    .status
+                    .success()
+            );
+        }
+        let mut buffer = [0u8; 4096];
+        let original =
+            affinity_list(read_bounded("/proc/thread-self/status", &mut buffer).unwrap())
+                .unwrap()
+                .to_owned();
+        if original.parse::<usize>().is_ok() {
+            eprintln!(
+                "affinity expansion regression requires the multi-CPU mask used by formal captures"
+            );
+            return;
+        }
+        let cpu = original
+            .split([',', '-'])
+            .next()
+            .unwrap()
+            .parse::<usize>()
+            .unwrap();
+        let tid = fs::read_link("/proc/thread-self").unwrap();
+        struct Restore {
+            mask: String,
+            tid: std::path::PathBuf,
+        }
+        impl Drop for Restore {
+            fn drop(&mut self) {
+                set_mask(&self.mask, self.tid.file_name().unwrap());
+            }
+        }
+        let restore = Restore {
+            mask: original,
+            tid,
+        };
+        set_mask(&cpu.to_string(), restore.tid.file_name().unwrap());
+        let p = Placement {
+            cpu,
+            constructor_budget: 1,
+            constructor_affinity: vec![cpu],
+            pool_threads: 4,
+        };
+        let (observations, outcome) = measure_fixed(
+            "affinity-failure",
+            1,
+            &mut |_| {
+                set_mask(&restore.mask, restore.tid.file_name().unwrap());
+                Output {
+                    result: 42usize,
+                    fixture: OptionalFixture(None),
+                    workload: OptionalWorkload(None),
+                }
+            },
+            &|_| 1.0,
+            OptionalPlacement(Some(&p), true),
+        );
+        assert!(outcome.is_err());
+        assert_eq!(observations.len(), 1);
+        assert_eq!(observations[0].result, 42);
+        assert!(observations[0].wall_ns > 0);
+        assert!(!observations[0].affinity_checked);
+        assert!(
+            OptionalPlacement(Some(&p), false)
+                .to_string()
+                .contains("\"affinity_checked\":false")
+        );
+    }
+
+    #[test]
     fn kernel_keeps_the_complete_fixed_schedule() {
         let mut calls = 0;
         let (observations, outcome) = measure_fixed(
@@ -448,7 +534,7 @@ mod tests {
                 }
             },
             &|_| 1.0,
-            OptionalPlacement(None),
+            OptionalPlacement(None, true),
         );
         assert!(outcome.is_ok());
         assert_eq!(calls, WARMUPS + SAMPLES);
@@ -471,7 +557,7 @@ mod tests {
                 }
             },
             &|_| 1.0,
-            OptionalPlacement(None),
+            OptionalPlacement(None, true),
         );
         assert!(outcome.is_err());
         assert_eq!(
