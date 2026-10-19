@@ -106,6 +106,9 @@ jobs:
       - name: Compile and test the isolated ShardSlot diagnostic
         run: python3 scripts/diagnose_shard_slot.py --check
 
+      - name: Compile and test the post-construction CPU placement diagnostic
+        run: python3 scripts/diagnose_cpu_placement.py --check
+
       - name: Compare with published 9.0.0 encoding
         run: cargo run --locked --quiet --manifest-path scripts/release-compatibility/Cargo.toml --target-dir target
 
