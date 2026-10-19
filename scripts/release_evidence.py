@@ -18,6 +18,7 @@ import platform
 import re
 import shutil
 import subprocess
+import statistics
 import sys
 import time
 import copy
@@ -525,11 +526,145 @@ def calibration_counts(records, profile, revision, expected_page_size=None):
     return counts
 
 
+def capture_environment():
+    env = {k: v for k, v in os.environ.items()
+           if not k.startswith(("RSE_", "RS_", "CARGO_PROFILE_"))
+           and k not in ("CARGO_ENCODED_RUSTFLAGS", "RUSTC_WRAPPER", "RUSTC_WORKSPACE_WRAPPER")}
+    return dict(env, **SAMPLING_ENV)
+
+
+def prepare_capture_source(overlays, root, env, log_path):
+    overlays.enter_context(overlay(root, sampling.render(root)))
+    args = ["cargo", "test", "--locked", "--release", "--features", "std simd-accel",
+            "--test", "rse_release_sampling", "--no-run"]
+    with log_path.open("x") as log:
+        subprocess.run(args, cwd=root, env=sampling.build_environment(root, env),
+                       stdout=log, stderr=subprocess.STDOUT, check=True)
+
+
+def baseline_service_times(records):
+    """Summarize retained samples only; measured thread time is not host CPU cycles."""
+    cases = {}
+    for row in records:
+        if row["kind"] == "sample": cases.setdefault(row["case"], []).append(row)
+    return {case: {
+        "timed_ns_per_iteration": statistics.median(r["timed_ns"]/r["iterations"] for r in rows),
+        "wall_ns_per_iteration": statistics.median(r["wall_ns"]/r["iterations"] for r in rows),
+        "thread_run_ns_per_iteration": statistics.median((r["after"]["run_ns"]-r["before"]["run_ns"])/r["iterations"] for r in rows),
+        "maximum_runnable_wait_fraction": max((r["after"]["wait_ns"]-r["before"]["wait_ns"])/r["wall_ns"] for r in rows),
+    } for case, rows in sorted(cases.items())}
+
+
+def qualify_baseline(baseline, output, group):
+    """One full-catalog same-version control; never a release manifest or retry loop."""
+    if output.exists(): raise ValueError("use a new qualification directory; old observations are preserved")
+    output.mkdir(parents=True)
+    tool = pathlib.Path(__file__).resolve().parents[1]
+    source = source_info(baseline)
+    if source["commit"] != BASELINE_COMMIT: raise ValueError("qualification requires published 9.0.0")
+    tool_source = source_info(tool)
+    if harness_digest(baseline) != harness_digest(tool) or sampling.overlay_digest(baseline) != sampling.overlay_digest(tool):
+        raise ValueError("qualification requires the same original harness and external overlay")
+    env = capture_environment()
+    context = environment_context(baseline, env, group)
+    report = {"schema_version": "baseline-qualification-v1", "source": source, "tool": tool_source,
+              "context": context, "sampling": dict(sampling.PROTOCOL,
+                  implementation_sha256=sampling.implementation_digest(), overlay_sha256=sampling.overlay_digest(baseline)),
+              "harness_sha256": harness_digest(baseline), "calibration": {}, "phases": {},
+              "repeat_checks": [], "baseline_controls_passed": False,
+              "release_approval": False, "candidate_attribution": None}
+    def save(name, value): (output/name).write_text(json.dumps(value, indent=2)+"\n")
+    def unchanged():
+        if source_info(baseline) != source or source_info(tool) != tool_source:
+            raise ValueError("qualification source changed")
+        if environment_context(baseline, env, group) != context:
+            raise ValueError("qualification context changed")
+    save("provenance.json", report)
+    counts, fixtures, workloads, traces, medians, calibrated = {}, {}, {}, {}, {}, {}
+    with ExitStack() as overlays:
+        prepare_capture_source(overlays, baseline, env, output/"baseline-build.log")
+        folder = output/"calibration"; folder.mkdir()
+        for profile in FILES:
+            records, entry = capture_profile(baseline, folder, profile, "calibrate", env, output, group)
+            counts[profile] = calibration_counts(records, profile, source["commit"], context["runtime"]["page_size"])
+            for row in records: sampling.validate_placement(row, context["isolation"]["cpu_affinity"])
+            final_rows = {row["case"]: row["rows"][0] for row in records}
+            calibrated[profile] = indexed_rows(profile, list(final_rows.values()), source["commit"], counts[profile])
+            fixtures[profile] = sampling.fixture_catalog(records, calibration=True)
+            workloads[profile] = sampling.workload_catalog(records, calibration=True)
+            traces[profile] = sampling.workload_traces(records, calibration=True)
+            report["calibration"][profile] = entry
+            (output/("counts-"+profile+".tsv")).write_text("".join(f"{case}\t{count}\n" for case, count in sorted(counts[profile].items())))
+            unchanged(); save("qualification.partial.json", report)
+        report["sampling"]["common_iterations"] = counts
+        for phase in ("A1", "A2"):
+            time.sleep(10)
+            folder = output/phase; folder.mkdir()
+            report["phases"][phase] = {}; medians[phase] = {}
+            for profile in FILES:
+                records, entry = capture_profile(baseline, folder, profile, "sample", env, output, group, output/("counts-"+profile+".tsv"))
+                normalize = lambda p, row, rev: next(iter(indexed_rows(p, [row], rev, counts[p], complete=False)))
+                selected, widths = sampling.selected_row(records, profile, METRICS[profile], source["commit"],
+                    expected_cases(profile), counts[profile], normalize, context["isolation"]["cpu_affinity"], context["runtime"]["page_size"])
+                if (sampling.fixture_catalog(records) != fixtures[profile]
+                        or sampling.workload_catalog(records) != workloads[profile]
+                        or sampling.workload_traces(records) != traces[profile]):
+                    raise ValueError(f"{phase}/{profile}: caller layout, preparation or input replay differs from calibration")
+                medians[phase][profile] = indexed_rows(profile, selected, source["commit"], counts[profile])
+                compatible(profile, calibrated[profile], medians[phase][profile])
+                report["phases"][phase][profile] = {"samples": entry, "case_count": len(selected), "sample_spreads": widths,
+                    "service_times": baseline_service_times(records)}
+                unchanged(); save("qualification.partial.json", report)
+            if any(w["central_spread"] > sampling.PROTOCOL["central_spread_limit"]
+                   for item in report["phases"][phase].values() for w in item["sample_spreads"]):
+                raise EvidenceFailure("baseline distributions are unstable; stop without candidate attribution", report)
+        for profile in FILES:
+            compatible(profile, medians["A1"][profile], medians["A2"][profile])
+            for case, row in medians["A1"][profile].items():
+                old, new = float(row[METRICS[profile]]), float(medians["A2"][profile][case][METRICS[profile]])
+                report["repeat_checks"].append({"profile": profile, "case": case, "first": old, "second": new,
+                                                "metric": METRICS[profile], "drift": abs(new-old)/old})
+        unchanged()
+        save("qualification.partial.json", report)
+        if any(item["drift"] > .05 for item in report["repeat_checks"]):
+            raise EvidenceFailure("baseline drift exceeds 5%; no candidate attribution", report)
+    # A clean overlay close is part of successful qualification, not an afterthought.
+    unchanged()
+    report["baseline_controls_passed"] = True
+    save("qualification.json", report)
+    return report
+
+
+def capture_profile(root, folder, profile, mode, env, output, group, count_file=None):
+    before = environment_context(root,env,group)
+    log_path = folder/(profile+".log")
+    try:
+        records = sampling.run_profile(root,env,profile,mode,log_path,count_file,cases=expected_cases(profile))
+    except BaseException:
+        # run_profile closes and flushes its journal before propagating failure.
+        # Preserve completed numeric rows without promoting them to members
+        # of a complete/accepted manifest; raw logs are never removed.
+        if log_path.exists():
+            text = log_path.read_text()
+            for kind, prefix in (("samples", "RSE_SAMPLE "), ("timing", "RSE_TIMING ")):
+                try:
+                    partial = sampling.parse_output(text, prefix)
+                    (folder/(profile+"-"+kind+".partial.json")).write_text(json.dumps(partial,indent=2)+"\n")
+                except (ValueError, OSError) as error:
+                    # A malformed journal remains rejected and intact. Do not
+                    # replace the original worker failure with a parser error.
+                    (folder/(profile+"-"+kind+".error.json")).write_text(json.dumps({"status":"failed", "error":str(error)})+"\n")
+        raise
+    member=folder/(profile+"-samples.json")
+    member.write_text(json.dumps(records,indent=2)+"\n")
+    if environment_context(root,env,group)!=before: raise ValueError("measurement environment changed")
+    return records, {"path":member.relative_to(output).as_posix(),"sha256":digest(member.read_bytes())}
+
+
 def capture(baseline, candidate, output, group):
     if output.exists(): raise ValueError("use a new evidence directory; old observations are preserved")
     output.mkdir(parents=True)
-    env = {k:v for k,v in os.environ.items() if not k.startswith(("RSE_", "RS_", "CARGO_PROFILE_")) and k not in ("CARGO_ENCODED_RUSTFLAGS", "RUSTC_WRAPPER", "RUSTC_WORKSPACE_WRAPPER")}
-    env.update(SAMPLING_ENV)
+    env = capture_environment()
     environment_context(candidate, env, group)
     sources = {"baseline": source_info(baseline), "candidate": source_info(candidate)}
     if sources["baseline"]["commit"] != BASELINE_COMMIT or sources["candidate"]["commit"] == BASELINE_COMMIT:
@@ -548,40 +683,13 @@ def capture(baseline, candidate, output, group):
         "initial_context":environment_context(candidate,env,group)},indent=2)+"\n")
     with ExitStack() as overlays:
         for role, root in (("baseline", baseline), ("candidate", candidate)):
-            overlays.enter_context(overlay(root, sampling.render(root)))
-            args = ["cargo","test","--locked","--release","--features","std simd-accel","--test","rse_release_sampling","--no-run"]
-            with (output/(role+"-build.log")).open("w") as log:
-                subprocess.run(args,cwd=root,env=sampling.build_environment(root,env),stdout=log,stderr=subprocess.STDOUT,check=True)
-        def execute(root, folder, profile, mode, count_file=None):
-            before = environment_context(root,env,group)
-            log_path = folder/(profile+".log")
-            try:
-                records = sampling.run_profile(root,env,profile,mode,log_path,count_file,cases=expected_cases(profile))
-            except BaseException:
-                # run_profile closes and flushes its journal before propagating failure.
-                # Preserve completed numeric rows without promoting them to members
-                # of a complete/accepted manifest; raw logs are never removed.
-                if log_path.exists():
-                    text = log_path.read_text()
-                    for kind, prefix in (("samples", "RSE_SAMPLE "), ("timing", "RSE_TIMING ")):
-                        try:
-                            partial = sampling.parse_output(text, prefix)
-                            (folder/(profile+"-"+kind+".partial.json")).write_text(json.dumps(partial,indent=2)+"\n")
-                        except (ValueError, OSError) as error:
-                            # A malformed journal remains rejected and intact. Do not
-                            # replace the original worker failure with a parser error.
-                            (folder/(profile+"-"+kind+".error.json")).write_text(json.dumps({"status":"failed", "error":str(error)})+"\n")
-                raise
-            member=folder/(profile+"-samples.json")
-            member.write_text(json.dumps(records,indent=2)+"\n")
-            if environment_context(root,env,group)!=before: raise ValueError("measurement environment changed")
-            return records, {"path":member.relative_to(output).as_posix(),"sha256":digest(member.read_bytes())}
+            prepare_capture_source(overlays, root, env, output/(role+"-build.log"))
         pilots={}
         for role,root in (("baseline",baseline),("candidate",candidate)):
             folder=output/("calibration-"+role);folder.mkdir()
             metadata["calibration"][role]={};pilots[role]={}
             for profile in FILES:
-                records,entry=execute(root,folder,profile,"calibrate")
+                records,entry=capture_profile(root,folder,profile,"calibrate",env,output,group)
                 metadata["calibration"][role][profile]=entry
                 pilots[role][profile]=calibration_counts(records,profile,sources[role]["commit"])
         counts={p:{k:max(pilots[r][p][k] for r in pilots) for k in expected_cases(p)} for p in FILES}
@@ -598,7 +706,7 @@ def capture(baseline, candidate, output, group):
             folder=output/phase;folder.mkdir();metadata["files"][phase]={}
             phase_spreads=[]
             for profile,filename in FILES.items():
-                records,entry=execute(root,folder,profile,"sample",count_files[profile])
+                records,entry=capture_profile(root,folder,profile,"sample",env,output,group,count_files[profile])
                 normalize=lambda p,row,rev: next(iter(indexed_rows(p,[row],rev,counts[p],complete=False)))
                 selected,spreads=sampling.selected_row(records,profile,METRICS[profile],sources[role]["commit"],expected_cases(profile),counts[profile],normalize)
                 phase_spreads.extend(dict(item, profile=profile) for item in spreads)
@@ -653,11 +761,12 @@ def materialize(manifest, repository, env_file):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="mode", required=True)
-    cap = sub.add_parser("capture")
-    cap.add_argument("--baseline", type=pathlib.Path, required=True)
-    cap.add_argument("--candidate", type=pathlib.Path, required=True)
-    cap.add_argument("--output", type=pathlib.Path, required=True)
-    cap.add_argument("--isolation-cgroup", type=pathlib.Path, required=True)
+    for mode in ("capture", "qualify-baseline"):
+        cap = sub.add_parser(mode)
+        cap.add_argument("--baseline", type=pathlib.Path, required=True)
+        if mode == "capture": cap.add_argument("--candidate", type=pathlib.Path, required=True)
+        cap.add_argument("--output", type=pathlib.Path, required=True)
+        cap.add_argument("--isolation-cgroup", type=pathlib.Path, required=True)
     for mode in ("verify", "materialize"):
         child = sub.add_parser(mode)
         child.add_argument("--manifest", type=pathlib.Path, required=True)
@@ -665,16 +774,17 @@ def main():
         if mode == "materialize": child.add_argument("--env-file", type=pathlib.Path, required=True)
         else: child.add_argument("--report", type=pathlib.Path)
     args = parser.parse_args()
-    capture_output_was_absent = args.mode == "capture" and not args.output.exists()
+    capture_output_was_absent = args.mode in ("capture", "qualify-baseline") and not args.output.exists()
     try:
         if args.mode == "capture": capture(args.baseline.resolve(), args.candidate.resolve(), args.output.resolve(), args.isolation_cgroup)
+        elif args.mode == "qualify-baseline": qualify_baseline(args.baseline.resolve(), args.output.resolve(), args.isolation_cgroup)
         elif args.mode == "materialize": materialize(args.manifest.resolve(), args.repository.resolve(), args.env_file)
         else:
             _, _, report = verify(args.manifest.resolve(), args.repository.resolve())
             if args.report:
                 args.report.parent.mkdir(parents=True, exist_ok=True)
                 args.report.write_text(json.dumps(report, indent=2) + "\n")
-        print("release evidence verified")
+        print("baseline qualification completed; not release acceptance" if args.mode == "qualify-baseline" else "release evidence verified")
     except (OSError, ValueError, KeyError, TypeError, subprocess.CalledProcessError, SystemExit) as error:
         # Never leave a stale passing report for a failed invocation.
         report_path = getattr(args, "report", None)
