@@ -143,8 +143,8 @@ python3 scripts/diagnose_fixture_layout.py --stream-views --iterations 2 \
   --output /path/to/new-inventory --isolation-cgroup /sys/fs/cgroup/owned-partition
 ```
 
-Ordinary verify scratch, internal verify/recovery scratch and dynamic buffers in
-other profiles remain unobserved. Observed stream signatures may differ between
+The ordinary verify diagnostic below supplements the declared scratch scope.
+Internal stream verify/recovery scratch and other dynamic buffers remain unobserved. Observed stream signatures may differ between
 versions; a descriptive match does not establish physical-page equality or replace
 full per-layout and baseline/candidate acceptance. Backlog #2897 remains open.
 
@@ -171,3 +171,54 @@ This validation-only tightening does not change sampler protocol 15, worker code
 overlay/implementation digests, original timed work or quality thresholds. Frozen
 captures are checked offline with the stricter validator; they are not remeasured
 solely because the verifier changed. Any actual mismatch rejects attribution.
+
+## Ordinary verify scratch: diagnostic source copies
+
+`verify_scratch_audit.py --check` observes all three smoke and eleven small-file
+ordinary Classic verify cases in actual published 9.0.0 and candidate source
+revisions with their own lockfiles. It checks out disposable source copies and
+adds reversible hooks only around the original SmallVec scratch. The prepared
+worker, original Vec API, operation loop, three warmups and nine samples remain;
+each observation performs two original calls. Hooks never enter production
+checkouts, the formal renderer or the running protocol-15 campaign.
+
+The guard is declared before scratch, so scratch and its borrowed views drop
+before the guard records the former numeric range. It records real capacity,
+initialized length, inline/heap storage, private pointer stability, modulo
+64/4096/native-page offsets, native residency and whole-process fault endpoints at
+reservation, initialization, after verification and after owner drop. No reference
+or slice to uninitialized/former storage is created. Inline owner drop does not
+free the stack frame; mapped former ranges do not prove allocation/physical-page
+identity. Snapshots include partial boundary pages and may include neighboring
+bytes. Queries do not read, initialize or lock observed contents.
+
+Every call/boundary and original healthy-input boolean is checked. Hooks retain
+false results too. Interrupted/external-thread callbacks invalidate the ledger
+without panicking in the destructor. Callbacks use fixed storage and existing
+bounded fault parsers/mincore; the independent allocator probe checks zero
+alloc/realloc/dealloc. Synchronization, stack touches and probes still perturb
+execution and may change compiler/layout behavior. They cannot establish
+uninstrumented geometry equivalence, precise first-fault instruction or candidate
+throughput. Fault endpoints include observer work and must remain inside their
+original outer observation counters.
+
+Capture and read-only replay share one validator. Digests bind every raw sample,
+numerical timing journal, scratch ledger, original source/lock, reversible source
+change, native hook and rendered worker. All fourteen cases and every observation
+are required on both sides. Backend/placement/preparation mismatches are refused;
+observed scratch layouts may differ and are reported without pooling. Existing
+output directories and unexpected source edits are preserved. CI retains complete
+numerical JSON/journals on success or failure; it excludes source copies, full
+addresses, private paths, build logs and exception text. Original full logs remain
+with the execution workspace. The numerical capsule replays independently of those
+private logs. Non-Linux runs explicitly lack native residency/counters and cannot
+substitute for native Linux observations.
+
+```sh
+python3 scripts/verify_scratch_audit.py --check --output /path/to/new-check
+python3 scripts/verify_scratch_audit.py --replay /path/to/completed-check
+```
+
+This covers only the declared ordinary-verify diagnostic visibility gap. It does
+not complete #2897 conditions 1/2/5, internal stream verify/recovery scratch, other
+dynamic paths, complete layout pairing or final performance/release acceptance.

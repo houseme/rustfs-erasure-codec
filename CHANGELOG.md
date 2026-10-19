@@ -10,6 +10,12 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Observe ordinary Classic verify scratch reservation, initialization, verification
+  and owner release in reversible diagnostic source copies of both actual codecs.
+  Reuse original workers, bounded native residency and heap-free fault parsers;
+  bind all numerical journals/source overlays and reject incomplete/mismatched
+  replay. Keep production sources, formal protocol 15 and thresholds unchanged.
+
 - Apply the shared raw-observation and calibration input-replay contracts to the
   offline baseline service-time analyzer, refusing backend/I/O, placement and RNG
   mismatches before computing repeat drift. Preserve explicit short-sample/caller
