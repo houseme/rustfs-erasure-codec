@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Apply the shared raw-observation and calibration input-replay contracts to the
+  offline baseline service-time analyzer, refusing backend/I/O, placement and RNG
+  mismatches before computing repeat drift. Preserve explicit short-sample/caller
+  layout diagnostics, original observations, protocol 15 and release thresholds.
+
 - Check provenance and prepared placement in every calibration/warmup/sample row,
   including nonmedian outliers, across baseline qualification, final capture, strict
   preflight and structural inventories. Share the comparison and reject mismatched

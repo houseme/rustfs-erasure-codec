@@ -69,6 +69,46 @@ class BaselineVariabilityTests(unittest.TestCase):
             self.save('provenance.json', self.provenance)
             with self.assertRaises(ValueError): analysis.analyze(self.root)
 
+    def test_every_raw_backend_io_and_placement_must_match_calibration(self):
+        probes = (
+            ('calibration/smoke-samples.json', 1, 'backend_id'),
+            ('A1/smoke-samples.json', 1, 'backend_id'),
+            ('A2/small_file-samples.json', 3, 'backend_id'),
+            ('A2/stream-samples.json', 11, 'stream_io_mode'),
+            ('A1/hotspot-samples.json', 1, 'constructor_budget'),
+        )
+        for name, index, field in probes:
+            with self.subTest(name=name, index=index, field=field):
+                path = self.root/name
+                original = path.read_bytes()
+                try:
+                    def change(records):
+                        record = records[index]
+                        if field == 'constructor_budget':
+                            record['placement'][field] = 7
+                        else:
+                            record['rows'][0][field] = 'incompatible'
+                    self.mutate(name, change)
+                    retained = path.read_bytes()
+                    with self.assertRaisesRegex(ValueError, 'incompatible|observation placement'):
+                        analysis.analyze(self.root)
+                    # Offline refusal must leave every original observation intact.
+                    self.assertEqual(path.read_bytes(), retained)
+                finally:
+                    path.write_bytes(original)
+
+    def test_consistent_changed_random_stream_cannot_be_compared_with_calibration(self):
+        name = 'A1/hotspot-samples.json'
+        def change(records):
+            for record in records:
+                for key in ('next_before', 'next_after'):
+                    record['workload']['rng'][key] = [v+1 for v in record['workload']['rng'][key]]
+        self.mutate(name, change)
+        # This sequence is internally valid; only the calibration comparison
+        # exposes its different input. Do not turn it into a service-time claim.
+        with self.assertRaisesRegex(ValueError, 'input replay differs from calibration'):
+            analysis.analyze(self.root)
+
     def test_exact_five_percent_drift_remains_within_limit(self):
         def change(records):
             for row in records:

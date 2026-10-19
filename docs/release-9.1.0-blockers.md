@@ -1,13 +1,15 @@
 # 9.1.0 publication blockers and completion criteria
 
-Audit date: 2026-10-19 (Asia/Shanghai). Main includes PR #26 at `b939bf6`.
-PR #27 integrates baseline qualification and protocol-14 process fault telemetry. This is a
-readiness assessment, not release approval. Historical evidence retains its
-original source and protocol bindings.
+Audit date: 2026-10-20 (Asia/Shanghai). Main includes PR #31/#32 at `b4b5101`;
+its actual main CI passed. Protocol 15 declares uniform service windows, and the
+full published-9.0.0 qualification is in progress. No complete passing baseline,
+final candidate/layout campaign or strict positive release preflight is recorded.
+This is a readiness assessment, not release approval. Historical evidence retains
+its original source and protocol bindings.
 
 ## Implementation and acceptance are separate
 
-Protocol 14 retains one prepared worker entry for all 126 cases. It extends the
+Protocol 15 retains one prepared worker entry for all 126 cases. It extends the
 existing 103 small-file/stream caller contracts to the 15 smoke and eight hotspot
 cases: codec lifetime, actual API/output policy, masks, seed, source lifetime and
 construction order are mandatory. Hotspot per-byte random generation now borrows
@@ -47,8 +49,8 @@ establish the remaining root cause or replace accepted full performance evidence
 | Layer | Verified state | Required next result |
 | --- | --- | --- |
 | Functional compatibility | The normal-format 200-case published-9.0.0 parity/roundtrip probe and core tests pass. PR #19 changes no production algorithm. | Preserve the declared compatibility boundary: the normal-format probe disables `fast_one_parity` and does not promise recovery of historically inconsistent fast/custom/mixed-entry codewords. |
-| Workload comparability | All 126 cases have explicit preparation/input contracts in protocol 14; geometry covers only the 103 retained caller cases. Dynamic/internal buffers and real per-layout acceptance remain partial in backlog #2897. | Complete the agreed dynamic/lifetime and per-layout acceptance scope; caller matching alone is insufficient. |
-| Baseline stability | The complete protocol-13 default baseline still fails: nine A1 distributions, maximum 59.103368%; zero short samples or recorded caller mismatches. Earlier protocol-10 controls also failed. | Qualify the entire baseline before candidate attribution. Preserve every failed case and allocator context. |
+| Workload comparability | All 126 cases have explicit preparation/input contracts in protocol 15; geometry covers only the 103 retained caller cases. Dynamic/internal buffers and real per-layout acceptance remain partial in backlog #2897. | Complete the agreed dynamic/lifetime and per-layout acceptance scope; caller matching alone is insufficient. |
+| Baseline stability | Full protocol-15 qualification is in progress, with no complete acceptance yet. Historical protocol-13 A1 failed nine distributions (maximum 59.103368%); protocol-10 controls also failed. | Qualify the entire baseline before candidate attribution. Preserve every failed case and allocator context. |
 | Quantitative evidence | No accepted complete campaign for the final source tree and shared harness exists. | Fresh baseline/candidate A1/B1/B2/A2, both calibrations and all 126 original cases, with every duration/distribution/drift/regression gate passing. |
 | Workflow input | `RSE_RELEASE_EVIDENCE_REF` was absent at the last live check. Rejected audit data is not accepted evidence. | Verify accepted `release-evidence/manifest.json` on a data commit, then supply its full immutable SHA through the variable or manual `evidence_ref`. |
 | Strict preflight | Ordinary CI skips tag/manual-only evidence and release-preflight jobs. The historical real-data negative run proves rejection only. | Run `release_preflight=true` against the final main and accepted evidence, and verify actual success before tagging. |
@@ -126,8 +128,12 @@ python3 scripts/analyze_baseline_variability.py \
 
 The analyzer validates all calibration and fixed warmup/sample records through the
 shared validators, binds input hashes, and retains every case and full scheduling
-trace. It reports incomplete repeat coverage explicitly, preserves width/duration/
-layout failures and refuses to overwrite reports. `release_approval` is always
+trace. Before comparing service times it applies the shared all-observation
+backend/I/O/placement contract and matches preparation and the complete RNG input
+replay against final calibration. Mismatches are refused even in a single warmup
+or a nonmedian sample. It reports incomplete repeat coverage explicitly, preserves
+width/duration/caller-layout diagnostics and refuses to overwrite reports.
+`release_approval` is always
 false and `candidate_attribution` is always null. It supplements original
 provenance/isolation verification; it is not another release gate.
 
