@@ -15,6 +15,7 @@ def probe(root):
     if target.exists(): raise ValueError('refuse to overwrite an allocation probe')
     modules = ''.join(f'#[path="{root}/scripts/release-sampling/{name}.rs"] mod {name};\n'
                       for name in ('engine', 'layout', 'process', 'pattern', 'workload')).replace('mod engine;', 'mod sampling;')
+    modules += f'#[path="{root}/scripts/diagnostics/stream_views.rs"] mod stream_views;\n'
     original = sampling.block((root/'src/tests/mod.rs').read_text(), 'fn shard_index_pattern').replace('fn shard_index_pattern', 'fn original_pattern', 1)
     text = (root/'scripts/diagnostics/telemetry_allocations.rs').read_text()+'\n'+modules+'\n'+original
     with target.open('x') as file: file.write(text)
