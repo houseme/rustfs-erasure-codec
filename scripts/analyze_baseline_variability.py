@@ -49,9 +49,20 @@ def analyze(capture):
         return json.loads(raw)
 
     provenance = load('provenance.json')
-    if provenance['schema_version'] != 'baseline-basic-controls-v1' or provenance['source']['commit'] != evidence.BASELINE_COMMIT:
+    schema = provenance.get('schema_version')
+    if schema not in ('baseline-basic-controls-v1', 'baseline-qualification-v1') or provenance['source']['commit'] != evidence.BASELINE_COMMIT:
         raise ValueError('a complete published-9.0.0 baseline control is required')
-    if provenance['protocol'] != sampling.PROTOCOL or provenance['renderer_sha256'] != sampling.implementation_digest():
+    if schema == 'baseline-qualification-v1':
+        contract = provenance.get('sampling', {})
+        if (set(contract) != set(sampling.PROTOCOL) | {'implementation_sha256', 'overlay_sha256'}
+                or not evidence.DIGEST.fullmatch(contract.get('overlay_sha256', ''))
+                or provenance.get('release_approval') is not False or provenance.get('candidate_attribution') is not None):
+            raise ValueError('invalid baseline qualification provenance')
+        protocol = {k: contract[k] for k in sampling.PROTOCOL}
+        renderer = contract['implementation_sha256']
+    else:
+        protocol, renderer = provenance['protocol'], provenance['renderer_sha256']
+    if protocol != sampling.PROTOCOL or renderer != sampling.implementation_digest():
         raise ValueError('replay with the matching frozen protocol and renderer')
     context = provenance['context']
     cpus = context['isolation']['cpu_affinity']
@@ -63,6 +74,7 @@ def analyze(capture):
         counts = evidence.calibration_counts(calibration, profile, evidence.BASELINE_COMMIT, page_size)
         for record in calibration:
             sampling.validate_telemetry(record, cpus)
+            sampling.validate_placement(record, cpus)
         layouts = sampling.fixture_catalog(calibration, calibration=True)
         normalize = lambda p, row, rev: next(iter(evidence.indexed_rows(p, [row], rev, counts, complete=False)))
         for phase in phases:
@@ -89,7 +101,7 @@ def analyze(capture):
         first, last = (result['phases'][phase] for phase in phases)
         a, b = first['measured_endpoint_cpus'], last['measured_endpoint_cpus']
         category = ('single_endpoint_cpu_same' if a == b else 'single_endpoint_cpu_changed') if len(a) == len(b) == 1 else 'multiple_endpoint_cpus'
-        drift = abs(last['median']/first['median']-1)
+        drift = abs(last['median']-first['median'])/first['median']
         result['repeat'] = {'absolute_metric_drift': drift, 'exceeds_repeat_limit': drift > .05,
                             'endpoint_category': category}
         categories[category] += 1
@@ -99,7 +111,7 @@ def analyze(capture):
         'purpose': 'descriptive replay of every baseline case; no causal or release inference',
         'release_approval': False, 'candidate_attribution': None,
         'baseline_commit': evidence.BASELINE_COMMIT, 'measured_tool': provenance['tool'],
-        'protocol': provenance['protocol'], 'renderer_sha256': provenance['renderer_sha256'],
+        'protocol': protocol, 'renderer_sha256': renderer, 'capture_schema': schema,
         'analyzer_sha256': hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest(),
         'input_sha256': members, 'phase_order': list(phases), 'case_count': len(cases),
         'phase_quality': summaries,

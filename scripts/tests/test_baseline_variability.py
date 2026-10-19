@@ -44,6 +44,42 @@ class BaselineVariabilityTests(unittest.TestCase):
         self.assertIsNone(report['candidate_attribution'])
         self.assertTrue(all(len(case['phases']['A1']['trace']) == 12 for case in report['cases']))
 
+    def qualification_provenance(self):
+        self.provenance.update(schema_version='baseline-qualification-v1',
+            sampling=dict(sampling.PROTOCOL, implementation_sha256='e'*64, overlay_sha256='f'*64),
+            release_approval=False, candidate_attribution=None)
+        self.provenance.pop('protocol'); self.provenance.pop('renderer_sha256')
+        self.save('provenance.json', self.provenance)
+
+    def test_shared_qualification_replays_all_original_rows_without_approval(self):
+        self.qualification_provenance()
+        report = analysis.analyze(self.root)
+        self.assertEqual(report['capture_schema'], 'baseline-qualification-v1')
+        self.assertEqual(report['case_count'], 126)
+        self.assertFalse(report['release_approval'])
+        self.assertTrue(all(len(case['phases']['A2']['trace']) == 12 for case in report['cases']))
+
+    def test_qualification_missing_contract_or_approval_claim_is_rejected(self):
+        self.qualification_provenance()
+        original = copy.deepcopy(self.provenance)
+        for change in (lambda d:d['sampling'].pop('overlay_sha256'),
+                       lambda d:d['sampling'].update(version=0),
+                       lambda d:d.update(release_approval=True)):
+            self.provenance = copy.deepcopy(original); change(self.provenance)
+            self.save('provenance.json', self.provenance)
+            with self.assertRaises(ValueError): analysis.analyze(self.root)
+
+    def test_exact_five_percent_drift_remains_within_limit(self):
+        def change(records):
+            for row in records:
+                if row['case'] == 'encode:4:2:1024':
+                    row['timed_ns'] *= 1.05; row['rows'][0]['ns_per_iter'] *= 1.05
+        self.mutate('A2/small_file-samples.json', change)
+        report = analysis.analyze(self.root)
+        case = next(c for c in report['cases'] if c['case'] == 'encode:4:2:1024')
+        self.assertEqual(case['repeat']['absolute_metric_drift'], .05)
+        self.assertFalse(case['repeat']['exceeds_repeat_limit'])
+
     def test_same_cpu_can_have_repeat_drift_without_being_dropped(self):
         def change(records):
             for record in records:
