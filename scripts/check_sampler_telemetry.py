@@ -17,7 +17,7 @@ def probe(root):
                       for name in ('engine', 'layout', 'process', 'pattern', 'workload')).replace('mod engine;', 'mod sampling;')
     modules += f'#[path="{root}/scripts/diagnostics/stream_views.rs"] mod stream_views;\n'
     original = sampling.block((root/'src/tests/mod.rs').read_text(), 'fn shard_index_pattern').replace('fn shard_index_pattern', 'fn original_pattern', 1)
-    text = (root/'scripts/diagnostics/telemetry_allocations.rs').read_text()+'\n'+modules+'\n'+original
+    text = (root/'scripts/diagnostics/telemetry_allocations.rs').read_text()+'\n'+modules+'\n'+original+'\n'+(root/'scripts/diagnostics/stream_view_allocations.rs').read_text()
     with target.open('x') as file: file.write(text)
     try:
         yield

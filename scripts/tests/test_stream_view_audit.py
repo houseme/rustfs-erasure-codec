@@ -99,6 +99,10 @@ class StreamViewTests(unittest.TestCase):
             if name not in ('root.rs','stream.rs'):self.assertEqual(before[name],traced[name])
         self.assertIn('super::stream_views::cursors(&cursors, 8)',traced['stream.rs'])
         self.assertIn('drop(writers); drop(readers);',traced['stream.rs'])
+        import diagnose_cpu_placement
+        placement=diagnose_cpu_placement.render(root,allocation_check=True)
+        self.assertNotIn('stream_views::',placement['root.rs'])
+        self.assertNotIn('stream_views.rs',placement)
 
     def inventory_fixture(self):
         helper=fixtures.EvidenceTests(methodName='runTest');helper.setUp();self.addCleanup(helper.doCleanups)
