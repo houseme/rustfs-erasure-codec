@@ -12,6 +12,7 @@ import os
 import pathlib
 import subprocess
 
+from diagnostic_overlay import overlay as generated_overlay
 import release_evidence as evidence
 import release_sampling as sampling
 
@@ -45,21 +46,8 @@ def render(root, traced):
 
 @contextmanager
 def overlay(repository, traced):
-    entry, directory = repository/'tests/rse_release_sampling.rs', repository/'tests/rse_release_sampling'
-    if entry.exists() or directory.exists(): raise ValueError('refuse to overwrite a sampling overlay')
-    files = render(repository, traced)
-    directory.mkdir()
-    try:
-        for name, value in files.items():
-            with (entry if name == 'root.rs' else directory/name).open('x') as target:
-                target.write(value)
+    with generated_overlay(repository, render(repository, traced)) as files:
         yield files
-    finally:
-        # Never delete unrelated or changed generated inputs.
-        if {p.name for p in directory.iterdir()} != set(files)-{'root.rs'} or any((entry if n == 'root.rs' else directory/n).read_text() != value for n, value in files.items()):
-            raise ValueError('unexpected generated input; preserve it for inspection')
-        for path in directory.iterdir(): path.unlink()
-        directory.rmdir(); entry.unlink()
 
 
 def check(repository):
