@@ -611,6 +611,14 @@ def selected_row(records, profile, metric, revision, expected, counts, normalize
     return selected, spread
 
 
+def checkout_baseline(source, destination, revision):
+    """Fetch the exact baseline tree even when source is a shallow CI checkout."""
+    import subprocess
+    subprocess.run(['git','init','--quiet',str(destination)],check=True)
+    subprocess.run(['git','fetch','--quiet','--no-tags','--depth=1',str(source),revision],cwd=destination,check=True)
+    subprocess.run(['git','checkout','--quiet','--detach',revision],cwd=destination,check=True)
+
+
 def check(root, workers=False):
     import subprocess
     from diagnostic_overlay import overlay
@@ -656,8 +664,7 @@ if __name__ == "__main__":
         if args.baseline_ref != BASELINE_COMMIT: parser.error('baseline-ref must be the published 9.0.0 commit')
         with tempfile.TemporaryDirectory(prefix='rse-input-replay-') as temporary:
             baseline=pathlib.Path(temporary)/'baseline'
-            subprocess.run(['git','clone','--shared','--no-checkout','--quiet',str(root),str(baseline)],check=True)
-            subprocess.run(['git','checkout','--quiet','--detach',BASELINE_COMMIT],cwd=baseline,check=True)
+            checkout_baseline(root,baseline,BASELINE_COMMIT)
             previous=check(baseline,args.check_workers)
         if current != previous: raise ValueError('published and candidate input replay witnesses differ')
         print('Published 9.0.0/candidate input replay matches for all eight hotspot scenarios; correctness only')
