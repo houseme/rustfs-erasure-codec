@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Add bounded native Linux page-residency snapshots to stream diagnostics at real
+  I/O, API-return and writer-release boundaries. Reject incomplete/error coverage;
+  preserve production algorithms and distinguish former virtual ranges from live
+  allocations or physical page ownership.
+
 - Add offline, address-free stream allocator and software-stack audits. Conserve
   actual events/periods, intern repeated frames, bind syscall intervals to the real
   deferred sampler output, and retain unknown caller/residency scope explicitly.

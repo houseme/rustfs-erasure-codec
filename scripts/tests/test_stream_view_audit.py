@@ -60,7 +60,28 @@ def view_fixture(case,iterations=2,observation=0,page_size=4096):
             window(call,'drop',amount=m*size)
         clock+=10;counter+=2
         windows.append({'call':call,'phase':'call','index':None,'bytes':0,'start_ns':start,'end_ns':clock,'before':[before]*4,'after':[counter]*4})
-    return {'schema':'stream-buffer-views-v2','observation':observation,'iterations':iterations,'calls':iterations,'completed':iterations,'page_size':page_size,'overflow':0,'release_approval':False,'events':events,'windows':windows}
+    residency=[]
+    def resident(call,boundary,role,index,size,offset=16):
+        pages=(offset+size+page_size-1)//page_size if size else 0
+        residency.append({'call':call,'boundary':boundary,'role':role,'index':index,'bytes':size,'offset_page':offset if size else None,
+                          'snapshot':{'status':'mapped' if size else 'empty','pages':pages,'resident_pages':pages,'errno':None}})
+    for call in range(iterations+1):
+        current=[e for e in events if e['call']==call]
+        if call and operation=='encode_stream':
+            for index in range(m):resident(call,'after_reserve','writer_before',index,size)
+        for e in current:
+            span=e['capacity'] if e['capacity'] is not None else e['len']
+            if e['role']=='source_read_view':
+                # Native queries precede each delegated read; source/scratch events follow it.
+                scratch=current[current.index(e)+1]
+                resident(call,'before_read','read_scratch_view',e['index'],scratch['len'])
+            resident(call,'view',e['role'],e['index'],span, e['offsets'][2] if e['offsets'] else 0)
+        if call and operation=='encode_stream':
+            for role in ('read_scratch_view','parity_write_view','writer_after'):
+                values={e['index']:e for e in current if e['role']==role}
+                for index,e in sorted(values.items()):
+                    resident(call,'after_writer_drop' if role=='writer_after' else 'after_api_return',role,index,e['capacity'] if e['capacity'] is not None else e['len'])
+    return {'schema':'stream-buffer-views-v3','observation':observation,'iterations':iterations,'calls':iterations,'completed':iterations,'page_size':page_size,'overflow':0,'release_approval':False,'events':events,'windows':windows,'residency':residency}
 
 
 class StreamViewTests(unittest.TestCase):
@@ -110,7 +131,7 @@ class StreamViewTests(unittest.TestCase):
         self.assertEqual(before,sampling.render(root))
         self.assertNotIn('stream_views.rs',before)
         self.assertIn('stream_views.rs',traced)
-        self.assertLess(traced['stream_views.rs'].index('fn read_bounded'),traced['stream_views.rs'].index('mod tests {'))
+        self.assertLess(traced['stream_views.rs'].index('fn read_bounded'),traced['stream_views.rs'].rindex('mod tests {'))
         engine=(sampling.TEMPLATES/'engine.rs').read_text()
         for declaration in ('fn read_bounded','fn process_faults'):
             self.assertIn(sampling.block(engine,declaration),traced['stream_views.rs'])
@@ -151,6 +172,23 @@ class StreamViewTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'Linux lifecycle counters'):
             audit.validate(original,case,2,4096,0,require_counters=True)
 
+    def test_native_residency_requires_complete_real_ranges_and_explicit_unknowns(self):
+        case='encode_stream:4:2:65536:65536';original=view_fixture(case)
+        for change in (lambda d:d['residency'].pop(),
+                       lambda d:d['residency'][0]['snapshot'].update(resident_pages=999999),
+                       lambda d:d['residency'][0].update(address=123),
+                       lambda d:d['residency'][0]['snapshot'].update(status='not_fully_mapped',resident_pages=None,errno=12),
+                       lambda d:d['residency'][0]['snapshot'].update(status='query_failed',resident_pages=None,errno=11)):
+            value=copy.deepcopy(original);change(value)
+            with self.assertRaises(ValueError):audit.validate(value,case,2,4096,0,require_counters=True)
+        former=next(v for v in original['residency'] if v['boundary']=='after_api_return')
+        former['snapshot'].update(status='not_fully_mapped',resident_pages=None,errno=12)
+        audit.validate(original,case,2,4096,0,require_counters=True)
+        for value in original['residency']:
+            if value['bytes']:value['snapshot'].update(status='unsupported',pages=None,resident_pages=None,errno=None)
+        audit.validate(original,case,2,4096,0)
+        with self.assertRaises(ValueError):audit.validate(original,case,2,4096,0,require_counters=True)
+
     def inventory_fixture(self):
         helper=fixtures.EvidenceTests(methodName='runTest');helper.setUp();self.addCleanup(helper.doCleanups)
         phases={};views={}
@@ -190,6 +228,10 @@ class StreamViewTests(unittest.TestCase):
         self.assertFalse(report['release_approval']);self.assertFalse(report['coverage']['internal_verify_scratch'])
         self.assertFalse(report['layout_mismatches'])
         event=next(e for e in views['B1'][0]['events'] if e['role']=='read_scratch_view');event['offsets']=[32,32,32]
+        for other in views['B1'][0]['events']:
+            if other['call']==event['call'] and other['role']==event['role'] and other['index']==event['index']:other['offsets']=[32,32,32]
+        for value in views['B1'][0]['residency']:
+            if value['call']==event['call'] and value['role']==event['role'] and value['index']==event['index']:value['offset_page']=32
         report=inventory.analyze_stream_views(phases,views,helper.sources,list(range(8)),4096,2)
         self.assertTrue(report['layout_mismatches'])
         with self.assertRaises(ValueError):inventory.analyze_stream_views(phases,dict(views,A2=[]),helper.sources,list(range(8)),4096,2)
