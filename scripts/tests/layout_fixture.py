@@ -20,11 +20,17 @@ def records():
     return result
 
 
+def kernel_policy_fixture():
+    return {'kernel_release':'fixture-kernel','process_thp_disable':0,
+            'thp':{'enabled':'madvise','defrag':'madvise','shmem_enabled':None,
+                   'sizes_kib':{'16':{'anonymous':'never','shmem':None},'2048':{'anonymous':'inherit','shmem':None}}}}
+
+
 def controlled_context():
     return {'compiler': 'rustc controlled', 'cpu_model': 'controlled CPU',
             'settings': dict(diagnostic.evidence.SAMPLING_ENV),
             'runtime': {'page_size': 4096, 'libc': {'name': 'glibc', 'version': 'test'},
-                        'allocator_environment': {}},
+                        'allocator_environment': {},'kernel_memory_policy':kernel_policy_fixture()},
             'isolation': {'scope': 'exclusive-vm-cpu-partition', 'cpu_affinity': [2,3],
                           'reserved_cpu_count': 2, 'physical_host_exclusivity_proven': False}}
 
@@ -53,7 +59,7 @@ def write_phase(output, source, rows=None, *, tool=None, context=None, iteration
     context = copy.deepcopy(controlled_context() if context is None else context)
     tool = CANDIDATE if tool is None else tool
     rows = paired_records(iterations, context, provenance) if rows is None else rows
-    metadata = {'schema_version': 'verify-layout-diagnostic-v2', 'source': source,
+    metadata = {'schema_version': diagnostic.PHASE_SCHEMA, 'source': source,
                 'tool': tool, 'context': context, 'iterations': iterations,
                 'measuring_cpu': min(context['isolation']['cpu_affinity']), 'release_approval': False, 'candidate_attribution': None,
                 **diagnostic.tool_contract()}
@@ -66,7 +72,7 @@ def write_phase(output, source, rows=None, *, tool=None, context=None, iteration
 def write_campaign(output, *, sources=None, tool=None, context=None, iterations=1_000_000, provenance=None):
     sources = {'baseline': BASELINE, 'candidate': CANDIDATE} if sources is None else sources
     tool = CANDIDATE if tool is None else tool
-    document = {'schema_version': 'verify-layout-paired-v1', 'phase_order': list(diagnostic.evidence.PHASES),
+    document = {'schema_version': diagnostic.PAIRED_SCHEMA, 'phase_order': list(diagnostic.evidence.PHASES),
                 'sources': sources, 'tool': tool,
                 'contract': diagnostic.tool_contract(), 'release_approval': False, 'files': {}}
     for phase in diagnostic.evidence.PHASES:

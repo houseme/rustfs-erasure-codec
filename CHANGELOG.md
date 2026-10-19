@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Require kernel THP/mTHP and full process THP-disable policy in release evidence
+  schema 4 and new baseline qualifications. Read policy outside API windows and
+  refuse missing, malformed or changed snapshots; keep old qualifications under
+  their original contracts, sampler protocol 15 and all release gates unchanged.
+
 - Observe stream read, parity, verification and recovery byte owners in reversible
   source copies of both actual codecs, including per-block legacy verify scratch,
   ownership transfers, overwritten owners and final former ranges. Replay every

@@ -13,7 +13,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 import release_evidence as evidence
 import release_sampling as sampling
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
-from layout_fixture import write_campaign
+from layout_fixture import write_campaign, kernel_policy_fixture
 
 
 class EvidenceTests(unittest.TestCase):
@@ -27,7 +27,7 @@ class EvidenceTests(unittest.TestCase):
             "candidate": {"commit": "b" * 40, "tree": "c" * 40, "lock_sha256": "b" * 64},
         }
         context = {"compiler": "rustc fixture", "cpu_model": "fixture CPU", "settings": evidence.SAMPLING_ENV,
-                   "runtime": {"libc": {"name": "fixture", "version": "1"}, "allocator_environment": {}, "page_size":4096},
+                   "runtime": {"libc": {"name": "fixture", "version": "1"}, "allocator_environment": {}, "page_size":4096, "kernel_memory_policy": kernel_policy_fixture()},
                    "isolation": {"scope": "exclusive-vm-cpu-partition", "reserved_cpu_count": 8, "cpu_affinity": list(range(8)), "physical_host_exclusivity_proven": False}}
         self.doc = {"schema_version": evidence.SCHEMA_VERSION, "baseline_release": "9.0.0", "phase_order": list(evidence.PHASES),
                     "sources": self.sources, "harness_sha256": "d" * 64,
@@ -210,7 +210,9 @@ class EvidenceTests(unittest.TestCase):
         for field in ('cpu_model', 'runtime', 'isolation'):
             context = copy.deepcopy(self.context)
             if field == 'cpu_model': context[field] = 'different controlled CPU'
-            elif field == 'runtime': context[field]['page_size'] = 16384
+            elif field == 'runtime':
+                context[field]['page_size'] = 16384
+                context[field]['kernel_memory_policy']['thp']['sizes_kib'].pop('16')
             else: context[field]['cpu_affinity'] = [1,2]; context[field]['reserved_cpu_count'] = 2
             self.write_layout(context=context)
             with self.assertRaisesRegex(ValueError, 'source or resource context'): self.verify()
@@ -273,8 +275,34 @@ class EvidenceTests(unittest.TestCase):
         self.doc['schema_version'] = 2
         self.doc.pop('layout_supplement')
         with mock.patch.object(evidence.subprocess, 'run') as gate:
-            with self.assertRaisesRegex(ValueError, 'sampled schema 3'): self.verify()
+            with self.assertRaisesRegex(ValueError, 'sampled schema 4'): self.verify()
             gate.assert_not_called()
+
+    def test_schema_three_cannot_infer_missing_kernel_policy_or_materialize(self):
+        self.doc['schema_version']=3
+        for context in self.doc['contexts'].values():context['runtime'].pop('kernel_memory_policy')
+        with mock.patch.object(evidence.subprocess,'run') as gate:
+            with self.assertRaisesRegex(ValueError,'sampled schema 4'):self.verify()
+            with self.assertRaisesRegex(ValueError,'sampled schema 4'):evidence.materialize(self.manifest,self.root,self.root/'inputs.env')
+            gate.assert_not_called()
+        self.assertFalse((self.root/'inputs.env').exists())
+        self.assertFalse((self.root/'target/release-preflight/inputs').exists())
+
+    def test_missing_invalid_and_cross_phase_kernel_policy_are_refused(self):
+        original=copy.deepcopy(self.doc)
+        for change in (lambda r:r.pop('kernel_memory_policy'),lambda r:r.update(kernel_memory_policy=None),lambda r:r['kernel_memory_policy'].update(process_thp_disable=False),lambda r:r['kernel_memory_policy']['thp'].update(enabled='unknown')):
+            self.doc=copy.deepcopy(original)
+            for context in self.doc['contexts'].values():change(context['runtime'])
+            with self.assertRaisesRegex(ValueError,'kernel memory|THP'):self.verify()
+        for phase in (*evidence.PHASES[1:],'after'):
+            for path in ('kernel','global','defrag','size','process'):
+                self.doc=copy.deepcopy(original);policy=self.doc['contexts'][phase]['runtime']['kernel_memory_policy']
+                if path=='kernel':policy['kernel_release']='changed-kernel'
+                elif path=='global':policy['thp']['enabled']='never'
+                elif path=='defrag':policy['thp']['defrag']='never'
+                elif path=='size':policy['thp']['sizes_kib']['16']['anonymous']='always'
+                else:policy['process_thp_disable']=3
+                with self.assertRaisesRegex(ValueError,'environment changed'):self.verify()
 
     def test_layout_count_is_predeclared_from_both_calibrated_lengths(self):
         counts = {evidence.LAYOUT_CASES[0]:3, evidence.LAYOUT_CASES[1]:7}
@@ -370,7 +398,7 @@ class EvidenceTests(unittest.TestCase):
 
     def test_allocator_runtime_records_controls_and_excludes_unrelated_environment(self):
         env = {'MALLOC_TRIM_THRESHOLD_':'100', 'GLIBC_TUNABLES':'glibc.malloc.top_pad=100', 'LD_PRELOAD':'fixture.so', 'LD_LIBRARY_PATH':'fixture-libs', 'UNRELATED':'private'}
-        with mock.patch.object(evidence.platform, 'libc_ver', return_value=('glibc','2.39')):
+        with mock.patch.object(evidence.sampling,'base_page_size',return_value=4096), mock.patch.object(evidence.platform, 'libc_ver', return_value=('glibc','2.39')), mock.patch.object(evidence.memory_policy,'capture',return_value=self.doc['contexts']['A1']['runtime']['kernel_memory_policy']):
             runtime = evidence.runtime_context(env)
         self.assertEqual(runtime['libc'], {'name':'glibc','version':'2.39'})
         self.assertEqual(set(runtime['allocator_environment']), {'MALLOC_TRIM_THRESHOLD_','GLIBC_TUNABLES','LD_PRELOAD','LD_LIBRARY_PATH'})
@@ -442,9 +470,9 @@ class EvidenceTests(unittest.TestCase):
         for context in self.doc['contexts'].values():
             context['settings'] = evidence.BASE_ENV
         with mock.patch.object(evidence.subprocess, 'run') as gate:
-            with self.assertRaisesRegex(ValueError, 'sampled schema 3'):
+            with self.assertRaisesRegex(ValueError, 'sampled schema 4'):
                 self.verify()
-            with self.assertRaisesRegex(ValueError, 'sampled schema 3'):
+            with self.assertRaisesRegex(ValueError, 'sampled schema 4'):
                 evidence.materialize(self.manifest, self.root, self.root/'inputs.env')
             gate.assert_not_called()
         self.assertFalse((self.root/'inputs.env').exists())

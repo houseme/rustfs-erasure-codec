@@ -1,8 +1,8 @@
 # 9.1.0 publication blockers and completion criteria
 
-Audit date: 2026-10-20 (Asia/Shanghai). Main includes PR #31/#32 at `b4b5101`;
+Audit date: 2026-10-20 (Asia/Shanghai). Main includes PR #35 at `ad4564e`;
 its actual main CI passed. Protocol 15 declares uniform service windows, and the
-full published-9.0.0 qualification is in progress. No complete passing baseline,
+full published-9.0.0 qualification finished and failed 3/126 repeat checks. No complete passing baseline,
 final candidate/layout campaign or strict positive release preflight is recorded.
 This is a readiness assessment, not release approval. Historical evidence retains
 its original source and protocol bindings.
@@ -24,7 +24,8 @@ The [caller contract](release-caller-fixtures.md) tracks source/scratch geometry
 and 618 comparisons per context, at one iteration only. Dynamic destinations,
 internal scratch and smoke/hotspot source positions remain outside this geometry
 scope. Conditions 1/2/5 therefore remain partial. PR #23 binds complete paired
-1/4 KiB layout evidence into schema-3 formal capture/verification/materialization;
+1/4 KiB layout evidence into formal capture/verification/materialization;
+schema 4 additionally requires kernel THP/mTHP and process-policy provenance;
 no real passing paired supplement exists yet. Condition 3 remains partial, and
 condition 6 still requires accepted full performance evidence. Production code,
 algorithms, matrices, APIs, dependencies and original benchmarks are unchanged by
@@ -44,13 +45,20 @@ then pins only the measuring TID and validates masks, constructor budget and poo
 width. Previous exact fixed-CPU controls still drifted, so this change does not
 establish the remaining root cause or replace accepted full performance evidence.
 
+Kernel memory policy is a confirmed comparability gap: equal base page sizes do
+not imply equal THP/mTHP fault granularity. The new evidence envelope binds these
+read-only policy snapshots and rejects absent, unreadable or changed state. It
+does not change the active frozen qualification, infer historical policy or prove
+that THP caused the current VM's service-time variability. Production hot paths
+remain unchanged pending comparable service-time evidence.
+
 ## Current release gates
 
 | Layer | Verified state | Required next result |
 | --- | --- | --- |
 | Functional compatibility | The normal-format 200-case published-9.0.0 parity/roundtrip probe and core tests pass. PR #19 changes no production algorithm. | Preserve the declared compatibility boundary: the normal-format probe disables `fast_one_parity` and does not promise recovery of historically inconsistent fast/custom/mixed-entry codewords. |
 | Workload comparability | All 126 cases have explicit preparation/input contracts in protocol 15; geometry covers only the 103 retained caller cases. Dynamic/internal buffers and real per-layout acceptance remain partial in backlog #2897. | Complete the agreed dynamic/lifetime and per-layout acceptance scope; caller matching alone is insufficient. |
-| Baseline stability | Full protocol-15 qualification is in progress, with no complete acceptance yet. Historical protocol-13 A1 failed nine distributions (maximum 59.103368%); protocol-10 controls also failed. | Qualify the entire baseline before candidate attribution. Preserve every failed case and allocator context. |
+| Baseline stability | Complete protocol-15 A1/A2 passed every distribution/duration/raw contract but failed three repeat checks (maximum 6.7256%); resources restored. [Service review](baseline-service-review-2026-10-20.md) records zero measured faults and negligible runnable wait in the failures. Historical controls remain rejected. | Qualify the entire baseline before candidate attribution. Preserve every failed case and allocator context. |
 | Quantitative evidence | No accepted complete campaign for the final source tree and shared harness exists. | Fresh baseline/candidate A1/B1/B2/A2, both calibrations and all 126 original cases, with every duration/distribution/drift/regression gate passing. |
 | Workflow input | `RSE_RELEASE_EVIDENCE_REF` was absent at the last live check. Rejected audit data is not accepted evidence. | Verify accepted `release-evidence/manifest.json` on a data commit, then supply its full immutable SHA through the variable or manual `evidence_ref`. |
 | Strict preflight | Ordinary CI skips tag/manual-only evidence and release-preflight jobs. The historical real-data negative run proves rejection only. | Run `release_preflight=true` against the final main and accepted evidence, and verify actual success before tagging. |

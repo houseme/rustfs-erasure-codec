@@ -222,7 +222,9 @@ class SamplingContractTests(unittest.TestCase):
         with self.assertRaises(ValueError):self.verify()
 
     def test_consistent_runtime_page_change_cannot_hide_mismatched_fixture_pages(self):
-        for context in self.doc['contexts'].values():context['runtime']['page_size']=16384
+        for context in self.doc['contexts'].values():
+            context['runtime']['page_size']=16384
+            context['runtime']['kernel_memory_policy']['thp']['sizes_kib'].pop('16')
         with self.assertRaisesRegex(ValueError,'page size differs'):self.verify()
 
     def test_interrupted_sample_journal_preserves_completed_records(self):

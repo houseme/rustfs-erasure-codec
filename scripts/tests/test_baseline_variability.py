@@ -59,6 +59,21 @@ class BaselineVariabilityTests(unittest.TestCase):
         self.assertFalse(report['release_approval'])
         self.assertTrue(all(len(case['phases']['A2']['trace']) == 12 for case in report['cases']))
 
+    def test_new_qualification_validates_kernel_context_and_stays_diagnostic(self):
+        self.qualification_provenance();self.provenance['schema_version']=analysis.evidence.QUALIFICATION_SCHEMA
+        self.save('provenance.json',self.provenance);report=analysis.analyze(self.root)
+        self.assertTrue(report['kernel_memory_policy_recorded']);self.assertEqual(report['case_count'],126)
+        self.assertFalse(report['release_approval']);self.assertIsNone(report['candidate_attribution'])
+
+    def test_v2_requires_kernel_policy_but_v1_history_remains_descriptive(self):
+        self.qualification_provenance();self.provenance['context']['runtime'].pop('kernel_memory_policy')
+        self.save('provenance.json',self.provenance)
+        old=analysis.analyze(self.root)
+        self.assertFalse(old['kernel_memory_policy_recorded']);self.assertFalse(old['release_approval'])
+        self.provenance['schema_version']=analysis.evidence.QUALIFICATION_SCHEMA
+        self.save('provenance.json',self.provenance)
+        with self.assertRaisesRegex(ValueError,'kernel memory'):analysis.analyze(self.root)
+
     def test_qualification_missing_contract_or_approval_claim_is_rejected(self):
         self.qualification_provenance()
         original = copy.deepcopy(self.provenance)

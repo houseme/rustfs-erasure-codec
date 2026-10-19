@@ -48,6 +48,7 @@ class BaselineQualificationTests(unittest.TestCase):
 
     def test_complete_catalog_uses_formal_contract_and_never_approves_release(self):
         result = self.qualify()
+        self.assertEqual(result["schema_version"],evidence.QUALIFICATION_SCHEMA)
         self.assertTrue(result["baseline_controls_passed"])
         self.assertFalse(result["release_approval"])
         self.assertIsNone(result["candidate_attribution"])
@@ -108,6 +109,7 @@ class BaselineQualificationTests(unittest.TestCase):
                         row["rows"][0]["ns_per_iter"] *= 1.05; row["timed_ns"] *= 1.05
         self.mutate = change
         result = self.qualify()
+        self.assertEqual(result["schema_version"],evidence.QUALIFICATION_SCHEMA)
         self.assertTrue(result["baseline_controls_passed"])
         self.assertEqual(max(item["drift"] for item in result["repeat_checks"]), .05)
 

@@ -52,9 +52,9 @@ def analyze(capture):
 
     provenance = load('provenance.json')
     schema = provenance.get('schema_version')
-    if schema not in ('baseline-basic-controls-v1', 'baseline-qualification-v1') or provenance['source']['commit'] != evidence.BASELINE_COMMIT:
+    if schema not in ('baseline-basic-controls-v1', 'baseline-qualification-v1', evidence.QUALIFICATION_SCHEMA) or provenance['source']['commit'] != evidence.BASELINE_COMMIT:
         raise ValueError('a complete published-9.0.0 baseline control is required')
-    if schema == 'baseline-qualification-v1':
+    if schema in ('baseline-qualification-v1', evidence.QUALIFICATION_SCHEMA):
         contract = provenance.get('sampling', {})
         if (set(contract) != set(sampling.PROTOCOL) | {'implementation_sha256', 'overlay_sha256'}
                 or not evidence.DIGEST.fullmatch(contract.get('overlay_sha256', ''))
@@ -67,6 +67,8 @@ def analyze(capture):
     if protocol != sampling.PROTOCOL or renderer != sampling.implementation_digest():
         raise ValueError('replay with the matching frozen protocol and renderer')
     context = provenance['context']
+    if schema == evidence.QUALIFICATION_SCHEMA:
+        evidence.validate_runtime(context.get('runtime'))
     cpus = context['isolation']['cpu_affinity']
     page_size = context['runtime']['page_size']
     phases = ('A1', 'A2') if (capture/'A2').exists() else ('A1',)
@@ -121,6 +123,7 @@ def analyze(capture):
         'release_approval': False, 'candidate_attribution': None,
         'baseline_commit': evidence.BASELINE_COMMIT, 'measured_tool': provenance['tool'],
         'protocol': protocol, 'renderer_sha256': renderer, 'capture_schema': schema,
+        'kernel_memory_policy_recorded': schema == evidence.QUALIFICATION_SCHEMA,
         'analyzer_sha256': hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest(),
         'input_sha256': members, 'phase_order': list(phases), 'case_count': len(cases),
         'phase_quality': summaries,
