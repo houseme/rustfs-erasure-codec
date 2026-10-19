@@ -1,11 +1,14 @@
 //! Bounded, diagnostic-only views at the real stream I/O boundary.
 //! No source patch, allocator replacement, pointer dereference or address export.
 use std::fmt::{self, Write as _};
+#[cfg(target_os = "linux")]
+use std::fs;
 use std::io::{self, Read, Write};
 use std::sync::{
     Mutex,
     atomic::{AtomicBool, Ordering},
 };
+use std::time::Instant;
 
 const MAX_EVENTS: usize = 4096;
 const MAX_SHARDS: usize = 48;
@@ -31,6 +34,92 @@ struct Event {
     offsets: Option<[usize; 3]>,
     bytes: usize,
     reused: Option<bool>,
+}
+
+// These diagnostic windows do not modify the ordinary sampler or release gates.
+// Whole-process faults include pool threads; scheduler counters cover only the
+// calling thread. Procfs reads and metadata can perturb timing/page residency.
+const PHASES: [&str; 4] = ["call", "reserve", "append", "drop"];
+#[derive(Clone, Copy, Default)]
+struct Window {
+    call: usize,
+    phase: usize,
+    index: Option<usize>,
+    bytes: usize,
+    start_ns: u128,
+    end_ns: u128,
+    before: Option<[u64; 4]>,
+    after: Option<[u64; 4]>,
+}
+#[derive(Clone, Copy)]
+struct Token {
+    window: Window,
+}
+fn counters() -> Option<[u64; 4]> {
+    #[cfg(target_os = "linux")]
+    {
+        // The two parsers below are extracted unchanged from the ordinary
+        // observer by the renderer, so this has the same bounded/no-heap rules.
+        let mut buffer = [0u8; 4096];
+        let (minor, major) =
+            process_faults(read_bounded("/proc/self/stat", &mut buffer).unwrap()).unwrap();
+        let mut buffer = [0u8; 256];
+        let mut fields = read_bounded("/proc/thread-self/schedstat", &mut buffer)
+            .unwrap()
+            .split_whitespace();
+        let run = fields.next().unwrap().parse().unwrap();
+        let wait = fields.next().unwrap().parse().unwrap();
+        Some([minor, major, run, wait])
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        None
+    }
+}
+fn start(phase: usize, index: Option<usize>, bytes: usize) -> Option<Token> {
+    if !enabled() {
+        return None;
+    }
+    let (call, epoch) = {
+        let state = STATE.lock().unwrap();
+        assert!(
+            state.owner == Some(std::thread::current().id()),
+            "writer window outside measuring thread"
+        );
+        (state.calls, state.epoch.unwrap())
+    };
+    let before = counters();
+    Some(Token {
+        window: Window {
+            call,
+            phase,
+            index,
+            bytes,
+            start_ns: epoch.elapsed().as_nanos(),
+            before,
+            ..Window::default()
+        },
+    })
+}
+fn end(token: Option<Token>) {
+    let Some(mut token) = token else {
+        return;
+    };
+    token.window.end_ns = STATE.lock().unwrap().epoch.unwrap().elapsed().as_nanos();
+    token.window.after = counters();
+    let mut state = STATE.lock().unwrap();
+    let used = state.windows_used;
+    if used == MAX_EVENTS {
+        state.overflow += 1;
+        return;
+    }
+    state.windows[used] = token.window;
+    state.windows_used += 1;
+}
+pub(super) fn drop_outputs(values: Vec<Writer>) {
+    let token = start(3, None, values.iter().map(|v| v.0.len()).sum());
+    drop(values);
+    end(token);
 }
 
 #[derive(Clone, Copy, Default)]
@@ -64,6 +153,11 @@ struct State {
     readers: Bounds,
     writers: Bounds,
     writer_capacity: [usize; MAX_SHARDS],
+    epoch: Option<Instant>,
+    owner: Option<std::thread::ThreadId>,
+    active_call: Option<Token>,
+    windows: [Window; MAX_EVENTS],
+    windows_used: usize,
 }
 impl State {
     const fn new() -> Self {
@@ -97,6 +191,20 @@ impl State {
                 stride: 0,
             },
             writer_capacity: [0; MAX_SHARDS],
+            epoch: None,
+            owner: None,
+            active_call: None,
+            windows: [Window {
+                call: 0,
+                phase: 0,
+                index: None,
+                bytes: 0,
+                start_ns: 0,
+                end_ns: 0,
+                before: None,
+                after: None,
+            }; MAX_EVENTS],
+            windows_used: 0,
         }
     }
     fn record(
@@ -164,6 +272,10 @@ pub(super) fn begin(source: &[Vec<u8>], iterations: usize, page_size: usize) {
     let mut state = STATE.lock().unwrap();
     state.observation += 1;
     state.used = 0;
+    state.windows_used = 0;
+    state.epoch = Some(Instant::now());
+    state.owner = Some(std::thread::current().id());
+    state.active_call = None;
     state.overflow = 0;
     state.calls = 0;
     state.completed = 0;
@@ -183,11 +295,20 @@ pub(super) fn begin(source: &[Vec<u8>], iterations: usize, page_size: usize) {
 }
 pub(super) fn call() {
     if enabled() {
-        STATE.lock().unwrap().calls += 1;
+        {
+            let mut state = STATE.lock().unwrap();
+            assert!(state.active_call.is_none(), "overlapping stream calls");
+            state.calls += 1;
+        }
+        let token = start(0, None, 0);
+        STATE.lock().unwrap().active_call = token;
     }
 }
 pub(super) fn end_call() {
     if enabled() {
+        let token = STATE.lock().unwrap().active_call.take();
+        assert!(token.is_some(), "unpaired stream call");
+        end(token);
         let mut state = STATE.lock().unwrap();
         state.completed += 1;
         state.readers = Bounds::default();
@@ -263,6 +384,17 @@ impl Read for Reader<'_> {
 #[repr(transparent)]
 pub(super) struct Writer(pub(super) Vec<u8>);
 impl Writer {
+    fn append_window(&self, bytes: usize) -> Option<Token> {
+        if !enabled() {
+            return None;
+        }
+        let index = STATE
+            .lock()
+            .unwrap()
+            .writers
+            .index(self as *const Self as usize);
+        start(2, Some(index), bytes)
+    }
     fn before(&self, buffer: &[u8]) {
         if !enabled() {
             return;
@@ -317,13 +449,17 @@ impl Writer {
 impl Write for Writer {
     fn write(&mut self, buffer: &[u8]) -> io::Result<usize> {
         self.before(buffer);
+        let token = self.append_window(buffer.len());
         let result = self.0.write(buffer);
+        end(token);
         self.after(result.as_ref().copied().unwrap_or(0));
         result
     }
     fn write_all(&mut self, buffer: &[u8]) -> io::Result<()> {
         self.before(buffer);
+        let token = self.append_window(buffer.len());
         let result = self.0.write_all(buffer);
+        end(token);
         self.after(if result.is_ok() { buffer.len() } else { 0 });
         result
     }
@@ -332,9 +468,12 @@ impl Write for Writer {
     }
 }
 pub(super) fn outputs(count: usize, size: usize) -> Vec<Writer> {
-    (0..count)
+    let token = start(1, None, count.checked_mul(size).unwrap());
+    let result = (0..count)
         .map(|_| Writer(Vec::with_capacity(size)))
-        .collect()
+        .collect();
+    end(token);
+    result
 }
 
 struct JsonState<'a>(&'a State);
@@ -343,7 +482,7 @@ impl fmt::Display for JsonState<'_> {
         let state = self.0;
         write!(
             f,
-            "{{\"schema\":\"stream-buffer-views-v1\",\"observation\":{},\"iterations\":{},\"calls\":{},\"completed\":{},\"page_size\":{},\"overflow\":{},\"release_approval\":false,\"events\":[",
+            "{{\"schema\":\"stream-buffer-views-v2\",\"observation\":{},\"iterations\":{},\"calls\":{},\"completed\":{},\"page_size\":{},\"overflow\":{},\"release_approval\":false,\"events\":[",
             state.observation - 1,
             state.iterations,
             state.calls,
@@ -377,6 +516,36 @@ impl fmt::Display for JsonState<'_> {
             match event.reused {
                 Some(value) => write!(f, "{value}")?,
                 None => f.write_str("null")?,
+            }
+            f.write_char('}')?;
+        }
+        f.write_str("],\"windows\":[")?;
+        for (n, window) in state.windows[..state.windows_used].iter().enumerate() {
+            if n > 0 {
+                f.write_char(',')?;
+            }
+            write!(
+                f,
+                "{{\"call\":{},\"phase\":\"{}\",\"index\":",
+                window.call, PHASES[window.phase]
+            )?;
+            match window.index {
+                Some(index) => write!(f, "{index}")?,
+                None => f.write_str("null")?,
+            }
+            write!(
+                f,
+                ",\"bytes\":{},\"start_ns\":{},\"end_ns\":{},\"before\":",
+                window.bytes, window.start_ns, window.end_ns
+            )?;
+            for (i, counters) in [window.before, window.after].iter().enumerate() {
+                if i > 0 {
+                    f.write_str(",\"after\":")?;
+                }
+                match counters {
+                    Some(values) => write!(f, "{values:?}")?,
+                    None => f.write_str("null")?,
+                }
             }
             f.write_char('}')?;
         }

@@ -10,6 +10,12 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Extend the existing stream inventory with bounded writer reserve/append/drop
+  fault and scheduler windows, preserving original allocation, copy and drop costs.
+  Reject incomplete, overlapping or mismatched windows and report the remaining
+  call interval honestly; reuse heap-free procfs parsers without changing formal
+  protocol 14, production codec paths or performance acceptance thresholds.
+
 - Consolidate full-catalog 9.0.0 baseline qualification into the release controller,
   sharing formal capture ownership, build isolation and failure retention. Require
   unchanged caller/input/placement contracts and existing quality/drift thresholds;
