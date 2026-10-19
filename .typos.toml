@@ -1,3 +1,7 @@
+[default]
+# Preserve exact abbreviated Git IDs emitted by benchmark metadata.
+extend-ignore-re = ['"git_revision"\s*:\s*"[0-9a-f]{7,40}"']
+
 [default.extend-words]
 seh = "seh"
 flate = "flate"
