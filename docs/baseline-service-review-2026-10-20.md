@@ -57,7 +57,7 @@ is rejected. Historical controls are not retrofitted with missing fields. See th
 
 ## Next meaningful work
 
-Finish the policy-envelope fix and retain the failed control. Before another full
+The policy-envelope fix is merged; retain the failed control. Before another full
 campaign, require a specific, observable change that addresses execution-rate,
 cache or remaining internal-layout variability. The current VM lacks usable
 hardware-cycle evidence, so a unique hardware/cache attribution is still absent.
@@ -66,3 +66,32 @@ change original allocation semantics or rewrite VerifyWorkspace/Leopard delivery
 from allocation counts alone. Generic reconstruction publication, late-failure and
 selective-recovery semantics remain unchanged. Final candidate/layout ABBA and a
 strict positive preflight are still required before a 9.1.0 tag.
+
+## Predeclared temporal-adjacency control
+
+Read-only guest topology exposes no sibling thread on CPUs 24 through 31 and
+places all eight in one NUMA node. This rejects two guest-topology hypotheses;
+it establishes neither physical host isolation nor a frequency/cache cause.
+
+Summing only the original recorded wall windows between each failed A1 worker
+and its A2 counterpart gives lower bounds of 4,866.51 s, 4,862.94 s and 4,875.82 s,
+respectively. Each of these workers contributed about 29 to 34 s of windows.
+These are lower bounds, excluding startup and unrecorded gaps, not absolute-clock
+measurements. Temporal separation is therefore a specific testable condition,
+not a proven explanation of the three failures.
+
+The next control pairs A1/A2 immediately for **every one of the 126 cases** using
+published 9.0.0 and the original calibrated counts. It changes case scheduling,
+not the worker, allocation lifetime, data input, backend, CPU budget, warmups or
+samples. Each observation still uses the original protocol-15 duration floors.
+It records the full kernel policy before/after each worker and requires identical
+legacy context and caller geometry. A pair start gap above 10 s, short sample or
+contract mismatch stops capture and preserves raw files; statistical failures are
+retained across the entire predeclared cohort without trimming or retries.
+
+This is `adjacent-baseline-diagnostic-v1`, always `release_approval=false` and
+`formal_qualification=false`. Even a stable complete result cannot certify the
+existing phase-major prerequisite or approve candidate timing. It can only inform
+an explicit future scheduling-contract evaluation. The failed original control
+and the existing 5% repeat/10% distribution gates remain unchanged. See the
+[private diagnostic commands](release-evidence.md#adjacent-same-version-diagnostic).

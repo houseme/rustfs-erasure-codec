@@ -10,6 +10,12 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Add a diagnostic-only complete-catalog adjacent 9.0.0 control using the frozen
+  protocol-15 iteration budgets and unchanged workers. Bind execution order,
+  bounded pair gaps, original raw journals and kernel policy; retain all case
+  failures and refuse changed input, geometry or context. Keep formal schedules,
+  release gates and runtime algorithms unchanged.
+
 - Require kernel THP/mTHP and full process THP-disable policy in release evidence
   schema 4 and new baseline qualifications. Read policy outside API windows and
   refuse missing, malformed or changed snapshots; keep old qualifications under
