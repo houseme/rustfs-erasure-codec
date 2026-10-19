@@ -10,6 +10,13 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Observe stream read, parity, verification and recovery byte owners in reversible
+  source copies of both actual codecs, including per-block legacy verify scratch,
+  ownership transfers, overwritten owners and final former ranges. Replay every
+  original stream case with strict lifecycle/journal/source bindings, retain raw
+  failures and verify heap-free callbacks. Keep production algorithms, generic
+  reconstruction semantics and all formal release gates unchanged.
+
 - Observe ordinary Classic verify scratch reservation, initialization, verification
   and owner release in reversible diagnostic source copies of both actual codecs.
   Reuse original workers, bounded native residency and heap-free fault parsers;
