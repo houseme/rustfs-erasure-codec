@@ -10,6 +10,12 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Check provenance and prepared placement in every calibration/warmup/sample row,
+  including nonmedian outliers, across baseline qualification, final capture, strict
+  preflight and structural inventories. Share the comparison and reject mismatched
+  raw backend/I/O metadata before later capture without changing protocol 15,
+  measured workers, preserved observations or performance thresholds.
+
 - Declare sampler protocol 15 with uniform 2 s wall / 100 ms measured calibration
   targets and 1 s / 40 ms sample floors, shared by native workers and offline
   validation. Apply the same floors to paired layouts; retain all cases, original

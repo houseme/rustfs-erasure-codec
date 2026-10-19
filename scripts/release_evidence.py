@@ -244,6 +244,35 @@ def compatible(profile, left, right):
                     raise ValueError(f"hotspot: incompatible {field}")
 
 
+def observation_contracts(profile, records, reference=None):
+    """Compare every validated raw observation, including warmups and outliers.
+
+    Metric/iteration values may differ; the existing provenance and hotspot-case
+    contract must not. Placement is worker-lived and must match each observation,
+    not only index zero. Inputs are read-only; the returned cache keeps one
+    reference per case and can span calibration workers and measurement phases.
+    This is an offline/controller check, never a new sampler or timing hook.
+    """
+    contracts = dict(reference) if reference is not None else {}
+    for record in records:
+        case = record['case']
+        row, placement = record['rows'][0], record['placement']
+        if case not in contracts:
+            if reference is not None:
+                raise ValueError(f'{profile}: observation case differs from calibration')
+            contracts[case] = (row, placement)
+        else:
+            expected_row, expected_placement = contracts[case]
+            label = f"{case} {record.get('kind', 'observation')}[{record.get('index', '?')}] batch={record.get('calibration_batch', 0)}"
+            try:
+                compatible(profile, {case: expected_row}, {case: row})
+            except ValueError as error:
+                raise ValueError(f'{label}: {error}') from error
+            if placement != expected_placement:
+                raise ValueError(f'{profile}/{label}: observation placement differs from calibration/worker')
+    return contracts
+
+
 def safe_file(root, name):
     path = pathlib.PurePosixPath(name)
     if path.is_absolute() or ".." in path.parts or len(path.parts) != 2 or path.parts[0] not in PHASES + ("calibration-baseline", "calibration-candidate") or path.name not in set(FILES.values()) | {p + "-samples.json" for p in FILES}:
@@ -441,11 +470,14 @@ def verify_sampling(document, root, repository, summarized):
     pilot_layouts = {role: {} for role in pilot_counts}
     pilot_workloads = {role: {} for role in pilot_counts}
     pilot_traces = {role: {} for role in pilot_counts}
+    pilot_contracts = {role: {} for role in pilot_counts}
     for role in pilot_counts:
         for profile in FILES:
             name = f"calibration-{role}/{profile}-samples.json"
             records = evidence_member(root, document.get("calibration", {}).get(role, {}).get(profile), name)
             pilot_counts[role][profile] = calibration_counts(records, profile, document["sources"][role]["commit"], document["contexts"]["A1"]["runtime"]["page_size"])
+            pilot_contracts[role][profile] = observation_contracts(profile, [r for r in records if r['complete']],
+                pilot_contracts['baseline'][profile] if role == 'candidate' else None)
             pilot_layouts[role][profile] = sampling.fixture_catalog(records, calibration=True)
             for record in records:
                 sampling.validate_placement(record, document["contexts"]["A1"]["isolation"]["cpu_affinity"])
@@ -462,10 +494,11 @@ def verify_sampling(document, root, repository, summarized):
             revision = document["sources"]["baseline" if phase.startswith("A") else "candidate"]["commit"]
             entry = document["files"][phase][profile].get("samples")
             records = evidence_member(root, entry, f"{phase}/{profile}-samples.json")
+            role = "baseline" if phase.startswith("A") else "candidate"
             normalize = lambda p, row, rev: next(iter(indexed_rows(p, [row], rev, counts[p], complete=False)))
             selected, widths = sampling.selected_row(records, profile, METRICS[profile], revision, expected_cases(profile), counts[profile], normalize, document["contexts"][phase]["isolation"].get("cpu_affinity"), document["contexts"][phase]["runtime"]["page_size"])
+            observation_contracts(profile, records, pilot_contracts[role][profile])
             layouts[profile][phase] = sampling.fixture_catalog(records)
-            role = "baseline" if phase.startswith("A") else "candidate"
             workloads[phase] = sampling.workload_catalog(records)
             traces[phase] = sampling.workload_traces(records)
             if workloads[phase] != pilot_workloads[role][profile]:
@@ -523,6 +556,7 @@ def calibration_counts(records, profile, revision, expected_page_size=None):
         if key not in counts:
             raise ValueError("calibration rehearsal is incomplete")
 
+    observation_contracts(profile, records)
     return counts
 
 
@@ -584,7 +618,7 @@ def qualify_baseline(baseline, output, group):
         if environment_context(baseline, env, group) != context:
             raise ValueError("qualification context changed")
     save("provenance.json", report)
-    counts, fixtures, workloads, traces, medians, calibrated = {}, {}, {}, {}, {}, {}
+    counts, fixtures, workloads, traces, medians, calibrated, contracts = {}, {}, {}, {}, {}, {}, {}
     with ExitStack() as overlays:
         prepare_capture_source(overlays, baseline, env, output/"baseline-build.log")
         folder = output/"calibration"; folder.mkdir()
@@ -594,6 +628,7 @@ def qualify_baseline(baseline, output, group):
             for row in records: sampling.validate_placement(row, context["isolation"]["cpu_affinity"])
             final_rows = {row["case"]: row["rows"][0] for row in records}
             calibrated[profile] = indexed_rows(profile, list(final_rows.values()), source["commit"], counts[profile])
+            contracts[profile] = observation_contracts(profile, [r for r in records if r["complete"]])
             fixtures[profile] = sampling.fixture_catalog(records, calibration=True)
             workloads[profile] = sampling.workload_catalog(records, calibration=True)
             traces[profile] = sampling.workload_traces(records, calibration=True)
@@ -610,6 +645,7 @@ def qualify_baseline(baseline, output, group):
                 normalize = lambda p, row, rev: next(iter(indexed_rows(p, [row], rev, counts[p], complete=False)))
                 selected, widths = sampling.selected_row(records, profile, METRICS[profile], source["commit"],
                     expected_cases(profile), counts[profile], normalize, context["isolation"]["cpu_affinity"], context["runtime"]["page_size"])
+                observation_contracts(profile, records, contracts[profile])
                 if (sampling.fixture_catalog(records) != fixtures[profile]
                         or sampling.workload_catalog(records) != workloads[profile]
                         or sampling.workload_traces(records) != traces[profile]):
@@ -688,14 +724,16 @@ def capture(baseline, candidate, output, group):
     with ExitStack() as overlays:
         for role, root in (("baseline", baseline), ("candidate", candidate)):
             prepare_capture_source(overlays, root, env, output/(role+"-build.log"))
-        pilots={}
+        pilots={}; contracts={}
         for role,root in (("baseline",baseline),("candidate",candidate)):
             folder=output/("calibration-"+role);folder.mkdir()
-            metadata["calibration"][role]={};pilots[role]={}
+            metadata["calibration"][role]={};pilots[role]={};contracts[role]={}
             for profile in FILES:
                 records,entry=capture_profile(root,folder,profile,"calibrate",env,output,group)
                 metadata["calibration"][role][profile]=entry
                 pilots[role][profile]=calibration_counts(records,profile,sources[role]["commit"])
+                contracts[role][profile]=observation_contracts(profile,[r for r in records if r["complete"]],
+                    contracts["baseline"][profile] if role=="candidate" else None)
         counts={p:{k:max(pilots[r][p][k] for r in pilots) for k in expected_cases(p)} for p in FILES}
         contract["common_iterations"]=counts
         count_files={}
@@ -713,6 +751,7 @@ def capture(baseline, candidate, output, group):
                 records,entry=capture_profile(root,folder,profile,"sample",env,output,group,count_files[profile])
                 normalize=lambda p,row,rev: next(iter(indexed_rows(p,[row],rev,counts[p],complete=False)))
                 selected,spreads=sampling.selected_row(records,profile,METRICS[profile],sources[role]["commit"],expected_cases(profile),counts[profile],normalize)
+                observation_contracts(profile,records,contracts[role][profile])
                 phase_spreads.extend(dict(item, profile=profile) for item in spreads)
                 result=folder/filename;result.write_text(json.dumps(selected,indent=2)+"\n")
                 metadata["files"][phase][profile]={"path":f"{phase}/{filename}","sha256":digest(result.read_bytes()),"samples":entry}

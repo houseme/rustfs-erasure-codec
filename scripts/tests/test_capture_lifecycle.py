@@ -20,7 +20,7 @@ class CaptureLifecycleTests(unittest.TestCase):
         self.baseline, self.candidate = (self.root/name for name in ('baseline', 'candidate'))
         for root in (self.baseline, self.candidate): (root/'tests').mkdir(parents=True)
         self.output = self.root/'capture'
-        self.payload = {'case': 'synthetic-lifecycle-only', 'index': 0}
+        self.payload = {'case': 'synthetic-lifecycle-only', 'index': 0, 'complete': True}
         self.stack = ExitStack(); self.addCleanup(self.stack.close)
         def patch(target, **kwargs): return self.stack.enter_context(mock.patch(target, **kwargs))
         self.sources = {'baseline': {'commit':evidence.BASELINE_COMMIT, 'tree':'a'*40, 'lock_sha256':'a'*64},
@@ -34,6 +34,8 @@ class CaptureLifecycleTests(unittest.TestCase):
         self.build = patch('release_evidence.subprocess.run')
         self.run = patch('release_evidence.sampling.run_profile', side_effect=self.emit)
         patch('release_evidence.calibration_counts', side_effect=lambda records, profile, revision: {case: 1 for case in evidence.expected_cases(profile)})
+        self.real_observation_contracts = evidence.observation_contracts
+        self.contracts = patch('release_evidence.observation_contracts', return_value={})
         self.select = patch('release_evidence.sampling.selected_row', return_value=([self.payload], []))
         patch('release_evidence.time.sleep')
         self.profiles = patch('release_evidence._verify_profiles', return_value=({}, {}, {'status': 'profiles_verified'}))
@@ -54,6 +56,35 @@ class CaptureLifecycleTests(unittest.TestCase):
     def assert_removed(self, root):
         self.assertFalse((root/'tests/rse_release_sampling.rs').exists())
         self.assertFalse((root/'tests/rse_release_sampling').exists())
+
+    def test_raw_contract_mismatch_stops_final_capture_before_later_phases(self):
+        import test_release_evidence as fixtures
+        fixture=fixtures.EvidenceTests(methodName='runTest');fixture.sources=self.sources
+        self.contracts.side_effect=self.real_observation_contracts
+        for stop in ('calibration-candidate','A1','B1'):
+            self.output=self.root/('provenance-'+stop);self.run.reset_mock()
+            def emit(root,env,profile,mode,path,count_file=None,**kwargs):
+                role='baseline' if root==self.baseline else 'candidate'
+                kinds=['calibration_warmup']*3+['calibration']*9 if mode=='calibrate' else ['warmup']*3+['sample']*9
+                rows=[fixture.record(row,profile,role,kind,index) for row in fixture.fixture_rows('A1' if role=='baseline' else 'B1',profile) for index,kind in enumerate(kinds)]
+                if mode=='calibrate':
+                    for row in rows:row.update(complete=row['index']==11)
+                if path.parent.name==stop and profile=='smoke':
+                    # The full candidate calibration is internally consistent
+                    # but incompatible with baseline; phase failures affect only
+                    # one warmup, leaving the selected median unchanged.
+                    changed=rows if mode=='calibrate' else rows[1:2]
+                    for row in changed:row['rows'][0]['backend_id']='changed'
+                path.write_text(''.join('RSE_SAMPLE '+json.dumps(row)+'\n' for row in rows))
+                return rows
+            self.run.side_effect=emit
+            with self.assertRaisesRegex(ValueError,'incompatible backend_id'):self.capture()
+            self.assertEqual(self.run.call_count,{'calibration-candidate':5,'A1':9,'B1':13}[stop])
+            self.assertTrue((self.output/stop/'smoke-samples.json').exists())
+            self.assertFalse((self.output/'report.json').exists())
+            self.assertFalse((self.output/'manifest.json').exists())
+            for root in (self.baseline,self.candidate):self.assert_removed(root)
+            self.layouts.assert_not_called()
 
     def test_success_removes_both_byte_identical_overlays(self):
         self.capture()
