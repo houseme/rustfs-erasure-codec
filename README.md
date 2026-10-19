@@ -116,3 +116,10 @@ Nine distributions fail, maximum 59.103368%; A2 and candidate were stopped.
 A separate single-case diagnostic exposes minor-fault state changes but allocates
 and cannot replace formal observations. All 6,312 numeric journals were matched;
 all resources restored. Old evidence and failures are unchanged. No release claim.
+
+## Protocol-14 nonallocating fault-observer native check
+
+[`diagnostics/protocol14-fault-observer-native-check`](diagnostics/protocol14-fault-observer-native-check/README.md)
+retains the subsequent native heap/serialization and old-codec compatibility check,
+plus one original stream worker with process fault counters. It is not complete
+baseline qualification or candidate/release acceptance. Original failures remain.
