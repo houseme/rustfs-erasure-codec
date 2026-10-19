@@ -17,6 +17,8 @@ import release_sampling as sampling
 
 OFFSETS = (0, 16, 32, 48)
 LENGTHS = (1024, 4096)
+PAIRED_SCHEMA = 'verify-layout-paired-v2'
+PHASE_SCHEMA = 'verify-layout-diagnostic-v3'
 PREFIX = "RSE_LAYOUT_SAMPLE "
 TEMPLATE = pathlib.Path(__file__).resolve().parent/'diagnostics/verify_layout.rs'
 TOOL = pathlib.Path(__file__).resolve().parents[1]
@@ -173,7 +175,7 @@ def capture(repository, output, group, iterations):
     source, tool = evidence.source_info(repository), evidence.source_info(TOOL)
     measuring_cpu = min(context['isolation']['cpu_affinity'])
     page_size = context['runtime']['page_size']
-    metadata = {'schema_version': 'verify-layout-diagnostic-v2', 'source': source,
+    metadata = {'schema_version': PHASE_SCHEMA, 'source': source,
                 'tool': tool, 'context': context, 'iterations': iterations,
                 'measuring_cpu': measuring_cpu, **tool_contract(),
                 'purpose': 'supplemental controlled slices; never replace original Vec release cases',
@@ -256,14 +258,8 @@ def validate_context(context, measuring_cpu):
             or any(not isinstance(context.get(k), str) or not context[k] for k in ('compiler', 'cpu_model'))):
         raise ValueError('complete paired environment provenance is required')
     runtime, isolation = context.get('runtime'), context.get('isolation')
-    if not isinstance(runtime, dict) or set(runtime) != {'page_size', 'libc', 'allocator_environment'} or not sampling.valid_page_size(runtime['page_size']):
-        raise ValueError('complete paired runtime provenance is required')
-    libc, allocator = runtime['libc'], runtime['allocator_environment']
-    if (not isinstance(libc, dict) or set(libc) != {'name', 'version'}
-            or any(not isinstance(v, str) or not v for v in libc.values())
-            or not isinstance(allocator, dict)
-            or any(not evidence.allocator_override_key(k) or not isinstance(v, str) for k, v in allocator.items())):
-        raise ValueError('complete paired runtime provenance is required')
+    try:evidence.validate_runtime(runtime)
+    except ValueError as error:raise ValueError('complete paired runtime provenance is required: '+str(error)) from error
     if (not isinstance(isolation, dict) or isolation.get('scope') != 'exclusive-vm-cpu-partition'
             or isolation.get('physical_host_exclusivity_proven') is not False):
         raise ValueError('complete paired exclusive CPU provenance is required')
@@ -286,7 +282,7 @@ def matches_current_source(recorded, current):
 def verify_paired(directory, candidate, compiler=True):
     """Recompute acceptance from bounded, source-bound raw rows, never summaries."""
     document = evidence.json_data(directory/'manifest.json')
-    if not isinstance(document, dict) or document.get('schema_version') != 'verify-layout-paired-v1' or document.get('phase_order') != list(evidence.PHASES) or document.get('contract') != tool_contract() or document.get('release_approval') is not False:
+    if not isinstance(document, dict) or document.get('schema_version') != PAIRED_SCHEMA or document.get('phase_order') != list(evidence.PHASES) or document.get('contract') != tool_contract() or document.get('release_approval') is not False:
         raise ValueError('a complete current paired-layout manifest is required')
     sources = document.get('sources')
     if not isinstance(sources, dict) or set(sources) != {'baseline', 'candidate'}:
@@ -319,7 +315,7 @@ def verify_paired(directory, candidate, compiler=True):
             members[name] = path
         metadata = evidence.json_data(members['provenance.json'])
         role = 'baseline' if phase.startswith('A') else 'candidate'
-        if not isinstance(metadata, dict) or metadata.get('schema_version') != 'verify-layout-diagnostic-v2' or metadata.get('source') != sources[role] or metadata.get('tool') != document['tool'] or any(metadata.get(k) != v for k, v in tool_contract().items()) or metadata.get('release_approval') is not False or metadata.get('candidate_attribution') is not None:
+        if not isinstance(metadata, dict) or metadata.get('schema_version') != PHASE_SCHEMA or metadata.get('source') != sources[role] or metadata.get('tool') != document['tool'] or any(metadata.get(k) != v for k, v in tool_contract().items()) or metadata.get('release_approval') is not False or metadata.get('candidate_attribution') is not None:
             raise ValueError('paired phase source/tool/fixture contract differs')
         current = metadata.get('context')
         validate_context(current, metadata.get('measuring_cpu'))
@@ -340,7 +336,7 @@ def capture_paired(baseline, candidate, output, group, iterations):
     if sources['baseline']['commit'] != evidence.BASELINE_COMMIT or sources['baseline']['tree'] == sources['candidate']['tree']:
         raise ValueError('pair the published 9.0.0 with a different candidate')
     output.mkdir(mode=0o700, parents=True, exist_ok=False)
-    document = {'schema_version': 'verify-layout-paired-v1', 'phase_order': list(evidence.PHASES),
+    document = {'schema_version': PAIRED_SCHEMA, 'phase_order': list(evidence.PHASES),
                 'contract': tool_contract(), 'sources': sources, 'tool': evidence.source_info(TOOL),
                 'files': {}, 'release_approval': False}
     save(output, 'manifest.partial.json', document)

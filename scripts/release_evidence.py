@@ -24,12 +24,14 @@ import time
 import copy
 
 import release_sampling as sampling
+import release_memory_policy as memory_policy
 from diagnostic_overlay import overlay
 
 from check_benchmark_regression import PROVENANCE_FIELDS, index_records, provenance_value
 from check_reconstruction_hotspot_gate import CASE_FIELDS, index_results
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
+QUALIFICATION_SCHEMA = "baseline-qualification-v2"
 LAYOUT_DIRECTORY = "layout-pair"
 LAYOUT_CASES = tuple(f"verify_with_buffer:4:2:{size}" for size in (1024, 4096))
 BASELINE_RELEASE = "9.0.0"
@@ -167,13 +169,31 @@ def allocator_override_key(key):
     return key.startswith(("MALLOC_", "LD_")) or key == "GLIBC_TUNABLES"
 
 
+def validate_runtime(runtime):
+    if not isinstance(runtime, dict) or set(runtime) != {"libc", "allocator_environment", "page_size", "kernel_memory_policy"}:
+        raise ValueError("libc, allocator, base page and kernel memory policy provenance is required")
+    if not sampling.valid_page_size(runtime["page_size"]):
+        raise ValueError("invalid recorded OS base page size")
+    memory_policy.validate(runtime["kernel_memory_policy"],runtime["page_size"])
+    libc = runtime["libc"]
+    if not isinstance(libc, dict) or set(libc) != {"name", "version"} or any(not isinstance(v, str) or not v for v in libc.values()):
+        raise ValueError("invalid libc identity")
+    allocator = runtime["allocator_environment"]
+    if not isinstance(allocator, dict) or any(not allocator_override_key(k) or not isinstance(v, str) for k, v in allocator.items()):
+        raise ValueError("invalid allocator environment")
+
+
 def runtime_context(env):
     name, version = platform.libc_ver()
     if not name or not version:
         raise ValueError("libc identity must be available for release evidence")
-    return {"libc": {"name": name, "version": version},
+    result = {"libc": {"name": name, "version": version},
             "page_size": sampling.base_page_size(),
+            "kernel_memory_policy": memory_policy.capture(),
             "allocator_environment": {k: env[k] for k in sorted(env) if allocator_override_key(k)}}
+
+    validate_runtime(result)
+    return result
 
 
 def environment_context(root, env, group):
@@ -306,7 +326,7 @@ def validate_envelope(document):
         if not isinstance(document.get(field), dict):
             raise ValueError("invalid manifest container: " + field)
     if type(document.get("schema_version")) is not int or document["schema_version"] != SCHEMA_VERSION or document.get("phase_order") != list(PHASES):
-        raise ValueError("sampled schema 3 with complete ABBA and paired layouts is required; older envelopes cannot approve release")
+        raise ValueError("sampled schema 4 with kernel memory policy, complete ABBA and paired layouts is required; older envelopes cannot approve release")
 
 
 def layout_member(document, root):
@@ -395,16 +415,7 @@ def _verify_profiles(document, root, repository, compiler=True):
     if reference.get("settings") != expected_env or not reference.get("cpu_model") or not reference.get("compiler") or type(isolation.get("reserved_cpu_count")) is not int or isolation["reserved_cpu_count"] < 2 or isolation.get("physical_host_exclusivity_proven") is not False:
         raise ValueError("incomplete or unexpected controlled capture settings")
     runtime = reference.get("runtime")
-    if not isinstance(runtime, dict) or set(runtime) != {"libc", "allocator_environment", "page_size"}:
-        raise ValueError("libc, allocator and base page provenance is required")
-    if not sampling.valid_page_size(runtime["page_size"]):
-        raise ValueError("invalid recorded OS base page size")
-    libc = runtime["libc"]
-    if not isinstance(libc, dict) or set(libc) != {"name", "version"} or any(not isinstance(v, str) or not v for v in libc.values()):
-        raise ValueError("invalid libc identity")
-    allocator = runtime["allocator_environment"]
-    if not isinstance(allocator, dict) or any(not allocator_override_key(k) or not isinstance(v, str) for k, v in allocator.items()):
-        raise ValueError("invalid allocator environment")
+    validate_runtime(runtime)
     if any(contexts.get(phase) != reference for phase in PHASES + ("after",)):
         raise ValueError("measurement environment changed during the campaign")
     if compiler and reference.get("compiler") != command(["rustc", "--version"], repository, dict(os.environ, RUSTUP_TOOLCHAIN="stable")):
@@ -605,7 +616,7 @@ def qualify_baseline(baseline, output, group):
         raise ValueError("qualification requires the same original harness and external overlay")
     env = capture_environment()
     context = environment_context(baseline, env, group)
-    report = {"schema_version": "baseline-qualification-v1", "source": source, "tool": tool_source,
+    report = {"schema_version": QUALIFICATION_SCHEMA, "source": source, "tool": tool_source,
               "context": context, "sampling": dict(sampling.PROTOCOL,
                   implementation_sha256=sampling.implementation_digest(), overlay_sha256=sampling.overlay_digest(baseline)),
               "harness_sha256": harness_digest(baseline), "calibration": {}, "phases": {},

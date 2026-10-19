@@ -97,6 +97,9 @@ jobs:
           python3 -m unittest discover -s scripts/tests -p 'test_*.py'
           bash -n scripts/release-check.sh
 
+      - name: Check read-only Linux kernel memory policy provenance
+        run: python3 -c "import sys; sys.path.insert(0, 'scripts'); import release_evidence as e; e.validate_runtime(e.runtime_context(e.capture_environment()))"
+
       - name: Check shared workers and real published-baseline input replay
         run: |
           git fetch --no-tags --depth=1 origin 9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6

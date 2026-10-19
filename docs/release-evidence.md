@@ -327,14 +327,43 @@ Existing local baseline file inputs remain available for direct measurements;
 they do not replace the mandatory immutable snapshot input in release CI.
 
 
-Formal verification and materialization require manifest schema 3 and the current
-sampling protocol (13). All acceptance thresholds remain unchanged; the new envelope makes the already required layout acceptance part of
+Formal verification and materialization require manifest schema 4 and the current
+sampling protocol (15). All acceptance thresholds remain unchanged; the new envelope makes the already required layout acceptance part of
 the same automatic verification path. The snapshot must include the complete
 `layout-pair/` directory, its four phases' provenance/samples/journals and its
 manifest. Missing, changed, failed or independently collected incompatible
 supplements cannot satisfy the contract. Legacy schema 1 mean-only campaigns and
-schema 2 envelopes without bound layouts cannot approve release; every historical
+schema 2 envelopes without bound layouts and schema 3 envelopes without kernel
+memory policy cannot approve release; every historical
 raw observation remains under its original source/schema for audit.
+
+## Kernel memory policy is part of comparability
+
+The runtime envelope binds the Linux kernel release, global THP enabled/defrag
+policies, every exposed per-size anonymous/shmem mTHP policy, and the process's complete
+`PR_GET_THP_DISABLE` mode (0, 1 or 3). Policy reads happen outside API timers, before
+and after profiles/campaigns; they never write sysfs or change process policy.
+Missing/unreadable controls, unsupported process queries, ambiguous choices and
+inconsistent four-phase/after snapshots refuse acceptance. Kernels with only the
+legacy global interface record an explicit empty per-size map. Newer kernels can
+expose shmem-only sizes: anonymous/shmem interface absence is recorded as null,
+not inferred as `never`, and a size with neither interface is rejected.
+
+Base page size alone does not describe allocation/fault behavior. Linux mTHP may
+back several base pages per fault; fault counts must not be converted directly
+into bytes or treated as exclusive codec CPU time. See the
+[Linux THP/mTHP controls](https://docs.kernel.org/admin-guide/mm/transhuge.html).
+The envelope records policy snapshots, not physical folio ownership, continuous
+configuration monitoring or physical-host exclusivity.
+
+New standalone qualifications use `baseline-qualification-v2`; paired layouts use
+`verify-layout-paired-v2` with `verify-layout-diagnostic-v3` phase envelopes. Historical v1
+records keep their original source/contract, remain descriptively replayable and
+cannot acquire missing policy retrospectively. Neither qualification schema is
+release approval. The existing frozen protocol-15 qualification is not restarted
+or rewritten; final candidate evidence must be collected under schema 4. Sampler
+protocol 15, original per-call work, duration/distribution/drift and regression
+thresholds are unchanged.
 
 ## Why the earlier single-batch campaign was rejected
 
