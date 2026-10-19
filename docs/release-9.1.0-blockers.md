@@ -1,13 +1,13 @@
 # 9.1.0 publication blockers and completion criteria
 
-Audit date: 2026-10-19 (Asia/Shanghai). Main includes PR #24 at `94c6951`;
-the protocol-13 measuring-thread placement correction is pending review. This is a
+Audit date: 2026-10-19 (Asia/Shanghai). Main includes PR #26 at `b939bf6`.
+PR #27 integrates baseline qualification and protocol-14 process fault telemetry. This is a
 readiness assessment, not release approval. Historical evidence retains its
 original source and protocol bindings.
 
 ## Implementation and acceptance are separate
 
-Protocol 13 retains one prepared worker entry for all 126 cases. It extends the
+Protocol 14 retains one prepared worker entry for all 126 cases. It extends the
 existing 103 small-file/stream caller contracts to the 15 smoke and eight hotspot
 cases: codec lifetime, actual API/output policy, masks, seed, source lifetime and
 construction order are mandatory. Hotspot per-byte random generation now borrows
@@ -47,8 +47,8 @@ establish the remaining root cause or replace accepted full performance evidence
 | Layer | Verified state | Required next result |
 | --- | --- | --- |
 | Functional compatibility | The normal-format 200-case published-9.0.0 parity/roundtrip probe and core tests pass. PR #19 changes no production algorithm. | Preserve the declared compatibility boundary: the normal-format probe disables `fast_one_parity` and does not promise recovery of historically inconsistent fast/custom/mixed-entry codewords. |
-| Workload comparability | All 126 cases have explicit preparation/input contracts in protocol 13; geometry covers only the 103 retained caller cases. Dynamic/internal buffers and real per-layout acceptance remain partial in backlog #2897. | Complete the agreed dynamic/lifetime and per-layout acceptance scope; caller matching alone is insufficient. |
-| Baseline stability | Both complete protocol-10 9.0.0 qualifications failed their original gates; details below. | Qualify the entire baseline before candidate attribution. Preserve every failed case and allocator context. |
+| Workload comparability | All 126 cases have explicit preparation/input contracts in protocol 14; geometry covers only the 103 retained caller cases. Dynamic/internal buffers and real per-layout acceptance remain partial in backlog #2897. | Complete the agreed dynamic/lifetime and per-layout acceptance scope; caller matching alone is insufficient. |
+| Baseline stability | The complete protocol-13 default baseline still fails: nine A1 distributions, maximum 59.103368%; zero short samples or recorded caller mismatches. Earlier protocol-10 controls also failed. | Qualify the entire baseline before candidate attribution. Preserve every failed case and allocator context. |
 | Quantitative evidence | No accepted complete campaign for the final source tree and shared harness exists. | Fresh baseline/candidate A1/B1/B2/A2, both calibrations and all 126 original cases, with every duration/distribution/drift/regression gate passing. |
 | Workflow input | `RSE_RELEASE_EVIDENCE_REF` was absent at the last live check. Rejected audit data is not accepted evidence. | Verify accepted `release-evidence/manifest.json` on a data commit, then supply its full immutable SHA through the variable or manual `evidence_ref`. |
 | Strict preflight | Ordinary CI skips tag/manual-only evidence and release-preflight jobs. The historical real-data negative run proves rejection only. | Run `release_preflight=true` against the final main and accepted evidence, and verify actual success before tagging. |
@@ -61,7 +61,36 @@ additional acceptance scope. No new blocking algorithm defect has been establish
 by these baseline controls. An unstable published-9.0.0 control cannot establish a
 9.1.0 regression or speedup.
 
-## Latest complete baseline controls
+## Latest complete protocol-13 control and targeted diagnosis
+
+Frozen tool `121b39d`, baseline published 9.0.0: all 126 cases calibrated, retaining
+4,800 observations. Complete A1 retains 1,512 observations, including 1,134 measured
+samples. All 103 recorded caller layouts match calibration, with no short samples.
+Nine distributions fail the unchanged 10% limit; stream encode 10+4/16MiB/4MiB
+blocks reaches 59.103368%. A2 and candidate capture were stopped. Both reservations
+restored their partition/controller/parent CPU ranges. All 6,312 timing journals
+match the completed numeric records.
+
+The [immutable full numerical audit](https://github.com/houseme/rustfs-erasure-codec/tree/dc05250/diagnostics/protocol13-baseline-qualification)
+includes every calibration/warmup/sample and a separate single-case process profile.
+Its allocating diagnostic observer reveals minor-fault transitions from 184,141
+through 92,138 to about 24,582 per observation, alongside changing service time.
+The formal trace oscillates rather than converging, so extending warmup or dropping
+early samples is not an established solution. The profile has 45.40% unresolved
+leaves and cannot uniquely explain all nine failures or quantify candidate speed.
+
+Protocol 14 therefore adds whole-process minor/major fault counters with bounded
+stack reads in the existing ordinary observer, including Rayon workers and
+excluding child processes. Missing/negative/reset counters are rejected. It avoids
+substituting the allocating process diagnostic for formal telemetry. Every original
+operation, three warmups, nine samples and performance limit remains unchanged.
+The protocol-13 rejection stays bound to its original renderer; no accepted
+protocol-14 full control or candidate campaign follows from native observer tests.
+Production algorithms, matrices, formats and recovery publication semantics remain
+unchanged. Dynamic destinations/internal scratch and full layout acceptance remain
+uncompleted work, not inferred from low guest runnable wait or recorded caller matches.
+
+## Historical complete protocol-10 baseline controls
 
 Frozen measured tool: `63b6fa0a3d0b0dc6a7d206c9dbff82f5f729eea8`, protocol 10.
 Both measured codecs are published 9.0.0. Allocator contexts were predeclared in
