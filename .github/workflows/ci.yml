@@ -122,6 +122,9 @@ jobs:
             ${{ runner.temp }}/verify-scratch-audit/*-journal.jsonl
           if-no-files-found: ignore
 
+      - name: Check stream owner lifecycles in both diagnostic source copies
+        run: python3 scripts/stream_core_audit.py --check --output "$RUNNER_TEMP/stream-core-audit"
+
       - name: Verify page-controlled slice fixtures without performance capture
         run: python3 scripts/diagnose_verify_layout.py --check
 

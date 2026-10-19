@@ -17,6 +17,7 @@ class TelemetryProbeTests(unittest.TestCase):
         (root/'scripts/diagnostics/telemetry_allocations.rs').write_text('test-only-counter')
         (root/'scripts/diagnostics/stream_view_allocations.rs').write_text('// stream-specific attachment fixture')
         (root/'scripts/diagnostics/verify_scratch_allocations.rs').write_text('// verify-specific attachment fixture')
+        (root/'scripts/diagnostics/stream_core_allocations.rs').write_text('// core-specific attachment fixture')
         (root/'src/tests').mkdir(parents=True)
         (root/'src/tests/mod.rs').write_text('fn shard_index_pattern() {\n}\n')
         return root
