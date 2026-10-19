@@ -120,6 +120,16 @@ class CaptureLifecycleTests(unittest.TestCase):
         self.assertTrue((self.output/'A2/stream-samples.json').exists())
         self.assertFalse((self.output/'report.json').exists())
 
+    def test_cleanup_failure_cannot_leave_a_passing_report(self):
+        def validated_but_changed(*_):
+            (self.baseline/'tests/rse_release_sampling/stub.rs').write_text('changed source')
+            return {}, {}, {'status': 'passed', 'test_only': True}
+        self.verify.side_effect = validated_but_changed
+        with self.assertRaisesRegex(ValueError, 'preserve'): self.capture()
+        self.assertFalse((self.output/'report.json').exists())
+        self.assertEqual((self.baseline/'tests/rse_release_sampling/stub.rs').read_text(), 'changed source')
+        self.assert_removed(self.candidate)
+
     def test_changed_generated_source_is_preserved(self):
         def fail(*args, **kwargs):
             self.emit(*args, **kwargs)
