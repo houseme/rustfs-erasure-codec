@@ -1,0 +1,113 @@
+{
+  "schema_version": "baseline-placement-plan-v1",
+  "tool": {
+    "commit": "4f53300554d53e8c76065452abe7d46b5a018060",
+    "tree": "376edb997be18c45bdcb0f36f54a751878744c51",
+    "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+  },
+  "baseline": {
+    "commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "tree": "d44fe8c296972cf895375101f8975c99371db57a",
+    "lock_sha256": "972540efcf6bc23c0064252a9c0d937bf87dbe0edff9cdb688d2fdcbd5653d49"
+  },
+  "policies": [
+    {
+      "name": "default",
+      "GLIBC_TUNABLES": null
+    },
+    {
+      "name": "retained_arena",
+      "GLIBC_TUNABLES": "glibc.malloc.arena_max=1:glibc.malloc.mmap_max=0:glibc.malloc.trim_threshold=1099511627776"
+    }
+  ],
+  "iterations": 384,
+  "case": "encode:10:4:524288",
+  "controller_sha256": "272ff092459c82112011a5564e38d42c4accdfecc2579c291797fd0ed761e7c4",
+  "release_approval": false,
+  "candidate_attribution": null,
+  "results": {
+    "default": {
+      "workers": 18,
+      "groups": 48,
+      "observations": 576,
+      "short_samples": 0,
+      "wide_groups": [
+        {
+          "worker": "same-buffer-reverse-forward",
+          "epoch": 15,
+          "cpu": 31,
+          "median_ns_per_iter": 351993.3958333333,
+          "central_spread": 0.1381601442214558,
+          "short_samples": 0,
+          "measured_minor_faults": 0,
+          "measured_major_faults": 0
+        }
+      ],
+      "same_worker_repeat_failures": [
+        {
+          "worker": "same-buffer-forward-reverse",
+          "cpu": 24,
+          "absolute_drift": 0.1235782773896521
+        },
+        {
+          "worker": "same-buffer-reverse-forward",
+          "cpu": 31,
+          "absolute_drift": 0.15543619000419362
+        }
+      ],
+      "fresh_process_repeat_failures": [
+        {
+          "cpu": 24,
+          "absolute_drift": 0.13575299608076907
+        },
+        {
+          "cpu": 26,
+          "absolute_drift": 0.11418254319343557
+        },
+        {
+          "cpu": 27,
+          "absolute_drift": 0.12770615823971454
+        },
+        {
+          "cpu": 31,
+          "absolute_drift": 0.0740685296852176
+        }
+      ],
+      "release_approval": false
+    },
+    "retained_arena": {
+      "workers": 18,
+      "groups": 48,
+      "observations": 576,
+      "short_samples": 0,
+      "wide_groups": [],
+      "same_worker_repeat_failures": [
+        {
+          "worker": "same-buffer-forward-reverse",
+          "cpu": 27,
+          "absolute_drift": 0.09302379834310592
+        },
+        {
+          "worker": "same-buffer-reverse-forward",
+          "cpu": 30,
+          "absolute_drift": 0.10035545405071866
+        }
+      ],
+      "fresh_process_repeat_failures": [
+        {
+          "cpu": 24,
+          "absolute_drift": 0.05130919812842716
+        },
+        {
+          "cpu": 29,
+          "absolute_drift": 0.11533480554318265
+        },
+        {
+          "cpu": 31,
+          "absolute_drift": 0.20856396587037196
+        }
+      ],
+      "release_approval": false
+    }
+  }
+}

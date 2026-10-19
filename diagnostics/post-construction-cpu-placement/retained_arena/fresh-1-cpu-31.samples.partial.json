@@ -1,0 +1,1742 @@
+[
+  {
+    "epoch": 0,
+    "cpu": 31,
+    "index": 0,
+    "kind": "warmup",
+    "iterations": 384,
+    "case": "encode:10:4:524288",
+    "call_entry": "Vec<Vec<u8>>",
+    "backend": "rust-gfni-avx512",
+    "ns_per_iter": 349680.6614583333,
+    "wall_ns": 134278516,
+    "timed_ns": 134277374,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "caller-parity-in-place",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1200,
+          "offset_page": 1200
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1216,
+          "offset_page": 1216
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1232,
+          "offset_page": 1232
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1248,
+          "offset_page": 1248
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1264,
+          "offset_page": 1264
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1280,
+          "offset_page": 1280
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1296,
+          "offset_page": 1296
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1312,
+          "offset_page": 1312
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1328,
+          "offset_page": 1328
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1344,
+          "offset_page": 1344
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1360,
+          "offset_page": 1360
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1376,
+          "offset_page": 1376
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1392,
+          "offset_page": 1392
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1408,
+          "offset_page": 1408
+        }
+      ],
+      "scratch": []
+    },
+    "before": {
+      "cpu": 31,
+      "run_ns": 6675656,
+      "wait_ns": 0,
+      "switches": 2
+    },
+    "after": {
+      "cpu": 31,
+      "run_ns": 140556192,
+      "wait_ns": 116975,
+      "switches": 7
+    },
+    "faults_before": {
+      "minor": 1432,
+      "major": 0,
+      "cpu": 31
+    },
+    "faults_after": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    }
+  },
+  {
+    "epoch": 0,
+    "cpu": 31,
+    "index": 1,
+    "kind": "warmup",
+    "iterations": 384,
+    "case": "encode:10:4:524288",
+    "call_entry": "Vec<Vec<u8>>",
+    "backend": "rust-gfni-avx512",
+    "ns_per_iter": 362237.3020833333,
+    "wall_ns": 139099455,
+    "timed_ns": 139099124,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "caller-parity-in-place",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1200,
+          "offset_page": 1200
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1216,
+          "offset_page": 1216
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1232,
+          "offset_page": 1232
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1248,
+          "offset_page": 1248
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1264,
+          "offset_page": 1264
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1280,
+          "offset_page": 1280
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1296,
+          "offset_page": 1296
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1312,
+          "offset_page": 1312
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1328,
+          "offset_page": 1328
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1344,
+          "offset_page": 1344
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1360,
+          "offset_page": 1360
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1376,
+          "offset_page": 1376
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1392,
+          "offset_page": 1392
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1408,
+          "offset_page": 1408
+        }
+      ],
+      "scratch": []
+    },
+    "before": {
+      "cpu": 31,
+      "run_ns": 140556192,
+      "wait_ns": 116975,
+      "switches": 7
+    },
+    "after": {
+      "cpu": 31,
+      "run_ns": 279539037,
+      "wait_ns": 131296,
+      "switches": 9
+    },
+    "faults_before": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    },
+    "faults_after": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    }
+  },
+  {
+    "epoch": 0,
+    "cpu": 31,
+    "index": 2,
+    "kind": "warmup",
+    "iterations": 384,
+    "case": "encode:10:4:524288",
+    "call_entry": "Vec<Vec<u8>>",
+    "backend": "rust-gfni-avx512",
+    "ns_per_iter": 362337.8984375,
+    "wall_ns": 139137993,
+    "timed_ns": 139137753,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "caller-parity-in-place",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1200,
+          "offset_page": 1200
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1216,
+          "offset_page": 1216
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1232,
+          "offset_page": 1232
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1248,
+          "offset_page": 1248
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1264,
+          "offset_page": 1264
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1280,
+          "offset_page": 1280
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1296,
+          "offset_page": 1296
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1312,
+          "offset_page": 1312
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1328,
+          "offset_page": 1328
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1344,
+          "offset_page": 1344
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1360,
+          "offset_page": 1360
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1376,
+          "offset_page": 1376
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1392,
+          "offset_page": 1392
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1408,
+          "offset_page": 1408
+        }
+      ],
+      "scratch": []
+    },
+    "before": {
+      "cpu": 31,
+      "run_ns": 279539037,
+      "wait_ns": 131296,
+      "switches": 9
+    },
+    "after": {
+      "cpu": 31,
+      "run_ns": 418525107,
+      "wait_ns": 142683,
+      "switches": 11
+    },
+    "faults_before": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    },
+    "faults_after": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    }
+  },
+  {
+    "epoch": 0,
+    "cpu": 31,
+    "index": 3,
+    "kind": "sample",
+    "iterations": 384,
+    "case": "encode:10:4:524288",
+    "call_entry": "Vec<Vec<u8>>",
+    "backend": "rust-gfni-avx512",
+    "ns_per_iter": 362304.3046875,
+    "wall_ns": 139125083,
+    "timed_ns": 139124853,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "caller-parity-in-place",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1200,
+          "offset_page": 1200
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1216,
+          "offset_page": 1216
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1232,
+          "offset_page": 1232
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1248,
+          "offset_page": 1248
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1264,
+          "offset_page": 1264
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1280,
+          "offset_page": 1280
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1296,
+          "offset_page": 1296
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1312,
+          "offset_page": 1312
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1328,
+          "offset_page": 1328
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1344,
+          "offset_page": 1344
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1360,
+          "offset_page": 1360
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1376,
+          "offset_page": 1376
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1392,
+          "offset_page": 1392
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1408,
+          "offset_page": 1408
+        }
+      ],
+      "scratch": []
+    },
+    "before": {
+      "cpu": 31,
+      "run_ns": 418525107,
+      "wait_ns": 142683,
+      "switches": 11
+    },
+    "after": {
+      "cpu": 31,
+      "run_ns": 557515773,
+      "wait_ns": 148662,
+      "switches": 12
+    },
+    "faults_before": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    },
+    "faults_after": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    }
+  },
+  {
+    "epoch": 0,
+    "cpu": 31,
+    "index": 4,
+    "kind": "sample",
+    "iterations": 384,
+    "case": "encode:10:4:524288",
+    "call_entry": "Vec<Vec<u8>>",
+    "backend": "rust-gfni-avx512",
+    "ns_per_iter": 362414.8385416667,
+    "wall_ns": 139167548,
+    "timed_ns": 139167298,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "caller-parity-in-place",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1200,
+          "offset_page": 1200
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1216,
+          "offset_page": 1216
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1232,
+          "offset_page": 1232
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1248,
+          "offset_page": 1248
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1264,
+          "offset_page": 1264
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1280,
+          "offset_page": 1280
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1296,
+          "offset_page": 1296
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1312,
+          "offset_page": 1312
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1328,
+          "offset_page": 1328
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1344,
+          "offset_page": 1344
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1360,
+          "offset_page": 1360
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1376,
+          "offset_page": 1376
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1392,
+          "offset_page": 1392
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1408,
+          "offset_page": 1408
+        }
+      ],
+      "scratch": []
+    },
+    "before": {
+      "cpu": 31,
+      "run_ns": 557515773,
+      "wait_ns": 148662,
+      "switches": 12
+    },
+    "after": {
+      "cpu": 31,
+      "run_ns": 697484418,
+      "wait_ns": 177125,
+      "switches": 13
+    },
+    "faults_before": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    },
+    "faults_after": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    }
+  },
+  {
+    "epoch": 0,
+    "cpu": 31,
+    "index": 5,
+    "kind": "sample",
+    "iterations": 384,
+    "case": "encode:10:4:524288",
+    "call_entry": "Vec<Vec<u8>>",
+    "backend": "rust-gfni-avx512",
+    "ns_per_iter": 362411.2109375,
+    "wall_ns": 139166145,
+    "timed_ns": 139165905,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "caller-parity-in-place",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1200,
+          "offset_page": 1200
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1216,
+          "offset_page": 1216
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1232,
+          "offset_page": 1232
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1248,
+          "offset_page": 1248
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1264,
+          "offset_page": 1264
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1280,
+          "offset_page": 1280
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1296,
+          "offset_page": 1296
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1312,
+          "offset_page": 1312
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1328,
+          "offset_page": 1328
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1344,
+          "offset_page": 1344
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1360,
+          "offset_page": 1360
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1376,
+          "offset_page": 1376
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1392,
+          "offset_page": 1392
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1408,
+          "offset_page": 1408
+        }
+      ],
+      "scratch": []
+    },
+    "before": {
+      "cpu": 31,
+      "run_ns": 697484418,
+      "wait_ns": 177125,
+      "switches": 13
+    },
+    "after": {
+      "cpu": 31,
+      "run_ns": 836474744,
+      "wait_ns": 184496,
+      "switches": 14
+    },
+    "faults_before": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    },
+    "faults_after": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    }
+  },
+  {
+    "epoch": 0,
+    "cpu": 31,
+    "index": 6,
+    "kind": "sample",
+    "iterations": 384,
+    "case": "encode:10:4:524288",
+    "call_entry": "Vec<Vec<u8>>",
+    "backend": "rust-gfni-avx512",
+    "ns_per_iter": 362575.9661458333,
+    "wall_ns": 139229391,
+    "timed_ns": 139229171,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "caller-parity-in-place",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1200,
+          "offset_page": 1200
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1216,
+          "offset_page": 1216
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1232,
+          "offset_page": 1232
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1248,
+          "offset_page": 1248
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1264,
+          "offset_page": 1264
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1280,
+          "offset_page": 1280
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1296,
+          "offset_page": 1296
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1312,
+          "offset_page": 1312
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1328,
+          "offset_page": 1328
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1344,
+          "offset_page": 1344
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1360,
+          "offset_page": 1360
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1376,
+          "offset_page": 1376
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1392,
+          "offset_page": 1392
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1408,
+          "offset_page": 1408
+        }
+      ],
+      "scratch": []
+    },
+    "before": {
+      "cpu": 31,
+      "run_ns": 836474744,
+      "wait_ns": 184496,
+      "switches": 14
+    },
+    "after": {
+      "cpu": 31,
+      "run_ns": 975454104,
+      "wait_ns": 202362,
+      "switches": 15
+    },
+    "faults_before": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    },
+    "faults_after": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    }
+  },
+  {
+    "epoch": 0,
+    "cpu": 31,
+    "index": 7,
+    "kind": "sample",
+    "iterations": 384,
+    "case": "encode:10:4:524288",
+    "call_entry": "Vec<Vec<u8>>",
+    "backend": "rust-gfni-avx512",
+    "ns_per_iter": 362365.3359375,
+    "wall_ns": 139148519,
+    "timed_ns": 139148289,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "caller-parity-in-place",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1200,
+          "offset_page": 1200
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1216,
+          "offset_page": 1216
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1232,
+          "offset_page": 1232
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1248,
+          "offset_page": 1248
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1264,
+          "offset_page": 1264
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1280,
+          "offset_page": 1280
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1296,
+          "offset_page": 1296
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1312,
+          "offset_page": 1312
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1328,
+          "offset_page": 1328
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1344,
+          "offset_page": 1344
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1360,
+          "offset_page": 1360
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1376,
+          "offset_page": 1376
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1392,
+          "offset_page": 1392
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1408,
+          "offset_page": 1408
+        }
+      ],
+      "scratch": []
+    },
+    "before": {
+      "cpu": 31,
+      "run_ns": 975454104,
+      "wait_ns": 202362,
+      "switches": 15
+    },
+    "after": {
+      "cpu": 31,
+      "run_ns": 1114440544,
+      "wait_ns": 212587,
+      "switches": 17
+    },
+    "faults_before": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    },
+    "faults_after": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    }
+  },
+  {
+    "epoch": 0,
+    "cpu": 31,
+    "index": 8,
+    "kind": "sample",
+    "iterations": 384,
+    "case": "encode:10:4:524288",
+    "call_entry": "Vec<Vec<u8>>",
+    "backend": "rust-gfni-avx512",
+    "ns_per_iter": 362526.828125,
+    "wall_ns": 139210553,
+    "timed_ns": 139210302,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "caller-parity-in-place",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1200,
+          "offset_page": 1200
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1216,
+          "offset_page": 1216
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1232,
+          "offset_page": 1232
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1248,
+          "offset_page": 1248
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1264,
+          "offset_page": 1264
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1280,
+          "offset_page": 1280
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1296,
+          "offset_page": 1296
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1312,
+          "offset_page": 1312
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1328,
+          "offset_page": 1328
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1344,
+          "offset_page": 1344
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1360,
+          "offset_page": 1360
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1376,
+          "offset_page": 1376
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1392,
+          "offset_page": 1392
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1408,
+          "offset_page": 1408
+        }
+      ],
+      "scratch": []
+    },
+    "before": {
+      "cpu": 31,
+      "run_ns": 1114440544,
+      "wait_ns": 212587,
+      "switches": 17
+    },
+    "after": {
+      "cpu": 31,
+      "run_ns": 1254425332,
+      "wait_ns": 224616,
+      "switches": 19
+    },
+    "faults_before": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    },
+    "faults_after": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    }
+  },
+  {
+    "epoch": 0,
+    "cpu": 31,
+    "index": 9,
+    "kind": "sample",
+    "iterations": 384,
+    "case": "encode:10:4:524288",
+    "call_entry": "Vec<Vec<u8>>",
+    "backend": "rust-gfni-avx512",
+    "ns_per_iter": 362246.2213541667,
+    "wall_ns": 139102790,
+    "timed_ns": 139102549,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "caller-parity-in-place",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1200,
+          "offset_page": 1200
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1216,
+          "offset_page": 1216
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1232,
+          "offset_page": 1232
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1248,
+          "offset_page": 1248
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1264,
+          "offset_page": 1264
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1280,
+          "offset_page": 1280
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1296,
+          "offset_page": 1296
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1312,
+          "offset_page": 1312
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1328,
+          "offset_page": 1328
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1344,
+          "offset_page": 1344
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1360,
+          "offset_page": 1360
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1376,
+          "offset_page": 1376
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1392,
+          "offset_page": 1392
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1408,
+          "offset_page": 1408
+        }
+      ],
+      "scratch": []
+    },
+    "before": {
+      "cpu": 31,
+      "run_ns": 1254425332,
+      "wait_ns": 224616,
+      "switches": 19
+    },
+    "after": {
+      "cpu": 31,
+      "run_ns": 1393416519,
+      "wait_ns": 230906,
+      "switches": 20
+    },
+    "faults_before": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    },
+    "faults_after": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    }
+  },
+  {
+    "epoch": 0,
+    "cpu": 31,
+    "index": 10,
+    "kind": "sample",
+    "iterations": 384,
+    "case": "encode:10:4:524288",
+    "call_entry": "Vec<Vec<u8>>",
+    "backend": "rust-gfni-avx512",
+    "ns_per_iter": 362388.9114583333,
+    "wall_ns": 139157572,
+    "timed_ns": 139157342,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "caller-parity-in-place",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1200,
+          "offset_page": 1200
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1216,
+          "offset_page": 1216
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1232,
+          "offset_page": 1232
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1248,
+          "offset_page": 1248
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1264,
+          "offset_page": 1264
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1280,
+          "offset_page": 1280
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1296,
+          "offset_page": 1296
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1312,
+          "offset_page": 1312
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1328,
+          "offset_page": 1328
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1344,
+          "offset_page": 1344
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1360,
+          "offset_page": 1360
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1376,
+          "offset_page": 1376
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1392,
+          "offset_page": 1392
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1408,
+          "offset_page": 1408
+        }
+      ],
+      "scratch": []
+    },
+    "before": {
+      "cpu": 31,
+      "run_ns": 1393416519,
+      "wait_ns": 230906,
+      "switches": 20
+    },
+    "after": {
+      "cpu": 31,
+      "run_ns": 1532387024,
+      "wait_ns": 257106,
+      "switches": 22
+    },
+    "faults_before": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    },
+    "faults_after": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    }
+  },
+  {
+    "epoch": 0,
+    "cpu": 31,
+    "index": 11,
+    "kind": "sample",
+    "iterations": 384,
+    "case": "encode:10:4:524288",
+    "call_entry": "Vec<Vec<u8>>",
+    "backend": "rust-gfni-avx512",
+    "ns_per_iter": 362574.8203125,
+    "wall_ns": 139228961,
+    "timed_ns": 139228731,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<Vec<u8>>",
+      "output_policy": "caller-parity-in-place",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1200,
+          "offset_page": 1200
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1216,
+          "offset_page": 1216
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1232,
+          "offset_page": 1232
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1248,
+          "offset_page": 1248
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1264,
+          "offset_page": 1264
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1280,
+          "offset_page": 1280
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1296,
+          "offset_page": 1296
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1312,
+          "offset_page": 1312
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1328,
+          "offset_page": 1328
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1344,
+          "offset_page": 1344
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 16,
+          "offset_4096": 1360,
+          "offset_page": 1360
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 32,
+          "offset_4096": 1376,
+          "offset_page": 1376
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 48,
+          "offset_4096": 1392,
+          "offset_page": 1392
+        },
+        {
+          "len": 524288,
+          "capacity": 524288,
+          "offset_64": 0,
+          "offset_4096": 1408,
+          "offset_page": 1408
+        }
+      ],
+      "scratch": []
+    },
+    "before": {
+      "cpu": 31,
+      "run_ns": 1532387024,
+      "wait_ns": 257106,
+      "switches": 22
+    },
+    "after": {
+      "cpu": 31,
+      "run_ns": 1671357430,
+      "wait_ns": 283846,
+      "switches": 23
+    },
+    "faults_before": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    },
+    "faults_after": {
+      "minor": 1809,
+      "major": 0,
+      "cpu": 31
+    }
+  }
+]

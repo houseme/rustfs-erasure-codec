@@ -101,3 +101,7 @@ The controlled allocator context never substitutes for default throughput eviden
 ## Complete protocol-10 variability replay
 
 `diagnostics/protocol10-baseline-variability` describes all 126 cases from both existing baseline contexts without new measurements. Sixteen cases have the same single CPU endpoint in both phases, including two repeat failures of 15.827029% and 18.164593%. Equal endpoints do not prove pinning; the replay cannot uniquely assign a cause or approve performance. Every input hash matches the already published complete raw samples. No failures or historical observations are removed.
+
+## Actual post-construction CPU placement controls
+
+`diagnostics/post-construction-cpu-placement` preserves both complete predeclared allocator contexts: 1,152 baseline-only observations, 96 actual-affinity gates and unchanged construction budgets. Same-buffer, same-codec and truly pinned-CPU repeat drift still reaches 15.543619% (default) and 10.035545% (retained arena), with zero recorded measuring-thread faults in all measured samples. This narrows the diagnosis without assigning a unique cause or approving a release. Both contexts, all failures and complete restoration remain visible.
