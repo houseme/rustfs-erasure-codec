@@ -27,6 +27,16 @@ def without_policy(context):
     result=copy.deepcopy(context);result['runtime'].pop('kernel_memory_policy',None);return result
 
 
+def compare_context(context,prior):
+    """Missing historical policy stays unknown; recorded policy must match."""
+    e.validate_runtime(context.get('runtime'))
+    if 'kernel_memory_policy' in prior['runtime']:
+        e.validate_runtime(prior['runtime'])
+        matches=same(context,prior)
+    else:matches=same(without_policy(context),prior)
+    if not matches:raise ValueError('recorded environment or kernel policy differs')
+
+
 def member(root,name):
     parts=pathlib.PurePosixPath(name).parts
     if len(parts)!=2 or any(v in ('.','..') for v in parts) or pathlib.PurePosixPath(name).is_absolute():raise ValueError('invalid diagnostic member path')
@@ -42,6 +52,7 @@ def inputs(prior,repository):
     prov=e.json_data(prior/'provenance.json')
     document=e.json_data(prior/'qualification.partial.json')
     if prov.get('schema_version') not in ('baseline-qualification-v1',e.QUALIFICATION_SCHEMA) or prov.get('release_approval') is not False or prov.get('candidate_attribution') is not None:raise ValueError('require original diagnostic baseline provenance')
+    if prov['schema_version']==e.QUALIFICATION_SCHEMA:e.validate_runtime(prov['context']['runtime'])
     if prov.get('source')!=e.source_at(repository,e.BASELINE_COMMIT) or prov.get('tool')!=e.source_at(repository,prov['tool']['commit']):raise ValueError('original baseline/tool identity differs')
     if document.get('source')!=prov['source'] or document.get('context')!=prov['context'] or document.get('tool')!=prov['tool']:raise ValueError('prior control metadata differs')
     contract=prov['sampling']
@@ -84,8 +95,7 @@ def replay(output,prior,repository):
     prov,counts,calibration,digests=inputs(prior,repository);plan=e.json_data(output/'plan.json');result=e.json_data(output/'result.json')
     if plan.get('schema')!=SCHEMA or plan.get('release_approval') is not False or plan.get('candidate_attribution') is not None or not same(plan.get('steps'),schedule(counts)) or plan.get('prior_inputs')!=digests or plan.get('baseline')!=prov['source'] or plan.get('max_pair_gap_ns')!=MAX_PAIR_GAP_NS:raise ValueError('predeclared adjacent plan differs')
     if plan.get('controller_sha256')!=e.digest(pathlib.Path(__file__).read_bytes()) or not isinstance(plan.get('tool'),dict) or e.source_at(repository,plan['tool']['commit'])!=plan['tool'] or any(plan['tool'][k]!=e.source_info(repository)[k] for k in ('tree','lock_sha256')):raise ValueError('use the exact frozen diagnostic tool source')
-    context=plan['context'];e.validate_runtime(context.get('runtime'))
-    if without_policy(context)!=without_policy(prov['context']):raise ValueError('recorded legacy environment differs')
+    context=plan['context'];compare_context(context,prov['context'])
     journal=output/'execution.jsonl'
     if journal.is_symlink() or not journal.is_file() or not 0<journal.stat().st_size<=e.MAX_BYTES:raise ValueError('invalid bounded execution journal')
     entries=[json.loads(line) for line in journal.read_text().splitlines()]
@@ -130,7 +140,7 @@ def _capture(repository,baseline,prior,output,group):
     prov,counts,calibration,digests=inputs(prior,repository)
     if e.source_info(baseline)!=prov['source'] or e.harness_digest(baseline)!=e.harness_digest(repository) or s.overlay_digest(baseline)!=s.overlay_digest(repository):raise ValueError('require unchanged original baseline/worker/harness')
     env=e.capture_environment();context=e.environment_context(baseline,env,group);tool=e.source_info(repository)
-    if without_policy(context)!=without_policy(prov['context']):raise ValueError('recorded legacy environment differs; no unchanged-workload comparison')
+    compare_context(context,prov['context'])
     plan={'schema':SCHEMA,'release_approval':False,'candidate_attribution':None,'baseline':prov['source'],'tool':tool,'controller_sha256':e.digest(pathlib.Path(__file__).read_bytes()),'prior_inputs':digests,'context':context,'max_pair_gap_ns':MAX_PAIR_GAP_NS,'steps':schedule(counts)}
     dump(output/'plan.json',plan);(output/'workers').mkdir();(output/'counts').mkdir();summaries={};last_end=None;gaps=[]
     with ExitStack() as stack:

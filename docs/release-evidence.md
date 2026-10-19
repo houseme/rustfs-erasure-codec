@@ -510,6 +510,8 @@ metadata and all original calibration members. Its completed calibration supplie
 only frozen workload budgets: there is no adaptive count selection or inherited
 performance success. Use the original baseline checkout to avoid introducing a
 new executable path; refuse changed caller geometry or legacy runtime context.
+A previously recorded kernel policy must also match; only absent
+historical policy stays explicitly unknown.
 
 The plan declares all 126 cases, each as fresh-process A1 immediately followed by
 fresh-process A2, with the original three warmups and nine samples. It preserves
