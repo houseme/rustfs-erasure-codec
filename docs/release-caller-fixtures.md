@@ -80,3 +80,42 @@ Protocol 14 adds only bounded-stack process minor/major fault counters to ordina
 observations. These include worker faults but are endpoint differences, not actual
 dynamic buffer-view geometry. They do not complete the untracked scope above or
 make the allocating process diagnostic interchangeable with formal capture.
+
+## Actual stream I/O views and dynamic caller storage
+
+`diagnose_fixture_layout.py --stream-views` reuses the existing four-phase inventory
+and original generated stream loops. All 15 stream cases retain every observation
+and call. Encode/verify use explicitly declared `repr(transparent)` diagnostic
+Reader/Writer adapters, with the same slice/Vec element layouts, independent writer
+reservations and original delegate I/O. No codec source, allocator or formal
+sampler is replaced. The bounded global recorder allocates no heap in callbacks;
+its synchronization and memory touches still perturb timings and may affect layout.
+These data never qualify formal performance geometry or release throughput.
+
+The Read boundary exposes actual source prefixes and internal read scratch slices
+for ten cases. The Write boundary exposes actual parity slices for five cases and
+caller-owned writer length/capacity before and after each append. Full pointer
+identity is checked privately across each reserved append; only modulo-64/4096/OS
+page positions and private equality flags are exported. Borrowed view capacity is
+null. Cursor reconstruction retains its exact original entry and records clone,
+empty-missing and recovered owned buffers, then drops them at the original scope.
+
+The validator requires every call/drop completion, original source-prefix/EOF
+consumption, transferred byte, reservation, cursor state and fixed observation.
+Overflow, unknown capacities, missing or reordered lifecycle stages fail without
+removing raw logs. Safe owned-overlay cleanup precedes the success report. Native
+checks run the real APIs from each source/lockfile, compare normal/wrapped parity,
+short tails and corrupted parity, and count observer I/O heap requests separately.
+
+```sh
+python3 scripts/diagnose_fixture_layout.py --check-stream-views \
+  --baseline-ref 9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6
+python3 scripts/diagnose_fixture_layout.py --stream-views --iterations 2 \
+  --tool /path/to/frozen/tool --baseline /path/to/9.0.0 --candidate /path/to/candidate \
+  --output /path/to/new-inventory --isolation-cgroup /sys/fs/cgroup/owned-partition
+```
+
+Ordinary verify scratch, internal verify/recovery scratch and dynamic buffers in
+other profiles remain unobserved. Observed stream signatures may differ between
+versions; a descriptive match does not establish physical-page equality or replace
+full per-layout and baseline/candidate acceptance. Backlog #2897 remains open.
