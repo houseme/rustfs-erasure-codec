@@ -32,7 +32,7 @@ class CaptureLifecycleTests(unittest.TestCase):
         self.build = patch('release_evidence.subprocess.run')
         self.run = patch('release_evidence.sampling.run_profile', side_effect=self.emit)
         patch('release_evidence.calibration_counts', side_effect=lambda records, profile, revision: {case: 1 for case in evidence.expected_cases(profile)})
-        patch('release_evidence.sampling.selected_row', return_value=([self.payload], []))
+        self.select = patch('release_evidence.sampling.selected_row', return_value=([self.payload], []))
         patch('release_evidence.time.sleep')
         self.verify = patch('release_evidence.verify', return_value=({}, {}, {'status': 'passed', 'test_only': True}))
 
@@ -112,6 +112,20 @@ class CaptureLifecycleTests(unittest.TestCase):
         self.assertEqual(json.loads(path.read_text()), [self.payload])
         for root in (self.baseline, self.candidate): self.assert_removed(root)
         self.assertFalse((self.output/'manifest.json').exists())
+
+    def test_wide_first_phase_stops_before_formal_candidate_measurement(self):
+        self.select.return_value = ([self.payload], [{'case': 'fixture', 'central_spread': .2}])
+        with self.assertRaises(evidence.EvidenceFailure) as raised: self.capture()
+        self.assertEqual(raised.exception.details['failed_phase'], 'A1')
+        self.assertIsNone(raised.exception.details['candidate_attribution'])
+        self.assertEqual(len(raised.exception.details['sample_spreads']), 4)
+        self.assertEqual(self.run.call_count, 12)  # Both calibrations plus complete A1.
+        for profile in evidence.FILES:
+            self.assertTrue((self.output/'A1'/(profile+'-samples.json')).exists())
+        self.assertFalse((self.output/'B1').exists())
+        self.assertFalse((self.output/'manifest.json').exists())
+        self.verify.assert_not_called()
+        for root in (self.baseline, self.candidate): self.assert_removed(root)
 
     def test_final_verification_failure_preserves_complete_data_and_releases_overlays(self):
         self.verify.side_effect = evidence.EvidenceFailure('intentional invalid evidence', {})

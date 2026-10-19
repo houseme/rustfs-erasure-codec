@@ -515,13 +515,20 @@ def capture(baseline, candidate, output, group):
             root=baseline if role=="baseline" else candidate
             metadata["contexts"][phase]=environment_context(root,env,group)
             folder=output/phase;folder.mkdir();metadata["files"][phase]={}
+            phase_spreads=[]
             for profile,filename in FILES.items():
                 records,entry=execute(root,folder,profile,"sample",count_files[profile])
                 normalize=lambda p,row,rev: next(iter(indexed_rows(p,[row],rev,counts[p],complete=False)))
-                selected,_=sampling.selected_row(records,profile,METRICS[profile],sources[role]["commit"],expected_cases(profile),counts[profile],normalize)
+                selected,spreads=sampling.selected_row(records,profile,METRICS[profile],sources[role]["commit"],expected_cases(profile),counts[profile],normalize)
+                phase_spreads.extend(dict(item, profile=profile) for item in spreads)
                 result=folder/filename;result.write_text(json.dumps(selected,indent=2)+"\n")
                 metadata["files"][phase][profile]={"path":f"{phase}/{filename}","sha256":digest(result.read_bytes()),"samples":entry}
                 (output/"manifest.partial.json").write_text(json.dumps(metadata,indent=2)+"\n")
+            # Keep the complete failed phase, but do not run more formal phases
+            # after a quality failure that already makes the campaign unusable.
+            if any(item["central_spread"] > sampling.PROTOCOL["central_spread_limit"] for item in phase_spreads):
+                raise EvidenceFailure("sample distributions are unstable; no later phase or candidate attribution", {
+                    "failed_phase":phase, "sample_spreads":phase_spreads, "candidate_attribution":None})
         metadata["contexts"]["after"]=environment_context(candidate,env,group)
         if any(source_info(root)!=sources[role] for role,root in (("baseline",baseline),("candidate",candidate))): raise ValueError("source changed during capture")
         manifest=output/"manifest.json";manifest.write_text(json.dumps(metadata,indent=2)+"\n")
