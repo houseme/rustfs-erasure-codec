@@ -100,6 +100,9 @@ jobs:
       - name: Compile and test the shared external duration sampler
         run: python3 scripts/release_sampling.py --check
 
+      - name: Verify page-controlled slice fixtures without performance capture
+        run: python3 scripts/diagnose_verify_layout.py --check
+
       - name: Verify ordinary sampler telemetry has no Rust heap activity
         run: python3 scripts/check_sampler_telemetry.py
 
