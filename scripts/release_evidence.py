@@ -526,7 +526,9 @@ def capture(baseline, candidate, output, group):
         if any(source_info(root)!=sources[role] for role,root in (("baseline",baseline),("candidate",candidate))): raise ValueError("source changed during capture")
         manifest=output/"manifest.json";manifest.write_text(json.dumps(metadata,indent=2)+"\n")
         _,_,report=verify(manifest,candidate)
-        (output/"report.json").write_text(json.dumps(report,indent=2)+"\n")
+    # Cleanup is part of successful capture ownership; do not leave a passing
+    # report if an unexpected generated input prevents safe release.
+    (output/"report.json").write_text(json.dumps(report,indent=2)+"\n")
 
 
 def materialize(manifest, repository, env_file):
