@@ -45,7 +45,22 @@ def view_fixture(case,iterations=2,observation=0,page_size=4096):
                     add(call,'writer_before',index,used,size)
                     add(call,'writer_after',index,used+n,size,n)
                     used+=n
-    return {'schema':'stream-buffer-views-v1','observation':observation,'iterations':iterations,'calls':iterations,'completed':iterations,'page_size':page_size,'overflow':0,'release_approval':False,'events':events}
+    windows=[];clock=0;counter=0
+    def window(call,phase,index=None,amount=0):
+        nonlocal clock,counter
+        clock+=10;counter+=2
+        w={'call':call,'phase':phase,'index':index,'bytes':amount,'start_ns':clock,'end_ns':clock+5,'before':[counter]*4,'after':[counter+1]*4}
+        clock+=10;counter+=2;windows.append(w)
+    for call in range(1,iterations+1):
+        start=clock;before=counter
+        if operation=='encode_stream':
+            window(call,'reserve',amount=m*size)
+            for event in events:
+                if event['call']==call and event['role']=='parity_write_view':window(call,'append',event['index'],event['bytes'])
+            window(call,'drop',amount=m*size)
+        clock+=10;counter+=2
+        windows.append({'call':call,'phase':'call','index':None,'bytes':0,'start_ns':start,'end_ns':clock,'before':[before]*4,'after':[counter]*4})
+    return {'schema':'stream-buffer-views-v2','observation':observation,'iterations':iterations,'calls':iterations,'completed':iterations,'page_size':page_size,'overflow':0,'release_approval':False,'events':events,'windows':windows}
 
 
 class StreamViewTests(unittest.TestCase):
@@ -98,11 +113,37 @@ class StreamViewTests(unittest.TestCase):
         for name in before:
             if name not in ('root.rs','stream.rs'):self.assertEqual(before[name],traced[name])
         self.assertIn('super::stream_views::cursors(&cursors, 8)',traced['stream.rs'])
-        self.assertIn('drop(writers); drop(readers);',traced['stream.rs'])
+        self.assertIn('super::stream_views::drop_outputs(writers); drop(readers);',traced['stream.rs'])
         import diagnose_cpu_placement
         placement=diagnose_cpu_placement.render(root,allocation_check=True)
         self.assertNotIn('stream_views::',placement['root.rs'])
         self.assertNotIn('stream_views.rs',placement)
+
+    def test_window_partition_preserves_all_calls_and_rejects_incomplete_or_overlapping_io(self):
+        case='encode_stream:4:2:65536:65536'
+        original=view_fixture(case)
+        for mutation in (
+            lambda v:v['windows'].pop(),
+            lambda v:v['windows'][1].update(start_ns=0),
+            lambda v:v['windows'][1].update(index=9),
+            lambda v:v['windows'][1].update(bytes=1),
+            lambda v:v['windows'][1].update(after=[0]*4),
+            lambda v:v['windows'][1].update(before=None),
+            lambda v:v['windows'][1].update(address=123),
+            lambda v:v['windows'].append(v['windows'][0]),
+        ):
+            value=copy.deepcopy(original);mutation(value)
+            with self.assertRaises(ValueError):audit.validate(value,case,2,4096,0)
+        report=audit.summarize_windows(original)
+        self.assertEqual(len(report),2)
+        for call in report:
+            groups=call['windows']
+            for field,value in groups['call'].items():
+                self.assertEqual(value,sum(groups[p][field] for p in ('reserve','append','drop','outside_writer_windows')))
+        # Non-Linux counters stay unavailable, never fabricated as zero.
+        for window in original['windows']:window.update(before=None,after=None)
+        audit.validate(original,case,2,4096,0)
+        self.assertIsNone(audit.summarize_windows(original)[0]['windows']['call']['process_minor_faults'])
 
     def inventory_fixture(self):
         helper=fixtures.EvidenceTests(methodName='runTest');helper.setUp();self.addCleanup(helper.doCleanups)

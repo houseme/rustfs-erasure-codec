@@ -97,6 +97,7 @@ def analyze_stream_views(phases, views, sources, cpus, page_size, iterations):
             'coverage':{'stream_case_lifecycles':15,'caller_owned_destination_cases':10,'internal_read_views':10,'internal_parity_write_views':5,
                         'internal_verify_scratch':False,'internal_recovery_scratch':False,'non_stream_dynamic_buffers':False,
                         'formal_performance_geometry_equivalence':False},
+            'lifecycle_windows':{phase:[{'case':sample['case'],'observation':view['observation'],'calls':view_audit.summarize_windows(view)} for sample,view in zip(phases[phase],views[phase])] for phase in evidence.PHASES},
             'layout_checks':checks,'layout_mismatches':[c for c in checks if not c['matches']]}
 
 
@@ -121,7 +122,7 @@ def capture(tool, baseline, candidate, output, group, stream_views=False, iterat
     overlay=overlay_digest(candidate)
     if overlay_digest(baseline)!=overlay or evidence.harness_digest(baseline)!=evidence.harness_digest(candidate):
         raise ValueError('both sources require identical harness inputs')
-    metadata={'schema_version':'stream-view-inventory-v1' if stream_views else 'fixture-layout-inventory-v2',
+    metadata={'schema_version':'stream-view-inventory-v2' if stream_views else 'fixture-layout-inventory-v2',
               'sources':sources,'tool':evidence.source_info(tool),'context':context,
               'measuring_affinity':[min(context['isolation']['cpu_affinity'])],
               'constructor_affinity':context['isolation']['cpu_affinity'],'protocol':sampling.PROTOCOL,

@@ -11,8 +11,16 @@ ENTRIES = {"encode_stream":"Vec<stream_views::Reader<'_>> -> Vec<stream_views::W
            "reconstruct_stream":"Vec<Cursor<Vec<u8>>>"}
 
 
+def native_template():
+    # Reuse the exact ordinary parser implementations without changing its
+    # visibility, source, protocol or formal overlay digest.
+    engine=(sampling.TEMPLATES/'engine.rs').read_text()
+    return TEMPLATE.read_text()+''.join('\n#[cfg(target_os = "linux")]\n'+sampling.block(engine, declaration)+'\n'
+        for declaration in ('fn read_bounded','fn process_faults'))
+
+
 def implementation_digest():
-    return hashlib.sha256(pathlib.Path(__file__).read_bytes()+TEMPLATE.read_bytes()).hexdigest()
+    return hashlib.sha256(pathlib.Path(__file__).read_bytes()+native_template().encode()).hexdigest()
 
 
 def render(root):
@@ -40,7 +48,7 @@ def render(root):
             marker='                assert_eq!(cursors[0].get_ref(), &original[0]);'
             edit(marker,marker+'\n                super::stream_views::cursors(&cursors, 7);')
             edit('                rs.reconstruct_stream(', '                super::stream_views::cursors(&cursors, 8);\n                rs.reconstruct_stream(')
-        drops='drop(writers); drop(readers);' if operation=='encode_stream' else 'drop(readers);' if operation=='verify_stream' else 'drop(cursors);'
+        drops='super::stream_views::drop_outputs(writers); drop(readers);' if operation=='encode_stream' else 'drop(readers);' if operation=='verify_stream' else 'drop(cursors);'
         edit('\n            }','\n                '+drops+'\n                super::stream_views::end_call();\n            }')
         restored=loop
         for before,after in reversed(edits):
@@ -57,7 +65,7 @@ def render(root):
     text=text.replace('"Vec<&[u8]> -> Vec<Vec<u8>>"','"'+ENTRIES['encode_stream']+'"')
     text=text.replace('"Vec<&[u8]>"','"'+ENTRIES['verify_stream']+'"')
     result['stream.rs']=text
-    result['stream_views.rs']=TEMPLATE.read_text()
+    result['stream_views.rs']=native_template()
     marker='fn release_controlled_profile() {'
     if result['root.rs'].count(marker)!=1:raise ValueError('controlled worker entry changed')
     result['root.rs']=result['root.rs'].replace(marker,marker+' stream_views::enable();',1)
@@ -82,9 +90,76 @@ def underlying_records(records):
     return result
 
 
+COUNTERS = ('process_minor_faults','process_major_faults','calling_thread_run_ns','calling_thread_wait_ns')
+
+
+def validate_windows(view, case, iterations):
+    operation,data,parity,size,block=case.split(':');data,parity,size,block=map(int,(data,parity,size,block))
+    windows=view['windows']
+    if not isinstance(windows,list) or not 1<=len(windows)<=4096:raise ValueError('missing bounded lifecycle windows')
+    fields={'call','phase','index','bytes','start_ns','end_ns','before','after'}
+    available=set()
+    for window in windows:
+        if not isinstance(window,dict) or set(window)!=fields or window['phase'] not in {'call','reserve','append','drop'}:
+            raise ValueError('invalid lifecycle window')
+        if any(type(window[k]) is not int or window[k]<0 for k in ('call','bytes','start_ns','end_ns')) or not 1<=window['call']<=iterations or window['end_ns']<window['start_ns']:
+            raise ValueError('invalid lifecycle window counters/time')
+        if window['phase']=='append':
+            if type(window['index']) is not int or not 0<=window['index']<parity:raise ValueError('wrong append shard')
+        elif window['index'] is not None:raise ValueError('unexpected lifecycle shard')
+        before,after=window['before'],window['after']
+        available.add(before is not None)
+        if (before is None)!=(after is None):raise ValueError('partial lifecycle counters')
+        if before is not None and (any(not isinstance(a,list) or len(a)!=4 or any(type(v) is not int or not 0<=v<2**64 for v in a) for a in (before,after)) or any(b<a for a,b in zip(before,after))):
+            raise ValueError('invalid or decreasing lifecycle counters')
+    if len(available)!=1:raise ValueError('lifecycle counter availability changed')
+    if [w['call'] for w in windows]!=sorted(w['call'] for w in windows):raise ValueError('lifecycle calls reordered')
+    previous_end=0
+    for call in range(1,iterations+1):
+        current=[w for w in windows if w['call']==call]
+        if not current or current[-1]['phase']!='call':raise ValueError('missing completed lifecycle call')
+        parent=current[-1];children=current[:-1]
+        if parent['index'] is not None or parent['bytes']!=0 or parent['start_ns']<previous_end:raise ValueError('overlapping lifecycle calls')
+        previous_end=parent['end_ns']
+        if operation!='encode_stream':
+            if children:raise ValueError('unexpected writer lifecycle')
+            continue
+        phases=[w['phase'] for w in children]
+        count=parity*((size+block-1)//block)
+        if phases!=['reserve']+['append']*count+['drop']:raise ValueError('incomplete reserve/append/drop lifecycle')
+        if children[0]['bytes']!=parity*size or children[-1]['bytes']!=parity*size:raise ValueError('writer lifecycle byte total changed')
+        expected=[(e['index'],e['bytes']) for e in view['events'] if e['call']==call and e['role']=='parity_write_view']
+        if [(w['index'],w['bytes']) for w in children[1:-1]]!=expected:raise ValueError('append windows differ from actual I/O views')
+        last=parent['start_ns'];last_counters=parent['before']
+        for child in children:
+            if not last<=child['start_ns']<=child['end_ns']<=parent['end_ns']:raise ValueError('overlapping or escaping writer windows')
+            if child['before'] is not None and (any(b<a for a,b in zip(last_counters,child['before'])) or any(b<a for a,b in zip(child['after'],parent['after']))):
+                raise ValueError('writer counters escape the enclosing call')
+            last=child['end_ns'];last_counters=child['after']
+
+
+def summarize_windows(view):
+    """Partition diagnostic calls, not codec CPU or formal benchmark speedups.
+
+    Counter read intervals contain observer cost; outside_writer_windows also
+    contains probes and adapter metadata. Residency itself is not measured.
+    """
+    result=[]
+    for call in range(1,view['calls']+1):
+        windows=[w for w in view['windows'] if w['call']==call]
+        def totals(selected):
+            answer={'wall_ns':sum(w['end_ns']-w['start_ns'] for w in selected)}
+            answer.update({name:sum(w['after'][i]-w['before'][i] for w in selected) if all(w['before'] is not None for w in selected) else None for i,name in enumerate(COUNTERS)})
+            return answer
+        groups={phase:totals([w for w in windows if w['phase']==phase]) for phase in ('call','reserve','append','drop')}
+        groups['outside_writer_windows']={key:(value-sum(groups[p][key] for p in ('reserve','append','drop')) if value is not None else None) for key,value in groups['call'].items()}
+        result.append({'call':call,'windows':groups})
+    return result
+
+
 def validate(view, case, iterations, page_size, observation, source_fixture=None):
     """Require every call, transferred byte, reservation and missing transition."""
-    if set(view) != {'schema','observation','iterations','calls','completed','page_size','overflow','release_approval','events'} or view['schema']!='stream-buffer-views-v1' or view['release_approval'] is not False:
+    if set(view) != {'schema','observation','iterations','calls','completed','page_size','overflow','release_approval','events','windows'} or view['schema']!='stream-buffer-views-v2' or view['release_approval'] is not False:
         raise ValueError('invalid stream view schema')
     expected={'observation':observation,'iterations':iterations,'calls':iterations,'completed':iterations,'page_size':page_size,'overflow':0}
     if any(type(view.get(k)) is not int or view[k]!=v for k,v in expected.items()):
@@ -124,6 +199,7 @@ def validate(view, case, iterations, page_size, observation, source_fixture=None
         actual=[{'len':e['len'],'capacity':e['capacity'],'offset_64':e['offsets'][0],
                  'offset_4096':e['offsets'][1],'offset_page':e['offsets'][2]} for e in retained]
         if actual!=source_fixture:raise ValueError('stream view source differs from retained caller fixture')
+    validate_windows(view,case,iterations)
     for index in range(1,iterations+1):
         current=calls[index]
         if operation=='reconstruct_stream':
@@ -196,6 +272,8 @@ def check(repository, baseline_ref=None):
                 for index,(row,view) in enumerate(zip(rows,views)):
                     if row['case']!=case or row['index']!=index:raise ValueError('native view worker case/order mismatch')
                     validate(view,case,1,sampling.base_page_size(),index,row['fixture']['source'])
+                    if hasattr(os,'sched_getaffinity') and any(w['before'] is None for w in view['windows']):
+                        raise ValueError('native Linux lifecycle counters are missing')
                     if hasattr(os,'sched_getaffinity'):
                         sampling.validate_placement(row,os.sched_getaffinity(0))
                         sampling.validate_telemetry(row,os.sched_getaffinity(0))

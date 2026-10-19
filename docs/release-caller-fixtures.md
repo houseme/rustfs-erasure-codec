@@ -103,6 +103,27 @@ empty-missing and recovered owned buffers, then drops them at the original scope
 Both inventory modes reuse formal backend/features/I/O provenance and fixed
 preparation/placement comparisons through all observations and phases.
 
+Schema `stream-buffer-views-v2` adds bounded windows around each original call and
+its writer reservation, actual Vec append and original-scope writer drop. On Linux,
+each window retains process minor/major fault counters (including pool workers,
+excluding child processes), the calling thread's scheduler run/wait counters and
+monotonic timestamps. Shared bounded procfs parsers are extracted unchanged from
+the ordinary observer. Other platforms explicitly record unavailable counters.
+The separate heap probe includes actual callbacks and these counter reads.
+
+Validation requires the full reserve/append/drop sequence, matching byte/shard
+identities from actual Write views, monotonic counters and nonoverlapping windows
+inside each call. Parallel overlapping writer windows are rejected rather than
+summed; current catalog Auto writers are serial. Reports partition each call into
+those windows and `outside_writer_windows`. The latter includes codec work, reads,
+other allocation/free, adapter metadata and the diagnostic probes themselves; it
+must not be labeled pure encode CPU. Scheduler counters cover the calling thread,
+not total process CPU. Fault reads bracket operations at different instants from
+the timestamps, so these are diagnostic intervals, not exact fault-handler costs.
+Neither residency, page identity, allocation identity across calls nor the unique
+cause of a fault is inferred. Ordinary formal protocol 14 and its renderer remain
+unchanged; old view-v1 observations stay historical, not upgraded to window data.
+
 The validator requires every call/drop completion, original source-prefix/EOF
 consumption, transferred byte, reservation, cursor state and fixed observation.
 Overflow, unknown capacities, missing or reordered lifecycle stages fail without
