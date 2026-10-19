@@ -1,6 +1,6 @@
 # Retained caller fixtures for release workers
 
-Protocol 11 retains the caller contract introduced in protocol 9: it prepares one codec and caller fixture for the complete three-warmup,
+Protocol 12 retains the caller contract introduced in protocol 9: it prepares one codec and caller fixture for the complete three-warmup,
 nine-observation schedule of each small-file/stream worker. Caller byte storage
 is allocated before version-dependent codec setup. Retained source/scratch buffers
 are checked by full pointer identity, length and capacity before and after every
@@ -34,10 +34,24 @@ storage; `call_entry` describes the API adapter. Policies ending in `untracked`
 explicitly exclude dynamic destination/internal-scratch offsets. Equal caller
 metadata does not establish equal layouts for those allocations.
 
-The original smoke and hotspot preparation/timing contracts remain intact. In
-particular, hotspot inputs are still generated/encoded every iteration. No codec
-algorithm, matrix, encoded format, production API, threshold or allocator tunable
-changes. The formal catalog remains 126 cases; this is not a selected stable subset.
+All 126 cases now retain one codec for the worker, including 15 smoke and eight
+hotspot cases. Every record requires the actual API/output policy, missing/required
+and changed masks, seed, source lifetime and construction order. Smoke retains
+its original per-iteration generated source, allocations and timer. Hotspot retains
+per-iteration generated/encoded inputs, clones, missing-output allocation and the
+original recovery timers, but borrows one worker-seeded SmallRng instead of
+obtaining an entropy-seeded thread RNG for every byte. Generation remains a
+per-byte u32-to-u8 loop. Its generated-byte count and non-consuming two-word state
+preview use fixed storage. The validator checks consumption, continuity, final
+calibration and all four phases. A native correctness check executes all 23 changed
+workers against each actual lockfile and compares their complete input contracts;
+it does not qualify timing. This is an explicit workload change requiring fresh
+complete evidence, not a migration of older observations.
+
+No codec algorithm, matrix, encoded format, production API, threshold or allocator
+tunable changes. Dynamic destination/internal-scratch geometry remains untracked,
+including smoke/hotspot source positions. The formal catalog remains 126 cases;
+this is not a selected stable subset.
 
 `diagnose_fixture_layout.py` inventories all 103 retained caller cases in all four
 phases at one iteration, producing 4,944 observations and 618 pairwise checks. It
@@ -50,6 +64,7 @@ Hotspot missing/required result patterns use bounded inline metadata in protocol
 10. Their original labels are formatted only in deferred exporters, after all
 observations finish. A separate executable tests exact bytes against the actual
 original String formatter and counts zero allocation/reallocation/free requests
-for constructing and formatting the replacement. The original hotspot random
-inputs, recovery calls and inner timing are untouched. This observer change needs
-fresh evidence and does not extend the caller-layout scope to hotspot buffers.
+for constructing and formatting the replacement. Protocol 12 changes hotspot random preparation as described above; recovery calls
+and inner timing remain original. Fixed-storage workload metadata also has a
+separate zero-heap-activity test. These checks do not extend caller-layout coverage
+to hotspot buffers.

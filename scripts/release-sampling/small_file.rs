@@ -119,6 +119,10 @@ impl PreparedSmallFile {
                 ns_per_iter,
             },
             fixture: super::layout::OptionalFixture(Some(self.fixture)),
+            workload: super::workload::OptionalWorkload(Some(super::workload::Workload::retained(
+                self.seed,
+                release_contract(self.case, self.operation),
+            ))),
         }
     }
 }

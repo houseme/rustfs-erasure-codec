@@ -98,8 +98,11 @@ class EvidenceTests(unittest.TestCase):
         for key in sorted(evidence.expected_cases(profile)):
             row = {"schema_version": 1, "artifact_kind": evidence.KINDS[profile], "benchmark_metrics_enabled": False}
             if profile == "hotspot":
-                row.update(scenario=key, data_shards=10, parity_shards=4, shard_size=1048576, useful_shards=1,
-                           missing_pattern="0", required_pattern="0", baseline_operation="reconstruct", candidate_operation="reconstruct_data",
+                data, parity, _, missing, required = sampling.hotspot_case(key)
+                useful = tuple(i for i in missing if i<data) if required is None else required
+                pattern = lambda values:'|'.join('d'+str(i) if i<data else 'p'+str(i-data) for i in values)
+                row.update(scenario=key, data_shards=data, parity_shards=parity, shard_size=1048576, useful_shards=len(useful),
+                           missing_pattern=pattern(missing), required_pattern=pattern(useful), baseline_operation='reconstruct' if required is None else 'reconstruct_data', candidate_operation='reconstruct_data' if required is None else 'reconstruct_some',
                            baseline_mb_s=100.0, candidate_mb_s=100.0, speedup=1.0)
             else:
                 operation, data, parity, size, *block = key.split(":")
@@ -107,7 +110,7 @@ class EvidenceTests(unittest.TestCase):
                            throughput_mb_s=100.0, ns_per_iter=10_000_000.0, git_revision=revision[:12],
                            features="std|simd-accel", target_triple="x86_64-linux-unknown", backend="fixture",
                            backend_id="fixture", backend_kind="fixture", backend_override="auto", override_honored=True,
-                           iterations=1)
+                           iterations=1, seed=sampling.workload_contract(profile,key)['seed'])
                 if profile != "smoke": row["profile"] = "fast"
                 if block:
                     row.update(stream_block_size=int(block[0]), stream_io_backend="fixture", stream_io_mode="auto", ns_per_block=10_000_000.0)
@@ -128,8 +131,16 @@ class EvidenceTests(unittest.TestCase):
             fixture = {'entry':'Vec<Vec<u8>>', 'lifetime':'worker', 'page_size':4096,
                        'source':[copy.deepcopy(position) for _ in range(row['data_shards'] if row['operation']=='encode_stream' else row['data_shards']+row['parity_shards'])],
                        'scratch':[copy.deepcopy(position) for _ in range(row['parity_shards'] if row['operation']=='verify_with_buffer' else 0)], **sampling.fixture_contract(profile,key)}
-        return {'fixture':fixture, 'kind':kind, 'case':key, 'revision':self.sources[role]['commit'], 'index':index, 'iterations':1,
-                'wall_ns':120_000_000, 'timed_ns':10_000_000.0, 'complete':True, 'target_met':True, 'isolated_case':True, 'calibration_batch':0, 'rows':[copy.deepcopy(row)],
+        workload = dict(sampling.workload_contract(profile,key), rng=None)
+        timed = 10_000_000.0
+        if profile == 'hotspot':
+            data,parity,*_ = sampling.hotspot_case(key)
+            step = (data+parity)*1048576
+            preview = lambda count:[(workload['seed']+count) % 2**64,(workload['seed']^count) % 2**64]
+            workload['rng'] = {'bytes_before':index*step,'bytes_after':(index+1)*step,'next_before':preview(index*step),'next_after':preview((index+1)*step)}
+            timed = row['useful_shards']*row['shard_size']*1e9/(1048576.0*row['candidate_mb_s'])
+        return {'fixture':fixture, 'workload':workload, 'kind':kind, 'case':key, 'revision':self.sources[role]['commit'], 'index':index, 'iterations':1,
+                'wall_ns':120_000_000, 'timed_ns':timed, 'complete':True, 'target_met':True, 'isolated_case':True, 'calibration_batch':0, 'rows':[copy.deepcopy(row)],
                 'before':{'cpu':0, 'run_ns':index*100, 'wait_ns':index, 'switches':index},
                 'after':{'cpu':0, 'run_ns':index*100+99, 'wait_ns':index+1, 'switches':index+1}}
 

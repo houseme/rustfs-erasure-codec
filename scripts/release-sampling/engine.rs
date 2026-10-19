@@ -1,5 +1,6 @@
 //! Shared external integration-test sampler; no codec implementation is replaced.
 use super::layout::OptionalFixture;
+use super::workload::OptionalWorkload;
 use std::cell::Cell;
 use std::fs;
 use std::io::{self, Read};
@@ -127,6 +128,7 @@ struct Observation<R> {
     before: Telemetry,
     after: Telemetry,
     fixture: OptionalFixture,
+    workload: OptionalWorkload,
 }
 
 impl<R> Observation<R> {
@@ -138,6 +140,7 @@ impl<R> Observation<R> {
 pub(super) struct Output<R> {
     pub(super) result: R,
     pub(super) fixture: OptionalFixture,
+    pub(super) workload: OptionalWorkload,
 }
 
 fn measure_fixed<R>(
@@ -154,7 +157,11 @@ fn measure_fixed<R>(
             ITERATIONS.with(|n| n.set(count));
             let before = telemetry();
             let start = Instant::now();
-            let Output { result, fixture } = std::hint::black_box(operation(count));
+            let Output {
+                result,
+                fixture,
+                workload,
+            } = std::hint::black_box(operation(count));
             let wall_ns = start.elapsed().as_nanos();
             let after = telemetry();
             let timed_ns = ns_per_iter(&result) * count as f64;
@@ -162,7 +169,7 @@ fn measure_fixed<R>(
             // Keep a mode-independent timing journal even if a process is
             // interrupted before the deferred original artifact export.
             println!(
-                "\nRSE_TIMING {{\"case\":\"{key}\",\"index\":{index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"fixture\":{fixture},\"before\":{before},\"after\":{after}}}"
+                "\nRSE_TIMING {{\"case\":\"{key}\",\"index\":{index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"fixture\":{fixture},\"workload\":{workload},\"before\":{before},\"after\":{after}}}"
             );
             observations.push(Observation {
                 result,
@@ -171,31 +178,11 @@ fn measure_fixed<R>(
                 before,
                 after,
                 fixture,
+                workload,
             });
         }
     }));
     (observations, outcome)
-}
-
-pub fn run<R>(
-    key: &str,
-    filename: &str,
-    mut operation: impl FnMut(usize) -> R,
-    ns_per_iter: impl Fn(&R) -> f64,
-    export: impl Fn(&R),
-) {
-    run_prepared(
-        key,
-        filename,
-        |_| {
-            move |n| Output {
-                result: operation(n),
-                fixture: OptionalFixture(None),
-            }
-        },
-        ns_per_iter,
-        export,
-    );
 }
 
 pub(super) fn run_prepared<R, F: FnMut(usize) -> Output<R>>(
@@ -251,6 +238,7 @@ pub(super) fn run_prepared<R, F: FnMut(usize) -> Output<R>>(
             before,
             after,
             fixture,
+            workload,
         } = observation;
         let warming = record_index < WARMUPS;
         let complete = if calibrating {
@@ -268,7 +256,7 @@ pub(super) fn run_prepared<R, F: FnMut(usize) -> Output<R>>(
             (false, false) => "sample",
         };
         println!(
-            "\nRSE_SAMPLE {{\"kind\":\"{kind}\",\"case\":\"{key}\",\"revision\":\"{}\",\"index\":{record_index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"complete\":{complete},\"target_met\":{target_met},\"isolated_case\":{isolated_case},\"calibration_batch\":{calibration_batch},\"fixture\":{fixture},\"before\":{before},\"after\":{after},\"rows\":{}}}",
+            "\nRSE_SAMPLE {{\"kind\":\"{kind}\",\"case\":\"{key}\",\"revision\":\"{}\",\"index\":{record_index},\"iterations\":{count},\"wall_ns\":{wall_ns},\"timed_ns\":{timed_ns},\"complete\":{complete},\"target_met\":{target_met},\"isolated_case\":{isolated_case},\"calibration_batch\":{calibration_batch},\"fixture\":{fixture},\"workload\":{workload},\"before\":{before},\"after\":{after},\"rows\":{}}}",
             revision(),
             raw.replace(['\n', '\r'], "")
         );
@@ -316,6 +304,7 @@ mod tests {
                 Output {
                     result: calls,
                     fixture: OptionalFixture(None),
+                    workload: OptionalWorkload(None),
                 }
             },
             &|_| 1.0,
@@ -337,6 +326,7 @@ mod tests {
                 Output {
                     result: calls,
                     fixture: OptionalFixture(None),
+                    workload: OptionalWorkload(None),
                 }
             },
             &|_| 1.0,

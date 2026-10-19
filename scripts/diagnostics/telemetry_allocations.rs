@@ -135,3 +135,38 @@ fn hotspot_patterns_match_the_actual_original_formatter_without_heap_activity() 
         );
     }
 }
+
+#[test]
+fn workload_state_and_metadata_keep_the_rust_heap_untouched() {
+    use std::fmt::Write;
+    struct Writer {
+        bytes: [u8; 2048],
+        used: usize,
+    }
+    impl std::fmt::Write for Writer {
+        fn write_str(&mut self, value: &str) -> std::fmt::Result {
+            let end = self.used + value.len();
+            self.bytes
+                .get_mut(self.used..end)
+                .ok_or(std::fmt::Error)?
+                .copy_from_slice(value.as_bytes());
+            self.used = end;
+            Ok(())
+        }
+    }
+    let (_, counts) = count_heap(|| {
+        let mut rng = workload::InputRng::new(workload::hotspot_seed("case", 10, 4, 1061));
+        let before = rng.point();
+        let mut data = [0u8; 1061];
+        rng.fill(&mut data);
+        let trace = workload::RngTrace::new(before, rng.point(), 1061);
+        let value = workload::Workload::hotspot(42, ("Vec<Option<Vec<u8>>>", "test", 1, 1), trace);
+        let mut writer = Writer {
+            bytes: [0; 2048],
+            used: 0,
+        };
+        write!(&mut writer, "{value}").unwrap();
+        std::hint::black_box(writer);
+    });
+    assert_eq!(counts, Counts::default());
+}

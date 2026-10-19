@@ -1,37 +1,46 @@
 # 9.1.0 publication blockers and completion criteria
 
-Audit date: 2026-10-19 (Asia/Shanghai). Main includes PR #18 at
-`19037b31f74de4081e41ec48baf06fce9dad420c`. PR #19 contains the shared
-protocol-10 measurement corrections described below. This document is a current
-readiness assessment, not release approval; historical evidence keeps its original
-source and protocol bindings.
+Audit date: 2026-10-19 (Asia/Shanghai). Main includes PR #23 at `b22d17f`;
+the current protocol-12 preparation correction is pending review. This is a
+readiness assessment, not release approval. Historical evidence retains its
+original source and protocol bindings.
 
 ## Implementation and acceptance are separate
 
-The shared sampler now prepares one codec and caller fixture per worker for all
-88 small-file and 15 stream cases. Caller byte storage precedes codec construction;
-the generated inner kernels reuse the original benchmark loops. Original timed
-per-iteration clones, missing-output allocations and I/O remain present. Each
-stream writer receives its own reservation. Ordinary procfs telemetry uses bounded
-stack storage, and hotspot result patterns use bounded inline metadata with deferred
-formatting. Separate native probes check the original formatter's exact bytes and
-zero replacement heap activity. Production algorithms, matrices, APIs, dependencies
-and benchmark source files are unchanged by PR #19.
+Protocol 12 uses one prepared worker entry for all 126 cases. It extends the
+existing 103 small-file/stream caller contracts to the 15 smoke and eight hotspot
+cases: codec lifetime, actual API/output policy, masks, seed, source lifetime and
+construction order are mandatory. Hotspot per-byte random generation now borrows
+one worker-seeded RNG and records bounded consumption/state witnesses. Original
+per-iteration allocations, clones, drops, recovery assertions and inner timers
+remain. Cross-version native checks compare the actual input traces against each
+release's lockfile. Build outputs are isolated per source checkout, including under
+an inherited shared Cargo target. None of these checks is timing acceptance.
 
-The [caller contract](release-caller-fixtures.md) records concrete API entries,
-lifetimes, missing/required masks and source/scratch geometry. All 103 caller cases
-have matching structural inventories under both declared allocator contexts:
-4,944 observations and 618 comparisons per context. These use one iteration and
-cannot qualify sample duration, repeat drift or throughput. Dynamic destinations,
-internal scratch and smoke/hotspot source layouts remain outside this tracked scope.
-The separate 16-offset 1/4 KiB diagnostic is not four-phase paired acceptance.
+The [caller contract](release-caller-fixtures.md) tracks source/scratch geometry for
+103 retained cases. Their historical structural inventories have 4,944 observations
+and 618 comparisons per context, at one iteration only. Dynamic destinations,
+internal scratch and smoke/hotspot source positions remain outside this geometry
+scope. Conditions 1/2/5 therefore remain partial. PR #23 binds complete paired
+1/4 KiB layout evidence into schema-3 formal capture/verification/materialization;
+no real passing paired supplement exists yet. Condition 3 remains partial, and
+condition 6 still requires accepted full performance evidence. Production code,
+algorithms, matrices, APIs, dependencies and original benchmarks are unchanged by
+this preparation correction.
+
+The protocol-12 local checks pass 222 Python tests, 14 active sampler tests on
+each actual macOS/ARM64 codec checkout, all 23 changed workers per checkout, and
+the independent nine-test heap probe. Cross-version prefix bytes and every worker
+input contract match. Generated-sampler Clippy with warnings denied, formatting,
+actionlint and manifest checks also pass. These results do not certify Linux
+performance; final PR CI remains separate.
 
 ## Current release gates
 
 | Layer | Verified state | Required next result |
 | --- | --- | --- |
 | Functional compatibility | The normal-format 200-case published-9.0.0 parity/roundtrip probe and core tests pass. PR #19 changes no production algorithm. | Preserve the declared compatibility boundary: the normal-format probe disables `fast_one_parity` and does not promise recovery of historically inconsistent fast/custom/mixed-entry codewords. |
-| Workload comparability | The 103 caller cases share an explicit preparation contract; dynamic/internal buffers and full per-layout coverage remain partial in backlog #2897. | Complete the agreed dynamic/lifetime and per-layout acceptance scope; caller matching alone is insufficient. |
+| Workload comparability | All 126 cases have explicit preparation/input contracts in protocol 12; geometry covers only the 103 retained caller cases. Dynamic/internal buffers and real per-layout acceptance remain partial in backlog #2897. | Complete the agreed dynamic/lifetime and per-layout acceptance scope; caller matching alone is insufficient. |
 | Baseline stability | Both complete protocol-10 9.0.0 qualifications failed their original gates; details below. | Qualify the entire baseline before candidate attribution. Preserve every failed case and allocator context. |
 | Quantitative evidence | No accepted complete campaign for the final source tree and shared harness exists. | Fresh baseline/candidate A1/B1/B2/A2, both calibrations and all 126 original cases, with every duration/distribution/drift/regression gate passing. |
 | Workflow input | `RSE_RELEASE_EVIDENCE_REF` was absent at the last live check. Rejected audit data is not accepted evidence. | Verify accepted `release-evidence/manifest.json` on a data commit, then supply its full immutable SHA through the variable or manual `evidence_ref`. |

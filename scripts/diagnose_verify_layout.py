@@ -168,6 +168,7 @@ def capture(repository, output, group, iterations):
     env = {k: v for k, v in os.environ.items() if not k.startswith(('RSE_', 'RS_', 'CARGO_PROFILE_'))
            and k not in ('CARGO_ENCODED_RUSTFLAGS', 'RUSTC_WRAPPER', 'RUSTC_WORKSPACE_WRAPPER')}
     env.update(evidence.SAMPLING_ENV)
+    env = sampling.build_environment(repository, env)
     context = evidence.environment_context(repository, env, group)
     source, tool = evidence.source_info(repository), evidence.source_info(TOOL)
     measuring_cpu = min(context['isolation']['cpu_affinity'])
