@@ -440,3 +440,10 @@ same-version prerequisite, always `release_approval=false` and
 as evidence, and does not waive dynamic-buffer geometry, paired-layout or full
 candidate ABBA acceptance. A failure preserves its logs and completed sample files;
 the CLI also writes `report.json` with the original refusal.
+
+The existing `analyze_baseline_variability.py --capture ... --output ...` replays
+both historical baseline controls and this qualification schema. Use the matching
+sampler protocol/renderer; it preserves every warmup/sample and source/member
+digest, distinguishes a missing A2 from a completed repeat, and never changes the
+qualification or release decision. A descriptive replay cannot prove physical-host
+exclusivity or internal/dynamic-buffer equivalence.
