@@ -1,0 +1,2054 @@
+[
+  {
+    "kind": "warmup",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 0,
+    "iterations": 64,
+    "wall_ns": 2003481764,
+    "timed_ns": 2003478419,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 220685546,
+      "wait_ns": 5989,
+      "switches": 7,
+      "process_minor_faults": 41135,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 1225862677,
+      "wait_ns": 34943,
+      "switches": 584,
+      "process_minor_faults": 800041,
+      "process_major_faults": 0
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 64,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 5111.1107,
+        "ns_per_iter": 31304350.3,
+        "ns_per_block": 7826087.57
+      }
+    ]
+  },
+  {
+    "kind": "warmup",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 1,
+    "iterations": 64,
+    "wall_ns": 1953921913,
+    "timed_ns": 1953918619,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 1225943768,
+      "wait_ns": 34943,
+      "switches": 584,
+      "process_minor_faults": 800041,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 2184409386,
+      "wait_ns": 103287,
+      "switches": 1163,
+      "process_minor_faults": 1457544,
+      "process_major_faults": 0
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 64,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 5240.7505,
+        "ns_per_iter": 30529978.42,
+        "ns_per_block": 7632494.61
+      }
+    ]
+  },
+  {
+    "kind": "warmup",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 2,
+    "iterations": 64,
+    "wall_ns": 1976641928,
+    "timed_ns": 1976638883,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 2184595003,
+      "wait_ns": 103287,
+      "switches": 1163,
+      "process_minor_faults": 1457545,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 3147446176,
+      "wait_ns": 136195,
+      "switches": 1741,
+      "process_minor_faults": 2161130,
+      "process_major_faults": 0
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 64,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 5180.5113,
+        "ns_per_iter": 30884982.55,
+        "ns_per_block": 7721245.64
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 3,
+    "iterations": 64,
+    "wall_ns": 1958701900,
+    "timed_ns": 1958698494,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 3147487217,
+      "wait_ns": 136195,
+      "switches": 1741,
+      "process_minor_faults": 2161130,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 4117435340,
+      "wait_ns": 174182,
+      "switches": 2321,
+      "process_minor_faults": 2849354,
+      "process_major_faults": 0
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 64,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 5227.9613,
+        "ns_per_iter": 30604663.97,
+        "ns_per_block": 7651165.99
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 4,
+    "iterations": 64,
+    "wall_ns": 1904231504,
+    "timed_ns": 1904228279,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 4118435521,
+      "wait_ns": 174182,
+      "switches": 2321,
+      "process_minor_faults": 2849354,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 5043176625,
+      "wait_ns": 237357,
+      "switches": 2900,
+      "process_minor_faults": 3522217,
+      "process_major_faults": 0
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 64,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 5377.5065,
+        "ns_per_iter": 29753566.86,
+        "ns_per_block": 7438391.71
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 5,
+    "iterations": 64,
+    "wall_ns": 1953409229,
+    "timed_ns": 1953406355,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 5043498855,
+      "wait_ns": 237357,
+      "switches": 2900,
+      "process_minor_faults": 3522218,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 6009706362,
+      "wait_ns": 338077,
+      "switches": 3483,
+      "process_minor_faults": 4241164,
+      "process_major_faults": 0
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 64,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 5242.1249,
+        "ns_per_iter": 30521974.3,
+        "ns_per_block": 7630493.57
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 6,
+    "iterations": 64,
+    "wall_ns": 1854743128,
+    "timed_ns": 1854739884,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 6010707014,
+      "wait_ns": 338077,
+      "switches": 3483,
+      "process_minor_faults": 4241164,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 6896925728,
+      "wait_ns": 525942,
+      "switches": 4067,
+      "process_minor_faults": 4883305,
+      "process_major_faults": 0
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 64,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 5520.9898,
+        "ns_per_iter": 28980310.69,
+        "ns_per_block": 7245077.67
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 7,
+    "iterations": 64,
+    "wall_ns": 1940078178,
+    "timed_ns": 1940075123,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 6897771620,
+      "wait_ns": 525942,
+      "switches": 4067,
+      "process_minor_faults": 4883305,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 7853347187,
+      "wait_ns": 636540,
+      "switches": 4650,
+      "process_minor_faults": 5617612,
+      "process_major_faults": 0
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 64,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 5278.1461,
+        "ns_per_iter": 30313673.8,
+        "ns_per_block": 7578418.45
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 8,
+    "iterations": 64,
+    "wall_ns": 1888469439,
+    "timed_ns": 1888466294,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 7853448418,
+      "wait_ns": 636540,
+      "switches": 4650,
+      "process_minor_faults": 5617613,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 8768907507,
+      "wait_ns": 648848,
+      "switches": 5227,
+      "process_minor_faults": 6275115,
+      "process_major_faults": 0
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 64,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 5422.3896,
+        "ns_per_iter": 29507285.84,
+        "ns_per_block": 7376821.46
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 9,
+    "iterations": 64,
+    "wall_ns": 1923576459,
+    "timed_ns": 1923573304,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 8769656804,
+      "wait_ns": 648848,
+      "switches": 5227,
+      "process_minor_faults": 6275115,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 9708276443,
+      "wait_ns": 734967,
+      "switches": 5808,
+      "process_minor_faults": 6978700,
+      "process_major_faults": 0
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 64,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 5323.4259,
+        "ns_per_iter": 30055832.88,
+        "ns_per_block": 7513958.22
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 10,
+    "iterations": 64,
+    "wall_ns": 1914689280,
+    "timed_ns": 1914686386,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 9708781216,
+      "wait_ns": 734967,
+      "switches": 5808,
+      "process_minor_faults": 6978700,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 10642123265,
+      "wait_ns": 803228,
+      "switches": 6389,
+      "process_minor_faults": 7666924,
+      "process_major_faults": 0
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 64,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 5348.1343,
+        "ns_per_iter": 29916974.78,
+        "ns_per_block": 7479243.7
+      }
+    ]
+  },
+  {
+    "kind": "sample",
+    "case": "encode_stream:10:4:16777216:4194304",
+    "revision": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "index": 11,
+    "iterations": 64,
+    "wall_ns": 1888673485,
+    "timed_ns": 1888670902,
+    "complete": true,
+    "target_met": true,
+    "isolated_case": true,
+    "calibration_batch": 0,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<&[u8]> -> Vec<Vec<u8>>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 10642480127,
+      "wait_ns": 803228,
+      "switches": 6389,
+      "process_minor_faults": 7666924,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 11555497558,
+      "wait_ns": 850668,
+      "switches": 6968,
+      "process_minor_faults": 8339787,
+      "process_major_faults": 0
+    },
+    "rows": [
+      {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 64,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 5421.8022,
+        "ns_per_iter": 29510482.84,
+        "ns_per_block": 7377620.71
+      }
+    ]
+  }
+]

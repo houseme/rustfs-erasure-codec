@@ -1,0 +1,131 @@
+{
+  "schema": "stream-scratch-full-stack-v1",
+  "source": {
+    "commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "tree": "d44fe8c296972cf895375101f8975c99371db57a",
+    "lock_sha256": "972540efcf6bc23c0064252a9c0d937bf87dbe0edff9cdb688d2fdcbd5653d49"
+  },
+  "tool": {
+    "commit": "aaebcb3835d6767fce44e4fbdbd3389664729713",
+    "tree": "1cd67674e2f2b65b226d525f5db28035f8beea7b",
+    "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+  },
+  "context": {
+    "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+    "isolation": {
+      "scope": "exclusive-vm-cpu-partition",
+      "reserved_cpu_count": 8,
+      "cpu_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "physical_host_exclusivity_proven": false
+    },
+    "runtime": {
+      "libc": {
+        "name": "glibc",
+        "version": "2.39"
+      },
+      "page_size": 4096,
+      "allocator_environment": {}
+    },
+    "settings": {
+      "RUSTUP_TOOLCHAIN": "stable",
+      "RUSTFLAGS": "-C force-frame-pointers=yes",
+      "RAYON_NUM_THREADS": "4",
+      "RS_PARALLEL_POLICY_MAX_JOBS": "4",
+      "RSE_BACKEND_OVERRIDE": "auto",
+      "RSE_STRICT_BACKEND_OVERRIDE": "1",
+      "RSE_SMOKE_PROFILE": "extended",
+      "RSE_SMALL_FILE_PROFILE": "fast",
+      "RSE_STREAM_PROFILE": "fast",
+      "RSE_STREAM_IO_MODE": "auto",
+      "RSE_BENCHMARK_ALLOW_MISSING_CASES": "0",
+      "CARGO_BUILD_JOBS": "4",
+      "RSE_SAMPLER_PROTOCOL": "duration-v14"
+    }
+  },
+  "case": "encode_stream:10:4:16777216:4194304",
+  "iterations": 6,
+  "warmups": 3,
+  "samples": 9,
+  "protocol": {
+    "name": "shared-external-duration-sampler",
+    "version": 14,
+    "samples": 9,
+    "warmups": 3,
+    "case_isolation": "fresh-process-per-count",
+    "case_order": "lexicographic",
+    "max_calibration_batches": 12,
+    "max_calibration_records": 144,
+    "target_wall_ns": 100000000,
+    "target_timed_ns": 5000000,
+    "minimum_wall_ns": 50000000,
+    "minimum_timed_ns": 2000000,
+    "central_spread_limit": 0.1,
+    "observer_buffer_policy": "bounded-stack-procfs-no-rust-heap",
+    "fault_counter_scope": "guest-process-including-workers-excluding-children; no IDs; outside inner timers",
+    "result_metadata_policy": "bounded-inline-hotspot-patterns-deferred-formatting",
+    "stream_output_policy": "independent-capacity-per-writer-per-iteration",
+    "workload_contract": {
+      "scope": "all-126-cases",
+      "codec_lifetime": "worker",
+      "hotspot_input": "worker-seeded-SmallRng-u32-low-byte",
+      "state_witness": "generated-byte-count-and-next-two-u64-words",
+      "geometry_scope": "unchanged-caller-only; dynamic destinations and internal views untracked"
+    },
+    "thread_placement": {
+      "measuring_cpu": "minimum-reserved-cpu",
+      "pin": "thread-only-after-codec-and-pool-preparation",
+      "pool_affinity": "complete-reservation",
+      "observation_checks": "actual-mask-before-and-after-timer"
+    },
+    "fixture_layout": {
+      "scope": "small_file:all;stream:all;caller-storage-only",
+      "codec_lifetime": "worker",
+      "dynamic_outputs": "original per-iteration policy; offsets explicitly untracked",
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "construction": "caller-buffers-before-codec",
+      "offset_moduli": [
+        64,
+        4096,
+        "os_base_page_size"
+      ],
+      "page_size_source": "controller-sysconf",
+      "untracked_cases": "original allocation contract; no layout guarantee"
+    },
+    "timing_scope": {
+      "smoke": "original per-iteration workload",
+      "small_file": "operation loops excluding one-time fixture preparation",
+      "stream": "operation loops excluding one-time fixture preparation",
+      "hotspot": "original inner recovery intervals"
+    }
+  },
+  "renderer_sha256": "80101baf2dd276a8d080d345187b2b0977575c92790651f339fc1ac388ff3d64",
+  "build_overrides": {
+    "RUSTFLAGS": "-C force-frame-pointers=yes",
+    "CARGO_PROFILE_RELEASE_DEBUG": "2"
+  },
+  "binary_reused": "same exact immutable worker as FP and dwarf512 observations; copied byte-for-byte",
+  "method": {
+    "event": "minor-faults:u",
+    "requested_period": 1009,
+    "actual_period_checked_offline": true,
+    "callgraph": "dwarf,8192",
+    "compression_level": 1,
+    "ring": "64M",
+    "decoded_max_stack": 8
+  },
+  "purpose": "direct first-touch caller diagnosis only; not candidate performance or release approval",
+  "driver_sha256": "4ac542c5c95929b0c61274606c9c728a7d6c37367a4fe41167da7b8cd55132e9",
+  "release_approval": false,
+  "candidate_attribution": null
+}

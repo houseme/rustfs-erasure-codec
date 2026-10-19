@@ -142,3 +142,13 @@ main page-fault states; writer windows account for part of the observed interval
 variation, while a substantial residual remains. This is no candidate comparison,
 full qualification or release acceptance. Native checks and all resource restoration
 outcomes, plus the premeasurement generated-code failure, remain explicit.
+
+## Stream scratch page-return and longer-window audit
+
+[`diagnostics/protocol14-stream-scratch-lifecycle`](diagnostics/protocol14-stream-scratch-lifecycle/README.md)
+retains all 84 numerical observations across separate FP, syscall, rejected DWARF
+and unprofiled longer-window controls. Recurring page discard/release is observed;
+exact scratch initialization/residency remains incomplete. The predeclared 64-call
+single-case control passes existing width/repeat limits, without changing formal
+calibration or qualifying a release. All method failures and restoration outcomes
+remain explicit. Raw addresses and private binary/launcher material are excluded.

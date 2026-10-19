@@ -1,0 +1,253 @@
+{
+  "schema": "single-case-service-window-control-v1",
+  "source": {
+    "commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "tree": "d44fe8c296972cf895375101f8975c99371db57a",
+    "lock_sha256": "972540efcf6bc23c0064252a9c0d937bf87dbe0edff9cdb688d2fdcbd5653d49"
+  },
+  "tool": {
+    "commit": "aaebcb3835d6767fce44e4fbdbd3389664729713",
+    "tree": "1cd67674e2f2b65b226d525f5db28035f8beea7b",
+    "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+  },
+  "context": {
+    "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+    "cpu_model": "AMD EPYC 9V45 96-Core Processor",
+    "isolation": {
+      "scope": "exclusive-vm-cpu-partition",
+      "reserved_cpu_count": 8,
+      "cpu_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "physical_host_exclusivity_proven": false
+    },
+    "runtime": {
+      "libc": {
+        "name": "glibc",
+        "version": "2.39"
+      },
+      "page_size": 4096,
+      "allocator_environment": {}
+    },
+    "settings": {
+      "RUSTUP_TOOLCHAIN": "stable",
+      "RUSTFLAGS": "",
+      "RAYON_NUM_THREADS": "4",
+      "RS_PARALLEL_POLICY_MAX_JOBS": "4",
+      "RSE_BACKEND_OVERRIDE": "auto",
+      "RSE_STRICT_BACKEND_OVERRIDE": "1",
+      "RSE_SMOKE_PROFILE": "extended",
+      "RSE_SMALL_FILE_PROFILE": "fast",
+      "RSE_STREAM_PROFILE": "fast",
+      "RSE_STREAM_IO_MODE": "auto",
+      "RSE_BENCHMARK_ALLOW_MISSING_CASES": "0",
+      "CARGO_BUILD_JOBS": "4",
+      "RSE_SAMPLER_PROTOCOL": "duration-v14"
+    }
+  },
+  "case": "encode_stream:10:4:16777216:4194304",
+  "iterations": 64,
+  "sampling": {
+    "name": "shared-external-duration-sampler",
+    "version": 14,
+    "samples": 9,
+    "warmups": 3,
+    "case_isolation": "fresh-process-per-count",
+    "case_order": "lexicographic",
+    "max_calibration_batches": 12,
+    "max_calibration_records": 144,
+    "target_wall_ns": 100000000,
+    "target_timed_ns": 5000000,
+    "minimum_wall_ns": 50000000,
+    "minimum_timed_ns": 2000000,
+    "central_spread_limit": 0.1,
+    "observer_buffer_policy": "bounded-stack-procfs-no-rust-heap",
+    "fault_counter_scope": "guest-process-including-workers-excluding-children; no IDs; outside inner timers",
+    "result_metadata_policy": "bounded-inline-hotspot-patterns-deferred-formatting",
+    "stream_output_policy": "independent-capacity-per-writer-per-iteration",
+    "workload_contract": {
+      "scope": "all-126-cases",
+      "codec_lifetime": "worker",
+      "hotspot_input": "worker-seeded-SmallRng-u32-low-byte",
+      "state_witness": "generated-byte-count-and-next-two-u64-words",
+      "geometry_scope": "unchanged-caller-only; dynamic destinations and internal views untracked"
+    },
+    "thread_placement": {
+      "measuring_cpu": "minimum-reserved-cpu",
+      "pin": "thread-only-after-codec-and-pool-preparation",
+      "pool_affinity": "complete-reservation",
+      "observation_checks": "actual-mask-before-and-after-timer"
+    },
+    "fixture_layout": {
+      "scope": "small_file:all;stream:all;caller-storage-only",
+      "codec_lifetime": "worker",
+      "dynamic_outputs": "original per-iteration policy; offsets explicitly untracked",
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "construction": "caller-buffers-before-codec",
+      "offset_moduli": [
+        64,
+        4096,
+        "os_base_page_size"
+      ],
+      "page_size_source": "controller-sysconf",
+      "untracked_cases": "original allocation contract; no layout guarantee"
+    },
+    "timing_scope": {
+      "smoke": "original per-iteration workload",
+      "small_file": "operation loops excluding one-time fixture preparation",
+      "stream": "operation loops excluding one-time fixture preparation",
+      "hotspot": "original inner recovery intervals"
+    }
+  },
+  "renderer_sha256": "80101baf2dd276a8d080d345187b2b0977575c92790651f339fc1ac388ff3d64",
+  "purpose": "predeclared longer fixed original workload; one same-version A1/A2 control only, not a count6 comparison or formal qualification",
+  "count_reason": "64 is fixed before capture; preserve original per-call allocation/free and three warmups/nine samples; test service-time sensitivity to observed allocator phase mixing, no retry/count tuning",
+  "phases": {
+    "A1": {
+      "median": {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 64,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 5348.1343,
+        "ns_per_iter": 29916974.78,
+        "ns_per_block": 7479243.7
+      },
+      "spreads": [
+        {
+          "case": "encode_stream:10:4:16777216:4194304",
+          "central_spread": 0.03391681300610653
+        }
+      ],
+      "service_times": {
+        "encode_stream:10:4:16777216:4194304": {
+          "timed_ns_per_iteration": 29916974.78125,
+          "wall_ns_per_iteration": 29917020.0,
+          "thread_run_ns_per_iteration": 14583469.515625,
+          "maximum_runnable_wait_fraction": 0.00010128895865088225,
+          "process_minor_faults_per_iteration": [
+            10753.5,
+            10513.484375,
+            11233.53125,
+            10033.453125,
+            11473.546875,
+            10273.46875,
+            10993.515625,
+            10753.5,
+            10513.484375
+          ],
+          "process_major_faults_per_iteration": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    },
+    "A2": {
+      "median": {
+        "schema_version": 1,
+        "artifact_kind": "stream-path-results",
+        "git_revision": "9891dbe",
+        "target_triple": "x86_64-linux-unknown",
+        "features": "std|simd-accel",
+        "benchmark_metrics_enabled": false,
+        "backend": "rust-gfni-avx512",
+        "backend_id": "RustGfniAvx512",
+        "backend_kind": "RustSimd",
+        "backend_override": "auto",
+        "override_honored": true,
+        "profile": "fast",
+        "iterations": 64,
+        "operation": "encode_stream",
+        "data_shards": 10,
+        "parity_shards": 4,
+        "shard_size": 16777216,
+        "logical_data_bytes": 167772160,
+        "case_label": "10x4_16m",
+        "seed": 64843600019981621,
+        "stream_block_size": 4194304,
+        "stream_io_backend": "memory",
+        "stream_io_mode": "auto",
+        "blocks_per_iter": 4,
+        "throughput_mb_s": 5436.3013,
+        "ns_per_iter": 29431775.61,
+        "ns_per_block": 7357943.9
+      },
+      "spreads": [
+        {
+          "case": "encode_stream:10:4:16777216:4194304",
+          "central_spread": 0.034615197324350436
+        }
+      ],
+      "service_times": {
+        "encode_stream:10:4:16777216:4194304": {
+          "timed_ns_per_iteration": 29431775.609375,
+          "wall_ns_per_iteration": 29431810.96875,
+          "thread_run_ns_per_iteration": 14305317.71875,
+          "maximum_runnable_wait_fraction": 6.504930690999249e-05,
+          "process_minor_faults_per_iteration": [
+            10753.5,
+            10513.484375,
+            11233.53125,
+            10033.453125,
+            11473.546875,
+            10273.46875,
+            10993.515625,
+            10753.5,
+            10513.5
+          ],
+          "process_major_faults_per_iteration": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      }
+    }
+  },
+  "release_approval": false,
+  "candidate_attribution": null,
+  "case_controls_passed": true,
+  "repeat_drift": 0.01621819061732135
+}
