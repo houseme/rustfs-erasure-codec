@@ -6,7 +6,7 @@ import os
 import pathlib
 import re
 
-PROTOCOL = {"name": "shared-external-duration-sampler", "version": 10, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
+PROTOCOL = {"name": "shared-external-duration-sampler", "version": 11, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
             "target_wall_ns": 100_000_000, "target_timed_ns": 5_000_000,
             "minimum_wall_ns": 50_000_000, "minimum_timed_ns": 2_000_000,
             "central_spread_limit": .10,
@@ -167,7 +167,7 @@ def prepared_kernel(text, profile):
 
 
 def render(root):
-    rendered = {name: (TEMPLATES / name).read_text() for name in ("engine.rs", "process.rs", "layout.rs", "pattern.rs", "verify_layout.rs")}
+    rendered = {name: (TEMPLATES / name).read_text() for name in ("engine.rs", "process.rs", "layout.rs", "pattern.rs")}
     sources = {"smoke": "benchmark_smoke.rs", "small_file": "benchmark_small_files.rs", "stream": "benchmark_stream_paths.rs"}
     for profile, filename in sources.items():
         text = (root / "tests" / filename).read_text()
@@ -193,7 +193,7 @@ def render(root):
     text = text.replace(block(text, "fn benchmark_test_iterations"), 'fn benchmark_test_iterations() -> usize { super::sampling::iterations() }')
     prefix = 'use std::{fs, path::PathBuf, time::Instant};\nuse rustfs_erasure_codec::galois_8::ReedSolomon;\nfn benchmark_metrics_enabled() -> bool { cfg!(feature="benchmark-metrics") }\nconst BENCHMARK_ARTIFACT_SCHEMA_VERSION: u32 = 1;\n'
     rendered["hotspot.rs"] = prefix + text + "\n" + (TEMPLATES / "hotspot.rs").read_text()
-    root_source = f'#![allow(dead_code)]\n#[path="{root}/benches/common/mod.rs"] mod bench_common;\n#[path="{root}/tests/common/mod.rs"] mod common;\n' + '\n'.join(f'#[path="rse_release_sampling/{name}.rs"] mod {name};' for name in ("engine", "process", "layout", "pattern", "verify_layout", *sources, "hotspot"))
+    root_source = f'#![allow(dead_code)]\n#[path="{root}/benches/common/mod.rs"] mod bench_common;\n#[path="{root}/tests/common/mod.rs"] mod common;\n' + '\n'.join(f'#[path="rse_release_sampling/{name}.rs"] mod {name};' for name in ("engine", "process", "layout", "pattern", *sources, "hotspot"))
     root_source = root_source.replace('mod engine;', 'mod sampling;')
     root_source += '\n#[test]\n#[ignore]\nfn release_controlled_profile() { match std::env::var("RSE_SAMPLER_PROFILE").unwrap().as_str() {'
     root_source += ','.join(f'"{name}" => {name}::release_profile()' for name in (*sources, "hotspot"))

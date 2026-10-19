@@ -74,7 +74,7 @@ three warmup invocations at the frozen count, then collects exactly nine samples
 Basic scheduling snapshots retain numeric counters instead of formatted heap
 strings. Extended process observation remains diagnostic-only and may affect
 allocation state; release qualification uses basic telemetry.
-Protocol 10 retains the protocol-9 caller contract: one codec and caller source fixture for all 88 small-file and
+Protocol 11 retains the protocol-9/10 caller contract: one codec and caller source fixture for all 88 small-file and
 15 stream cases for the complete worker; buffered verify also retains caller
 scratch. Caller buffers precede codec construction and encoding setup. The shared
 inner loops are extracted from the unchanged benchmark sources, preserving timed
@@ -97,7 +97,11 @@ Hotspot result pattern metadata stays in bounded inline storage until deferred
 export, instead of retaining new Strings between observations. Its labels match
 the actual original formatter; a separate executable checks zero Rust heap
 activity for construction/formatting. Hotspot input generation and recovery
-intervals remain unchanged. Earlier observer protocols cannot approve protocol 10.
+intervals remain unchanged. Earlier observer protocols cannot approve protocol 11.
+Protocol 11 removes the unused diagnostic template from the formal sampler overlay
+and its implementation digest; layout tests now use one separate diagnostic fixture.
+The full-profile operation loops and limits are unchanged. Fresh source-bound
+evidence is required for the changed renderer; earlier captures stay historical.
 
 The structural inventory checks all 103 retained caller cases in A1/B1/B2/A2 order
 against both sources before performance capture:
@@ -119,26 +123,66 @@ sample/timing journals and the controller removes only its generated inputs.
 The inventory is a separate diagnostic schema and cannot replace calibration or
 any of the original full release cases.
 
-An independent diagnostic covers every combination of source/scratch offsets
-`0/16/32/48`, for 1KiB and 4KiB, in forward and reverse order with the same backing
-buffers per length. It runs against either source in its reserved CPU partition:
+The existing layout tool also supports an independent **A1/B1/B2/A2** supplement
+for all 16 combinations of source/scratch offsets `0/16/32/48`, at 1KiB and 4KiB.
+Every phase runs the complete forward and reverse grid with the same backing
+buffers per length. The buffers align to `max(actual OS base page size, 4096)`
+before applying the selected offset, so both page and cache-line offsets match
+across processes. This controls virtual offsets, not physical/huge-page placement.
+The original Vec release cases retain their original API and allocation policies.
 
 ```bash
+# Choose one bounded iteration count before starting; it is identical for every
+# layout and phase. There is no retry, adaptive cell selection or pooled summary.
+python3 candidate/scripts/diagnose_verify_layout.py \
+  --baseline /test/baseline --candidate /test/candidate \
+  --iterations 262144 --output /test/new-layout-pair \
+  --isolation-cgroup /sys/fs/cgroup/reserved-release
+
+# Recompute every result from the source-bound raw records and numeric journals.
+python3 candidate/scripts/diagnose_verify_layout.py \
+  --verify /test/new-layout-pair --candidate /test/candidate
+
+# The single-source mode remains available for within-version diagnosis.
 python3 candidate/scripts/diagnose_verify_layout.py \
   --repository /test/baseline --output /test/new-layout-diagnostic \
   --isolation-cgroup /sys/fs/cgroup/reserved-release
 ```
 
-This diagnostic pins its measuring process to one reserved CPU. It retains all
-192 warmups and 576 formal observations, validates actual offsets and the full
-order, reports every wide/drifting cell, and preserves completed numerical rows
-on failure. Its explicit slice-view entry, distinct schema and always-false
-`release_approval` cannot replace any of the 126 original Vec/stream/hotspot
-release cases. Neither this diagnostic nor the scoped Vec fixture change
-completes [the remaining layout acceptance task](https://github.com/rustfs/backlog/issues/2897):
-other dynamic paths still need comparable layout/lifetime evidence, followed by
-a fresh complete 9.0.0/candidate ABBA and positive strict preflight. Historical
-protocol-2/3/4 failures and the later unstable protocol-5 grid remain rejected and available for audit.
+A complete pair contains **3,072 observations** (768 warmups and 2,304 measured
+samples), keeping each length, offset pair and pass separate. Each measured loop
+must reach 50ms; its wall and timed interval are the same complete verify loop,
+so it also meets the 2ms timed-work minimum. The central distribution width must
+be at most 10%. Forward/reverse repeats and A1/A2, B1/B2 repeats must stay within
+5%; each of the four candidate/baseline comparisons must satisfy the existing
+buffered-verify 12% latency regression limit in every cell. Ratios are withheld
+when any quality check fails; a single regressing cell fails the supplement.
+A failed complete phase retains all rows and stops later phases. No failure is
+filtered or silently retried; the predeclared count can be insufficient, in which
+case the attempt is retained and rejected.
+
+The controller pins its worker process to one reserved CPU before codec
+construction; the worker checks the actual thread affinity before and after the
+grid. Raw records bind backend, features, target and actual page offsets. Per-phase
+provenance binds source tree/lock, tool/template/renderer digests, compiler, CPU,
+allocator settings and exclusive resource context. A manifest hashes each phase's
+provenance, samples and raw journal. Replay rejects missing/reordered observations,
+wrong source/context/layout, modified members, symlinks and journal disagreement.
+The controller reaps its owned worker on handled cancellation before removing
+exactly owned overlay inputs; modified inputs are retained for inspection.
+
+`layout_gate_passed=true` approves only this slice supplement. Every report keeps
+`release_approval=false`: this schema cannot replace any of the original 126
+Vec/stream/hotspot cases or the strict release manifest. No real passing paired
+capture is claimed merely by adding the runner or testing it. The remaining
+[layout acceptance task](https://github.com/rustfs/backlog/issues/2897) still needs
+comparable evidence for dynamic paths, real per-layout results, a fresh complete
+9.0.0/candidate ABBA and positive strict preflight. Historical failures retain their
+original schemas/protocols and remain available for audit.
+
+`--check` runs native guard/page-offset correctness tests. On Linux it also executes
+the real pinned worker at one iteration and validates its entire JSON grid. This
+is a short correctness self-check, not calibration or performance acceptance.
 
 The original Git queries and JSON/CSV exporters run after the entire fixed kernel,
 so their allocations, output-file writes and child processes do not seed the
