@@ -1,7 +1,7 @@
 # Targeted placement control and current verification profiles
 
 Tool/source: `a62c6c36ae15a05fb73b5bf6893261978b6ce325`, protocol 13. The
-unchanged-version control uses published 9.0.0 (`9891dbe4...`). This directory is a
+unchanged-version control uses published 9.0.0 (`9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6`). This directory is a
 **diagnostic snapshot**, not release evidence, an accepted full campaign or a
 9.0.0/9.1.0 speed comparison. `manifest.json` binds all numerical JSON members.
 Production codec algorithms were unchanged by this review.
