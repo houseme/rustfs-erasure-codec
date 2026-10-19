@@ -1,6 +1,6 @@
 # Retained caller fixtures for release workers
 
-Protocol 14 retains the caller contract introduced in protocols 9 and 12: it prepares one codec and caller fixture for the complete three-warmup,
+Protocol 15 retains the caller contract introduced in protocols 9 and 12: it prepares one codec and caller fixture for the complete three-warmup,
 nine-observation schedule of each small-file/stream worker. Caller byte storage
 is allocated before version-dependent codec setup. Retained source/scratch buffers
 are checked by full pointer identity, length and capacity before and after every
@@ -103,7 +103,7 @@ empty-missing and recovered owned buffers, then drops them at the original scope
 Both inventory modes reuse formal backend/features/I/O provenance and fixed
 preparation/placement comparisons through all observations and phases.
 
-Schema `stream-buffer-views-v2` adds bounded windows around each original call and
+Schema `stream-buffer-views-v2` introduced bounded windows around each original call and
 its writer reservation, actual Vec append and original-scope writer drop. On Linux,
 each window retains process minor/major fault counters (including pool workers,
 excluding child processes), the calling thread's scheduler run/wait counters and
@@ -121,9 +121,12 @@ other allocation/free, adapter metadata and the diagnostic probes themselves; it
 must not be labeled pure encode CPU. Scheduler counters cover the calling thread,
 not total process CPU. Fault reads bracket operations at different instants from
 the timestamps, so these are diagnostic intervals, not exact fault-handler costs.
-Neither residency, page identity, allocation identity across calls nor the unique
-cause of a fault is inferred. Ordinary formal protocol 14 and its renderer remain
-unchanged; old view-v1 observations stay historical, not upgraded to window data.
+Window counters alone do not identify residency, allocation identity across calls
+or the unique cause of a fault. Current schema `stream-buffer-views-v3` retains
+these windows and adds separate native virtual-page snapshots at explicit I/O,
+API-return and release boundaries. These adapters do not enter formal capture.
+Protocol 15 changes the shared service-window contract; historical view-v1/v2
+observations are not upgraded to native residency records.
 
 The validator requires every call/drop completion, original source-prefix/EOF
 consumption, transferred byte, reservation, cursor state and fixed observation.
@@ -146,9 +149,25 @@ versions; a descriptive match does not establish physical-page equality or repla
 full per-layout and baseline/candidate acceptance. Backlog #2897 remains open.
 
 The [focused scratch lifecycle review](stream-scratch-service-review-2026-10-19.md)
-records allocator page-return evidence, profiler coverage failures and a separate
-longer-window same-version control. None of them upgrades unobserved scratch
-residency or qualifies a candidate release.
+records the earlier allocator page-return evidence, rejected profiler coverage
+and a separate longer-window same-version control. Subsequent native snapshots
+cover the declared stream boundaries; neither capture qualifies a candidate release.
 
 For native stream virtual-page boundaries and the uniform protocol-15 service
 window, see [the native residency review](native-residency-service-window-2026-10-19.md).
+
+## Every raw observation must remain comparable
+
+The release controller, strict offline preflight and structural inventories share
+one provenance comparison over every raw row, including all calibration rehearsals,
+warmups and nonmedian/outlier samples. Backend/target/features/I/O metadata and
+worker placement must match their case reference throughout calibration and each
+phase. Candidate calibration must also match the baseline reference. Matching
+median rows or only observation zero is insufficient. Metrics, proposed iteration
+counts, source revisions and normalized metadata aliases can differ as declared;
+no raw values are rewritten or observations removed.
+
+This validation-only tightening does not change sampler protocol 15, worker code,
+overlay/implementation digests, original timed work or quality thresholds. Frozen
+captures are checked offline with the stricter validator; they are not remeasured
+solely because the verifier changed. Any actual mismatch rejects attribution.

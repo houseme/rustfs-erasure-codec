@@ -36,6 +36,66 @@ class SamplingContractTests(unittest.TestCase):
         records=json.loads(path.read_text());change(records)
         self.doc['files'][phase][profile]['samples']=self.write(phase,profile,records)
 
+    def test_every_warmup_and_nonmedian_sample_requires_comparable_provenance(self):
+        for profile,field in (('small_file','backend_id'),('stream','stream_io_mode'),('small_file','compiler'),('hotspot','backend_id'),('small_file','constructor_budget')):
+            entry=self.doc['files']['B2'][profile]['samples']
+            original=json.loads((self.root/entry['path']).read_text())
+            for index in (1,3,11):
+                with self.subTest(profile=profile,field=field,index=index):
+                    records=copy.deepcopy(original);record=records[index]
+                    if field=='constructor_budget':record['placement'][field]=7
+                    else:record['rows'][0][field]='serial' if field=='stream_io_mode' else 'changed'
+                    # The chosen row cannot become the reported median. One
+                    # extreme does not widen the central-spread metric either.
+                    if index>=3:
+                        metric=evidence.METRICS[profile]
+                        record['rows'][0][metric]*=.5 if profile=='hotspot' else 2
+                        record['timed_ns']*=2
+                        if profile=='stream':record['rows'][0]['ns_per_iter']*=2
+                    self.doc['files']['B2'][profile]['samples']=self.write('B2',profile,records)
+                    try:
+                        with self.assertRaisesRegex(ValueError,'incompatible|observation placement'):
+                            self.verify()
+                    finally:self.doc['files']['B2'][profile]['samples']=self.write('B2',profile,original)
+
+    def test_every_calibration_row_requires_consistent_provenance(self):
+        for role in ('baseline','candidate'):
+            for field in ('backend_id','constructor_budget'):
+                folder='calibration-'+role;profile='small_file'
+                entry=self.doc['calibration'][role][profile]
+                original=json.loads((self.root/entry['path']).read_text());records=copy.deepcopy(original)
+                if field=='constructor_budget':records[1]['placement'][field]=7
+                else:records[1]['rows'][0][field]='changed'
+                self.doc['calibration'][role][profile]=self.write(folder,profile,records)
+                try:
+                    with self.assertRaisesRegex(ValueError,'incompatible|observation placement'):self.verify()
+                finally:self.doc['calibration'][role][profile]=self.write(folder,profile,original)
+
+    def test_observation_error_identifies_the_exact_case_and_rehearsal(self):
+        row=self.record(self.cases('A1','stream')[0],'stream','baseline','calibration_warmup',1)
+        row['calibration_batch']=2
+        reference=evidence.observation_contracts('stream',[row])
+        changed=copy.deepcopy(row);changed['rows'][0]['backend_id']='changed'
+        with self.assertRaises(ValueError) as caught:evidence.observation_contracts('stream',[changed],reference)
+        message=str(caught.exception)
+        self.assertIn(row['case'],message)
+        self.assertIn('calibration_warmup[1] batch=2',message)
+        self.assertIn('incompatible backend_id',message)
+
+    def test_observation_comparison_keeps_normalized_aliases_and_variable_counts(self):
+        original=self.record(self.cases('A1','small_file')[0],'small_file','baseline','sample',3)
+        saved=copy.deepcopy(original)
+        reference=evidence.observation_contracts('small_file',[original])
+        record=copy.deepcopy(original);record['iterations']=2;record['rows'][0]['iterations']=2
+        record['rows'][0]['features']='simd-accel|std'
+        record['rows'][0]['backend_name']=record['rows'][0].pop('backend')
+        record['rows'][0]['ns_per_iter']*=2
+        evidence.observation_contracts('small_file',[record],reference)
+        self.assertEqual(original,saved)
+        self.assertEqual(reference,{original['case']:(original['rows'][0],original['placement'])})
+        record['case']='unknown'
+        with self.assertRaisesRegex(ValueError,'case differs'):evidence.observation_contracts('small_file',[record],reference)
+
     def test_process_fault_counters_are_required_nonnegative_and_monotonic(self):
         row = self.record(self.cases('A1', 'smoke')[0], 'smoke', 'baseline', 'sample', 3)
         sampling.validate_telemetry(row)
@@ -138,7 +198,7 @@ class SamplingContractTests(unittest.TestCase):
         def change(records):
             for row in records:row['placement']['constructor_budget']=4
         self.mutate(change,profile='smoke')
-        with self.assertRaisesRegex(ValueError,'preparation or initial input state'):self.verify()
+        with self.assertRaisesRegex(ValueError,'observation placement'):self.verify()
 
     def test_base_page_size_is_required_and_bound_to_runtime(self):
         for value in (None, True, 0, 3000, 2**30):

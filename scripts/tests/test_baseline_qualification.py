@@ -60,6 +60,21 @@ class BaselineQualificationTests(unittest.TestCase):
         self.assertFalse((self.baseline/"tests/rse_release_sampling.rs").exists())
         self.assertIn("CARGO_TARGET_DIR", self.build.call_args.kwargs["env"])
 
+    def test_single_observation_contract_failure_stops_later_capture(self):
+        for phase in ('calibration','A1','A2'):
+            for field in ('backend_id','constructor_budget'):
+                with self.subTest(phase=phase,field=field):
+                    self.output=self.root/('single-row-'+phase+'-'+field);self.run.reset_mock()
+                    def change(profile,mode,folder,rows):
+                        if profile=='smoke' and folder==phase:
+                            if field=='constructor_budget':rows[1]['placement'][field]=7
+                            else:rows[1]['rows'][0][field]='changed'
+                    self.mutate=change
+                    with self.assertRaisesRegex(ValueError,'incompatible|observation placement'):self.qualify()
+                    self.assertEqual(self.run.call_count,{'calibration':1,'A1':5,'A2':9}[phase])
+                    self.assertTrue((self.output/phase/'smoke-samples.json').exists())
+                    self.assert_no_success()
+
     def test_wide_distribution_retains_complete_first_phase_and_does_not_repeat(self):
         def change(profile, mode, phase, rows):
             if profile == "small_file" and phase == "A1":
