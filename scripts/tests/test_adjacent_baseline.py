@@ -103,3 +103,40 @@ class AdjacentTests(unittest.TestCase):
         self.assertTrue((self.output/'workers/000.log').exists())
         self.assertTrue((self.output/'workers/000.json').exists())
         with self.assertRaisesRegex(ValueError,'failed diagnostic'):a.replay(self.output,self.prior,self.root)
+
+    def record_current_prior(self):
+        self.prov['schema_version']=a.e.QUALIFICATION_SCHEMA
+        self.prov['context']=copy.deepcopy(self.context)
+        self.doc['context']=copy.deepcopy(self.context)
+        (self.prior/'provenance.json').write_text(json.dumps(self.prov))
+        (self.prior/'qualification.partial.json').write_text(json.dumps(self.doc))
+
+    def test_known_prior_policy_is_preserved_in_capture_and_replay(self):
+        self.record_current_prior()
+        result=self.capture()
+        self.assertEqual(a.replay(self.output,self.prior,self.root),result)
+        plan=self.output/'plan.json';changed=a.e.json_data(plan)
+        changed['context']['runtime']['kernel_memory_policy']['process_thp_disable']=1
+        plan.write_text(json.dumps(changed))
+        with self.assertRaisesRegex(ValueError,'kernel policy differs'):a.replay(self.output,self.prior,self.root)
+
+    def test_known_prior_policy_change_stops_before_first_worker(self):
+        self.record_current_prior()
+        self.context['runtime']['kernel_memory_policy']['process_thp_disable']=1
+        with self.assertRaisesRegex(ValueError,'kernel policy differs'):self.capture()
+        self.patches[3].assert_not_called()
+        self.assertTrue((self.output/'failure.json').exists())
+        self.assertFalse((self.output/'plan.json').exists())
+
+    def test_v2_prior_requires_its_policy_before_starting_any_worker(self):
+        for index,missing in enumerate((True,False)):
+            self.record_current_prior()
+            if missing:self.prov['context']['runtime'].pop('kernel_memory_policy')
+            else:self.prov['context']['runtime']['kernel_memory_policy']=None
+            self.doc['context']=copy.deepcopy(self.prov['context'])
+            (self.prior/'provenance.json').write_text(json.dumps(self.prov))
+            (self.prior/'qualification.partial.json').write_text(json.dumps(self.doc))
+            self.output=self.root/f'invalid-v2-{index}'
+            with self.assertRaises(ValueError):self.capture()
+            self.patches[3].assert_not_called()
+            self.assertTrue((self.output/'failure.json').exists())
