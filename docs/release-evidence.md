@@ -486,3 +486,43 @@ They expose page-fault transitions without claiming a unique physical cause. All
 calibration and phase rows require nonnegative monotonic counters. Historical
 protocol-13 failures stay bound to their frozen renderer; no performance success
 is transferred to protocol 14, and no warmup, sample or threshold is relaxed.
+
+## Adjacent same-version diagnostic
+
+When retained same-version workers are separated by a long phase interval, test
+that specific temporal condition with the complete case catalog before changing
+runtime algorithms. This controller is **diagnostic only** and cannot be supplied
+as a qualification or final release manifest:
+
+```sh
+python3 scripts/diagnose_adjacent_baseline.py capture \
+  --prior /test/original-qualification \
+  --baseline /test/original-published-9.0.0 \
+  --output /test/new-private-adjacent \
+  --isolation-cgroup /sys/fs/cgroup/owned-reservation
+python3 scripts/diagnose_adjacent_baseline.py replay \
+  --prior /test/original-qualification --output /test/new-private-adjacent
+```
+
+Use a committed, frozen tool checkout containing the exact published baseline and
+prior tool commits. The prior directory must preserve provenance, partial control
+metadata and all original calibration members. Its completed calibration supplies
+only frozen workload budgets: there is no adaptive count selection or inherited
+performance success. Use the original baseline checkout to avoid introducing a
+new executable path; refuse changed caller geometry or legacy runtime context.
+
+The plan declares all 126 cases, each as fresh-process A1 immediately followed by
+fresh-process A2, with the original three warmups and nine samples. It preserves
+every original API action and protocol-15 duration floor. The controller records
+monotonic worker intervals, complete kernel policy before/after each worker and
+member hashes; a pair start gap above 10 s is refused. A raw contract, duration,
+source or context failure stops and preserves the original journal. Statistical
+failures remain in the complete cohort without retries. Replay checks all 252
+ordered workers and 3,024 observations against raw logs and the original input
+and caller/preparation contracts, using the exact frozen diagnostic tool source.
+
+The output always states `release_approval=false`, `candidate_attribution=null`
+and `formal_qualification=false`. It does not replace the existing phase-major
+same-version prerequisite, final candidate/layout ABBA or strict preflight. Keep
+raw files private unless their specific publication is authorized; this mode adds
+no artifact upload or publishing action.
