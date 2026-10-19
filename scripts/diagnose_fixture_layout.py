@@ -95,7 +95,8 @@ def analyze_stream_views(phases, views, sources, cpus, page_size, iterations):
             'release_approval':False,'candidate_attribution':None,'case_count':len(counts),
             'phase_count':4,'observations':sum(map(len,views.values())),
             'coverage':{'stream_case_lifecycles':15,'caller_owned_destination_cases':10,'internal_read_views':10,'internal_parity_write_views':5,
-                        'internal_verify_scratch':False,'internal_recovery_scratch':False,'non_stream_dynamic_buffers':False,
+                        'native_virtual_page_snapshots':True,'former_encode_scratch_ranges':True,'former_writer_ranges':True,
+                        'physical_page_identity':False,'first_fault_instruction':False,'internal_verify_scratch':False,'internal_recovery_scratch':False,'non_stream_dynamic_buffers':False,
                         'formal_performance_geometry_equivalence':False},
             'lifecycle_windows':{phase:[{'case':sample['case'],'observation':view['observation'],'calls':view_audit.summarize_windows(view)} for sample,view in zip(phases[phase],views[phase])] for phase in evidence.PHASES},
             'layout_checks':checks,'layout_mismatches':[c for c in checks if not c['matches']]}

@@ -1,5 +1,6 @@
 //! Bounded, diagnostic-only views at the real stream I/O boundary.
-//! No source patch, allocator replacement, pointer dereference or address export.
+//! No codec source patch, allocator replacement, buffer dereference or address export.
+mod page_residency;
 use std::fmt::{self, Write as _};
 #[cfg(target_os = "linux")]
 use std::fs;
@@ -120,6 +121,39 @@ pub(super) fn drop_outputs(values: Vec<Writer>) {
     let token = start(3, None, values.iter().map(|v| v.0.len()).sum());
     drop(values);
     end(token);
+    if enabled() {
+        STATE.lock().unwrap().former_ranges(5, "after_writer_drop");
+    }
+}
+
+pub(super) fn after_encode() {
+    if enabled() {
+        let mut state = STATE.lock().unwrap();
+        state.former_ranges(2, "after_api_return");
+        state.former_ranges(3, "after_api_return");
+    }
+}
+
+#[derive(Clone, Copy)]
+struct Residency {
+    call: usize,
+    boundary: &'static str,
+    role: &'static str,
+    index: usize,
+    bytes: usize,
+    offset_page: Option<usize>,
+    snapshot: page_residency::Snapshot,
+}
+impl Residency {
+    const EMPTY: Self = Self {
+        call: 0,
+        boundary: "",
+        role: "",
+        index: 0,
+        bytes: 0,
+        offset_page: None,
+        snapshot: page_residency::Snapshot::EMPTY,
+    };
 }
 
 #[derive(Clone, Copy, Default)]
@@ -158,6 +192,9 @@ struct State {
     active_call: Option<Token>,
     windows: [Window; MAX_EVENTS],
     windows_used: usize,
+    residency: [Residency; MAX_EVENTS],
+    residency_used: usize,
+    ranges: [[Option<(usize, usize)>; MAX_SHARDS]; 9],
 }
 impl State {
     const fn new() -> Self {
@@ -205,6 +242,39 @@ impl State {
                 after: None,
             }; MAX_EVENTS],
             windows_used: 0,
+            residency: [Residency::EMPTY; MAX_EVENTS],
+            residency_used: 0,
+            ranges: [[None; MAX_SHARDS]; 9],
+        }
+    }
+    fn resident(
+        &mut self,
+        boundary: &'static str,
+        role: &'static str,
+        index: usize,
+        address: usize,
+        bytes: usize,
+    ) {
+        if self.residency_used == MAX_EVENTS {
+            self.overflow += 1;
+            return;
+        }
+        self.residency[self.residency_used] = Residency {
+            call: self.calls,
+            boundary,
+            role,
+            index,
+            bytes,
+            offset_page: (bytes > 0).then_some(address % self.page_size),
+            snapshot: page_residency::query(address, bytes, self.page_size),
+        };
+        self.residency_used += 1;
+    }
+    fn former_ranges(&mut self, role: usize, boundary: &'static str) {
+        for index in 0..MAX_SHARDS {
+            if let Some((address, bytes)) = self.ranges[role][index] {
+                self.resident(boundary, ROLES[role], index, address, bytes);
+            }
         }
     }
     fn record(
@@ -244,6 +314,9 @@ impl State {
             },
         };
         self.used += 1;
+        let span = capacity.unwrap_or(len);
+        self.ranges[role][index] = has_storage.then_some((address, span));
+        self.resident("view", ROLES[role], index, address, span);
     }
 }
 static STATE: Mutex<State> = Mutex::new(State::new());
@@ -273,6 +346,7 @@ pub(super) fn begin(source: &[Vec<u8>], iterations: usize, page_size: usize) {
     state.observation += 1;
     state.used = 0;
     state.windows_used = 0;
+    state.residency_used = 0;
     state.epoch = Some(Instant::now());
     state.owner = Some(std::thread::current().id());
     state.active_call = None;
@@ -280,6 +354,9 @@ pub(super) fn begin(source: &[Vec<u8>], iterations: usize, page_size: usize) {
     state.calls = 0;
     state.completed = 0;
     state.iterations = iterations;
+    if let Some(native) = page_residency::page_size() {
+        assert_eq!(page_size, native, "controller/native page size differs");
+    }
     state.page_size = page_size;
     state.last = [[None; MAX_SHARDS]; 9];
     for (index, buffer) in source.iter().enumerate() {
@@ -299,6 +376,7 @@ pub(super) fn call() {
             let mut state = STATE.lock().unwrap();
             assert!(state.active_call.is_none(), "overlapping stream calls");
             state.calls += 1;
+            state.ranges = [[None; MAX_SHARDS]; 9];
         }
         let token = start(0, None, 0);
         STATE.lock().unwrap().active_call = token;
@@ -356,6 +434,17 @@ pub(super) struct Reader<'a>(pub(super) &'a [u8]);
 impl Read for Reader<'_> {
     fn read(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
         let source = self.0;
+        if enabled() {
+            let mut state = STATE.lock().unwrap();
+            let index = state.readers.index(self as *const Self as usize);
+            state.resident(
+                "before_read",
+                "read_scratch_view",
+                index,
+                buffer.as_ptr() as usize,
+                buffer.len(),
+            );
+        }
         let result = self.0.read(buffer);
         if enabled() {
             let mut state = STATE.lock().unwrap();
@@ -469,10 +558,22 @@ impl Write for Writer {
 }
 pub(super) fn outputs(count: usize, size: usize) -> Vec<Writer> {
     let token = start(1, None, count.checked_mul(size).unwrap());
-    let result = (0..count)
+    let result: Vec<_> = (0..count)
         .map(|_| Writer(Vec::with_capacity(size)))
         .collect();
     end(token);
+    if enabled() {
+        let mut state = STATE.lock().unwrap();
+        for (index, writer) in result.iter().enumerate() {
+            state.resident(
+                "after_reserve",
+                "writer_before",
+                index,
+                writer.0.as_ptr() as usize,
+                writer.0.capacity(),
+            );
+        }
+    }
     result
 }
 
@@ -482,7 +583,7 @@ impl fmt::Display for JsonState<'_> {
         let state = self.0;
         write!(
             f,
-            "{{\"schema\":\"stream-buffer-views-v2\",\"observation\":{},\"iterations\":{},\"calls\":{},\"completed\":{},\"page_size\":{},\"overflow\":{},\"release_approval\":false,\"events\":[",
+            "{{\"schema\":\"stream-buffer-views-v3\",\"observation\":{},\"iterations\":{},\"calls\":{},\"completed\":{},\"page_size\":{},\"overflow\":{},\"release_approval\":false,\"events\":[",
             state.observation - 1,
             state.iterations,
             state.calls,
@@ -548,6 +649,22 @@ impl fmt::Display for JsonState<'_> {
                 }
             }
             f.write_char('}')?;
+        }
+        f.write_str("],\"residency\":[")?;
+        for (n, value) in state.residency[..state.residency_used].iter().enumerate() {
+            if n > 0 {
+                f.write_char(',')?;
+            }
+            write!(
+                f,
+                "{{\"call\":{},\"boundary\":\"{}\",\"role\":\"{}\",\"index\":{},\"bytes\":{},\"offset_page\":",
+                value.call, value.boundary, value.role, value.index, value.bytes
+            )?;
+            match value.offset_page {
+                Some(offset) => write!(f, "{offset}")?,
+                None => f.write_str("null")?,
+            }
+            write!(f, ",\"snapshot\":{}}}", value.snapshot)?;
         }
         f.write_str("]}")
     }
