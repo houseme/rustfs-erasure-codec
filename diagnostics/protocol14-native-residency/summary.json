@@ -1,0 +1,42 @@
+{
+  "observations": 180,
+  "api_calls": 1080,
+  "residency_records": 88728,
+  "boundary_status_counts": {
+    "after_api_return:mapped": 3641,
+    "after_api_return:not_fully_mapped": 247,
+    "after_reserve:mapped": 1152,
+    "after_writer_drop:mapped": 1106,
+    "after_writer_drop:not_fully_mapped": 46,
+    "before_read:mapped": 20592,
+    "view:empty": 7344,
+    "view:mapped": 54600
+  },
+  "large_encode_histograms": {
+    "after_api_return:parity_write_view": {
+      "mapped:0": 36,
+      "mapped:1025": 35,
+      "not_fully_mapped:None": 217
+    },
+    "after_api_return:read_scratch_view": {
+      "mapped:0": 324,
+      "mapped:1025": 350,
+      "mapped:33": 36,
+      "not_fully_mapped:None": 10
+    },
+    "after_reserve:writer_before": {
+      "mapped:1": 4,
+      "mapped:2": 39,
+      "mapped:4097": 245
+    },
+    "after_writer_drop:writer_after": {
+      "mapped:4097": 248,
+      "not_fully_mapped:None": 40
+    },
+    "before_read:read_scratch_view": {
+      "mapped:1025": 3600
+    }
+  },
+  "release_approval": false,
+  "candidate_attribution": null
+}

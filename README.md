@@ -152,3 +152,7 @@ exact scratch initialization/residency remains incomplete. The predeclared 64-ca
 single-case control passes existing width/repeat limits, without changing formal
 calibration or qualifying a release. All method failures and restoration outcomes
 remain explicit. Raw addresses and private binary/launcher material are excluded.
+
+## Native stream virtual-page residency (protocol 14 diagnostic)
+
+`diagnostics/protocol14-native-residency` retains all 180 observations / 1,080 original API calls and 88,728 address-free native snapshots over all 15 stream cases, including every former-range ENOMEM and the rejected pre-observation launch. Live I/O, reserve, API return and writer release boundaries now distinguish resident, discarded and not-fully-mapped virtual ranges. Full journals, raw scalar JSON, complete histograms, source bindings and read-only replay are included. This instrumented capture cannot approve formal timing, physical ownership or exact first-fault attribution; protocol 15 requires fresh complete calibration and qualification.
