@@ -1,0 +1,130 @@
+[
+  {
+    "case": "encode_stream:10:4:1048576:1048576",
+    "different_view_shapes_by_role": {
+      "read_scratch_view": 20,
+      "parity_write_view": 8,
+      "writer_before": 8,
+      "writer_after": 8
+    },
+    "retained_source_geometry_matches": true
+  },
+  {
+    "case": "encode_stream:10:4:16777216:4194304",
+    "different_view_shapes_by_role": {
+      "writer_before": 24,
+      "writer_after": 24
+    },
+    "retained_source_geometry_matches": true
+  },
+  {
+    "case": "encode_stream:10:4:65536:65536",
+    "different_view_shapes_by_role": {
+      "read_scratch_view": 20,
+      "parity_write_view": 8,
+      "writer_before": 8,
+      "writer_after": 8
+    },
+    "retained_source_geometry_matches": true
+  },
+  {
+    "case": "encode_stream:4:2:1048576:262144",
+    "different_view_shapes_by_role": {
+      "read_scratch_view": 8,
+      "parity_write_view": 4,
+      "writer_before": 16,
+      "writer_after": 16
+    },
+    "retained_source_geometry_matches": true
+  },
+  {
+    "case": "encode_stream:4:2:65536:65536",
+    "different_view_shapes_by_role": {
+      "read_scratch_view": 12,
+      "parity_write_view": 6,
+      "writer_before": 4,
+      "writer_after": 4
+    },
+    "retained_source_geometry_matches": true
+  },
+  {
+    "case": "reconstruct_stream:10:4:1048576:1048576",
+    "different_view_shapes_by_role": {
+      "cursor_before_missing": 39,
+      "cursor_missing": 34,
+      "cursor_after_recovery": 42
+    },
+    "retained_source_geometry_matches": true
+  },
+  {
+    "case": "reconstruct_stream:10:4:16777216:4194304",
+    "different_view_shapes_by_role": {
+      "cursor_before_missing": 28,
+      "cursor_missing": 24,
+      "cursor_after_recovery": 34
+    },
+    "retained_source_geometry_matches": true
+  },
+  {
+    "case": "reconstruct_stream:10:4:65536:65536",
+    "different_view_shapes_by_role": {
+      "cursor_before_missing": 48,
+      "cursor_missing": 39,
+      "cursor_after_recovery": 53
+    },
+    "retained_source_geometry_matches": true
+  },
+  {
+    "case": "reconstruct_stream:4:2:1048576:262144",
+    "different_view_shapes_by_role": {
+      "cursor_before_missing": 12,
+      "cursor_missing": 8,
+      "cursor_after_recovery": 16
+    },
+    "retained_source_geometry_matches": true
+  },
+  {
+    "case": "reconstruct_stream:4:2:65536:65536",
+    "different_view_shapes_by_role": {
+      "cursor_before_missing": 16,
+      "cursor_missing": 10,
+      "cursor_after_recovery": 18
+    },
+    "retained_source_geometry_matches": true
+  },
+  {
+    "case": "verify_stream:10:4:1048576:1048576",
+    "different_view_shapes_by_role": {
+      "read_scratch_view": 28
+    },
+    "retained_source_geometry_matches": true
+  },
+  {
+    "case": "verify_stream:10:4:16777216:4194304",
+    "different_view_shapes_by_role": {
+      "read_scratch_view": 27
+    },
+    "retained_source_geometry_matches": true
+  },
+  {
+    "case": "verify_stream:10:4:65536:65536",
+    "different_view_shapes_by_role": {
+      "read_scratch_view": 28
+    },
+    "retained_source_geometry_matches": true
+  },
+  {
+    "case": "verify_stream:4:2:1048576:262144",
+    "different_view_shapes_by_role": {
+      "read_scratch_view": 12
+    },
+    "retained_source_geometry_matches": true
+  },
+  {
+    "case": "verify_stream:4:2:65536:65536",
+    "different_view_shapes_by_role": {
+      "read_scratch_view": 12
+    },
+    "retained_source_geometry_matches": true
+  }
+]

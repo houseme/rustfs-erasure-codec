@@ -123,3 +123,12 @@ all resources restored. Old evidence and failures are unchanged. No release clai
 retains the subsequent native heap/serialization and old-codec compatibility check,
 plus one original stream worker with process fault counters. It is not complete
 baseline qualification or candidate/release acceptance. Original failures remain.
+
+## Protocol-14 actual stream buffer view inventory
+
+[`diagnostics/protocol14-stream-buffer-views`](diagnostics/protocol14-stream-buffer-views/README.md)
+retains all 720 observations / 1,440 API calls for the complete 15-case stream
+catalog in four structural phases. Retained sources match; same-version shape sets
+match, while all cross-version case pairings differ in dynamic views/storage.
+This diagnostic does not establish original Vec performance geometry or release
+acceptance. Hidden scratch and other-profile dynamic scope remain uncompleted.

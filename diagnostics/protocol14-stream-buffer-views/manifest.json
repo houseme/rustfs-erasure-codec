@@ -1,0 +1,72 @@
+{
+  "schema_version": "stream-view-audit-v1",
+  "purpose": "complete source-bound structural I/O view inventory; no performance acceptance",
+  "tool": {
+    "commit": "3cd46696d0922edd88496962ae497d87dfbf639c",
+    "tree": "a60c246915ad6e34bbf3ee6b6959f14ed7490b9d",
+    "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+  },
+  "sources": {
+    "baseline": {
+      "commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+      "tree": "d44fe8c296972cf895375101f8975c99371db57a",
+      "lock_sha256": "972540efcf6bc23c0064252a9c0d937bf87dbe0edff9cdb688d2fdcbd5653d49"
+    },
+    "candidate": {
+      "commit": "3cd46696d0922edd88496962ae497d87dfbf639c",
+      "tree": "a60c246915ad6e34bbf3ee6b6959f14ed7490b9d",
+      "lock_sha256": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31"
+    }
+  },
+  "case_count": 15,
+  "observations": 720,
+  "calls_per_observation": 2,
+  "api_calls": 1440,
+  "same_version_set_comparisons": 30,
+  "same_version_set_mismatches": 0,
+  "cross_version_set_comparisons": 60,
+  "cross_version_set_mismatches": 60,
+  "coverage": {
+    "stream_case_lifecycles": 15,
+    "caller_owned_destination_cases": 10,
+    "internal_read_views": 10,
+    "internal_parity_write_views": 5,
+    "internal_verify_scratch": false,
+    "internal_recovery_scratch": false,
+    "non_stream_dynamic_buffers": false,
+    "formal_performance_geometry_equivalence": false
+  },
+  "release_approval": false,
+  "candidate_attribution": null,
+  "members_sha256": {
+    "README.md": "0240d2b7c10d745abf883369c1329c7aeffe5e18ff61c6ce5a7f84b3b29612e9",
+    "campaign/A1-samples.json": "fbfbf6576da3a35eb6a60d4218f70c0c3b3751bcc9fdc88c35f6b37c89d9efda",
+    "campaign/A1-stream-numeric.log": "09819c18393210d8c72e26195f33d8c96c47acfeb0b716b79ff51c814780dc5c",
+    "campaign/A1-stream-timing.partial.json": "574c171cb0e539c5b58d724f26f374b6790ec9045211e3d1c549531a3105d931",
+    "campaign/A1-timing.partial.json": "574c171cb0e539c5b58d724f26f374b6790ec9045211e3d1c549531a3105d931",
+    "campaign/A1-views.json": "0f40785567c443a351d5161a3cb044ab8cb1e724b0fd5f12ad47a5f097607ae8",
+    "campaign/A2-samples.json": "702d6f11dc35815d3e56569c9bdc5c38802c32a6c9e32c3e43a3b0c4e70fd1ea",
+    "campaign/A2-stream-numeric.log": "29bb32f7673896daa3ccd536fcedc7e90591a328ab23108c6dedada76b56e7f8",
+    "campaign/A2-stream-timing.partial.json": "b9a8a607bfe9b3d5f6e946c89355137f19941c06099fc83d5d30003f389f31ee",
+    "campaign/A2-timing.partial.json": "b9a8a607bfe9b3d5f6e946c89355137f19941c06099fc83d5d30003f389f31ee",
+    "campaign/A2-views.json": "0bd858d8865ca7607d84f23d354282ab3ce7f211692cc55e9b5805b921b56f70",
+    "campaign/B1-samples.json": "e79d037e6bc1b99f9a7b3fc0fce9e61994c4f42d60cfaf91fecda91d5e9b514b",
+    "campaign/B1-stream-numeric.log": "d61ebe333ca1311a447374906d6fbd63bb1045426aa053fd220e6c53d8407577",
+    "campaign/B1-stream-timing.partial.json": "4186b9847e04b4faa715bde5d1bdf8ee76ff190b2b0760a3df86a0ccc2f1e614",
+    "campaign/B1-timing.partial.json": "4186b9847e04b4faa715bde5d1bdf8ee76ff190b2b0760a3df86a0ccc2f1e614",
+    "campaign/B1-views.json": "48dd108f2518e92cdad840cec34e0cf132a610c721a0403c8c6d23113d8d5982",
+    "campaign/B2-samples.json": "d548552363fdcbc09f08e5c5a6998d37bd230ca6c2a0add67b5fe5d44fe9ea36",
+    "campaign/B2-stream-numeric.log": "887bcbfa4a334733a4a020f216c9c0a599ba3719a28164a25e7009f46139d25b",
+    "campaign/B2-stream-timing.partial.json": "08723ba086ebdaa0a2c6ba4236f6b414b961ceb4f0b615bc0aaa2bf3a0e5906f",
+    "campaign/B2-timing.partial.json": "08723ba086ebdaa0a2c6ba4236f6b414b961ceb4f0b615bc0aaa2bf3a0e5906f",
+    "campaign/B2-views.json": "241bf793f469aa02d1c2861e337a84c0d42acd3586cb5459381f8d8372098bd6",
+    "campaign/counts-stream.tsv": "e203de4e2566e7ec50ecc6d0e3819925ec9d91803ab31fda8bacb1ec568a6ad6",
+    "campaign/inventory.json": "0956bef19fb6ef393d1232415e2f265235d16bed08eb9ba7d66fea9b9ef082cf",
+    "campaign/provenance.json": "bc98b2085240d18cbd1ed5db451a75ae84284aab596c772c8c15b5c44f8478c7",
+    "reservation/cleanup.json": "0f4225a6f4c472499c116255dd9e2a140bb294bc6e4d425666a0c3346fa426ed",
+    "reservation/status.json": "274ee11f6cc2cce1fef3b33c3181c9e73746744c1514247b6d3b5eab9de2e7a3",
+    "result.json": "35286021b4e7b859387efb51b41728b3b5546cad041493632464a88170c35cba",
+    "role-differences.json": "091da4c75b202f40394ff9a6009cfd24dc191604302491e53b283793d4a941cf",
+    "strict-replay.json": "4021994783521a331fffd6ea58c19ad4adab8a851f4b59d224f86f94d7a10931"
+  }
+}
