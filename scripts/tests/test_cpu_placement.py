@@ -2,6 +2,7 @@
 import copy
 import json
 import pathlib
+import signal
 import sys
 import tempfile
 import unittest
@@ -78,7 +79,7 @@ class CpuPlacementTests(unittest.TestCase):
             rows = records(); change(rows)
             with self.assertRaises(ValueError): diagnostic.analyze(rows, [2, 2], 384, 4096)
 
-    def fake_worker(self, directory, foreign=False, bad_budget=False):
+    def fake_worker(self, directory, foreign=False, bad_budget=False, cancel=False):
         ready = {'epoch': 0, 'cpu': 2, 'tid': 501, 'budget_before': 1 if bad_budget else 2,
                  'budget_after': 2, 'hypothetical_parallel_policy': {'use_parallel': True, 'jobs': 2, 'chunk_len': 32768}}
         end = {'epoch': 0, 'cpu': 2, 'cached_policy_unchanged': True, 'available_parallelism_while_pinned': 1}
@@ -87,10 +88,24 @@ class CpuPlacementTests(unittest.TestCase):
         stream += 'RSE_CPU_END '+json.dumps(end)+'\n'
         process = SimpleNamespace(pid=500, stdin=mock.Mock(), stdout=SimpleNamespace(fileno=lambda: 10, close=lambda: None), wait=lambda **_: 0)
         state = {'cpus': {2, 3}}
+        chunks = [stream.encode(), b'']
+        if cancel:
+            parts = stream.splitlines(keepends=True)
+            chunks = [parts[0].encode(), ''.join(parts[1:4]).encode()]
+        reads = 0
+        def read_chunk(*_):
+            nonlocal reads
+            reads += 1
+            if cancel and reads == 2: signal.getsignal(signal.SIGTERM)(signal.SIGTERM, None)
+            return chunks.pop(0)
         selector = mock.MagicMock(); selector.__enter__.return_value = selector; selector.select.return_value = [(1, 1)]
         path = pathlib.Path(directory)/'worker.log'
-        with mock.patch.object(diagnostic.subprocess, 'Popen', return_value=process), mock.patch.object(diagnostic.selectors, 'DefaultSelector', return_value=selector), mock.patch.object(diagnostic.os, 'read', side_effect=[stream.encode(), b'']), mock.patch.object(diagnostic.os, 'getpgid', return_value=999 if foreign else 500), mock.patch.object(diagnostic.os, 'sched_getaffinity', create=True, side_effect=lambda _: state['cpus']), mock.patch.object(diagnostic.os, 'sched_setaffinity', create=True, side_effect=lambda _, cpus: state.update(cpus=cpus)) as pin, mock.patch.object(diagnostic.os, 'killpg') as kill:
-            if foreign or bad_budget:
+        with mock.patch.object(diagnostic.subprocess, 'Popen', return_value=process), mock.patch.object(diagnostic.selectors, 'DefaultSelector', return_value=selector), mock.patch.object(diagnostic.os, 'read', side_effect=read_chunk), mock.patch.object(diagnostic.os, 'getpgid', return_value=999 if foreign else 500), mock.patch.object(diagnostic.os, 'sched_getaffinity', create=True, side_effect=lambda _: state['cpus']), mock.patch.object(diagnostic.os, 'sched_setaffinity', create=True, side_effect=lambda _, cpus: state.update(cpus=cpus)) as pin, mock.patch.object(diagnostic.os, 'killpg') as kill:
+            if cancel:
+                with self.assertRaises(InterruptedError): diagnostic.run_worker(path.parent, {}, [2], 384, path, [2, 3])
+                kill.assert_called_once_with(500, signal.SIGTERM)
+                self.assertEqual(len(json.loads(path.with_suffix('.samples.partial.json').read_text())), 3)
+            elif foreign or bad_budget:
                 with self.assertRaises(ValueError): diagnostic.run_worker(path.parent, {}, [2], 384, path, [2, 3])
                 pin.assert_not_called(); kill.assert_called_once()
                 self.assertEqual(json.loads(path.with_suffix('.samples.partial.json').read_text()), [])
@@ -104,6 +119,11 @@ class CpuPlacementTests(unittest.TestCase):
 
     def test_parent_pins_only_after_budget_and_owned_thread_are_verified(self):
         with tempfile.TemporaryDirectory() as directory: self.fake_worker(directory)
+
+    def test_termination_cleans_owned_session_preserves_samples_and_restores_handlers(self):
+        before = {sig: signal.getsignal(sig) for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP)}
+        with tempfile.TemporaryDirectory() as directory: self.fake_worker(directory, cancel=True)
+        self.assertEqual(before, {sig: signal.getsignal(sig) for sig in before})
 
     def test_foreign_thread_or_single_cpu_construction_is_rejected_before_pin(self):
         for flags in ({'foreign': True}, {'bad_budget': True}):

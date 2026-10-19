@@ -93,6 +93,21 @@ def analyze(records, sequence, iterations, page_size):
 
 
 def run_worker(repository, environment, sequence, iterations, output, cpus):
+    # A flag avoids raising between Popen spawning and assigning the owned child.
+    # The bounded selector loop observes cancellation and executes its cleanup.
+    requested = False
+    def cancel(_signum, _frame):
+        nonlocal requested
+        requested = True
+    previous = {sig: signal.getsignal(sig) for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP)}
+    try:
+        for sig in previous: signal.signal(sig, cancel)
+        return _run_worker(repository, environment, sequence, iterations, output, cpus, lambda: requested)
+    finally:
+        for sig, handler in previous.items(): signal.signal(sig, handler)
+
+
+def _run_worker(repository, environment, sequence, iterations, output, cpus, cancelled):
     """READY/END boundaries let the parent verify real affinity without Rust FFI."""
     env = dict(environment, RSE_CPU_ITERATIONS=str(iterations), RSE_CPU_SEQUENCE=','.join(map(str, sequence)),
                RSE_SAMPLER_PAGE_SIZE=str(sampling.base_page_size()))
@@ -107,6 +122,8 @@ def run_worker(repository, environment, sequence, iterations, output, cpus):
             selector.register(process.stdout, selectors.EVENT_READ)
             deadline = time.monotonic()+300
             while True:
+                if cancelled():
+                    raise InterruptedError('placement worker cancelled; preserving completed observations')
                 if time.monotonic() > deadline:
                     raise TimeoutError('placement worker exceeded its bounded runtime')
                 events = selector.select(1)
