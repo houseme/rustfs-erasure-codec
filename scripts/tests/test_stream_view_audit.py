@@ -110,6 +110,10 @@ class StreamViewTests(unittest.TestCase):
         self.assertEqual(before,sampling.render(root))
         self.assertNotIn('stream_views.rs',before)
         self.assertIn('stream_views.rs',traced)
+        self.assertLess(traced['stream_views.rs'].index('fn read_bounded'),traced['stream_views.rs'].index('mod tests {'))
+        engine=(sampling.TEMPLATES/'engine.rs').read_text()
+        for declaration in ('fn read_bounded','fn process_faults'):
+            self.assertIn(sampling.block(engine,declaration),traced['stream_views.rs'])
         for name in before:
             if name not in ('root.rs','stream.rs'):self.assertEqual(before[name],traced[name])
         self.assertIn('super::stream_views::cursors(&cursors, 8)',traced['stream.rs'])
