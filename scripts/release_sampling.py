@@ -6,11 +6,12 @@ import os
 import pathlib
 import re
 
-PROTOCOL = {"name": "shared-external-duration-sampler", "version": 13, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
+PROTOCOL = {"name": "shared-external-duration-sampler", "version": 14, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
             "target_wall_ns": 100_000_000, "target_timed_ns": 5_000_000,
             "minimum_wall_ns": 50_000_000, "minimum_timed_ns": 2_000_000,
             "central_spread_limit": .10,
             "observer_buffer_policy": "bounded-stack-procfs-no-rust-heap",
+            "fault_counter_scope": "guest-process-including-workers-excluding-children; no IDs; outside inner timers",
             "result_metadata_policy": "bounded-inline-hotspot-patterns-deferred-formatting",
             "stream_output_policy": "independent-capacity-per-writer-per-iteration",
             "workload_contract": {"scope":"all-126-cases", "codec_lifetime":"worker", "hotspot_input":"worker-seeded-SmallRng-u32-low-byte", "state_witness":"generated-byte-count-and-next-two-u64-words", "geometry_scope":"unchanged-caller-only; dynamic destinations and internal views untracked"},
@@ -454,13 +455,13 @@ def worker_environment(environment):
 def validate_telemetry(record, allowed_cpus=None):
     before, after = record.get("before"), record.get("after")
     for point in (before, after):
-        if not isinstance(point, dict) or set(point) != {"cpu", "run_ns", "wait_ns", "switches"}:
+        if not isinstance(point, dict) or set(point) != {"cpu", "run_ns", "wait_ns", "switches", "process_minor_faults", "process_major_faults"}:
             raise ValueError("per-sample scheduling telemetry is required")
         if any(type(value) is not int or value < 0 for value in point.values()):
             raise ValueError("invalid scheduling counters")
         if allowed_cpus is not None and point["cpu"] not in allowed_cpus:
             raise ValueError("sample escaped the reserved CPU set")
-    if any(after[key] < before[key] for key in ("run_ns", "wait_ns", "switches")):
+    if any(after[key] < before[key] for key in ("run_ns", "wait_ns", "switches", "process_minor_faults", "process_major_faults")):
         raise ValueError("scheduling counters moved backwards")
 
 

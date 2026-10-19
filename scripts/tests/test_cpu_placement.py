@@ -27,8 +27,8 @@ def records(sequence=(2, 2), iterations=384):
                          'kind': 'warmup' if index < 3 else 'sample', 'case': diagnostic.CASE,
                          'call_entry': 'Vec<Vec<u8>>', 'backend': 'fixture', 'fixture': copy.deepcopy(fixture),
                          'ns_per_iter': 400000., 'timed_ns': 400000.*iterations, 'wall_ns': 160000000,
-                         'before': {'cpu': cpu, 'run_ns': 1, 'wait_ns': 1, 'switches': 1},
-                         'after': {'cpu': cpu, 'run_ns': 1000, 'wait_ns': 2, 'switches': 3},
+                         'before': {'cpu': cpu, 'run_ns': 1, 'wait_ns': 1, 'switches': 1, 'process_minor_faults':0, 'process_major_faults':0},
+                         'after': {'cpu': cpu, 'run_ns': 1000, 'wait_ns': 2, 'switches': 3, 'process_minor_faults':0, 'process_major_faults':0},
                          'faults_before': {'cpu': cpu, 'minor': 1, 'major': 0},
                          'faults_after': {'cpu': cpu, 'minor': 3, 'major': 0}})
     return rows

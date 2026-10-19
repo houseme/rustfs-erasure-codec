@@ -552,6 +552,10 @@ def baseline_service_times(records):
         "wall_ns_per_iteration": statistics.median(r["wall_ns"]/r["iterations"] for r in rows),
         "thread_run_ns_per_iteration": statistics.median((r["after"]["run_ns"]-r["before"]["run_ns"])/r["iterations"] for r in rows),
         "maximum_runnable_wait_fraction": max((r["after"]["wait_ns"]-r["before"]["wait_ns"])/r["wall_ns"] for r in rows),
+        "process_minor_faults_per_iteration": [
+            (r["after"]["process_minor_faults"]-r["before"]["process_minor_faults"])/r["iterations"] for r in rows],
+        "process_major_faults_per_iteration": [
+            (r["after"]["process_major_faults"]-r["before"]["process_major_faults"])/r["iterations"] for r in rows],
     } for case, rows in sorted(cases.items())}
 
 

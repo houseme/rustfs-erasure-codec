@@ -16,6 +16,11 @@ All notable changes to this project are documented in this file.
   retain per-case wall, measured, thread-runtime and runnable-wait summaries without
   treating qualification as candidate or release approval.
 
+- Record whole-process minor/major faults with bounded stack procfs reads in sampler
+  protocol 14, including Rayon workers without opting into allocating diagnostics.
+  Reject missing/reset counters and retain them in raw rows and descriptive replay;
+  preserve every warmup, operation loop and performance threshold.
+
 ## 9.1.0 (2026-10-18)
 
 ### Fixed

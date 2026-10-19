@@ -38,6 +38,8 @@ pub(super) struct Telemetry {
     run_ns: u64,
     wait_ns: u64,
     switches: u64,
+    process_minor_faults: u64,
+    process_major_faults: u64,
     process: Option<String>,
 }
 
@@ -48,8 +50,13 @@ impl std::fmt::Display for Telemetry {
         }
         write!(
             f,
-            "{{\"cpu\":{},\"run_ns\":{},\"wait_ns\":{},\"switches\":{}",
-            self.cpu, self.run_ns, self.wait_ns, self.switches
+            "{{\"cpu\":{},\"run_ns\":{},\"wait_ns\":{},\"switches\":{},\"process_minor_faults\":{},\"process_major_faults\":{}",
+            self.cpu,
+            self.run_ns,
+            self.wait_ns,
+            self.switches,
+            self.process_minor_faults,
+            self.process_major_faults
         )?;
         if let Some(process) = &self.process {
             write!(f, ",\"process\":{process}")?;
@@ -79,6 +86,46 @@ fn read_bounded<'a>(path: &str, buffer: &'a mut [u8]) -> io::Result<&'a str> {
     Err(io::ErrorKind::InvalidData.into())
 }
 
+// /proc/self/stat counts faults for the whole process, including Rayon workers.
+// Child-process counters (fields 11/13) are deliberately excluded. No IDs escape.
+fn process_faults(stat: &str) -> io::Result<(u64, u64)> {
+    let invalid = || io::Error::from(io::ErrorKind::InvalidData);
+    let mut fields = stat
+        .rsplit_once(") ")
+        .ok_or_else(invalid)?
+        .1
+        .split_whitespace();
+    let minor = fields
+        .nth(7)
+        .ok_or_else(invalid)?
+        .parse()
+        .map_err(|_| invalid())?;
+    let major = fields
+        .nth(1)
+        .ok_or_else(invalid)?
+        .parse()
+        .map_err(|_| invalid())?;
+    Ok((minor, major))
+}
+
+#[test]
+fn process_fault_offsets_exclude_children_and_survive_comm_parentheses() {
+    let mut values = ["0"; 40];
+    values[7] = "19";
+    values[8] = "999";
+    values[9] = "3";
+    values[10] = "777";
+    let stat = format!("777 (worker ) tricky) {}", values.join(" "));
+    assert_eq!(process_faults(&stat).unwrap(), (19, 3));
+    for bad in [
+        "truncated",
+        "777 (comm) R 1 2",
+        "777 (comm) R 0 0 0 0 0 0 -1 0 0",
+    ] {
+        assert!(process_faults(bad).is_err());
+    }
+}
+
 pub(super) fn telemetry() -> Telemetry {
     let mut stat_buffer = [0u8; 4096];
     let Ok(stat) = read_bounded("/proc/thread-self/stat", &mut stat_buffer) else {
@@ -102,6 +149,9 @@ pub(super) fn telemetry() -> Telemetry {
         counters.next().unwrap(),
     );
     assert!(counters.next().is_none());
+    let mut process_stat_buffer = [0u8; 4096];
+    let (process_minor_faults, process_major_faults) =
+        process_faults(read_bounded("/proc/self/stat", &mut process_stat_buffer).unwrap()).unwrap();
     let process = if std::env::var("RSE_SAMPLER_DIAGNOSTIC_PROCESS")
         .ok()
         .as_deref()
@@ -117,6 +167,8 @@ pub(super) fn telemetry() -> Telemetry {
         run_ns,
         wait_ns,
         switches,
+        process_minor_faults,
+        process_major_faults,
         process,
     }
 }

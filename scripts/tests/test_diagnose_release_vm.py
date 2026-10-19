@@ -13,7 +13,7 @@ import release_evidence as evidence
 
 
 def point(tick):
-    return {'cpu':0,'run_ns':tick,'wait_ns':tick,'switches':tick,'process':{
+    return {'cpu':0,'run_ns':tick,'wait_ns':tick,'switches':tick, 'process_minor_faults':0, 'process_major_faults':0,'process':{
         'available':True,'complete':True,'minor_faults':tick,'major_faults':0,'snapshot_ns':10,
         'threads':[{'slot':0,'measuring_thread':True,'cpu':0,'minor_faults':tick,'major_faults':0,
                     'run_ns':tick,'wait_ns':tick,'timeslices':tick}]}}

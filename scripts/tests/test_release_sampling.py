@@ -36,6 +36,19 @@ class SamplingContractTests(unittest.TestCase):
         records=json.loads(path.read_text());change(records)
         self.doc['files'][phase][profile]['samples']=self.write(phase,profile,records)
 
+    def test_process_fault_counters_are_required_nonnegative_and_monotonic(self):
+        row = self.record(self.cases('A1', 'smoke')[0], 'smoke', 'baseline', 'sample', 3)
+        sampling.validate_telemetry(row)
+        for field in ('process_minor_faults', 'process_major_faults'):
+            for value in (None, True, -1):
+                changed = copy.deepcopy(row)
+                if value is None: changed['after'].pop(field)
+                else: changed['after'][field] = value
+                with self.assertRaises(ValueError): sampling.validate_telemetry(changed)
+            changed = copy.deepcopy(row)
+            changed['before'][field] = 2; changed['after'][field] = 1
+            with self.assertRaisesRegex(ValueError, 'backwards'): sampling.validate_telemetry(changed)
+
     def test_every_retained_caller_case_requires_its_declared_api_contract(self):
         covered = 0
         for profile in ('small_file', 'stream'):
