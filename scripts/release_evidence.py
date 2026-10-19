@@ -6,6 +6,8 @@ production capture invokes the four real benchmark entry points on both sources.
 """
 from __future__ import annotations
 
+from contextlib import ExitStack
+
 import argparse
 import hashlib
 import json
@@ -21,6 +23,7 @@ import time
 import copy
 
 import release_sampling as sampling
+from diagnostic_overlay import overlay
 
 from check_benchmark_regression import PROVENANCE_FIELDS, index_records, provenance_value
 from check_reconstruction_hotspot_gate import CASE_FIELDS, index_results
@@ -462,50 +465,68 @@ def capture(baseline, candidate, output, group):
         "purpose":"capture setup only; never release acceptance", "sources":sources,
         "harness_sha256":harness, "sampling":contract,
         "initial_context":environment_context(candidate,env,group)},indent=2)+"\n")
-    for role, root in (("baseline", baseline), ("candidate", candidate)):
-        sampling.generate(root)
-        args = ["cargo","test","--locked","--release","--features","std simd-accel","--test","rse_release_sampling","--no-run"]
-        with (output/(role+"-build.log")).open("w") as log:
-            subprocess.run(args,cwd=root,env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
-    def execute(root, folder, profile, mode, count_file=None):
-        before = environment_context(root,env,group)
-        records = sampling.run_profile(root,env,profile,mode,folder/(profile+".log"),count_file,cases=expected_cases(profile))
-        if environment_context(root,env,group)!=before: raise ValueError("measurement environment changed")
-        member=folder/(profile+"-samples.json")
-        member.write_text(json.dumps(records,indent=2)+"\n")
-        return records, {"path":member.relative_to(output).as_posix(),"sha256":digest(member.read_bytes())}
-    pilots={}
-    for role,root in (("baseline",baseline),("candidate",candidate)):
-        folder=output/("calibration-"+role);folder.mkdir()
-        metadata["calibration"][role]={};pilots[role]={}
+    with ExitStack() as overlays:
+        for role, root in (("baseline", baseline), ("candidate", candidate)):
+            overlays.enter_context(overlay(root, sampling.render(root)))
+            args = ["cargo","test","--locked","--release","--features","std simd-accel","--test","rse_release_sampling","--no-run"]
+            with (output/(role+"-build.log")).open("w") as log:
+                subprocess.run(args,cwd=root,env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
+        def execute(root, folder, profile, mode, count_file=None):
+            before = environment_context(root,env,group)
+            log_path = folder/(profile+".log")
+            try:
+                records = sampling.run_profile(root,env,profile,mode,log_path,count_file,cases=expected_cases(profile))
+            except BaseException:
+                # run_profile closes and flushes its journal before propagating failure.
+                # Preserve completed numeric rows without promoting them to members
+                # of a complete/accepted manifest; raw logs are never removed.
+                if log_path.exists():
+                    text = log_path.read_text()
+                    for kind, prefix in (("samples", "RSE_SAMPLE "), ("timing", "RSE_TIMING ")):
+                        try:
+                            partial = sampling.parse_output(text, prefix)
+                            (folder/(profile+"-"+kind+".partial.json")).write_text(json.dumps(partial,indent=2)+"\n")
+                        except (ValueError, OSError) as error:
+                            # A malformed journal remains rejected and intact. Do not
+                            # replace the original worker failure with a parser error.
+                            (folder/(profile+"-"+kind+".error.json")).write_text(json.dumps({"status":"failed", "error":str(error)})+"\n")
+                raise
+            member=folder/(profile+"-samples.json")
+            member.write_text(json.dumps(records,indent=2)+"\n")
+            if environment_context(root,env,group)!=before: raise ValueError("measurement environment changed")
+            return records, {"path":member.relative_to(output).as_posix(),"sha256":digest(member.read_bytes())}
+        pilots={}
+        for role,root in (("baseline",baseline),("candidate",candidate)):
+            folder=output/("calibration-"+role);folder.mkdir()
+            metadata["calibration"][role]={};pilots[role]={}
+            for profile in FILES:
+                records,entry=execute(root,folder,profile,"calibrate")
+                metadata["calibration"][role][profile]=entry
+                pilots[role][profile]=calibration_counts(records,profile,sources[role]["commit"])
+        counts={p:{k:max(pilots[r][p][k] for r in pilots) for k in expected_cases(p)} for p in FILES}
+        contract["common_iterations"]=counts
+        count_files={}
         for profile in FILES:
-            records,entry=execute(root,folder,profile,"calibrate")
-            metadata["calibration"][role][profile]=entry
-            pilots[role][profile]=calibration_counts(records,profile,sources[role]["commit"])
-    counts={p:{k:max(pilots[r][p][k] for r in pilots) for k in expected_cases(p)} for p in FILES}
-    contract["common_iterations"]=counts
-    count_files={}
-    for profile in FILES:
-        count_files[profile]=output/("counts-"+profile+".tsv")
-        count_files[profile].write_text("".join(f"{key}\t{value}\n" for key,value in sorted(counts[profile].items())))
-    for phase in PHASES:
-        time.sleep(10)
-        role="baseline" if phase.startswith("A") else "candidate"
-        root=baseline if role=="baseline" else candidate
-        metadata["contexts"][phase]=environment_context(root,env,group)
-        folder=output/phase;folder.mkdir();metadata["files"][phase]={}
-        for profile,filename in FILES.items():
-            records,entry=execute(root,folder,profile,"sample",count_files[profile])
-            normalize=lambda p,row,rev: next(iter(indexed_rows(p,[row],rev,counts[p],complete=False)))
-            selected,_=sampling.selected_row(records,profile,METRICS[profile],sources[role]["commit"],expected_cases(profile),counts[profile],normalize)
-            result=folder/filename;result.write_text(json.dumps(selected,indent=2)+"\n")
-            metadata["files"][phase][profile]={"path":f"{phase}/{filename}","sha256":digest(result.read_bytes()),"samples":entry}
-            (output/"manifest.partial.json").write_text(json.dumps(metadata,indent=2)+"\n")
-    metadata["contexts"]["after"]=environment_context(candidate,env,group)
-    if any(source_info(root)!=sources[role] for role,root in (("baseline",baseline),("candidate",candidate))): raise ValueError("source changed during capture")
-    manifest=output/"manifest.json";manifest.write_text(json.dumps(metadata,indent=2)+"\n")
-    _,_,report=verify(manifest,candidate)
-    (output/"report.json").write_text(json.dumps(report,indent=2)+"\n")
+            count_files[profile]=output/("counts-"+profile+".tsv")
+            count_files[profile].write_text("".join(f"{key}\t{value}\n" for key,value in sorted(counts[profile].items())))
+        for phase in PHASES:
+            time.sleep(10)
+            role="baseline" if phase.startswith("A") else "candidate"
+            root=baseline if role=="baseline" else candidate
+            metadata["contexts"][phase]=environment_context(root,env,group)
+            folder=output/phase;folder.mkdir();metadata["files"][phase]={}
+            for profile,filename in FILES.items():
+                records,entry=execute(root,folder,profile,"sample",count_files[profile])
+                normalize=lambda p,row,rev: next(iter(indexed_rows(p,[row],rev,counts[p],complete=False)))
+                selected,_=sampling.selected_row(records,profile,METRICS[profile],sources[role]["commit"],expected_cases(profile),counts[profile],normalize)
+                result=folder/filename;result.write_text(json.dumps(selected,indent=2)+"\n")
+                metadata["files"][phase][profile]={"path":f"{phase}/{filename}","sha256":digest(result.read_bytes()),"samples":entry}
+                (output/"manifest.partial.json").write_text(json.dumps(metadata,indent=2)+"\n")
+        metadata["contexts"]["after"]=environment_context(candidate,env,group)
+        if any(source_info(root)!=sources[role] for role,root in (("baseline",baseline),("candidate",candidate))): raise ValueError("source changed during capture")
+        manifest=output/"manifest.json";manifest.write_text(json.dumps(metadata,indent=2)+"\n")
+        _,_,report=verify(manifest,candidate)
+        (output/"report.json").write_text(json.dumps(report,indent=2)+"\n")
 
 
 def materialize(manifest, repository, env_file):
