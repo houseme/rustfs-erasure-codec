@@ -132,3 +132,13 @@ catalog in four structural phases. Retained sources match; same-version shape se
 match, while all cross-version case pairings differ in dynamic views/storage.
 This diagnostic does not establish original Vec performance geometry or release
 acceptance. Hidden scratch and other-profile dynamic scope remain uncompleted.
+
+## Protocol-14 writer page-lifecycle point diagnosis
+
+[`diagnostics/protocol14-writer-page-lifecycle`](diagnostics/protocol14-writer-page-lifecycle/README.md)
+retains the one frozen-count published-9.0.0 stream worker: all 12 observations,
+72 calls, reserve/append/drop/call windows and journals. Measured calls show two
+main page-fault states; writer windows account for part of the observed interval
+variation, while a substantial residual remains. This is no candidate comparison,
+full qualification or release acceptance. Native checks and all resource restoration
+outcomes, plus the premeasurement generated-code failure, remain explicit.

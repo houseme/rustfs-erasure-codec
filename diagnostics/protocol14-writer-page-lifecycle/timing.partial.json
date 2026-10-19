@@ -1,0 +1,1610 @@
+[
+  {
+    "case": "encode_stream:10:4:16777216:4194304",
+    "index": 0,
+    "iterations": 6,
+    "wall_ns": 265283434,
+    "timed_ns": 264671486,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 202323375,
+      "wait_ns": 16434,
+      "switches": 9,
+      "process_minor_faults": 41137,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 363534383,
+      "wait_ns": 30245,
+      "switches": 64,
+      "process_minor_faults": 176372,
+      "process_major_faults": 0
+    }
+  },
+  {
+    "case": "encode_stream:10:4:16777216:4194304",
+    "index": 1,
+    "iterations": 6,
+    "wall_ns": 146518670,
+    "timed_ns": 145970912,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 363654091,
+      "wait_ns": 30245,
+      "switches": 64,
+      "process_minor_faults": 176372,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 425238054,
+      "wait_ns": 30245,
+      "switches": 118,
+      "process_minor_faults": 210171,
+      "process_major_faults": 0
+    }
+  },
+  {
+    "case": "encode_stream:10:4:16777216:4194304",
+    "index": 2,
+    "iterations": 6,
+    "wall_ns": 207457965,
+    "timed_ns": 206867542,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 425810748,
+      "wait_ns": 30245,
+      "switches": 118,
+      "process_minor_faults": 210172,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 536021832,
+      "wait_ns": 41191,
+      "switches": 174,
+      "process_minor_faults": 290054,
+      "process_major_faults": 0
+    }
+  },
+  {
+    "case": "encode_stream:10:4:16777216:4194304",
+    "index": 3,
+    "iterations": 6,
+    "wall_ns": 177119206,
+    "timed_ns": 176561903,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 536323201,
+      "wait_ns": 41191,
+      "switches": 174,
+      "process_minor_faults": 290054,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 621217740,
+      "wait_ns": 97244,
+      "switches": 230,
+      "process_minor_faults": 354575,
+      "process_major_faults": 0
+    }
+  },
+  {
+    "case": "encode_stream:10:4:16777216:4194304",
+    "index": 4,
+    "iterations": 6,
+    "wall_ns": 173258987,
+    "timed_ns": 172728164,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 621740420,
+      "wait_ns": 97244,
+      "switches": 230,
+      "process_minor_faults": 354575,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 706171817,
+      "wait_ns": 121300,
+      "switches": 286,
+      "process_minor_faults": 403735,
+      "process_major_faults": 0
+    }
+  },
+  {
+    "case": "encode_stream:10:4:16777216:4194304",
+    "index": 5,
+    "iterations": 6,
+    "wall_ns": 209883454,
+    "timed_ns": 209343017,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 706728267,
+      "wait_ns": 121300,
+      "switches": 286,
+      "process_minor_faults": 403736,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 814914612,
+      "wait_ns": 127539,
+      "switches": 340,
+      "process_minor_faults": 498980,
+      "process_major_faults": 0
+    }
+  },
+  {
+    "case": "encode_stream:10:4:16777216:4194304",
+    "index": 6,
+    "iterations": 6,
+    "wall_ns": 143874623,
+    "timed_ns": 143334326,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 815480886,
+      "wait_ns": 127539,
+      "switches": 340,
+      "process_minor_faults": 498980,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 876339201,
+      "wait_ns": 144644,
+      "switches": 395,
+      "process_minor_faults": 517418,
+      "process_major_faults": 0
+    }
+  },
+  {
+    "case": "encode_stream:10:4:16777216:4194304",
+    "index": 7,
+    "iterations": 6,
+    "wall_ns": 230295712,
+    "timed_ns": 229753943,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 876904865,
+      "wait_ns": 144644,
+      "switches": 395,
+      "process_minor_faults": 517418,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 1003162454,
+      "wait_ns": 144644,
+      "switches": 449,
+      "process_minor_faults": 628022,
+      "process_major_faults": 0
+    }
+  },
+  {
+    "case": "encode_stream:10:4:16777216:4194304",
+    "index": 8,
+    "iterations": 6,
+    "wall_ns": 144474001,
+    "timed_ns": 143936417,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 1003381421,
+      "wait_ns": 144644,
+      "switches": 449,
+      "process_minor_faults": 628023,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 1063489541,
+      "wait_ns": 144644,
+      "switches": 503,
+      "process_minor_faults": 661822,
+      "process_major_faults": 0
+    }
+  },
+  {
+    "case": "encode_stream:10:4:16777216:4194304",
+    "index": 9,
+    "iterations": 6,
+    "wall_ns": 203729883,
+    "timed_ns": 203193473,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 1064052661,
+      "wait_ns": 144644,
+      "switches": 503,
+      "process_minor_faults": 661822,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 1171733730,
+      "wait_ns": 293826,
+      "switches": 559,
+      "process_minor_faults": 741704,
+      "process_major_faults": 0
+    }
+  },
+  {
+    "case": "encode_stream:10:4:16777216:4194304",
+    "index": 10,
+    "iterations": 6,
+    "wall_ns": 176570436,
+    "timed_ns": 176016829,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 1172295668,
+      "wait_ns": 293826,
+      "switches": 559,
+      "process_minor_faults": 741704,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 1256583770,
+      "wait_ns": 293826,
+      "switches": 613,
+      "process_minor_faults": 806225,
+      "process_major_faults": 0
+    }
+  },
+  {
+    "case": "encode_stream:10:4:16777216:4194304",
+    "index": 11,
+    "iterations": 6,
+    "wall_ns": 178447319,
+    "timed_ns": 177916015,
+    "fixture": {
+      "entry": "Vec<Vec<u8>>",
+      "lifetime": "worker",
+      "page_size": 4096,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "source": [
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        },
+        {
+          "len": 16777216,
+          "capacity": 16777216,
+          "offset_64": 16,
+          "offset_4096": 16,
+          "offset_page": 16
+        }
+      ],
+      "scratch": []
+    },
+    "workload": {
+      "codec_lifetime": "worker",
+      "source_lifetime": "worker",
+      "construction": "source-before-codec",
+      "generator": "worker-seeded-SmallRng-random-u8",
+      "seed": 64843600019981621,
+      "call_entry": "Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
+      "output_policy": "iteration-reserved-writers-untracked",
+      "missing_mask": 0,
+      "required_mask": 0,
+      "changed_mask": 0,
+      "rng": null
+    },
+    "placement": {
+      "cpu": 24,
+      "constructor_budget": 8,
+      "constructor_affinity": [
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31
+      ],
+      "pool_threads": 4,
+      "affinity_checked": true
+    },
+    "before": {
+      "cpu": 24,
+      "run_ns": 1256865410,
+      "wait_ns": 293826,
+      "switches": 613,
+      "process_minor_faults": 806225,
+      "process_major_faults": 0
+    },
+    "after": {
+      "cpu": 24,
+      "run_ns": 1340828101,
+      "wait_ns": 321486,
+      "switches": 669,
+      "process_minor_faults": 855385,
+      "process_major_faults": 0
+    }
+  }
+]

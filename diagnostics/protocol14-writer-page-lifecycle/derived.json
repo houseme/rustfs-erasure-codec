@@ -1,0 +1,646 @@
+{
+  "purpose": "all observations and descriptive per-call window decomposition; not a controlled speedup or release qualification",
+  "observations": [
+    {
+      "index": 0,
+      "kind": "warmup",
+      "outer_wall_ns": 265283434,
+      "windows": {
+        "call": {
+          "wall_ns": 264516148,
+          "process_minor_faults": 135230,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 160559216,
+          "calling_thread_wait_ns": 13811
+        },
+        "reserve": {
+          "wall_ns": 151701,
+          "process_minor_faults": 17,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 225817,
+          "calling_thread_wait_ns": 0
+        },
+        "append": {
+          "wall_ns": 78812665,
+          "process_minor_faults": 49144,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 80479702,
+          "calling_thread_wait_ns": 0
+        },
+        "drop": {
+          "wall_ns": 14280822,
+          "process_minor_faults": 0,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 14375125,
+          "calling_thread_wait_ns": 0
+        },
+        "outside_writer_windows": {
+          "wall_ns": 171270960,
+          "process_minor_faults": 86069,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 65478572,
+          "calling_thread_wait_ns": 13811
+        }
+      }
+    },
+    {
+      "index": 1,
+      "kind": "warmup",
+      "outer_wall_ns": 146518670,
+      "windows": {
+        "call": {
+          "wall_ns": 145823367,
+          "process_minor_faults": 33799,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 61430865,
+          "calling_thread_wait_ns": 0
+        },
+        "reserve": {
+          "wall_ns": 28175,
+          "process_minor_faults": 2,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 101491,
+          "calling_thread_wait_ns": 0
+        },
+        "append": {
+          "wall_ns": 23845153,
+          "process_minor_faults": 4095,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 25559336,
+          "calling_thread_wait_ns": 0
+        },
+        "drop": {
+          "wall_ns": 2714,
+          "process_minor_faults": 0,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 81392,
+          "calling_thread_wait_ns": 0
+        },
+        "outside_writer_windows": {
+          "wall_ns": 121947325,
+          "process_minor_faults": 29702,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 35688646,
+          "calling_thread_wait_ns": 0
+        }
+      }
+    },
+    {
+      "index": 2,
+      "kind": "warmup",
+      "outer_wall_ns": 207457965,
+      "windows": {
+        "call": {
+          "wall_ns": 206719745,
+          "process_minor_faults": 79882,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 109747973,
+          "calling_thread_wait_ns": 7561
+        },
+        "reserve": {
+          "wall_ns": 125493,
+          "process_minor_faults": 8,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 198375,
+          "calling_thread_wait_ns": 0
+        },
+        "append": {
+          "wall_ns": 37864556,
+          "process_minor_faults": 16380,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 39547655,
+          "calling_thread_wait_ns": 0
+        },
+        "drop": {
+          "wall_ns": 8963382,
+          "process_minor_faults": 0,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 9047713,
+          "calling_thread_wait_ns": 7561
+        },
+        "outside_writer_windows": {
+          "wall_ns": 159766314,
+          "process_minor_faults": 63494,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 60954230,
+          "calling_thread_wait_ns": 0
+        }
+      }
+    },
+    {
+      "index": 3,
+      "kind": "sample",
+      "outer_wall_ns": 177119206,
+      "windows": {
+        "call": {
+          "wall_ns": 176400386,
+          "process_minor_faults": 64521,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 84674409,
+          "calling_thread_wait_ns": 56053
+        },
+        "reserve": {
+          "wall_ns": 92973,
+          "process_minor_faults": 6,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 166669,
+          "calling_thread_wait_ns": 0
+        },
+        "append": {
+          "wall_ns": 32800708,
+          "process_minor_faults": 12285,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 34459092,
+          "calling_thread_wait_ns": 16965
+        },
+        "drop": {
+          "wall_ns": 3807991,
+          "process_minor_faults": 0,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 3892546,
+          "calling_thread_wait_ns": 0
+        },
+        "outside_writer_windows": {
+          "wall_ns": 139698714,
+          "process_minor_faults": 52230,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 46156102,
+          "calling_thread_wait_ns": 39088
+        }
+      }
+    },
+    {
+      "index": 4,
+      "kind": "sample",
+      "outer_wall_ns": 173258987,
+      "windows": {
+        "call": {
+          "wall_ns": 172581340,
+          "process_minor_faults": 49160,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 84285410,
+          "calling_thread_wait_ns": 24056
+        },
+        "reserve": {
+          "wall_ns": 72051,
+          "process_minor_faults": 4,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 144466,
+          "calling_thread_wait_ns": 0
+        },
+        "append": {
+          "wall_ns": 27859281,
+          "process_minor_faults": 8190,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 29488159,
+          "calling_thread_wait_ns": 6470
+        },
+        "drop": {
+          "wall_ns": 5414118,
+          "process_minor_faults": 0,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 5500862,
+          "calling_thread_wait_ns": 0
+        },
+        "outside_writer_windows": {
+          "wall_ns": 139235890,
+          "process_minor_faults": 40966,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 49151923,
+          "calling_thread_wait_ns": 17586
+        }
+      }
+    },
+    {
+      "index": 5,
+      "kind": "sample",
+      "outer_wall_ns": 209883454,
+      "windows": {
+        "call": {
+          "wall_ns": 209196221,
+          "process_minor_faults": 95244,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 108041050,
+          "calling_thread_wait_ns": 6239
+        },
+        "reserve": {
+          "wall_ns": 163259,
+          "process_minor_faults": 10,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 235822,
+          "calling_thread_wait_ns": 0
+        },
+        "append": {
+          "wall_ns": 41960907,
+          "process_minor_faults": 20475,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 43716748,
+          "calling_thread_wait_ns": 0
+        },
+        "drop": {
+          "wall_ns": 7259004,
+          "process_minor_faults": 0,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 7346466,
+          "calling_thread_wait_ns": 0
+        },
+        "outside_writer_windows": {
+          "wall_ns": 159813051,
+          "process_minor_faults": 74759,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 56742014,
+          "calling_thread_wait_ns": 6239
+        }
+      }
+    },
+    {
+      "index": 6,
+      "kind": "sample",
+      "outer_wall_ns": 143874623,
+      "windows": {
+        "call": {
+          "wall_ns": 143185519,
+          "process_minor_faults": 18438,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 60713027,
+          "calling_thread_wait_ns": 17105
+        },
+        "reserve": {
+          "wall_ns": 7642,
+          "process_minor_faults": 0,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 81150,
+          "calling_thread_wait_ns": 0
+        },
+        "append": {
+          "wall_ns": 18676449,
+          "process_minor_faults": 0,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 20378421,
+          "calling_thread_wait_ns": 0
+        },
+        "drop": {
+          "wall_ns": 1774897,
+          "process_minor_faults": 0,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 1857019,
+          "calling_thread_wait_ns": 0
+        },
+        "outside_writer_windows": {
+          "wall_ns": 122726531,
+          "process_minor_faults": 18438,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 38396437,
+          "calling_thread_wait_ns": 17105
+        }
+      }
+    },
+    {
+      "index": 7,
+      "kind": "sample",
+      "outer_wall_ns": 230295712,
+      "windows": {
+        "call": {
+          "wall_ns": 229606565,
+          "process_minor_faults": 110604,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 125765296,
+          "calling_thread_wait_ns": 0
+        },
+        "reserve": {
+          "wall_ns": 204543,
+          "process_minor_faults": 12,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 277225,
+          "calling_thread_wait_ns": 0
+        },
+        "append": {
+          "wall_ns": 46573043,
+          "process_minor_faults": 24570,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 48384234,
+          "calling_thread_wait_ns": 0
+        },
+        "drop": {
+          "wall_ns": 10686319,
+          "process_minor_faults": 0,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 10788288,
+          "calling_thread_wait_ns": 0
+        },
+        "outside_writer_windows": {
+          "wall_ns": 172142660,
+          "process_minor_faults": 86022,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 66315549,
+          "calling_thread_wait_ns": 0
+        }
+      }
+    },
+    {
+      "index": 8,
+      "kind": "sample",
+      "outer_wall_ns": 144474001,
+      "windows": {
+        "call": {
+          "wall_ns": 143790556,
+          "process_minor_faults": 33799,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 59960841,
+          "calling_thread_wait_ns": 0
+        },
+        "reserve": {
+          "wall_ns": 35954,
+          "process_minor_faults": 2,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 108041,
+          "calling_thread_wait_ns": 0
+        },
+        "append": {
+          "wall_ns": 23222863,
+          "process_minor_faults": 4095,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 24862556,
+          "calling_thread_wait_ns": 0
+        },
+        "drop": {
+          "wall_ns": 3946,
+          "process_minor_faults": 0,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 81913,
+          "calling_thread_wait_ns": 0
+        },
+        "outside_writer_windows": {
+          "wall_ns": 120527793,
+          "process_minor_faults": 29702,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 34908331,
+          "calling_thread_wait_ns": 0
+        }
+      }
+    },
+    {
+      "index": 9,
+      "kind": "sample",
+      "outer_wall_ns": 203729883,
+      "windows": {
+        "call": {
+          "wall_ns": 203047169,
+          "process_minor_faults": 79882,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 107537035,
+          "calling_thread_wait_ns": 149182
+        },
+        "reserve": {
+          "wall_ns": 132393,
+          "process_minor_faults": 8,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 205045,
+          "calling_thread_wait_ns": 0
+        },
+        "append": {
+          "wall_ns": 37008330,
+          "process_minor_faults": 16380,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 38668152,
+          "calling_thread_wait_ns": 0
+        },
+        "drop": {
+          "wall_ns": 8838662,
+          "process_minor_faults": 0,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 8926910,
+          "calling_thread_wait_ns": 0
+        },
+        "outside_writer_windows": {
+          "wall_ns": 157067784,
+          "process_minor_faults": 63494,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 59736928,
+          "calling_thread_wait_ns": 149182
+        }
+      }
+    },
+    {
+      "index": 10,
+      "kind": "sample",
+      "outer_wall_ns": 176570436,
+      "windows": {
+        "call": {
+          "wall_ns": 175870435,
+          "process_minor_faults": 64521,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 83847683,
+          "calling_thread_wait_ns": 0
+        },
+        "reserve": {
+          "wall_ns": 95366,
+          "process_minor_faults": 6,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 167839,
+          "calling_thread_wait_ns": 0
+        },
+        "append": {
+          "wall_ns": 32512013,
+          "process_minor_faults": 12285,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 34236494,
+          "calling_thread_wait_ns": 0
+        },
+        "drop": {
+          "wall_ns": 3483473,
+          "process_minor_faults": 0,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 3569493,
+          "calling_thread_wait_ns": 0
+        },
+        "outside_writer_windows": {
+          "wall_ns": 139779583,
+          "process_minor_faults": 52230,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 45873857,
+          "calling_thread_wait_ns": 0
+        }
+      }
+    },
+    {
+      "index": 11,
+      "kind": "sample",
+      "outer_wall_ns": 178447319,
+      "windows": {
+        "call": {
+          "wall_ns": 177686104,
+          "process_minor_faults": 49160,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 83818756,
+          "calling_thread_wait_ns": 27660
+        },
+        "reserve": {
+          "wall_ns": 67404,
+          "process_minor_faults": 4,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 140831,
+          "calling_thread_wait_ns": 0
+        },
+        "append": {
+          "wall_ns": 27876201,
+          "process_minor_faults": 8190,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 29415847,
+          "calling_thread_wait_ns": 8452
+        },
+        "drop": {
+          "wall_ns": 5214364,
+          "process_minor_faults": 0,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 5386602,
+          "calling_thread_wait_ns": 0
+        },
+        "outside_writer_windows": {
+          "wall_ns": 144528135,
+          "process_minor_faults": 40966,
+          "process_major_faults": 0,
+          "calling_thread_run_ns": 48875476,
+          "calling_thread_wait_ns": 19208
+        }
+      }
+    }
+  ],
+  "measured_call_fault_patterns": [
+    {
+      "reserve_minor": 0,
+      "append_minor": 0,
+      "outside_minor": 3073,
+      "calls": 28
+    },
+    {
+      "reserve_minor": 2,
+      "append_minor": 4095,
+      "outside_minor": 14337,
+      "calls": 25
+    },
+    {
+      "reserve_minor": 2,
+      "append_minor": 4095,
+      "outside_minor": 14338,
+      "calls": 1
+    }
+  ],
+  "all_measured_writer_lifetime_histograms": [
+    {
+      "observation": 3,
+      "writer_append_fault_histogram": [
+        {
+          "minor_faults": 0,
+          "writer_lifetimes": 21
+        },
+        {
+          "minor_faults": 4095,
+          "writer_lifetimes": 3
+        }
+      ]
+    },
+    {
+      "observation": 4,
+      "writer_append_fault_histogram": [
+        {
+          "minor_faults": 0,
+          "writer_lifetimes": 22
+        },
+        {
+          "minor_faults": 4095,
+          "writer_lifetimes": 2
+        }
+      ]
+    },
+    {
+      "observation": 5,
+      "writer_append_fault_histogram": [
+        {
+          "minor_faults": 0,
+          "writer_lifetimes": 19
+        },
+        {
+          "minor_faults": 4095,
+          "writer_lifetimes": 5
+        }
+      ]
+    },
+    {
+      "observation": 6,
+      "writer_append_fault_histogram": [
+        {
+          "minor_faults": 0,
+          "writer_lifetimes": 24
+        }
+      ]
+    },
+    {
+      "observation": 7,
+      "writer_append_fault_histogram": [
+        {
+          "minor_faults": 0,
+          "writer_lifetimes": 18
+        },
+        {
+          "minor_faults": 4095,
+          "writer_lifetimes": 6
+        }
+      ]
+    },
+    {
+      "observation": 8,
+      "writer_append_fault_histogram": [
+        {
+          "minor_faults": 0,
+          "writer_lifetimes": 23
+        },
+        {
+          "minor_faults": 4095,
+          "writer_lifetimes": 1
+        }
+      ]
+    },
+    {
+      "observation": 9,
+      "writer_append_fault_histogram": [
+        {
+          "minor_faults": 0,
+          "writer_lifetimes": 20
+        },
+        {
+          "minor_faults": 4095,
+          "writer_lifetimes": 4
+        }
+      ]
+    },
+    {
+      "observation": 10,
+      "writer_append_fault_histogram": [
+        {
+          "minor_faults": 0,
+          "writer_lifetimes": 21
+        },
+        {
+          "minor_faults": 4095,
+          "writer_lifetimes": 3
+        }
+      ]
+    },
+    {
+      "observation": 11,
+      "writer_append_fault_histogram": [
+        {
+          "minor_faults": 0,
+          "writer_lifetimes": 22
+        },
+        {
+          "minor_faults": 4095,
+          "writer_lifetimes": 2
+        }
+      ]
+    }
+  ],
+  "release_approval": false,
+  "candidate_attribution": null
+}
