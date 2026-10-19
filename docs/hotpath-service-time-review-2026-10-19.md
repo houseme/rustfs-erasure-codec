@@ -118,6 +118,35 @@ oracles before a runtime/API change. Existing selective/multichunk-tail and
 late-fixed-destination regressions remain the required contract. Removing generic
 scratch or marking caller buffers present before decoding is not the proposal.
 
+## Recorded native follow-through
+
+The [numerical diagnostic snapshot](../benchmarks/hotpath-review/2026-10-19/README.md)
+binds tool source `a62c6c3`, complete warmup/sample records and aggregate CPU symbols.
+Under a restored VM-exclusive eight-CPU reservation, both actual codec checkouts
+pass 15 active sampler tests and 23 changed workers, with constructor budget eight,
+pool width four and the same fixed measuring CPU. The independent Linux heap probe
+passes 13 tests; native generated-sampler/probe Clippy also passes. Both reservations
+are removed and original parent CPU availability restored.
+
+One predeclared unchanged-9.0.0 control uses the previously drifting
+10+4/512 KiB encode case, 512 iterations and two back-to-back fresh workers. Medians
+are 351.7735/349.7186 us: 0.58415% repeat drift, widths 1.0338%/0.8549%, no short
+samples and matching caller/preparation metadata. This qualifies that short
+single-case window only. Different intervening epochs/time windows prevent a
+causal claim that the protocol change alone repaired old drift. No full matrix
+or backlog-condition completion is inferred.
+
+Current-codec software CPU profiles of the existing 4+2/16 KiB Vec ordinary/buffered
+verification cases collect 2,738/2,507 samples, with no lost or throttled records.
+About 14.02% of ordinary-verify leaf samples are in scratch `SmallVec::resize`,
+while that resolved entry is absent with caller scratch. GFNI multiplication
+accounts for about 58.55%/78.22%. Unresolved leaves remain 21.51%/17.71%; every
+aggregate and raw numerical observation is retained. Profiling includes warmup,
+preparation/export and uses a different caller container from the consumer. It
+locates an API initialization cost, not current request frequency or a 14% speedup.
+Raw perf data and machine-specific paths stay private; public numerical/symbol
+members contain no full addresses. All these profiles have release approval false.
+
 ## Decision
 
 Deliver the formal placement correction and reproducible verification resource
