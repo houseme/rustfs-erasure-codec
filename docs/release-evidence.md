@@ -51,6 +51,10 @@ a four-job policy and empty RUSTFLAGS. The context also binds libc name/version,
 and all inherited `MALLOC_*`, `GLIBC_TUNABLES` and `LD_*` allocator/loader controls.
 These must be present and identical in every phase and the final context. An
 allocator policy change requires a new complete campaign and calibration.
+Builds and workers explicitly use each source checkout's own `target` directory,
+including the paired-layout supplement. An inherited shared `CARGO_TARGET_DIR`
+cannot mix generated build outputs across sources. The native dual-version check
+uses a real isolated baseline checkout so deferred Git provenance also remains valid.
 
 Every case is calibrated on both releases before A1. Calibration targets at least
 100 ms wall time and 5 ms timed work, with bounded increasing iterations. For each
@@ -74,7 +78,7 @@ three warmup invocations at the frozen count, then collects exactly nine samples
 Basic scheduling snapshots retain numeric counters instead of formatted heap
 strings. Extended process observation remains diagnostic-only and may affect
 allocation state; release qualification uses basic telemetry.
-Protocol 11 retains the protocol-9/10 caller contract: one codec and caller source fixture for all 88 small-file and
+Protocol 12 retains the protocol-9/10 caller contract: one codec and caller source fixture for all 88 small-file and
 15 stream cases for the complete worker; buffered verify also retains caller
 scratch. Caller buffers precede codec construction and encoding setup. The shared
 inner loops are extracted from the unchanged benchmark sources, preserving timed
@@ -89,15 +93,26 @@ policy and missing/required masks. Layouts must stay stable within a worker and
 match final calibration and all four phases. API/policy mismatch fails closed.
 The controller supplies the page size from sysconf; inconsistent or missing page
 metadata is rejected. Base-page offsets do not assert physical/huge-page placement.
-Dynamic destination/internal-scratch offsets remain explicitly untracked, and
-smoke/hotspot retain their original contracts. See the complete [caller fixture
+Dynamic destination/internal-scratch offsets remain explicitly untracked.
+Protocol 12 extends worker-lived codec preparation and mandatory API/output policy,
+mask, seed and source-lifetime contracts to all 126 cases. Smoke retains its
+per-iteration source generation and timer. Hotspot borrows a worker-seeded SmallRng
+for its original per-byte fill loop; inputs are generated/encoded each iteration,
+with all original clones, missing outputs and inner recovery timers. Bounded
+metadata records generated-byte consumption and two non-consuming RNG preview
+words before/after each observation. Verification rejects missing/wrong contracts,
+input resets and calibration/four-phase input mismatches. Real native baseline
+and candidate checks compare prefix bytes and all 23 changed workers' input traces
+using their own lockfiles; these are correctness checks, never performance approval.
+This explicit workload change requires a fresh complete campaign. It does not
+identify the cause of historical ordinary-encode drift. See the complete [caller fixture
 contract](release-caller-fixtures.md) for this scope and its limits.
 
 Hotspot result pattern metadata stays in bounded inline storage until deferred
 export, instead of retaining new Strings between observations. Its labels match
 the actual original formatter; a separate executable checks zero Rust heap
-activity for construction/formatting. Hotspot input generation and recovery
-intervals remain unchanged. Earlier observer protocols cannot approve protocol 11.
+activity for construction/formatting. Hotspot random preparation changes explicitly in protocol 12; recovery intervals
+remain unchanged. Earlier observer protocols cannot approve protocol 12.
 Protocol 11 removes the unused diagnostic template from the formal sampler overlay
 and its implementation digest; layout tests now use one separate diagnostic fixture.
 The full-profile operation loops and limits are unchanged. Fresh source-bound
@@ -294,8 +309,7 @@ they do not replace the mandatory immutable snapshot input in release CI.
 
 
 Formal verification and materialization require manifest schema 3 and the current
-sampling protocol (11). The sampling kernels and all acceptance thresholds are
-unchanged; the new envelope makes the already required layout acceptance part of
+sampling protocol (12). All acceptance thresholds remain unchanged; the new envelope makes the already required layout acceptance part of
 the same automatic verification path. The snapshot must include the complete
 `layout-pair/` directory, its four phases' provenance/samples/journals and its
 manifest. Missing, changed, failed or independently collected incompatible

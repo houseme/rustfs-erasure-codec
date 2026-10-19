@@ -106,6 +106,10 @@ impl PreparedStream {
                 ns_per_block: ns_per_iter / blocks_per_iter as f64,
             },
             fixture: super::layout::OptionalFixture(Some(self.fixture)),
+            workload: super::workload::OptionalWorkload(Some(super::workload::Workload::retained(
+                self.seed,
+                release_contract(case, self.operation),
+            ))),
         }
     }
 }

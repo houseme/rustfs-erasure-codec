@@ -90,6 +90,37 @@ class SamplingContractTests(unittest.TestCase):
         self.assertIn('mod pattern;', rendered['root.rs'])
         self.assertEqual(sampling.PROTOCOL['result_metadata_policy'], 'bounded-inline-hotspot-patterns-deferred-formatting')
 
+    def test_smoke_and_hotspot_cannot_omit_the_execution_contract(self):
+        for profile in ('smoke','hotspot'):
+            original=copy.deepcopy(self.doc)
+            path=self.root/self.doc['files']['B2'][profile]['samples']['path']
+            previous=path.read_bytes()
+            self.mutate(lambda rows:rows[0].pop('workload'), profile=profile)
+            with self.assertRaisesRegex(ValueError,'workload contract'):self.verify()
+            path.write_bytes(previous);self.doc=original
+
+    def test_consistent_candidate_random_stream_change_is_not_same_input(self):
+        case=sampling.HOTSPOT_CASES[0][2]
+        for folder in ('B1','B2','calibration-candidate'):
+            entry=self.doc['calibration']['candidate']['hotspot'] if folder.startswith('calibration') else self.doc['files'][folder]['hotspot']['samples']
+            rows=json.loads((self.root/entry['path']).read_text())
+            for row in rows:
+                if row['case']==case:
+                    for key in ('next_before','next_after'):row['workload']['rng'][key][0]^=1
+            changed=self.write(folder,'hotspot',rows)
+            if folder.startswith('calibration'):self.doc['calibration']['candidate']['hotspot']=changed
+            else:self.doc['files'][folder]['hotspot']['samples']=changed
+        with self.assertRaisesRegex(ValueError,'input differs between ABBA'):self.verify()
+
+    def test_same_initial_preview_cannot_hide_changed_later_input(self):
+        def change(rows):
+            for row in rows:
+                if row['case']==sampling.HOTSPOT_CASES[0][2]:
+                    if row['index']>0:row['workload']['rng']['next_before'][0]^=1
+                    row['workload']['rng']['next_after'][0]^=1
+        self.mutate(change,profile='hotspot')
+        with self.assertRaisesRegex(ValueError,'random input differs from final calibration'):self.verify()
+
     def test_base_page_size_is_required_and_bound_to_runtime(self):
         for value in (None, True, 0, 3000, 2**30):
             self.assertFalse(sampling.valid_page_size(value))

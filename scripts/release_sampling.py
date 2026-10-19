@@ -6,13 +6,14 @@ import os
 import pathlib
 import re
 
-PROTOCOL = {"name": "shared-external-duration-sampler", "version": 11, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
+PROTOCOL = {"name": "shared-external-duration-sampler", "version": 12, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
             "target_wall_ns": 100_000_000, "target_timed_ns": 5_000_000,
             "minimum_wall_ns": 50_000_000, "minimum_timed_ns": 2_000_000,
             "central_spread_limit": .10,
             "observer_buffer_policy": "bounded-stack-procfs-no-rust-heap",
             "result_metadata_policy": "bounded-inline-hotspot-patterns-deferred-formatting",
             "stream_output_policy": "independent-capacity-per-writer-per-iteration",
+            "workload_contract": {"scope":"all-126-cases", "codec_lifetime":"worker", "hotspot_input":"worker-seeded-SmallRng-u32-low-byte", "state_witness":"generated-byte-count-and-next-two-u64-words", "geometry_scope":"unchanged-caller-only; dynamic destinations and internal views untracked"},
             "fixture_layout": {"scope": "small_file:all;stream:all;caller-storage-only", "codec_lifetime": "worker", "dynamic_outputs": "original per-iteration policy; offsets explicitly untracked", "entry": "Vec<Vec<u8>>", "lifetime": "worker", "construction": "caller-buffers-before-codec", "offset_moduli": [64, 4096, "os_base_page_size"], "page_size_source": "controller-sysconf", "untracked_cases": "original allocation contract; no layout guarantee"},
             "timing_scope": {"smoke":"original per-iteration workload", "small_file":"operation loops excluding one-time fixture preparation", "stream":"operation loops excluding one-time fixture preparation", "hotspot":"original inner recovery intervals"}}
 TEMPLATES = pathlib.Path(__file__).resolve().parent / "release-sampling"
@@ -77,6 +78,128 @@ SMALL_KERNELS = (
 )
 STREAM_KERNELS = tuple(("StreamOperation::"+name, name.lower()+"_stream")
                        for name in ("Encode", "Verify", "Reconstruct"))
+
+
+BASE_SEED = 0x00EC_5EED_2026_0524
+HOTSPOT_CASES = (
+    (10,4,"reconstruct_data_missing_1_data",(0,),None),
+    (10,4,"reconstruct_data_missing_2_data",(0,2),None),
+    (10,4,"reconstruct_data_missing_data_plus_parity",(1,10),None),
+    (32,16,"reconstruct_data_32x16_missing_2_data",(0,2),None),
+    (10,4,"reconstruct_some_required_1_of_2_missing_data",(0,2),(2,)),
+    (10,4,"reconstruct_some_required_2_of_3_missing_data",(0,2,4),(0,4)),
+    (10,4,"reconstruct_some_required_data_and_skip_parity",(1,10),(1,)),
+    (32,16,"reconstruct_some_32x16_required_2_of_4_missing_data",(0,2,4,6),(2,6)),
+)
+
+
+def case_seed(operation, data, parity, size):
+    tag = {"encode":0x11,"verify":0x22,"reconstruct":0x33,"reconstruct_data":0x44,"update":0x55}[operation]
+    return BASE_SEED ^ tag ^ (data << 48) ^ (parity << 32) ^ size
+
+
+def hotspot_case(case):
+    try: return next(row for row in HOTSPOT_CASES if row[2] == case)
+    except StopIteration: raise ValueError('unknown hotspot workload') from None
+
+
+def workload_contract(profile, case):
+    if profile == 'hotspot':
+        data, parity, name, missing, required = hotspot_case(case)
+        name_hash = 0xcbf29ce484222325
+        for value in name.encode(): name_hash = ((name_hash ^ value)*0x100000001b3) & (2**64-1)
+        seed = case_seed('reconstruct_data',data,parity,1048576) ^ name_hash
+        contract = {'call_entry':'Vec<Option<Vec<u8>>>',
+                    'output_policy':'iteration-random-source-cloned-baseline-and-candidate-missing-outputs-untracked',
+                    'missing_mask':sum(1 << i for i in missing),
+                    'required_mask':sum(1 << i for i in (required if required is not None else range(data))),
+                    'changed_mask':0}
+        lifetime, construction, generator = 'iteration', 'codec-before-iteration-source', 'worker-seeded-SmallRng-u32-low-byte'
+    else:
+        parts = case.split(':')
+        if len(parts) != (5 if profile == 'stream' else 4): raise ValueError('invalid workload case')
+        operation, data, parity, size = parts[:4]
+        data, parity, size = int(data), int(parity), int(size)
+        if profile == 'smoke':
+            policies = {
+                'encode':('Vec<Vec<u8>>','iteration-generated-source-parity-in-place',0,0),
+                'update':('Vec<&Vec<u8>>+Vec<Option<&Vec<u8>>>->Vec<&mut Vec<u8>>','iteration-generated-source-cloned-old-updated-and-parity',0,0),
+                'verify':('Vec<Vec<u8>>','iteration-generated-source-internal-scratch-untracked',0,0),
+                'reconstruct':('Vec<Option<Vec<u8>>>','iteration-generated-source-moved-options-drop-missing-new-output-untracked',1 | (1 << data),(1 << (data+parity))-1),
+                'reconstruct_data':('Vec<Option<Vec<u8>>>','iteration-generated-source-moved-options-drop-missing-new-output-untracked',3,(1 << data)-1),
+            }
+            if operation not in policies: raise ValueError('unknown smoke workload')
+            contract = dict(zip(('call_entry','output_policy','missing_mask','required_mask'),policies[operation]))
+            contract['changed_mask'] = int(operation == 'update')
+            seed_op = operation
+            lifetime, construction, generator = 'iteration','codec-before-iteration-source','per-iteration-seeded-SmallRng-random-u8'
+        elif profile in ('small_file','stream'):
+            contract = dict(fixture_contract(profile,case), changed_mask=0)
+            seed_op = operation.removesuffix('_stream')
+            seed_op = {'verify_with_buffer':'verify','reconstruct_opt':'reconstruct','reconstruct_shard_slot':'reconstruct','reconstruct_some_data_only':'reconstruct_data'}.get(seed_op,seed_op)
+            lifetime, construction, generator = 'worker','source-before-codec','worker-seeded-SmallRng-random-u8'
+        else: raise ValueError('unknown workload profile')
+        seed = case_seed(seed_op,data,parity,size)
+    return dict(contract, codec_lifetime='worker', source_lifetime=lifetime, construction=construction, generator=generator, seed=seed)
+
+
+def validate_workload(record, profile):
+    expected = workload_contract(profile,record['case'])
+    workload = record.get('workload')
+    if not isinstance(workload,dict) or set(workload) != set(expected) | {'rng'} or any(type(workload.get(k)) is not type(v) or workload[k] != v for k,v in expected.items()):
+        raise ValueError('missing or incompatible API/seed/preparation workload contract')
+    if profile != 'hotspot':
+        if workload['rng'] is not None: raise ValueError('unexpected dynamic random stream')
+        if record.get('rows') and any(type(row.get('seed')) is not int or row['seed'] != expected['seed'] for row in record['rows']):
+            raise ValueError('raw row seed differs from the actual workload')
+        return
+    if record.get('rows'):
+        data, parity, name, missing, required = hotspot_case(record['case'])
+        useful = tuple(i for i in missing if i < data) if required is None else required
+        pattern = lambda values:'|'.join(('d'+str(i)) if i<data else ('p'+str(i-data)) for i in values)
+        wanted = {'data_shards':data,'parity_shards':parity,'shard_size':1048576,'useful_shards':len(useful),
+                  'baseline_operation':'reconstruct' if required is None else 'reconstruct_data',
+                  'candidate_operation':'reconstruct_data' if required is None else 'reconstruct_some',
+                  'missing_pattern':pattern(missing),'required_pattern':pattern(useful)}
+        if any(type(row.get(k)) is not type(v) or row[k] != v for row in record['rows'] for k,v in wanted.items()):
+            raise ValueError('hotspot raw row differs from the actual API/mask workload')
+    count, index = record.get('iterations'), record.get('index')
+    if type(count) is not int or count <= 0 or type(index) is not int or not 0 <= index < 12:
+        raise ValueError('invalid random stream observation')
+    data, parity, *_ = hotspot_case(record['case'])
+    step = count*(data+parity)*1048576
+    trace = workload['rng']
+    if not isinstance(trace,dict) or set(trace) != {'bytes_before','bytes_after','next_before','next_after'}:
+        raise ValueError('missing random stream state witness')
+    if any(type(trace.get(k)) is not int or trace[k] != value for k,value in (('bytes_before',index*step),('bytes_after',(index+1)*step))):
+        raise ValueError('random input consumption differs from the original iteration workload')
+    for key in ('next_before','next_after'):
+        if not isinstance(trace[key],list) or len(trace[key]) != 2 or any(type(v) is not int or not 0 <= v < 2**64 for v in trace[key]):
+            raise ValueError('invalid random stream preview')
+
+
+def validate_workload_sequence(records, profile):
+    for record in records: validate_workload(record,profile)
+    if profile == 'hotspot':
+        for before,after in zip(records,records[1:]):
+            if before['workload']['rng']['next_after'] != after['workload']['rng']['next_before']:
+                raise ValueError('random stream was reset or changed inside a worker')
+
+
+def workload_catalog(records, *, calibration=False):
+    selected = {}
+    for record in records:
+        if record['index'] == 0: selected[record['case']] = record
+    return {case:{k:v for k,v in row['workload'].items() if k != 'rng'} | {'initial_rng':row['workload']['rng']['next_before'] if row['workload']['rng'] else None}
+            for case,row in selected.items()}
+
+
+def workload_traces(records, *, calibration=False):
+    if calibration:
+        last = {r['case']:r['calibration_batch'] for r in records}
+        records = [r for r in records if r['calibration_batch'] == last[r['case']]]
+    return {case:[r['workload']['rng'] for r in records if r['case'] == case]
+            for case in {r['case'] for r in records} if any(r['case'] == case and r['workload']['rng'] is not None for r in records)}
 
 
 def fixture_contract(profile, case):
@@ -166,8 +289,67 @@ def prepared_kernel(text, profile):
     return "\nfn execute_release_kernel("+signature+") -> std::time::Duration {\n"+bindings+"    let start = Instant::now();\n    match operation {\n"+"\n".join(arms)+"\n    }\n    start.elapsed()\n}\n"+"fn release_contract("+contract_signature+") -> (&'static str, &'static str, u64, u64) {\n    match operation {\n"+"\n".join(descriptor)+"\n    }\n}\n"
 
 
+def smoke_kernel(text):
+    original = block(text,'fn run_operation')
+    signature = 'fn run_operation(case: BenchCase, operation: Operation, iterations: usize) -> SmokeResult'
+    constructor = '    let rs = ReedSolomon::new(case.data_shards, case.parity_shards).unwrap();\n'
+    if original.count(signature) != 1 or original.count(constructor) != 1: raise ValueError('smoke preparation changed')
+    kernel = original.replace(signature, 'fn execute_smoke_kernel(case: BenchCase, operation: Operation, iterations: usize, rs: &ReedSolomon) -> SmokeResult',1).replace(constructor,'',1)
+    kernel = kernel.replace('rs.verify(&shards).unwrap();','assert!(std::hint::black_box(rs.verify(&shards).unwrap()));',1)
+    restored = kernel.replace('fn execute_smoke_kernel(case: BenchCase, operation: Operation, iterations: usize, rs: &ReedSolomon) -> SmokeResult',signature,1).replace('    let bytes =',constructor+'    let bytes =',1).replace('assert!(std::hint::black_box(rs.verify(&shards).unwrap()));','rs.verify(&shards).unwrap();',1)
+    if restored != original: raise ValueError('smoke adapter changed original timed statements')
+    wrapper = signature+' {\n'+constructor+'    execute_smoke_kernel(case, operation, iterations, &rs)\n}'
+    arms=[]
+    for op in ('encode','update','verify','reconstruct','reconstruct_data'):
+        contract=workload_contract('smoke',op+':4:2:1024')
+        missing='1 | (1 << case.data_shards)' if op=='reconstruct' else '3' if op=='reconstruct_data' else '0'
+        required='(1 << (case.data_shards+case.parity_shards))-1' if op=='reconstruct' else '(1 << case.data_shards)-1' if op=='reconstruct_data' else '0'
+        variant={'reconstruct_data':'ReconstructData'}.get(op,op.title())
+        arms.append(f'Operation::{variant} => ("{contract["call_entry"]}","{contract["output_policy"]}",{missing},{required}),')
+    contract='fn smoke_contract(case: BenchCase, operation: Operation) -> (&\'static str,&\'static str,u64,u64) { match operation {'+''.join(arms)+'_ => panic!("unsupported smoke release case"), } }'
+    return text.replace(original,wrapper,1)+'\n'+kernel+'\n'+contract
+
+
+def hotspot_kernel(text):
+    macro = block(text,'macro_rules! make_random_shards')
+    updated = macro.replace('($per_shard:expr, $size:expr)', '($rng:expr, $per_shard:expr, $size:expr)').replace('fill_random(s);','fill_random(&mut *$rng, s);')
+    if updated == macro: raise ValueError('hotspot random allocation constructor changed')
+    text = text.replace(macro,updated,1)
+    fill = block(text,'pub fn fill_random')
+    text = text.replace(fill,'fn fill_random(rng: &mut super::workload::InputRng, arr: &mut [u8]) { rng.fill(arr); }',1)
+    for name in ('data','some'):
+        fn = 'fn bench_reconstruct_'+name+'_hotspot'
+        original=block(text,fn)
+        original_loop_text = re.search(r'(?ms)^    for _ in 0\.\.iterations \{.*?^    }',original).group()
+        body=original[original.index('    let r = '):]
+        ctor='    let r = ReedSolomon::new(data_shards, parity_shards).unwrap();'
+        body=body.replace(ctor, '    let case = prepared.case; let data_shards=case.data; let parity_shards=case.parity; let shard_size=prepared.shard_size; let scenario=case.name; let missing_indices=case.missing; '+('let required_indices=case.required.unwrap_or(&[]); ' if name=='some' else '')+'let r=&prepared.codec; let rng=&mut prepared.rng;',1)
+        body=body.replace('    let iterations = benchmark_test_iterations();\n','',1)
+        if name=='data':
+            start=body.index('    let missing_data_indices:');end=body.index('    let useful_shards',start)
+            body=body[:start]+'    let missing_data_indices=&prepared.missing_data;\n'+body[end:]
+            body=body.replace('for &index in &missing_data_indices','for &index in missing_data_indices').replace('shard_index_pattern(data_shards, &missing_data_indices)','shard_index_pattern(data_shards, missing_data_indices)')
+        else:
+            start=body.index('    let mut required =');end=body.index('    let mut baseline_total',start)
+            body=body[:start]+'    let required=&prepared.required;\n\n'+body[end:]
+            body=body.replace('&required)', 'required)')
+        old='make_random_shards!(shard_size, data_shards + parity_shards)'
+        if body.count(old)!=1: raise ValueError('hotspot per-iteration preparation changed')
+        body=body.replace(old,'make_random_shards!(rng, shard_size, data_shards + parity_shards)',1)
+        loop_text = re.search(r'(?ms)^    for _ in 0\.\.iterations \{.*?^    }',body).group()
+        restored = loop_text.replace('make_random_shards!(rng, ','make_random_shards!(').replace('for &index in missing_data_indices','for &index in &missing_data_indices').replace('reconstruct_some(&mut candidate, required)','reconstruct_some(&mut candidate, &required)')
+        if restored != original_loop_text: raise ValueError('hotspot adapter changed original timed iteration statements')
+        text=text.replace(original,fn+'(prepared: &mut PreparedHotspot, iterations: usize) -> ReconstructionHotspotBenchResult {\n'+body,1)
+    return text
+
+
+def render_hotspot_cases():
+    def indices(values): return '&['+','.join(map(str,values))+']'
+    return ',\n'.join('HotspotCase {data:'+str(data)+',parity:'+str(parity)+',name:"'+name+'",missing:'+indices(missing)+',required:'+('None' if required is None else 'Some('+indices(required)+')')+'}' for data,parity,name,missing,required in HOTSPOT_CASES)
+
+
 def render(root):
-    rendered = {name: (TEMPLATES / name).read_text() for name in ("engine.rs", "process.rs", "layout.rs", "pattern.rs")}
+    rendered = {name: (TEMPLATES / name).read_text() for name in ("engine.rs", "process.rs", "layout.rs", "pattern.rs", "workload.rs")}
     sources = {"smoke": "benchmark_smoke.rs", "small_file": "benchmark_small_files.rs", "stream": "benchmark_stream_paths.rs"}
     for profile, filename in sources.items():
         text = (root / "tests" / filename).read_text()
@@ -180,6 +362,7 @@ def render(root):
         if profile in ("small_file", "stream"):
             text = exclude_once_only_setup(text, "fn run_operation" if profile == "small_file" else "fn run_stream_operation", 11 if profile == "small_file" else 3)
         if profile == "stream": text = reserve_stream_outputs(text)
+        if profile == "smoke": text = smoke_kernel(text)
         rendered[profile + ".rs"] = text + "\n" + (TEMPLATES / (profile + ".rs")).read_text()
         if profile in ("small_file", "stream"): rendered[profile+".rs"] += prepared_kernel(text, profile)
     original = (root / "src/tests/mod.rs").read_text()
@@ -191,9 +374,10 @@ def render(root):
     original_pattern = block(text, "fn shard_index_pattern")
     text = text.replace(original_pattern, "fn shard_index_pattern(data_shards: usize, indices: &[usize]) -> super::pattern::ShardPattern { super::pattern::ShardPattern::new(data_shards, indices) }", 1)
     text = text.replace(block(text, "fn benchmark_test_iterations"), 'fn benchmark_test_iterations() -> usize { super::sampling::iterations() }')
+    text = hotspot_kernel(text)
     prefix = 'use std::{fs, path::PathBuf, time::Instant};\nuse rustfs_erasure_codec::galois_8::ReedSolomon;\nfn benchmark_metrics_enabled() -> bool { cfg!(feature="benchmark-metrics") }\nconst BENCHMARK_ARTIFACT_SCHEMA_VERSION: u32 = 1;\n'
-    rendered["hotspot.rs"] = prefix + text + "\n" + (TEMPLATES / "hotspot.rs").read_text()
-    root_source = f'#![allow(dead_code)]\n#[path="{root}/benches/common/mod.rs"] mod bench_common;\n#[path="{root}/tests/common/mod.rs"] mod common;\n' + '\n'.join(f'#[path="rse_release_sampling/{name}.rs"] mod {name};' for name in ("engine", "process", "layout", "pattern", *sources, "hotspot"))
+    rendered["hotspot.rs"] = prefix + text + "\n" + (TEMPLATES / "hotspot.rs").read_text().replace("__HOTSPOT_CASES__",render_hotspot_cases())
+    root_source = f'#![allow(dead_code)]\n#[path="{root}/benches/common/mod.rs"] mod bench_common;\n#[path="{root}/tests/common/mod.rs"] mod common;\n' + '\n'.join(f'#[path="rse_release_sampling/{name}.rs"] mod {name};' for name in ("engine", "process", "layout", "pattern", "workload", *sources, "hotspot"))
     root_source = root_source.replace('mod engine;', 'mod sampling;')
     root_source += '\n#[test]\n#[ignore]\nfn release_controlled_profile() { match std::env::var("RSE_SAMPLER_PROFILE").unwrap().as_str() {'
     root_source += ','.join(f'"{name}" => {name}::release_profile()' for name in (*sources, "hotspot"))
@@ -340,12 +524,17 @@ def calibration_batch(records, count, batch):
     return following
 
 
+def build_environment(root, environment):
+    """Keep generated build outputs with their source, even under a shared caller cache."""
+    return dict(environment, CARGO_TARGET_DIR=str(root.resolve() / 'target'))
+
+
 def run_profile(root, environment, profile, mode, log_path, counts_file=None, *, cases):
     import subprocess
     ordered = sorted(cases)
     if mode not in ("calibrate", "sample") or not ordered or len(ordered) != len(set(ordered)):
         raise ValueError("a valid mode and nonempty unique case catalog are required")
-    env = dict(environment, RSE_SAMPLER_PROFILE=profile, RSE_SAMPLER_MODE=mode, RSE_SAMPLER_PAGE_SIZE=str(base_page_size()))
+    env = dict(build_environment(root, environment), RSE_SAMPLER_PROFILE=profile, RSE_SAMPLER_MODE=mode, RSE_SAMPLER_PAGE_SIZE=str(base_page_size()))
     counts = {}
     if mode == "sample":
         if counts_file is None: raise ValueError("frozen counts are required")
@@ -389,6 +578,7 @@ def sample_groups(records, profile, revision, expected, counts, normalize, allow
     if set(groups) != expected:
         raise ValueError("complete sampling catalog is required")
     for case, group in groups.items():
+        validate_workload_sequence(group, profile)
         if [r.get("kind") for r in group] != ["warmup"] * PROTOCOL["warmups"] + ["sample"] * PROTOCOL["samples"] or [r.get("index") for r in group] != list(range(PROTOCOL["samples"]+PROTOCOL["warmups"])):
             raise ValueError("every fixed warmup and sample is required")
         for record in group:
@@ -421,18 +611,53 @@ def selected_row(records, profile, metric, revision, expected, counts, normalize
     return selected, spread
 
 
+def check(root, workers=False):
+    import subprocess
+    from diagnostic_overlay import overlay
+    with overlay(root, render(root)):
+        result = subprocess.run(["cargo","test","--locked","--release","--features","std simd-accel","--test","rse_release_sampling","--","--skip","release_controlled_profile","--nocapture"],
+                                cwd=root,env=build_environment(root,dict(os.environ,RUSTUP_TOOLCHAIN="stable")),text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+        print(result.stdout, end='')
+        result.check_returncode()
+        actual = {}
+        if workers:
+            from release_evidence import SAMPLING_ENV, expected_cases
+            for profile in ('smoke','hotspot'):
+                for case in sorted(expected_cases(profile)):
+                    env=dict(build_environment(root,dict(os.environ,**SAMPLING_ENV)),RSE_SAMPLER_PROFILE=profile,RSE_SAMPLER_MODE='sample',RSE_SAMPLER_CASE=case,RSE_SAMPLER_ITERATIONS='1',RSE_SAMPLER_BATCH='0',RSE_SAMPLER_PAGE_SIZE=str(base_page_size()))
+                    process=subprocess.run(['cargo','test','--locked','--release','--features','std simd-accel','--test','rse_release_sampling','release_controlled_profile','--','--exact','--ignored','--nocapture','--test-threads=1'],cwd=root,env=env,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+                    if process.returncode:
+                        print(process.stdout,end='');process.check_returncode()
+                    rows=parse_output(process.stdout)
+                    if len(rows)!=12 or [r['index'] for r in rows]!=list(range(12)) or any(r['case'] != case or r['iterations'] != 1 for r in rows):
+                        raise ValueError('complete one-iteration worker output is required')
+                    validate_workload_sequence(rows,profile)
+                    actual[case]=[r['workload'] for r in rows]
+            print('All 23 smoke/hotspot workers executed at one iteration; input/preparation correctness only')
+    records = parse_output(result.stdout,'RSE_INPUT_REPLAY ')
+    if len(records) != len(HOTSPOT_CASES) or {r['case'] for r in records} != {row[2] for row in HOTSPOT_CASES}:
+        raise ValueError('complete native input replay witnesses are required')
+    return {'prefixes':sorted(records,key=lambda row:row['case']),'workers':actual}
+
+
 if __name__ == "__main__":
     import argparse
-    import os
-    import shutil
     import subprocess
-    parser=argparse.ArgumentParser(description="Compile and test the shared external sampler, then remove its generated sources")
+    import tempfile
+    parser=argparse.ArgumentParser(description="Check actual shared workers and optional published-baseline input replay; never performance acceptance")
     parser.add_argument("--check",action="store_true",required=True)
+    parser.add_argument("--check-workers",action="store_true",help="Execute the 23 changed workers at one iteration, never performance acceptance")
+    parser.add_argument("--baseline-ref",help="Full published 9.0.0 source commit, already available locally")
     args=parser.parse_args()
     root=TEMPLATES.parent.parent
-    generate(root)
-    try:
-        subprocess.run(["cargo","test","--locked","--release","--features","std simd-accel","--test","rse_release_sampling","--","--skip","release_controlled_profile"],cwd=root,env=dict(os.environ,RUSTUP_TOOLCHAIN="stable"),check=True)
-    finally:
-        (root/"tests/rse_release_sampling.rs").unlink()
-        shutil.rmtree(root/"tests/rse_release_sampling")
+    current=check(root,args.check_workers)
+    if args.baseline_ref:
+        from release_evidence import BASELINE_COMMIT
+        if args.baseline_ref != BASELINE_COMMIT: parser.error('baseline-ref must be the published 9.0.0 commit')
+        with tempfile.TemporaryDirectory(prefix='rse-input-replay-') as temporary:
+            baseline=pathlib.Path(temporary)/'baseline'
+            subprocess.run(['git','clone','--shared','--no-checkout','--quiet',str(root),str(baseline)],check=True)
+            subprocess.run(['git','checkout','--quiet','--detach',BASELINE_COMMIT],cwd=baseline,check=True)
+            previous=check(baseline,args.check_workers)
+        if current != previous: raise ValueError('published and candidate input replay witnesses differ')
+        print('Published 9.0.0/candidate input replay matches for all eight hotspot scenarios; correctness only')

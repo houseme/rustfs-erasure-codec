@@ -48,7 +48,7 @@ REQUIRED = {
     "smoke": ("encode:4:2:65536", "encode:10:4:1048576", "verify:10:4:1048576", "reconstruct:10:4:1048576", "reconstruct_data:10:4:1048576"),
     "small_file": ("encode:4:2:1024", "verify_with_buffer:4:2:4096", "reconstruct:4:2:16384", "reconstruct_data:10:4:65536"),
     "stream": ("encode_stream:4:2:65536:65536", "verify_stream:4:2:65536:65536", "reconstruct_stream:10:4:1048576:1048576"),
-    "hotspot": ("reconstruct_data_missing_1_data", "reconstruct_data_missing_2_data", "reconstruct_data_missing_data_plus_parity", "reconstruct_data_32x16_missing_2_data", "reconstruct_some_required_1_of_2_missing_data", "reconstruct_some_required_2_of_3_missing_data", "reconstruct_some_required_data_and_skip_parity", "reconstruct_some_32x16_required_2_of_4_missing_data"),
+    "hotspot": tuple(row[2] for row in sampling.HOTSPOT_CASES),
 }
 METRICS = {"smoke": "throughput_mb_s", "small_file": "ns_per_iter", "stream": "ns_per_block", "hotspot": "candidate_mb_s"}
 KINDS = {key: name.removesuffix(".json") for key, name in FILES.items()}
@@ -121,7 +121,7 @@ def harness_digest(root):
     paths = ["tests/benchmark_smoke.rs", "tests/benchmark_small_files.rs", "tests/benchmark_stream_paths.rs", "tests/common/mod.rs", "benches/common/mod.rs"]
     data = b"".join(p.encode() + b"\0" + (root / p).read_bytes() + b"\0" for p in paths)
     unit = (root / "src/tests/mod.rs").read_text()
-    for name in ("struct ReconstructionHotspotBenchResult", "fn benchmark_test_iterations", "macro_rules! make_random_shards", "fn option_shards_with_missing", "fn shard_index_pattern", "fn assert_required_reconstruction_matches", "fn bench_reconstruct_data_hotspot", "fn bench_reconstruct_some_hotspot", "fn write_reconstruction_hotspot_bench_results", "fn benchmark_reconstruction_hotspots"):
+    for name in ("struct ReconstructionHotspotBenchResult", "fn benchmark_test_iterations", "macro_rules! make_random_shards", "pub fn fill_random", "fn option_shards_with_missing", "fn shard_index_pattern", "fn assert_required_reconstruction_matches", "fn bench_reconstruct_data_hotspot", "fn bench_reconstruct_some_hotspot", "fn write_reconstruction_hotspot_bench_results", "fn benchmark_reconstruction_hotspots"):
         start = unit.index(name)
         end = unit.index("\n}", start) + 2
         data += unit[start:end].encode() + b"\0"
@@ -438,16 +438,21 @@ def verify_sampling(document, root, repository, summarized):
     if set(counts) != set(FILES): raise ValueError("complete common iteration counts are required")
     pilot_counts = {role: {} for role in ("baseline", "candidate")}
     pilot_layouts = {role: {} for role in pilot_counts}
+    pilot_workloads = {role: {} for role in pilot_counts}
+    pilot_traces = {role: {} for role in pilot_counts}
     for role in pilot_counts:
         for profile in FILES:
             name = f"calibration-{role}/{profile}-samples.json"
             records = evidence_member(root, document.get("calibration", {}).get(role, {}).get(profile), name)
             pilot_counts[role][profile] = calibration_counts(records, profile, document["sources"][role]["commit"], document["contexts"]["A1"]["runtime"]["page_size"])
             pilot_layouts[role][profile] = sampling.fixture_catalog(records, calibration=True)
+            pilot_workloads[role][profile] = sampling.workload_catalog(records, calibration=True)
+            pilot_traces[role][profile] = sampling.workload_traces(records, calibration=True)
     spreads = []
     layouts = {}
     for profile in FILES:
         layouts[profile] = {}
+        workloads, traces = {}, {}
         expected_counts = {key: max(pilot_counts[role][profile][key] for role in pilot_counts) for key in expected_cases(profile)}
         if counts[profile] != expected_counts: raise ValueError("common iterations differ from complete calibration")
         for phase in PHASES:
@@ -458,11 +463,20 @@ def verify_sampling(document, root, repository, summarized):
             selected, widths = sampling.selected_row(records, profile, METRICS[profile], revision, expected_cases(profile), counts[profile], normalize, document["contexts"][phase]["isolation"].get("cpu_affinity"), document["contexts"][phase]["runtime"]["page_size"])
             layouts[profile][phase] = sampling.fixture_catalog(records)
             role = "baseline" if phase.startswith("A") else "candidate"
+            workloads[phase] = sampling.workload_catalog(records)
+            traces[phase] = sampling.workload_traces(records)
+            if workloads[phase] != pilot_workloads[role][profile]:
+                raise ValueError(f"{profile}/{phase}: preparation or initial input state differs from final calibration")
+            for case, trace in traces[phase].items():
+                if pilot_counts[role][profile][case] == expected_counts[case] and trace != pilot_traces[role][profile][case]:
+                    raise ValueError(f"{profile}/{phase}: replayed random input differs from final calibration")
             if layouts[profile][phase] != pilot_layouts[role][profile]:
                 raise ValueError(f"{profile}/{phase}: buffer layout differs from final calibration")
             recomputed = indexed_rows(profile, selected, revision, counts[profile])
             if recomputed != summarized[phase][profile]: raise ValueError("summary is not the median of all fixed samples")
             spreads.extend(dict(item, phase=phase, profile=profile) for item in widths)
+        if any(workload != workloads["A1"] for workload in workloads.values()) or any(trace != traces["A1"] for trace in traces.values()):
+            raise ValueError(f"{profile}: API/preparation or replayed random input differs between ABBA phases")
         if any(layout != layouts[profile]["A1"] for layout in layouts[profile].values()):
             raise ValueError(f"{profile}: buffer layout differs between ABBA phases")
     unstable = [r for r in spreads if r["central_spread"] > sampling.PROTOCOL["central_spread_limit"]]
@@ -494,6 +508,7 @@ def calibration_counts(records, profile, revision, expected_page_size=None):
             raise ValueError("calibration rehearsal is incomplete or exceeds its budget")
         count = 1
         for offset in range(0, len(group), width):
+            sampling.validate_workload_sequence(group[offset:offset+width], profile)
             following = sampling.calibration_batch(group[offset:offset+width], count, offset//width+1)
             if following is None:
                 if offset+width != len(group):
@@ -533,7 +548,7 @@ def capture(baseline, candidate, output, group):
             overlays.enter_context(overlay(root, sampling.render(root)))
             args = ["cargo","test","--locked","--release","--features","std simd-accel","--test","rse_release_sampling","--no-run"]
             with (output/(role+"-build.log")).open("w") as log:
-                subprocess.run(args,cwd=root,env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
+                subprocess.run(args,cwd=root,env=sampling.build_environment(root,env),stdout=log,stderr=subprocess.STDOUT,check=True)
         def execute(root, folder, profile, mode, count_file=None):
             before = environment_context(root,env,group)
             log_path = folder/(profile+".log")
