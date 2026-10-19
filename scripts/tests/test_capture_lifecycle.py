@@ -23,7 +23,9 @@ class CaptureLifecycleTests(unittest.TestCase):
         self.payload = {'case': 'synthetic-lifecycle-only', 'index': 0}
         self.stack = ExitStack(); self.addCleanup(self.stack.close)
         def patch(target, **kwargs): return self.stack.enter_context(mock.patch(target, **kwargs))
-        patch('release_evidence.source_info', side_effect=lambda root: {'commit': evidence.BASELINE_COMMIT if root == self.baseline else 'b'*40})
+        self.sources = {'baseline': {'commit':evidence.BASELINE_COMMIT, 'tree':'a'*40, 'lock_sha256':'a'*64},
+                        'candidate': {'commit':'b'*40, 'tree':'b'*40, 'lock_sha256':'b'*64}}
+        patch('release_evidence.source_info', side_effect=lambda root: self.sources['baseline' if root == self.baseline else 'candidate'])
         self.context = patch('release_evidence.environment_context', return_value={})
         patch('release_evidence.harness_digest', return_value='c'*64)
         patch('release_evidence.sampling.implementation_digest', return_value='d'*64)
@@ -34,7 +36,14 @@ class CaptureLifecycleTests(unittest.TestCase):
         patch('release_evidence.calibration_counts', side_effect=lambda records, profile, revision: {case: 1 for case in evidence.expected_cases(profile)})
         self.select = patch('release_evidence.sampling.selected_row', return_value=([self.payload], []))
         patch('release_evidence.time.sleep')
+        self.profiles = patch('release_evidence._verify_profiles', return_value=({}, {}, {'status': 'profiles_verified'}))
+        self.layouts = patch('diagnose_verify_layout.capture_paired', side_effect=self.emit_layouts)
         self.verify = patch('release_evidence.verify', return_value=({}, {}, {'status': 'passed', 'test_only': True}))
+
+    def emit_layouts(self, baseline, candidate, output, group, iterations):
+        for root in (baseline, candidate): self.assert_removed(root)
+        output.mkdir()
+        (output/'manifest.json').write_text('{"synthetic-lifecycle-only": true}')
 
     def emit(self, root, env, profile, mode, path, count_file=None, **kwargs):
         path.write_text('RSE_TIMING '+json.dumps(self.payload)+'\nRSE_SAMPLE '+json.dumps(self.payload)+'\n')
@@ -51,6 +60,61 @@ class CaptureLifecycleTests(unittest.TestCase):
         for root in (self.baseline, self.candidate): self.assert_removed(root)
         self.assertTrue((self.output/'manifest.json').exists())
         self.assertEqual(self.run.call_count, 24)  # 8 calibration + 16 phase profiles.
+
+    def test_layout_count_is_frozen_before_paired_execution_and_both_overlays_are_closed(self):
+        def counts(records, profile, revision):
+            return {case: (3 if case.endswith(':1024') else 7) if case in evidence.LAYOUT_CASES else 1 for case in evidence.expected_cases(profile)}
+        with mock.patch.object(evidence, 'calibration_counts', side_effect=counts): self.capture()
+        self.assertEqual(self.layouts.call_args.args[-1], 7)
+        document = json.loads((self.output/'manifest.json').read_text())
+        self.assertEqual(document['schema_version'], evidence.SCHEMA_VERSION)
+        self.assertEqual(document['layout_supplement']['path'], 'layout-pair/manifest.json')
+
+    def test_full_profile_failure_stops_before_any_layout_capture(self):
+        self.profiles.side_effect = evidence.EvidenceFailure('ABBA drift', {})
+        with self.assertRaisesRegex(ValueError, 'ABBA drift'): self.capture()
+        self.layouts.assert_not_called()
+        self.verify.assert_not_called()
+        self.assertTrue((self.output/'A2/stream-samples.json').exists())
+        self.assertFalse((self.output/'manifest.json').exists())
+        self.assertFalse((self.output/'report.json').exists())
+
+    def test_layout_failure_keeps_both_sets_of_rows_without_complete_manifest_or_success(self):
+        def fail(*args):
+            self.emit_layouts(*args)
+            folder = args[2]/'A1'; folder.mkdir()
+            (folder/'samples.partial.json').write_text(json.dumps([self.payload]))
+            raise evidence.EvidenceFailure('layout quality', {})
+        self.layouts.side_effect = fail
+        with self.assertRaisesRegex(ValueError, 'layout quality'): self.capture()
+        self.verify.assert_not_called()
+        self.assertTrue((self.output/'A2/stream-samples.json').exists())
+        self.assertEqual(json.loads((self.output/'layout-pair/A1/samples.partial.json').read_text()), [self.payload])
+        self.assertFalse((self.output/'manifest.json').exists())
+        self.assertFalse((self.output/'report.json').exists())
+
+    def test_changed_context_after_layout_preserves_partial_data_without_success(self):
+        def change(*args):
+            self.emit_layouts(*args)
+            self.context.return_value = {'changed': True}
+        self.layouts.side_effect = change
+        with self.assertRaisesRegex(ValueError, 'context changed'): self.capture()
+        self.verify.assert_not_called()
+        self.assertEqual(json.loads((self.output/'manifest.partial.json').read_text())['contexts']['after'], {'changed': True})
+        self.assertFalse((self.output/'manifest.json').exists())
+        self.assertFalse((self.output/'report.json').exists())
+
+    def test_mismatched_tool_fails_before_builds_or_any_measurement(self):
+        def source(path):
+            if path == self.baseline: return self.sources['baseline']
+            if path == self.candidate: return self.sources['candidate']
+            return dict(self.sources['candidate'], tree='f'*40)
+        with mock.patch.object(evidence, 'source_info', side_effect=source):
+            with self.assertRaisesRegex(ValueError, 'tool must match'): self.capture()
+        self.build.assert_not_called()
+        self.run.assert_not_called()
+        self.layouts.assert_not_called()
+        self.assertFalse((self.output/'manifest.json').exists())
 
     def test_build_failure_removes_already_acquired_overlay(self):
         self.build.side_effect = subprocess.CalledProcessError(1, ['cargo'])
@@ -125,6 +189,8 @@ class CaptureLifecycleTests(unittest.TestCase):
         self.assertFalse((self.output/'B1').exists())
         self.assertFalse((self.output/'manifest.json').exists())
         self.verify.assert_not_called()
+        self.profiles.assert_not_called()
+        self.layouts.assert_not_called()
         for root in (self.baseline, self.candidate): self.assert_removed(root)
 
     def test_final_verification_failure_preserves_complete_data_and_releases_overlays(self):
@@ -138,7 +204,7 @@ class CaptureLifecycleTests(unittest.TestCase):
         def validated_but_changed(*_):
             (self.baseline/'tests/rse_release_sampling/stub.rs').write_text('changed source')
             return {}, {}, {'status': 'passed', 'test_only': True}
-        self.verify.side_effect = validated_but_changed
+        self.profiles.side_effect = validated_but_changed
         with self.assertRaisesRegex(ValueError, 'preserve'): self.capture()
         self.assertFalse((self.output/'report.json').exists())
         self.assertEqual((self.baseline/'tests/rse_release_sampling/stub.rs').read_text(), 'changed source')

@@ -1,6 +1,6 @@
 # Retained caller fixtures for release workers
 
-Protocol 10 retains the caller contract introduced in protocol 9: it prepares one codec and caller fixture for the complete three-warmup,
+Protocol 11 retains the caller contract introduced in protocol 9: it prepares one codec and caller fixture for the complete three-warmup,
 nine-observation schedule of each small-file/stream worker. Caller byte storage
 is allocated before version-dependent codec setup. Retained source/scratch buffers
 are checked by full pointer identity, length and capacity before and after every

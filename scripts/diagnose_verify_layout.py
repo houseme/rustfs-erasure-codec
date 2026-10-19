@@ -330,7 +330,8 @@ def verify_paired(directory, candidate, compiler=True):
             raise ValueError('paired samples differ from the completed numeric journal')
     if compiler and context['compiler'] != evidence.command(['rustc', '--version'], candidate, dict(os.environ, RUSTUP_TOOLCHAIN='stable')):
         raise ValueError('paired compiler differs from the current compiler')
-    return analyze_paired(phases, iterations, context['runtime']['page_size'], cpu)
+    return dict(analyze_paired(phases, iterations, context['runtime']['page_size'], cpu),
+                sources=sources, tool=document['tool'], context=context, iterations=iterations, measuring_cpu=cpu)
 
 
 def capture_paired(baseline, candidate, output, group, iterations):

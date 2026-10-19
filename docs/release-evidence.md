@@ -123,6 +123,17 @@ sample/timing journals and the controller removes only its generated inputs.
 The inventory is a separate diagnostic schema and cannot replace calibration or
 any of the original full release cases.
 
+Formal capture now orchestrates the layout supplement automatically, after the
+entire original profile campaign passes its quality, repeat and regression gates.
+The collector itself must be clean and match the frozen candidate tree/lock;
+this is checked before builds or calibration, so a different tool checkout cannot
+spend a campaign collecting evidence that release verification would reject.
+It closes both formal overlays before starting the existing layout collector.
+The supplement uses one count frozen from the maximum of the two releases' common
+calibrated `verify_with_buffer:4:2:1024` and `verify_with_buffer:4:2:4096` counts.
+No layout is selected or silently retried. A failed original campaign never spends
+time collecting a supplement that could not approve release.
+
 The existing layout tool also supports an independent **A1/B1/B2/A2** supplement
 for all 16 combinations of source/scratch offsets `0/16/32/48`, at 1KiB and 4KiB.
 Every phase runs the complete forward and reverse grid with the same backing
@@ -173,7 +184,12 @@ exactly owned overlay inputs; modified inputs are retained for inspection.
 
 `layout_gate_passed=true` approves only this slice supplement. Every report keeps
 `release_approval=false`: this schema cannot replace any of the original 126
-Vec/stream/hotspot cases or the strict release manifest. No real passing paired
+Vec/stream/hotspot cases or the strict release manifest. Schema 3 requires the
+supplement at `layout-pair/manifest.json`, binds its digest, and independently
+checks its source identities, complete resource context, frozen count and native
+backend/features/target against the corresponding original cases. Only both
+validated components can produce a complete release success report or stage
+preflight inputs. No real passing paired
 capture is claimed merely by adding the runner or testing it. The remaining
 [layout acceptance task](https://github.com/rustfs/backlog/issues/2897) still needs
 comparable evidence for dynamic paths, real per-layout results, a fresh complete
@@ -277,9 +293,15 @@ Existing local baseline file inputs remain available for direct measurements;
 they do not replace the mandatory immutable snapshot input in release CI.
 
 
-Formal verification and materialization require manifest schema 2 and the current
-sampling protocol. Legacy schema 1 mean-only campaigns are rejected before release
-inputs are staged; they remain historical diagnostic records.
+Formal verification and materialization require manifest schema 3 and the current
+sampling protocol (11). The sampling kernels and all acceptance thresholds are
+unchanged; the new envelope makes the already required layout acceptance part of
+the same automatic verification path. The snapshot must include the complete
+`layout-pair/` directory, its four phases' provenance/samples/journals and its
+manifest. Missing, changed, failed or independently collected incompatible
+supplements cannot satisfy the contract. Legacy schema 1 mean-only campaigns and
+schema 2 envelopes without bound layouts cannot approve release; every historical
+raw observation remains under its original source/schema for audit.
 
 ## Why the earlier single-batch campaign was rejected
 
