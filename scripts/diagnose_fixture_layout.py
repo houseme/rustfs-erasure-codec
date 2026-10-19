@@ -83,7 +83,7 @@ def analyze_stream_views(phases, views, sources, cpus, page_size, iterations):
         signatures[phase]={}
         for sample,view in zip(phases[phase],views[phase]):
             case=sample['case']
-            view_audit.validate(view,case,iterations,page_size,sample['index'],sample['fixture']['source'])
+            view_audit.validate(view,case,iterations,page_size,sample['index'],sample['fixture']['source'],require_counters=True)
             keys=signatures[phase].setdefault(case,set())
             keys.update((e['role'],e['index'],e['len'],e['capacity'],tuple(e['offsets']) if e['offsets'] is not None else None) for e in view['events'])
     checks=[]

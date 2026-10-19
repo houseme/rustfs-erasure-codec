@@ -148,6 +148,8 @@ class StreamViewTests(unittest.TestCase):
         for window in original['windows']:window.update(before=None,after=None)
         audit.validate(original,case,2,4096,0)
         self.assertIsNone(audit.summarize_windows(original)[0]['windows']['call']['process_minor_faults'])
+        with self.assertRaisesRegex(ValueError,'Linux lifecycle counters'):
+            audit.validate(original,case,2,4096,0,require_counters=True)
 
     def inventory_fixture(self):
         helper=fixtures.EvidenceTests(methodName='runTest');helper.setUp();self.addCleanup(helper.doCleanups)
@@ -172,6 +174,13 @@ class StreamViewTests(unittest.TestCase):
                 else:row['rows'][0][field]='serial' if field=='stream_io_mode' else 'std' if field=='features' else 'changed'
             with self.subTest(field=field):
                 with self.assertRaises(ValueError):inventory.analyze_stream_views(phases,views,helper.sources,list(range(8)),4096,2)
+
+    def test_linux_inventory_rejects_missing_lifecycle_counters_in_raw_data(self):
+        helper,phases,views=self.inventory_fixture()
+        for view in views['B1']:
+            for window in view['windows']:window.update(before=None,after=None)
+        with self.assertRaisesRegex(ValueError,'Linux lifecycle counters'):
+            inventory.analyze_stream_views(phases,views,helper.sources,list(range(8)),4096,2)
 
     def test_four_phase_inventory_reports_differences_without_performance_approval(self):
         helper,phases,views=self.inventory_fixture()

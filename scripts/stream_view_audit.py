@@ -96,7 +96,7 @@ def underlying_records(records):
 COUNTERS = ('process_minor_faults','process_major_faults','calling_thread_run_ns','calling_thread_wait_ns')
 
 
-def validate_windows(view, case, iterations):
+def validate_windows(view, case, iterations, require_counters=False):
     operation,data,parity,size,block=case.split(':');data,parity,size,block=map(int,(data,parity,size,block))
     windows=view['windows']
     if not isinstance(windows,list) or not 1<=len(windows)<=4096:raise ValueError('missing bounded lifecycle windows')
@@ -116,6 +116,7 @@ def validate_windows(view, case, iterations):
         if before is not None and (any(not isinstance(a,list) or len(a)!=4 or any(type(v) is not int or not 0<=v<2**64 for v in a) for a in (before,after)) or any(b<a for a,b in zip(before,after))):
             raise ValueError('invalid or decreasing lifecycle counters')
     if len(available)!=1:raise ValueError('lifecycle counter availability changed')
+    if require_counters and available!={True}:raise ValueError('native Linux lifecycle counters are missing')
     if [w['call'] for w in windows]!=sorted(w['call'] for w in windows):raise ValueError('lifecycle calls reordered')
     previous_end=0
     for call in range(1,iterations+1):
@@ -160,7 +161,7 @@ def summarize_windows(view):
     return result
 
 
-def validate(view, case, iterations, page_size, observation, source_fixture=None):
+def validate(view, case, iterations, page_size, observation, source_fixture=None, *, require_counters=False):
     """Require every call, transferred byte, reservation and missing transition."""
     if set(view) != {'schema','observation','iterations','calls','completed','page_size','overflow','release_approval','events','windows'} or view['schema']!='stream-buffer-views-v2' or view['release_approval'] is not False:
         raise ValueError('invalid stream view schema')
@@ -202,7 +203,7 @@ def validate(view, case, iterations, page_size, observation, source_fixture=None
         actual=[{'len':e['len'],'capacity':e['capacity'],'offset_64':e['offsets'][0],
                  'offset_4096':e['offsets'][1],'offset_page':e['offsets'][2]} for e in retained]
         if actual!=source_fixture:raise ValueError('stream view source differs from retained caller fixture')
-    validate_windows(view,case,iterations)
+    validate_windows(view,case,iterations,require_counters)
     for index in range(1,iterations+1):
         current=calls[index]
         if operation=='reconstruct_stream':
@@ -274,9 +275,7 @@ def check(repository, baseline_ref=None):
                 sampling.validate_workload_sequence(underlying_records(rows),'stream')
                 for index,(row,view) in enumerate(zip(rows,views)):
                     if row['case']!=case or row['index']!=index:raise ValueError('native view worker case/order mismatch')
-                    validate(view,case,1,sampling.base_page_size(),index,row['fixture']['source'])
-                    if hasattr(os,'sched_getaffinity') and any(w['before'] is None for w in view['windows']):
-                        raise ValueError('native Linux lifecycle counters are missing')
+                    validate(view,case,1,sampling.base_page_size(),index,row['fixture']['source'],require_counters=hasattr(os,'sched_getaffinity'))
                     if hasattr(os,'sched_getaffinity'):
                         sampling.validate_placement(row,os.sched_getaffinity(0))
                         sampling.validate_telemetry(row,os.sched_getaffinity(0))

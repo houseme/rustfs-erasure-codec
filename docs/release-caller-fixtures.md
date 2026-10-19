@@ -108,7 +108,8 @@ its writer reservation, actual Vec append and original-scope writer drop. On Lin
 each window retains process minor/major fault counters (including pool workers,
 excluding child processes), the calling thread's scheduler run/wait counters and
 monotonic timestamps. Shared bounded procfs parsers are extracted unchanged from
-the ordinary observer. Other platforms explicitly record unavailable counters.
+the ordinary observer. Linux capture and offline inventory replay reject missing
+counters; portability checks on other platforms explicitly record them unavailable.
 The separate heap probe includes actual callbacks and these counter reads.
 
 Validation requires the full reserve/append/drop sequence, matching byte/shard
