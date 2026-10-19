@@ -53,7 +53,10 @@ Allocator environment is explicit in provenance. The controller may independentl
 run the predeclared default and retained-arena contexts; their results do not
 establish a cross-policy speedup. Every completed worker and interrupted numeric
 journal is preserved. Cleanup removes only byte-identical generated inputs and
-retains unexpected files for inspection.
+retains unexpected files for inspection. Termination/interrupt/hangup signals request
+cancellation through the bounded parent selector loop: it terminates only its owned
+worker session, preserves completed numerical journals, and restores prior signal
+handlers. This prevents a detached worker from surviving parent cancellation.
 
 `python3 scripts/diagnose_cpu_placement.py --check` compiles/tests the real overlay.
 Only this check overlay links the test allocation counter; normal diagnosis and
