@@ -10,6 +10,12 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Extend the existing baseline analyzer with complete adjacent-control replay and
+  conservative workload-window separation bounds. Require an explicit trusted
+  frozen tool, restored resources and unchanged bounded original members; retain
+  every sample and statistical failure. Distinguish worker-start gaps from wall
+  windows and inner API timestamps without changing capture or release gates.
+
 - Add a diagnostic-only complete-catalog adjacent 9.0.0 control using the frozen
   protocol-15 iteration budgets and unchanged workers. Bind execution order,
   bounded pair gaps, original raw journals and kernel policy; retain all case

@@ -95,3 +95,23 @@ existing phase-major prerequisite or approve candidate timing. It can only infor
 an explicit future scheduling-contract evaluation. The failed original control
 and the existing 5% repeat/10% distribution gates remain unchanged. See the
 [private diagnostic commands](release-evidence.md#adjacent-same-version-diagnostic).
+
+## Interpreting adjacent timing evidence
+
+The original execution journal bounds process invocation, not an inner API start
+or end. A 48 ms worker-start gap must not be described as an actual API gap. After
+complete frozen replay and resource restoration, the existing analyzer reports
+all 126 service distributions and conservative outer workload-window separation
+bounds. It subtracts each worker's recorded integer wall windows from its parent
+elapsed interval and assigns all remaining time to the between-worker gap. This
+also includes unrelated setup/inter-observation/teardown costs, so it is an upper
+bound, not a precise timestamp. A second bound adds all A2 warmup windows before
+its first measured sample; the full two-worker envelope also bounds every window
+in the pair. Floating-point aggregate API durations are not
+converted into invented boundary times.
+
+The [analysis command](release-evidence.md#analyze-complete-adjacent-service-windows)
+uses an explicitly trusted frozen checkout, preserves the original identity and
+refuses incomplete/failed captures or changed members. It adds no timing gate and
+cannot make the active diagnostic into qualification or release evidence. The
+ongoing campaign and formal sampler remain unchanged.

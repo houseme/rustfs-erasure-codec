@@ -528,3 +528,54 @@ and `formal_qualification=false`. It does not replace the existing phase-major
 same-version prerequisite, final candidate/layout ABBA or strict preflight. Keep
 raw files private unless their specific publication is authorized; this mode adds
 no artifact upload or publishing action.
+
+### Analyze complete adjacent service windows
+
+A small parent-recorded worker start gap is not an inner API timestamp. Once the
+whole private campaign and resource cleanup have completed, extend the same
+baseline variability analysis with the frozen controller's original strict replay:
+
+```sh
+python3 scripts/analyze_baseline_variability.py \
+  --adjacent-capture /test/completed-private-campaign \
+  --prior /test/original-qualification \
+  --frozen-tool /test/trusted-frozen-tool \
+  --output /test/new-private-adjacent-analysis.json
+```
+
+The campaign root must contain `adjacent/` and `reservation/`; the frozen tool is
+an explicit trusted checkout, with the original commit object available and the
+same complete tree/lock/controller bytes. Pure rebase with an identical complete
+tree is supported. The analyzer never fetches a tool or runs a path from captured
+data. It invokes only `replay` under isolated Python, with bytecode writes disabled.
+Current policy validation also refuses a malformed v2 prior or a changed known
+policy, even when the older frozen controller predates that refusal.
+
+All 252 workers, 3,024 observations, prior calibration members and original logs
+must validate. Resource restoration and absence of failure markers are mandatory.
+A bounded original byte snapshot is retained; streaming rechecks refuse member or
+tool changes across validation without duplicating the whole snapshot in memory.
+Service/endpoint/distribution summaries share the phase-major analyzer's code and
+keep all warmups, samples and statistical failures.
+
+For each worker, `outside_wall = worker_elapsed - sum(original wall_ns)`. A
+conservative upper bound from the end of the last A1 wall/workload window to the
+start of the first A2 wall/workload window is:
+
+```text
+outside_wall(A1) + parent_interworker_gap + outside_wall(A2)
+```
+
+The first A2 window is a warmup. To bound the gap to its first **measured sample**,
+add all three A2 warmup wall intervals. The report also retains the full pair
+envelope from A1 parent start to A2 parent end, containing all windows in both
+workers. It never treats a metric-median rank as a timestamp.
+
+The gap bound includes all setup, teardown and inter-observation overhead in both workers,
+so it may overestimate the actual workload-window gap. It uses integer wall
+intervals; the aggregate floating-point `timed_ns` is not treated as an absolute
+inner API boundary. Every original case receives its own bound. There is no
+retrospective gate on these observed bounds, no inferred inner API timestamp and
+no claim that temporal separation uniquely caused historical drift. Missing old
+kernel policy, remaining dynamic/internal geometry and physical-host effects stay
+explicit limitations. All approval/qualification flags remain false.
