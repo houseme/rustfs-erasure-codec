@@ -149,3 +149,6 @@ The [focused scratch lifecycle review](stream-scratch-service-review-2026-10-19.
 records allocator page-return evidence, profiler coverage failures and a separate
 longer-window same-version control. None of them upgrades unobserved scratch
 residency or qualifies a candidate release.
+
+For native stream virtual-page boundaries and the uniform protocol-15 service
+window, see [the native residency review](native-residency-service-window-2026-10-19.md).
