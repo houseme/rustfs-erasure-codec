@@ -22,13 +22,13 @@ TEMPLATE = pathlib.Path(__file__).resolve().parent/'diagnostics/verify_layout.rs
 TOOL = pathlib.Path(__file__).resolve().parents[1]
 COMMAND = ['cargo', 'test', '--locked', '--release', '--features', 'std simd-accel',
            '--test', 'rse_release_sampling']
-LAYOUT_PROTOCOL = {'name': 'paired-buffered-verify-slices', 'version': 1,
+LAYOUT_PROTOCOL = {'name': 'paired-buffered-verify-slices', 'version': 2,
                    'offsets': list(OFFSETS), 'lengths': list(LENGTHS),
                    'passes': ['forward', 'reverse'], 'warmups': 3, 'samples': 9,
                    'fixture': 'same_backing_per_length',
                    'page_alignment': 'max(os_base_page_size,4096)',
                    'iterations': 'one-predeclared-count-for-all-cells-and-phases',
-                   'minimum_wall_ns': 50_000_000, 'minimum_timed_ns': 2_000_000,
+                   'minimum_wall_ns': sampling.PROTOCOL['minimum_wall_ns'], 'minimum_timed_ns': sampling.PROTOCOL['minimum_timed_ns'],
                    'timing_scope': 'wall-and-timed-are-the-same-complete-verify-loop',
                    'central_spread_limit': .10,
                    'repeat_drift_limit': .05, 'regression_limit': .12,

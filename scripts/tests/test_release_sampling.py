@@ -300,9 +300,9 @@ class SamplingContractTests(unittest.TestCase):
             for index in range(width):
                 row=copy.deepcopy(first)
                 warming=index<sampling.PROTOCOL['warmups']
-                ns=102000000 if batch==1 else 42000000
-                wall=106000000 if batch==1 else 126000000
-                if batch==1 and index==width-1:ns=42000000;wall=42000000
+                ns=sampling.PROTOCOL["target_wall_ns"]*102//100 if batch==1 else sampling.PROTOCOL["target_wall_ns"]*42//100
+                wall=sampling.PROTOCOL["target_wall_ns"]*106//100 if batch==1 else sampling.PROTOCOL["target_wall_ns"]*126//100
+                if batch==1 and index==width-1:ns=sampling.PROTOCOL["target_wall_ns"]*42//100;wall=ns
                 row.update(index=index,kind='calibration_warmup' if warming else 'calibration',iterations=count,calibration_batch=batch,timed_ns=ns*count,wall_ns=wall,target_met=wall>=sampling.PROTOCOL['target_wall_ns'] and ns*count>=sampling.PROTOCOL['target_timed_ns'],complete=batch==2 and index==width-1)
                 row['rows'][0].update(iterations=count,ns_per_iter=ns)
                 replacement.append(row)
@@ -365,7 +365,7 @@ class SamplingContractTests(unittest.TestCase):
                 width=sampling.PROTOCOL['warmups']+sampling.PROTOCOL['samples']
                 for index in range(width):
                     warming=index<sampling.PROTOCOL['warmups'];met=not(batch==1 and index==width-1)
-                    row={'case':'a','isolated_case':True,'kind':'calibration_warmup' if warming else 'calibration','iterations':count,'calibration_batch':batch,'index':index,'wall_ns':120000000 if met else 42000000,'timed_ns':10000000,'target_met':met,'complete':batch==2 and index==width-1}
+                    row={'case':'a','isolated_case':True,'kind':'calibration_warmup' if warming else 'calibration','iterations':count,'calibration_batch':batch,'index':index,'wall_ns':sampling.PROTOCOL['target_wall_ns']*6//5 if met else sampling.PROTOCOL['target_wall_ns']*42//100,'timed_ns':sampling.PROTOCOL['target_timed_ns']*2,'target_met':met,'complete':batch==2 and index==width-1}
                     kwargs['stdout'].write('RSE_SAMPLE '+json.dumps(row)+'\n')
                 kwargs['stdout'].flush()
             with mock.patch('subprocess.run',side_effect=emit):
@@ -379,7 +379,7 @@ class SamplingContractTests(unittest.TestCase):
             def emit(command, **kwargs):
                 count=int(kwargs['env']['RSE_SAMPLER_ITERATIONS']);batch=int(kwargs['env']['RSE_SAMPLER_BATCH'])
                 for index in range(sampling.PROTOCOL['warmups']+sampling.PROTOCOL['samples']):
-                    row={'case':'a','isolated_case':True,'kind':'calibration_warmup' if index<sampling.PROTOCOL['warmups'] else 'calibration','iterations':count,'calibration_batch':batch,'index':index,'wall_ns':40000000,'timed_ns':10000000,'target_met':False,'complete':False}
+                    row={'case':'a','isolated_case':True,'kind':'calibration_warmup' if index<sampling.PROTOCOL['warmups'] else 'calibration','iterations':count,'calibration_batch':batch,'index':index,'wall_ns':sampling.PROTOCOL['target_wall_ns']//4,'timed_ns':sampling.PROTOCOL['target_timed_ns']*2,'target_met':False,'complete':False}
                     kwargs['stdout'].write('RSE_SAMPLE '+json.dumps(row)+'\n')
                 kwargs['stdout'].flush()
             with mock.patch('subprocess.run',side_effect=emit) as workers:
@@ -399,9 +399,29 @@ class SamplingContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'calibration'):
             evidence.calibration_counts(records,'smoke',self.sources_commit('baseline'))
 
+    def test_service_window_is_shared_by_worker_controller_and_paired_layouts(self):
+        from diagnose_verify_layout import LAYOUT_PROTOCOL
+        root=pathlib.Path(__file__).resolve().parents[2]
+        rendered=sampling.render(root)
+        self.assertEqual(sampling.service_window_contract(),{k:sampling.PROTOCOL[k] for k in sampling.service_window_contract()})
+        self.assertEqual(rendered['service_window.rs'],(sampling.TEMPLATES/'service_window.rs').read_text())
+        self.assertIn('mod service_window;',rendered['engine.rs'])
+        for field in ('minimum_wall_ns','minimum_timed_ns'):
+            self.assertEqual(LAYOUT_PROTOCOL[field],sampling.PROTOCOL[field])
+        self.assertEqual(sampling.PROTOCOL['version'],15)
+        # This regression specifically rejects the former short v14 intervals.
+        profile='small_file';rows=json.loads((self.root/self.doc['files']['A1'][profile]['samples']['path']).read_text())
+        case=rows[0]['case'];counts=self.doc['sampling']['common_iterations'][profile]
+        for row in rows:
+            if row['case']==case:
+                row['wall_ns']=120_000_000;row['timed_ns']/=20
+                row['rows'][0]['ns_per_iter']/=20
+        normalize=lambda p,row,rev:next(iter(evidence.indexed_rows(p,[row],rev,counts,complete=False)))
+        with self.assertRaisesRegex(ValueError,'interval is insufficient'):sampling.selected_row(rows,profile,evidence.METRICS[profile],self.sources_commit('baseline'),evidence.expected_cases(profile),counts,normalize)
+
     def test_calibration_and_protocol_cannot_be_changed(self):
         original=copy.deepcopy(self.doc)
-        for field in ('samples','warmups','case_isolation','case_order','max_calibration_batches','target_timed_ns','central_spread_limit','implementation_sha256','overlay_sha256','fixture_layout','stream_output_policy','result_metadata_policy'):
+        for field in ('samples','warmups','case_isolation','case_order','max_calibration_batches','target_timed_ns','minimum_wall_ns','minimum_timed_ns','service_window_policy','central_spread_limit','implementation_sha256','overlay_sha256','fixture_layout','stream_output_policy','result_metadata_policy'):
             self.doc=copy.deepcopy(original);self.doc['sampling'][field]='invalid'
             with self.assertRaises(ValueError):self.verify()
         self.doc=copy.deepcopy(original)

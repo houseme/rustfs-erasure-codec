@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Declare sampler protocol 15 with uniform 2 s wall / 100 ms measured calibration
+  targets and 1 s / 40 ms sample floors, shared by native workers and offline
+  validation. Apply the same floors to paired layouts; retain all cases, original
+  per-call work, warmups, samples, distribution/drift and regression thresholds.
+
 - Add bounded native Linux page-residency snapshots to stream diagnostics at real
   I/O, API-return and writer-release boundaries. Reject incomplete/error coverage;
   preserve production algorithms and distinguish former virtual ranges from live

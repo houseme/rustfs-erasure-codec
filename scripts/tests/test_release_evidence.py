@@ -103,17 +103,17 @@ class EvidenceTests(unittest.TestCase):
                 pattern = lambda values:'|'.join('d'+str(i) if i<data else 'p'+str(i-data) for i in values)
                 row.update(scenario=key, data_shards=data, parity_shards=parity, shard_size=1048576, useful_shards=len(useful),
                            missing_pattern=pattern(missing), required_pattern=pattern(useful), baseline_operation='reconstruct' if required is None else 'reconstruct_data', candidate_operation='reconstruct_data' if required is None else 'reconstruct_some',
-                           baseline_mb_s=100.0, candidate_mb_s=100.0, speedup=1.0)
+                           baseline_mb_s=5.0, candidate_mb_s=5.0, speedup=1.0)
             else:
                 operation, data, parity, size, *block = key.split(":")
                 row.update(operation=operation, data_shards=int(data), parity_shards=int(parity), shard_size=int(size),
-                           throughput_mb_s=100.0, ns_per_iter=10_000_000.0, git_revision=revision[:12],
+                           throughput_mb_s=100.0, ns_per_iter=200_000_000.0, git_revision=revision[:12],
                            features="std|simd-accel", target_triple="x86_64-linux-unknown", backend="fixture",
                            backend_id="fixture", backend_kind="fixture", backend_override="auto", override_honored=True,
                            iterations=1, seed=sampling.workload_contract(profile,key)['seed'])
                 if profile != "smoke": row["profile"] = "fast"
                 if block:
-                    row.update(stream_block_size=int(block[0]), stream_io_backend="fixture", stream_io_mode="auto", ns_per_block=10_000_000.0)
+                    row.update(stream_block_size=int(block[0]), stream_io_backend="fixture", stream_io_mode="auto", ns_per_block=200_000_000.0)
             result.append(row)
         return result
 
@@ -132,7 +132,7 @@ class EvidenceTests(unittest.TestCase):
                        'source':[copy.deepcopy(position) for _ in range(row['data_shards'] if row['operation']=='encode_stream' else row['data_shards']+row['parity_shards'])],
                        'scratch':[copy.deepcopy(position) for _ in range(row['parity_shards'] if row['operation']=='verify_with_buffer' else 0)], **sampling.fixture_contract(profile,key)}
         workload = dict(sampling.workload_contract(profile,key), rng=None)
-        timed = 10_000_000.0
+        timed = 200_000_000.0
         if profile == 'hotspot':
             data,parity,*_ = sampling.hotspot_case(key)
             step = (data+parity)*1048576
@@ -140,7 +140,7 @@ class EvidenceTests(unittest.TestCase):
             workload['rng'] = {'bytes_before':index*step,'bytes_after':(index+1)*step,'next_before':preview(index*step),'next_after':preview((index+1)*step)}
             timed = row['useful_shards']*row['shard_size']*1e9/(1048576.0*row['candidate_mb_s'])
         return {'fixture':fixture, 'workload':workload, 'placement':{'cpu':0,'constructor_budget':8,'constructor_affinity':list(range(8)),'pool_threads':4,'affinity_checked':True}, 'kind':kind, 'case':key, 'revision':self.sources[role]['commit'], 'index':index, 'iterations':1,
-                'wall_ns':120_000_000, 'timed_ns':timed, 'complete':True, 'target_met':True, 'isolated_case':True, 'calibration_batch':0, 'rows':[copy.deepcopy(row)],
+                'wall_ns':sampling.PROTOCOL['target_wall_ns']*6//5, 'timed_ns':timed, 'complete':True, 'target_met':True, 'isolated_case':True, 'calibration_batch':0, 'rows':[copy.deepcopy(row)],
                 'before':{'cpu':0, 'run_ns':index*100, 'wait_ns':index, 'switches':index, 'process_minor_faults':0, 'process_major_faults':0},
                 'after':{'cpu':0, 'run_ns':index*100+99, 'wait_ns':index+1, 'switches':index+1, 'process_minor_faults':0, 'process_major_faults':0}}
 
@@ -238,7 +238,7 @@ class EvidenceTests(unittest.TestCase):
             def change(rows):
                 for row in rows:
                     if row['len'] == 1024 and row['source_offset'] == row['scratch_offset'] == 0:
-                        row['wall_ns'] = 113_000_000 if regression else 106_000_000
+                        row['wall_ns'] = 2_260_000_000 if regression else 2_120_000_000
                         row['ns_per_iter'] = float(row['wall_ns'])  # One frozen iteration in this fixture.
             if regression: self.rewrite_layout_samples('B1', change)
             self.rewrite_layout_samples('B2', change)

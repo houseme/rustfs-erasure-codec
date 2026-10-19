@@ -112,10 +112,10 @@ class PairedLayoutTests(unittest.TestCase):
     def test_exact_drift_and_regression_boundaries_are_inclusive(self):
         phases = self.phases()
         for row in phases['A2']:
-            row['wall_ns'] = 105_000_000; row['ns_per_iter'] = 105.
+            row['wall_ns'] = 2_100_000_000; row['ns_per_iter'] = 2100.
         for phase in ('B1', 'B2'):
             for row in phases[phase]:
-                row['wall_ns'] = 112_000_000; row['ns_per_iter'] = 112.
+                row['wall_ns'] = 2_240_000_000; row['ns_per_iter'] = 2240.
         self.assertTrue(self.analyze(phases)['layout_gate_passed'])
 
     def test_one_regressing_layout_cannot_be_hidden_by_other_fast_cells(self):
@@ -123,7 +123,7 @@ class PairedLayoutTests(unittest.TestCase):
         for p in ('B1', 'B2'):
             for row in phases[p]:
                 if row['source_offset'] == 16 and row['scratch_offset'] == 32 and row['len'] == 1024:
-                    row['wall_ns'] = 113_000_000; row['ns_per_iter'] = 113.
+                    row['wall_ns'] = 2_260_000_000; row['ns_per_iter'] = 2260.
         report = self.analyze(phases)
         self.assertTrue(report['layout_quality_passed'])
         self.assertFalse(report['layout_gate_passed'])

@@ -6,9 +6,26 @@ import os
 import pathlib
 import re
 
-PROTOCOL = {"name": "shared-external-duration-sampler", "version": 14, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
-            "target_wall_ns": 100_000_000, "target_timed_ns": 5_000_000,
-            "minimum_wall_ns": 50_000_000, "minimum_timed_ns": 2_000_000,
+TEMPLATES = pathlib.Path(__file__).resolve().parent / "release-sampling"
+
+
+def service_window_contract():
+    """Use the same frozen constants in the native worker and offline verifier."""
+    text=(TEMPLATES/'service_window.rs').read_text()
+    fields=('target_wall_ns','target_timed_ns','minimum_wall_ns','minimum_timed_ns')
+    result={}
+    for field in fields:
+        matches=re.findall(r'^pub\(super\) const '+field.upper()+r': u64 = ([0-9_]+);$',text,re.M)
+        if len(matches)!=1:raise ValueError('service-window declaration changed')
+        result[field]=int(matches[0].replace('_',''))
+    if not 0<result['minimum_timed_ns']<=result['target_timed_ns']<=result['target_wall_ns'] or not 0<result['minimum_wall_ns']<=result['target_wall_ns']:
+        raise ValueError('invalid service-window bounds')
+    return result
+
+
+PROTOCOL = {"name": "shared-external-duration-sampler", "version": 15, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
+            **service_window_contract(),
+            "service_window_policy": "uniform-duration-before-calibration; all-126-cases-and-paired-layouts; no-count-floor-or-case-exceptions",
             "central_spread_limit": .10,
             "observer_buffer_policy": "bounded-stack-procfs-no-rust-heap",
             "fault_counter_scope": "guest-process-including-workers-excluding-children; no IDs; outside inner timers",
@@ -18,7 +35,6 @@ PROTOCOL = {"name": "shared-external-duration-sampler", "version": 14, "samples"
             "thread_placement": {"measuring_cpu":"minimum-reserved-cpu", "pin":"thread-only-after-codec-and-pool-preparation", "pool_affinity":"complete-reservation", "observation_checks":"actual-mask-before-and-after-timer"},
             "fixture_layout": {"scope": "small_file:all;stream:all;caller-storage-only", "codec_lifetime": "worker", "dynamic_outputs": "original per-iteration policy; offsets explicitly untracked", "entry": "Vec<Vec<u8>>", "lifetime": "worker", "construction": "caller-buffers-before-codec", "offset_moduli": [64, 4096, "os_base_page_size"], "page_size_source": "controller-sysconf", "untracked_cases": "original allocation contract; no layout guarantee"},
             "timing_scope": {"smoke":"original per-iteration workload", "small_file":"operation loops excluding one-time fixture preparation", "stream":"operation loops excluding one-time fixture preparation", "hotspot":"original inner recovery intervals"}}
-TEMPLATES = pathlib.Path(__file__).resolve().parent / "release-sampling"
 HOTSPOT_BLOCKS = ("struct ReconstructionHotspotBenchResult", "fn benchmark_test_iterations", "macro_rules! make_random_shards",
     "pub fn fill_random", "fn shards_to_option_shards", "fn option_shards_with_missing", "fn shard_index_pattern",
     "fn assert_required_reconstruction_matches", "fn bench_reconstruct_data_hotspot", "fn bench_reconstruct_some_hotspot",
@@ -351,7 +367,7 @@ def render_hotspot_cases():
 
 
 def render(root):
-    rendered = {name: (TEMPLATES / name).read_text() for name in ("engine.rs", "process.rs", "layout.rs", "pattern.rs", "workload.rs")}
+    rendered = {name: (TEMPLATES / name).read_text() for name in ("engine.rs", "process.rs", "layout.rs", "pattern.rs", "workload.rs", "service_window.rs")}
     sources = {"smoke": "benchmark_smoke.rs", "small_file": "benchmark_small_files.rs", "stream": "benchmark_stream_paths.rs"}
     for profile, filename in sources.items():
         text = (root / "tests" / filename).read_text()

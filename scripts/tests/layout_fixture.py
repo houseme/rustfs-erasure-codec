@@ -32,7 +32,7 @@ def controlled_context():
 def paired_records(iterations=1_000_000, context=None, provenance=None):
     rows = records()
     for row in rows:
-        row.update(iterations=1_000_000, wall_ns=100_000_000, ns_per_iter=100.,
+        row.update(iterations=1_000_000, wall_ns=2_000_000_000, ns_per_iter=2000.,
                    input_4096_offsets=[row['source_offset']]*6, scratch_4096_offsets=[row['scratch_offset']]*2,
                    page_size=4096, cpu=2, backend='rust-scalar', backend_id='RustScalar',
                    backend_kind='Scalar', features='simd-accel|std', target_arch='x86_64', target_os='linux')
