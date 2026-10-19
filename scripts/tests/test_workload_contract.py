@@ -2,6 +2,8 @@
 import copy
 import pathlib
 import sys
+import subprocess
+import tempfile
 import unittest
 
 sys.path.insert(0,str(pathlib.Path(__file__).resolve().parents[1]))
@@ -65,7 +67,7 @@ class WorkloadContractTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError,'actual API/mask'):sampling.validate_workload(row,'hotspot')
 
     def test_published_and_candidate_build_outputs_ignore_a_shared_caller_cache(self):
-        with __import__('tempfile').TemporaryDirectory() as temporary:
+        with tempfile.TemporaryDirectory() as temporary:
             root=pathlib.Path(temporary)
             caller={'CARGO_TARGET_DIR':str(root/'shared'),'RUSTUP_TOOLCHAIN':'stable'}
             baseline=sampling.build_environment(root/'baseline',caller)
@@ -74,6 +76,29 @@ class WorkloadContractTests(unittest.TestCase):
             self.assertEqual(baseline['CARGO_TARGET_DIR'],str(root.resolve()/'baseline/target'))
             self.assertEqual(caller['CARGO_TARGET_DIR'],str(root/'shared'))
             self.assertEqual(candidate['RUSTUP_TOOLCHAIN'],'stable')
+
+    def test_exact_baseline_tree_is_available_from_a_shallow_ci_checkout(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=pathlib.Path(temporary);origin=root/'origin';origin.mkdir()
+            def git(folder,*args):
+                return subprocess.check_output(['git',*args],cwd=folder,text=True,stderr=subprocess.PIPE).strip()
+            git(origin,'init','--quiet')
+            git(origin,'config','user.name','Fixture')
+            git(origin,'config','user.email','fixture@example.invalid')
+            (origin/'data').write_text('baseline')
+            git(origin,'add','data');git(origin,'commit','--quiet','-m','baseline')
+            revision=git(origin,'rev-parse','HEAD')
+            (origin/'data').write_text('candidate')
+            git(origin,'commit','--quiet','-am','candidate')
+            source=root/'shallow'
+            git(root,'clone','--quiet','--no-local','--depth=1',str(origin),str(source))
+            git(source,'fetch','--quiet','--depth=1',str(origin),revision)
+            self.assertEqual(git(source,'rev-parse','--is-shallow-repository'),'true')
+            destination=root/'baseline'
+            sampling.checkout_baseline(source,destination,revision)
+            self.assertEqual(git(destination,'rev-parse','HEAD'),revision)
+            self.assertEqual((destination/'data').read_text(),'baseline')
+            self.assertEqual((source/'data').read_text(),'candidate')
 
     def test_rendered_smoke_and_hotspot_use_one_prepared_entry_and_no_entropy(self):
         root=pathlib.Path(__file__).resolve().parents[2]
