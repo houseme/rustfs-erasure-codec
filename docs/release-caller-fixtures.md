@@ -100,6 +100,9 @@ page positions and private equality flags are exported. Borrowed view capacity i
 null. Cursor reconstruction retains its exact original entry and records clone,
 empty-missing and recovered owned buffers, then drops them at the original scope.
 
+Both inventory modes reuse formal backend/features/I/O provenance and fixed
+preparation/placement comparisons through all observations and phases.
+
 The validator requires every call/drop completion, original source-prefix/EOF
 consumption, transferred byte, reservation, cursor state and fixed observation.
 Overflow, unknown capacities, missing or reordered lifecycle stages fail without

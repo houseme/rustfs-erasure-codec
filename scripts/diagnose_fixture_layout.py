@@ -22,11 +22,26 @@ def case_catalog(profile=None):
     return evidence.expected_cases(profile) if profile else set().union(*(evidence.expected_cases(p) for p in PROFILES))
 
 
+def comparable_inventory_contract(groups, profile, revision, counts, reference=None):
+    """Reuse formal provenance and workload contracts for every inventory mode."""
+    records=[row for group in groups.values() for row in group]
+    current=evidence.indexed_rows(profile,[g[0]['rows'][0] for g in groups.values()],revision,counts)
+    workload=sampling.workload_catalog(records)
+    if reference is None:reference=(current,workload)
+    if workload!=reference[1]:raise ValueError('inventory preparation/placement differs between phases')
+    for case,group in groups.items():
+        if any(row['placement']!=group[0]['placement'] for row in group):raise ValueError('inventory placement changed inside worker')
+        for row in group:
+            actual=evidence.indexed_rows(profile,row['rows'],revision,counts,complete=False)
+            evidence.compatible(profile,{case:reference[0][case]},actual)
+    return reference
+
+
 def analyze(phases, sources, cpus, page_size=None):
     if set(phases) != set(evidence.PHASES):
         raise ValueError('all four layout inventory phases are required')
     counts = {case: 1 for case in case_catalog()}
-    layouts = {}
+    layouts = {};contracts={}
     for phase in evidence.PHASES:
         revision = sources['baseline' if phase.startswith('A') else 'candidate']['commit']
         normalize = lambda p, row, rev: next(iter(evidence.indexed_rows(p, [row], rev, counts, complete=False)))
@@ -34,7 +49,8 @@ def analyze(phases, sources, cpus, page_size=None):
             raise ValueError('unexpected inventory case')
         for profile in PROFILES:
             records = [r for r in phases[phase] if r['case'] in case_catalog(profile)]
-            sampling.sample_groups(records, profile, revision, case_catalog(profile), counts, normalize, cpus, page_size)
+            groups=sampling.sample_groups(records, profile, revision, case_catalog(profile), counts, normalize, cpus, page_size)
+            contracts[profile]=comparable_inventory_contract(groups,profile,revision,counts,contracts.get(profile))
         layouts[phase] = sampling.fixture_catalog(phases[phase])
     checks = []
     for left, right in (('A1', 'A2'), ('B1', 'B2'), ('A1', 'B1'), ('A1', 'B2'), ('A2', 'B1'), ('A2', 'B2')):
@@ -56,12 +72,13 @@ def analyze(phases, sources, cpus, page_size=None):
 def analyze_stream_views(phases, views, sources, cpus, page_size, iterations):
     counts={case:iterations for case in case_catalog('stream')}
     if set(phases)!=set(evidence.PHASES) or set(views)!=set(phases):raise ValueError('all four stream-view inventory phases are required')
-    signatures={}
+    signatures={};reference=None
     for phase in evidence.PHASES:
         revision=sources['baseline' if phase.startswith('A') else 'candidate']['commit']
         normalized=view_audit.underlying_records(phases[phase])
         normalize=lambda p,row,rev:next(iter(evidence.indexed_rows(p,[row],rev,counts,complete=False)))
-        sampling.sample_groups(normalized,'stream',revision,case_catalog('stream'),counts,normalize,cpus,page_size)
+        groups=sampling.sample_groups(normalized,'stream',revision,case_catalog('stream'),counts,normalize,cpus,page_size)
+        reference=comparable_inventory_contract(groups,'stream',revision,counts,reference)
         if len(views[phase])!=len(phases[phase]):raise ValueError('missing stream-view observations')
         signatures[phase]={}
         for sample,view in zip(phases[phase],views[phase]):

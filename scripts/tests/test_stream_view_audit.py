@@ -100,7 +100,7 @@ class StreamViewTests(unittest.TestCase):
         self.assertIn('super::stream_views::cursors(&cursors, 8)',traced['stream.rs'])
         self.assertIn('drop(writers); drop(readers);',traced['stream.rs'])
 
-    def test_four_phase_inventory_reports_differences_without_performance_approval(self):
+    def inventory_fixture(self):
         helper=fixtures.EvidenceTests(methodName='runTest');helper.setUp();self.addCleanup(helper.doCleanups)
         phases={};views={}
         for phase in evidence.PHASES:
@@ -112,6 +112,20 @@ class StreamViewTests(unittest.TestCase):
                     operation=record['case'].split(':')[0]
                     for field in ('fixture','workload'):record[field]['call_entry']=audit.ENTRIES[operation]
                     phases[phase].append(record);views[phase].append(view_fixture(record['case'],observation=index))
+        return helper,phases,views
+
+    def test_cross_phase_backend_io_and_constructor_budget_mismatch_are_rejected(self):
+        helper,original,views=self.inventory_fixture()
+        for field in ('features','backend_id','stream_io_mode','constructor_budget'):
+            phases=copy.deepcopy(original)
+            for row in phases['B1']:
+                if field=='constructor_budget':row['placement'][field]=7
+                else:row['rows'][0][field]='serial' if field=='stream_io_mode' else 'std' if field=='features' else 'changed'
+            with self.subTest(field=field):
+                with self.assertRaises(ValueError):inventory.analyze_stream_views(phases,views,helper.sources,list(range(8)),4096,2)
+
+    def test_four_phase_inventory_reports_differences_without_performance_approval(self):
+        helper,phases,views=self.inventory_fixture()
         report=inventory.analyze_stream_views(phases,views,helper.sources,list(range(8)),4096,2)
         self.assertEqual(report['observations'],720)
         self.assertEqual(report['case_count'],15)

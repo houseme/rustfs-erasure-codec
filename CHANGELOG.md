@@ -24,7 +24,8 @@ All notable changes to this project are documented in this file.
 - Extend the shared fixture inventory with bounded, address-free stream I/O views,
   caller writer reservations and cursor missing/recovery lifecycles. Use explicit
   transparent diagnostic adapters, preserve original loops/EOF/transfer semantics,
-  reject missing/overflowed/reordered observations, and keep these instrumented
+  reject provenance/placement mismatches and missing/overflowed/reordered observations,
+  and keep these instrumented
   data separate from formal performance evidence. Check both actual codec sources
   and zero observer allocation; retain the unobserved scratch/other-profile scope.
 
