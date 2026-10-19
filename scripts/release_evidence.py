@@ -28,6 +28,9 @@ from diagnostic_overlay import overlay
 from check_benchmark_regression import PROVENANCE_FIELDS, index_records, provenance_value
 from check_reconstruction_hotspot_gate import CASE_FIELDS, index_results
 
+SCHEMA_VERSION = 3
+LAYOUT_DIRECTORY = "layout-pair"
+LAYOUT_CASES = tuple(f"verify_with_buffer:4:2:{size}" for size in (1024, 4096))
 BASELINE_RELEASE = "9.0.0"
 BASELINE_COMMIT = "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6"
 PHASES = ("A1", "B1", "B2", "A2")
@@ -266,15 +269,73 @@ def checker_args(profile, baseline, current):
     return args
 
 
-def verify(manifest, repository, compiler=True):
-    document = json_data(manifest)
+def validate_envelope(document):
     if not isinstance(document, dict):
         raise ValueError("evidence manifest must be an object")
     for field in ("sources", "contexts", "files"):
         if not isinstance(document.get(field), dict):
             raise ValueError("invalid manifest container: " + field)
-    if type(document.get("schema_version")) is not int or document["schema_version"] != 2 or document.get("phase_order") != list(PHASES):
-        raise ValueError("sampled schema 2 A1/B1/B2/A2 evidence is required; legacy mean-only records cannot approve release")
+    if type(document.get("schema_version")) is not int or document["schema_version"] != SCHEMA_VERSION or document.get("phase_order") != list(PHASES):
+        raise ValueError("sampled schema 3 with complete ABBA and paired layouts is required; older envelopes cannot approve release")
+
+
+def layout_member(document, root):
+    entry = document.get('layout_supplement')
+    expected = LAYOUT_DIRECTORY+'/manifest.json'
+    if (not isinstance(entry, dict) or entry.get('path') != expected
+            or not isinstance(entry.get('sha256'), str) or not DIGEST.fullmatch(entry['sha256'])):
+        raise ValueError('a bound complete paired-layout supplement is required')
+    if (root/LAYOUT_DIRECTORY).is_symlink():
+        raise ValueError('paired-layout supplement must not be symlinked')
+    path = root/expected
+    json_data(path)
+    if digest(path.read_bytes()) != entry['sha256']:
+        raise ValueError('paired-layout supplement digest mismatch')
+    return path
+
+
+def layout_iterations(sampling_contract):
+    counts = sampling_contract.get('common_iterations', {}).get('small_file', {})
+    values = [counts.get(case) for case in LAYOUT_CASES]
+    if any(type(n) is not int or not 1 <= n <= 1_000_000_000 for n in values):
+        raise ValueError('layout iterations require both completed buffered-verify calibration counts')
+    return max(values)
+
+
+def verify(manifest, repository, compiler=True):
+    document = json_data(manifest)
+    validate_envelope(document)
+    # Refuse a missing/broken supplement before running any regression programs.
+    layout_path = layout_member(document, manifest.parent)
+    paths, data, report = _verify_profiles(document, manifest.parent, repository, compiler)
+    from diagnose_verify_layout import verify_paired
+    layout = verify_paired(layout_path.parent, repository, compiler)
+    if any(layout['tool'][key] != document['sources']['candidate'][key] for key in ('tree', 'lock_sha256')):
+        raise ValueError('paired-layout tool does not match the frozen candidate tree/lock')
+    if layout['sources'] != document['sources'] or layout['context'] != document['contexts']['A1']:
+        raise ValueError('paired-layout source or resource context differs from the full campaign')
+    if layout['iterations'] != layout_iterations(document['sampling']):
+        raise ValueError('paired-layout iterations differ from the frozen full-campaign calibration')
+    native = layout['phase_reports']['A1']['provenance']
+    fields = ('backend', 'backend_id', 'backend_kind', 'features')
+    target_prefix = native['target_arch']+'-'+native['target_os']+'-'
+    for case in LAYOUT_CASES:
+        row = data['A1']['small_file'][case]
+        if (any(provenance_value(row, field) != native[field] for field in fields)
+                or not provenance_value(row, 'target_triple').startswith(target_prefix)):
+            raise ValueError(case+': paired-layout backend/features/target differ from the original buffered-verify cases')
+    if not layout['layout_gate_passed']:
+        raise EvidenceFailure('paired layouts failed; no release approval', {'layout': layout, 'candidate_attribution': None})
+    report.update(status='passed', manifest_sha256=digest(manifest.read_bytes()),
+                  layout_manifest_sha256=document['layout_supplement']['sha256'],
+                  layout_distribution_checks=sum(r['case_count'] for r in layout['phase_reports'].values()),
+                  layout_repeat_checks=len(layout['repeat_checks'])+sum(len(r['repeat_checks']) for r in layout['phase_reports'].values()),
+                  layout_comparisons=len(layout['candidate_attribution']))
+    return document, paths, report
+
+
+def _verify_profiles(document, root, repository, compiler=True):
+    """Validate original full profiles; this partial result cannot approve release."""
     if document.get("baseline_release") != BASELINE_RELEASE:
         raise ValueError("release baseline must be the published 9.0.0")
     sources = document.get("sources", {})
@@ -318,7 +379,6 @@ def verify(manifest, repository, compiler=True):
         raise ValueError("measurement environment changed during the campaign")
     if compiler and reference.get("compiler") != command(["rustc", "--version"], repository, dict(os.environ, RUSTUP_TOOLCHAIN="stable")):
         raise ValueError("release compiler differs from measured evidence")
-    root = manifest.parent
     data, paths = {}, {}
     if set(document.get("files", {})) != set(PHASES):
         raise ValueError("unexpected or missing measurement phases")
@@ -356,7 +416,7 @@ def verify(manifest, repository, compiler=True):
         for a in ("A1", "A2"):
             for b in ("B1", "B2"):
                 subprocess.run(checker_args(profile, paths[a][profile], paths[b][profile]), cwd=repository, check=True, stdout=subprocess.DEVNULL)
-    return document, paths, {"status": "passed", "candidate_commit": actual["commit"], "candidate_tree": actual["tree"], "measured_candidate_commit": sources["candidate"]["commit"], "baseline_commit": sources["baseline"]["commit"], "manifest_sha256": digest(manifest.read_bytes()), "drift_checks": len(drifts), "sample_distribution_checks": len(sample_spreads), "case_counts": {p: len(data["A1"][p]) for p in FILES}, "scope": "controlled recorded VM campaign; no new measurement on the verification runner"}
+    return paths, data, {"status": "profiles_verified", "candidate_commit": actual["commit"], "candidate_tree": actual["tree"], "measured_candidate_commit": sources["candidate"]["commit"], "baseline_commit": sources["baseline"]["commit"], "drift_checks": len(drifts), "sample_distribution_checks": len(sample_spreads), "case_counts": {p: len(data["A1"][p]) for p in FILES}, "scope": "controlled recorded VM campaign; no new measurement on the verification runner"}
 
 
 def evidence_member(root, entry, expected):
@@ -456,13 +516,16 @@ def capture(baseline, candidate, output, group):
     sources = {"baseline": source_info(baseline), "candidate": source_info(candidate)}
     if sources["baseline"]["commit"] != BASELINE_COMMIT or sources["candidate"]["commit"] == BASELINE_COMMIT:
         raise ValueError("published baseline and a different candidate are required")
+    tool = source_info(pathlib.Path(__file__).resolve().parents[1])
+    if any(tool[key] != sources['candidate'][key] for key in ('tree', 'lock_sha256')):
+        raise ValueError('capture tool must match the frozen candidate tree/lock')
     harness = harness_digest(candidate)
     if harness_digest(baseline) != harness or sampling.overlay_digest(baseline) != sampling.overlay_digest(candidate):
         raise ValueError("both codecs require the same original harness and external overlay")
     contract = dict(sampling.PROTOCOL, implementation_sha256=sampling.implementation_digest(), overlay_sha256=sampling.overlay_digest(candidate))
-    metadata = {"schema_version":2,"baseline_release":BASELINE_RELEASE,"phase_order":list(PHASES),"sources":sources,"harness_sha256":harness,"sampling":contract,"contexts":{},"files":{},"calibration":{}}
+    metadata = {"schema_version":SCHEMA_VERSION,"baseline_release":BASELINE_RELEASE,"phase_order":list(PHASES),"sources":sources,"harness_sha256":harness,"sampling":contract,"contexts":{},"files":{},"calibration":{}}
     (output/"capture-provenance.json").write_text(json.dumps({
-        "purpose":"capture setup only; never release acceptance", "sources":sources,
+        "purpose":"capture setup only; never release acceptance", "sources":sources, "tool":tool,
         "harness_sha256":harness, "sampling":contract,
         "initial_context":environment_context(candidate,env,group)},indent=2)+"\n")
     with ExitStack() as overlays:
@@ -531,11 +594,26 @@ def capture(baseline, candidate, output, group):
                     "failed_phase":phase, "sample_spreads":phase_spreads, "candidate_attribution":None})
         metadata["contexts"]["after"]=environment_context(candidate,env,group)
         if any(source_info(root)!=sources[role] for role,root in (("baseline",baseline),("candidate",candidate))): raise ValueError("source changed during capture")
-        manifest=output/"manifest.json";manifest.write_text(json.dumps(metadata,indent=2)+"\n")
-        _,_,report=verify(manifest,candidate)
-    # Cleanup is part of successful capture ownership; do not leave a passing
-    # report if an unexpected generated input prevents safe release.
-    (output/"report.json").write_text(json.dumps(report,indent=2)+"\n")
+        # Reject full-profile quality/drift/regressions before spending any time
+        # on supplemental layouts. This is not a release success report.
+        _verify_profiles(metadata, output, candidate)
+    # Standalone layouts reuse the same overlay entry; both formal overlays must
+    # close safely before their collector starts.
+    from diagnose_verify_layout import capture_paired
+    capture_paired(baseline, candidate, output/LAYOUT_DIRECTORY, group, layout_iterations(contract))
+    layout_path = output/LAYOUT_DIRECTORY/'manifest.json'
+    metadata['layout_supplement'] = {'path': LAYOUT_DIRECTORY+'/manifest.json', 'sha256': digest(layout_path.read_bytes())}
+    (output/'manifest.partial.json').write_text(json.dumps(metadata, indent=2)+'\n')
+    metadata['contexts']['after'] = environment_context(candidate, env, group)
+    (output/'manifest.partial.json').write_text(json.dumps(metadata, indent=2)+'\n')
+    if metadata['contexts']['after'] != metadata['contexts']['A1']:
+        raise ValueError('resource context changed during supplemental capture')
+    if any(source_info(root) != sources[role] for role, root in (("baseline", baseline), ("candidate", candidate))):
+        raise ValueError('source changed during supplemental capture')
+    manifest = output/'manifest.json'
+    manifest.write_text(json.dumps(metadata, indent=2)+'\n')
+    _, _, report = verify(manifest, candidate)
+    (output/'report.json').write_text(json.dumps(report, indent=2)+'\n')
 
 
 def materialize(manifest, repository, env_file):

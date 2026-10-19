@@ -3,6 +3,7 @@ import copy
 import json
 import pathlib
 import subprocess
+import shutil
 import sys
 import tempfile
 import unittest
@@ -11,6 +12,8 @@ from unittest import mock
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 import release_evidence as evidence
 import release_sampling as sampling
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from layout_fixture import write_campaign
 
 
 class EvidenceTests(unittest.TestCase):
@@ -26,7 +29,7 @@ class EvidenceTests(unittest.TestCase):
         context = {"compiler": "rustc fixture", "cpu_model": "fixture CPU", "settings": evidence.SAMPLING_ENV,
                    "runtime": {"libc": {"name": "fixture", "version": "1"}, "allocator_environment": {}, "page_size":4096},
                    "isolation": {"scope": "exclusive-vm-cpu-partition", "reserved_cpu_count": 8, "cpu_affinity": list(range(8)), "physical_host_exclusivity_proven": False}}
-        self.doc = {"schema_version": 2, "baseline_release": "9.0.0", "phase_order": list(evidence.PHASES),
+        self.doc = {"schema_version": evidence.SCHEMA_VERSION, "baseline_release": "9.0.0", "phase_order": list(evidence.PHASES),
                     "sources": self.sources, "harness_sha256": "d" * 64,
                     "contexts": {p: copy.deepcopy(context) for p in (*evidence.PHASES, "after")}, "files": {}}
         for phase in evidence.PHASES:
@@ -60,6 +63,34 @@ class EvidenceTests(unittest.TestCase):
             patch = mock.patch.object(evidence, name, return_value=value)
             patch.start()
             self.addCleanup(patch.stop)
+        self.context = context
+        self.write_layout()
+
+    def write_layout(self, sources=None, context=None, iterations=1, provenance=None):
+        layout_root = self.root/evidence.LAYOUT_DIRECTORY
+        if layout_root.exists(): shutil.rmtree(layout_root)
+        write_campaign(layout_root, sources=self.sources if sources is None else sources,
+                       tool=self.sources['candidate'], context=self.context if context is None else context,
+                       iterations=iterations, provenance=provenance or {'backend':'fixture', 'backend_id':'fixture', 'backend_kind':'fixture'})
+        self.bind_layout()
+
+    def bind_layout(self):
+        path = self.root/evidence.LAYOUT_DIRECTORY/'manifest.json'
+        self.doc['layout_supplement'] = {'path': evidence.LAYOUT_DIRECTORY+'/manifest.json', 'sha256': evidence.digest(path.read_bytes())}
+
+    def rewrite_layout_samples(self, phase, mutate):
+        from diagnose_verify_layout import PREFIX
+        folder = self.root/evidence.LAYOUT_DIRECTORY
+        path = folder/phase/'samples.json'
+        rows = json.loads(path.read_text())
+        mutate(rows)
+        path.write_text(json.dumps(rows))
+        (folder/phase/'measurement.log').write_text(''.join(PREFIX+json.dumps(row)+'\n' for row in rows))
+        document = json.loads((folder/'manifest.json').read_text())
+        for name in ('samples.json', 'measurement.log'):
+            document['files'][phase][name]['sha256'] = evidence.digest((folder/phase/name).read_bytes())
+        (folder/'manifest.json').write_text(json.dumps(document))
+        self.bind_layout()
 
     def fixture_rows(self, phase, profile):
         result = []
@@ -120,12 +151,140 @@ class EvidenceTests(unittest.TestCase):
         self.manifest.write_text(json.dumps(self.doc))
         return evidence.verify(self.manifest, self.root)
 
+    def test_missing_paired_layout_is_not_complete_release_evidence(self):
+        self.doc.pop('layout_supplement', None)
+        with self.assertRaisesRegex(ValueError, 'layout'):
+            self.verify()
+
     def test_complete_campaign_runs_existing_regression_gates(self):
         _, _, report = self.verify()
         self.assertEqual(report["status"], "passed")
         self.assertEqual(report["case_counts"], {"smoke": 15, "small_file": 88, "hotspot": 8, "stream": 15})
         self.assertEqual(report["drift_checks"], 252)
         self.assertEqual(report["sample_distribution_checks"], 504)
+        self.assertEqual(report['layout_distribution_checks'], 256)
+        self.assertEqual(report['layout_repeat_checks'], 256)
+        self.assertEqual(report['layout_comparisons'], 256)
+        self.assertEqual(report['layout_manifest_sha256'], self.doc['layout_supplement']['sha256'])
+
+    def test_layout_paths_digests_and_missing_manifest_reject_before_gate_programs(self):
+        original = copy.deepcopy(self.doc)
+        for change in (lambda d:d['layout_supplement'].update(path='../manifest.json'),
+                       lambda d:d['layout_supplement'].update(path='A1/manifest.json'),
+                       lambda d:d['layout_supplement'].update(sha256='0'*64),
+                       lambda d:d['layout_supplement'].update(sha256=True)):
+            self.doc = copy.deepcopy(original); change(self.doc)
+            with mock.patch.object(evidence.subprocess, 'run') as gate:
+                with self.assertRaises(ValueError): self.verify()
+                gate.assert_not_called()
+        self.doc = copy.deepcopy(original)
+        (self.root/evidence.LAYOUT_DIRECTORY/'manifest.json').unlink()
+        with mock.patch.object(evidence.subprocess, 'run') as gate:
+            with self.assertRaises(ValueError): self.verify()
+            gate.assert_not_called()
+
+    def test_layout_directory_and_manifest_symlinks_reject(self):
+        directory = self.root/evidence.LAYOUT_DIRECTORY
+        saved = self.root/'saved-layout'; directory.rename(saved); directory.symlink_to(saved, target_is_directory=True)
+        with self.assertRaisesRegex(ValueError, 'symlinked'): self.verify()
+        directory.unlink(); saved.rename(directory)
+        path = directory/'manifest.json'; path.rename(directory/'saved.json'); path.symlink_to(directory/'saved.json')
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_independently_valid_layout_must_match_full_campaign_sources_and_context(self):
+        sources = copy.deepcopy(self.sources)
+        sources['candidate']['commit'] = 'd'*40  # Same tree/lock, different captured source identity.
+        self.write_layout(sources=sources)
+        with self.assertRaisesRegex(ValueError, 'source or resource context'): self.verify()
+        for field in ('cpu_model', 'runtime', 'isolation'):
+            context = copy.deepcopy(self.context)
+            if field == 'cpu_model': context[field] = 'different controlled CPU'
+            elif field == 'runtime': context[field]['page_size'] = 16384
+            else: context[field]['cpu_affinity'] = [1,2]; context[field]['reserved_cpu_count'] = 2
+            self.write_layout(context=context)
+            with self.assertRaisesRegex(ValueError, 'source or resource context'): self.verify()
+
+        # Independently valid external-tool capture must still belong to the
+        # frozen candidate checkout used by the eventual tag verifier.
+        tool = dict(self.sources['candidate'], commit='e'*40, tree='f'*40)
+        folder = self.root/evidence.LAYOUT_DIRECTORY; shutil.rmtree(folder)
+        write_campaign(folder, sources=self.sources, tool=tool, context=self.context, iterations=1,
+                       provenance={'backend':'fixture', 'backend_id':'fixture', 'backend_kind':'fixture'})
+        self.bind_layout()
+        with mock.patch.object(evidence, 'source_info', side_effect=lambda root:self.sources['candidate'] if root == self.root else tool):
+            with self.assertRaisesRegex(ValueError, 'tool does not match'): self.verify()
+
+    def test_layout_uses_frozen_count_and_matching_original_backend_and_target(self):
+        self.write_layout(iterations=2)
+        with self.assertRaisesRegex(ValueError, 'frozen'): self.verify()
+        for changes in ({'backend':'different'}, {'backend_id':'different'}, {'backend_kind':'different'}, {'target_arch':'aarch64'}):
+            self.write_layout(provenance={'backend':'fixture', 'backend_id':'fixture', 'backend_kind':'fixture', **changes})
+            with self.assertRaisesRegex(ValueError, 'backend/features/target'): self.verify()
+
+    def test_failed_layout_drift_or_single_cell_regression_withholds_full_approval(self):
+        for regression in (False, True):
+            self.write_layout()
+            def change(rows):
+                for row in rows:
+                    if row['len'] == 1024 and row['source_offset'] == row['scratch_offset'] == 0:
+                        row['wall_ns'] = 113_000_000 if regression else 106_000_000
+                        row['ns_per_iter'] = float(row['wall_ns'])  # One frozen iteration in this fixture.
+            if regression: self.rewrite_layout_samples('B1', change)
+            self.rewrite_layout_samples('B2', change)
+            with self.assertRaises(evidence.EvidenceFailure) as raised: self.verify()
+            self.assertIsNone(raised.exception.details['candidate_attribution'])
+            self.assertFalse(raised.exception.details['layout']['release_approval'])
+            self.assertFalse(raised.exception.details['layout']['layout_gate_passed'])
+            if regression: self.assertEqual(len(raised.exception.details['layout']['regression_failures']), 8)
+            else: self.assertTrue(raised.exception.details['layout']['repeat_failures'])
+
+    def test_incomplete_layout_and_changed_numeric_rows_are_not_accepted_as_supplements(self):
+        def remove(rows): rows.pop()
+        self.rewrite_layout_samples('A2', remove)
+        with self.assertRaisesRegex(ValueError, 'complete forward/reverse'): self.verify()
+        self.write_layout()
+        path = self.root/evidence.LAYOUT_DIRECTORY/'A1/samples.json'
+        path.write_text('[]')
+        with self.assertRaisesRegex(ValueError, 'changed'): self.verify()
+
+    def test_materialize_never_stages_inputs_when_layout_quality_fails(self):
+        def short(rows):
+            for row in rows:
+                row['wall_ns'] = 1000; row['ns_per_iter'] = 1000.
+        self.rewrite_layout_samples('B2', short)
+        self.manifest.write_text(json.dumps(self.doc))
+        with self.assertRaises(evidence.EvidenceFailure):
+            evidence.materialize(self.manifest, self.root, self.root/'inputs.env')
+        self.assertFalse((self.root/'inputs.env').exists())
+        self.assertFalse((self.root/'target/release-preflight/inputs').exists())
+
+    def test_old_sampled_envelope_cannot_omit_new_required_layout_acceptance(self):
+        self.doc['schema_version'] = 2
+        self.doc.pop('layout_supplement')
+        with mock.patch.object(evidence.subprocess, 'run') as gate:
+            with self.assertRaisesRegex(ValueError, 'sampled schema 3'): self.verify()
+            gate.assert_not_called()
+
+    def test_layout_count_is_predeclared_from_both_calibrated_lengths(self):
+        counts = {evidence.LAYOUT_CASES[0]:3, evidence.LAYOUT_CASES[1]:7}
+        self.assertEqual(evidence.layout_iterations({'common_iterations':{'small_file':counts}}), 7)
+        for bad in (None, True, 0, 1_000_000_001):
+            with self.assertRaises(ValueError):
+                evidence.layout_iterations({'common_iterations':{'small_file':dict(counts, **{evidence.LAYOUT_CASES[0]:bad})}})
+
+    def test_real_cli_missing_layout_cannot_report_success_or_stage_inputs(self):
+        self.doc.pop('layout_supplement')
+        self.manifest.write_text(json.dumps(self.doc))
+        script = pathlib.Path(evidence.__file__).resolve()
+        report = self.root/'cli-report.json'
+        for mode, option, output in (('verify', '--report', report), ('materialize', '--env-file', self.root/'inputs.env')):
+            result = subprocess.run([sys.executable, str(script), mode, '--manifest', str(self.manifest),
+                                     '--repository', str(self.root), option, str(output)], capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('paired-layout supplement', result.stderr)
+        self.assertEqual(json.loads(report.read_text())['status'], 'failed')
+        self.assertFalse((self.root/'inputs.env').exists())
+        self.assertFalse((self.root/'target/release-preflight/inputs').exists())
 
     def test_wrong_source_lock_harness_baseline_and_self_comparison(self):
         original = copy.deepcopy(self.doc)
@@ -257,9 +416,9 @@ class EvidenceTests(unittest.TestCase):
         for context in self.doc['contexts'].values():
             context['settings'] = evidence.BASE_ENV
         with mock.patch.object(evidence.subprocess, 'run') as gate:
-            with self.assertRaisesRegex(ValueError, 'sampled schema 2'):
+            with self.assertRaisesRegex(ValueError, 'sampled schema 3'):
                 self.verify()
-            with self.assertRaisesRegex(ValueError, 'sampled schema 2'):
+            with self.assertRaisesRegex(ValueError, 'sampled schema 3'):
                 evidence.materialize(self.manifest, self.root, self.root/'inputs.env')
             gate.assert_not_called()
         self.assertFalse((self.root/'inputs.env').exists())
