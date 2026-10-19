@@ -16,6 +16,10 @@ controller and original CPU ranges were restored after 80 isolation checks.
 
 ## Recorded differences
 
+All 15 retained-source geometries match. Excluding offsets, the observed length
+and visible owned-capacity sets match in every case; all recorded cross-version
+differences are in modulo-cacheline/page positions. Borrowed backing capacities
+remain unknown, so this statement does not extend to internal buffer capacities.
 All 15 retained-source geometries match. Both same-version comparisons have equal
 sets of view shapes/offsets (30 checks). Every cross-version comparison differs
 (60 checks across four pairings of the same 15 cases). A set match does not prove
