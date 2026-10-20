@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Correct excess-shard error classification in stream encoding, verification,
+  Cursor recovery and incremental parity updates. Share stream count validation,
+  reject invalid counts before I/O or cursor changes, and preserve existing
+  under-count errors, validation order, encoded bytes and recovery semantics.
+
 - Add read-only APERF/MPERF/TSC observations around unchanged baseline workers in
   the existing VM diagnostic entry point. Derive the entire failed-case cohort
   from a complete frozen adjacent replay, retain original counts and four fresh

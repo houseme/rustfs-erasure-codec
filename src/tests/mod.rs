@@ -1616,14 +1616,16 @@ fn test_update_rejects_wrong_changed_shard_count() {
 
     let old_data = baseline[..4].to_vec();
     let old_refs = old_data.iter().collect::<Vec<_>>();
-    let changes = vec![None, None, None];
-    let mut parity_only = baseline[4..].to_vec();
-    let mut parity_refs = parity_only.iter_mut().collect::<Vec<_>>();
-
-    assert_eq!(
-        Error::TooFewDataShards,
-        r.update(&old_refs, &changes, &mut parity_refs).unwrap_err()
-    );
+    for (count, expected) in [(3, Error::TooFewDataShards), (5, Error::TooManyDataShards)] {
+        let changes = vec![Some(&old_data[0]); count];
+        let mut parity_only = baseline[4..].to_vec();
+        let mut parity_refs = parity_only.iter_mut().collect::<Vec<_>>();
+        assert_eq!(
+            r.update(&old_refs, &changes, &mut parity_refs),
+            Err(expected)
+        );
+        assert_eq!(parity_only, baseline[4..]);
+    }
 }
 
 #[test]
