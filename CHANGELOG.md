@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Document the completed fixed-worker service-cost replay, separating measured
+  invocation overhead and scheduling/fault signals from residual busy execution
+  variability. Retain counter scope, source identity and unresolved cache/host
+  attribution; no new timing campaign, runtime tuning or release approval.
+
 - Correct excess-shard error classification in stream encoding, verification,
   Cursor recovery and incremental parity updates. Share stream count validation,
   reject invalid counts before I/O or cursor changes, and preserve existing
