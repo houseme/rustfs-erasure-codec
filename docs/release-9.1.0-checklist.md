@@ -26,7 +26,12 @@ Run relevant focused regressions, the workspace and no-default-features suites,
 all-feature Clippy, formatting and manifest checks. Ordinary CI additionally
 checks generated WASM Node/Chromium integration and actual package dry-run.
 Record exact tested source and outcomes; historical test totals are not a test
-result for new main.
+result for new main. At reviewed runtime source `4f2799e`, the
+[actual main CI](https://github.com/houseme/rustfs-erasure-codec/actions/runs/39394001627)
+passed real generated Node/Chromium WASM, 200 byte/roundtrip cases, 15 resource
+scenarios, ordinary verify scratch, all stream byte-owner checks and package
+dry-run. Its downloaded numeric reports were independently replayed/compared.
+These are completed functional/structural checks, not strict release preflight.
 
 ```sh
 RUSTUP_TOOLCHAIN=stable cargo test --locked --workspace
@@ -39,12 +44,18 @@ python3 scripts/check_release_manifest.py --tag 9.1.0
 ## Remaining performance and publication gates
 
 - [ ] Complete #2897 conditions 1/2/3/5 within their agreed dynamic-buffer,
-      lifetime, paired-layout and final source/raw-evidence scope. Condition 4
-      stays checked only within the declared normal-format compatibility scope.
+      lifetime, paired-layout and final source/raw-evidence scope. Stream-layer
+      verify/recovery byte-owner observation is already implemented and checked;
+      codec-internal decode scratch and remaining non-stream paths are not.
+      Condition 4 stays checked only within the declared normal-format
+      compatibility scope.
 - [ ] Establish a controlled condition or distinguishing observation for residual
       execution-service variability before a new full baseline campaign. The
       complete protocol-15 and adjacent 9.0.0 self-controls failed 3/126 and 2/126
-      repeat checks respectively; neither is accepted performance evidence.
+      repeat checks respectively. The newer complete 4f2799e-tool qualification
+      refused an A2 distribution before its repeat gate. None is accepted
+      performance evidence. Fixed frequency, PMU and unique historical-cause
+      attribution are not additional release conditions.
 - [ ] Freeze final source/lock/harness and qualify the complete baseline, retaining
       5% same-version drift, 10% central spread and uniform protocol-15 duration
       gates (2 s wall / 100 ms measured calibration targets; 1 s / 40 ms sample

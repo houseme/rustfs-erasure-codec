@@ -10,6 +10,12 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Reconcile 9.1.0 acceptance records with completed stream byte-owner diagnostics
+  and actual main compatibility, resource, WASM and package checks. Remove stale
+  unimplemented-scratch claims, retain codec-internal/non-stream gaps and every
+  rejected baseline, and distinguish optional PMU/frequency diagnosis from the
+  unchanged performance and strict release gates.
+
 - Record the local Docker ARM64 execution and formal-isolation refusal. The
   complete existing hotpath catalog ran with original correctness checks; raw
   observations stay private. Distinguish this diagnostic from baseline, ABBA,
