@@ -154,3 +154,44 @@ hardware evidence or timing normalization. These observations cannot satisfy the
 5% gate or replace full final candidate/layout ABBA and positive release preflight.
 
 See the [private counter diagnostic](release-evidence.md#whole-worker-execution-rate-diagnostic).
+
+
+## Existing worker evidence separates wrapper cost from busy service cost
+
+The completed fixed cohort uses frozen controller
+`d7f920f9ea9dfab21b5419e30db40e418dbad199` and published 9.0.0. It contains
+eight workers and 96 observations; these figures replay that same private
+snapshot, not a new timing campaign.
+The original baseline worker binary was byte-identical before and after capture.
+All counts, input replay, caller geometry, placement and original work loops match.
+
+| Observed cost or signal | Encode 10+4 / 512 KiB | Reconstruct 4+2 / 64 KiB |
+| --- | ---: | ---: |
+| Invocation time outside all original wall windows | 0.2763–0.3084% | 0.2852–0.3100% |
+| Wall minus original inner measured time, relative to wall | 0.0000593–0.0000621% | 0.0000476–0.0000665% |
+| Calling-thread run / wall, all twelve windows | 99.9689–99.9765% | 99.9716–99.9793% |
+| Formal-sample process minor / major faults | 0 / 0 | 0 / 0 |
+| Four formal medians, maximum / minimum minus one | 15.3440% | 7.7108% |
+| Whole-worker APERF / MPERF, maximum / minimum minus one | 2.1665% | 1.2157% |
+
+The residual variation is inside the retained original operation windows. It is
+too large to attribute entirely to measured wrapper cost, runnable wait or page
+faults. The encode worker retains its original data/parity Vec storage throughout
+all iterations; this is not a stream-writer lifecycle experiment. Original
+reconstruction includes caller clone/allocation/recovery work, so its inner timing
+must not be relabeled as exclusive decoder cost.
+
+For encode workers two to three, whole-worker elapsed divided by the same total
+original operation count increases 12.18%, while APERF/MPERF increases about 0.37%.
+Observed execution-rate variation alone does not explain this change. Counters
+remain whole-worker, guest-CPU and non-atomic; physical fidelity is unproven. These
+are bounds and scope comparisons, not an exact additive CPU-time partition,
+exclusive API cycles or proof of a particular cache mechanism.
+
+The existing Linux/x86 VM exposes neither a usable CPU/uncore PMU nor resctrl
+L3/MB information. Guest CPU partition isolation does not establish exclusive
+physical cache or memory bandwidth. Cache/memory stalls, remaining internal
+layout/state and physical-host interference therefore cannot yet be uniquely
+separated. That requires a usable distinguishing observation or a controlled host
+condition; repeating the unchanged matrix or adding speculative runtime changes
+cannot provide it. All release gates and historical failures remain unchanged.
