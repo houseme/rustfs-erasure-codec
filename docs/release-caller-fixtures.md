@@ -188,9 +188,9 @@ python3 scripts/stream_core_audit.py --check --output /path/to/new-source-owner-
 python3 scripts/stream_core_audit.py --replay /path/to/completed-source-owner-check
 ```
 
-The actual remaining scope includes codec-internal decode scratch, non-stream
-dynamic destinations, smoke/hotspot source positions, and formal performance
-geometry/paired-layout acceptance. Physical allocation identity and exact first-
+The unified remaining-storage inventory below observes codec-internal decode
+scratch, non-stream dynamic destinations and smoke/hotspot source positions.
+Formal performance geometry/paired-layout acceptance remains separate. Physical allocation identity and exact first-
 fault instruction are not established. Source instrumentation and page/counter
 queries perturb execution, so these structural checks never qualify latency or
 release acceptance. Conditions 1/2/3/5 therefore remain partially complete.
@@ -266,3 +266,80 @@ acceptance. The actual [4f2799e numeric artifact](https://github.com/houseme/rus
 was independently replayed in full: both sources and all fourteen cases pass the
 structural contracts, while thirteen cases retain diagnostic shape differences.
 No observations were removed or pooled into a formal timing comparison.
+
+
+## Complete remaining storage inventory
+
+The existing fixture inventory now has one source-copy mode for the remaining
+decoder scratch, non-stream output and smoke/hotspot source scope:
+
+```sh
+python3 scripts/diagnose_fixture_layout.py --check-dynamic \
+  --output /path/to/new-private-dynamic-inventory
+python3 scripts/diagnose_fixture_layout.py \
+  --replay-dynamic /path/to/completed-private-dynamic-inventory
+```
+
+The catalog is fixed. Both actual source revisions execute all 126 original cases
+in the original calibration and measurement modes, with three warmups and nine
+observations, two original kernel iterations per observation. The calibration
+pass is a bounded structural rehearsal; its actual target/complete flags remain,
+but it does not qualify duration or trigger adaptive count retries. Six additional
+decoder-owner cases cover uncached Classic inverses, tower GF16, and Leopard GF8
+and GF16 at 32,768 bytes and a 65,600-byte multiblock tail. Across both sources this
+requires 516 fresh workers, 6,192 observations and 12,384 kernel iterations.
+Hotspot iterations contain multiple original API calls; iteration counts must
+not be presented as counts of individual APIs.
+
+| Storage | Observed boundaries |
+| --- | --- |
+| Smoke/hotspot sources | Actual generated/encoded Vec positions, ownership moves or clones, and original-scope destruction |
+| Non-stream recovery outputs | Clone, actual missing/required presence, restored views and request release; missing ShardSlot storage is distinguished from absent Option storage |
+| Classic decode matrices | Original initialized element storage, inversion work, fresh/cached decode views, inline/heap form and source-specific capacity |
+| Leopard decoding | Cached/uncached work leases, active lane shape, locators, conversion/scaling scratch, and real internal decoded-output buffers before publication |
+
+No production checkout is edited. Source-copy insertions are reversible and
+preserve original constructors, allocations, resizes, copies, API calls and release
+statements. The generic recovery publication/late-failure/selective semantics are
+unchanged. An active/inactive observer oracle checks both actual sources in all
+four field/family configurations. Candidate invalid-length rejection is checked;
+the old Leopard implementation's known unchecked malformed raw-view path is not
+executed as an oracle. Legacy selective behavior is compared with itself, not
+silently replaced by the candidate's stronger contract.
+
+Only the generated diagnostic executable installs a System-forwarding Rust
+allocator observer. Its fixed state and acquire/release guard do not allocate;
+independent heap and concurrent request tests check the callbacks. Every observed
+alloc/realloc/free has a request generation; a successful realloc ends the old
+generation even when the address is unchanged. Views bind the generation and a
+relative byte offset. These are observed Rust/System request identities, **not
+physical allocation identities, malloc usable sizes or a source-level allocation
+count guarantee**. The optimizer may omit or combine allocations, as described in
+the [GlobalAlloc contract](https://doc.rust-lang.org/std/alloc/trait.GlobalAlloc.html).
+Missing mappings are refused rather than invented.
+
+The bounded ledger keeps modulo-64/4096/native-page offsets, initialized lengths,
+actual known capacities, anonymous threads, process fault endpoints and numerical
+virtual-page queries. No full pointer is exported; uninitialized or former bytes
+are never dereferenced. Unmapped former ranges and bounded-query limits stay
+explicit. A mapped range does not establish continued ownership. Requests retained
+by a thread-local cache after a call are not classified as leaks.
+
+Before execution, a complete plan binds source/tree/lock, original harness,
+reversible changes, generated worker/native observer and compiler/CPU/allocator/
+kernel-memory-policy context. Every step records the same context before/after;
+source edits, missing/reordered events, stale request generations, incorrect
+presence, native bounds, raw-journal disagreement and incomplete catalogs refuse
+the inventory. Failure logs, all completed records and the original plan remain.
+Existing output is never replaced. Raw output must be outside the source repo,
+in a new private directory; CI runs this check without uploading its raw files.
+
+Raw workload records carry the explicit `dynamic-source-copy-v1` envelope, which
+the formal workload validator rejects. Only a private validator copy unwraps it
+to reuse the original scalar/seed/input contracts. Instrumentation changes code
+generation, allocator concurrency, memory touches and service time; callbacks
+include observer costs and may include unrelated process activity. Matching
+instrumented geometry cannot establish uninstrumented equivalence. The result
+always has `release_approval=false`, `candidate_attribution=null` and
+`formal_performance_geometry_equivalence=false`. This completes the implemented
+observation mechanism, not paired-layout/ABBA acceptance or a release waiver.

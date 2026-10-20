@@ -8,6 +8,7 @@ import release_sampling as sampling
 import stream_view_audit
 import verify_scratch_audit
 import stream_core_audit
+import dynamic_buffer_audit
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 
@@ -21,8 +22,9 @@ def probe(root):
     modules += 'mod stream_views {\n'+stream_view_audit.native_template()+'\n}\n'
     modules += 'mod verify_scratch {\n'+verify_scratch_audit.native_template()+'\n}\n'
     modules += 'mod stream_core {\n'+stream_core_audit.native_template()+'\n}\n'
+    modules += 'mod dynamic_buffers {\n'+dynamic_buffer_audit.native_template().replace('crate::ShardSlot', 'rustfs_erasure_codec::ShardSlot')+'\n}\n'
     original = sampling.block((root/'src/tests/mod.rs').read_text(), 'fn shard_index_pattern').replace('fn shard_index_pattern', 'fn original_pattern', 1)
-    text = (root/'scripts/diagnostics/telemetry_allocations.rs').read_text()+'\n'+modules+'\n'+original+'\n'+(root/'scripts/diagnostics/stream_view_allocations.rs').read_text()+'\n'+(root/'scripts/diagnostics/verify_scratch_allocations.rs').read_text()+'\n'+(root/'scripts/diagnostics/stream_core_allocations.rs').read_text()
+    text = (root/'scripts/diagnostics/telemetry_allocations.rs').read_text()+'\n'+modules+'\n'+original+'\n'+(root/'scripts/diagnostics/stream_view_allocations.rs').read_text()+'\n'+(root/'scripts/diagnostics/verify_scratch_allocations.rs').read_text()+'\n'+(root/'scripts/diagnostics/stream_core_allocations.rs').read_text()+'\n'+(root/'scripts/diagnostics/dynamic_buffer_allocations.rs').read_text()
     with target.open('x') as file: file.write(text)
     try:
         yield

@@ -185,9 +185,24 @@ def main():
     parser.add_argument('--isolation-cgroup', type=pathlib.Path)
     parser.add_argument('--stream-views', action='store_true', help='audit all stream I/O views and cursor lifecycles; never performance evidence')
     parser.add_argument('--iterations', type=int, default=2, help='bounded calls per instrumented observation (1..16)')
+    parser.add_argument('--check-dynamic', action='store_true', help='check remaining buffer lifecycles in source copies; never performance evidence')
+    parser.add_argument('--replay-dynamic', type=pathlib.Path, help='strict offline replay of a complete dynamic source-copy inventory')
     parser.add_argument('--check-stream-views', action='store_true', help='compile and execute all stream view workers; correctness only')
     parser.add_argument('--baseline-ref', help='also check the exact published source with its own lockfile')
     args = parser.parse_args()
+    if args.check_dynamic or args.replay_dynamic is not None:
+        if args.iterations!=2 or args.check_dynamic and args.replay_dynamic is not None or args.stream_views or args.check_stream_views or any(getattr(args,name) is not None for name in ('tool','baseline','candidate','isolation_cgroup')):
+            parser.error('dynamic source-copy inventory is separate from formal capture')
+        import dynamic_buffer_audit as dynamic
+        root=pathlib.Path(__file__).resolve().parents[1]
+        if args.replay_dynamic is not None:
+            if args.output is not None or args.baseline_ref is not None:parser.error('replay accepts only the completed inventory')
+            report=dynamic.verify(args.replay_dynamic.resolve(),root)
+        else:
+            if args.output is None:parser.error('check-dynamic requires a new private output directory')
+            report=dynamic.check(root,args.output.resolve(),args.baseline_ref)
+        print(json.dumps({k:v for k,v in report.items() if k not in ('members','diagnostic_geometry_differences')}))
+        return
     if args.check_stream_views:
         if args.stream_views or any(getattr(args,name) is not None for name in ('tool','baseline','candidate','output','isolation_cgroup')):
             parser.error('check-stream-views is separate from capture')
