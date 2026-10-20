@@ -59,8 +59,9 @@ is rejected. Historical controls are not retrofitted with missing fields. See th
 
 The policy-envelope fix is merged; retain the failed control. Before another full
 campaign, require a specific, observable change that addresses execution-rate,
-cache or remaining internal-layout variability. The current VM lacks usable
-hardware-cycle evidence, so a unique hardware/cache attribution is still absent.
+cache or remaining internal-layout variability. The current VM lacks a usable CPU cycles PMU. Read-only APERF/MPERF/TSC
+MSRs were subsequently found exposed; their virtualized fidelity and relationship
+to the service drift still require observation, so a unique attribution is absent.
 Do not retry unchanged measurements, select favorable cases/counts, relax limits,
 change original allocation semantics or rewrite VerifyWorkspace/Leopard delivery
 from allocation counts alone. Generic reconstruction publication, late-failure and
@@ -115,3 +116,41 @@ uses an explicitly trusted frozen checkout, preserves the original identity and
 refuses incomplete/failed captures or changed members. It adds no timing gate and
 cannot make the active diagnostic into qualification or release evidence. The
 ongoing campaign and formal sampler remain unchanged.
+
+
+## Completed adjacent control and targeted execution-rate diagnosis
+
+All 252 unchanged workers and 3,024 original observations completed under frozen
+controller `d53e16b144c85ccb253dfc530bb1797b749bfd52`. Independent complete
+replay and restored-resource checks passed. The full service analysis has no
+short samples, distribution failures or caller-geometry mismatches, but retains:
+
+| Original case, both 9.0.0 | A1 ns/iteration | A2 ns/iteration | Signed change |
+| --- | ---: | ---: | ---: |
+| `encode:10:4:524288` | 387,412.46 | 336,299.98 | -13.1933% |
+| `reconstruct:4:2:65536` | 9,491.32 | 10,253.67 | +8.0321% |
+
+All 18 measured observations of each failure have zero minor/major faults.
+Maximum runnable wait/wall is about 0.0147%; calling-thread run time tracks wall.
+Parent gaps are about 39/38 ms and pair envelopes about 71.21/63.43 s. Thus long
+phase separation alone is insufficient to explain or repair the variation.
+Passing the previous three failed cases in this campaign does not repair either
+failed complete control or establish a candidate improvement.
+
+The existing VM diagnostic entry point can now observe read-only guest-CPU
+APERF/MPERF/TSC around original workers, without adding Rust telemetry or changing
+the original binary, prepared fixture or allocator lifetime. It derives **all**
+failed cases from trusted complete adjacent replay, uses the original iteration
+budgets and exactly four fresh workers per case. There is no case/count override,
+new calibration or favorable retry. The current cohort has two cases with counts
+8,192 and 262,144. Original journals, context and counter reads remain private.
+
+Counters cover entire worker invocations, including setup, all warmups/samples,
+export and guest activity. Per-CPU non-atomic read skew and TSC interval bounds
+are retained; short reads, reset/wrap, invalid brackets and no active counters
+are refused with raw failures preserved. Virtualized MSRs are not certified as
+physical execution cycles. Ratios are not GHz, exclusive API cycles, per-sample
+hardware evidence or timing normalization. These observations cannot satisfy the
+5% gate or replace full final candidate/layout ABBA and positive release preflight.
+
+See the [private counter diagnostic](release-evidence.md#whole-worker-execution-rate-diagnostic).
