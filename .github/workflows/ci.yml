@@ -128,6 +128,10 @@ jobs:
       - name: Check stream owner lifecycles in both diagnostic source copies
         run: python3 scripts/stream_core_audit.py --check --output "$RUNNER_TEMP/stream-core-audit"
 
+      - name: Check remaining dynamic storage in both source copies
+        timeout-minutes: 25
+        run: python3 scripts/diagnose_fixture_layout.py --check-dynamic --output "$RUNNER_TEMP/dynamic-buffer-audit"
+
       - name: Verify page-controlled slice fixtures without performance capture
         run: python3 scripts/diagnose_verify_layout.py --check
 

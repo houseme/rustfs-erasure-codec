@@ -10,6 +10,14 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Complete the remaining dynamic-storage observation mechanism in the existing
+  fixture inventory: original calibration/measurement lifetimes, non-stream
+  outputs, smoke/hotspot sources, Classic matrix scratch and Leopard cached work,
+  locators, conversion/scaling scratch and decoded outputs. Keep reversible
+  source copies and bounded System-request generations, reject incomplete or
+  mismatched evidence, fence diagnostic raw records from formal performance
+  validation, and preserve generic recovery semantics and every release gate.
+
 - Reconcile 9.1.0 acceptance records with completed stream byte-owner diagnostics
   and actual main compatibility, resource, WASM and package checks. Remove stale
   unimplemented-scratch claims, retain codec-internal/non-stream gaps and every
