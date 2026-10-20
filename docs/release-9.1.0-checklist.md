@@ -1,6 +1,6 @@
 # 9.1.0 release preparation
 
-Status at the 2026-10-20 audit: **prepared candidate, not tagged or uploaded**.
+Status at the 2026-10-21 audit: **prepared candidate, not tagged or uploaded**.
 The [current readiness assessment](release-9.1.0-blockers.md) is the canonical
 remaining-work list. It supersedes historical checklist snapshots, without
 changing their source bindings or promoting rejected measurements.
@@ -45,8 +45,10 @@ python3 scripts/check_release_manifest.py --tag 9.1.0
 
 - [ ] Complete #2897 conditions 1/2/3/5 within their agreed dynamic-buffer,
       lifetime, paired-layout and final source/raw-evidence scope. Stream-layer
-      verify/recovery byte-owner observation is already implemented and checked;
-      codec-internal decode scratch and remaining non-stream paths are not.
+      byte owners and the remaining codec-internal decode scratch, non-stream
+      outputs and smoke/hotspot sources are implemented and natively observed.
+      The complete 516-worker two-source structural inventory independently
+      replays; uninstrumented performance geometry and final acceptance remain.
       Condition 4 stays checked only within the declared normal-format
       compatibility scope.
 - [ ] Establish a controlled condition or distinguishing observation for residual

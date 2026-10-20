@@ -144,8 +144,9 @@ python3 scripts/diagnose_fixture_layout.py --stream-views --iterations 2 \
 ```
 
 The I/O decorators alone do not expose internal stream verify/recovery owners.
-The source-owner audit below covers those stream-layer buffers separately; codec
-internal decode scratch and other dynamic paths remain outside that coverage.
+The source-owner audit below covers those stream-layer buffers separately; the
+unified inventory at the end covers codec-internal decode scratch and the other
+declared dynamic paths.
 Observed signatures may differ between versions. Neither a descriptive match nor
 source instrumentation establishes physical-page equality or replaces full
 per-layout and baseline/candidate acceptance. Backlog #2897 remains open.
@@ -260,9 +261,11 @@ python3 scripts/verify_scratch_audit.py --replay /path/to/completed-check
 
 This covers only the declared ordinary-verify diagnostic visibility gap. The
 separate stream-owner audit covers stream-layer verify/recovery byte storage.
-Neither completes #2897 conditions 1/2/5, codec-internal decode scratch, remaining
-non-stream dynamic paths, complete layout pairing or final performance/release
-acceptance. The actual [4f2799e numeric artifact](https://github.com/houseme/rustfs-erasure-codec/actions/runs/39394001627/artifacts/12250674932)
+Neither alone completes #2897 conditions 1/2/5. The unified inventory below
+covers codec-internal decode scratch and the remaining non-stream dynamic paths;
+complete layout pairing and final performance/release acceptance remain separate.
+The ordinary-verify diagnostic retains its own source binding. The actual
+[4f2799e numeric artifact](https://github.com/houseme/rustfs-erasure-codec/actions/runs/39394001627/artifacts/12250674932)
 was independently replayed in full: both sources and all fourteen cases pass the
 structural contracts, while thirteen cases retain diagnostic shape differences.
 No observations were removed or pooled into a formal timing comparison.
@@ -343,3 +346,20 @@ instrumented geometry cannot establish uninstrumented equivalence. The result
 always has `release_approval=false`, `candidate_attribution=null` and
 `formal_performance_geometry_equivalence=false`. This completes the implemented
 observation mechanism, not paired-layout/ABBA acceptance or a release waiver.
+
+### Source-bound native execution
+
+On 2026-10-21 (Asia/Shanghai), candidate `26aa094` and published 9.0.0 completed
+the entire fixed catalog on Linux x86-64: 516 fresh workers, 6,192 observations
+and 12,384 original kernel iterations. An independent offline replay passed.
+Two semantic counterexamples made in private copies, with all affected member
+and execution digests updated, were refused: a warmup backend change and reuse
+of a retired realloc request generation. Original evidence hashes were unchanged.
+Tool and source-copy tracked trees were restored; the owned cgroup was removed,
+and controller/parent-affinity restoration passed. Full raw records stay private.
+
+The earlier Linux-only fault-adapter compile failure collected zero workers and
+is retained separately. The fix reuses the existing bounded procfs adapter; its
+new complete execution is not a retry of a failed timing matrix. No baseline
+qualification, 16-layout paired acceptance, candidate ABBA or strict positive
+release preflight was executed or approved by this structural inventory.
