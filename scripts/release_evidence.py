@@ -196,11 +196,57 @@ def runtime_context(env):
     return result
 
 
+def cpu_identity(text, machine, reserved_cpus):
+    """Keep named models; bind unnamed ARM guests to their reported CPU IDs.
+
+    MIDR fields identify the guest-visible processors, not the physical host.
+    Reserved CPU indices and ISA flags are retained, including heterogeneous IDs.
+    """
+    named = next((line.split(":", 1)[1].strip() for line in text.splitlines()
+                  if line.startswith("model name") and ":" in line), "")
+    if named:
+        return named
+    if machine.lower() not in ("aarch64", "arm64"):
+        raise ValueError("CPU model must be available for release evidence")
+    required = ("CPU implementer", "CPU architecture", "CPU variant", "CPU part", "CPU revision")
+    processors = {}
+    for block in re.split(r"\n\s*\n", text.strip()):
+        fields = {}
+        for line in block.splitlines():
+            if ":" not in line:
+                continue
+            key, value = (piece.strip() for piece in line.split(":", 1))
+            if key in fields:
+                raise ValueError("duplicate ARM CPU identity field")
+            fields[key] = value
+        if "processor" not in fields:
+            continue
+        if not fields["processor"].isdecimal():
+            raise ValueError("invalid ARM CPU index")
+        cpu = int(fields["processor"])
+        if cpu in processors:
+            raise ValueError("duplicate ARM CPU index")
+        processors[cpu] = fields
+    identities = []
+    for cpu in sorted(reserved_cpus):
+        fields = processors.get(cpu, {})
+        if any(not fields.get(key) for key in (*required, "Features")):
+            raise ValueError("complete ARM identity required for every reserved CPU")
+        try:
+            values = [int(fields[key], 10 if key == "CPU architecture" else 0) for key in required]
+        except ValueError as error:
+            raise ValueError("invalid ARM CPU identity value") from error
+        if any(value < 0 for value in values):
+            raise ValueError("invalid ARM CPU identity value")
+        identities.append({"cpu": cpu, **dict(zip(required, values)), "Features": sorted(set(fields["Features"].split()))})
+    if not identities:
+        raise ValueError("reserved ARM CPUs are required")
+    return "aarch64 guest CPU identity: " + json.dumps(identities, sort_keys=True, separators=(",", ":"))
+
+
 def environment_context(root, env, group):
     isolation = isolation_context(group)
-    cpu = next((line.split(":", 1)[1].strip() for line in pathlib.Path("/proc/cpuinfo").read_text().splitlines() if line.startswith("model name")), "")
-    if not cpu:
-        raise ValueError("CPU model must be available for release evidence")
+    cpu = cpu_identity(pathlib.Path("/proc/cpuinfo").read_text(), platform.machine(), isolation["cpu_affinity"])
     return {"compiler": command(["rustc", "--version"], root, env), "cpu_model": cpu,
             "isolation": isolation, "runtime": runtime_context(env), "settings": {k: env[k] for k in SAMPLING_ENV}}
 

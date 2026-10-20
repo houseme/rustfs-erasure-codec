@@ -10,6 +10,12 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Support ARM64 release-context provenance when Linux omits `model name` from
+  cpuinfo. Bind every reserved CPU's reported implementer, architecture, variant,
+  part, revision and ISA flags; keep named-model contexts unchanged and reject
+  incomplete identities. Guest CPU identity does not prove physical-host
+  isolation or relax exclusive-partition, performance or release gates.
+
 - Refresh the 9.1.0 release checklist and blocker assessment with current
   production fixes, source-bound allocation differences, rejected baseline
   controls and the exact remaining layout/evidence/preflight steps. Remove stale
