@@ -78,9 +78,9 @@ class FrequencyTests(unittest.TestCase):
 
     def capture(self):
         f=self.fixture
-        return d.capture_frequency(self.root,f.baseline,self.capture_root,f.prior,self.root,self.output,self.root/'unused')
+        return d.capture_frequency(self.root,f.baseline,self.capture_root,f.prior,self.root/'trusted-frozen',self.output,self.root/'unused')
 
-    def replay(self):return d.replay_frequency(self.root,self.capture_root,self.fixture.prior,self.root,self.output)
+    def replay(self):return d.replay_frequency(self.root,self.capture_root,self.fixture.prior,self.root/'trusted-frozen',self.output)
 
     def test_every_original_failure_fixed_repetitions_and_counts_no_process_observer(self):
         result=self.capture();plan=json.loads((self.output/'plan.json').read_text())
@@ -132,3 +132,10 @@ class FrequencyTests(unittest.TestCase):
         self.analysis.return_value['input_sha256']['adjacent/plan.json']='0'*64
         with self.assertRaisesRegex(ValueError,'input changed'):self.capture()
         self.fixture.patches[3].assert_not_called()
+
+    def test_prior_identity_uses_explicit_frozen_object_store_after_rebase(self):
+        original=d.adjacent.inputs
+        with mock.patch.object(d.adjacent,'inputs',wraps=original) as read:
+            self.capture()
+        self.assertTrue(read.call_count>=2)
+        for call in read.call_args_list:self.assertEqual(call.args[1],self.root/'trusted-frozen')
