@@ -147,10 +147,10 @@ def frequency_deltas(before,after,cpus,start,end):
     return result
 
 
-def frequency_inputs(capture,prior,frozen,repository):
+def frequency_inputs(capture,prior,frozen):
     import analyze_baseline_variability as analysis
     report=analysis.analyze_adjacent(capture,prior,frozen)
-    prov,counts,calibration,digests=adjacent.inputs(prior,repository)
+    prov,counts,calibration,digests=adjacent.inputs(prior,frozen)
     raw=(capture/'adjacent/plan.json').read_bytes()
     if any(report['input_sha256'].get('prior/'+n)!=h for n,h in digests.items()) or evidence.digest(raw)!=report['input_sha256'].get('adjacent/plan.json'):raise ValueError('full input changed after replay')
     context=analysis.json_bytes(raw)['context']
@@ -193,7 +193,7 @@ def frequency_result(output,plan,calibration,context):
 
 def replay_frequency(repository,capture,prior,frozen,output):
     if (output/'failure.json').exists():raise ValueError('failed frequency capture retained')
-    prov,calibration,cohort,context=frequency_inputs(capture,prior,frozen,repository)
+    prov,calibration,cohort,context=frequency_inputs(capture,prior,frozen)
     plan=evidence.json_data(output/'plan.json');tool=evidence.source_info(repository)
     if plan.get('schema')!=FREQUENCY_SCHEMA or plan.get('release_approval') is not False or plan.get('candidate_attribution') is not None or plan.get('cohort')!=cohort or plan.get('baseline')!=prov['source'] or plan.get('context')!=context or plan.get('controller_sha256')!=evidence.digest(pathlib.Path(__file__).read_bytes()) or plan.get('scope')!=FREQUENCY_SCOPE:raise ValueError('frequency plan differs')
     if evidence.source_at(repository,plan['tool']['commit'])!=plan['tool'] or any(tool[k]!=plan['tool'][k] for k in ('tree','lock_sha256')):raise ValueError('frozen frequency tool differs')
@@ -208,7 +208,7 @@ FREQUENCY_SCOPE='whole original worker on guest CPUs, including setup, warmups, 
 def capture_frequency(repository,baseline,capture,prior,frozen,output,group):
     output.mkdir(parents=True,mode=0o700)
     try:
-        prov,calibration,cohort,context=frequency_inputs(capture,prior,frozen,repository)
+        prov,calibration,cohort,context=frequency_inputs(capture,prior,frozen)
         tool=evidence.source_info(repository);env=evidence.capture_environment()
         if evidence.source_info(baseline)!=prov['source'] or evidence.harness_digest(baseline)!=evidence.harness_digest(repository) or sampling.overlay_digest(baseline)!=sampling.overlay_digest(repository):raise ValueError('original baseline/harness/worker changed')
         if evidence.environment_context(baseline,env,group)!=context:raise ValueError('frequency context differs')
