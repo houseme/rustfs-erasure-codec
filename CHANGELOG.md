@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Refresh the 9.1.0 release checklist and blocker assessment with current
+  production fixes, source-bound allocation differences, rejected baseline
+  controls and the exact remaining layout/evidence/preflight steps. Remove stale
+  current-main claims without changing performance gates or approving a release.
+
 - Join requested payload prefixes without overflowing the aggregate shard length,
   including repeated borrowed byte shards whose logical total exceeds 32-bit
   `usize`. Use validated equal lengths to remove the redundant summation pass;
