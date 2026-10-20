@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Record the local Docker ARM64 execution and formal-isolation refusal. The
+  complete existing hotpath catalog ran with original correctness checks; raw
+  observations stay private. Distinguish this diagnostic from baseline, ABBA,
+  layout or release acceptance, without changing runtime code or any gate.
+
 - Support ARM64 release-context provenance when Linux omits `model name` from
   cpuinfo. Bind every reserved CPU's reported implementer, architecture, variant,
   part, revision and ISA flags; keep named-model contexts unchanged and reject
