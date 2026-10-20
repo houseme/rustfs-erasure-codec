@@ -23,6 +23,13 @@ class DynamicScopeTests(unittest.TestCase):
         for name in ('smoke', 'hotspot'):
             self.assertIn('"source"', observed[name + '.rs'])
 
+    def test_native_fault_adapter_reuses_the_actual_bounded_procfs_parser(self):
+        expected=sampling.block((ROOT/'scripts/diagnostics/stream_core.rs').read_text(),'fn faults()')
+        native=audit.native_template()
+        self.assertIn(expected,native)
+        self.assertNotIn('process_faults()',native)
+        self.assertIn('process_faults(read_bounded(',native)
+
     def test_unknown_source_layout_is_refused_before_mutation(self):
         matrix = (ROOT/'src/matrix.rs').read_text()
         with self.assertRaises(ValueError):
