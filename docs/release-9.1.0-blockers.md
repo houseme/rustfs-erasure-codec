@@ -1,194 +1,127 @@
 # 9.1.0 publication blockers and completion criteria
 
-Audit date: 2026-10-20 (Asia/Shanghai). Main includes PR #35 at `ad4564e`;
-its actual main CI passed. Protocol 15 declares uniform service windows, and the
-full published-9.0.0 qualification finished and failed 3/126 repeat checks. No complete passing baseline,
-final candidate/layout campaign or strict positive release preflight is recorded.
-This is a readiness assessment, not release approval. Historical evidence retains
-its original source and protocol bindings.
+Audit date: 2026-10-20 (Asia/Shanghai). Reviewed main:
+`475be6cdd55cdb4f2d6dcf4457a6e2a943374757`, after PRs #40–#43.
+The manifests already declare 9.1.0. No accepted final timing campaign, positive
+strict release preflight, tag or publication is recorded. This assessment keeps
+historical measurements bound to their original sources.
 
-## Implementation and acceptance are separate
+## Production progress and actual version differences
 
-Protocol 15 retains one prepared worker entry for all 126 cases. It extends the
-existing 103 small-file/stream caller contracts to the 15 smoke and eight hotspot
-cases: codec lifetime, actual API/output policy, masks, seed, source lifetime and
-construction order are mandatory. Hotspot per-byte random generation now borrows
-one worker-seeded RNG and records bounded consumption/state witnesses. Original
-per-iteration allocations, clones, drops, recovery assertions and inner timers
-remain. Cross-version native checks compare the actual input traces against each
-release's lockfile. Build outputs are isolated per source checkout, including under
-an inherited shared Cargo target. None of these checks is timing acceptance.
+Recent production fixes include excess-shard error classification before stream
+I/O, Leopard-compatible payload splitting, validation before progressive XOR
+merges, and bounded GF8/GF16 exponentiation. The accompanying join fix permits a
+small requested prefix when repeated borrowed shards exceed the platform's
+aggregate `usize` range. These are functional changes, not just benchmark changes.
+Normal field definitions, matrices and compatible encoded bytes are preserved.
+Generic reconstruction still keeps decode-before-publication where required,
+late failures and selective-output behavior.
 
-The [caller contract](release-caller-fixtures.md) tracks source/scratch geometry for
-103 retained cases. Their historical structural inventories have 4,944 observations
-and 618 comparisons per context, at one iteration only. Dynamic destinations,
-internal scratch and smoke/hotspot source positions remain outside this geometry
-scope. Conditions 1/2/5 therefore remain partial. PR #23 binds complete paired
-1/4 KiB layout evidence into formal capture/verification/materialization;
-schema 4 additionally requires kernel THP/mTHP and process-policy provenance;
-no real passing paired supplement exists yet. Condition 3 remains partial, and
-condition 6 still requires accepted full performance evidence. Production code,
-algorithms, matrices, APIs, dependencies and original benchmarks are unchanged by
-this preparation correction.
+The [version delta](9.0.0-to-9.1.0-codec-delta.md) records a source-bound normal-
+format 200-case byte/roundtrip comparison and 15 allocation scenarios. It excludes
+historically inconsistent fast/custom/mixed-entry codewords. Recorded allocation
+requests per API invocation include:
 
-The protocol-12 local checks pass 222 Python tests, 14 active sampler tests on
-each actual macOS/ARM64 codec checkout, all 23 changed workers per checkout, and
-the independent nine-test heap probe. Cross-version prefix bytes and every worker
-input contract match. Generated-sampler Clippy with warnings denied, formatting,
-actionlint and manifest checks also pass. These results do not certify Linux
-performance; final PR CI remains separate.
-
-The [current hot-path review](hotpath-service-time-review-2026-10-19.md) identifies
-an additional formal placement gap: endpoint membership alone allowed measuring
-thread migration. Protocol 13 initializes codec/pool with the complete reservation,
-then pins only the measuring TID and validates masks, constructor budget and pool
-width. Previous exact fixed-CPU controls still drifted, so this change does not
-establish the remaining root cause or replace accepted full performance evidence.
-
-Kernel memory policy is a confirmed comparability gap: equal base page sizes do
-not imply equal THP/mTHP fault granularity. The new evidence envelope binds these
-read-only policy snapshots and rejects absent, unreadable or changed state. It
-does not change the active frozen qualification, infer historical policy or prove
-that THP caused the current VM's service-time variability. Production hot paths
-remain unchanged pending comparable service-time evidence.
-
-## Current release gates
-
-| Layer | Verified state | Required next result |
-| --- | --- | --- |
-| Functional compatibility | The normal-format 200-case published-9.0.0 parity/roundtrip probe and core tests pass. PR #19 changes no production algorithm. | Preserve the declared compatibility boundary: the normal-format probe disables `fast_one_parity` and does not promise recovery of historically inconsistent fast/custom/mixed-entry codewords. |
-| Workload comparability | All 126 cases have explicit preparation/input contracts in protocol 15; geometry covers only the 103 retained caller cases. Dynamic/internal buffers and real per-layout acceptance remain partial in backlog #2897. | Complete the agreed dynamic/lifetime and per-layout acceptance scope; caller matching alone is insufficient. |
-| Baseline stability | Complete protocol-15 A1/A2 passed every distribution/duration/raw contract but failed three repeat checks (maximum 6.7256%); resources restored. [Service review](baseline-service-review-2026-10-20.md) records zero measured faults and negligible runnable wait in the failures. Historical controls remain rejected. | Qualify the entire baseline before candidate attribution. Preserve every failed case and allocator context. |
-| Quantitative evidence | No accepted complete campaign for the final source tree and shared harness exists. | Fresh baseline/candidate A1/B1/B2/A2, both calibrations and all 126 original cases, with every duration/distribution/drift/regression gate passing. |
-| Workflow input | `RSE_RELEASE_EVIDENCE_REF` was absent at the last live check. Rejected audit data is not accepted evidence. | Verify accepted `release-evidence/manifest.json` on a data commit, then supply its full immutable SHA through the variable or manual `evidence_ref`. |
-| Strict preflight | Ordinary CI skips tag/manual-only evidence and release-preflight jobs. The historical real-data negative run proves rejection only. | Run `release_preflight=true` against the final main and accepted evidence, and verify actual success before tagging. |
-| Upload | The repository has a secret named `CRATES_IO_TOKEN`; its value was not read. Package dry-runs are in ordinary CI. | After all gates pass, tag the validated source and verify actual publication; neither a secret name nor a dry-run is an upload. |
-
-The automated chain in `.github/workflows/ci.yml` requires source-bound immutable
-evidence in `release-inputs`, then strict `release-preflight`, before a tag can
-reach `publish`. GitHub does not read issue checkboxes; those describe the agreed
-additional acceptance scope. No new blocking algorithm defect has been established
-by these baseline controls. An unstable published-9.0.0 control cannot establish a
-9.1.0 regression or speedup.
-
-## Latest complete protocol-13 control and targeted diagnosis
-
-Frozen tool `121b39d`, baseline published 9.0.0: all 126 cases calibrated, retaining
-4,800 observations. Complete A1 retains 1,512 observations, including 1,134 measured
-samples. All 103 recorded caller layouts match calibration, with no short samples.
-Nine distributions fail the unchanged 10% limit; stream encode 10+4/16MiB/4MiB
-blocks reaches 59.103368%. A2 and candidate capture were stopped. Both reservations
-restored their partition/controller/parent CPU ranges. All 6,312 timing journals
-match the completed numeric records.
-
-The [immutable full numerical audit](https://github.com/houseme/rustfs-erasure-codec/tree/dc05250/diagnostics/protocol13-baseline-qualification)
-includes every calibration/warmup/sample and a separate single-case process profile.
-Its allocating diagnostic observer reveals minor-fault transitions from 184,141
-through 92,138 to about 24,582 per observation, alongside changing service time.
-The formal trace oscillates rather than converging, so extending warmup or dropping
-early samples is not an established solution. The profile has 45.40% unresolved
-leaves and cannot uniquely explain all nine failures or quantify candidate speed.
-
-Protocol 14 therefore adds whole-process minor/major fault counters with bounded
-stack reads in the existing ordinary observer, including Rayon workers and
-excluding child processes. Missing/negative/reset counters are rejected. It avoids
-substituting the allocating process diagnostic for formal telemetry. Every original
-operation, three warmups, nine samples and performance limit remains unchanged.
-The protocol-13 rejection stays bound to its original renderer; no accepted
-protocol-14 full control or candidate campaign follows from native observer tests.
-Production algorithms, matrices, formats and recovery publication semantics remain
-unchanged. Dynamic destinations/internal scratch and full layout acceptance remain
-uncompleted work, not inferred from low guest runnable wait or recorded caller matches.
-
-## Historical complete protocol-10 baseline controls
-
-Frozen measured tool: `63b6fa0a3d0b0dc6a7d206c9dbff82f5f729eea8`, protocol 10.
-Both measured codecs are published 9.0.0. Allocator contexts were predeclared in
-order: default, then retained arena (one arena, malloc mmap disabled, 1 TiB trim
-threshold, child-process environment only). No cross-context speedup is inferred.
-
-- Default: 4,800 calibration observations and complete A1 (1,512 observations,
-  including 1,134 measured samples). Zero short samples or caller mismatches, but
-  seven distributions exceed 10%; the declared stop prevents A2 and attribution.
-- Retained arena: 4,980 calibration observations and complete A1/A2 (3,024
-  observations, including 2,268 measured samples). All 252 distributions pass
-  10%, with zero short samples/caller mismatches; seven of 126 repeat drifts exceed
-  5%, maximum 28.181878%. This context also fails the baseline prerequisite.
-
-[Complete qualifications and inventories](https://github.com/houseme/rustfs-erasure-codec/tree/75456a77a57953f8b069bab3d2eb788643ca21d1/diagnostics/protocol10-qualification-controls),
-[default raw data](https://github.com/houseme/rustfs-erasure-codec/tree/75456a77a57953f8b069bab3d2eb788643ca21d1/diagnostics/protocol10-default-baseline),
-and [retained-arena raw data](https://github.com/houseme/rustfs-erasure-codec/tree/75456a77a57953f8b069bab3d2eb788643ca21d1/diagnostics/protocol10-retained-arena-baseline)
-retain all calibration, warmup, measured values, failures and source bindings.
-The audit branch has 671 verified members at that commit; all 1,767 isolation
-checks and resource restoration were recorded. It is a data-only branch and must
-not be merged into main or configured as accepted release evidence.
-
-## Reproducible variability diagnosis
-
-Run the offline analyzer against either complete baseline capture with its matching
-protocol/renderer. It starts no workers and changes no sampling or acceptance policy:
-
-```sh
-python3 scripts/analyze_baseline_variability.py \
-  --capture /path/to/complete-baseline-control \
-  --output /path/to/new-variability-report.json
-```
-
-The analyzer validates all calibration and fixed warmup/sample records through the
-shared validators, binds input hashes, and retains every case and full scheduling
-trace. Before comparing service times it applies the shared all-observation
-backend/I/O/placement contract and matches preparation and the complete RNG input
-replay against final calibration. Mismatches are refused even in a single warmup
-or a nonmedian sample. It reports incomplete repeat coverage explicitly, preserves
-width/duration/caller-layout diagnostics and refuses to overwrite reports.
-`release_approval` is always
-false and `candidate_attribution` is always null. It supplements original
-provenance/isolation verification; it is not another release gate.
-
-Retained-arena replay groups all 126 cases by their nine measured CPU endpoints:
-
-| Endpoint observation | All cases | Repeat failures over 5% |
+| Scenario | Published 9.0.0 | Measured 9.1.0 source |
 | --- | ---: | ---: |
-| One identical endpoint CPU in A1 and A2 | 16 | 2 |
-| One endpoint CPU per phase, different between phases | 100 | 4 |
-| Multiple endpoint CPUs in at least one phase | 10 | 1 |
+| Classic warmed encode | 0 | 0 |
+| Classic cached single-output recovery | 1 | 1 |
+| Classic cold recovery | 6 | 2 |
+| Leopard GF8 / GF16 warmed encode | 7 / 19 | 0 / 0 |
+| Leopard GF8 / GF16 warmed recovery | 27 / 40 | 2 / 2 |
+| Multiblock stream encode / verify / recovery | 41 / 40 / 52 | 8 / 10 / 10 |
 
-The first group includes ordinary encode 10+4/512 KiB (CPU 29, 15.827029% drift)
-and optimized recovery 4+2/64 KiB (CPU 31, 18.164593% drift). The maximum observed
-main-thread runnable-wait/wall ratio across these two failed cases is 0.019055%.
-Changing endpoint CPUs or recorded main-thread runqueue delay alone therefore
-cannot explain all failures. Equal endpoints do not exclude intermediate migration;
-main-thread counters omit Rayon worker scheduling. Counter reads bracket the wall
-timer, so run/wall ratios slightly above one are retained without clamping.
+These count allocation plus reallocation requests, not throughput, latency, RSS
+or peak memory. The report names its measured source; later production fixes
+must not be relabeled as that measurement. No accepted percentage throughput
+change between published 9.0.0 and the final 9.1.0 source is currently available.
 
-Next diagnosis must distinguish actual worker placement/execution paths and
-physical/page/cache state while preserving real API and allocation contracts.
-Do not simply taskset the entire worker to one CPU: both codec versions read
-`std::thread::available_parallelism()` during construction and cache that budget,
-which can silently turn a parallel workload into a serial one. No existing result
-uniquely assigns the residual variability to the CPU, allocator or physical host.
+## What the remaining drift actually establishes
 
-## Merge and release decisions
+The [complete service review](baseline-service-review-2026-10-20.md) retains the
+sources, full catalogs and diagnostic scope. Both controls compare **9.0.0 with
+itself**, never a candidate with its baseline:
 
-PR #19's measurement correctness and architecture can be reviewed and merged
-independently of performance approval. A green ordinary CI supports that code
-review, not a tag. The failed controls above measure 9.0.0 itself and do not by
-themselves block merging an otherwise correct, fail-closed measurement tool.
+| Complete control | Repeat failures above 5% | Failed signed changes |
+| --- | ---: | --- |
+| Protocol-15 phase-major A1/A2, all 126 cases | 3 / 126 | -6.5942%, +6.7256%, +5.1983% |
+| Adjacent diagnostic A1/A2, all 126 cases | 2 / 126 | Encode 10+4/512 KiB: -13.1933%; recovery 4+2/64 KiB: +8.0321% |
 
-Backlog #2897 stays open: only condition 4 is checked within its declared normal-
-format scope; conditions 1/2/3/5 are partial and unchecked; condition 6 is incomplete.
-Merging PR #19 changes pending implementation status, not those completion marks.
+Neither control has short samples or central-width failures. The adjacent
+schedule is diagnostic only; it cannot replace formal qualification. Passing the
+previous three failures there does not repair either complete control.
 
-Complete the remaining contracts and baseline qualification, freeze the final
-complete candidate tree/lock/harness, then collect and verify the entire paired
-campaign. Keep repeat drift at 5%, central spread at 10%, all minimum intervals
-and per-operation regression limits. Code/document changes after capture require
-new source binding and evidence; an unchanged complete tree after rebase merging
-is accepted under the existing policy. Only a successful strict positive preflight
-permits evaluating the tag and upload.
+In the failed cases, formal observations have zero process minor/major faults
+and at most about 0.0147% calling-thread runnable wait relative to wall time.
+A fixed eight-worker diagnostic further bounds work outside original wall
+windows below 0.311%; the four encode medians still span 15.344%, versus 2.167%
+for whole-worker APERF/MPERF. Those virtualized, non-atomic guest counters cannot
+serve as exclusive API cycles or normalize timings. The residual lies inside
+original operation windows; measured wrapper cost, faults, wait and observed
+execution-rate changes do not individually explain its magnitude.
 
-Native ARM and downstream/S3 throughput remain independently tracked in #2853.
-The existing release checklist allows a correctness/API release to retain that
-P2 task if actual release gates pass and notes make no unsupported throughput
-claims. Open P2 tasks are not automatic tag gates; ARM Docker and ordinary CI
-cannot replace native throughput acceptance.
+Some earlier test fixtures and metadata contracts were defective and have been
+repaired. Residual variability also occurs in unchanged 9.0.0 with unchanged
+worker binaries and retained encode buffers. It is therefore neither evidence
+of a 9.1.0 regression nor proof that all drift came from test code. Cache/memory
+service, remaining internal layout/state and invisible physical-host contention
+remain unseparated. Guest CPU reservation does not reserve physical cache or
+memory bandwidth; the current VM lacks usable CPU/uncore PMU and resctrl data.
+
+## Backlog #2897 completion marks
+
+Only condition 4 is checked within its declared normal-format scope. Keep the
+[canonical issue](https://github.com/rustfs/backlog/issues/2897) open:
+
+| Condition | State | Concrete remaining acceptance |
+| --- | --- | --- |
+| 1: Buffer entry/layout/lifetime | Partial | Retained geometry covers 103 caller cases; selected ordinary-verify and stream internals have native diagnostics. Complete the agreed dynamic-output/internal-scratch and remaining source-position scope with matching evidence. |
+| 2: Calibration/measurement lifetime | Partial | All 126 cases have explicit preparation/input contracts, but caller matching and one-iteration inventories do not establish every dynamic allocation, clone, clear and release interaction. |
+| 3: 1/4 KiB layouts | Partial | The paired supplement is implemented. Obtain real passing A1/B1/B2/A2 results for all 16 source/scratch offset combinations at each size, kept separate from original Vec cases. |
+| 4: Compatibility | Complete in declared scope | Retain normal-format byte parity and ordinary/optimized, invalid-input and missing-shard behavior tests on the final candidate; do not expand the legacy compatibility promise. |
+| 5: Protocol/source/rejection | Partial | Shared source/raw validators and refusal tests exist. Final complete accepted capture/replay must bind the final source, lockfile, renderer, context and every original record. |
+| 6: Full performance acceptance | Incomplete | A stable complete baseline, then full final candidate/layout ABBA and strict positive preflight. Both existing complete controls remain rejected. |
+
+## Release sequence and benchmark decision
+
+1. Finish and review concrete functional fixes, run ordinary compatibility/tests,
+   generated Node/Chromium WASM integration and package dry-run, then rebase merge
+   passing PRs. Freeze the complete final source/lock/harness before final capture.
+2. Complete the outstanding workload/layout acceptance above. Before another full
+   baseline run, establish a distinguishing observation or a controlled condition
+   addressing residual execution service or internal-layout variability. Do not
+   add speculative runtime tuning or retry the unchanged failed matrix.
+3. Qualify all 126 baseline cases under the existing 5% repeat / 10% central-width
+   and duration gates. Then collect complete final baseline/candidate A1/B1/B2/A2
+   and the required 16-layout paired supplement with matched compiler, features,
+   backend, I/O, input, count, CPU and memory-policy context. Retain all failures;
+   no favorable case/count selection, time normalization or threshold relaxation.
+4. Verify the accepted immutable evidence data commit. At this audit,
+   `RSE_RELEASE_EVIDENCE_REF` is absent. Set its full commit SHA, or supply manual
+   `evidence_ref`, only after acceptance. Rejected audit snapshots are not inputs.
+5. Run CI manually on final main with `release_preflight=true` and that full
+   `evidence_ref`; verify actual success. Ordinary PR/main CI skips these strict
+   evidence/preflight jobs, so green ordinary CI is insufficient.
+6. Only then create the matching 9.1.0 tag and verify actual registry publication.
+   A version in Cargo.toml, a package dry-run or an available secret is not upload.
+
+Benchmark preparation and functional/load smoke tests can proceed now. A formal
+candidate comparison cannot yet support release attribution on the unchanged VM:
+its baseline self-control fails. A new controlled condition must first pass the
+baseline prerequisite. Existing workers and gates can then be used directly;
+no additional general-purpose diagnostic framework is needed. A RustFS/S3 stress
+comparison is a separate downstream workload, not a substitute for codec ABBA.
+
+Native ARM and downstream/S3 throughput remain independently tracked in
+[#2853](https://github.com/rustfs/backlog/issues/2853). Docker ARM and compile/mock
+checks cannot certify native throughput. Those P2 tasks can remain separately
+tracked only when actual release gates pass and release notes avoid unsupported
+speed claims; they do not waive #2897 or the retained performance gate.
+
+## Historical audit records
+
+Earlier rejected controls remain auditable under their frozen identities:
+[protocol 10](https://github.com/houseme/rustfs-erasure-codec/tree/75456a77a57953f8b069bab3d2eb788643ca21d1/diagnostics/protocol10-qualification-controls),
+[protocol 13](https://github.com/houseme/rustfs-erasure-codec/tree/dc05250/diagnostics/protocol13-baseline-qualification).
+Use the [evidence procedure](release-evidence.md) for current commands and exact
+contracts. No historical rejection is promoted by documentation or code merges.
