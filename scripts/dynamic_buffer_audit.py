@@ -37,7 +37,8 @@ LIB = 'crate::' + MODULE + '::'
 def native_template():
     text = TEMPLATE.read_text().replace('mod page_residency;', 'mod page_residency {\n'+(TEMPLATE.parent/'page_residency.rs').read_text()+'\n}', 1)
     engine = (s.TEMPLATES/'engine.rs').read_text()
-    return text + ''.join('\n#[cfg(target_os="linux")]\n'+s.block(engine, name)+'\n' for name in ('fn read_bounded', 'fn process_faults'))
+    shared=s.block((TEMPLATE.parent/'stream_core.rs').read_text(),'fn faults()')
+    return text+'\n'+shared+'\n'+''.join('\n#[cfg(target_os="linux")]\n'+s.block(engine, name)+'\n' for name in ('fn read_bounded', 'fn process_faults'))
 
 
 def patch_matrix(text):

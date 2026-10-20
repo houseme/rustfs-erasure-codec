@@ -802,16 +802,6 @@ pub fn slots(role: &'static str, stage: &'static str, shards: &[crate::ShardSlot
     }
 }
 
-fn faults() -> Option<[u64; 2]> {
-    #[cfg(target_os = "linux")]
-    {
-        process_faults()
-    }
-    #[cfg(not(target_os = "linux"))]
-    {
-        None
-    }
-}
 struct Json<T>(Option<T>);
 impl<T: fmt::Debug> fmt::Display for Json<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
