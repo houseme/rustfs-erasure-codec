@@ -1,7 +1,10 @@
 # 9.1.0 publication blockers and completion criteria
 
-Audit date: 2026-10-20 (Asia/Shanghai). Reviewed main:
-`4f2799ecc63b583e3d493456c88a9160e41e88f8`, after PRs #40–#45.
+Audit date: 2026-10-21 (Asia/Shanghai). Reviewed base main:
+`e30753ce4a161aca9f0d80542be3558c22d09aac`, and the source-copy observation
+implementation in [PR #47](https://github.com/houseme/rustfs-erasure-codec/pull/47).
+The complete native inventory below is bound to candidate `26aa094` and published
+9.0.0; the PR changes no production source, manifest, lockfile or formal sampler.
 The manifests already declare 9.1.0. No accepted final timing campaign, positive
 strict release preflight, tag or publication is recorded. This assessment keeps
 historical measurements bound to their original sources.
@@ -119,11 +122,11 @@ Only condition 4 is checked within its declared normal-format scope. Keep the
 
 | Condition | State | Concrete remaining acceptance |
 | --- | --- | --- |
-| 1: Buffer entry/layout/lifetime | Partial | Caller geometry covers 103 cases; ordinary-verify scratch and all 15 stream byte-owner cases have native diagnostics. Remaining scope includes codec-internal decode scratch, non-stream dynamic destinations and smoke/hotspot source positions. |
-| 2: Calibration/measurement lifetime | Partial | All 126 cases have preparation/input contracts, and source-copy checks cover stream owner transfers/release. Complete the remaining dynamic lifetimes; these structural checks do not establish uninstrumented performance geometry. |
+| 1: Buffer entry/layout/lifetime | Partial | Caller geometry, ordinary-verify scratch and all 15 stream byte-owner cases are covered. The remaining codec-internal decode scratch, non-stream destinations and smoke/hotspot source scope now has a complete two-source native inventory and independent replay. Instrumented request/view evidence does not establish uninstrumented performance geometry or complete paired-layout acceptance. |
+| 2: Calibration/measurement lifetime | Partial | All 126 original cases execute both structural calibration and measurement lifetimes in both source copies, with six additional decoder cases: 516 workers, 6,192 observations and 12,384 kernel iterations. Native replay and restored ownership pass; these bounded structural rehearsals do not qualify formal durations or final performance geometry. |
 | 3: 1/4 KiB layouts | Partial | The paired supplement is implemented. Obtain real passing A1/B1/B2/A2 results for all 16 source/scratch offset combinations at each size, kept separate from original Vec cases. |
 | 4: Compatibility | Complete in declared scope | Retain normal-format byte parity and ordinary/optimized, invalid-input and missing-shard behavior tests on the final candidate; do not expand the legacy compatibility promise. |
-| 5: Protocol/source/rejection | Partial | Shared source/raw validators and refusal tests exist. Final complete accepted capture/replay must bind the final source, lockfile, renderer, context and every original record. |
+| 5: Protocol/source/rejection | Partial | The complete private dynamic inventory binds source/lock/harness/observer/context and independently replays every original row. Rehashed warmup-backend and stale-request-generation counterexamples are refused without changing originals. Final accepted performance capture/replay and its immutable source/evidence bindings remain outstanding. |
 | 6: Full performance acceptance | Incomplete | A stable complete baseline, then full final candidate/layout ABBA and strict positive preflight. All retained complete controls remain rejected; the newest stopped before its repeat gate. |
 
 ## Release sequence and benchmark decision
