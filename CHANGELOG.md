@@ -10,6 +10,12 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Make payload splitting honor the resolved Leopard family, including automatic
+  selection, by using the existing nonzero 64-byte shard-length rule. Arbitrary
+  and empty payloads now support split/encode/recover/join roundtrips. Preserve
+  Classic padding, already supported Leopard layouts and encoding formats; the
+  caller continues to retain the original payload length separately.
+
 - Document the completed fixed-worker service-cost replay, separating measured
   invocation overhead and scheduling/fault signals from residual busy execution
   variability. Retain counter scope, source identity and unresolved cache/host
