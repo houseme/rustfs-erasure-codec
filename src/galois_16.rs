@@ -391,18 +391,30 @@ impl Element {
         self.0 == [0; 2]
     }
 
-    fn exp(mut self, n: usize) -> Element {
+    fn exp(self, n: usize) -> Element {
         if n == 0 {
             Element::constant(1)
         } else if self == Element::zero() {
             Element::zero()
         } else {
-            let x = self;
-            for _ in 1..n {
-                self = self * x;
+            // Nonzero elements form a group of order 65535. Reduce only after
+            // the zero check, so zero to a positive multiple of the period is zero.
+            let n = n % (<Field as crate::Field>::ORDER - 1);
+            if n == 0 {
+                return Element::constant(1);
             }
-
-            self
+            // Start with the implicit highest set bit: at most 15 lower bits,
+            // one square and optionally one multiply per bit, with no multiply by one.
+            let mut power = self;
+            let mut bit = (1usize << n.ilog2()) >> 1;
+            while bit != 0 {
+                power = power * power;
+                if n & bit != 0 {
+                    power = power * self;
+                }
+                bit >>= 1;
+            }
+            power
         }
     }
 

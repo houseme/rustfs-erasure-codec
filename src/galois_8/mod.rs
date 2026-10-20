@@ -130,18 +130,19 @@ pub fn div(a: u8, b: u8) -> u8 {
     EXP_TABLE[log_result as usize]
 }
 
-/// Compute a^n.
+/// Compute a^n for any `usize` exponent, with `0^0 = 1`.
+///
+/// Nonzero elements have order dividing 255. Reducing the exponent before
+/// multiplication bounds the lookup calculation independently of its magnitude.
 pub fn exp(a: u8, n: usize) -> u8 {
     if n == 0 {
         1
     } else if a == 0 {
         0
     } else {
-        let log_a = LOG_TABLE[a as usize];
-        let mut log_result = log_a as usize * n;
-        while 255 <= log_result {
-            log_result -= 255;
-        }
+        let period = <Field as crate::Field>::ORDER - 1;
+        let log_a = LOG_TABLE[a as usize] as usize;
+        let log_result = (log_a * (n % period)) % period;
         EXP_TABLE[log_result]
     }
 }

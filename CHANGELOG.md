@@ -10,6 +10,12 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Bound finite-field exponentiation for the full `usize` range. Reduce GF8
+  exponents before log multiplication to prevent debug overflow and wrong
+  release results; replace GF16 linear repeated multiplication with reduced
+  square-and-multiply. Preserve zero/identity rules, field definitions and
+  encoding formats, verified with independent polynomial arithmetic.
+
 - Validate the complete DecodeIdx merge layout before applying XOR contributions,
   so a later missing or short destination cannot partially change earlier outputs
   and corrupt a repaired retry. Keep valid per-slot merge semantics and zero
