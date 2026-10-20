@@ -10,6 +10,13 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Add read-only APERF/MPERF/TSC observations around unchanged baseline workers in
+  the existing VM diagnostic entry point. Derive the entire failed-case cohort
+  from a complete frozen adjacent replay, retain original counts and four fresh
+  workers per case, preserve raw journals/read bounds and refuse invalid counters
+  or changed inputs. Keep guest-CPU scope explicit; never normalize API timings
+  or approve release evidence from these diagnostic ratios.
+
 - Extend the existing baseline analyzer with complete adjacent-control replay and
   conservative workload-window separation bounds. Require an explicit trusted
   frozen tool, restored resources and unchanged bounded original members; retain

@@ -579,3 +579,47 @@ retrospective gate on these observed bounds, no inferred inner API timestamp and
 no claim that temporal separation uniquely caused historical drift. Missing old
 kernel policy, remaining dynamic/internal geometry and physical-host effects stay
 explicit limitations. All approval/qualification flags remain false.
+
+
+## Whole-worker execution-rate diagnostic
+
+Extend the existing baseline-only VM diagnosis after a complete restored-resource
+adjacent control. Explicitly trust the frozen tool used for that control; the
+analyzer validates all 126 cases before deriving every failed case and the
+original counts. `baseline-worker-frequency-v1` fixes four fresh workers per
+failed case and the original three warmups/nine samples. No arbitrary case,
+count or repetition override is accepted. A private external resource guard must
+reserve the original CPU set and verify restoration after capture.
+
+```sh
+python3 scripts/diagnose_release_vm.py \
+  --frequency-from-adjacent /private/complete-adjacent-campaign \
+  --prior /private/original-qualification \
+  --frozen-tool /private/trusted-original-tool \
+  --baseline /private/original-baseline \
+  --isolation-cgroup /sys/fs/cgroup/owned-partition \
+  --output /private/new-frequency-capture
+
+python3 scripts/diagnose_release_vm.py --replay-frequency \
+  --frequency-from-adjacent /private/complete-adjacent-campaign \
+  --prior /private/original-qualification \
+  --frozen-tool /private/trusted-original-tool \
+  --output /private/new-frequency-capture
+```
+
+Requires existing readable `/dev/cpu/<cpu>/msr` for all recorded CPUs. The
+controller only uses `O_RDONLY`/`pread`; it does not load modules, write registers
+or change CPU policy. Unavailable counters stop capture, preserving its failure.
+Capture/replay bind full input member hashes, original journals, frozen source,
+context and counter endpoints. Replay is offline and never needs MSR access.
+A completed capture is still diagnostic, regardless of its observed timings.
+
+APERF/MPERF/TSC deltas cover whole worker invocations, including Cargo/setup,
+warmups, samples, export, kernel and other guest activity. Retain per-CPU raw
+reads, non-atomic TSC skew and conservative TSC delta bounds. Idle CPUs keep
+zero deltas and an unknown APERF/MPERF ratio; invalid/reset/wrapped counters or
+zero aggregate activity are refused. The measuring CPU must have activity.
+Virtualized-counter fidelity and physical-host interference remain unproven.
+Do not infer GHz, exclusive API cycles or per-sample frequency, normalize timings,
+approve candidate attribution or treat this failed-case cohort as full release
+qualification. Raw snapshots remain private unless separately authorized.
