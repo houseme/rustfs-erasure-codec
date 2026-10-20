@@ -447,11 +447,18 @@ impl<F: Field> ReedSolomon<F> {
 
     /// Split a contiguous data buffer into `data_shard_count` equal-length shards.
     ///
-    /// The last shard is zero-padded if `data.len()` is not evenly divisible.
+    /// Shards are zero-padded when the data does not fill the complete layout.
+    /// Classic keeps its minimal element count per shard, including zero for an
+    /// empty payload. Leopard uses nonzero, 64-byte-multiple shard lengths so
+    /// the result can be passed to the same codec's encoding methods, including
+    /// when automatic family selection chose Leopard.
+    ///
+    /// Save the original element count separately and pass it to [`Self::join`]
+    /// after recovery to remove padding. No length metadata is stored in shards.
     pub fn split(&self, data: &[F::Elem]) -> Result<Vec<Vec<F::Elem>>, Error> {
         let data_shards = self.data_shard_count();
-        let shard_len = if data.is_empty() {
-            0
+        let shard_len = if self.is_leopard_family() {
+            super::leopard_aligned_shard_len(data.len(), data_shards)
         } else {
             data.len().div_ceil(data_shards)
         };
@@ -472,7 +479,7 @@ impl<F: Field> ReedSolomon<F> {
 
     /// Join data shards back into a single contiguous buffer.
     ///
-    /// Truncates to `out_len` bytes. Requires exactly `data_shard_count` shards.
+    /// Truncates to `out_len` field elements. Requires exactly `data_shard_count` shards.
     pub fn join<T: AsRef<[F::Elem]>>(
         &self,
         shards: &[T],
