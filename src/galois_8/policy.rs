@@ -557,6 +557,19 @@ impl crate::ReedSolomon<super::Field> {
         )
     }
 
+    /// Accumulate Classic progressive recovery contributions into prepared destinations.
+    ///
+    /// With `Some(expected)`, the mask selects the decoding inputs and each call
+    /// may supply a subset of those inputs. Initialize output buffers to zero
+    /// before the first contribution, and apply each successful contribution once.
+    ///
+    /// With `None`, merge partial results by XOR at matching shard indices. Each
+    /// present input requires an equally sized destination. Lengths may differ
+    /// between indices, and empty pairs are allowed. The complete merge layout
+    /// is validated before writing, so an invalid batch leaves destinations
+    /// unchanged and can be retried after its layout is repaired.
+    ///
+    /// Counts must match the codec's total shard count. Leopard is unsupported.
     #[cfg(feature = "std")]
     #[allow(clippy::needless_range_loop)]
     pub fn decode_idx(
@@ -568,8 +581,8 @@ impl crate::ReedSolomon<super::Field> {
         if self.is_leopard_family() {
             return Err(crate::Error::UnsupportedCodecFamily);
         }
-        if dst.len() != self.total_shard_count() || input.len() != self.total_shard_count() {
-            return Err(crate::Error::TooFewShards);
+        for count in [dst.len(), input.len()] {
+            self.validate_opt_shard_count(count)?;
         }
 
         if let Some(expect_input) = expect_input {
@@ -699,18 +712,22 @@ impl crate::ReedSolomon<super::Field> {
             return Ok(());
         }
 
-        for (dst_shard, input_shard) in dst.iter_mut().zip(input.iter()) {
-            match (dst_shard.as_deref_mut(), input_shard.as_deref()) {
-                (Some(dst), Some(input)) => {
-                    if dst.len() != input.len() {
-                        return Err(crate::Error::IncorrectShardSize);
-                    }
-                    for (dst_byte, input_byte) in dst.iter_mut().zip(input.iter()) {
-                        *dst_byte ^= *input_byte;
-                    }
+        // Validate every active pair before applying any XOR. A later layout
+        // error must not leave earlier contributions applied, since retrying
+        // that batch would apply them twice and cancel their recovered bytes.
+        for (dst_shard, input_shard) in dst.iter().zip(input) {
+            if let Some(input) = input_shard {
+                let dst = dst_shard.as_ref().ok_or(crate::Error::TooFewShards)?;
+                if dst.len() != input.len() {
+                    return Err(crate::Error::IncorrectShardSize);
                 }
-                (None, Some(_)) => return Err(crate::Error::TooFewShards),
-                _ => {}
+            }
+        }
+        for (dst_shard, input_shard) in dst.iter_mut().zip(input) {
+            if let (Some(dst), Some(input)) = (dst_shard.as_deref_mut(), input_shard.as_deref()) {
+                for (dst_byte, input_byte) in dst.iter_mut().zip(input) {
+                    *dst_byte ^= *input_byte;
+                }
             }
         }
 

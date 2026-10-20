@@ -10,6 +10,12 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Validate the complete DecodeIdx merge layout before applying XOR contributions,
+  so a later missing or short destination cannot partially change earlier outputs
+  and corrupt a repaired retry. Keep valid per-slot merge semantics and zero
+  scratch allocations; distinguish excess and missing shard counts using the
+  existing validation contract. Generic reconstruction late failures are unchanged.
+
 - Make payload splitting honor the resolved Leopard family, including automatic
   selection, by using the existing nonzero 64-byte shard-length rule. Arbitrary
   and empty payloads now support split/encode/recover/join roundtrips. Preserve
