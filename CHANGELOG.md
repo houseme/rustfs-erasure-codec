@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Join requested payload prefixes without overflowing the aggregate shard length,
+  including repeated borrowed byte shards whose logical total exceeds 32-bit
+  `usize`. Use validated equal lengths to remove the redundant summation pass;
+  preserve complete layout validation, truncation and field-element units.
+
 - Bound finite-field exponentiation for the full `usize` range. Reduce GF8
   exponents before log multiplication to prevent debug overflow and wrong
   release results; replace GF16 linear repeated multiplication with reduced
