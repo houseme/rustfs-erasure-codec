@@ -510,3 +510,72 @@ fn independent_streams_prepare_one_decode_plan_for_all_blocks() {
     assert_eq!(stats.inserts, 1);
     assert_eq!(stats.hits, 0);
 }
+
+#[test]
+fn encode_stream_distinguishes_missing_and_excess_streams_before_io() {
+    let codec = ReedSolomon::new(4, 2).unwrap();
+    for mode in MODES {
+        for (data_count, parity_count, expected_error) in [
+            (3, 2, Error::TooFewShards),
+            (5, 2, Error::TooManyShards),
+            (4, 1, Error::TooFewShards),
+            (4, 3, Error::TooManyShards),
+        ] {
+            let mut readers: Vec<_> = (0..data_count)
+                .map(|_| FragmentedReader::new(&[7; 64]))
+                .collect();
+            let mut writers: Vec<_> = (0..parity_count)
+                .map(|_| FragmentedWriter::default())
+                .collect();
+            let error = codec
+                .encode_stream(&mut readers, &mut writers, &options(mode))
+                .unwrap_err();
+            assert_codec_error(&error, expected_error);
+            assert!(readers.iter().all(|reader| reader.calls == 0));
+            assert!(
+                writers
+                    .iter()
+                    .all(|writer| writer.calls == 0 && writer.flushes == 0)
+            );
+        }
+    }
+}
+
+#[test]
+fn verify_stream_distinguishes_missing_and_excess_streams_before_io() {
+    let codec = ReedSolomon::new(4, 2).unwrap();
+    for mode in MODES {
+        for (count, expected_error) in [(5, Error::TooFewShards), (7, Error::TooManyShards)] {
+            let mut readers: Vec<_> = (0..count)
+                .map(|_| FragmentedReader::new(&[7; 64]))
+                .collect();
+            let error = codec
+                .verify_stream(&mut readers, &options(mode))
+                .unwrap_err();
+            assert_codec_error(&error, expected_error);
+            assert!(readers.iter().all(|reader| reader.calls == 0));
+        }
+    }
+}
+
+#[test]
+fn cursor_recovery_count_errors_preserve_bytes_and_positions() {
+    let codec = ReedSolomon::new(4, 2).unwrap();
+    for mode in MODES {
+        for (count, expected_error) in [(5, Error::TooFewShards), (7, Error::TooManyShards)] {
+            let mut shards: Vec<_> = (0..count)
+                .map(|index| {
+                    let mut shard = std::io::Cursor::new(vec![index as u8; 64]);
+                    shard.set_position(13);
+                    shard
+                })
+                .collect();
+            let before = shards.clone();
+            let error = codec
+                .reconstruct_stream(&mut shards, &options(mode))
+                .unwrap_err();
+            assert_codec_error(&error, expected_error);
+            assert_eq!(shards, before);
+        }
+    }
+}

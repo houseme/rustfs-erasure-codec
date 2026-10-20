@@ -167,6 +167,15 @@ impl StreamError {
     }
 }
 
+/// Preserve the public stream count errors before allocation, I/O or cursor reset.
+fn validate_stream_count(actual: usize, expected: usize) -> Result<(), StreamError> {
+    match actual.cmp(&expected) {
+        core::cmp::Ordering::Less => Err(StreamError::codec(0, crate::Error::TooFewShards)),
+        core::cmp::Ordering::Greater => Err(StreamError::codec(0, crate::Error::TooManyShards)),
+        core::cmp::Ordering::Equal => Ok(()),
+    }
+}
+
 fn take_stream_error(
     first_error: &std::sync::Mutex<Option<StreamError>>,
     fallback: impl FnOnce() -> StreamError,
@@ -658,7 +667,9 @@ impl super::ReedSolomon<crate::galois_8::Field> {
     ///
     /// # Errors
     ///
-    /// Returns [`StreamError`] on I/O failure or codec error.
+    /// Returns [`StreamError`] on I/O failure or codec error. Incorrect reader or
+    /// writer counts return [`crate::Error::TooFewShards`] or
+    /// [`crate::Error::TooManyShards`] before any I/O.
     ///
     /// # Limitations
     ///
@@ -699,12 +710,8 @@ impl super::ReedSolomon<crate::galois_8::Field> {
         // builds, which would otherwise lead to slice out-of-bounds panics or
         // silent partial encoding). Consistent with the crate's
         // check_piece_count! used on non-streaming paths.
-        if data.len() != data_count {
-            return Err(StreamError::codec(0, crate::Error::TooFewShards));
-        }
-        if parity.len() != parity_count {
-            return Err(StreamError::codec(0, crate::Error::TooFewShards));
-        }
+        validate_stream_count(data.len(), data_count)?;
+        validate_stream_count(parity.len(), parity_count)?;
 
         let mut data_bufs: Vec<_> = (0..data_count)
             .map(|_| StreamReadBuffer::new(block_size))
@@ -746,7 +753,9 @@ impl super::ReedSolomon<crate::galois_8::Field> {
     /// Reads all shards in blocks, verifying each block independently.
     /// Returns `Ok(true)` if every block is valid, `Ok(false)` if any block
     /// fails verification. All shard streams must have the same length;
-    /// truncated streams return [`crate::Error::IncorrectShardSize`].
+    /// truncated streams return [`crate::Error::IncorrectShardSize`]. Incorrect
+    /// shard counts return [`crate::Error::TooFewShards`] or
+    /// [`crate::Error::TooManyShards`] before any I/O.
     ///
     /// # Limitations
     ///
@@ -775,9 +784,7 @@ impl super::ReedSolomon<crate::galois_8::Field> {
 
         // Validate the shard count at runtime (debug_assert is removed in
         // release builds).
-        if shards.len() != total {
-            return Err(StreamError::codec(0, crate::Error::TooFewShards));
-        }
+        validate_stream_count(shards.len(), total)?;
 
         let mut bufs: Vec<_> = (0..total)
             .map(|_| StreamReadBuffer::new(block_size))
@@ -842,9 +849,7 @@ impl super::ReedSolomon<crate::galois_8::Field> {
 
         // Validate the shard count at runtime (debug_assert is removed in
         // release builds).
-        if shards.len() != total {
-            return Err(StreamError::codec(0, crate::Error::TooFewShards));
-        }
+        validate_stream_count(shards.len(), total)?;
 
         // Leopard families are unsupported for streaming (see encode_stream).
         if self.is_leopard_gf8_family() || self.is_leopard_gf16_family() {
@@ -952,12 +957,7 @@ impl super::ReedSolomon<crate::galois_8::Field> {
     ) -> Result<(), StreamError> {
         let total = self.total_shard_count();
         for count in [readers.len(), writers.len()] {
-            if count < total {
-                return Err(StreamError::codec(0, crate::Error::TooFewShards));
-            }
-            if count > total {
-                return Err(StreamError::codec(0, crate::Error::TooManyShards));
-            }
+            validate_stream_count(count, total)?;
         }
         if self.is_leopard_gf8_family() || self.is_leopard_gf16_family() {
             return Err(StreamError::codec(0, crate::Error::UnsupportedCodecFamily));

@@ -610,9 +610,7 @@ impl<F: Field> ReedSolomon<F> {
         check_piece_count!(data => self, old_data);
         check_piece_count!(parity => self, parity);
 
-        if new_data.len() != self.data_shard_count() {
-            return Err(Error::TooFewDataShards);
-        }
+        check_piece_count!(data => self, new_data);
 
         check_slices!(multi => old_data, multi => parity);
 
