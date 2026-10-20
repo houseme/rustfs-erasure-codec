@@ -143,10 +143,12 @@ python3 scripts/diagnose_fixture_layout.py --stream-views --iterations 2 \
   --output /path/to/new-inventory --isolation-cgroup /sys/fs/cgroup/owned-partition
 ```
 
-The ordinary verify diagnostic below supplements the declared scratch scope.
-Internal stream verify/recovery scratch and other dynamic buffers remain unobserved. Observed stream signatures may differ between
-versions; a descriptive match does not establish physical-page equality or replace
-full per-layout and baseline/candidate acceptance. Backlog #2897 remains open.
+The I/O decorators alone do not expose internal stream verify/recovery owners.
+The source-owner audit below covers those stream-layer buffers separately; codec
+internal decode scratch and other dynamic paths remain outside that coverage.
+Observed signatures may differ between versions. Neither a descriptive match nor
+source instrumentation establishes physical-page equality or replaces full
+per-layout and baseline/candidate acceptance. Backlog #2897 remains open.
 
 The [focused scratch lifecycle review](stream-scratch-service-review-2026-10-19.md)
 records the earlier allocator page-return evidence, rejected profiler coverage
@@ -155,6 +157,43 @@ cover the declared stream boundaries; neither capture qualifies a candidate rele
 
 For native stream virtual-page boundaries and the uniform protocol-15 service
 window, see [the native residency review](native-residency-service-window-2026-10-19.md).
+
+## Stream byte-owner lifecycle coverage
+
+`stream_core_audit.py` already observes the actual byte owners inside all three
+stream APIs, in disposable copies of published 9.0.0 and the candidate:
+
+| Observed owner | Declared coverage |
+| --- | --- |
+| Read buffers and encoding parity | Reservation, initialized length, visible prefix, coding and owner release |
+| Stream verification scratch | Old per-block `verify_par` SmallVec versus current stream-retained parity buffers |
+| Stream recovery buffers | Old Vec/Option ownership transfers and replaced former ranges versus current planned, retained buffers |
+
+The original complete structural record binds candidate
+`df255fb133f872eee35707d2645c67675fd79bb7` and published 9.0.0. It retains all
+15 stream cases per source, 360 observations, 720 calls and 95,760 boundaries;
+its complete numeric capsule independently replays with the current validator.
+[PR #35](https://github.com/houseme/rustfs-erasure-codec/pull/35) delivered this
+coverage. Do not keep these byte-owner paths on a list of unimplemented observers.
+
+The [main CI at 4f2799e](https://github.com/houseme/rustfs-erasure-codec/actions/runs/39394001627/job/118532102062)
+also completed the real two-source stream-owner check. That is new source-bound
+structural execution, not a migration of the earlier raw records or accepted
+throughput. Checks retain original allocation/free statements, API results,
+source/lock bindings and every declared lifecycle boundary. No new raw stream
+artifact is uploaded by this step.
+
+```sh
+python3 scripts/stream_core_audit.py --check --output /path/to/new-source-owner-check
+python3 scripts/stream_core_audit.py --replay /path/to/completed-source-owner-check
+```
+
+The actual remaining scope includes codec-internal decode scratch, non-stream
+dynamic destinations, smoke/hotspot source positions, and formal performance
+geometry/paired-layout acceptance. Physical allocation identity and exact first-
+fault instruction are not established. Source instrumentation and page/counter
+queries perturb execution, so these structural checks never qualify latency or
+release acceptance. Conditions 1/2/3/5 therefore remain partially complete.
 
 ## Every raw observation must remain comparable
 
@@ -219,6 +258,11 @@ python3 scripts/verify_scratch_audit.py --check --output /path/to/new-check
 python3 scripts/verify_scratch_audit.py --replay /path/to/completed-check
 ```
 
-This covers only the declared ordinary-verify diagnostic visibility gap. It does
-not complete #2897 conditions 1/2/5, internal stream verify/recovery scratch, other
-dynamic paths, complete layout pairing or final performance/release acceptance.
+This covers only the declared ordinary-verify diagnostic visibility gap. The
+separate stream-owner audit covers stream-layer verify/recovery byte storage.
+Neither completes #2897 conditions 1/2/5, codec-internal decode scratch, remaining
+non-stream dynamic paths, complete layout pairing or final performance/release
+acceptance. The actual [4f2799e numeric artifact](https://github.com/houseme/rustfs-erasure-codec/actions/runs/39394001627/artifacts/12250674932)
+was independently replayed in full: both sources and all fourteen cases pass the
+structural contracts, while thirteen cases retain diagnostic shape differences.
+No observations were removed or pooled into a formal timing comparison.

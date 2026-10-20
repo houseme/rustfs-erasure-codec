@@ -1,7 +1,7 @@
 # 9.1.0 publication blockers and completion criteria
 
 Audit date: 2026-10-20 (Asia/Shanghai). Reviewed main:
-`475be6cdd55cdb4f2d6dcf4457a6e2a943374757`, after PRs #40–#43.
+`4f2799ecc63b583e3d493456c88a9160e41e88f8`, after PRs #40–#45.
 The manifests already declare 9.1.0. No accepted final timing campaign, positive
 strict release preflight, tag or publication is recorded. This assessment keeps
 historical measurements bound to their original sources.
@@ -33,26 +33,39 @@ requests per API invocation include:
 
 These count allocation plus reallocation requests, not throughput, latency, RSS
 or peak memory. The report names its measured source; later production fixes
-must not be relabeled as that measurement. No accepted percentage throughput
-change between published 9.0.0 and the final 9.1.0 source is currently available.
+must not be relabeled as that measurement. Independently downloaded
+[resource counts from main 4f2799e](https://github.com/houseme/rustfs-erasure-codec/actions/runs/39394001627/artifacts/12251702244)
+confirm the same complete 15-case, 90-record request counts on that source. The
+same [release-tooling job](https://github.com/houseme/rustfs-erasure-codec/actions/runs/39394001627/job/118532102062)
+passed all 200 normal-format byte/roundtrip cases and the actual package dry-run.
+The real generated WASM Node/Chromium job also passed; linked #2852 is already
+closed. These completed functional checks should not be repeated as missing
+implementation. No accepted percentage throughput change between published
+9.0.0 and the final 9.1.0 source is currently available.
 
 ## What the remaining drift actually establishes
 
 The [complete service review](baseline-service-review-2026-10-20.md) retains the
-sources, full catalogs and diagnostic scope. Both controls compare **9.0.0 with
-itself**, never a candidate with its baseline:
+sources, full catalogs and diagnostic scope. All retained baseline controls
+compare **9.0.0 with itself**, never a candidate with its baseline:
 
-| Complete control | Repeat failures above 5% | Failed signed changes |
+| Complete control | Repeat failures above 5% | Retained failure |
 | --- | ---: | --- |
 | Protocol-15 phase-major A1/A2, all 126 cases | 3 / 126 | -6.5942%, +6.7256%, +5.1983% |
 | Adjacent diagnostic A1/A2, all 126 cases | 2 / 126 | Encode 10+4/512 KiB: -13.1933%; recovery 4+2/64 KiB: +8.0321% |
+| Fresh 4f2799e-tool A1/A2, all 126 cases | Not executed | A2 `reconstruct_opt:4:2:16384` exceeded the original 10% distribution limit |
 
-Neither control has short samples or central-width failures. The adjacent
-schedule is diagnostic only; it cannot replace formal qualification. Passing the
-previous three failures there does not repair either complete control.
+The first two controls have no short samples or central-width failures. The
+newest qualification retained all calibration/A1/A2 records, then refused the A2
+distribution before its final repeat gate. Empty `repeat_checks` is not a passing
+drift result. The adjacent schedule is diagnostic only and cannot replace formal
+qualification; passing an older failure there does not repair any complete control.
+[Current execution and refusal status](https://github.com/rustfs/backlog/issues/2897#issuecomment-6291797590)
+keeps full raw measurements private and all historical failures intact.
 
-In the failed cases, formal observations have zero process minor/major faults
-and at most about 0.0147% calling-thread runnable wait relative to wall time.
+In the failed cases from the first two controls, formal observations have zero
+process minor/major faults and at most about 0.0147% calling-thread runnable wait
+relative to wall time.
 A fixed eight-worker diagnostic further bounds work outside original wall
 windows below 0.311%; the four encode medians still span 15.344%, versus 2.167%
 for whole-worker APERF/MPERF. Those virtualized, non-atomic guest counters cannot
@@ -67,6 +80,25 @@ of a 9.1.0 regression nor proof that all drift came from test code. Cache/memory
 service, remaining internal layout/state and invisible physical-host contention
 remain unseparated. Guest CPU reservation does not reserve physical cache or
 memory bandwidth; the current VM lacks usable CPU/uncore PMU and resctrl data.
+
+The subsequent fixed original-binary diagnostic includes all three anomalies from
+complete replay, four fresh workers per case and 144 observations. Full observer
+boundary heap checks, original counts/input/context, counter-window correspondence,
+byte-identical worker and resource restoration pass. Guest execution-rate signals
+correlate with some service changes, but buffered 4 KiB verification retains an
+unexplained component. No unique cache, internal-layout or physical-host cause
+and no new runtime defect is established by that diagnostic. Its
+[scope and result status](https://github.com/rustfs/backlog/issues/2897#issuecomment-6292534181)
+never approve a candidate.
+
+**PMU access and fixed frequency are diagnostic options, not additional release
+gates.** A usable scaling policy or hardware counter can help distinguish causes;
+missing them limits attribution, not functional testing or release in principle.
+Release still requires the original comparable-context, complete-catalog,
+duration, 5% repeat, 10% distribution, regression and strict evidence/preflight
+checks. Unique attribution of every historical failure is not required. A changed
+condition must be concrete and recorded before another full campaign; do not
+retry unchanged failures until one happens to pass.
 
 ## Current local Docker ARM64 status
 
@@ -87,12 +119,12 @@ Only condition 4 is checked within its declared normal-format scope. Keep the
 
 | Condition | State | Concrete remaining acceptance |
 | --- | --- | --- |
-| 1: Buffer entry/layout/lifetime | Partial | Retained geometry covers 103 caller cases; selected ordinary-verify and stream internals have native diagnostics. Complete the agreed dynamic-output/internal-scratch and remaining source-position scope with matching evidence. |
-| 2: Calibration/measurement lifetime | Partial | All 126 cases have explicit preparation/input contracts, but caller matching and one-iteration inventories do not establish every dynamic allocation, clone, clear and release interaction. |
+| 1: Buffer entry/layout/lifetime | Partial | Caller geometry covers 103 cases; ordinary-verify scratch and all 15 stream byte-owner cases have native diagnostics. Remaining scope includes codec-internal decode scratch, non-stream dynamic destinations and smoke/hotspot source positions. |
+| 2: Calibration/measurement lifetime | Partial | All 126 cases have preparation/input contracts, and source-copy checks cover stream owner transfers/release. Complete the remaining dynamic lifetimes; these structural checks do not establish uninstrumented performance geometry. |
 | 3: 1/4 KiB layouts | Partial | The paired supplement is implemented. Obtain real passing A1/B1/B2/A2 results for all 16 source/scratch offset combinations at each size, kept separate from original Vec cases. |
 | 4: Compatibility | Complete in declared scope | Retain normal-format byte parity and ordinary/optimized, invalid-input and missing-shard behavior tests on the final candidate; do not expand the legacy compatibility promise. |
 | 5: Protocol/source/rejection | Partial | Shared source/raw validators and refusal tests exist. Final complete accepted capture/replay must bind the final source, lockfile, renderer, context and every original record. |
-| 6: Full performance acceptance | Incomplete | A stable complete baseline, then full final candidate/layout ABBA and strict positive preflight. Both existing complete controls remain rejected. |
+| 6: Full performance acceptance | Incomplete | A stable complete baseline, then full final candidate/layout ABBA and strict positive preflight. All retained complete controls remain rejected; the newest stopped before its repeat gate. |
 
 ## Release sequence and benchmark decision
 
