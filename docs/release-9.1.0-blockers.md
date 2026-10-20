@@ -68,6 +68,18 @@ service, remaining internal layout/state and invisible physical-host contention
 remain unseparated. Guest CPU reservation does not reserve physical cache or
 memory bandwidth; the current VM lacks usable CPU/uncore PMU and resctrl data.
 
+## Current local Docker ARM64 status
+
+The [2026-10-20 local ARM64 preflight](docker-arm64-preflight-2026-10-20.md)
+completed all 72 existing recovery-path cases and 216 samples with the unchanged
+runtime source and complete correctness checks. Raw measurements remain private.
+Local OrbStack cannot provide a valid delegated exclusive cpuset partition:
+the owned partition is invalid and ancestor writes return EPERM. Probe state was
+restored; the formal collector still refuses the environment. The CPU identity
+correction removes a separate x86-specific provenance assumption, without
+relaxing isolation or any performance gate. No formal baseline/ABBA, layout or
+release acceptance follows from this diagnostic.
+
 ## Backlog #2897 completion marks
 
 Only condition 4 is checked within its declared normal-format scope. Keep the

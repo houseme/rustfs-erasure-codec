@@ -442,6 +442,23 @@ Its raw traces exposed the missing warmup rehearsal in calibration. Protocol 4
 repairs that contract; its implementation and unit tests are not performance
 acceptance, and the earlier rejected observations are not discarded.
 
+## ARM64 contexts and local Docker isolation
+
+When Linux ARM64 omits cpuinfo `model name`, the context binds every reserved
+CPU's reported implementer/architecture/variant/part/revision and ISA flags in a
+canonical guest identity. Named-model contexts keep their prior string. Missing,
+duplicate or malformed CPU records are refused; an unknown architecture receives
+no invented identity. These guest fields establish neither physical-host identity
+nor exclusivity. Worker preparation, protocol 15 and source binding are unchanged.
+
+A Docker cpuset or taskset mask alone does not satisfy `isolation_context`.
+Capture must occupy a valid exclusive child partition with matching affinity,
+no nested workloads and no foreign processes. The local OrbStack ARM64 probe
+refused ancestor delegation and produced an invalid partition; the guard was not
+weakened. Its [execution status](docker-arm64-preflight-2026-10-20.md) is not
+qualification, ABBA or accepted release evidence. Use an environment that can
+meet the existing isolation contract before formal capture.
+
 ## Same-version qualification before candidate capture
 
 Use the existing controller to qualify published 9.0.0 once after a concrete
