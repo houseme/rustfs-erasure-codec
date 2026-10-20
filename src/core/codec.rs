@@ -488,10 +488,9 @@ impl<F: Field> ReedSolomon<F> {
         check_piece_count!(data => self, shards);
         check_slices!(multi => shards);
 
-        let available = shards
-            .iter()
-            .map(|shard| shard.as_ref().len())
-            .sum::<usize>();
+        // Validation guarantees equal lengths. A small prefix can still be
+        // joined when repeated borrowed shards have a total beyond usize::MAX.
+        let available = shards[0].as_ref().len().saturating_mul(shards.len());
         let target_len = core::cmp::min(out_len, available);
         let mut result = Vec::with_capacity(target_len);
 
