@@ -20,3 +20,20 @@ The checked-in lockfile records the consumer dependency graph. Exact version
 requirements prevent silently reusing this evidence for another release. CI runs
 this executable in the release-tooling job. Its result is functional compatibility,
 not a latency or throughput benchmark.
+
+The optional resource report extends the original 15-case catalog with 30
+incremental-update cases: GF8/tower GF16, four lengths, zero/one/two changed shards,
+and a 33-parity boundary case for each field/change count. One existing command
+and allocator counter cover all 45 cases and preserve existing files. Reports
+retain two warmups and all three counted repetitions per version. Update results
+are checked against full re-encoding on each version and against one another;
+input, parity cloning and expected-output construction stay outside counting.
+These are allocation/reallocation request counts and requested bytes, not RSS,
+peak live memory, latency or formal release evidence.
+
+```bash
+RUSTUP_TOOLCHAIN=stable RAYON_NUM_THREADS=4 RS_PARALLEL_POLICY_MAX_JOBS=4 RUSTFLAGS='' \
+  cargo run --locked --quiet --release \
+  --manifest-path scripts/release-compatibility/Cargo.toml --target-dir target \
+  -- --allocation-report /path/to/new-resources.json
+```

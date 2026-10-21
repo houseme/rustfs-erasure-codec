@@ -1,6 +1,8 @@
 //! Functional compatibility and optional resource counts; never latency measurement.
 mod allocation;
 
+const RESOURCE_CASE_COUNT: usize = 45;
+
 struct ResourceCase {
     id: String,
     counts: Vec<allocation::Counts>,
@@ -74,7 +76,7 @@ fn main() {
 fn resource_report(path: &std::path::Path) {
     let old = old::resource_counts();
     let new = new::resource_counts();
-    assert_eq!(old.len(), 15);
+    assert_eq!(old.len(), RESOURCE_CASE_COUNT);
     assert_eq!(new.len(), old.len());
     let mut rows = Vec::with_capacity(old.len());
     for (before, after) in old.iter().zip(&new) {
@@ -101,11 +103,12 @@ fn resource_report(path: &std::path::Path) {
         ));
     }
     let report = format!(
-        "{{\"schema_version\":1,\"baseline_version\":\"9.0.0\",\"candidate_version\":\"9.1.0\",\"architecture\":\"{}\",\"build_debug_assertions\":{},\"baseline_backend\":\"{}\",\"candidate_backend\":\"{}\",\"resource_parity_cases\":15,\"scope\":\"two warmups, all three repetitions; caller setup excluded; synchronous API requests across all threads\",\"bytes_policy\":\"sum of allocation sizes and full realloc target sizes; not RSS or peak live bytes\",\"latency_claim\":null,\"release_approval\":false,\"cases\":[{}]}}\n",
+        "{{\"schema_version\":1,\"baseline_version\":\"9.0.0\",\"candidate_version\":\"9.1.0\",\"architecture\":\"{}\",\"build_debug_assertions\":{},\"baseline_backend\":\"{}\",\"candidate_backend\":\"{}\",\"resource_parity_cases\":{},\"scope\":\"two warmups, all three repetitions; caller setup excluded; synchronous API requests across all threads\",\"bytes_policy\":\"sum of allocation sizes and full realloc target sizes; not RSS or peak live bytes\",\"latency_claim\":null,\"release_approval\":false,\"cases\":[{}]}}\n",
         std::env::consts::ARCH,
         cfg!(debug_assertions),
         codec_old::galois_8::active_backend_name(),
         codec_new::galois_8::active_backend_name(),
+        RESOURCE_CASE_COUNT,
         rows.join(",")
     );
     use std::io::Write;

@@ -1,6 +1,6 @@
 extern crate alloc;
 
-use alloc::vec;
+use alloc::vec::Vec;
 use smallvec::{Array, SmallVec};
 
 use crate::galois_8::codegen::SelectedEncodeKernel;
@@ -383,19 +383,6 @@ impl<F: Field> ReedSolomon<F> {
         self.code_single_slice_range(matrix_rows, i_input, input, outputs, 0, input.len());
     }
 
-    fn update_parity_with_delta<U: AsRef<[F::Elem]> + AsMut<[F::Elem]>>(
-        &self,
-        matrix_rows: &[&[F::Elem]],
-        i_input: usize,
-        delta: &[F::Elem],
-        outputs: &mut [U],
-    ) {
-        outputs.iter_mut().enumerate().for_each(|(i_row, output)| {
-            let coefficient = matrix_rows[i_row][i_input];
-            F::mul_slice_add(coefficient, delta, output.as_mut());
-        });
-    }
-
     pub(crate) fn fast_one_parity_enabled(&self) -> bool {
         self.options.fast_one_parity && self.parity_shard_count() == 1
     }
@@ -594,6 +581,11 @@ impl<F: Field> ReedSolomon<F> {
     ///
     /// `old_data` contains the previous data shards; `new_data` contains `Some(new)` for
     /// changed shards and `None` for unchanged ones. Not supported for Leopard families.
+    /// All shard counts and lengths are validated before modifying parity, even
+    /// when no shard changed. Delta scratch is bounded by the serial encoding
+    /// chunk size and reused across changed shards. In the general matrix path,
+    /// identical chunks need no parity arithmetic and only changed chunks allocate
+    /// scratch. Single-parity fast mode retains its direct, scratch-free XOR path.
     pub fn update<T, U>(
         &self,
         old_data: &[T],
@@ -614,31 +606,27 @@ impl<F: Field> ReedSolomon<F> {
 
         check_slices!(multi => old_data, multi => parity);
 
-        let shard_len = old_data
-            .first()
-            .map(|shard| shard.as_ref().len())
-            .ok_or(Error::TooFewDataShards)?;
+        let shard_len = old_data[0].as_ref().len();
         if shard_len == 0 {
             return Err(Error::EmptyShard);
         }
-
+        let mut has_changes = false;
         for new_shard in new_data.iter().flatten() {
             if new_shard.as_ref().len() != shard_len {
                 return Err(Error::IncorrectShardSize);
             }
+            has_changes = true;
+        }
+        if !has_changes {
+            return Ok(());
         }
 
         if self.fast_one_parity_enabled() {
             let parity = parity[0].as_mut();
-            for (old, new) in old_data.iter().zip(new_data.iter()) {
-                let Some(new) = new.as_ref() else {
-                    continue;
-                };
-
-                for ((dst, old_byte), new_byte) in parity
-                    .iter_mut()
-                    .zip(old.as_ref().iter())
-                    .zip(new.as_ref().iter())
+            for (old, new) in old_data.iter().zip(new_data) {
+                let Some(new) = new else { continue };
+                for ((dst, old_byte), new_byte) in
+                    parity.iter_mut().zip(old.as_ref()).zip(new.as_ref())
                 {
                     *dst = F::add(*dst, F::add(*old_byte, *new_byte));
                 }
@@ -646,20 +634,33 @@ impl<F: Field> ReedSolomon<F> {
             return Ok(());
         }
 
-        let parity_rows = self.get_parity_rows();
-        let mut delta = vec![F::zero(); shard_len];
+        let matrix = self.encoding_format().matrix();
+        let chunk_len = self.code_chunk_len(shard_len);
+        let mut delta = Vec::new();
 
-        for (i_data, (old, new)) in old_data.iter().zip(new_data.iter()).enumerate() {
-            let Some(new) = new.as_ref() else {
-                continue;
-            };
-
-            let old = old.as_ref();
-            let new = new.as_ref();
-            for (slot, (old_elem, new_elem)) in delta.iter_mut().zip(old.iter().zip(new.iter())) {
-                *slot = F::add(*old_elem, *new_elem);
+        for (i_data, (old, new)) in old_data.iter().zip(new_data).enumerate() {
+            let Some(new) = new else { continue };
+            for (chunk_index, (old, new)) in old
+                .as_ref()
+                .chunks(chunk_len)
+                .zip(new.as_ref().chunks(chunk_len))
+                .enumerate()
+            {
+                if old == new {
+                    continue;
+                }
+                // Reserve once, then initialize only the computed elements.
+                // Clear also excludes stale elements when the next chunk is short.
+                delta.clear();
+                delta.reserve_exact(chunk_len);
+                delta.extend(old.iter().zip(new).map(|(&old, &new)| F::add(old, new)));
+                let start = chunk_index * chunk_len;
+                let end = start + delta.len();
+                for (row, output) in parity.iter_mut().enumerate() {
+                    let coefficient = matrix.get(self.data_shard_count() + row, i_data);
+                    F::mul_slice_add(coefficient, &delta, &mut output.as_mut()[start..end]);
+                }
             }
-            self.update_parity_with_delta(&parity_rows, i_data, &delta, parity);
         }
 
         Ok(())
