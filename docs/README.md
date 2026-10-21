@@ -11,6 +11,8 @@ This directory contains development documentation, design documents, benchmark r
 | [ec-formal-delivery-summary-2026-05-28.md](ec-formal-delivery-summary-2026-05-28.md) | Formal delivery handoff summary |
 | [ec-improvement-master-plan.md](ec-improvement-master-plan.md) | Master improvement plan (Chinese) |
 | [benchmark-methodology.md](benchmark-methodology.md) | How to run and interpret benchmarks |
+| [global-review-9.1.0-2026-10-22.md](global-review-9.1.0-2026-10-22.md) | Archived earlier architecture review and bounded incremental-update resources |
+| [drift-analysis-9.1.0-2026-10-22.md](drift-analysis-9.1.0-2026-10-22.md) | Current drift investigation, benchmark lifetime fixes and sparse incremental-update validation |
 | [README-performance-index.md](README-performance-index.md) | Performance document index |
 | [release-7.0.1-checklist.md](release-7.0.1-checklist.md) | 7.0.1 release checklist |
 | [release-7.0.2-checklist.md](release-7.0.2-checklist.md) | 7.0.2 release checklist |

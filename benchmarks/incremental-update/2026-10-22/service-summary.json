@@ -1,0 +1,417 @@
+{
+  "schema": "local-update-service-summary-v1",
+  "source_stage": "previous-review before sparse-chunk optimization; same immutable binary in all workers",
+  "source_sha256": {
+    "src/core/encode.rs": "6ef9b73c609a5d1a02144950e54463677cb6fb9305bbc223a17eb812fa200816",
+    "Cargo.toml": "25378ee3b4d9b00c9c26eea254cc58d7c6d525f70f3ec873c4e52d544195e2f0",
+    "Cargo.lock": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31",
+    "benches/throughput_matrix.rs": "336663f9d918f01176da709e8e834fcd52622a195b01ddf9a11febc730b4f2cf",
+    "benches/common/mod.rs": "cfe39887469b96aa0b7edd70bb75894be6fdfacbdf91cbde6cb6d07fe459fb11"
+  },
+  "workers": 36,
+  "observations": 432,
+  "warmups": 108,
+  "samples": 324,
+  "scope": "predeclared fixed counts; original owned call, intrusive component windows, and separate retained caller lifetime; forward/reverse orders",
+  "cpu_placement": "query endpoints every 64 calls; not pinning or class proof",
+  "major_faults_in_samples": 0,
+  "median_thread_to_wall": 0.9994923802995128,
+  "owned_repeats_above_five_percent_reference": 2,
+  "retained_repeats_above_five_percent_reference": 0,
+  "checks": [
+    {
+      "case": "4-2-65536-1",
+      "iterations": 20000,
+      "owned": {
+        "first": {
+          "median_ns_per_call": 5715.99375,
+          "central_spread": 0.02451710168507436,
+          "median_thread_to_wall": 0.9992236695500236,
+          "sample_minor_faults": 9,
+          "component_medians_ns": null
+        },
+        "second": {
+          "median_ns_per_call": 6147.54585,
+          "central_spread": 0.008618951577237861,
+          "median_thread_to_wall": 0.9997005734794486,
+          "sample_minor_faults": 0,
+          "component_medians_ns": null
+        },
+        "descriptive_repeat_fraction": 0.07549905036197789
+      },
+      "split": {
+        "first": {
+          "median_ns_per_call": 6198.1833,
+          "central_spread": 0.002727283008877917,
+          "median_thread_to_wall": 0.999672456574803,
+          "sample_minor_faults": 0,
+          "component_medians_ns": [
+            2138.0794,
+            17.2811,
+            3912.4107,
+            108.58035
+          ]
+        },
+        "second": {
+          "median_ns_per_call": 6169.2521,
+          "central_spread": 0.012065887208596972,
+          "median_thread_to_wall": 0.9998834573278673,
+          "sample_minor_faults": 0,
+          "component_medians_ns": [
+            2102.1201,
+            16.62265,
+            3922.20715,
+            105.035
+          ]
+        },
+        "descriptive_repeat_fraction": 0.004667690289185219
+      },
+      "retained": {
+        "first": {
+          "median_ns_per_call": 3849.9771,
+          "central_spread": 0.01258016573657017,
+          "median_thread_to_wall": 1.0000059480873276,
+          "sample_minor_faults": 0,
+          "component_medians_ns": null
+        },
+        "second": {
+          "median_ns_per_call": 3897.55,
+          "central_spread": 0.0033701812677194042,
+          "median_thread_to_wall": 0.9997076111916461,
+          "sample_minor_faults": 0,
+          "component_medians_ns": null
+        },
+        "descriptive_repeat_fraction": 0.012356670900717855
+      }
+    },
+    {
+      "case": "4-2-65536-2",
+      "iterations": 20000,
+      "owned": {
+        "first": {
+          "median_ns_per_call": 9462.10205,
+          "central_spread": 0.005958417030600581,
+          "median_thread_to_wall": 0.9991427813498477,
+          "sample_minor_faults": 0,
+          "component_medians_ns": null
+        },
+        "second": {
+          "median_ns_per_call": 9917.5,
+          "central_spread": 0.008240060499117635,
+          "median_thread_to_wall": 0.9995670313954722,
+          "sample_minor_faults": 0,
+          "component_medians_ns": null
+        },
+        "descriptive_repeat_fraction": 0.04812862380827953
+      },
+      "split": {
+        "first": {
+          "median_ns_per_call": 9911.8146,
+          "central_spread": 0.01149281484744485,
+          "median_thread_to_wall": 0.999626648539719,
+          "sample_minor_faults": 9,
+          "component_medians_ns": [
+            2064.9919,
+            17.13685,
+            7696.9526,
+            102.60735
+          ]
+        },
+        "second": {
+          "median_ns_per_call": 9930.9917,
+          "central_spread": 0.010285563928121999,
+          "median_thread_to_wall": 0.9995917628246532,
+          "sample_minor_faults": 0,
+          "component_medians_ns": [
+            2100.86835,
+            17.2099,
+            7675.93585,
+            105.8194
+          ]
+        },
+        "descriptive_repeat_fraction": 0.001934771863065396
+      },
+      "retained": {
+        "first": {
+          "median_ns_per_call": 7629.2521,
+          "central_spread": 0.0025649696383738597,
+          "median_thread_to_wall": 0.999608139833261,
+          "sample_minor_faults": 0,
+          "component_medians_ns": null
+        },
+        "second": {
+          "median_ns_per_call": 7619.9667,
+          "central_spread": 0.0014323619025788535,
+          "median_thread_to_wall": 0.99960168792884,
+          "sample_minor_faults": 0,
+          "component_medians_ns": null
+        },
+        "descriptive_repeat_fraction": 0.0012170786701359304
+      }
+    },
+    {
+      "case": "10-4-1048576-1",
+      "iterations": 1024,
+      "owned": {
+        "first": {
+          "median_ns_per_call": 159795.9794921875,
+          "central_spread": 0.01499103932472292,
+          "median_thread_to_wall": 0.9991640534694729,
+          "sample_minor_faults": 327,
+          "component_medians_ns": null
+        },
+        "second": {
+          "median_ns_per_call": 168752.2373046875,
+          "central_spread": 0.009579832480345992,
+          "median_thread_to_wall": 0.9994814773319664,
+          "sample_minor_faults": 262,
+          "component_medians_ns": null
+        },
+        "descriptive_repeat_fraction": 0.056048079813784527
+      },
+      "split": {
+        "first": {
+          "median_ns_per_call": 167781.33203125,
+          "central_spread": 0.001657128077861575,
+          "median_thread_to_wall": 0.9994597510669652,
+          "sample_minor_faults": 0,
+          "component_medians_ns": [
+            55998.4609375,
+            44.22265625,
+            111470.0830078125,
+            199.3828125
+          ]
+        },
+        "second": {
+          "median_ns_per_call": 168234.5380859375,
+          "central_spread": 0.005372312986577803,
+          "median_thread_to_wall": 0.9993926765176334,
+          "sample_minor_faults": 0,
+          "component_medians_ns": [
+            55821.712890625,
+            47.01171875,
+            112018.6552734375,
+            199.4970703125
+          ]
+        },
+        "descriptive_repeat_fraction": 0.0027011709181274613
+      },
+      "retained": {
+        "first": {
+          "median_ns_per_call": 112023.681640625,
+          "central_spread": 0.002098372231387668,
+          "median_thread_to_wall": 0.9999451497115609,
+          "sample_minor_faults": 0,
+          "component_medians_ns": null
+        },
+        "second": {
+          "median_ns_per_call": 112098.9580078125,
+          "central_spread": 0.0021902470676434718,
+          "median_thread_to_wall": 0.9998034724990884,
+          "sample_minor_faults": 0,
+          "component_medians_ns": null
+        },
+        "descriptive_repeat_fraction": 0.000671968338167894
+      }
+    },
+    {
+      "case": "10-4-1048576-2",
+      "iterations": 1024,
+      "owned": {
+        "first": {
+          "median_ns_per_call": 272739.2578125,
+          "central_spread": 0.0073119788030148415,
+          "median_thread_to_wall": 0.9991190137011894,
+          "sample_minor_faults": 65,
+          "component_medians_ns": null
+        },
+        "second": {
+          "median_ns_per_call": 281923.4619140625,
+          "central_spread": 0.004496607732266097,
+          "median_thread_to_wall": 0.999639355446681,
+          "sample_minor_faults": 0,
+          "component_medians_ns": null
+        },
+        "descriptive_repeat_fraction": 0.03367393522745583
+      },
+      "split": {
+        "first": {
+          "median_ns_per_call": 282301.1064453125,
+          "central_spread": 0.010477910690807054,
+          "median_thread_to_wall": 0.9993471073932118,
+          "sample_minor_faults": 262,
+          "component_medians_ns": [
+            56463.0126953125,
+            59.7080078125,
+            225391.4365234375,
+            227.107421875
+          ]
+        },
+        "second": {
+          "median_ns_per_call": 281801.5537109375,
+          "central_spread": 0.007388867479678074,
+          "median_thread_to_wall": 0.9997378090998474,
+          "sample_minor_faults": 65,
+          "component_medians_ns": [
+            56387.1171875,
+            58.4609375,
+            225117.8916015625,
+            224.89453125
+          ]
+        },
+        "descriptive_repeat_fraction": 0.0017695741283669875
+      },
+      "retained": {
+        "first": {
+          "median_ns_per_call": 224904.8251953125,
+          "central_spread": 0.003829202214490547,
+          "median_thread_to_wall": 0.9994259840778658,
+          "sample_minor_faults": 0,
+          "component_medians_ns": null
+        },
+        "second": {
+          "median_ns_per_call": 224586.3857421875,
+          "central_spread": 0.005736456704031607,
+          "median_thread_to_wall": 0.9994091735078633,
+          "sample_minor_faults": 0,
+          "component_medians_ns": null
+        },
+        "descriptive_repeat_fraction": 0.001415885376618576
+      }
+    },
+    {
+      "case": "32-16-1048576-1",
+      "iterations": 256,
+      "owned": {
+        "first": {
+          "median_ns_per_call": 586902.015625,
+          "central_spread": 0.027290084277004394,
+          "median_thread_to_wall": 0.9992277915240774,
+          "sample_minor_faults": 0,
+          "component_medians_ns": null
+        },
+        "second": {
+          "median_ns_per_call": 591783.203125,
+          "central_spread": 0.006893446383249778,
+          "median_thread_to_wall": 0.9995437188317882,
+          "sample_minor_faults": 0,
+          "component_medians_ns": null
+        },
+        "descriptive_repeat_fraction": 0.008316869545595199
+      },
+      "split": {
+        "first": {
+          "median_ns_per_call": 593676.26953125,
+          "central_spread": 0.006123569620898648,
+          "median_thread_to_wall": 0.9995483060984736,
+          "sample_minor_faults": 0,
+          "component_medians_ns": [
+            228517.1015625,
+            68.1875,
+            363852.375,
+            808.09765625
+          ]
+        },
+        "second": {
+          "median_ns_per_call": 592573.5703125,
+          "central_spread": 0.017696523626542837,
+          "median_thread_to_wall": 0.9997271377581118,
+          "sample_minor_faults": 129,
+          "component_medians_ns": [
+            230047.1796875,
+            64.30859375,
+            361243.28125,
+            858.2421875
+          ]
+        },
+        "descriptive_repeat_fraction": 0.0018574082801400503
+      },
+      "retained": {
+        "first": {
+          "median_ns_per_call": 361500.1640625,
+          "central_spread": 0.004794117378188431,
+          "median_thread_to_wall": 0.9995097600958824,
+          "sample_minor_faults": 0,
+          "component_medians_ns": null
+        },
+        "second": {
+          "median_ns_per_call": 360205.078125,
+          "central_spread": 0.006255941439609597,
+          "median_thread_to_wall": 0.9993291080994269,
+          "sample_minor_faults": 0,
+          "component_medians_ns": null
+        },
+        "descriptive_repeat_fraction": 0.003582532087803124
+      }
+    },
+    {
+      "case": "32-16-1048576-2",
+      "iterations": 256,
+      "owned": {
+        "first": {
+          "median_ns_per_call": 957197.75390625,
+          "central_spread": 0.004341758908271571,
+          "median_thread_to_wall": 0.9994352664442702,
+          "sample_minor_faults": 64,
+          "component_medians_ns": null
+        },
+        "second": {
+          "median_ns_per_call": 953928.38671875,
+          "central_spread": 0.005318431041979054,
+          "median_thread_to_wall": 0.9994493549081295,
+          "sample_minor_faults": 0,
+          "component_medians_ns": null
+        },
+        "descriptive_repeat_fraction": 0.003415560864155777
+      },
+      "split": {
+        "first": {
+          "median_ns_per_call": 956167.8046875,
+          "central_spread": 0.007307956593229717,
+          "median_thread_to_wall": 0.9994535886536456,
+          "sample_minor_faults": 0,
+          "component_medians_ns": [
+            229859.0703125,
+            60.38671875,
+            725323.73828125,
+            914.71484375
+          ]
+        },
+        "second": {
+          "median_ns_per_call": 954696.125,
+          "central_spread": 0.012511143107185022,
+          "median_thread_to_wall": 0.9997442739960843,
+          "sample_minor_faults": 129,
+          "component_medians_ns": [
+            230200.3671875,
+            69.83984375,
+            723747.18359375,
+            951.7890625
+          ]
+        },
+        "descriptive_repeat_fraction": 0.0015391437363664242
+      },
+      "retained": {
+        "first": {
+          "median_ns_per_call": 721338.0546875,
+          "central_spread": 0.011049663769926875,
+          "median_thread_to_wall": 0.9993751015218261,
+          "sample_minor_faults": 0,
+          "component_medians_ns": null
+        },
+        "second": {
+          "median_ns_per_call": 719395.18359375,
+          "central_spread": 0.004944610399641969,
+          "median_thread_to_wall": 0.9997126361952255,
+          "sample_minor_faults": 5,
+          "component_medians_ns": null
+        },
+        "descriptive_repeat_fraction": 0.002693426585668901
+      }
+    }
+  ],
+  "raw_records": "retained privately with immutable source/observer/binary and plan bindings",
+  "formal_sampling_protocol": false,
+  "release_approval": false,
+  "candidate_attribution": null
+}

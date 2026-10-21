@@ -1,0 +1,135 @@
+{
+  "schema": "incremental-update-drift-fix-validation-v1",
+  "source_provenance": "provenance.json",
+  "tests": {
+    "workspace": {
+      "passed": 507,
+      "failed": 0,
+      "ignored": 43,
+      "exit_code": 0,
+      "count_policy": "last parent summary per executable; exclude repeated child summaries"
+    },
+    "all-features": {
+      "passed": 529,
+      "failed": 0,
+      "ignored": 43,
+      "exit_code": 0,
+      "count_policy": "last parent summary per executable; exclude repeated child summaries"
+    },
+    "no-std": {
+      "passed": 237,
+      "failed": 0,
+      "ignored": 0,
+      "exit_code": 0,
+      "count_policy": "last parent summary per executable; exclude repeated child summaries"
+    },
+    "update-no-std": {
+      "passed": 8,
+      "failed": 0,
+      "ignored": 0,
+      "exit_code": 0,
+      "count_policy": "last parent summary per executable; exclude repeated child summaries"
+    },
+    "scalar": {
+      "passed": 8,
+      "failed": 0,
+      "ignored": 0,
+      "exit_code": 0,
+      "count_policy": "last parent summary per executable; exclude repeated child summaries"
+    },
+    "neon": {
+      "passed": 8,
+      "failed": 0,
+      "ignored": 0,
+      "exit_code": 0,
+      "count_policy": "last parent summary per executable; exclude repeated child summaries"
+    }
+  },
+  "python_gate_tests": {
+    "passed": 372,
+    "exit_code": 0
+  },
+  "compatibility": {
+    "normal_format_cases": 200,
+    "resource_cases": 45,
+    "counted_records": 270,
+    "exit_code": 0
+  },
+  "criterion": {
+    "functional_cases": 24,
+    "patterns": [
+      "sparse",
+      "dense"
+    ],
+    "lifetimes": [
+      "per-iteration-owned-output",
+      "retained-in-place-output"
+    ],
+    "profile_schema": 2,
+    "complete_unique_executed_identifiers": true,
+    "full_parity_oracles": true,
+    "short_runs_are_timing_acceptance": false
+  },
+  "constructor_check": {
+    "before_sparse_cases": 6,
+    "before_constructions_per_case": {
+      "update_4x2_64k_1_change": 21,
+      "update_4x2_64k_2_changes": 20,
+      "update_10x4_1m_1_change": 16,
+      "update_10x4_1m_2_changes": 16,
+      "update_32x16_1m_1_change": 14,
+      "update_32x16_1m_2_changes": 14
+    },
+    "after_sparse_and_dense_cases": 12,
+    "after_constructions_per_case": 1,
+    "scope": "reversible source-copy counters; no timing claim"
+  },
+  "work_count_test": {
+    "before_expected_regression_failure": true,
+    "after_passed": true,
+    "details": "work-counts.json"
+  },
+  "wasm": {
+    "generated_release_build": true,
+    "typescript_check": true,
+    "node_passed": 14,
+    "chrome_passed": 8
+  },
+  "package": {
+    "command": "cargo publish --dry-run --locked --registry crates-io --package rustfs-erasure-codec",
+    "source": "disposable copy without Git metadata",
+    "packaged_files": 96,
+    "unpacked_source_verified": true,
+    "allow_dirty": false,
+    "no_verify": false,
+    "upload_aborted_due_to_dry_run": true,
+    "exit_code": 0
+  },
+  "other_checks": [
+    "all-target all-feature workspace Clippy with warnings denied",
+    "standalone compatibility-tool Clippy with warnings denied",
+    "Rust formatting",
+    "typos",
+    "actionlint",
+    "manifest tag 9.1.0",
+    "git diff --check"
+  ],
+  "local_service_control": {
+    "workers": 36,
+    "observations": 432,
+    "owned_repeats_over_five_percent_reference": 2,
+    "retained_repeats_over_reference": 0,
+    "scope": "pre-sparse source; descriptive same-binary control; no formal acceptance"
+  },
+  "remote_original_record_replay": {
+    "performed": false,
+    "records_copied": 0,
+    "status": "awaiting explicit raw-record transfer authorization"
+  },
+  "remote_ci": "not run; changes remain uncommitted",
+  "formal_performance_capture_executed": false,
+  "strict_release_preflight_executed": false,
+  "candidate_attribution": null,
+  "latency_claim": null,
+  "release_approval": false
+}

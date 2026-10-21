@@ -1,0 +1,39 @@
+{
+  "schema": "incremental-update-reviewed-resource-v1",
+  "base_commit": "e671c0ac24f9deaf2ee2f1e5ebbd8358cd4d6133",
+  "candidate_state": "reviewed uncommitted patch on base; not final release source",
+  "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "target": "aarch64-apple-darwin",
+  "features": "std simd-accel on both resource-comparison versions",
+  "environment": {
+    "RUSTFLAGS": "",
+    "RAYON_NUM_THREADS": "4",
+    "RS_PARALLEL_POLICY_MAX_JOBS": "4"
+  },
+  "source_sha256": {
+    "src/core/encode.rs": "6ef9b73c609a5d1a02144950e54463677cb6fb9305bbc223a17eb812fa200816",
+    "Cargo.toml": "25378ee3b4d9b00c9c26eea254cc58d7c6d525f70f3ec873c4e52d544195e2f0",
+    "Cargo.lock": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31",
+    "tests/incremental_update_regressions.rs": "138f986ac56e2bcf0d0f695843b29b9631573eb030db302b63407c694aa51cc9",
+    "scripts/release-compatibility/Cargo.toml": "856204232f98e6aca259d86c57f4c87f65fbd21c823ffb1e087734c98b881423",
+    "scripts/release-compatibility/Cargo.lock": "03b72bfefcaaf1600a6bc57a1849fb6ed5bc998160ee3f2ea999c6699fa3dd6a",
+    "scripts/release-compatibility/src/main.rs": "414c68cfadad09127a78fa5c7431c71900b491430f7b1319d1d59e6cb8db7f03",
+    "scripts/release-compatibility/src/allocation.rs": "8b9a9fda13f147e1231040bcaa550a3c3485f56b8f96da21219b66bc4ce9f729",
+    "scripts/release-compatibility/src/probe.rs": "d01979024015f523cf2f7e3492fa4af3a5112f5e79499368e999b958e08bf4dc",
+    "scripts/release-compatibility/src/resource_probe.rs": "82bcae7b81d291ed79653f4893e1b3ef0319f527419712217f72a8debea838ab"
+  },
+  "reports_sha256": {
+    "resources.json": "67110c0bdcd1264b7dfbcfd34ddd940aaa986f5e06f3bf30aca6d025bee35f21"
+  },
+  "previous_candidate": {
+    "provenance_path": "first-pass/provenance.json",
+    "provenance_sha256": "81378e39f8e32093a30186ac1e4d89184189ea0ece5daf2630897476a1843eaf",
+    "source_patch_path": "first-pass/source.patch",
+    "source_patch_sha256": "fb7e9822bca29b0d2f204ce290cf6256a91f0d358402ca91e063d40b9a3ee795",
+    "source_patch_independent_apply_check": true
+  },
+  "resource_case_count": 45,
+  "counted_records": 270,
+  "latency_claim": null,
+  "release_approval": false
+}

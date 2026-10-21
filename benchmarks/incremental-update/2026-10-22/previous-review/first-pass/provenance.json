@@ -1,0 +1,33 @@
+{
+  "schema": "incremental-update-resource-review-v1",
+  "base_commit": "e671c0ac24f9deaf2ee2f1e5ebbd8358cd4d6133",
+  "candidate_state": "uncommitted patch on base; file hashes below, not final release source",
+  "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "target": "aarch64-apple-darwin",
+  "features": "std simd-accel on both versions",
+  "environment": {
+    "RUSTFLAGS": "",
+    "RAYON_NUM_THREADS": "4",
+    "RS_PARALLEL_POLICY_MAX_JOBS": "4"
+  },
+  "source_sha256": {
+    "src/core/encode.rs": "4b3590a601f977cc6471c18244f9a241b617165450f046cccfa5ee669cd6b00e",
+    "Cargo.toml": "25378ee3b4d9b00c9c26eea254cc58d7c6d525f70f3ec873c4e52d544195e2f0",
+    "Cargo.lock": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31",
+    "tests/incremental_update_regressions.rs": "21ae89443dbcb1074d1a1d7efb2e47d8f85095b7ad9e9fff27ce96356344c5f0",
+    "scripts/release-compatibility/Cargo.toml": "856204232f98e6aca259d86c57f4c87f65fbd21c823ffb1e087734c98b881423",
+    "scripts/release-compatibility/Cargo.lock": "03b72bfefcaaf1600a6bc57a1849fb6ed5bc998160ee3f2ea999c6699fa3dd6a",
+    "scripts/release-compatibility/src/main.rs": "dc412e65267afdebb6398e8f24d36cd98b1944a81de5881c18770659ee9db3c8",
+    "scripts/release-compatibility/src/allocation.rs": "8b9a9fda13f147e1231040bcaa550a3c3485f56b8f96da21219b66bc4ce9f729",
+    "scripts/release-compatibility/src/probe.rs": "d01979024015f523cf2f7e3492fa4af3a5112f5e79499368e999b958e08bf4dc",
+    "scripts/release-compatibility/src/resource_probe.rs": "e0819ecea88dcccb93d68ccf6b44fc9aa350d0a473b74d70cd7bb4e495dc1938",
+    "scripts/release-compatibility/src/update_probe.rs": "2abcdde956d1889f6080dd4d1d8cb97a829fdd707cc95ba5d6aa8f890565104d"
+  },
+  "reports_sha256": {
+    "resources-original.json": "ebb37dd2f3eda4d86947dbca129335ffb27974c4e820f319d5b32798069ed561",
+    "resources-update.json": "77d5321567f2b769d4d731568b537da7a0d1084082fc68e9fce5c37baa85c90e"
+  },
+  "scope": "two warmups, three counted repetitions per case and version; full output checked against re-encoding; caller setup excluded",
+  "latency_claim": null,
+  "release_approval": false
+}

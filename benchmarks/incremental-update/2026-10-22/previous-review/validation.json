@@ -1,0 +1,103 @@
+{
+  "schema": "incremental-update-reviewed-local-validation-v1",
+  "source_provenance": "provenance.json",
+  "tests": {
+    "workspace": {
+      "passed": 506,
+      "failed": 0,
+      "ignored": 43,
+      "exit_code": 0,
+      "count_policy": "last summary from each executable; nested child summaries excluded"
+    },
+    "all-features": {
+      "passed": 528,
+      "failed": 0,
+      "ignored": 43,
+      "exit_code": 0,
+      "count_policy": "last summary from each executable; nested child summaries excluded"
+    },
+    "no-std": {
+      "passed": 237,
+      "failed": 0,
+      "ignored": 0,
+      "exit_code": 0,
+      "count_policy": "last summary from each executable; nested child summaries excluded"
+    },
+    "update-no-std": {
+      "passed": 7,
+      "failed": 0,
+      "ignored": 0,
+      "exit_code": 0,
+      "count_policy": "last summary from each executable; nested child summaries excluded"
+    }
+  },
+  "python_gate_tests": {
+    "passed": 372,
+    "exit_code": 0
+  },
+  "compatibility": {
+    "normal_format_parity_roundtrips": 200,
+    "resource_cases": 45,
+    "original_cases_with_unchanged_counts": 39,
+    "added_wide_cases": 6,
+    "counted_records": 270,
+    "exit_code": 0
+  },
+  "wasm": {
+    "generated_release_build": true,
+    "typescript_check": true,
+    "node_tests_passed": 14,
+    "chrome_tests_passed": 8
+  },
+  "checks_passed": [
+    "workspace all-target all-feature Clippy with warnings denied",
+    "independent compatibility workspace Clippy with warnings denied",
+    "Rust formatting including shared resource probe",
+    "actionlint",
+    "typos",
+    "git diff --check",
+    "manifest tag 9.1.0"
+  ],
+  "review": {
+    "row_metadata_resource_defect": "previous candidate allocates twice and requests 593 bytes for GF8 4+33/65; final candidate once and 65 bytes",
+    "structural_simplifications": [
+      "remove single-caller offset helper",
+      "merge change detection into existing length validation",
+      "read immutable matrix coefficients without row view collection",
+      "extend one original resource catalog and CLI entry instead of adding a second report mode"
+    ],
+    "existing_empty_view_error_contract": "retained; focused safe AsRef counterexample failed without the existing guard and passes with it",
+    "unresolved_correctness_findings": []
+  },
+  "package": {
+    "command": "cargo publish --dry-run --locked --registry crates-io --package rustfs-erasure-codec",
+    "source": "disposable non-Git copy of final tested files",
+    "packaged_files": 96,
+    "verified_unpacked_source": true,
+    "upload_aborted_due_to_dry_run": true,
+    "allow_dirty": false,
+    "no_verify": false,
+    "exit_code": 0
+  },
+  "timing_diagnostic": {
+    "tested_variant": "intermediate simplification before final empty-view guard restoration",
+    "existing_update_cases": 6,
+    "observations": 480,
+    "phase_order": [
+      "A1",
+      "B1",
+      "B2",
+      "A2"
+    ],
+    "raw_records": "retained privately",
+    "four_before_repeats_exceed_five_percent_reference": true,
+    "formal_sampling_protocol": false,
+    "final_candidate_timing_evidence": false,
+    "candidate_attribution": null
+  },
+  "candidate_remote_ci": "not run; local changes remain uncommitted",
+  "formal_performance_capture_executed": false,
+  "strict_release_preflight_executed": false,
+  "latency_claim": null,
+  "release_approval": false
+}

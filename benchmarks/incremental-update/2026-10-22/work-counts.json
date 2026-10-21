@@ -1,0 +1,25 @@
+{
+  "schema": "sparse-update-work-count-v1",
+  "scope": "CountedField delegates GF8 arithmetic; counts API/kernel input work, not hardware instructions or elapsed time",
+  "geometry": {
+    "data": 4,
+    "parity": 2,
+    "elements": 65553,
+    "changed_shards": 1,
+    "different_chunk_elements": 17
+  },
+  "before": {
+    "delta_add_calls": 65553,
+    "parity_kernel_input_elements": 131106,
+    "field_zero_initializations": 1
+  },
+  "after": {
+    "delta_add_calls": 17,
+    "parity_kernel_input_elements": 34,
+    "field_zero_initializations": 0
+  },
+  "output_equals_complete_reencode": true,
+  "test_failed_before_and_passed_after": true,
+  "release_approval": false,
+  "latency_claim": null
+}

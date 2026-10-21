@@ -1,13 +1,20 @@
 # 9.1.0 publication blockers and completion criteria
 
-Audit date: 2026-10-21 (Asia/Shanghai). Reviewed base main:
-`e30753ce4a161aca9f0d80542be3558c22d09aac`, and the source-copy observation
+Audit date: 2026-10-22 (Asia/Shanghai). Reviewed base main:
+`e671c0ac24f9deaf2ee2f1e5ebbd8358cd4d6133`, including the source-copy observation
 implementation in [PR #47](https://github.com/houseme/rustfs-erasure-codec/pull/47).
 The complete native inventory below is bound to candidate `26aa094` and published
 9.0.0; the PR changes no production source, manifest, lockfile or formal sampler.
 The manifests already declare 9.1.0. No accepted final timing campaign, positive
 strict release preflight, tag or publication is recorded. This assessment keeps
 historical measurements bound to their original sources.
+
+The [current drift analysis](drift-analysis-9.1.0-2026-10-22.md) records the
+Criterion fixture/output-consumption repairs, owned/in-place sparse/dense cases,
+and lazy differential scratch that skips identical chunks. These are verified
+mechanism/resource improvements, not a unique cause or cure of the Linux drift.
+They require a new final candidate freeze; rejected timing campaigns remain
+rejected under their original source bindings.
 
 ## Production progress and actual version differences
 
@@ -65,6 +72,18 @@ drift result. The adjacent schedule is diagnostic only and cannot replace formal
 qualification; passing an older failure there does not repair any complete control.
 [Current execution and refusal status](https://github.com/rustfs/backlog/issues/2897#issuecomment-6291797590)
 keeps full raw measurements private and all historical failures intact.
+
+These are historical controls. The subsequent [complete qualification on
+2026-10-21](https://github.com/rustfs/backlog/issues/2897#issuecomment-6316335129)
+retains 8,832 records: all 252 distributions pass, but 8/126 repeat checks exceed
+5%, with a maximum of 10.7504%. It is rejected. The [forced diagnostic capture
+ending 2026-10-22](https://github.com/rustfs/backlog/issues/2897#issuecomment-6316688014)
+retains 13,104 calibration/A1 records. A1's `reconstruct:4:2:65536` distribution
+is 20.6528%, exceeding 10%; B1/B2/A2 and layouts never start. Its complete repeat
+and candidate regression gates are unexecuted. Neither report establishes a
+9.1.0 regression or release acceptance. Reported resource restoration passed;
+this review does not rerun either campaign or independently replay its private
+raw data.
 
 In the failed cases from the first two controls, formal observations have zero
 process minor/major faults and at most about 0.0147% calling-thread runnable wait
@@ -127,7 +146,7 @@ Only condition 4 is checked within its declared normal-format scope. Keep the
 | 3: 1/4 KiB layouts | Partial | The paired supplement is implemented. Obtain real passing A1/B1/B2/A2 results for all 16 source/scratch offset combinations at each size, kept separate from original Vec cases. |
 | 4: Compatibility | Complete in declared scope | Retain normal-format byte parity and ordinary/optimized, invalid-input and missing-shard behavior tests on the final candidate; do not expand the legacy compatibility promise. |
 | 5: Protocol/source/rejection | Partial | The complete private dynamic inventory binds source/lock/harness/observer/context and independently replays every original row. Rehashed warmup-backend and stale-request-generation counterexamples are refused without changing originals. Final accepted performance capture/replay and its immutable source/evidence bindings remain outstanding. |
-| 6: Full performance acceptance | Incomplete | A stable complete baseline, then full final candidate/layout ABBA and strict positive preflight. All retained complete controls remain rejected; the newest stopped before its repeat gate. |
+| 6: Full performance acceptance | Incomplete | A stable complete baseline, then full final candidate/layout ABBA and strict positive preflight. Latest qualification rejected 8/126 repeats; the subsequent forced diagnostic stopped at A1 distribution, before candidate phases or complete repeat/regression checks. |
 
 ## Release sequence and benchmark decision
 
