@@ -15,11 +15,12 @@ use rustfs_erasure_codec::{
 
 use self::common::{BenchCase, Operation, SMOKE_CASES, case_name, derived_seed, make_full_shards};
 
-const ARTIFACT_SCHEMA_VERSION: u32 = 1;
+const ARTIFACT_SCHEMA_VERSION: u32 = 2;
 
 #[derive(Debug, Clone)]
 struct ProfileRecord {
     operation: &'static str,
+    benchmark: String,
     case_label: &'static str,
     data_shards: usize,
     parity_shards: usize,
@@ -40,6 +41,7 @@ fn benchmark_metrics_enabled() -> bool {
 
 fn push_profile_record(
     operation: &'static str,
+    benchmark: &str,
     case: BenchCase,
     rs: &ReedSolomon,
     neon: RustNeonProfileStats,
@@ -47,6 +49,7 @@ fn push_profile_record(
     let policy = rs.effective_parallel_policy();
     let record = ProfileRecord {
         operation,
+        benchmark: benchmark.to_owned(),
         case_label: case.label,
         data_shards: case.data_shards,
         parity_shards: case.parity_shards,
@@ -87,7 +90,7 @@ fn write_profile_report() {
         writeln!(
             file,
             concat!(
-                "  {{\"schema_version\":{},\"artifact_kind\":\"throughput-profile-report\",\"benchmark_metrics_enabled\":{},\"operation\":\"{}\",\"case\":\"{}\",\"data_shards\":{},\"parity_shards\":{},\"shard_size\":{},",
+                "  {{\"schema_version\":{},\"artifact_kind\":\"throughput-profile-report\",\"benchmark_metrics_enabled\":{},\"operation\":\"{}\",\"benchmark\":\"{}\",\"case\":\"{}\",\"data_shards\":{},\"parity_shards\":{},\"shard_size\":{},",
                 "\"policy_min_parallel_shard_bytes\":{},\"policy_min_bytes_per_job\":{},\"policy_max_jobs\":{},",
                 "\"code_some_serial_calls\":{},\"code_some_parallel_calls\":{},\"code_some_total_bytes\":{},\"code_some_total_chunks\":{},",
                 "\"code_some_small_output_chunk_parallel_calls\":{},\"code_some_small_output_chunk_parallel_outputs\":{},\"code_some_small_output_chunk_parallel_chunks\":{},",
@@ -103,6 +106,7 @@ fn write_profile_report() {
             ARTIFACT_SCHEMA_VERSION,
             benchmark_metrics_enabled(),
             item.operation,
+            item.benchmark,
             item.case_label,
             item.data_shards,
             item.parity_shards,
@@ -168,16 +172,27 @@ fn bench_encode(c: &mut Criterion, case: BenchCase) {
     group.throughput(Throughput::Bytes(throughput.try_into().unwrap()));
     rs.reset_runtime_profile_stats();
     let neon_before = rust_neon_profile_stats();
-    group.bench_function(name, |b| {
-        let mut shards =
-            make_full_shards(seed, case.data_shards, case.parity_shards, case.shard_size);
+    let mut shards = None;
+    group.bench_function(name.as_str(), |b| {
+        let shards = shards.get_or_insert_with(|| {
+            make_full_shards(seed, case.data_shards, case.parity_shards, case.shard_size)
+        });
         b.iter(|| {
-            rs.encode_opt(black_box(&mut shards)).unwrap();
+            rs.encode_opt(black_box(&mut *shards)).unwrap();
         });
     });
     group.finish();
+    if shards.is_none() {
+        return;
+    }
     let neon_after = rust_neon_profile_stats();
-    push_profile_record("encode", case, &rs, neon_after.saturating_sub(neon_before));
+    push_profile_record(
+        "encode",
+        &name,
+        case,
+        &rs,
+        neon_after.saturating_sub(neon_before),
+    );
 }
 
 fn bench_leopard_setup(c: &mut Criterion, case: BenchCase) {
@@ -186,7 +201,7 @@ fn bench_leopard_setup(c: &mut Criterion, case: BenchCase) {
 
     let mut group = c.benchmark_group("throughput_matrix_leopard_setup");
     group.throughput(Throughput::Bytes(throughput.try_into().unwrap()));
-    group.bench_function(name, |b| {
+    group.bench_function(name.as_str(), |b| {
         b.iter(|| {
             let codec = ReedSolomon::with_options(
                 case.data_shards,
@@ -217,11 +232,13 @@ fn bench_leopard_encode(c: &mut Criterion, case: BenchCase) {
 
     let mut group = c.benchmark_group("throughput_matrix_leopard_encode");
     group.throughput(Throughput::Bytes(throughput.try_into().unwrap()));
-    group.bench_function(name, |b| {
-        let mut shards =
-            make_full_shards(seed, case.data_shards, case.parity_shards, case.shard_size);
+    let mut shards = None;
+    group.bench_function(name.as_str(), |b| {
+        let shards = shards.get_or_insert_with(|| {
+            make_full_shards(seed, case.data_shards, case.parity_shards, case.shard_size)
+        });
         b.iter(|| {
-            rs.encode_opt(black_box(&mut shards)).unwrap();
+            rs.encode_opt(black_box(&mut *shards)).unwrap();
         });
     });
     group.finish();
@@ -239,18 +256,50 @@ fn bench_verify(c: &mut Criterion, case: BenchCase) {
     group.throughput(Throughput::Bytes(throughput.try_into().unwrap()));
     rs.reset_runtime_profile_stats();
     let neon_before = rust_neon_profile_stats();
-    group.bench_function(name, |b| {
+    let mut executed = false;
+    group.bench_function(name.as_str(), |b| {
+        executed = true;
         b.iter(|| {
-            rs.verify_opt(black_box(&shards)).unwrap();
+            black_box(rs.verify_opt(black_box(&shards)).unwrap());
         });
     });
     group.finish();
+    if !executed {
+        return;
+    }
     let neon_after = rust_neon_profile_stats();
-    push_profile_record("verify", case, &rs, neon_after.saturating_sub(neon_before));
+    push_profile_record(
+        "verify",
+        &name,
+        case,
+        &rs,
+        neon_after.saturating_sub(neon_before),
+    );
 }
 
-fn bench_update(c: &mut Criterion, case: BenchCase, changed_indices: &[usize], label: &str) {
-    let name = format!("{}_{}_{}", Operation::Update.as_str(), case.label, label);
+#[derive(Clone, Copy)]
+enum UpdatePattern {
+    Sparse,
+    Dense,
+}
+
+fn bench_update(
+    c: &mut Criterion,
+    case: BenchCase,
+    changed_indices: &[usize],
+    pattern: UpdatePattern,
+) {
+    let name = format!(
+        "{}_{}_{}_change{}{}",
+        Operation::Update.as_str(),
+        case.label,
+        changed_indices.len(),
+        if changed_indices.len() == 1 { "" } else { "s" },
+        match pattern {
+            UpdatePattern::Sparse => "",
+            UpdatePattern::Dense => "_dense",
+        }
+    );
     let throughput = case.shard_size * case.data_shards;
     let seed = derived_seed(Operation::Update, case);
     let rs = ReedSolomon::new(case.data_shards, case.parity_shards).unwrap();
@@ -261,27 +310,34 @@ fn bench_update(c: &mut Criterion, case: BenchCase, changed_indices: &[usize], l
     let mut updated_data = original[..case.data_shards].to_vec();
     for &idx in changed_indices {
         if idx < updated_data.len() && !updated_data[idx].is_empty() {
-            updated_data[idx][0] ^= 0x5a;
+            match pattern {
+                UpdatePattern::Sparse => updated_data[idx][0] ^= 0x5a,
+                UpdatePattern::Dense => updated_data[idx].iter_mut().for_each(|byte| *byte ^= 0x5a),
+            }
         }
     }
+
+    // Criterion re-enters its callback for warmup and every sample. Keep caller
+    // views outside it, borrowing the existing immutable source instead of
+    // cloning all data shards again between observations.
+    let old_refs = original[..case.data_shards].iter().collect::<Vec<_>>();
+    let changes = (0..case.data_shards)
+        .map(|idx| changed_indices.contains(&idx).then_some(&updated_data[idx]))
+        .collect::<Vec<_>>();
+    let mut updated_parity = original[case.data_shards..].to_vec();
+    rs.encode_sep(&updated_data, &mut updated_parity).unwrap();
+    let mut check = original[case.data_shards..].to_vec();
+    rs.update(&old_refs, &changes, &mut check).unwrap();
+    assert_eq!(check, updated_parity);
+    drop(check);
 
     let mut group = c.benchmark_group("throughput_matrix_update");
     group.throughput(Throughput::Bytes(throughput.try_into().unwrap()));
     rs.reset_runtime_profile_stats();
     let neon_before = rust_neon_profile_stats();
-    group.bench_function(name, |b| {
-        let old_data = original[..case.data_shards].to_vec();
-        let old_refs = old_data.iter().collect::<Vec<_>>();
-        let changes = (0..case.data_shards)
-            .map(|idx| {
-                if changed_indices.contains(&idx) {
-                    Some(&updated_data[idx])
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>();
-
+    let mut owned_executed = false;
+    group.bench_function(name.as_str(), |b| {
+        owned_executed = true;
         b.iter(|| {
             let mut parity = original[case.data_shards..].to_vec();
             let mut parity_refs = parity.iter_mut().collect::<Vec<_>>();
@@ -295,7 +351,67 @@ fn bench_update(c: &mut Criterion, case: BenchCase, changed_indices: &[usize], l
     });
     group.finish();
     let neon_after = rust_neon_profile_stats();
-    push_profile_record("update", case, &rs, neon_after.saturating_sub(neon_before));
+    if owned_executed {
+        push_profile_record(
+            "update",
+            &name,
+            case,
+            &rs,
+            neon_after.saturating_sub(neon_before),
+        );
+    }
+
+    // A separate caller lifetime: one parity owner and view vector, with valid
+    // forward/reverse transitions even when a Criterion sample has odd length.
+    let updated_refs = updated_data.iter().collect::<Vec<_>>();
+    let reverse = (0..case.data_shards)
+        .map(|idx| changed_indices.contains(&idx).then_some(&original[idx]))
+        .collect::<Vec<_>>();
+    let mut parity = original[case.data_shards..].to_vec();
+    let mut parity_refs = parity.iter_mut().collect::<Vec<_>>();
+    let mut is_updated = false;
+    let mut group = c.benchmark_group("throughput_matrix_update_in_place");
+    group.throughput(Throughput::Bytes(throughput.try_into().unwrap()));
+    rs.reset_runtime_profile_stats();
+    let neon_before = rust_neon_profile_stats();
+    let mut in_place_executed = false;
+    group.bench_function(name.as_str(), |b| {
+        in_place_executed = true;
+        b.iter(|| {
+            let (source, changes) = if is_updated {
+                (&updated_refs, &reverse)
+            } else {
+                (&old_refs, &changes)
+            };
+            rs.update(
+                black_box(source),
+                black_box(changes),
+                black_box(&mut parity_refs),
+            )
+            .unwrap();
+            is_updated = !is_updated;
+        });
+    });
+    group.finish();
+    drop(parity_refs);
+    assert_eq!(
+        parity.as_slice(),
+        if is_updated {
+            updated_parity.as_slice()
+        } else {
+            &original[case.data_shards..]
+        }
+    );
+    let neon_after = rust_neon_profile_stats();
+    if in_place_executed {
+        push_profile_record(
+            "update_in_place",
+            &name,
+            case,
+            &rs,
+            neon_after.saturating_sub(neon_before),
+        );
+    }
 }
 
 fn bench_reconstruct(c: &mut Criterion, case: BenchCase) {
@@ -311,7 +427,9 @@ fn bench_reconstruct(c: &mut Criterion, case: BenchCase) {
     group.throughput(Throughput::Bytes(throughput.try_into().unwrap()));
     rs.reset_runtime_profile_stats();
     let neon_before = rust_neon_profile_stats();
-    group.bench_function(name, |b| {
+    let mut executed = false;
+    group.bench_function(name.as_str(), |b| {
+        executed = true;
         b.iter(|| {
             let mut shards: Vec<Option<Vec<u8>>> = original.iter().cloned().map(Some).collect();
             shards[0] = None;
@@ -320,9 +438,13 @@ fn bench_reconstruct(c: &mut Criterion, case: BenchCase) {
         });
     });
     group.finish();
+    if !executed {
+        return;
+    }
     let neon_after = rust_neon_profile_stats();
     push_profile_record(
         "reconstruct",
+        &name,
         case,
         &rs,
         neon_after.saturating_sub(neon_before),
@@ -342,7 +464,9 @@ fn bench_reconstruct_data(c: &mut Criterion, case: BenchCase) {
     group.throughput(Throughput::Bytes(throughput.try_into().unwrap()));
     rs.reset_runtime_profile_stats();
     let neon_before = rust_neon_profile_stats();
-    group.bench_function(name, |b| {
+    let mut executed = false;
+    group.bench_function(name.as_str(), |b| {
+        executed = true;
         b.iter(|| {
             let mut shards: Vec<Option<Vec<u8>>> = original.iter().cloned().map(Some).collect();
             shards[0] = None;
@@ -351,9 +475,13 @@ fn bench_reconstruct_data(c: &mut Criterion, case: BenchCase) {
         });
     });
     group.finish();
+    if !executed {
+        return;
+    }
     let neon_after = rust_neon_profile_stats();
     push_profile_record(
         "reconstruct_data",
+        &name,
         case,
         &rs,
         neon_after.saturating_sub(neon_before),
@@ -363,9 +491,11 @@ fn bench_reconstruct_data(c: &mut Criterion, case: BenchCase) {
 fn smoke_matrix(c: &mut Criterion) {
     for case in SMOKE_CASES {
         bench_encode(c, *case);
-        bench_update(c, *case, &[0], "1_change");
-        if case.data_shards >= 2 {
-            bench_update(c, *case, &[0, 1], "2_changes");
+        for pattern in [UpdatePattern::Sparse, UpdatePattern::Dense] {
+            bench_update(c, *case, &[0], pattern);
+            if case.data_shards >= 2 {
+                bench_update(c, *case, &[0, 1], pattern);
+            }
         }
         bench_verify(c, *case);
         bench_reconstruct(c, *case);

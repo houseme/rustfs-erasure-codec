@@ -123,8 +123,39 @@ Repeated reconstruct planning reuse:
 Throughput matrix:
 
 ```bash
-cargo bench --bench throughput_matrix --features std
+cargo bench --locked --bench throughput_matrix --features "std simd-accel"
 ```
+
+Criterion calls its benchmark callback repeatedly during calibration and each
+sample. Keep retained source storage outside that callback, or initialize it
+once through an outer `Option`; putting construction outside `b.iter` alone does
+not make it benchmark-lived. Update views borrow the original immutable data and
+are prepared once; verification results are explicitly consumed.
+
+`throughput_matrix_update` includes output cloning, view construction and drop
+on each iteration. `throughput_matrix_update_in_place` retains its output and
+views, alternating valid forward/reverse transitions across all callback
+boundaries, including odd iteration counts. Both have one/two-change cases and
+sparse/dense inputs (`_dense` suffix). Keep the existing sparse IDs and compare
+only like-for-like caller lifetimes and patterns. Rates use logical complete
+stripe bytes for historical compatibility, not total memory traffic.
+
+```bash
+cargo bench --locked --bench throughput_matrix --features "std simd-accel" -- throughput_matrix_update
+```
+
+Short `--warm-up-time` / `--measurement-time` overrides are useful for functional
+and constructor-lifetime checks only. Criterion's independently calibrated counts
+and a shared development host do not establish formal repeatability or release
+acceptance. Prebuild all binaries before a measurement schedule; do not build or
+switch source between its phases. Use the complete Linux release-evidence
+collector for publication qualification and retain every failed control.
+
+The optional `throughput-profile-report` now uses schema 2, adds the full
+`benchmark` name, and contains only executed benchmarks. Its identity is
+`(operation, benchmark)`, which distinguishes change counts, patterns and caller
+lifetimes; `case` alone describes geometry. These counter records are separate
+from Criterion timing samples and from formal release evidence.
 
 Backend kernels:
 
