@@ -177,5 +177,76 @@ pub(super) fn resources() -> Vec<super::super::ResourceCase> {
         );
     }
     streams(&mut out);
+    update_cases::<rustfs_erasure_codec::galois_8::Field>(&mut out, "gf8");
+    update_cases::<rustfs_erasure_codec::galois_16::Field>(&mut out, "gf16");
     out
+}
+
+fn update_cases<F: Field>(out: &mut Vec<super::super::ResourceCase>, name: &str)
+where
+    F::Elem: super::super::ElementBytes,
+{
+    for (parity_count, len) in [
+        (2, 65),
+        (2, 64 * 1024),
+        (2, 1024 * 1024),
+        (2, 4 * 1024 * 1024 + 1),
+        (33, 65),
+    ] {
+        let codec = ReedSolomon::<F>::new(4, parity_count).unwrap();
+        let mut source = data::<F>(4, parity_count, len);
+        codec.encode(&mut source).unwrap();
+        for changed_count in 0..=2 {
+            let mut changed = source[..4].to_vec();
+            for index in [0, 3].into_iter().take(changed_count) {
+                for value in &mut changed[index] {
+                    *value = F::add(*value, F::one());
+                }
+            }
+            let mut expected = vec![vec![F::zero(); len]; parity_count];
+            codec.encode_sep(&changed, &mut expected).unwrap();
+            let refs: Vec<_> = source[..4].iter().map(Vec::as_slice).collect();
+            let changes = [
+                (changed_count > 0).then_some(changed[0].as_slice()),
+                None,
+                None,
+                (changed_count > 1).then_some(changed[3].as_slice()),
+            ];
+            let mut counts = Vec::with_capacity(3);
+            for index in 0..5 {
+                // Real parity and caller setup stay outside counting. Every
+                // repetition starts from the original, not already-updated parity.
+                let mut parity = source[4..].to_vec();
+                if index < 2 {
+                    codec.update(&refs, &changes, &mut parity).unwrap();
+                } else {
+                    counts.push(
+                        super::super::allocation::measure(|| {
+                            codec.update(&refs, &changes, &mut parity).unwrap()
+                        })
+                        .1,
+                    );
+                }
+                assert_eq!(
+                    parity, expected,
+                    "{name}, len={len}, changes={changed_count}"
+                );
+            }
+            let parity = expected
+                .iter()
+                .map(|shard| {
+                    let mut bytes = Vec::with_capacity(shard.len() * size_of::<F::Elem>());
+                    for &value in shard {
+                        super::super::ElementBytes::append_bytes(value, &mut bytes);
+                    }
+                    bytes
+                })
+                .collect();
+            out.push(super::super::ResourceCase {
+                id: format!("{name}/Classic/4+{parity_count}/{len}/update/changes={changed_count}"),
+                counts,
+                parity,
+            });
+        }
+    }
 }
