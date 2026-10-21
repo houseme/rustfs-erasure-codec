@@ -1,12 +1,21 @@
 # 9.1.0 release preparation
 
-Status at the 2026-10-21 audit: **prepared candidate, not tagged or uploaded**.
+Status at the 2026-10-22 audit: **prepared candidate, not tagged or uploaded**.
 The [current readiness assessment](release-9.1.0-blockers.md) is the canonical
 remaining-work list. It supersedes historical checklist snapshots, without
 changing their source bindings or promoting rejected measurements.
 
 ## Compatibility and functional review
 
+- Review the [incremental-update implementation and drift validation](drift-analysis-9.1.0-2026-10-22.md).
+  Empty updates keep full error validation and avoid scratch; changed updates
+  reuse the existing serial chunk policy and read matrix coefficients directly.
+  The existing ordinary-CI report covers 45 resource scenarios: the original 15
+  plus 30 update cases, including the 33-parity metadata-allocation boundary.
+  Identical chunks now skip parity arithmetic; reserve/extend computes scratch
+  directly without zero fill. Keep the sparse and dense Criterion cases and the
+  owned/in-place caller lifetimes separate. Constructor-count checks and local
+  service observations do not constitute formal timing acceptance.
 - Preserve normal encoded bytes and the existing field/matrix definitions. The
   [version delta](9.0.0-to-9.1.0-codec-delta.md) records the original 200-case
   comparison and source-bound allocation results. Refresh final-source checks;
@@ -53,9 +62,10 @@ python3 scripts/check_release_manifest.py --tag 9.1.0
       compatibility scope.
 - [ ] Establish a controlled condition or distinguishing observation for residual
       execution-service variability before a new full baseline campaign. The
-      complete protocol-15 and adjacent 9.0.0 self-controls failed 3/126 and 2/126
-      repeat checks respectively. The newer complete 4f2799e-tool qualification
-      refused an A2 distribution before its repeat gate. None is accepted
+      latest complete qualification failed 8/126 repeat checks despite passing
+      all 252 distributions. The subsequent forced diagnostic refused a 20.6528%
+      A1 distribution; candidate phases and complete repeat/regression checks
+      never started. Historical failures remain retained. None is accepted
       performance evidence. Fixed frequency, PMU and unique historical-cause
       attribution are not additional release conditions.
 - [ ] Freeze final source/lock/harness and qualify the complete baseline, retaining

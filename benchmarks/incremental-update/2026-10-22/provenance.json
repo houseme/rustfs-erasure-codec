@@ -1,0 +1,47 @@
+{
+  "schema": "incremental-update-drift-fix-provenance-v1",
+  "base_commit": "e671c0ac24f9deaf2ee2f1e5ebbd8358cd4d6133",
+  "candidate_state": "uncommitted complete branch; source hashes bind actual local validation, not release acceptance",
+  "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "target": "aarch64-apple-darwin",
+  "features": "std simd-accel for resource and Criterion functional checks",
+  "environment": {
+    "RUSTFLAGS": "",
+    "RAYON_NUM_THREADS": "4",
+    "RS_PARALLEL_POLICY_MAX_JOBS": "4"
+  },
+  "source_sha256": {
+    "Cargo.toml": "25378ee3b4d9b00c9c26eea254cc58d7c6d525f70f3ec873c4e52d544195e2f0",
+    "Cargo.lock": "443bdd3da0e6385e7b307f38885690c0cc463b360f8c15dd957f1bad5a9afb31",
+    "build.rs": "583cd71bd329d024512a3efcb0bf1d5d564064cb9454a04832bb338998edc841",
+    "src/core/encode.rs": "795a66598031a83acaf6f4f8de85c8898691929242eae8f8c97ba14624367451",
+    "tests/incremental_update_regressions.rs": "52d4ee37c0f16045d274c3ae557b7f1be95374423e4eeb69d59086e2fb78edf6",
+    "benches/throughput_matrix.rs": "de2269110707ce370de756e04d60f571b217f3aaed84ea110f6872a6c722f166",
+    "benches/common/mod.rs": "cfe39887469b96aa0b7edd70bb75894be6fdfacbdf91cbde6cb6d07fe459fb11",
+    "scripts/release-compatibility/Cargo.toml": "856204232f98e6aca259d86c57f4c87f65fbd21c823ffb1e087734c98b881423",
+    "scripts/release-compatibility/Cargo.lock": "03b72bfefcaaf1600a6bc57a1849fb6ed5bc998160ee3f2ea999c6699fa3dd6a",
+    "scripts/release-compatibility/src/main.rs": "414c68cfadad09127a78fa5c7431c71900b491430f7b1319d1d59e6cb8db7f03",
+    "scripts/release-compatibility/src/allocation.rs": "8b9a9fda13f147e1231040bcaa550a3c3485f56b8f96da21219b66bc4ce9f729",
+    "scripts/release-compatibility/src/probe.rs": "d01979024015f523cf2f7e3492fa4af3a5112f5e79499368e999b958e08bf4dc",
+    "scripts/release-compatibility/src/resource_probe.rs": "82bcae7b81d291ed79653f4893e1b3ef0319f527419712217f72a8debea838ab"
+  },
+  "reports_sha256": {
+    "resources.json": "67110c0bdcd1264b7dfbcfd34ddd940aaa986f5e06f3bf30aca6d025bee35f21",
+    "criterion-profile-context.json": "5ba95c19a8daeda68033b55b22e9cf8ac387713f3179b0aee7f4de27f4af01fc",
+    "service-summary.json": "f079512de89b5abab6e9210f8812c19a108250b250721d986dfb362d82a2f4db",
+    "fixture-construction.json": "dba4a60e08324e7cd0030e67ef7def24a7dae10755fde1fdaab20c212896f456",
+    "work-counts.json": "88b1e8f6faff63be9e9104a2479fed408a6c02bce2977fce472d5c8e967b0687"
+  },
+  "historical_review": {
+    "path": "previous-review/provenance.json",
+    "sha256": "0c672168819d3644f0420c99deb0fbf8d81967b9b9a7ca6e6ab82030df58aeb2",
+    "source_patch": "previous-review/source.patch",
+    "source_patch_sha256": "7db546bf10a6aebb66a9ece39b449548f8cb15ada02b89d0da8aee9205dd14b8"
+  },
+  "criterion_scope": "24 short sparse/dense and owned/in-place functional cases; no timing acceptance",
+  "service_control_scope": "pre-sparse same-binary diagnosis; not final candidate timing",
+  "resource_cases": 45,
+  "counted_resource_records": 270,
+  "latency_claim": null,
+  "release_approval": false
+}

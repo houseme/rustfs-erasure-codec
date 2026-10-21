@@ -1,0 +1,92 @@
+{
+  "schema": "incremental-update-local-validation-v1",
+  "source_provenance": "provenance.json",
+  "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "target": "aarch64-apple-darwin",
+  "tests": {
+    "final-workspace": {
+      "passed": 504,
+      "failed": 0,
+      "ignored": 43,
+      "exit_code": 0,
+      "count_policy": "last summary of each test executable; nested child summaries excluded"
+    },
+    "all-features": {
+      "passed": 526,
+      "failed": 0,
+      "ignored": 43,
+      "exit_code": 0,
+      "count_policy": "last summary of each test executable; nested child summaries excluded"
+    },
+    "no-std": {
+      "passed": 237,
+      "failed": 0,
+      "ignored": 0,
+      "exit_code": 0,
+      "count_policy": "last summary of each test executable; nested child summaries excluded"
+    },
+    "update-no-std": {
+      "passed": 5,
+      "failed": 0,
+      "ignored": 0,
+      "exit_code": 0,
+      "count_policy": "last summary of each test executable; nested child summaries excluded"
+    }
+  },
+  "python_gate_tests": {
+    "passed": 372,
+    "exit_code": 0
+  },
+  "compatibility": {
+    "normal_format_parity_roundtrips": 200,
+    "original_resource_cases": 15,
+    "update_resource_cases": 24,
+    "counted_records": 234,
+    "exit_code": 0
+  },
+  "wasm": {
+    "generated_release_build": true,
+    "typescript_check": true,
+    "node_tests_passed": 14,
+    "chrome_tests_passed": 8,
+    "initial_environment_failures": [
+      "sandbox loopback listen EPERM",
+      "default Playwright Chromium executable absent; existing Chrome used successfully"
+    ]
+  },
+  "checks_passed": [
+    "workspace all-target all-feature Clippy with warnings denied",
+    "independent compatibility workspace Clippy with warnings denied",
+    "Rust formatting including update probe",
+    "actionlint",
+    "typos",
+    "git diff --check",
+    "manifest tag 9.1.0"
+  ],
+  "package": {
+    "command": "cargo publish --dry-run --locked --registry crates-io --package rustfs-erasure-codec",
+    "source": "disposable non-Git copy of current source files",
+    "packaged_files": 96,
+    "verified_unpacked_source": true,
+    "upload_aborted_due_to_dry_run": true,
+    "allow_dirty": false,
+    "no_verify": false,
+    "exit_code": 0
+  },
+  "negative_regression": {
+    "original_main_failed_new_no_changes_tests": 2,
+    "gf8_no_change_65_elements": {
+      "allocation_calls": 1,
+      "requested_bytes": 65
+    },
+    "gf16_no_change_65_elements": {
+      "allocation_calls": 1,
+      "requested_bytes": 130
+    }
+  },
+  "candidate_remote_ci": "not run; local changes uncommitted",
+  "formal_performance_capture_executed": false,
+  "strict_release_preflight_executed": false,
+  "latency_claim": null,
+  "release_approval": false
+}

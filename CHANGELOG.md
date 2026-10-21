@@ -10,6 +10,21 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Skip identical Classic incremental-update chunks after complete validation.
+  Reserve one scratch buffer bounded by the existing serial chunk policy and
+  initialize it directly from differences, without a redundant zero-fill pass.
+  Empty and explicitly identical updates avoid scratch allocation; changed
+  updates read matrix coefficients directly without parity-row views. Preserve
+  field/matrix bytes, error ordering and the allocation-free single-parity path.
+  Add GF8/GF16 resource comparisons against published 9.0.0 to ordinary CI;
+  allocation reductions do not establish throughput or release acceptance.
+
+- Keep Criterion input owners and update reference preparation across callbacks,
+  consume verification booleans, and cover sparse/dense updates with distinct
+  owned/in-place output lifetimes. Export schema-2 profile records with complete
+  benchmark identifiers only for executed cases. Retain original per-call copy
+  costs and all formal release workloads, duration and stability gates.
+
 - Complete the remaining dynamic-storage observation mechanism in the existing
   fixture inventory: original calibration/measurement lifetimes, non-stream
   outputs, smoke/hotspot sources, Classic matrix scratch and Leopard cached work,
@@ -162,7 +177,7 @@ All notable changes to this project are documented in this file.
   data separate from formal performance evidence. Check both actual codec sources
   and zero observer allocation; retain the unobserved scratch/other-profile scope.
 
-## 9.1.0 (2026-10-18)
+## 9.1.0 (unreleased)
 
 ### Fixed
 - Fix formal worker placement in protocol 13: initialize codec and Rayon workers on the complete reservation, then pin only the measuring TID and check actual masks around every timer. Bind CPU, constructor budget and pool width across calibration/phases; make the caller inventory use the same preparation instead of controller-wide early pinning. Retain completed numeric observations with an invalid-affinity marker before aborting a post-timer failure. Preserve bounded, heap-free observation, original operation loops and all performance limits; require fresh evidence without claiming the residual service-time drift is solved.
