@@ -55,7 +55,7 @@ impl Drop for File {
     }
 }
 
-/// A live child handle and, on Unix, its newly-created process group.
+/// Retain the child identity until its newly-created process group is stopped.
 struct Process {
     child: Child,
     status: Option<ExitStatus>,
@@ -74,9 +74,78 @@ impl Process {
     }
     fn poll(&mut self) -> Result<Option<ExitStatus>> {
         if self.status.is_none() {
-            self.status = self.child.try_wait()?;
+            #[cfg(unix)]
+            {
+                // Observe exit without reaping: the child PID must continue to
+                // anchor its group until every remaining worker is signalled.
+                // SAFETY: siginfo_t is a C output record; all-zero fields are
+                // valid and distinguish WNOHANG's no-event result.
+                let mut info: libc::siginfo_t = unsafe { std::mem::zeroed() };
+                // SAFETY: this handle owns the unwaited child and `info` is a
+                // valid writable output. WNOWAIT preserves that ownership.
+                if unsafe {
+                    libc::waitid(
+                        libc::P_PID,
+                        self.child.id(),
+                        &mut info,
+                        libc::WEXITED | libc::WNOHANG | libc::WNOWAIT,
+                    )
+                } != 0
+                {
+                    return Err(std::io::Error::last_os_error().into());
+                }
+                if info.si_signo == 0 {
+                    return Ok(None);
+                }
+                // A wrapper may exit successfully or fail while its workers
+                // remain alive, including workers that ignored SIGTERM.
+                self.signal_group(libc::SIGKILL)?;
+                self.status = Some(self.child.wait()?);
+            }
+            #[cfg(not(unix))]
+            {
+                self.status = self.child.try_wait()?;
+            }
         }
         Ok(self.status)
+    }
+    #[cfg(unix)]
+    fn signal_group(&self, signal: libc::c_int) -> Result<()> {
+        let pid: libc::pid_t = self
+            .child
+            .id()
+            .try_into()
+            .map_err(|_| "child PID is out of range")?;
+        // SAFETY: spawn created this group and its unreaped leader still anchors
+        // its ID against reuse. Darwin cannot query an exited leader's getpgid;
+        // use the original group ID, never a worker's possibly changed group.
+        // No caller-supplied or reaped PID can reach this operation.
+        if unsafe { libc::kill(-pid, signal) } != 0 {
+            let error = std::io::Error::last_os_error();
+            #[cfg(target_os = "macos")]
+            if error.raw_os_error() == Some(libc::EPERM) {
+                // Darwin excludes zombies from group signalling and can return
+                // EPERM for a group containing only our exited leader. Prove
+                // that exact case; a real permission failure stays an error.
+                let mut members = [0 as libc::pid_t; 2];
+                // SAFETY: the output is writable for the declared byte length.
+                let count = unsafe {
+                    libc::proc_listpgrppids(
+                        pid,
+                        members.as_mut_ptr().cast(),
+                        std::mem::size_of_val(&members) as libc::c_int,
+                    )
+                };
+                if count == 1 && members[0] == pid {
+                    return Ok(());
+                }
+            }
+            // Some systems omit an already-exited leader from kill's targets.
+            if error.raw_os_error() != Some(libc::ESRCH) {
+                return Err(error.into());
+            }
+        }
+        Ok(())
     }
     fn signal(&mut self, force: bool) -> Result<()> {
         if self.poll()?.is_some() {
@@ -84,22 +153,7 @@ impl Process {
         }
         #[cfg(unix)]
         {
-            let pid: libc::pid_t = self
-                .child
-                .id()
-                .try_into()
-                .map_err(|_| "child PID is out of range")?;
-            // SAFETY: pid is positive and belongs to this still-live Child. Its
-            // process group was created at spawn; no arbitrary PID is accepted.
-            let group = unsafe { libc::getpgid(pid) };
-            if group != pid {
-                return Err("refuse to signal a process group not owned by this command".into());
-            }
-            // SAFETY: the live unreaped child anchors this new, owned group;
-            // negating its positive group ID cannot signal the caller's group.
-            if unsafe { libc::kill(-pid, if force { libc::SIGKILL } else { libc::SIGTERM }) } != 0 {
-                return Err(std::io::Error::last_os_error().into());
-            }
+            self.signal_group(if force { libc::SIGKILL } else { libc::SIGTERM })?;
         }
         #[cfg(not(unix))]
         {
@@ -213,6 +267,60 @@ mod tests {
         assert!(owned.finish().is_err());
         assert_eq!(fs::read_to_string(&path).unwrap(), "changed");
         fs::remove_dir_all(root).unwrap();
+    }
+    #[cfg(unix)]
+    #[test]
+    fn exited_leader_cannot_leave_a_background_worker_running() {
+        for code in [0, 7] {
+            let root = directory();
+            let mut command = Command::new("sh");
+            command.current_dir(&root).args([
+                "-c",
+                &format!(
+                    "(trap '' TERM; printf ready > ready; sleep 0.2; printf escaped > escaped) &\n\
+                     while [ ! -f ready ]; do :; done\nexit {code}"
+                ),
+            ]);
+            let outcome = run(command, &AtomicBool::new(false));
+            // The bounded background worker would publish after its leader exits.
+            // Let that deadline pass even if the controller already returned.
+            std::thread::sleep(Duration::from_millis(300));
+            let escaped = root.join("escaped").exists();
+            fs::remove_dir_all(&root).unwrap();
+            assert_eq!(outcome.result.is_ok(), code == 0);
+            assert!(outcome.reaped);
+            assert!(!escaped, "background worker survived leader exit {code}");
+        }
+    }
+    #[cfg(unix)]
+    #[test]
+    fn cancellation_cannot_leave_a_worker_that_ignores_term() {
+        let root = directory();
+        let mut command = Command::new("sh");
+        command.current_dir(&root).args([
+            "-c",
+            "(trap '' TERM; printf ready > ready; sleep 0.2; printf escaped > escaped) & wait",
+        ]);
+        let cancelled = AtomicBool::new(false);
+        let (outcome, ready) = std::thread::scope(|scope| {
+            let ready = scope.spawn(|| {
+                let deadline = Instant::now() + Duration::from_secs(2);
+                while !root.join("ready").exists() && Instant::now() < deadline {
+                    std::thread::sleep(Duration::from_millis(1));
+                }
+                let ready = root.join("ready").exists();
+                cancelled.store(true, Ordering::Relaxed);
+                ready
+            });
+            (run(command, &cancelled), ready.join().unwrap())
+        });
+        std::thread::sleep(Duration::from_millis(300));
+        let escaped = root.join("escaped").exists();
+        fs::remove_dir_all(&root).unwrap();
+        assert!(ready, "background worker did not start");
+        assert!(outcome.result.is_err());
+        assert!(outcome.reaped);
+        assert!(!escaped, "background worker survived cancellation");
     }
     #[cfg(unix)]
     #[test]
