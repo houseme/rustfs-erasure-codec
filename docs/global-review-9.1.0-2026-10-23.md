@@ -439,3 +439,59 @@ reports retain their original source identities; their measurements are not
 relabeled as timings for the merged tool or as codec performance acceptance.
 Version declarations remain 9.1.0, the changelog remains unreleased and final
 source-bound release evidence and strict positive preflight are still pending.
+
+## Complete layout analysis and one paired policy
+
+Functional commits `f5c8c24`, `7adcefe` and `cc73d76` move CPU-placement plans and
+analysis, Slot histograms, and complete verify-layout reports into the existing
+native helper. Review found two further duplicated rules: Slot built a synthetic
+Vec fixture for each histogram bucket, and diagnostic replay independently
+computed layout ratios and regression limits in Python. Both now use the shared
+Rust implementation. The same constants export the original paired protocol;
+its schema, integer/float median types, cell ordering and inclusive 5%/12%
+boundaries remain unchanged.
+
+The native analyzer validates the declared forward/reverse grid directly rather
+than constructing a second expected-row collection. Provenance fields borrow the
+input strings, and all source/clone positions use the formal buffer validator.
+Each complete CPU/Slot request crosses the helper boundary once. With the
+immutable contract cache primed, the fixed synthetic CPU fixture falls from 48
+frames to one and the Slot fixture from 24 to one, with identical outputs and
+unchanged inputs. These are request counts, not codec throughput measurements.
+
+Diagnostic comparisons retain all 256 cells whether qualified or unqualified.
+Failed quality never gains candidate attribution; diagnostic replay always withholds
+it, even when the layout gate passes. Capture, cancellation, source ownership,
+raw-journal binding and cleanup continue through the existing controllers.
+All 38 original subsystem tests passed before 17 pure cases moved to 13 native
+tests. Additional native and raw-evidence replay regressions protect diagnostic
+mode; 22 controller tests remain across these three suites.
+
+The current inventory is **34 Python files / 8,137 lines**, including 4,004
+production/helper lines and 4,133 test/fixture lines. This migration removes 349
+lines relative to `75bc034` (8,486), after preserving the independently merged VM
+observer checks. The original 56-file / 13,120-line inventory is reduced by about
+38%; all retained Python modules have active uses. The read-only audit retains
+579 JSON files / 2,833,273 bytes and eleven identical-byte groups with their
+separate historical paths. All five workspace members continue inheriting root
+dependencies. Core/WASM package allowlists remain 67/6 files, excluding all of
+these Python tools, JSON evidence, external tests and benchmarks.
+
+Final validation uses an independent checkout fixed at `cc73d76`, so concurrent
+shared-checkout changes cannot alter the tested source. All 143 optimized native
+tests (117 unit / 26 executable), 257 Python tests, strict tooling Clippy and
+x86_64 Linux compilation pass. The 2,115 original/native data/protocol comparisons
+and six source-bound diagnostic replays agree on complete values and refusal
+decisions without input mutation. The oracle Python files are byte-identical to
+`75bc034`; the local ignored `target/tooling-review-round12` retains their copies,
+comparison drivers and source bindings.
+
+The same checkout passes 517 core tests (43 existing ignored cases), ten doctests,
+no_std compilation, 200 exact 9.0.0/9.1.0 parity configurations and both decoding
+directions. Native probe checks pass for Slot (2), CPU placement (19) and portable
+verify layouts (2); the Linux-only timing test remains ignored on this host.
+Offline packaging builds the extracted 67-file crate successfully (191.9 KiB
+compressed). Formatting, workspace dependency and package allowlist audits pass.
+No production codec or build-script delta exists against the reviewed main.
+This establishes tooling and compatibility behavior, not new codec performance
+acceptance or permission to publish.

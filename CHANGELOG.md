@@ -24,6 +24,11 @@ All notable changes to this project are documented in this file.
   retain explicit backend overrides and existing NEON/AVX2 behavior, and verify
   generated kernel bytes directly even when automatic GFNI bypasses that path.
 
+- Consolidate CPU-placement, Slot-histogram and paired verify-layout analysis in
+  Rust. Share formal buffer checks and one exported layout protocol, batch whole
+  requests, and preserve exact numeric results, complete diagnostic comparisons,
+  raw-evidence replay and existing attribution gates.
+
 - Consolidate source and dynamic ownership-ledger validation in the native tool,
   share geometry/counter rules, prepare payload schedules once and track only
   live allocation generations. Preserve artifact-sized framed requests and
