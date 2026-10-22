@@ -16,6 +16,11 @@ changing their source bindings or promoting rejected measurements.
   directly without zero fill. Keep the sparse and dense Criterion cases and the
   owned/in-place caller lifetimes separate. Constructor-count checks and local
   service observations do not constitute formal timing acceptance.
+- Retain the [Linux native follow-through](drift-analysis-9.1.0-2026-10-22.md#linux-原生功能与有界服务验证):
+  eight incremental regressions, 200 normal-format compatibility cases and 45
+  stable resource scenarios pass on merged main. The four-worker baseline-only
+  diagnostic is a single-case window; its refused counter-alignment checks and
+  unclosed kernel-marker checks cannot qualify the full baseline or final ABBA.
 - Preserve normal encoded bytes and the existing field/matrix definitions. The
   [version delta](9.0.0-to-9.1.0-codec-delta.md) records the original 200-case
   comparison and source-bound allocation results. Refresh final-source checks;

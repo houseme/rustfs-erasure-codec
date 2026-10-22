@@ -1,0 +1,196 @@
+{
+  "schema": "linux-native-marker-service-control-v1",
+  "date": "2026-10-22",
+  "tool_commit": "c687e248ef9843ad2236cd1f1357219dec139020",
+  "published_baseline_commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+  "target": "x86_64-unknown-linux-gnu",
+  "native_backend": "rust-gfni-avx512",
+  "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "native_functional_validation": {
+    "incremental_regressions": 8,
+    "normal_format_compatibility_cases": 200,
+    "resource_cases": 45,
+    "counted_resource_records": 270,
+    "all_resource_repetitions_stable": true,
+    "source_changes_after_prebuild": false
+  },
+  "fixed_control": {
+    "profile": "small_file",
+    "case": "reconstruct:4:2:65536",
+    "worker_order": [
+      "U1",
+      "O1",
+      "O2",
+      "U2"
+    ],
+    "workers": 4,
+    "warmups_per_worker": 3,
+    "samples_per_worker": 9,
+    "iterations_per_observation": 262144,
+    "total_observations": 48,
+    "original_binary_unchanged": true,
+    "all_builds_before_quiet_period": true,
+    "quiet_seconds": 180,
+    "observer_alignment_bound_fraction": 0.05,
+    "all_original_observations_retained_privately": true,
+    "records_discarded": 0,
+    "one_attempt_no_retry": true
+  },
+  "workers": [
+    {
+      "label": "U1",
+      "external_marker_reads": false,
+      "central_spread": 0.01951674759759105,
+      "median_ns_per_iteration": 10286.55,
+      "thread_run_central_spread": 0.019778508361628852,
+      "thread_run_to_wall_range": [
+        0.9996081360061481,
+        0.9998988334389142
+      ],
+      "maximum_runnable_wait_fraction": 0.00007908509703546332,
+      "process_minor_faults": 0,
+      "process_major_faults": 0,
+      "short_samples": 0,
+      "caller_layout_matches_original": true,
+      "maximum_marker_boundary_uncertainty_fraction": null,
+      "marker_alignment_qualified": null
+    },
+    {
+      "label": "O1",
+      "external_marker_reads": true,
+      "central_spread": 0.019988937191604137,
+      "median_ns_per_iteration": 10015.54,
+      "thread_run_central_spread": 0.020023349735827364,
+      "thread_run_to_wall_range": [
+        0.9995731328932306,
+        0.9999505030177577
+      ],
+      "maximum_runnable_wait_fraction": 0.00011929541249203348,
+      "process_minor_faults": 0,
+      "process_major_faults": 0,
+      "short_samples": 0,
+      "caller_layout_matches_original": true,
+      "maximum_marker_boundary_uncertainty_fraction": 0.05302090021177918,
+      "marker_alignment_qualified": false
+    },
+    {
+      "label": "O2",
+      "external_marker_reads": true,
+      "central_spread": 0.02644695538742006,
+      "median_ns_per_iteration": 10318.39,
+      "thread_run_central_spread": 0.026128063292320845,
+      "thread_run_to_wall_range": [
+        0.9996088643216675,
+        0.9999304009006731
+      ],
+      "maximum_runnable_wait_fraction": 0.00010253607276884005,
+      "process_minor_faults": 0,
+      "process_major_faults": 0,
+      "short_samples": 0,
+      "caller_layout_matches_original": true,
+      "maximum_marker_boundary_uncertainty_fraction": 0.05316905781175923,
+      "marker_alignment_qualified": false
+    },
+    {
+      "label": "U2",
+      "external_marker_reads": false,
+      "central_spread": 0.02294717420858414,
+      "median_ns_per_iteration": 10298,
+      "thread_run_central_spread": 0.02289324657758178,
+      "thread_run_to_wall_range": [
+        0.9995963656145359,
+        0.9999752066308094
+      ],
+      "maximum_runnable_wait_fraction": 0.00009697078313886612,
+      "process_minor_faults": 0,
+      "process_major_faults": 0,
+      "short_samples": 0,
+      "caller_layout_matches_original": true,
+      "maximum_marker_boundary_uncertainty_fraction": null,
+      "marker_alignment_qualified": null
+    }
+  ],
+  "unobserved_repeat_absolute_drift": 0.0011131040047441297,
+  "independent_complete_replay": true,
+  "resource_restoration_verified": true,
+  "guard_checks": 313,
+  "physical_host_exclusivity_proven": false,
+  "scope": "Original-worker single-case timing control with conservative external-marker alignment checks; marker counter interpretation refused, no causal frequency or candidate attribution.",
+  "limitations": [
+    "Marker receipt can occur after the next operation starts; external reads may perturb that operation. U/O caller lifetimes and original work loops are identical, but observer overhead is not assumed zero.",
+    "Virtualized counter fidelity and physical-host cache/memory interference remain unproven.",
+    "Caller offsets do not identify dynamic output/internal allocations or physical cache placement.",
+    "This single-case diagnostic cannot qualify all 126 baseline cases or any candidate speed comparison.",
+    "No full baseline retry, candidate phase, layout supplement, accepted immutable evidence or strict positive release preflight was executed.",
+    "Two zero-codec kernel-marker capability checks did not close stdout byte counts; exposed tracepoint interfaces alone do not establish usable marker timing."
+  ],
+  "formal_qualification": false,
+  "candidate_attribution": null,
+  "release_approval": false,
+  "per_marker_counter_interpretation_qualified": false,
+  "unqualified_counter_values_retained_privately": true,
+  "kernel_marker_capability_checks": {
+    "checks": 2,
+    "codec_calls": 0,
+    "performance_samples": 0,
+    "stdout_byte_count_closure_verified": false,
+    "reliable_marker_capability_established": false,
+    "probe_processes_stopped": true,
+    "failed_check_records_preserved": true
+  },
+  "previous_failed_capture_unchanged": true,
+  "full_original_baseline_qualification_started": false,
+  "native_allocation_examples": [
+    {
+      "case": "gf8/Classic/4+2/1048576/update/changes=1",
+      "repetitions_per_version": 3,
+      "all_repetitions_identical": true,
+      "baseline": {
+        "alloc": 1,
+        "realloc": 0,
+        "dealloc": 1,
+        "requested_bytes": 1048576
+      },
+      "candidate": {
+        "alloc": 1,
+        "realloc": 0,
+        "dealloc": 1,
+        "requested_bytes": 65536
+      }
+    },
+    {
+      "case": "gf8/Classic/4+33/65/update/changes=1",
+      "repetitions_per_version": 3,
+      "all_repetitions_identical": true,
+      "baseline": {
+        "alloc": 2,
+        "realloc": 0,
+        "dealloc": 2,
+        "requested_bytes": 593
+      },
+      "candidate": {
+        "alloc": 1,
+        "realloc": 0,
+        "dealloc": 1,
+        "requested_bytes": 65
+      }
+    },
+    {
+      "case": "gf16/Classic/4+2/1048576/update/changes=1",
+      "repetitions_per_version": 3,
+      "all_repetitions_identical": true,
+      "baseline": {
+        "alloc": 1,
+        "realloc": 0,
+        "dealloc": 1,
+        "requested_bytes": 2097152
+      },
+      "candidate": {
+        "alloc": 1,
+        "realloc": 0,
+        "dealloc": 1,
+        "requested_bytes": 131072
+      }
+    }
+  ]
+}
