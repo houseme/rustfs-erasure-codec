@@ -66,31 +66,9 @@ def validate(data,case,iterations,page,current,native=False):
 
 
 def worker_report(rows,io,core,case,source,page,cpus,current):
-    normalized=views.underlying_records(rows)
-    sampling.validate_workload_sequence(normalized,'stream')
-    if len(rows)!=12 or len(io)!=12 or [r['kind'] for r in rows]!=['warmup']*3+['sample']*9:raise ValueError('incomplete original stream worker')
-    views.validate_samples(io,rows,2,page,require_counters=cpus is not None)
-    for index,(row,raw,view) in enumerate(zip(normalized,rows,io)):
-        if any(type(row[n]) is not int for n in ('index','iterations','calibration_batch')) or row['index']!=index or row['case']!=case or row['iterations']!=2 or row['calibration_batch']!=0 or row['isolated_case'] is not True or row['revision']!=source['commit']:raise ValueError('wrong original stream observation')
-        if set(e.indexed_rows('stream',row['rows'],source['commit'],{case:2},complete=False))!={case}:raise ValueError('wrong stream case rows')
-        sampling.validate_fixture(row,'stream',page);sampling.validate_timing(row,'stream',2)
-        if cpus is not None:
-            sampling.validate_telemetry(row,cpus);sampling.validate_placement(row,cpus)
-            for window in view['windows']:
-                for counters in (window['before'],window['after']):
-                    for i,field in enumerate(('process_minor_faults','process_major_faults','run_ns','wait_ns')):
-                        if not row['before'][field]<=counters[i]<=row['after'][field]:raise ValueError('I/O window counters escape original observation')
-        elif any(raw[n] is not None for n in ('before','after','placement')):raise ValueError('native stream samples require recorded affinity')
-    summary=validate(core,case,2,page,current,native=cpus is not None)
-    for event in core['events']:
-        if cpus is None:
-            if event['faults'] is not None:raise ValueError('unrecorded native source counters')
-        else:
-            row=rows[event['observation']]
-            for i,field in enumerate(('process_minor_faults','process_major_faults')):
-                if not row['before'][field]<=event['faults'][i]<=row['after'][field]:raise ValueError('source faults escape original stream observation')
-    e.observation_contracts('stream',rows)
-    return summary
+    return native_tools.request('diagnostic-worker', request=dict(rows=rows, profile='stream', case=case,
+        revision=source['commit'], page=page, cpus=None if cpus is None else list(cpus),
+        data=dict(kind='stream-core', ledger=core, views=io, current=current)))
 
 
 def _original(repository,source):

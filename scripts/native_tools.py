@@ -24,7 +24,7 @@ _provenance_keys = frozenset(PROVENANCE_FIELDS).union(
     key for aliases in _contract['provenance_aliases'].values() for key in aliases)
 _comparison_keys = _provenance_keys.union(CASE_FIELDS)
 _pure_requests = frozenset(('benchmark-rows','hotspot-rows','benchmark-provenance','provenance-field',
-                            'compatible-rows','observation-contracts','cpu-identity','memory-policy-validate','sampling','stream-views','diagnostic-ledger'))
+                            'compatible-rows','observation-contracts','cpu-identity','memory-policy-validate','sampling','stream-views','diagnostic-ledger','release-rows','diagnostic-worker'))
 _worker = None
 _worker_owner = None
 _worker_lock = threading.Lock()
@@ -178,6 +178,10 @@ def _normalized_rows(payload):
 def _rows(kind, **values):
     payload = _payload(dict(kind=kind, **values))
     return (json.loads(_normalized_rows(payload)) if len(payload)<65536 else _request_payload(payload))
+
+
+def index_release_rows(**values):
+    return _rows('release-rows', request=values)
 
 
 def index_records(rows, source='artifact', strict_provenance=False):

@@ -114,6 +114,24 @@ class WorkerContractTests(unittest.TestCase):
     def test_complete_numerical_worker_replays_without_private_logs(self):
         self.assertEqual(self.validate()['calls'],24)
 
+    def test_complete_worker_uses_one_native_frame(self):
+        with mock.patch.object(audit.native_tools,'_request_payload',wraps=audit.native_tools._request_payload) as transport:
+            self.assertEqual(self.validate()['calls'],24)
+        self.assertEqual(transport.call_count,1)
+
+    def test_release_row_cache_keeps_results_immutable_and_rechecks_context(self):
+        native=audit.native_tools;native._normalized_rows.cache_clear()
+        rows=self.rows[0]['rows'];revision=self.source['commit'];counts={CASE:2}
+        with mock.patch.object(native,'_request_payload',wraps=native._request_payload) as transport:
+            first=audit.e.indexed_rows('stream',rows,revision,counts,complete=False)
+            expected=copy.deepcopy(first)
+            first[CASE]['backend']='mutated returned value'
+            self.assertEqual(audit.e.indexed_rows('stream',rows,revision,counts,complete=False),expected)
+            self.assertEqual(transport.call_count,1)
+            with self.assertRaises(ValueError):audit.e.indexed_rows('stream',rows,revision,{CASE:3},complete=False)
+            bad=copy.deepcopy(rows);bad[0]['schema_version']=True
+            with self.assertRaises(ValueError):audit.e.indexed_rows('stream',bad,revision,counts,complete=False)
+
     def test_recomputed_member_digests_cannot_hide_wrong_runtime_or_counters(self):
         original=copy.deepcopy(self.data)
         for change in (lambda d:d['samples'][1]['rows'][0].update(backend_id='changed'),

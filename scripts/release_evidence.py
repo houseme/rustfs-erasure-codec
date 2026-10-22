@@ -11,7 +11,6 @@ from contextlib import ExitStack
 import argparse
 import hashlib
 import json
-import math
 import os
 import pathlib
 import platform
@@ -20,7 +19,6 @@ import shutil
 import subprocess
 import statistics
 import time
-import copy
 
 import release_sampling as sampling
 import native_tools
@@ -202,45 +200,13 @@ def rows(profile, path, revision, iteration_counts=None):
 
 
 def indexed_rows(profile, original, revision, iteration_counts=None, complete=True):
-    if profile == "hotspot":
-        indexed = index_results(copy.deepcopy(original), METRICS[profile])
-    else:
-        normalized = index_records(original, "release evidence")
-        indexed = {":".join(key).rstrip(":"): value for key, value in normalized.items()}
-        for row in original:
-            recorded = row.get("git_revision")
-            if not isinstance(recorded, str) or not re.fullmatch(r"[0-9a-f]{7,40}", recorded) or not revision.startswith(recorded):
-                raise ValueError("benchmark revision does not match the measured source")
-    if (complete and set(indexed) != expected_cases(profile)) or not set(indexed).issubset(expected_cases(profile)):
-        raise ValueError(f"{profile}: incomplete or unexpected release case catalog")
-    for case, row in zip(indexed, original):
-        if type(row.get("schema_version")) is not int or row["schema_version"] != 1 or row.get("benchmark_metrics_enabled") is not False:
-            raise ValueError("release artifacts require schema 1 and disabled instrumentation")
-        if profile == "hotspot" and any(field not in row for field in CASE_FIELDS):
-            raise ValueError("missing hotspot workload fields")
-        if profile != "hotspot":
-            required = ("target_triple", "backend", "backend_id", "backend_kind", "backend_override", "override_honored", "features")
-            if any(provenance_value(row, field) is None for field in required):
-                raise ValueError("missing native benchmark provenance")
-            # Schema 1 smoke exports no profile label. Its full case catalog,
-            # exact iterations and captured settings bind the extended profile.
-            expected_profile = "extended" if profile == "smoke" else "fast"
-            if profile != "smoke" and row.get("profile") != expected_profile:
-                raise ValueError("unexpected benchmark profile")
-            if "profile" in row and row["profile"] != expected_profile:
-                raise ValueError("unexpected benchmark profile")
-            iteration_setting = {"smoke": "RSE_SMOKE_ITERATIONS", "small_file": "RSE_SMALL_FILE_ITERATIONS", "stream": "RSE_STREAM_ITERATIONS"}[profile]
-            expected_iterations = iteration_counts[case] if iteration_counts is not None else int(BASE_ENV[iteration_setting])
-            if type(row.get("iterations")) is not int or row["iterations"] != expected_iterations:
-                raise ValueError("benchmark iterations differ from captured settings")
-            if provenance_value(row, "features") != "simd-accel|std":
-                raise ValueError("unexpected features or benchmark profile")
-        if row.get("artifact_kind") != KINDS[profile]:
-            raise ValueError("wrong benchmark artifact kind")
-        number = row.get(METRICS[profile])
-        if isinstance(number, bool) or not isinstance(number, (int, float)) or not math.isfinite(number) or number <= 0:
-            raise ValueError("release metrics must be finite and positive")
-    return indexed
+    defaults={'smoke':'RSE_SMOKE_ITERATIONS','small_file':'RSE_SMALL_FILE_ITERATIONS','stream':'RSE_STREAM_ITERATIONS'}
+    default=int(BASE_ENV[defaults[profile]]) if profile in defaults and iteration_counts is None else None
+    normalized=native_tools.index_release_rows(profile=profile, rows=original, revision=revision,
+        iteration_counts=iteration_counts, default_iterations=default, complete=complete)
+    return {(row['scenario'] if profile=='hotspot' else ':'.join(row[k] for k in
+             ('operation','data_shards','parity_shards','shard_size','stream_block_size')).rstrip(':')):row
+            for row in normalized}
 
 
 def compatible(profile, left, right):
