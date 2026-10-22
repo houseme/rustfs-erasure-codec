@@ -1,10 +1,16 @@
 //! Source-bound workload and retained-buffer contracts, shared with the renderer.
 use crate::{Args, Result, artifact, diagnostics::catalog};
 use serde::Deserialize;
+use std::borrow::Borrow;
+
+mod batch;
+mod protocol;
 use serde_json::{Value, json};
 
 #[path = "../../scripts/release-sampling/service_window.rs"]
 mod service_window;
+pub(crate) const CENTRAL_SPREAD_LIMIT: f64 = 0.10;
+pub(crate) const REPEAT_DRIFT_LIMIT: f64 = 0.05;
 pub(crate) const MINIMUM_WALL_NS: u64 = service_window::MINIMUM_WALL_NS;
 pub(crate) const MINIMUM_TIMED_NS: u64 = service_window::MINIMUM_TIMED_NS;
 
@@ -32,6 +38,9 @@ const COUNTERS: &[&str] = &[
 #[serde(tag = "operation", rename_all = "kebab-case", deny_unknown_fields)]
 pub(crate) enum Request {
     Catalog,
+    Batch {
+        request: batch::Request,
+    },
     WorkloadContract {
         profile: String,
         case: String,
@@ -90,8 +99,11 @@ pub(crate) enum Request {
 impl Request {
     pub(crate) fn execute(self) -> Result<Value> {
         match self {
+            Self::Batch { request } => return request.execute(),
             Self::Catalog => {
                 return Ok(json!({
+                    "protocol": protocol::value(),
+                    "repeat_drift_limit": REPEAT_DRIFT_LIMIT,
                     "service_window": {
                         "target_wall_ns": service_window::TARGET_WALL_NS,
                         "target_timed_ns": service_window::TARGET_TIMED_NS,
@@ -537,10 +549,11 @@ fn workload_matches(record: &Value, profile: &str, case: &str, expected: &Value)
     }
     Ok(())
 }
-fn workload_sequence(records: &[Value], profile: &str) -> Result<()> {
+fn workload_sequence<T: Borrow<Value>>(records: &[T], profile: &str) -> Result<()> {
     use std::collections::{BTreeMap, btree_map::Entry};
     let mut contracts = BTreeMap::new();
     for record in records {
+        let record = record.borrow();
         let case = text(&record["case"], "missing workload case")?;
         let expected = match contracts.entry(case) {
             Entry::Occupied(entry) => entry.into_mut(),
@@ -550,7 +563,8 @@ fn workload_sequence(records: &[Value], profile: &str) -> Result<()> {
     }
     if profile == "hotspot"
         && records.windows(2).any(|pair| {
-            pair[0]["workload"]["rng"]["next_after"] != pair[1]["workload"]["rng"]["next_before"]
+            pair[0].borrow()["workload"]["rng"]["next_after"]
+                != pair[1].borrow()["workload"]["rng"]["next_before"]
         })
     {
         return Err("random stream was reset or changed inside a worker".into());
@@ -804,8 +818,8 @@ fn calibration(records: &[Value], count: u64, batch: u64) -> Result<Value> {
     }
     Ok(json!(following))
 }
-fn worker(
-    records: &[Value],
+fn worker<T: Borrow<Value>>(
+    records: &[T],
     profile: &str,
     count: u64,
     cpus: Option<&[u64]>,
@@ -814,6 +828,7 @@ fn worker(
     workload_sequence(records, profile)?;
     if records.len() != 12
         || records.iter().enumerate().any(|(i, r)| {
+            let r = r.borrow();
             r["kind"] != if i < 3 { "warmup" } else { "sample" }
                 || r["index"].as_u64() != Some(i as u64)
         })
@@ -821,8 +836,9 @@ fn worker(
         return Err("every fixed warmup and sample is required".into());
     }
     for record in records {
+        let record = record.borrow();
         observation(record, profile, count, cpus, page)?;
-        if record["fixture"] != records[0]["fixture"] {
+        if record["fixture"] != records[0].borrow()["fixture"] {
             return Err("fixture layout changed inside a measurement worker".into());
         }
         if record["iterations"].as_u64() != Some(count)
@@ -901,7 +917,7 @@ mod tests {
     use sha2::{Digest, Sha256};
     use std::collections::BTreeMap;
 
-    fn record(profile: &str, case: &str, index: u64) -> Value {
+    pub(super) fn record(profile: &str, case: &str, index: u64) -> Value {
         let mut workload = workload_contract(profile, case).unwrap();
         let mut row = json!({"seed":workload["seed"],"ns_per_iter":200_000_000.0});
         let mut timed = 200_000_000.0;
