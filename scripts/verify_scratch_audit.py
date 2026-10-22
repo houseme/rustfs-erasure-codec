@@ -76,26 +76,9 @@ def validate(data,case,iterations,page,native=False):
 
 
 def worker_report(rows,observed,profile,case,source,page,cpus):
-    counts={case:2}
-    sampling.validate_workload_sequence(rows,profile)
-    if [r['kind'] for r in rows]!=['warmup']*3+['sample']*9 or any(any(type(r[k]) is not int for k in ('index','iterations','calibration_batch')) or r['calibration_batch']!=0 or r['isolated_case'] is not True for r in rows):raise ValueError('incomplete original observation schedule')
-    if [r['index'] for r in rows]!=list(range(12)) or any(r['case']!=case or r['iterations']!=2 or r['revision']!=source['commit'] for r in rows):raise ValueError('wrong original verify workload')
-    for row in rows:
-        if set(evidence.indexed_rows(profile,row['rows'],source['commit'],counts,complete=False))!={case}:raise ValueError('wrong raw verify case')
-        sampling.validate_fixture(row,profile,page)
-        sampling.validate_timing(row,profile,2)
-        if cpus is not None:sampling.validate_telemetry(row,cpus);sampling.validate_placement(row,cpus)
-    if any(r['fixture']!=rows[0]['fixture'] for r in rows):raise ValueError('caller fixture changed inside diagnostic worker')
-    summary=validate(observed,case,2,page,native=cpus is not None)
-    if cpus is None:
-        if any(r[k] is not None for r in rows for k in ('before','after','placement')) or any(e['faults'] is not None for e in observed['events']):raise ValueError('native observations require recorded affinity')
-    else:
-        for event in observed['events']:
-            row=rows[event['observation']]
-            for i,field in enumerate(('process_minor_faults','process_major_faults')):
-                if not row['before'][field]<=event['faults'][i]<=row['after'][field]:raise ValueError('scratch counters escape original observation')
-    evidence.observation_contracts(profile,rows)
-    return summary
+    return native_tools.request('diagnostic-worker', request=dict(rows=rows, profile=profile, case=case,
+        revision=source['commit'], page=page, cpus=None if cpus is None else list(cpus),
+        data=dict(kind='verify-scratch', ledger=observed)))
 
 
 def verify(output,repository):

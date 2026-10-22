@@ -124,31 +124,9 @@ def validate_envelope(report,output,repository):
         if begin!={'stage':'begin','step':step,'context':context} or end!={'stage':'end','step':step,'context':context,'entry':entry}:raise ValueError('dynamic execution order/context/member differs')
 
 def worker_report(rows,ledger,profile,case,source,page,cpus,mode):
-    rows=underlying_records(rows)
-    if mode not in MODES or len(rows)!=12:raise ValueError('require complete diagnostic mode observations')
-    kinds=(['calibration_warmup']*3+['calibration']*9) if mode=='calibrate' else (['warmup']*3+['sample']*9)
-    if [r['kind'] for r in rows]!=kinds:raise ValueError('wrong diagnostic mode schedule')
-    s.validate_workload_sequence(rows,profile)
-    for index,row in enumerate(rows):
-        if row['revision']!=source['commit'] or row['case']!=case or row['index']!=index or type(row['index']) is not int or type(row['iterations']) is not int or row['iterations']!=2 or type(row['calibration_batch']) is not int or row['calibration_batch']!=(1 if mode=='calibrate' else 0) or row['isolated_case'] is not True:raise ValueError('wrong original dynamic worker')
-        if set(e.indexed_rows(profile,row['rows'],source['commit'],{case:2},complete=False))!={case}:raise ValueError('dynamic original raw case differs')
-        s.validate_fixture(row,profile,page);s.validate_timing(row,profile,2)
-        if cpus is not None:s.validate_telemetry(row,cpus);s.validate_placement(row,cpus)
-        elif any(row[k] is not None for k in ('before','after','placement')):raise ValueError('native worker lacks recorded affinity')
-    if mode=='calibrate':s.calibration_batch(rows,2,1)
-    e.observation_contracts(profile,rows)
-    result=validate_ledger(ledger,profile,case,page,native=cpus is not None,legacy=source['commit']==e.BASELINE_COMMIT)
-    for event in ledger['events']:
-        if event['kind']=='view' and event['call'] and event['role'] in ('source','scratch') and event['stage']=='retained':
-            row=rows[event['observation']];position=row['fixture'][event['role']][event['index']]
-            if event['len']!=position['len'] or event['capacity']!=position['capacity'] or event['offsets']!=[position['offset_64'],position['offset_4096'],position['offset_page']]:raise ValueError('dynamic view differs from original retained caller fixture')
-    if cpus is not None:
-        for event in ledger['events']:
-            if event['kind']=='view' and event['call']:
-                row=rows[event['observation']]
-                for i,field in enumerate(('process_minor_faults','process_major_faults')):
-                    if not row['before'][field]<=event['faults'][i]<=row['after'][field]:raise ValueError('dynamic counters escape original observation')
-    return result
+    return native_tools.request('diagnostic-worker', request=dict(rows=rows, profile=profile, case=case,
+        revision=source['commit'], page=page, cpus=None if cpus is None else list(cpus), mode=mode,
+        data=dict(kind='dynamic', ledger=ledger, legacy=source['commit']==e.BASELINE_COMMIT)))
 
 
 def original_inputs(repository,source):
