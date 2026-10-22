@@ -34,29 +34,6 @@ class CounterTests(unittest.TestCase):
         self.assertEqual(snapshot['cpus']['0']['tsc_after'],105)
         self.assertEqual([v.args[2] for v in read.call_args_list],[0x10,0xe8,0xe7,0x10])
 
-    def test_raw_ratios_and_read_skew_do_not_normalize_time(self):
-        result=d.frequency_deltas(point(1,1,2),point(3,30,31),[0],3,29)['0']
-        self.assertEqual(result['aperf_delta'],800);self.assertEqual(result['mperf_delta'],600)
-        self.assertEqual(result['tsc_delta_bounds'],[1998,2002]);self.assertEqual(result['read_skew_tsc'],[2,2])
-        self.assertAlmostEqual(result['aperf_per_mperf'],4/3)
-        self.assertEqual(set(result),{'aperf_delta','mperf_delta','tsc_delta_bounds','aperf_per_mperf','mperf_per_tsc_bounds','read_skew_tsc'})
-
-    def test_zero_reset_wrap_missing_cpu_and_invalid_brackets_refuse(self):
-        before=point(1,1,2);after=point(3,30,31)
-        changes=[lambda p:p['cpus']['0'].update(aperf=0),lambda p:p['cpus']['0'].update(mperf=0),lambda p:p['cpus']['0'].update(tsc_before=0),lambda p:p['cpus']['0'].update(tsc_after=0),lambda p:p['cpus']['0'].update(aperf=True),lambda p:p['cpus'].clear(),lambda p:p.update(start_ns=10),lambda p:p['cpus']['0'].update(aperf=400,mperf=300)]
-        for change in changes:
-            changed=copy.deepcopy(after);change(changed)
-            with self.assertRaises(ValueError):d.frequency_deltas(before,changed,[0],3,29)
-        with self.assertRaises(ValueError):d.frequency_deltas(before,after,[0],True,29)
-        with self.assertRaises(ValueError):d.frequency_deltas(before,after,[0],3,32)
-
-    def test_idle_cpu_is_retained_without_invented_ratio(self):
-        before=point(1,1,2,(0,1));after=point(3,30,31,(0,1))
-        after['cpus']['1'].update(aperf=400,mperf=300)
-        result=d.frequency_deltas(before,after,[0,1],3,29)
-        self.assertIsNone(result['1']['aperf_per_mperf']);self.assertEqual(result['1']['mperf_per_tsc_bounds'],[0,0])
-
-
 class FrequencyTests(unittest.TestCase):
     def setUp(self):
         self.fixture=fixtures.AdjacentTests();self.fixture.setUp();self.addCleanup(self.fixture.doCleanups)

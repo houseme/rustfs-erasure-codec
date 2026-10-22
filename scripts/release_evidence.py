@@ -17,7 +17,6 @@ import platform
 import re
 import shutil
 import subprocess
-import statistics
 import time
 
 import release_sampling as sampling
@@ -603,20 +602,7 @@ def prepare_capture_source(overlays, root, env, log_path, *, render=None):
 
 
 def baseline_service_times(records):
-    """Summarize retained samples only; measured thread time is not host CPU cycles."""
-    cases = {}
-    for row in records:
-        if row["kind"] == "sample": cases.setdefault(row["case"], []).append(row)
-    return {case: {
-        "timed_ns_per_iteration": statistics.median(r["timed_ns"]/r["iterations"] for r in rows),
-        "wall_ns_per_iteration": statistics.median(r["wall_ns"]/r["iterations"] for r in rows),
-        "thread_run_ns_per_iteration": statistics.median((r["after"]["run_ns"]-r["before"]["run_ns"])/r["iterations"] for r in rows),
-        "maximum_runnable_wait_fraction": max((r["after"]["wait_ns"]-r["before"]["wait_ns"])/r["wall_ns"] for r in rows),
-        "process_minor_faults_per_iteration": [
-            (r["after"]["process_minor_faults"]-r["before"]["process_minor_faults"])/r["iterations"] for r in rows],
-        "process_major_faults_per_iteration": [
-            (r["after"]["process_major_faults"]-r["before"]["process_major_faults"])/r["iterations"] for r in rows],
-    } for case, rows in sorted(cases.items())}
+    return native_tools.request('baseline-analysis', request=dict(operation='service-times', records=records))
 
 
 def qualify_baseline(baseline, output, group):

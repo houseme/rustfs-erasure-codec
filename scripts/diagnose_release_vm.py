@@ -4,11 +4,9 @@ import argparse
 from contextlib import ExitStack
 import time
 import diagnose_adjacent_baseline as adjacent
-import copy
 import json
 import os
 import pathlib
-import statistics
 import subprocess
 
 import release_evidence as evidence
@@ -17,107 +15,26 @@ import native_tools
 
 
 def basic_records(records, *, native_service_clock=False):
-    """Validate timing with the shared contract while retaining full raw records."""
-    result=copy.deepcopy(records)
-    for record in result:
-        for side in ('before','after'):
-            point=record[side]
-            process=point.pop('process')
-            if native_service_clock:native_clock_point(process.get('service_clock'))
-            if process.get('available') is not True or process.get('complete') is not True:
-                raise ValueError('incomplete process observation')
-            if not process.get('threads') or len({r['slot'] for r in process['threads']})!=len(process['threads']):
-                raise ValueError('invalid anonymous thread set')
-            if sum(r['measuring_thread'] is True for r in process['threads'])!=1:
-                raise ValueError('one measuring thread is required')
-            for key in ('minor_faults','major_faults','snapshot_ns'):
-                if type(process.get(key)) is not int or process[key]<0:raise ValueError('invalid process counters')
-            for thread in process['threads']:
-                if type(thread.get('measuring_thread')) is not bool:raise ValueError('invalid measuring-thread flag')
-                for key in ('slot','cpu','minor_faults','major_faults','run_ns','wait_ns','timeslices'):
-                    if type(thread.get(key)) is not int or thread[key]<0:raise ValueError('invalid thread counters')
+    """Validate and copy bounded batches without changing the raw snapshots."""
+    result = []
+    for offset in range(0, len(records), 64):
+        result.extend(native_tools.request('vm-analysis', request=dict(operation='basic',
+            records=records[offset:offset+64], native_service_clock=native_service_clock)))
     return result
 
 
-def analyze(records,profile, *, native_service_clock=False):
-    groups={}
-    for record in records:
-        if record['kind']=='sample':groups.setdefault(record['case'],[]).append(record)
-    result=[]
-    for case,group in groups.items():
-        if len(group)!=sampling.PROTOCOL['samples']:raise ValueError('incomplete diagnostic samples')
-        values=[r['timed_ns']/r['iterations'] for r in group]
-        median=statistics.median(values);trace=[]
-        for record,value in zip(group,values):
-            before,after=(record[s]['process'] for s in ('before','after'))
-            old={r['slot']:r for r in before['threads']};new={r['slot']:r for r in after['threads']}
-            shared=old.keys()&new.keys();stable=old.keys()==new.keys()
-            # Another thread's progress cannot cancel a live thread's reset.
-            if any(new[t][key]<old[t][key] for t in shared for key in ('run_ns','wait_ns','timeslices')):
-                raise ValueError('thread counters reset')
-            deltas={key:sum(new[t][key]-old[t][key] for t in shared) for key in ('run_ns','wait_ns','timeslices')}
-            fault_delta={key:after[key]-before[key] for key in ('minor_faults','major_faults')}
-            if any(v<0 for v in fault_delta.values()):raise ValueError('process fault counters reset')
-            trace.append({'index':record['index'],'relative_ns':value/median,'timed_ms':record['timed_ns']/1e6,
-                'wall_ms':record['wall_ns']/1e6,'interval_sufficient':record['wall_ns']>=sampling.PROTOCOL['minimum_wall_ns'] and record['timed_ns']>=sampling.PROTOCOL['minimum_timed_ns'],'process_faults':fault_delta,'stable_thread_set':stable,
-                'thread_count':len(new),'shared_thread_run_ms':deltas['run_ns']/1e6,'shared_thread_wait_ms':deltas['wait_ns']/1e6,
-                'thread_cpu_migrations':sum(old[t]['cpu']!=new[t]['cpu'] for t in shared),
-                'observer_ms':(before['snapshot_ns']+after['snapshot_ns'])/1e6})
-            clock=native_window_summary(record)
-            if native_service_clock and clock is None:raise ValueError('native service-clock observation is missing')
-            if clock is not None:trace[-1]['native_service_clock']=clock
-        ordered=sorted(values)
-        result.append({'profile':profile,'case':case,'central_ns_spread':(ordered[-2]-ordered[1])/median,'samples':trace})
-    return result
+def analyze(records, profile, *, native_service_clock=False):
+    return native_tools.request('vm-analysis', request=dict(operation='analyze',
+        records=records, profile=profile, native_service_clock=native_service_clock))
 
 
-NATIVE_CLOCK_SCHEMA='native-service-clock-v1'
-NATIVE_ALIGNMENT_LIMIT=.05  # Diagnostic interpretation only; not a release gate.
-NATIVE_CLOCK_TEMPLATE=pathlib.Path(__file__).resolve().parent/'diagnostics/native_service_clock.rs'
-NATIVE_CLOCK_SCOPE='synchronous guest measuring-CPU counters enclosing original wall windows; includes observer/setup service; virtualized fidelity and physical-host exclusivity unproven; no exclusive API cycles, GHz inference or timing normalization'
+_VM_CONTRACT = native_tools.request('vm-analysis', request=dict(operation='contract'))
+NATIVE_CLOCK_SCHEMA = _VM_CONTRACT['schema']
 
 
 def native_clock_render(root):
     """Change only the separate process observer, never a formal timer/kernel."""
     return native_tools.diagnostic_render(root,'native-service-clock')
-
-
-def native_clock_point(point):
-    if not isinstance(point,dict) or point.get('schema')!=NATIVE_CLOCK_SCHEMA or type(point.get('available')) is not bool:
-        raise ValueError('invalid native service-clock point')
-    expected={'schema','start_ns','end_ns','available'}|({'cpu','counters'} if point['available'] else {'reason','errno'})
-    if set(point)!=expected or any(type(point.get(k)) is not int or point[k]<0 for k in ('start_ns','end_ns')) or point['end_ns']<point['start_ns']:
-        raise ValueError('invalid native service-clock read bounds')
-    if point['available']:
-        if type(point['cpu']) is not int or point['cpu']<0 or not isinstance(point['counters'],dict) or set(point['counters'])!=set(MSRS) or any(type(v) is not int or not 0<=v<2**64 for v in point['counters'].values()):
-            raise ValueError('invalid native service counters')
-    elif point['reason'] not in ('unsupported','configuration','io','short-read') or point['errno'] is not None and (type(point['errno']) is not int or point['errno']<=0):
-        raise ValueError('invalid native service-clock failure')
-    return point
-
-
-def native_window_summary(record):
-    points=[record[side]['process'].get('service_clock') for side in ('before','after')]
-    if points==[None,None]:return None
-    before,after=[native_clock_point(p) for p in points]
-    wall=record['wall_ns']
-    if type(wall) is not int or wall<=0 or before['end_ns']>after['start_ns'] or after['start_ns']-before['end_ns']<wall:
-        raise ValueError('native counter reads do not enclose the original wall window')
-    fraction=(after['end_ns']-before['start_ns']-wall)/wall
-    result={'interpretation_qualified':False,'enclosure_overhead_fraction':fraction,
-            'alignment_limit':NATIVE_ALIGNMENT_LIMIT,'scope':NATIVE_CLOCK_SCOPE,
-            'exclusive_api_cycles':False,'time_normalization':False,'counters':None}
-    if not all(p['available'] for p in (before,after)):
-        result['refusal']='counter-unavailable';return result
-    cpu=record['placement']['cpu']
-    if type(cpu) is not int or any(p['cpu']!=cpu for p in (before,after)):
-        raise ValueError('native counters do not belong to the measuring CPU')
-    def snapshot(p):return {'start_ns':p['start_ns'],'end_ns':p['end_ns'],'cpus':{str(cpu):p['counters']}}
-    counters=frequency_deltas(snapshot(before),snapshot(after),[cpu],before['end_ns'],after['start_ns'])
-    if fraction>NATIVE_ALIGNMENT_LIMIT:
-        result['refusal']='counter-enclosure-too-wide';return result
-    result.update(interpretation_qualified=True,counters=counters)
-    return result
 
 
 def probe_native_clock(baseline,env,output):
@@ -132,18 +49,8 @@ def probe_native_clock(baseline,env,output):
     return {'codec_calls':0,'log_sha256':evidence.digest(path.read_bytes()),'summary':summary}
 
 
-def parse_native_probe(text,cpu):
-    prefix='RSE_NATIVE_CLOCK_PROBE '
-    lines=[line for line in text.splitlines(keepends=True) if line.startswith(prefix)]
-    if len(lines)!=1 or not lines[0].endswith('\n'):
-        raise ValueError('one complete zero-codec clock probe is required')
-    raw=json.loads(lines[0][len(prefix):])
-    if not isinstance(raw,dict) or set(raw)!={'wall_ns','before','after'}:raise ValueError('invalid zero-codec clock probe')
-    summary=native_window_summary({'wall_ns':raw['wall_ns'],'placement':{'cpu':cpu},
-                                  'before':{'process':raw['before']},'after':{'process':raw['after']}})
-    if summary is None or not summary['interpretation_qualified']:
-        raise ValueError('zero-codec native service-clock capability was not established')
-    return summary
+def parse_native_probe(text, cpu):
+    return native_tools.request('vm-analysis', request=dict(operation='probe', text=text, cpu=cpu))
 
 
 def capture(baseline,output,group, *, native_service_clock=False, probe_only=False):
@@ -181,8 +88,10 @@ def capture(baseline,output,group, *, native_service_clock=False, probe_only=Fal
                     path=output/(profile+'-counts.tsv');path.write_text(''.join(f'{k}\t{v}\n' for k,v in sorted(counts[profile].items())))
                     records=sampling.run_profile(baseline,env,profile,'sample',output/(profile+'.log'),path,cases=evidence.expected_cases(profile))
                     adjacent.dump(output/(profile+'-samples.json'),records)
-                    sampling.sample_groups(basic_records(records,native_service_clock=native_service_clock),profile,source['commit'],evidence.expected_cases(profile),counts[profile],context['isolation']['cpu_affinity'])
-                    report['cases'].extend(analyze(records,profile,native_service_clock=native_service_clock))
+                    prepared = native_tools.request('vm-analysis', request=dict(operation='prepare',
+                        records=records, profile=profile, native_service_clock=native_service_clock))
+                    sampling.sample_groups(prepared['basic'],profile,source['commit'],evidence.expected_cases(profile),counts[profile],context['isolation']['cpu_affinity'])
+                    report['cases'].extend(prepared['analysis'])
                     (output/'diagnosis.partial.json').write_text(json.dumps(report,indent=2,allow_nan=False)+'\n')
                     if evidence.environment_context(baseline,env,group)!=context:raise ValueError('resource context changed')
         # Only publish completion after the owned overlay has been restored.
@@ -199,7 +108,7 @@ def capture(baseline,output,group, *, native_service_clock=False, probe_only=Fal
 
 FREQUENCY_SCHEMA='baseline-worker-frequency-v1'
 FREQUENCY_REPETITIONS=4
-MSRS={'tsc_before':0x10,'aperf':0xe8,'mperf':0xe7,'tsc_after':0x10}
+MSRS = dict(_VM_CONTRACT['msrs'])
 
 
 class MsrReader:
@@ -222,26 +131,9 @@ class MsrReader:
         return result
 
 
-def frequency_deltas(before,after,cpus,start,end):
-    """Keep non-atomic read bounds and raw ratios; never scale API timings."""
-    keys={str(c) for c in cpus}
-    for snapshot in (before,after):
-        if set(snapshot)!={'start_ns','end_ns','cpus'} or set(snapshot['cpus'])!=keys or any(type(snapshot[k]) is not int or snapshot[k]<0 for k in ('start_ns','end_ns')) or snapshot['end_ns']<snapshot['start_ns']:raise ValueError('invalid counter snapshot')
-        for point in snapshot['cpus'].values():
-            if set(point)!=set(MSRS) or any(type(v) is not int or not 0<=v<2**64 for v in point.values()) or point['tsc_after']<point['tsc_before']:raise ValueError('invalid counter point')
-    if any(type(v) is not int or v<0 for v in (start,end)) or not before['end_ns']<=start<end<=after['start_ns']:raise ValueError('counter interval does not contain worker')
-    result={}
-    for cpu in sorted(keys,key=int):
-        old,new=before['cpus'][cpu],after['cpus'][cpu]
-        low=new['tsc_before']-old['tsc_after'];high=new['tsc_after']-old['tsc_before']
-        aperf=new['aperf']-old['aperf'];mperf=new['mperf']-old['mperf']
-        if low<=0 or aperf<0 or mperf<0 or (mperf==0)!=(aperf==0):raise ValueError('counter reset, wrap or invalid delta')
-        result[cpu]={'aperf_delta':aperf,'mperf_delta':mperf,'tsc_delta_bounds':[low,high],
-                     'aperf_per_mperf':aperf/mperf if mperf else None,
-                     'mperf_per_tsc_bounds':[mperf/high,mperf/low],
-                     'read_skew_tsc':[old['tsc_after']-old['tsc_before'],new['tsc_after']-new['tsc_before']]}
-    if not sum(v['mperf_delta'] for v in result.values()):raise ValueError('no active counter delta')
-    return result
+def frequency_deltas(before, after, cpus, start, end):
+    return native_tools.request('vm-analysis', request=dict(operation='frequency',
+        before=before, after=after, cpus=list(cpus), start=start, end=end))
 
 
 def frequency_inputs(capture,prior,frozen):

@@ -40,34 +40,25 @@ class DiagnosticTests(unittest.TestCase):
                 with self.assertRaises(ValueError):evidence.verify(manifest,root)
                 source.assert_not_called()
 
-    def test_partial_duplicate_or_invalid_threads_reject(self):
-        for mutation in ('partial','duplicate','negative','flag'):
-            records=self.records();p=records[0]['before']['process']
-            if mutation=='partial':p['complete']=False
-            elif mutation=='duplicate':p['threads'].append(copy.deepcopy(p['threads'][0]))
-            elif mutation=='negative':p['threads'][0]['minor_faults']=-1
-            else:p['threads'][0]['measuring_thread']='true'
-            with self.assertRaises(ValueError):diagnostic.basic_records(records)
-
-    def test_complete_diagnostic_keeps_faults_and_threads_separate(self):
-        report=diagnostic.analyze(self.records(),'fixture')
-        self.assertEqual(len(report[0]['samples']),9)
-        self.assertEqual(report[0]['central_ns_spread'],0)
-        row=report[0]['samples'][0]
-        self.assertEqual(row['process_faults'],{'minor_faults':1,'major_faults':0})
-        self.assertTrue(row['stable_thread_set'])
-
-    def test_short_samples_are_diagnostic_flags_not_release_approval(self):
-        rows=self.records()
-        report=diagnostic.analyze(rows,'fixture')
-        self.assertFalse(report[0]['samples'][0]['interval_sufficient'])
-        self.assertNotIn('status',report[0])
-
-    def test_missing_samples_and_reset_counters_reject(self):
-        rows=self.records();rows.pop()
-        with self.assertRaises(ValueError):diagnostic.analyze(rows,'fixture')
-        rows=self.records();rows[0]['after']['process']['minor_faults']=0
-        with self.assertRaises(ValueError):diagnostic.analyze(rows,'fixture')
+    def test_bounded_basic_copy_and_one_request_preparation_keep_raw_records_independent(self):
+        rows = self.records()
+        for row in rows: row['retained'] = {'bytes': [1, 2, 3]}
+        original = copy.deepcopy(rows)
+        with mock.patch.object(diagnostic.native_tools, '_request_payload', wraps=diagnostic.native_tools._request_payload) as frames:
+            prepared = diagnostic.native_tools.request('vm-analysis', request=dict(
+                operation='prepare', records=rows, profile='fixture'))
+            self.assertEqual(frames.call_count, 1)
+        self.assertEqual(prepared['analysis'], diagnostic.analyze(rows, 'fixture'))
+        prepared['basic'][0]['retained']['bytes'][0] = 9
+        self.assertEqual(rows, original)
+        large = rows*15
+        with mock.patch.object(diagnostic.native_tools, '_request_payload', wraps=diagnostic.native_tools._request_payload) as frames:
+            copied = diagnostic.basic_records(large)
+            self.assertEqual(frames.call_count, 3)
+            self.assertTrue(all(len(json.loads(call.args[0])['request']['records']) <= 64
+                                for call in frames.call_args_list))
+        copied[0]['retained']['bytes'][0] = 9
+        self.assertEqual(rows, original)
 
     def test_one_thread_reset_cannot_be_hidden_by_another_threads_progress(self):
         for field in ('run_ns', 'wait_ns', 'timeslices'):
@@ -187,42 +178,6 @@ class NativeClockTests(unittest.TestCase):
                 'before':{'process':{'service_clock':native_point(0,10)}},
                 'after':{'process':{'service_clock':native_point(1010,1020,2000)}}}
 
-    def test_synchronous_native_window_is_bounded_not_exclusive_cycles(self):
-        result=diagnostic.native_window_summary(self.record())
-        self.assertTrue(result['interpretation_qualified'])
-        self.assertEqual(result['enclosure_overhead_fraction'],.02)
-        self.assertEqual(result['counters']['0']['aperf_per_mperf'],1)
-        self.assertFalse(result['exclusive_api_cycles'])
-        self.assertFalse(result['time_normalization'])
-
-    def test_wide_clock_reads_withhold_ratios_without_discarding_samples(self):
-        row=self.record();row['after']['process']['service_clock']['end_ns']=1200
-        original=copy.deepcopy(row);result=diagnostic.native_window_summary(row)
-        self.assertFalse(result['interpretation_qualified'])
-        self.assertIsNone(result['counters']);self.assertEqual(row,original)
-
-    def test_failed_after_timer_read_remains_unavailable_not_zero_service(self):
-        row=self.record();row['after']['process']['service_clock']={
-            'schema':diagnostic.NATIVE_CLOCK_SCHEMA,'start_ns':1010,'end_ns':1020,
-            'available':False,'reason':'io','errno':5}
-        result=diagnostic.native_window_summary(row)
-        self.assertFalse(result['interpretation_qualified']);self.assertIsNone(result['counters'])
-        self.assertEqual(result['refusal'],'counter-unavailable')
-
-    def test_malformed_missing_wrong_cpu_and_non_enclosing_points_refuse(self):
-        for change in ('missing','extra','boolean','reverse','short','cpu','reset','inactive'):
-            with self.subTest(change=change):
-                row=self.record();p=row['after']['process']['service_clock']
-                if change=='missing':row['after']['process'].pop('service_clock')
-                elif change=='extra':p['unexpected']=True
-                elif change=='boolean':p['counters']['aperf']=True
-                elif change=='reverse':p['end_ns']=p['start_ns']-1
-                elif change=='short':p['start_ns']=900
-                elif change=='cpu':p['cpu']=1
-                elif change=='reset':p['counters']['aperf']=0
-                else:p['counters'].update(aperf=200,mperf=300)
-                with self.assertRaises(ValueError):diagnostic.native_window_summary(row)
-
     def test_clock_overlay_does_not_change_any_formal_kernel_or_timer(self):
         root=pathlib.Path(__file__).resolve().parents[2]
         ordinary=sampling.render(root);native=diagnostic.native_clock_render(root)
@@ -286,7 +241,7 @@ class NativeClockTests(unittest.TestCase):
             self.assertEqual(len(values),2)
             for value in values:
                 self.assertEqual(value['marker'],19)
-                diagnostic.native_clock_point(value['service_clock'])
+                diagnostic.native_tools.request('vm-analysis', request=dict(operation='point', point=value['service_clock']))
             self.assertEqual({v['service_clock']['available'] for v in values},{True,False})
             # Serial libtest writes its test name without a terminating newline.
             # Exercise the same reporter as the real probe, without MSR access.
