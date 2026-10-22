@@ -96,6 +96,7 @@ impl Args {
 }
 
 const COMMANDS: &[(&str, &[&str])] = &[
+    ("validate-diagnostic-ledger", &["--input"]),
     ("validate-stream-views", &["--input"]),
     ("summarize-smoke", &["--input"]),
     ("sampling-contract", &["--input"]),
@@ -238,6 +239,7 @@ fn run() -> Result<bool> {
     match command.as_str() {
         "sampling-contract" => sampling_contract::run(&args)?,
         "validate-stream-views" => diagnostics::views::run(&args)?,
+        "validate-diagnostic-ledger" => diagnostics::ledger::run(&args)?,
         "memory-policy" => memory_policy::run(&args)?,
         "check-sampler-telemetry" => diagnostics::check_telemetry(&args)?,
         "native-helper" => bridge::run(&args)?,

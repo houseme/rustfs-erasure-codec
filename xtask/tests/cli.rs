@@ -1260,3 +1260,50 @@ fn telemetry_controller_cancellation_stops_its_worker_and_restores_owned_source(
             .exists()
     );
 }
+
+#[test]
+fn diagnostic_cli_preserves_input_and_refuses_missing_nullable_fields() {
+    let f = Fixture::new();
+    let mut events = Vec::new();
+    for observation in 0..12 {
+        for phase in ["reserved", "initialized", "verified", "released"] {
+            events.push(json!({"observation":observation,"call":1,"phase":phase,
+                "len":if phase=="reserved" {0} else {2048},"capacity":4096,"offsets":[16,16,16],"inline":true,
+                "elapsed_ns":events.len(),"faults":null,"snapshot":{"status":"unsupported","pages":null,"resident_pages":null,"errno":null},
+                "valid":if matches!(phase,"verified"|"released") {json!(true)} else {Value::Null}}));
+        }
+    }
+    let mut request = json!({"kind":"verify-scratch","case":"verify:4:2:1024","iterations":1,"page":4096,
+        "data":{"schema":"verify-scratch-lifecycle-v1","page_size":4096,"errors":0,"calls":vec![1;12],"release_approval":false,"events":events}});
+    let input = serde_json::to_vec(&request).unwrap();
+    fs::write(f.0.join("request.json"), &input).unwrap();
+    let run = || {
+        f.command("validate-diagnostic-ledger")
+            .args(["--input", "request.json"])
+            .output()
+            .unwrap()
+    };
+    let output = run();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(
+        serde_json::from_slice::<Value>(&output.stdout).unwrap(),
+        json!({"calls":12,"events":48,"inline_calls":12})
+    );
+    assert_eq!(fs::read(f.0.join("request.json")).unwrap(), input);
+    request["data"]["events"][0]
+        .as_object_mut()
+        .unwrap()
+        .remove("faults");
+    fs::write(
+        f.0.join("request.json"),
+        serde_json::to_vec(&request).unwrap(),
+    )
+    .unwrap();
+    let output = run();
+    assert!(!output.status.success());
+    assert!(output.stdout.is_empty());
+}

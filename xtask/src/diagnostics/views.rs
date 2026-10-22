@@ -1,6 +1,7 @@
 //! One typed ledger for stream I/O, lifecycle windows and virtual-page snapshots.
+use super::ledger::{Snapshot, nullable};
 use crate::Result;
-use serde::{Deserialize, Deserializer, Serialize, ser::SerializeMap};
+use serde::{Deserialize, Serialize, ser::SerializeMap};
 use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -20,13 +21,6 @@ const COUNTERS: [&str; 5] = [
     "calling_thread_run_ns",
     "calling_thread_wait_ns",
 ];
-
-// deserialize_with makes a nullable field required, unlike a default Option.
-fn nullable<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
-    d: D,
-) -> std::result::Result<Option<T>, D::Error> {
-    Option::deserialize(d)
-}
 
 #[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "snake_case")]
@@ -102,17 +96,6 @@ struct Window {
     before: Option<[u64; 4]>,
     #[serde(deserialize_with = "nullable")]
     after: Option<[u64; 4]>,
-}
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct Snapshot {
-    status: String,
-    #[serde(deserialize_with = "nullable")]
-    pages: Option<u64>,
-    #[serde(deserialize_with = "nullable")]
-    resident_pages: Option<u64>,
-    #[serde(deserialize_with = "nullable")]
-    errno: Option<u64>,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -339,20 +322,7 @@ fn validate(o: &Observation, summary: bool) -> Result<Value> {
         {
             return Err("owned capacity must not be inferred from a borrowed view".into());
         }
-        let storage = e.capacity.unwrap_or(e.len) > 0;
-        match e.offsets {
-            Some(p) if storage => {
-                let mods = [64, 4096, o.page_size];
-                if p.iter().zip(mods).any(|(n, m)| *n >= m)
-                    || p[1] % 64 != p[0]
-                    || p[2] % o.page_size.min(4096) != p[1] % o.page_size.min(4096)
-                {
-                    return Err("invalid actual view offsets".into());
-                }
-            }
-            None if !storage => {}
-            _ => return Err("empty storage must not export dangling positions".into()),
-        }
+        super::ledger::offsets(e.offsets.as_ref(), e.capacity.unwrap_or(e.len), o.page_size)?;
         let limit = if e.role.writer() {
             s.parity
         } else {
@@ -530,47 +500,13 @@ fn validate_residency(
     native: bool,
 ) -> Result<()> {
     for r in all {
-        if r.bytes > 0 && r.offset_page.is_none_or(|offset| offset >= page)
-            || r.bytes == 0 && r.offset_page.is_some()
-        {
-            return Err("invalid residency offset".into());
-        }
-        let snap = &r.snapshot;
-        let pages = if r.bytes > 0 {
-            (u128::from(r.offset_page.ok_or("missing residency offset")?) + u128::from(r.bytes))
-                .div_ceil(u128::from(page))
-        } else {
-            0
-        };
         let former = matches!(
             r.boundary,
             Boundary::AfterApiReturn | Boundary::AfterWriterDrop
         );
-        let valid = match snap.status.as_str() {
-            "unsupported" if !native => {
-                snap.pages.is_none() && snap.resident_pages.is_none() && snap.errno.is_none()
-            }
-            "empty" if r.bytes == 0 => {
-                snap.pages == Some(0) && snap.resident_pages == Some(0) && snap.errno.is_none()
-            }
-            "mapped" if r.bytes > 0 => {
-                snap.pages.is_some_and(|n| u128::from(n) == pages)
-                    && snap
-                        .resident_pages
-                        .zip(snap.pages)
-                        .is_some_and(|(n, total)| n <= total)
-                    && snap.errno.is_none()
-            }
-            "not_fully_mapped" if former && r.bytes > 0 => {
-                snap.pages.is_some_and(|n| u128::from(n) == pages)
-                    && snap.resident_pages.is_none()
-                    && snap.errno == Some(12)
-            }
-            _ => false,
-        };
-        if !valid {
-            return Err("native residency coverage failed or invalid snapshot".into());
-        }
+        r.snapshot
+            .validate(r.bytes, r.offset_page, page, native, former, true)
+            .map_err(|e| format!("native residency coverage failed: {e}"))?;
     }
     for (call, current) in calls.iter().enumerate() {
         let actual = events[call];
