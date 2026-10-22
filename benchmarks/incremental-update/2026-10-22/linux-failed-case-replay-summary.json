@@ -1,0 +1,79 @@
+{
+  "schema": "linux-failed-case-service-replay-v1",
+  "source_comment": "https://github.com/rustfs/backlog/issues/2897#issuecomment-6316688014",
+  "baseline_commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+  "measured_collector_commit": "e671c0ac24f9deaf2ee2f1e5ebbd8358cd4d6133",
+  "identity": {
+    "phase": "A1",
+    "profile": "small_file",
+    "case": "reconstruct:4:2:65536"
+  },
+  "original_records": 12,
+  "warmups": 3,
+  "samples": 9,
+  "iterations_per_record": 262144,
+  "recorded_central_spread": 0.20652751520610957,
+  "recomputed_central_spread": 0.20652751520610957,
+  "original_distribution_limit": 0.1,
+  "distribution_remains_rejected": true,
+  "duration_floors_satisfied": true,
+  "all_original_rows_retained_privately": true,
+  "rows_discarded": 0,
+  "measured_service": {
+    "main_run_ns_per_iteration_median": 10122.724102020264,
+    "main_run_central_spread": 0.20635666310547077,
+    "main_run_to_wall_range": [
+      0.9996981728064283,
+      0.9999818071742846
+    ],
+    "wall_minus_timed_fraction_range": [
+      1.6072172510778765e-07,
+      3.2022740908864224e-07
+    ],
+    "total_process_minor_faults": 0,
+    "total_process_major_faults": 0,
+    "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+  },
+  "maximum_measured_main_wait_to_wall": 9.735356581254143e-05,
+  "caller_fixture_unchanged_within_worker": true,
+  "observation_contracts_unchanged_within_worker": true,
+  "reported_thread_affinity_checks_consistent": true,
+  "checks": [
+    "complete original 3+9 order",
+    "one fixed iteration count",
+    "published baseline revision and original small_file identity",
+    "shared raw timing, duration, workload, placement, geometry and observation-contract validators",
+    "unchanged input bytes during offline replay",
+    "profile-qualified original reported distribution matches recomputation"
+  ],
+  "inference": "The measured change includes calling-thread execution service within the original operation windows; measured runnable wait, page faults and wall-minus-timed gaps cannot account for its magnitude. A unique mechanism is unresolved.",
+  "limitations": [
+    "The excerpt cannot revalidate the full capture, calibration, frozen plan or external isolation context.",
+    "Matching caller views do not establish dynamic output or internal allocation addresses, physical pages or cache placement.",
+    "Calling-thread runtime is not exclusive decoder cost, hardware cycles or an additive cost partition.",
+    "No per-sample frequency/cache/physical-host witness was recorded; chronological changes do not identify a cause.",
+    "Original per-iteration cloning, allocation, reconstruction and destruction remain inside the measured operation.",
+    "No new measurement, candidate phase, full repeat check, layout campaign or strict positive preflight was performed."
+  ],
+  "analysis_source_sha256": {
+    "scripts/analyze_baseline_variability.py": "12c9e02e0c521ab38542a5fe4a7ed30719c0ab41dd33f0202f0b8a013436937a",
+    "scripts/tests/test_baseline_variability.py": "3e102cdeb54afeefa9877e08aa25d148f84f1203b29f598a8407ca5d79b16378"
+  },
+  "formal_qualification": false,
+  "release_approval": false,
+  "candidate_attribution": null,
+  "followup_validation": {
+    "focused_baseline_variability_tests": 18,
+    "complete_python_gate_tests": 375,
+    "failed": 0,
+    "typos": true,
+    "manifest_tag_9_1_0": true,
+    "git_diff_check": true,
+    "production_source_changed": false,
+    "formal_sampler_changed": false,
+    "prior_pr_head": "5819a56490f0f1f1683af291956b10d0244f3140",
+    "prior_remote_checks_success": 62,
+    "prior_remote_checks_skipped": 6,
+    "followup_remote_ci": "not run before commit; inspect current PR head separately"
+  }
+}

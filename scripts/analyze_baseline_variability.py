@@ -26,16 +26,22 @@ def describe(group, metric):
             'wall_ns': record['wall_ns'], 'timed_ns': record['timed_ns'],
             'cpu_before': before['cpu'], 'cpu_after': after['cpu'],
             'main_run_ns': after['run_ns']-before['run_ns'],
+            'main_run_ns_per_iteration': (after['run_ns']-before['run_ns'])/record['iterations'],
             'main_wait_ns': after['wait_ns']-before['wait_ns'],
             'main_switches': after['switches']-before['switches'],
             'process_minor_faults': after['process_minor_faults']-before['process_minor_faults'],
             'process_major_faults': after['process_major_faults']-before['process_major_faults'],
             'main_run_to_wall': (after['run_ns']-before['run_ns'])/record['wall_ns'],
             'main_wait_to_wall': (after['wait_ns']-before['wait_ns'])/record['wall_ns'],
+            'wall_minus_timed_ns': record['wall_ns']-record['timed_ns'],
         })
     measured = trace[sampling.PROTOCOL['warmups']:]
     values = sorted(r['metric'] for r in measured)
     median = statistics.median(values)
+    # Rank each signal independently. The metric median need not be the thread
+    # run-time median, and schedstat brackets a different interval from the API.
+    run_values = sorted(r['main_run_ns_per_iteration'] for r in measured)
+    run_median = statistics.median(run_values)
     return {
         'median': median, 'central_spread': (values[-2]-values[1])/median,
         'short_samples': sum(r['wall_ns'] < sampling.PROTOCOL['minimum_wall_ns'] or
@@ -43,6 +49,18 @@ def describe(group, metric):
         'measured_endpoint_cpus': sorted({r[key] for r in measured for key in ('cpu_before', 'cpu_after')}),
         'measured_endpoint_change_count': sum(r['cpu_before'] != r['cpu_after'] for r in measured),
         'maximum_measured_main_wait_to_wall': max(r['main_wait_to_wall'] for r in measured),
+        'measured_service': {
+            'main_run_ns_per_iteration_median': run_median,
+            'main_run_central_spread': (run_values[-2]-run_values[1])/run_median if run_median else None,
+            'main_run_to_wall_range': [min(r['main_run_to_wall'] for r in measured),
+                                       max(r['main_run_to_wall'] for r in measured)],
+            'wall_minus_timed_fraction_range': [
+                min(r['wall_minus_timed_ns']/r['wall_ns'] for r in measured),
+                max(r['wall_minus_timed_ns']/r['wall_ns'] for r in measured)],
+            'total_process_minor_faults': sum(r['process_minor_faults'] for r in measured),
+            'total_process_major_faults': sum(r['process_major_faults'] for r in measured),
+            'scope': 'calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition',
+        },
         'trace': trace,
     }
 
