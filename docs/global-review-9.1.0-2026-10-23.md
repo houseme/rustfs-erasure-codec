@@ -408,3 +408,29 @@ agree with the original paths across 7,503 checks: 562 complete real workers,
 decisions agree, including all newly captured sampling workers. The larger native
 counterpart and source-bound replay validations remain distinct from performance
 qualification; no new codec latency or throughput claim is made.
+
+## Latest main integration and final tooling checks
+
+Remote main advanced to `24c88c8` during the review. Merge `b52099b` includes its
+VM source-overlay cleanup, optional synchronous guest service-counter observer
+and GNU metadata-check setup fix. Retain both change-record entries when resolving
+the insertion conflict. This adds no production codec or dependency delta against
+current main and does not deploy new code into the frozen Linux campaign.
+
+The exact merged source passes 103 optimized native unit tests, 25 executable
+tests, strict Clippy and all 273 Python controller tests. The independent
+105-request original/new worker and release-row comparison is repeated against
+this source: all decisions and complete outputs still match without mutating
+input objects. A local x86_64 Linux metadata compilation also checks the native
+counter module's Linux-specific code. This is compilation evidence, not a positive
+hardware capability probe. Generated observer semantics/cleanup checks remain in
+the native/controller suites; the actual optional VM probe waits until the full
+capture, resource restoration and original observer-service checks have finished.
+
+The read-only JSON audit now covers 579 files / 2,833,273 bytes, including 38
+versioned records, and reports no errors. The added upstream service-drift review
+has its own provenance. The earlier helper-profile and complete-worker timing
+reports retain their original source identities; their measurements are not
+relabeled as timings for the merged tool or as codec performance acceptance.
+Version declarations remain 9.1.0, the changelog remains unreleased and final
+source-bound release evidence and strict positive preflight are still pending.

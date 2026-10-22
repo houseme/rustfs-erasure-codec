@@ -267,13 +267,13 @@ reports exact-byte duplicate groups without modifying files.
 
 The initial audit found **575 files / 2,807,430 bytes**, all valid. These archives
 and WASM inputs remain unchanged; an active tool contract and the deliberately
-retained helper-profile comparison bring the current total to
-**577 files / 2,818,980 bytes**:
+retained helper-profile/complete-worker comparisons and the merged service-drift
+review bring the current total to **579 files / 2,833,273 bytes**:
 
 | Category | Files | Policy |
 | --- | ---: | --- |
 | Raw Criterion evidence | 448 | Preserve phase-local records and manifest paths |
-| Versioned evidence | 36 | Preserve schema and digest-bound contents |
+| Versioned evidence | 38 | Preserve schema and digest-bound contents |
 | Historical reports/evidence | 89 | Repository-only; do not reinterpret old runs as current acceptance |
 | WASM configuration/lockfiles | 3 | Preserve build and dependency reproducibility |
 | Shared tool contract | 1 | Field, alias and default-threshold definition; excluded from the codec crate |
@@ -371,7 +371,7 @@ migration, whose codec sources remain unchanged):
 | --- | --- |
 | Core `--all-features --lib --tests` | 517 passed; 43 existing benchmark/manual tests ignored |
 | Core all-feature doctests | 10 passed |
-| Rust tooling unit/executable tests | 126 passed in development and optimized profiles (101 unit, 25 executable), including generator bytes, LF/CRLF/CR, framing/bounds, exact float bits, CPU identity, policy, batched agreement, sampling contracts, source/view ledgers, smoke-report scope, cancellation and cleanup |
+| Rust tooling unit/executable tests | 128 passed on optimized `b52099b` (103 unit, 25 executable); the earlier 126-case development/optimized checks remain source-bound, including generator bytes, LF/CRLF/CR, framing/bounds, exact float bits, CPU identity, policy, batched agreement, sampling contracts, source/view ledgers, smoke-report scope, cancellation and cleanup |
 | Native row normalization | Ten archived JSON artifacts / 672 rows match the original Python results |
 | Exact numeric transport | All 2,000 numeric pairs retain their original float values |
 | Sampling contract migration | All 126 workload/fixture contracts retain the old model digest; 5,206 acceptance/value comparisons match |
@@ -395,7 +395,7 @@ migration, whose codec sources remain unchanged):
 | Real archived small-file rows | All 447 cases from six JSON archives produce identical gate reports on self-comparison |
 | Original syscall ledger tests | 5 passed; 8 CLI comparisons preserve complete reports |
 | Machine report comparison | Full compatible-operation report and seven archived machine summaries match Python; regression tests cover the corrected XOR grouping and raw arrays |
-| Remaining Python suite | 258 passed on frozen `9b75e02`; 35 current optimized-helper integration tests also pass, including the added build-policy regression; prior 256/261/269/274/278-test suites passed before their consolidations |
+| Remaining Python suite | 273 passed on frozen `b52099b` after merging main `24c88c8`; earlier `39f6ee7`/`9b75e02` passed 259/258, retaining their own source bindings and optimized-helper checks |
 | Published 9.0.0/local 9.1.0 probe with locked dependencies | 200 exact parity comparisons, 200 cross-decoding cases per direction and four retained Sage arithmetic vectors on each version passed |
 | Core and tooling Clippy, all targets, `-D warnings` | Passed |
 | Core `--no-default-features` check | Passed |
