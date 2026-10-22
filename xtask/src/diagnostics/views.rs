@@ -120,7 +120,7 @@ struct Position {
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-struct View {
+pub(crate) struct View {
     schema: String,
     observation: u64,
     iterations: u64,
@@ -135,12 +135,12 @@ struct View {
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct Observation {
+pub(crate) struct Observation<V = View> {
     case: String,
     iterations: u64,
     page_size: u64,
     observation: u64,
-    view: View,
+    view: V,
     source_fixture: Option<Vec<Position>>,
     #[serde(default)]
     require_counters: bool,
@@ -171,26 +171,7 @@ impl Request {
         match self {
             Self::Entries => Ok(serde_json::to_value(BTreeMap::from(ENTRIES))?),
             Self::Underlying { mut records } => {
-                for record in &mut records {
-                    let case = record["case"].as_str().ok_or("missing stream audit case")?;
-                    let operation = case.split(':').next().ok_or("missing stream operation")?;
-                    let entry = ENTRIES
-                        .iter()
-                        .find(|(name, _)| *name == operation)
-                        .map(|(_, entry)| *entry)
-                        .ok_or("unknown stream audit operation")?;
-                    let contract = crate::sampling_contract::fixture_contract("stream", case)?;
-                    for key in ["fixture", "workload"] {
-                        let value = record
-                            .get_mut(key)
-                            .and_then(Value::as_object_mut)
-                            .ok_or("missing actual stream audit entry")?;
-                        if value.get("call_entry").and_then(Value::as_str) != Some(entry) {
-                            return Err("missing actual stream audit entry".into());
-                        }
-                        value.insert("call_entry".into(), contract["call_entry"].clone());
-                    }
-                }
+                underlying_rows(&mut records)?;
                 Ok(Value::Array(records))
             }
             Self::Validate {
@@ -210,6 +191,71 @@ impl Request {
             Self::Summarize { view } => summarize(view.calls, &view.windows),
         }
     }
+}
+
+pub(super) fn underlying_rows(records: &mut [Value]) -> Result<()> {
+    for record in records {
+        let case = record["case"].as_str().ok_or("missing stream audit case")?;
+        let operation = case.split(':').next().ok_or("missing stream operation")?;
+        let entry = ENTRIES
+            .iter()
+            .find(|(name, _)| *name == operation)
+            .map(|(_, entry)| *entry)
+            .ok_or("unknown stream audit operation")?;
+        let contract = crate::sampling_contract::fixture_contract("stream", case)?;
+        for key in ["fixture", "workload"] {
+            let value = record
+                .get_mut(key)
+                .and_then(Value::as_object_mut)
+                .ok_or("missing actual stream audit entry")?;
+            if value.get("call_entry").and_then(Value::as_str) != Some(entry) {
+                return Err("missing actual stream audit entry".into());
+            }
+            value.insert("call_entry".into(), contract["call_entry"].clone());
+        }
+    }
+    Ok(())
+}
+
+pub(super) fn worker(
+    views: &[View],
+    bindings: &super::worker::Bindings<'_>,
+    case: &str,
+    page: u64,
+) -> Result<()> {
+    if views.len() != 12 {
+        return Err("incomplete original stream worker".into());
+    }
+    for (index, view) in views.iter().enumerate() {
+        let source = bindings.rows[index]["fixture"]["source"].clone();
+        let observation = Observation {
+            case: case.to_owned(),
+            iterations: 2,
+            page_size: page,
+            observation: index as u64,
+            view,
+            source_fixture: Some(serde_json::from_value(source)?),
+            require_counters: bindings.native,
+        };
+        validate(&observation, false)?;
+        if bindings.native {
+            for window in &view.windows {
+                for counters in window.before.iter().chain(&window.after) {
+                    bindings.enclose(
+                        index as u64,
+                        counters,
+                        &[
+                            "process_minor_faults",
+                            "process_major_faults",
+                            "run_ns",
+                            "wait_ns",
+                        ],
+                    )?;
+                }
+            }
+        }
+    }
+    Ok(())
 }
 
 pub(crate) fn run(args: &crate::Args) -> Result<()> {
@@ -292,8 +338,8 @@ fn ordered(before: &[u64; 4], after: &[u64; 4]) -> bool {
     before.iter().zip(after).all(|(a, b)| a <= b)
 }
 
-fn validate(o: &Observation, summary: bool) -> Result<Value> {
-    let v = &o.view;
+fn validate<V: std::borrow::Borrow<View>>(o: &Observation<V>, summary: bool) -> Result<Value> {
+    let v = o.view.borrow();
     if v.schema != "stream-buffer-views-v3" || v.release_approval {
         return Err("invalid stream view schema".into());
     }

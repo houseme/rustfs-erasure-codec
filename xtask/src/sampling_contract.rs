@@ -255,7 +255,7 @@ fn hotspot(case: &str) -> Result<&'static catalog::HotspotCase> {
         .ok_or_else(|| "unknown hotspot workload".into())
 }
 
-fn case_catalog() -> std::collections::BTreeMap<&'static str, Vec<String>> {
+pub(crate) fn case_catalog() -> std::collections::BTreeMap<&'static str, Vec<String>> {
     let mut result = std::collections::BTreeMap::new();
     result.insert(
         "hotspot",
@@ -826,6 +826,52 @@ fn worker(
     Ok(())
 }
 
+/// Diagnostic-only schedule. Formal workers still require native telemetry.
+pub(crate) fn diagnostic_worker(
+    records: &[Value],
+    profile: &str,
+    page: u64,
+    cpus: Option<&[u64]>,
+    calibrate: bool,
+) -> Result<()> {
+    workload_sequence(records, profile)?;
+    if records.len() != 12 {
+        return Err("require complete diagnostic mode observations".into());
+    }
+    for (index, r) in records.iter().enumerate() {
+        let kind = match (calibrate, index < 3) {
+            (true, true) => "calibration_warmup",
+            (true, false) => "calibration",
+            (false, true) => "warmup",
+            (false, false) => "sample",
+        };
+        if r["kind"] != kind
+            || r["index"].as_u64() != Some(index as u64)
+            || r["iterations"].as_u64() != Some(2)
+            || r["calibration_batch"].as_u64() != Some(u64::from(calibrate))
+            || r["isolated_case"] != true
+            || !r["rows"].as_array().is_some_and(|rows| rows.len() == 1)
+        {
+            return Err("wrong original diagnostic observation schedule".into());
+        }
+        fixture(r, profile, Some(page))?;
+        timing(r, profile, 2)?;
+        if cpus.is_some() {
+            telemetry(r, cpus)?;
+            placement(r, cpus)?;
+        } else if ["before", "after", "placement"]
+            .iter()
+            .any(|key| r.get(*key) != Some(&Value::Null))
+        {
+            return Err("native observations require recorded affinity".into());
+        }
+    }
+    if calibrate {
+        calibration(records, 2, 1)?;
+    }
+    Ok(())
+}
+
 fn observation(
     record: &Value,
     profile: &str,
@@ -908,6 +954,24 @@ mod tests {
             "calibration_batch":0,"isolated_case":true,"fixture":fixture,"workload":workload,"rows":[row],
             "before":before,"after":before,"wall_ns":2_400_000_000_u64,"timed_ns":timed,
             "placement":{"cpu":0,"constructor_budget":8,"constructor_affinity":[0,1,2,3,4,5,6,7],"pool_threads":4,"affinity_checked":true}})
+    }
+
+    #[test]
+    fn portable_diagnostic_workers_do_not_relax_formal_telemetry() {
+        let mut records: Vec<_> = (0..12)
+            .map(|index| record("small_file", "verify_with_buffer:4:2:1024", index))
+            .collect();
+        for r in &mut records {
+            r["iterations"] = json!(2);
+            r["timed_ns"] = json!(r["timed_ns"].as_f64().unwrap() * 2.0);
+            for key in ["before", "after", "placement"] {
+                r[key] = Value::Null;
+            }
+        }
+        diagnostic_worker(&records, "small_file", 4096, None, false).unwrap();
+        assert!(worker(&records, "small_file", 2, None, Some(4096)).is_err());
+        records[0]["before"] = json!({"cpu":0});
+        assert!(diagnostic_worker(&records, "small_file", 4096, None, false).is_err());
     }
 
     #[test]
