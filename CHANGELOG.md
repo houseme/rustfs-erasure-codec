@@ -24,6 +24,15 @@ All notable changes to this project are documented in this file.
   retain explicit backend overrides and existing NEON/AVX2 behavior, and verify
   generated kernel bytes directly even when automatic GFNI bypasses that path.
 
+- Reject an individual live thread's counter reset before aggregating process
+  service. Another thread's progress can no longer conceal backwards run, wait
+  or timeslice counters in VM diagnostic reports.
+
+- Consolidate VM snapshots, service distributions, synchronous counter windows
+  and external frequency deltas in Rust. Prepare independent sampler copies and
+  diagnostic reports together, preserve ordered MSR reads and explicit unknowns,
+  and retain existing hardware/process/source ownership in capture controllers.
+
 - Reject nonfinite intermediate timing products and ratios before tolerance
   comparison or JSON serialization. Preserve the original refusal of overflowing
   layout intervals instead of accepting infinity as its own error tolerance.
