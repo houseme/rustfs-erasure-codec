@@ -279,9 +279,11 @@ def matches_current_source(recorded, current):
             and all(recorded[k] == current[k] for k in ('tree', 'lock_sha256')))
 
 
-def verify_paired(directory, candidate, compiler=True):
+def verify_paired(directory, candidate, compiler=True, *, diagnostic=False):
     """Recompute acceptance from bounded, source-bound raw rows, never summaries."""
-    document = evidence.json_data(directory/'manifest.json')
+    document = evidence.json_data(directory/('diagnostic-manifest.json' if diagnostic else 'manifest.json'))
+    if not isinstance(document, dict) or document.get('diagnostic_only', False) is not diagnostic:
+        raise ValueError('layout diagnostic and acceptance modes must match')
     if not isinstance(document, dict) or document.get('schema_version') != PAIRED_SCHEMA or document.get('phase_order') != list(evidence.PHASES) or document.get('contract') != tool_contract() or document.get('release_approval') is not False:
         raise ValueError('a complete current paired-layout manifest is required')
     sources = document.get('sources')
@@ -327,11 +329,22 @@ def verify_paired(directory, candidate, compiler=True):
             raise ValueError('paired samples differ from the completed numeric journal')
     if compiler and context['compiler'] != evidence.command(['rustc', '--version'], candidate, dict(os.environ, RUSTUP_TOOLCHAIN='stable')):
         raise ValueError('paired compiler differs from the current compiler')
-    return dict(analyze_paired(phases, iterations, context['runtime']['page_size'], cpu),
-                sources=sources, tool=document['tool'], context=context, iterations=iterations, measuring_cpu=cpu)
+    result = dict(analyze_paired(phases, iterations, context['runtime']['page_size'], cpu),
+                  sources=sources, tool=document['tool'], context=context, iterations=iterations, measuring_cpu=cpu)
+    if diagnostic:
+        cases = {p: {(r['len'], r['pass'], r['source_offset'], r['scratch_offset']): r for r in report['cases']}
+                 for p, report in result['phase_reports'].items()}
+        result.update(diagnostic_only=True, candidate_attribution=None,
+                      unqualified_layout_comparisons=[{'pair': a+'/'+b, 'cell': list(key),
+                                                      'latency_ratio': cases[b][key]['median_ns']/row['median_ns']}
+                                                     for a in ('A1','A2') for b in ('B1','B2')
+                                                     for key, row in cases[a].items()])
+        result['unqualified_regression_failures'] = [r for r in result['unqualified_layout_comparisons']
+                                                    if r['latency_ratio'] > 1+LAYOUT_PROTOCOL['regression_limit']]
+    return result
 
 
-def capture_paired(baseline, candidate, output, group, iterations):
+def capture_paired(baseline, candidate, output, group, iterations, *, diagnostic=False):
     sources = {role: evidence.source_info(root) for role, root in (('baseline', baseline), ('candidate', candidate))}
     if sources['baseline']['commit'] != evidence.BASELINE_COMMIT or sources['baseline']['tree'] == sources['candidate']['tree']:
         raise ValueError('pair the published 9.0.0 with a different candidate')
@@ -339,6 +352,7 @@ def capture_paired(baseline, candidate, output, group, iterations):
     document = {'schema_version': PAIRED_SCHEMA, 'phase_order': list(evidence.PHASES),
                 'contract': tool_contract(), 'sources': sources, 'tool': evidence.source_info(TOOL),
                 'files': {}, 'release_approval': False}
+    if diagnostic: document['diagnostic_only'] = True
     save(output, 'manifest.partial.json', document)
     try:
         context = None
@@ -352,12 +366,15 @@ def capture_paired(baseline, candidate, output, group, iterations):
             document['files'][phase] = {name: {'path': phase+'/'+name, 'sha256': evidence.digest((output/phase/name).read_bytes())}
                                         for name in ('provenance.json', 'samples.json', 'measurement.log')}
             save(output, 'manifest.partial.json', document)
-            if not phase_passed(report):
+            if diagnostic:
+                print(json.dumps({'diagnostic_layout_phase': phase, 'case_count': report['case_count'],
+                                  'quality_passed': phase_passed(report)}), flush=True)
+            if not diagnostic and not phase_passed(report):
                 raise evidence.EvidenceFailure('layout phase quality failed; stop later phases', {'phase': phase, 'report': report})
-        save(output, 'manifest.json', document)
-        report = verify_paired(output, candidate)
+        save(output, 'diagnostic-manifest.json' if diagnostic else 'manifest.json', document)
+        report = verify_paired(output, candidate, diagnostic=True) if diagnostic else verify_paired(output, candidate)
         save(output, 'pairing.json', report)
-        if not report['layout_gate_passed']:
+        if not diagnostic and not report['layout_gate_passed']:
             raise evidence.EvidenceFailure('paired layout drift or regression failed', report)
         return report
     except (OSError, ValueError, subprocess.SubprocessError, KeyboardInterrupt) as error:

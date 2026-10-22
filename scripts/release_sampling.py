@@ -5,6 +5,7 @@ import math
 import os
 import pathlib
 import re
+import time
 
 TEMPLATES = pathlib.Path(__file__).resolve().parent / "release-sampling"
 
@@ -569,7 +570,7 @@ def build_environment(root, environment):
     return dict(environment, CARGO_TARGET_DIR=str(root.resolve() / 'target'))
 
 
-def run_profile(root, environment, profile, mode, log_path, counts_file=None, *, cases):
+def run_profile(root, environment, profile, mode, log_path, counts_file=None, *, cases, journal=None):
     import subprocess
     ordered = sorted(cases)
     if mode not in ("calibrate", "sample") or not ordered or len(ordered) != len(set(ordered)):
@@ -593,7 +594,19 @@ def run_profile(root, environment, profile, mode, log_path, counts_file=None, *,
             while True:
                 worker = dict(env, RSE_SAMPLER_CASE=case, RSE_SAMPLER_ITERATIONS=str(count), RSE_SAMPLER_BATCH=str(batch))
                 offset = log.tell()
-                subprocess.run(command, cwd=root, env=worker, stdout=log, stderr=subprocess.STDOUT, check=True)
+                if journal:
+                    identity = {'case': case, 'mode': mode, 'iterations': count, 'calibration_batch': batch}
+                    journal(dict(identity, event='start', monotonic_ns=time.monotonic_ns(), utc_ns=time.time_ns()))
+                try:
+                    subprocess.run(command, cwd=root, env=worker, stdout=log, stderr=subprocess.STDOUT, check=True)
+                except BaseException as error:
+                    if journal:
+                        journal(dict(identity, event='end', monotonic_ns=time.monotonic_ns(), utc_ns=time.time_ns(),
+                                     exit_code=getattr(error, 'returncode', None), error=type(error).__name__))
+                    raise
+                else:
+                    if journal:
+                        journal(dict(identity, event='end', monotonic_ns=time.monotonic_ns(), utc_ns=time.time_ns(), exit_code=0))
                 with log_path.open() as reader:
                     reader.seek(offset)
                     current = parse_output(reader.read())

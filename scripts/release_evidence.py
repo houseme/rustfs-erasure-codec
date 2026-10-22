@@ -32,6 +32,7 @@ from check_reconstruction_hotspot_gate import CASE_FIELDS, index_results
 
 SCHEMA_VERSION = 4
 QUALIFICATION_SCHEMA = "baseline-qualification-v2"
+DIAGNOSTIC_SCHEMA = "complete-campaign-diagnostic-v1"
 LAYOUT_DIRECTORY = "layout-pair"
 LAYOUT_CASES = tuple(f"verify_with_buffer:4:2:{size}" for size in (1024, 4096))
 BASELINE_RELEASE = "9.0.0"
@@ -375,9 +376,9 @@ def validate_envelope(document):
         raise ValueError("sampled schema 4 with kernel memory policy, complete ABBA and paired layouts is required; older envelopes cannot approve release")
 
 
-def layout_member(document, root):
+def layout_member(document, root, *, diagnostic=False):
     entry = document.get('layout_supplement')
-    expected = LAYOUT_DIRECTORY+'/manifest.json'
+    expected = LAYOUT_DIRECTORY+('/diagnostic-manifest.json' if diagnostic else '/manifest.json')
     if (not isinstance(entry, dict) or entry.get('path') != expected
             or not isinstance(entry.get('sha256'), str) or not DIGEST.fullmatch(entry['sha256'])):
         raise ValueError('a bound complete paired-layout supplement is required')
@@ -406,6 +407,18 @@ def verify(manifest, repository, compiler=True):
     paths, data, report = _verify_profiles(document, manifest.parent, repository, compiler)
     from diagnose_verify_layout import verify_paired
     layout = verify_paired(layout_path.parent, repository, compiler)
+    verify_layout_binding(document, data, layout)
+    if not layout['layout_gate_passed']:
+        raise EvidenceFailure('paired layouts failed; no release approval', {'layout': layout, 'candidate_attribution': None})
+    report.update(status='passed', manifest_sha256=digest(manifest.read_bytes()),
+                  layout_manifest_sha256=document['layout_supplement']['sha256'],
+                  layout_distribution_checks=sum(r['case_count'] for r in layout['phase_reports'].values()),
+                  layout_repeat_checks=len(layout['repeat_checks'])+sum(len(r['repeat_checks']) for r in layout['phase_reports'].values()),
+                  layout_comparisons=len(layout['candidate_attribution']))
+    return document, paths, report
+
+
+def verify_layout_binding(document, data, layout):
     if any(layout['tool'][key] != document['sources']['candidate'][key] for key in ('tree', 'lock_sha256')):
         raise ValueError('paired-layout tool does not match the frozen candidate tree/lock')
     if layout['sources'] != document['sources'] or layout['context'] != document['contexts']['A1']:
@@ -420,17 +433,83 @@ def verify(manifest, repository, compiler=True):
         if (any(provenance_value(row, field) != native[field] for field in fields)
                 or not provenance_value(row, 'target_triple').startswith(target_prefix)):
             raise ValueError(case+': paired-layout backend/features/target differ from the original buffered-verify cases')
-    if not layout['layout_gate_passed']:
-        raise EvidenceFailure('paired layouts failed; no release approval', {'layout': layout, 'candidate_attribution': None})
-    report.update(status='passed', manifest_sha256=digest(manifest.read_bytes()),
-                  layout_manifest_sha256=document['layout_supplement']['sha256'],
-                  layout_distribution_checks=sum(r['case_count'] for r in layout['phase_reports'].values()),
-                  layout_repeat_checks=len(layout['repeat_checks'])+sum(len(r['repeat_checks']) for r in layout['phase_reports'].values()),
-                  layout_comparisons=len(layout['candidate_attribution']))
+
+
+def verify_diagnostic(manifest, repository, compiler=True):
+    """Recompute every check after complete collection; never release evidence."""
+    document = json_data(manifest)
+    if (not isinstance(document, dict) or document.get('schema_version') != DIAGNOSTIC_SCHEMA
+            or document.get('phase_order') != list(PHASES)
+            or document.get('diagnostic_only') is not True
+            or document.get('release_approval') is not False):
+        raise ValueError('a complete diagnostic manifest is required')
+    layout_path = layout_member(document, manifest.parent, diagnostic=True)
+    invocations = verify_worker_journal(document, manifest.parent)
+    paths, data, report = _verify_profiles(document, manifest.parent, repository, compiler, diagnostic=True)
+    from diagnose_verify_layout import verify_paired
+    layout = verify_paired(layout_path.parent, repository, compiler, diagnostic=True)
+    verify_layout_binding(document, data, layout)
+    report.update(status='diagnostic_complete', diagnostic_only=True, release_approval=False,
+                  candidate_attribution=None, all_checks_executed=True,
+                  manifest_sha256=digest(manifest.read_bytes()), layout=layout,
+                  worker_invocations=invocations,
+                  all_original_limits_passed=report['all_original_limits_passed'] and layout['layout_gate_passed'])
     return document, paths, report
 
 
-def _verify_profiles(document, root, repository, compiler=True):
+def verify_worker_journal(document, root):
+    entry = document.get('worker_journal', {})
+    path = root/'worker-journal.jsonl'
+    if (not isinstance(entry, dict) or entry.get('path') != path.name or path.is_symlink() or not path.is_file()
+            or not 0 < path.stat().st_size <= MAX_BYTES
+            or digest(path.read_bytes()) != entry.get('sha256')):
+        raise ValueError('complete digest-bound worker journal is required')
+    expected = []
+    for phase in ('calibration-baseline', 'calibration-candidate', *PHASES):
+        calibration = phase.startswith('calibration-')
+        for profile in FILES:
+            member = (document['calibration'][phase.removeprefix('calibration-')][profile] if calibration
+                      else document['files'][phase][profile]['samples'])
+            records = evidence_member(root, member, phase+'/'+profile+'-samples.json')
+            expected.extend({'phase': phase, 'profile': profile, 'mode': 'calibrate' if calibration else 'sample',
+                             'case': r['case'], 'iterations': r['iterations'], 'calibration_batch': r['calibration_batch']}
+                            for r in records if r['index'] == 0)
+    rows = [json.loads(line) for line in path.read_text().splitlines()]
+    if len(rows) != 2*len(expected):
+        raise ValueError('complete start/end worker journal is required')
+    previous = 0
+    for index, identity in enumerate(expected):
+        for position, event in enumerate(('start', 'end')):
+            row = rows[2*index+position]
+            keys = set(identity) | {'event', 'monotonic_ns', 'utc_ns'} | ({'exit_code'} if position else set())
+            if (not isinstance(row, dict) or set(row) != keys or row['event'] != event or any(row.get(k) != v for k,v in identity.items())
+                    or any(type(row[k]) is not int or row[k] < 0 for k in ('monotonic_ns', 'utc_ns'))
+                    or row['monotonic_ns'] < previous or position and (type(row['exit_code']) is not int or row['exit_code'] != 0)):
+                raise ValueError('worker journal order, identity or outcome differs from original records')
+            previous = row['monotonic_ns']
+    return len(expected)
+
+
+def diagnostic_rows(records, profile, metric, revision, expected, counts, normalize,
+                    allowed_cpus=None, expected_page_size=None):
+    """Use the original nine-sample median; record short windows without trimming."""
+    groups = sampling.sample_groups(records, profile, revision, expected, counts, normalize,
+                                    allowed_cpus, expected_page_size)
+    selected, widths = [], []
+    for case, group in groups.items():
+        samples = group[sampling.PROTOCOL['warmups']:]
+        ordered = sorted(samples, key=lambda r: r['rows'][0][metric])
+        median = ordered[len(ordered)//2]['rows'][0]
+        short = [{'index': r['index'], 'wall_ns': r['wall_ns'], 'timed_ns': r['timed_ns']}
+                 for r in samples if r['wall_ns'] < sampling.PROTOCOL['minimum_wall_ns']
+                 or r['timed_ns'] < sampling.PROTOCOL['minimum_timed_ns']]
+        selected.append(median)
+        widths.append({'case': case, 'central_spread': (ordered[-2]['rows'][0][metric]-ordered[1]['rows'][0][metric])/median[metric],
+                       'short_samples': short})
+    return selected, widths
+
+
+def _verify_profiles(document, root, repository, compiler=True, *, diagnostic=False):
     """Validate original full profiles; this partial result cannot approve release."""
     if document.get("baseline_release") != BASELINE_RELEASE:
         raise ValueError("release baseline must be the published 9.0.0")
@@ -487,7 +566,7 @@ def _verify_profiles(document, root, repository, compiler=True):
             paths[phase][profile] = path
             counts = document.get("sampling", {}).get("common_iterations", {}).get(profile)
             data[phase][profile] = rows(profile, path, sources[role]["commit"], counts)
-    sample_spreads = verify_sampling(document, root, repository, data)
+    sample_spreads = verify_sampling(document, root, repository, data, diagnostic=diagnostic)
     drifts = []
     for profile in FILES:
         for phase in PHASES[1:]: compatible(profile, data["A1"][profile], data[phase][profile])
@@ -496,13 +575,38 @@ def _verify_profiles(document, root, repository, compiler=True):
                 old, new = float(row[METRICS[profile]]), float(data[second][profile][case][METRICS[profile]])
                 drift = abs(new - old) / old
                 drifts.append({"profile": profile, "case": case, "pair": first + second, "drift": drift})
-    if any(item["drift"] > .05 for item in drifts):
+    if not diagnostic and any(item["drift"] > .05 for item in drifts):
         raise EvidenceFailure("ABBA drift exceeds 5%; no candidate attribution or release approval",
                               {"drift_checks": drifts, "sample_spreads": sample_spreads, "candidate_attribution": None})
+    checks, comparisons = [], []
     for profile in FILES:
         for a in ("A1", "A2"):
             for b in ("B1", "B2"):
-                subprocess.run(checker_args(profile, paths[a][profile], paths[b][profile]), cwd=repository, check=True, stdout=subprocess.DEVNULL)
+                args = checker_args(profile, paths[a][profile], paths[b][profile])
+                if diagnostic:
+                    result = subprocess.run(args, cwd=repository, check=False, capture_output=True, text=True)
+                    checks.append({'profile': profile, 'pair': a+'/'+b, 'exit_code': result.returncode,
+                                   'stdout': result.stdout, 'stderr': result.stderr})
+                    for case, row in data[a][profile].items():
+                        old, new = row[METRICS[profile]], data[b][profile][case][METRICS[profile]]
+                        comparisons.append({'profile': profile, 'pair': a+'/'+b, 'case': case,
+                                            'metric': METRICS[profile], 'baseline': old, 'candidate': new,
+                                            'candidate_over_baseline': new/old})
+                else:
+                    subprocess.run(args, cwd=repository, check=True, stdout=subprocess.DEVNULL)
+    if diagnostic:
+        wide = [r for r in sample_spreads if r['central_spread'] > sampling.PROTOCOL['central_spread_limit']]
+        short = [dict(phase=r['phase'], profile=r['profile'], case=r['case'], **window)
+                 for r in sample_spreads for window in r['short_samples']]
+        repeats = [r for r in drifts if r['drift'] > .05]
+        return paths, data, {'status': 'diagnostic_profiles_complete', 'diagnostic_only': True,
+                            'release_approval': False, 'candidate_attribution': None,
+                            'sample_spreads': sample_spreads, 'distribution_failures': wide,
+                            'short_samples': short, 'repeat_checks': drifts, 'repeat_failures': repeats,
+                            'regression_checks': checks, 'unqualified_metric_comparisons': comparisons,
+                            'metric_direction': {'smoke': 'higher', 'small_file': 'lower', 'hotspot': 'higher', 'stream': 'lower'},
+                            'all_original_limits_passed': not (wide or short or repeats or any(r['exit_code'] for r in checks)),
+                            'scope': 'complete diagnostic; raw comparisons remain unqualified even if every check passes'}
     return paths, data, {"status": "profiles_verified", "candidate_commit": actual["commit"], "candidate_tree": actual["tree"], "measured_candidate_commit": sources["candidate"]["commit"], "baseline_commit": sources["baseline"]["commit"], "drift_checks": len(drifts), "sample_distribution_checks": len(sample_spreads), "case_counts": {p: len(data["A1"][p]) for p in FILES}, "scope": "controlled recorded VM campaign; no new measurement on the verification runner"}
 
 
@@ -516,7 +620,7 @@ def evidence_member(root, entry, expected):
     return result
 
 
-def verify_sampling(document, root, repository, summarized):
+def verify_sampling(document, root, repository, summarized, *, diagnostic=False):
     contract = document.get("sampling", {})
     expected = dict(sampling.PROTOCOL, implementation_sha256=sampling.implementation_digest(), overlay_sha256=sampling.overlay_digest(repository))
     if any(contract.get(k) != v for k, v in expected.items()):
@@ -553,7 +657,8 @@ def verify_sampling(document, root, repository, summarized):
             records = evidence_member(root, entry, f"{phase}/{profile}-samples.json")
             role = "baseline" if phase.startswith("A") else "candidate"
             normalize = lambda p, row, rev: next(iter(indexed_rows(p, [row], rev, counts[p], complete=False)))
-            selected, widths = sampling.selected_row(records, profile, METRICS[profile], revision, expected_cases(profile), counts[profile], normalize, document["contexts"][phase]["isolation"].get("cpu_affinity"), document["contexts"][phase]["runtime"]["page_size"])
+            select = diagnostic_rows if diagnostic else sampling.selected_row
+            selected, widths = select(records, profile, METRICS[profile], revision, expected_cases(profile), counts[profile], normalize, document["contexts"][phase]["isolation"].get("cpu_affinity"), document["contexts"][phase]["runtime"]["page_size"])
             observation_contracts(profile, records, pilot_contracts[role][profile])
             layouts[profile][phase] = sampling.fixture_catalog(records)
             workloads[phase] = sampling.workload_catalog(records)
@@ -573,7 +678,7 @@ def verify_sampling(document, root, repository, summarized):
         if any(layout != layouts[profile]["A1"] for layout in layouts[profile].values()):
             raise ValueError(f"{profile}: buffer layout differs between ABBA phases")
     unstable = [r for r in spreads if r["central_spread"] > sampling.PROTOCOL["central_spread_limit"]]
-    if unstable:
+    if unstable and not diagnostic:
         raise EvidenceFailure("sample distributions are unstable; no candidate attribution", {"sample_spreads": spreads, "candidate_attribution": None})
     return spreads
 
@@ -732,11 +837,15 @@ def qualify_baseline(baseline, output, group):
     return report
 
 
-def capture_profile(root, folder, profile, mode, env, output, group, count_file=None):
+def capture_profile(root, folder, profile, mode, env, output, group, count_file=None, *, diagnostic=False):
     before = environment_context(root,env,group)
     log_path = folder/(profile+".log")
+    def journal(event):
+        with (output/'worker-journal.jsonl').open('a') as stream:
+            stream.write(json.dumps(dict(event, phase=folder.name, profile=profile))+'\n')
     try:
-        records = sampling.run_profile(root,env,profile,mode,log_path,count_file,cases=expected_cases(profile))
+        options = {'journal': journal} if diagnostic else {}
+        records = sampling.run_profile(root,env,profile,mode,log_path,count_file,cases=expected_cases(profile), **options)
     except BaseException:
         # run_profile closes and flushes its journal before propagating failure.
         # Preserve completed numeric rows without promoting them to members
@@ -758,7 +867,7 @@ def capture_profile(root, folder, profile, mode, env, output, group, count_file=
     return records, {"path":member.relative_to(output).as_posix(),"sha256":digest(member.read_bytes())}
 
 
-def capture(baseline, candidate, output, group):
+def capture(baseline, candidate, output, group, *, diagnostic=False):
     if output.exists(): raise ValueError("use a new evidence directory; old observations are preserved")
     output.mkdir(parents=True)
     env = capture_environment()
@@ -774,23 +883,30 @@ def capture(baseline, candidate, output, group):
         raise ValueError("both codecs require the same original harness and external overlay")
     contract = dict(sampling.PROTOCOL, implementation_sha256=sampling.implementation_digest(), overlay_sha256=sampling.overlay_digest(candidate))
     metadata = {"schema_version":SCHEMA_VERSION,"baseline_release":BASELINE_RELEASE,"phase_order":list(PHASES),"sources":sources,"harness_sha256":harness,"sampling":contract,"contexts":{},"files":{},"calibration":{}}
+    partial_name = 'diagnostic-manifest.partial.json' if diagnostic else 'manifest.partial.json'
+    if diagnostic:
+        metadata.update(schema_version=DIAGNOSTIC_SCHEMA, diagnostic_only=True, release_approval=False)
     (output/"capture-provenance.json").write_text(json.dumps({
         "purpose":"capture setup only; never release acceptance", "sources":sources, "tool":tool,
+        "capture_mode": "diagnose-complete" if diagnostic else "capture",
         "harness_sha256":harness, "sampling":contract,
         "initial_context":environment_context(candidate,env,group)},indent=2)+"\n")
     with ExitStack() as overlays:
         for role, root in (("baseline", baseline), ("candidate", candidate)):
             prepare_capture_source(overlays, root, env, output/(role+"-build.log"))
         pilots={}; contracts={}
+        capture_options = {'diagnostic': True} if diagnostic else {}
         for role,root in (("baseline",baseline),("candidate",candidate)):
             folder=output/("calibration-"+role);folder.mkdir()
             metadata["calibration"][role]={};pilots[role]={};contracts[role]={}
             for profile in FILES:
-                records,entry=capture_profile(root,folder,profile,"calibrate",env,output,group)
+                records,entry=capture_profile(root,folder,profile,"calibrate",env,output,group, **capture_options)
                 metadata["calibration"][role][profile]=entry
                 pilots[role][profile]=calibration_counts(records,profile,sources[role]["commit"])
                 contracts[role][profile]=observation_contracts(profile,[r for r in records if r["complete"]],
                     contracts["baseline"][profile] if role=="candidate" else None)
+                if diagnostic:
+                    print(json.dumps({'diagnostic_calibration': role, 'profile': profile, 'records': len(records)}), flush=True)
         counts={p:{k:max(pilots[r][p][k] for r in pilots) for k in expected_cases(p)} for p in FILES}
         contract["common_iterations"]=counts
         count_files={}
@@ -805,40 +921,51 @@ def capture(baseline, candidate, output, group):
             folder=output/phase;folder.mkdir();metadata["files"][phase]={}
             phase_spreads=[]
             for profile,filename in FILES.items():
-                records,entry=capture_profile(root,folder,profile,"sample",env,output,group,count_files[profile])
+                records,entry=capture_profile(root,folder,profile,"sample",env,output,group,count_files[profile], **capture_options)
                 normalize=lambda p,row,rev: next(iter(indexed_rows(p,[row],rev,counts[p],complete=False)))
-                selected,spreads=sampling.selected_row(records,profile,METRICS[profile],sources[role]["commit"],expected_cases(profile),counts[profile],normalize)
+                select = diagnostic_rows if diagnostic else sampling.selected_row
+                selected,spreads=select(records,profile,METRICS[profile],sources[role]["commit"],expected_cases(profile),counts[profile],normalize)
                 observation_contracts(profile,records,contracts[role][profile])
                 phase_spreads.extend(dict(item, profile=profile) for item in spreads)
                 result=folder/filename;result.write_text(json.dumps(selected,indent=2)+"\n")
                 metadata["files"][phase][profile]={"path":f"{phase}/{filename}","sha256":digest(result.read_bytes()),"samples":entry}
-                (output/"manifest.partial.json").write_text(json.dumps(metadata,indent=2)+"\n")
+                (output/partial_name).write_text(json.dumps(metadata,indent=2)+"\n")
+                if diagnostic:
+                    print(json.dumps({'diagnostic_phase': phase, 'profile': profile, 'records': len(records),
+                                      'wide_cases': sum(r['central_spread'] > sampling.PROTOCOL['central_spread_limit'] for r in spreads),
+                                      'short_samples': sum(len(r['short_samples']) for r in spreads)}), flush=True)
             # Keep the complete failed phase, but do not run more formal phases
             # after a quality failure that already makes the campaign unusable.
-            if any(item["central_spread"] > sampling.PROTOCOL["central_spread_limit"] for item in phase_spreads):
+            if not diagnostic and any(item["central_spread"] > sampling.PROTOCOL["central_spread_limit"] for item in phase_spreads):
                 raise EvidenceFailure("sample distributions are unstable; no later phase or candidate attribution", {
                     "failed_phase":phase, "sample_spreads":phase_spreads, "candidate_attribution":None})
         metadata["contexts"]["after"]=environment_context(candidate,env,group)
         if any(source_info(root)!=sources[role] for role,root in (("baseline",baseline),("candidate",candidate))): raise ValueError("source changed during capture")
         # Reject full-profile quality/drift/regressions before spending any time
         # on supplemental layouts. This is not a release success report.
-        _verify_profiles(metadata, output, candidate)
+        if not diagnostic:
+            _verify_profiles(metadata, output, candidate)
     # Standalone layouts reuse the same overlay entry; both formal overlays must
     # close safely before their collector starts.
     from diagnose_verify_layout import capture_paired
-    capture_paired(baseline, candidate, output/LAYOUT_DIRECTORY, group, layout_iterations(contract))
-    layout_path = output/LAYOUT_DIRECTORY/'manifest.json'
-    metadata['layout_supplement'] = {'path': LAYOUT_DIRECTORY+'/manifest.json', 'sha256': digest(layout_path.read_bytes())}
-    (output/'manifest.partial.json').write_text(json.dumps(metadata, indent=2)+'\n')
+    options = {'diagnostic': True} if diagnostic else {}
+    capture_paired(baseline, candidate, output/LAYOUT_DIRECTORY, group, layout_iterations(contract), **options)
+    manifest_name = 'diagnostic-manifest.json' if diagnostic else 'manifest.json'
+    layout_path = output/LAYOUT_DIRECTORY/manifest_name
+    metadata['layout_supplement'] = {'path': LAYOUT_DIRECTORY+'/'+manifest_name, 'sha256': digest(layout_path.read_bytes())}
+    (output/partial_name).write_text(json.dumps(metadata, indent=2)+'\n')
     metadata['contexts']['after'] = environment_context(candidate, env, group)
-    (output/'manifest.partial.json').write_text(json.dumps(metadata, indent=2)+'\n')
+    (output/partial_name).write_text(json.dumps(metadata, indent=2)+'\n')
     if metadata['contexts']['after'] != metadata['contexts']['A1']:
         raise ValueError('resource context changed during supplemental capture')
     if any(source_info(root) != sources[role] for role, root in (("baseline", baseline), ("candidate", candidate))):
         raise ValueError('source changed during supplemental capture')
-    manifest = output/'manifest.json'
+    manifest = output/manifest_name
+    if diagnostic:
+        journal = output/'worker-journal.jsonl'
+        metadata['worker_journal'] = {'path': journal.name, 'sha256': digest(journal.read_bytes())}
     manifest.write_text(json.dumps(metadata, indent=2)+'\n')
-    _, _, report = verify(manifest, candidate)
+    _, _, report = (verify_diagnostic if diagnostic else verify)(manifest, candidate)
     (output/'report.json').write_text(json.dumps(report, indent=2)+'\n')
 
 
@@ -861,30 +988,32 @@ def materialize(manifest, repository, env_file):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="mode", required=True)
-    for mode in ("capture", "qualify-baseline"):
+    for mode in ("capture", "qualify-baseline", "diagnose-complete"):
         cap = sub.add_parser(mode)
         cap.add_argument("--baseline", type=pathlib.Path, required=True)
-        if mode == "capture": cap.add_argument("--candidate", type=pathlib.Path, required=True)
+        if mode != "qualify-baseline": cap.add_argument("--candidate", type=pathlib.Path, required=True)
         cap.add_argument("--output", type=pathlib.Path, required=True)
         cap.add_argument("--isolation-cgroup", type=pathlib.Path, required=True)
-    for mode in ("verify", "materialize"):
+    for mode in ("verify", "materialize", "verify-diagnostic"):
         child = sub.add_parser(mode)
         child.add_argument("--manifest", type=pathlib.Path, required=True)
         child.add_argument("--repository", type=pathlib.Path, default=pathlib.Path.cwd())
         if mode == "materialize": child.add_argument("--env-file", type=pathlib.Path, required=True)
         else: child.add_argument("--report", type=pathlib.Path)
     args = parser.parse_args()
-    capture_output_was_absent = args.mode in ("capture", "qualify-baseline") and not args.output.exists()
+    capture_output_was_absent = args.mode in ("capture", "qualify-baseline", "diagnose-complete") and not args.output.exists()
     try:
         if args.mode == "capture": capture(args.baseline.resolve(), args.candidate.resolve(), args.output.resolve(), args.isolation_cgroup)
+        elif args.mode == "diagnose-complete": capture(args.baseline.resolve(), args.candidate.resolve(), args.output.resolve(), args.isolation_cgroup, diagnostic=True)
         elif args.mode == "qualify-baseline": qualify_baseline(args.baseline.resolve(), args.output.resolve(), args.isolation_cgroup)
         elif args.mode == "materialize": materialize(args.manifest.resolve(), args.repository.resolve(), args.env_file)
         else:
-            _, _, report = verify(args.manifest.resolve(), args.repository.resolve())
+            verifier = verify_diagnostic if args.mode == 'verify-diagnostic' else verify
+            _, _, report = verifier(args.manifest.resolve(), args.repository.resolve())
             if args.report:
                 args.report.parent.mkdir(parents=True, exist_ok=True)
                 args.report.write_text(json.dumps(report, indent=2) + "\n")
-        print("baseline qualification completed; not release acceptance" if args.mode == "qualify-baseline" else "release evidence verified")
+        print('complete diagnostic; no release approval' if args.mode in ('diagnose-complete', 'verify-diagnostic') else "baseline qualification completed; not release acceptance" if args.mode == "qualify-baseline" else "release evidence verified")
     except (OSError, ValueError, KeyError, TypeError, subprocess.CalledProcessError, SystemExit) as error:
         # Never leave a stale passing report for a failed invocation.
         report_path = getattr(args, "report", None)

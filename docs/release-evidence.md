@@ -4,6 +4,48 @@ Release 9.1.0 uses published **9.0.0** (`9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b
 as its baseline. No accepted snapshot has been configured merely by adding this
 workflow. Ordinary CI and mocked tooling tests do not establish performance.
 
+## Complete diagnostic collection
+
+When the objective is to collect the entire campaign before analyzing failures,
+use the explicit diagnostic mode. It calibrates both sources, freezes common
+counts, runs all 126 cases in A1/B1/B2/A2, then all four paired-layout phases.
+Wide distributions, short measurement windows, repeat drift and regression
+failures are recorded without skipping later statistical checks or layouts.
+Original worker loops, durations, three warmups and nine samples remain intact.
+
+```bash
+python3 candidate/scripts/release_evidence.py diagnose-complete \
+  --baseline /test/baseline --candidate /test/candidate \
+  --output /test/new-complete-diagnostic \
+  --isolation-cgroup /sys/fs/cgroup/reserved-release
+
+python3 candidate/scripts/release_evidence.py verify-diagnostic \
+  --manifest /test/new-complete-diagnostic/diagnostic-manifest.json \
+  --repository /test/candidate --report /test/new-diagnostic-replay.json
+```
+
+Replay computes all 504 profile distributions, 252 profile repeat checks, 16
+regression-program invocations and 504 unqualified metric comparisons. Layout
+analysis retains all 256 cell distributions, 256 within/cross-phase repeats and
+256 unqualified comparisons, including regression indicators when quality fails.
+Every raw observation and failed check remains available for cause analysis.
+The digest-bound `worker-journal.jsonl` records parent monotonic/UTC invocation
+boundaries and outcomes for every calibration batch and phase worker. Replay
+checks the complete order against the original records; these timestamps are
+outer worker bounds, not invented inner-API timestamps or timing normalization.
+Source/lock/harness identity, complete observation order, data integrity, resource
+ownership and process failure checks remain explicit errors; no missing rows or
+invalid numeric values are invented to complete a report.
+
+Output uses `complete-campaign-diagnostic-v1`, `diagnostic-manifest.json` and
+`release_approval=false`; the normal `verify` and `materialize` commands refuse
+it even when every original threshold passes. `capture`, `qualify-baseline` and
+normal paired-layout acceptance keep their existing early-refusal behavior.
+The diagnostic report includes every original failure and descriptive ratio,
+with `candidate_attribution=null`. Complete diagnostic collection is not a
+successful publication preflight. Run only in a new directory and retain the
+frozen source, private resource guard and original journals throughout.
+
 ## Collect on the controlled Linux x86_64 environment
 
 Use fresh, clean Git checkouts of the baseline and the final candidate; keep the
@@ -57,7 +99,7 @@ cannot mix generated build outputs across sources. The native dual-version check
 uses a real isolated baseline checkout so deferred Git provenance also remains valid.
 
 Every case is calibrated on both releases before A1. Calibration targets at least
-100 ms wall time and 5 ms timed work, with bounded increasing iterations. For each
+2 s wall time and 100 ms timed work, with bounded increasing iterations. For each
 proposed count, calibration retains the same three warmups and nine probes used
 for measurement. All nine probes must meet both duration targets before the
 count is frozen. Any short probe increases the count and restarts the full warmup
