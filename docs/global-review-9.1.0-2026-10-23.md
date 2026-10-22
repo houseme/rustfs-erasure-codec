@@ -82,6 +82,65 @@ parity, cross-decoding in both directions and the retained field vectors. An
 offline Cargo package again contains 67 files / 192.0 KiB compressed and rebuilds
 its extracted sources. Package, JSON and workspace audits pass without uploads.
 
+## Dynamic allocation ledger consolidation
+
+The next functional commits are `da103b6` (artifact-sized native transport) and
+`2bcc0de` (dynamic ledger migration). The shared Rust tool now owns dynamic
+allocation generations, payload schedules, decoder supplement headers and the
+private workload-marker adapter. The six supplement definitions also have one
+native catalog; the Python controller consumes its values.
+
+The validator prepares each payload schedule once for all 24 iterations. It
+tracks live allocation generations, retires previous generations on realloc/free,
+and borrows each iteration's original event slice. It does not retain the old
+all-generations map or 24 additional iteration lists. Per-thread counters use
+bounded thread slots. Page/offset rules reuse the shared diagnostic model,
+including explicit nonnative snapshots and the bounded 4,097-page query policy.
+
+Old/current Leopard temporary-owner layouts remain distinct. Leopard GF16's
+public shards and matrices contain bytes, while its internal lanes contain
+16-bit elements. That distinction is covered by native tests and actual decoder
+ledgers. Diagnostic workload markers remain in retained journals; only a private
+validation copy is unwrapped, and formal sampling continues to reject that marker.
+No production codec kernel, matrix, field representation or allocator changes.
+
+A compatibility check exposed a transport boundary: the old Python validator
+accepts a valid 50,625-event ledger whose framed request occupied 23,882,805 bytes,
+exceeding the helper's former 16 MiB cap. Requests now allow a complete 32 MiB
+artifact plus 64 KiB of envelope space. Both Python and Rust enforce the bound;
+responses remain limited to 32 MiB. Compact JSON reduces that same request to
+20,997,245 bytes and preserves its complete summary. A regression checks that a
+large request also preserves the next worker frame.
+
+The Python inventory is 34 files / 8,236 lines: another 328 lines removed and
+about 37% fewer lines than the original inventory. Six pure dynamic tests move
+with their model; capture, source restoration, original-journal binding and
+replay integrations remain active. The 576 JSON files retain their original
+bytes. Core/WASM package allowlists still contain 67/6 members, and all five
+workspace members inherit the root dependency catalog.
+
+Validation of the frozen `2bcc0de` source passes 118 native tests (93 unit,
+25 executable), strict Clippy and Linux all-target compilation. The original
+Python model agrees on 1,583 ledger decisions/summaries and 72 supplement-header
+checks. Historical development inputs missing the required shape field remain
+refused by both implementations; their stored bytes are unchanged.
+
+Both source versions complete the entire 516-worker capture and independent
+replay: 126 original cases in calibration and sample modes, plus all six decoder
+supplements. That covers 6,192 observations / 12,384 iteration scopes. A further
+original/native comparison checks every one of those 516 complete summaries,
+including 1,491,044 events and all twelve actual supplement headers, with no
+mismatches. Both native observer semantics checks also pass. These runs are
+instrumented functional diagnostics on macOS ARM64; they do not constitute
+Linux resource qualification or accepted codec performance measurements.
+
+The compatibility runner again passes 200 exact parity configurations and
+cross-decoding in both directions. Core all-feature tests pass 517 cases with
+43 existing ignored tests; all ten doctests, 256 Python tests and the independent
+no_std check pass. Offline packaging again rebuilds the 67-file, 191.9 KiB
+extracted crate.
+No tag, push or crate upload is performed by this migration.
+
 ## Verified defects and fixes
 
 ### Background worker surviving its leader

@@ -37,6 +37,7 @@ cargo test --locked --package xtask
 | Python sampling contracts/validators and their pure test module | Shared `sampling_contract` and `diagnostics::catalog`; `cargo xtask sampling-contract --input FILE` | All 126 cases, API/masks/seeds, RNG witnesses, CPU masks/counters, retained buffers, measured intervals and complete calibration rehearsals |
 | Python stream-view ledger validators and pure tests | `diagnostics::views`; `cargo xtask validate-stream-views --input FILE` | V3 I/O, EOF/cursor transitions, caller backing, windows, native counters, virtual-page snapshots and explicit unknowns |
 | Python verify-scratch/stream-core ledger models and eight pure tests | `diagnostics::{ledger,verify_scratch,stream_core}`; `cargo xtask validate-diagnostic-ledger --input FILE` | V1 schemas/summaries, every observation, nested legacy verify calls, transferred/replaced owners and explicit native coverage |
+| Python dynamic allocation models and six pure tests | `diagnostics::dynamic_ledger`; `cargo xtask validate-diagnostic-ledger --input FILE` | Live generations, original payload stages, old/current decoder owners, typed lane/byte extents, supplement headers and diagnostic-only workload markers |
 
 The obsolete implementations and their Python test entry points are removed.
 Rust unit and executable tests cover the retained contracts. The migration was
@@ -109,7 +110,9 @@ the optimized host executable with `--release --locked --offline` once and reuse
 an owned JSON-lines worker, serializing calls
 from multiple threads. Invalid requests return an error without losing the next
 frame. EOF/shutdown reaps the child; a dead worker fails the current call without
-automatic replay. Request/response limits are 16/32 MiB. The original one-shot
+automatic replay. Requests allow a 32 MiB artifact plus 64 KiB of envelope
+space; responses are limited to 32 MiB. Compact JSON avoids redundant whitespace.
+The original one-shot
 `native-helper --input FILE` interface remains available. There is no
 Rust-to-Python launcher. Rust sources, manifests and the lockfile participate in
 implementation digests. Controller
@@ -207,8 +210,8 @@ The initial inventory contained **56 Python files / 13,120 lines**. Twenty-three
 original files were removed (twelve implementations/helpers and eleven test
 modules). One native-tool compatibility binding remains. The intermediate Python
 normalization library was also removed after its consumers moved to Rust.
-The remaining **34 files / 8,564 lines** consist of 15 production/helper modules
-and 19 test/fixture modules: about 35% fewer Python lines overall. This count
+The remaining **34 files / 8,236 lines** consist of 15 production/helper modules
+and 19 test/fixture modules: about 37% fewer Python lines overall. This count
 also includes the concurrently integrated release-check isolation assertions. The
 stream-view migration removed its Python test module after all eleven original tests
 passed against Rust. Its six pure checks moved to native tests; five controller
@@ -217,6 +220,9 @@ integration tests remain in the layout suite and the shared fixture remains in
 The subsequent source-ledger migration removes another 225 Python lines. Its
 eight pure verify-scratch/stream-core tests passed against the Rust replacement
 before moving to native tests; capture, overlay and replay tests remain active.
+The dynamic allocation migration removes another 328 Python lines. Its six pure
+checks move with their Rust model; controller, source-copy and replay integrations
+remain. Decoder metadata and workload unwrapping now share the native catalog.
 The unreferenced Python-2-style `sage/galois_ext_test.sage` worksheet was also
 removed. Its four fixed tower-field addition/multiplication/division/inverse
 vectors now execute against both codec versions in the compatibility probe.
@@ -230,7 +236,7 @@ and validation copies are outside this inventory.
 | Native tool binding | `native_tools` | Own/reap one host worker for source generation, normalization, CPU identity and memory policy; bounded immutable-value caches |
 | Campaign and machine qualification | `release_evidence`, `release_sampling`, `analyze_baseline_variability`, `diagnose_adjacent_baseline`, `diagnose_release_vm` | Port as one coordinated state machine with process ownership, platform adapters and immutable evidence contracts |
 | Native probes and source overlays | `diagnostic_overlay`, `diagnose_fixture_layout`, `diagnose_verify_layout`, `diagnose_shard_slot`, `diagnose_cpu_placement` | Reuse existing Rust probe programs and templates; retain rollback/cancellation behavior and original-source digests |
-| Allocation/lifecycle audits | `dynamic_buffer_audit`, `stream_core_audit`, `stream_view_audit`, `verify_scratch_audit` | Stream-view, ordinary verify and stream-core ledger validation/summaries, source transforms and overlay generation are native; retain capture/replay, sample binding and the dynamic-buffer-specific ledger until migrated |
+| Allocation/lifecycle audits | `dynamic_buffer_audit`, `stream_core_audit`, `stream_view_audit`, `verify_scratch_audit` | All four allocation/source/view ledger models and summaries, decoder headers/catalog, source transforms and overlay generation are native; retain capture/replay, envelope/source binding and worker integration |
 | Tests and fixture support | `scripts/tests/*.py` | Move each behavior test with its owning subsystem; remove the old test only after exercising its replacement |
 
 This is an incremental migration, not a Python-free repository. The remaining
@@ -360,7 +366,7 @@ migration, whose codec sources remain unchanged):
 | --- | --- |
 | Core `--all-features --lib --tests` | 517 passed; 43 existing benchmark/manual tests ignored |
 | Core all-feature doctests | 10 passed |
-| Rust tooling unit/executable tests | 105 passed (80 unit, 25 executable), including generator bytes, LF/CRLF/CR, framing/bounds, exact float bits, CPU identity, policy, batched agreement, sampling contracts, source/view ledgers, smoke-report scope, cancellation and cleanup |
+| Rust tooling unit/executable tests | 118 passed (93 unit, 25 executable), including generator bytes, LF/CRLF/CR, framing/bounds, exact float bits, CPU identity, policy, batched agreement, sampling contracts, source/view ledgers, smoke-report scope, cancellation and cleanup |
 | Native row normalization | Ten archived JSON artifacts / 672 rows match the original Python results |
 | Exact numeric transport | All 2,000 numeric pairs retain their original float values |
 | Sampling contract migration | All 126 workload/fixture contracts retain the old model digest; 5,206 acceptance/value comparisons match |
@@ -368,6 +374,8 @@ migration, whose codec sources remain unchanged):
 | Verify-scratch and stream-core migration | 3,941 comparisons: 3,937 identical decisions/summaries and four intentional refusals of negative/out-of-u64 timestamps; all 22 original subsystem tests passed before eight pure tests moved to Rust |
 | Real stream-view workers, both versions | Four adapter tests and all 15 workers passed per version; 360 observations validated across published 9.0.0 and the candidate |
 | Real verify-scratch/stream-core workers, both versions | 58 workers, 696 observations and 98,448 events pass capture/replay and match the original Python ledger summaries; 30 stream workers also exercise native view validation |
+| Dynamic allocation migration | 1,583 original/native ledger checks plus 72 supplement-header checks agree; the large 50,625-event request preserves its summary and worker framing |
+| Full dynamic capture/replay against both sources | All 516 workers pass, including 6,192 observations and 1,491,044 events; every complete summary and all twelve actual supplement headers also match the original Python model |
 | Controller worker lifecycle | Reuse after validation errors, concurrent calls, crash recovery and immutable caches are exercised by Python tests |
 | Real diagnostic compilation/execution | ShardSlot: 2 native checks; CPU placement: 19 native checks passed on the host |
 | Linux tooling compilation | All targets checked for x86_64-unknown-linux-gnu, including the native prctl ABI |
@@ -380,13 +388,13 @@ migration, whose codec sources remain unchanged):
 | Real archived small-file rows | All 447 cases from six JSON archives produce identical gate reports on self-comparison |
 | Original syscall ledger tests | 5 passed; 8 CLI comparisons preserve complete reports |
 | Machine report comparison | Full compatible-operation report and seven archived machine summaries match Python; regression tests cover the corrected XOR grouping and raw arrays |
-| Remaining Python suite | 261 passed after eight source-ledger tests moved to Rust; the original 269/274/278-test suites passed before their respective consolidations |
+| Remaining Python suite | 256 passed after six dynamic tests moved to Rust and the large-request integration was added; the original 261/269/274/278-test suites passed before their respective consolidations |
 | Published 9.0.0/local 9.1.0 probe with locked dependencies | 200 exact parity comparisons, 200 cross-decoding cases per direction and four retained Sage arithmetic vectors on each version passed |
 | Core and tooling Clippy, all targets, `-D warnings` | Passed |
 | Core `--no-default-features` check | Passed |
 | Formatting, shell syntax and whitespace | Passed |
 | Strict JSON audit and package allowlist audit | Passed |
-| Offline Cargo package with extracted-source build verification | 67 files; 192.0 KiB compressed; extracted all-feature and no-default-feature checks also pass |
+| Offline Cargo package with extracted-source build verification | 67 files; 191.9 KiB compressed; extracted all-feature and no-default-feature checks also pass |
 | WASM Rust package | 6 files; extracted sources verified on wasm32 with the local candidate core patch, as described above |
 
 These are local results, not a new CI run, native x86/VSX validation, isolated
