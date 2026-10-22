@@ -20,6 +20,8 @@ cargo xtask memory-policy
 cargo xtask sampling-contract --input request.json
 # Read-only local smoke report; actual DIT4 strategy is not exported by this schema
 cargo xtask summarize-smoke --input target/benchmark-smoke
+# Read-only stream I/O/window/residency validation, with optional summaries
+cargo xtask validate-stream-views --input stream-views-request.json
 cargo test --locked --package xtask
 
 # Developer checks (fast profile; not release acceptance)
