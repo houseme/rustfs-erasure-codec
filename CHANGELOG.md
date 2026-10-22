@@ -10,6 +10,12 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Consolidate source and dynamic ownership-ledger validation in the native tool,
+  share geometry/counter rules, prepare payload schedules once and track only
+  live allocation generations. Preserve artifact-sized framed requests and
+  require decoder-work witnesses to belong to the observed iteration, including
+  Leopard work. Retain original diagnostic records and release boundaries.
+
 - Build the shared native capture/replay helper with the release profile, reusing
   the existing owned worker, batched requests and cached host executable. Keep
   original validation, frame limits and source provenance; preserve the full

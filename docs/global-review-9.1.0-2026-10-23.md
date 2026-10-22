@@ -141,6 +141,32 @@ no_std check pass. Offline packaging again rebuilds the 67-file, 191.9 KiB
 extracted crate.
 No tag, push or crate upload is performed by this migration.
 
+### Independent dynamic-ledger scope review
+
+A further review froze `e07e82c`, with `origin/main` at `69379b3` already in its
+history. It found one migration regression: the borrowed iteration slice includes
+`call=0` events, whereas the original validator collected only events bound to
+the open call. An unscoped `decode_ready` matrix view could therefore supply a
+missing iteration witness. The equivalent Leopard `chunk_coded` check had the
+same omission. A complete 24-call / 1,177-event reconstruction reproducer is
+accepted by both implementations before mutation; changing its matrix views to
+`call=0` is refused by the original model but was accepted by the migration.
+
+Require a positive, already-validated call for both decoder-witness checks.
+`Ledger::validate` still enforces the exact open call and observation for every
+positive-call event. This restores the existing scope contract without copying
+event lists, retaining closed generations, or adding another validation pass.
+Keep unscoped setup/allocation observations in the original ledger and summary.
+
+Both new native regressions fail before the fix and pass afterward. The complete
+fixed native suite passes 95 unit and 25 executable tests, and strict Clippy
+passes. An independent 50-request comparison with the original Python dynamic
+validator has identical acceptance decisions and complete summaries, including
+the repaired unscoped witness case. The actual Python/native dynamic, ordinary
+verify, stream-core and controller-binding integrations pass 32 tests, including
+the artifact-sized request followed by a second frame in the same worker.
+These are functional/tooling checks; no new codec performance conclusion follows.
+
 ## Verified defects and fixes
 
 ### Background worker surviving its leader
