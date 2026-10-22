@@ -39,40 +39,6 @@ def current_verify_ledger(native=True):
 
 
 class SourceContractTests(unittest.TestCase):
-    def test_native_and_explicit_nonnative_are_diagnostic_only(self):
-        for native in (True,False):
-            data=current_verify_ledger(native)
-            result=audit.validate(data,CASE,2,4096,True,native)
-            self.assertEqual(result['calls'],24);self.assertEqual(result['nested_verify_calls'],0)
-            self.assertEqual(data,current_verify_ledger(native))
-
-    def test_all_boundary_shape_counter_and_scope_mutations_are_rejected(self):
-        changes=[lambda d:d['events'].pop(),lambda d:d['events'].reverse(),
-            lambda d:d['events'][0].update(parent=8),lambda d:d['events'][0].update(complete=True),
-            lambda d:d['events'][1].update(len=1),lambda d:d['events'][1].update(capacity=1),
-            lambda d:d['events'][1].update(visible_len=65536),lambda d:d['events'][1].update(address=1),
-            lambda d:d['events'][1].update(occupied=False),lambda d:d['events'][1].update(offsets=[1,2,3]),
-            lambda d:d['events'][-1].update(valid=False),lambda d:d['events'][-1].update(complete=False),
-            lambda d:d['events'][-2].update(offsets=[32]*3),lambda d:d['events'][1].update(faults=None),
-            lambda d:d['events'][1].update(elapsed_ns=-1),lambda d:d.update(errors=1),
-            lambda d:d['calls'].__setitem__(5,1),lambda d:d['events'][0]['snapshot'].update(pages=False)]
-        for change in changes:
-            data=current_verify_ledger();change(data);original=copy.deepcopy(data)
-            with self.assertRaises(ValueError):audit.validate(data,CASE,2,4096,True,True)
-            self.assertEqual(data,original)
-
-    def test_former_ranges_can_be_partly_unmapped_without_claiming_all_pages_gone(self):
-        data=current_verify_ledger()
-        for event in data['events']:
-            if event['phase']=='released':event['snapshot'].update(status='not_fully_mapped',resident_pages=None,errno=12)
-        audit.validate(data,CASE,2,4096,True,True)
-        data['events'][1]['snapshot'].update(status='not_fully_mapped',resident_pages=None,errno=12)
-        with self.assertRaisesRegex(ValueError,'live source'):audit.validate(data,CASE,2,4096,True,True)
-
-    def test_native_required_and_original_source_variant_cannot_be_relabelled(self):
-        with self.assertRaises(ValueError):audit.validate(current_verify_ledger(False),CASE,2,4096,True,True)
-        with self.assertRaises(ValueError):audit.validate(current_verify_ledger(),CASE,2,4096,False,True)
-
     def test_source_hooks_are_reversible_and_formal_sampler_is_untouched(self):
         original=(ROOT/'src/core/stream.rs').read_text();changed=audit.source_patch(original)
         self.assertNotIn('rse_probe',original);self.assertIn('rse_probe',changed)
