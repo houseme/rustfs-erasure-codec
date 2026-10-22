@@ -5,7 +5,9 @@ This review follows the merge of `origin/main` at
 (merge `48dbf12`). Main contains the same files as diagnostic commit `022c0a7`,
 under a different commit identity. The merge retains the native Rust tooling
 migration; it does not restore the retired Python validation implementations.
-Concurrent, uncommitted stream-view migration work remains separate.
+The concurrently developed stream-view migration subsequently completed as
+`ff5a31a` and is included in the reviewed branch. Its remaining documentation
+edits stay outside this review's commits.
 
 ## Architectural decision
 
@@ -75,10 +77,11 @@ the package and need no equivalent change.
 
 ## Validation and release state
 
-The review uses stable Rust 1.99.1 on native macOS ARM64. Validation of the current
-working tree includes the concurrent stream-view migration and must not be
-presented as validation of a commit that excludes it. The focused process-owner
-and release-script fixes are also checked from their committed source snapshot.
+The review uses stable Rust 1.99.1 on native macOS ARM64. Initial validation of the
+working tree included the concurrent stream-view migration; that result must not
+be presented as validation of an earlier commit excluding it. The final reviewed
+source includes its separate `ff5a31a` commit. The focused process-owner and
+release-script fixes are also checked from committed source snapshots.
 
 The current-tree full-feature workspace run passes 622 tests with 43 ignored;
 Clippy with warnings denied passes. An independent archive of `1f9b0c2`, excluding
@@ -88,6 +91,18 @@ release-script control-flow tests pass after fixing the package selection.
 The real compatibility runner passes 200 normal-format configurations in both
 decoding directions and all 45 resource scenarios, retaining 270 allocation
 observations. Those request counts do not establish latency or throughput.
+
+Final independent validation of committed source `6f88b5c` (including `ff5a31a`)
+passes 617 default-workspace tests and 622 full-feature tests, each with 43 ignored,
+plus all-feature Clippy, Rust formatting and the eight release-script regressions.
+The complete local Python controller suite passes 269 tests. A clean archive of
+the committed source also passes actual `cargo publish --dry-run --locked
+--registry crates-io --package rustfs-erasure-codec`: Cargo packages and rebuilds
+the distributable sources, then explicitly aborts upload. No `--allow-dirty` or
+`--no-verify` was used. An initial offline attempt required registry metadata and
+failed before packaging; enabling the metadata read completed the same dry-run.
+Generated WASM browser checks and Linux/macOS CI still need their new PR results;
+historical CI successes are not attributed to this branch.
 
 Keep the following checks distinct in the delivery record:
 
