@@ -69,6 +69,19 @@ class DiagnosticTests(unittest.TestCase):
         rows=self.records();rows[0]['after']['process']['minor_faults']=0
         with self.assertRaises(ValueError):diagnostic.analyze(rows,'fixture')
 
+    def test_one_thread_reset_cannot_be_hidden_by_another_threads_progress(self):
+        for field in ('run_ns', 'wait_ns', 'timeslices'):
+            rows = self.records()
+            for side, value in (('before', 1), ('after', 201)):
+                thread = copy.deepcopy(rows[0][side]['process']['threads'][0])
+                thread.update(slot=1, measuring_thread=False)
+                thread[field] = value
+                rows[0][side]['process']['threads'].append(thread)
+            rows[0]['before']['process']['threads'][0][field] = 100
+            diagnostic.basic_records(rows)
+            with self.assertRaisesRegex(ValueError, 'thread counters reset'):
+                diagnostic.analyze(rows, 'fixture')
+
 class CaptureLifecycleTests(unittest.TestCase):
     def test_build_and_sampling_failures_restore_owned_source(self):
         import subprocess
