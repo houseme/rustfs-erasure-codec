@@ -40,6 +40,12 @@ pub(crate) struct Ledger {
     events: Vec<Event>,
 }
 impl Ledger {
+    pub(super) fn bind(&self, bindings: &super::worker::Bindings<'_>) -> Result<()> {
+        for event in &self.events {
+            bindings.faults(event.observation, event.faults)?;
+        }
+        Ok(())
+    }
     pub(crate) fn validate(
         &self,
         case: &str,

@@ -235,6 +235,29 @@ pub(crate) struct Ledger {
     events: Vec<Event>,
 }
 impl Ledger {
+    pub(super) fn bind(&self, bindings: &super::worker::Bindings<'_>) -> Result<()> {
+        for event in self
+            .events
+            .iter()
+            .filter(|e| e.kind == Kind::View && e.call > 0)
+        {
+            let observation = event.observation.ok_or("missing source observation")?;
+            if matches!(event.role.as_str(), "source" | "scratch") && event.stage == "retained" {
+                bindings.fixture(
+                    observation,
+                    &event.role,
+                    event.index,
+                    event.len,
+                    event.capacity,
+                    event.offsets,
+                )?;
+            }
+            if bindings.native {
+                bindings.faults(observation, event.faults)?;
+            }
+        }
+        Ok(())
+    }
     pub(crate) fn validate(
         &self,
         profile: &str,

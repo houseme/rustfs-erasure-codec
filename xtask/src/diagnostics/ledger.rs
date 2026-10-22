@@ -212,30 +212,7 @@ impl Request {
                 legacy,
             ),
             Self::DynamicRecords { mut records } => {
-                for record in &mut records {
-                    let record = record
-                        .as_object_mut()
-                        .ok_or("invalid dynamic diagnostic record")?;
-                    let envelope = record
-                        .remove("workload")
-                        .ok_or("missing explicit dynamic diagnostic workload marker")?;
-                    let Value::Object(mut envelope) = envelope else {
-                        return Err("missing explicit dynamic diagnostic workload marker".into());
-                    };
-                    if envelope.len() != 2
-                        || envelope.get("observer").and_then(Value::as_str)
-                            != Some("dynamic-source-copy-v1")
-                        || !envelope.get("contract").is_some_and(Value::is_object)
-                    {
-                        return Err("missing explicit dynamic diagnostic workload marker".into());
-                    }
-                    record.insert(
-                        "workload".into(),
-                        envelope
-                            .remove("contract")
-                            .ok_or("missing dynamic contract")?,
-                    );
-                }
+                unwrap_dynamic_records(&mut records)?;
                 Ok(Value::Array(records))
             }
             Self::Dynamic {
@@ -264,6 +241,33 @@ impl Request {
         }
     }
 }
+pub(super) fn unwrap_dynamic_records(records: &mut [Value]) -> Result<()> {
+    for record in records {
+        let record = record
+            .as_object_mut()
+            .ok_or("invalid dynamic diagnostic record")?;
+        let envelope = record
+            .remove("workload")
+            .ok_or("missing explicit dynamic diagnostic workload marker")?;
+        let Value::Object(mut envelope) = envelope else {
+            return Err("missing explicit dynamic diagnostic workload marker".into());
+        };
+        if envelope.len() != 2
+            || envelope.get("observer").and_then(Value::as_str) != Some("dynamic-source-copy-v1")
+            || !envelope.get("contract").is_some_and(Value::is_object)
+        {
+            return Err("missing explicit dynamic diagnostic workload marker".into());
+        }
+        record.insert(
+            "workload".into(),
+            envelope
+                .remove("contract")
+                .ok_or("missing dynamic contract")?,
+        );
+    }
+    Ok(())
+}
+
 pub(crate) fn run(args: &crate::Args) -> Result<()> {
     let request: Request =
         crate::artifact::read_json(std::path::Path::new(args.required("--input")?))?;

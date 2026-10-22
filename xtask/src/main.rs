@@ -12,6 +12,7 @@ mod memory_policy;
 mod metadata;
 mod perf;
 mod regression;
+mod release_rows;
 mod runtime;
 mod sampling_contract;
 mod summary;

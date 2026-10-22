@@ -228,7 +228,7 @@ fn normalize(row: Value, strict: bool) -> Result<Record> {
     normalize_ref(&row, strict)
 }
 
-fn normalize_ref(row: &Value, strict: bool) -> Result<Record> {
+pub(crate) fn normalize_ref(row: &Value, strict: bool) -> Result<Record> {
     let row = row
         .as_object()
         .ok_or("each benchmark row must be an object")?;
@@ -334,7 +334,7 @@ pub(crate) fn hotspots(rows: Vec<Value>, metric: &str) -> Result<BTreeMap<String
     Ok(indexed)
 }
 
-fn hotspot(row: &Value, metric: &str) -> Result<(String, Hotspot)> {
+pub(crate) fn hotspot(row: &Value, metric: &str) -> Result<(String, Hotspot)> {
     let row = row
         .as_object()
         .ok_or("each hotspot result must be an object")?;
@@ -392,6 +392,15 @@ fn hotspot(row: &Value, metric: &str) -> Result<(String, Hotspot)> {
 
 /// Preserve row order, extra fields and the legacy capture's normalized values.
 pub(crate) fn library_rows(rows: Value, source: &str, strict: bool) -> Result<Value> {
+    library_rows_checked(rows, source, strict, |_, _| Ok(()))
+}
+
+pub(crate) fn library_rows_checked(
+    rows: Value,
+    source: &str,
+    strict: bool,
+    inspect: impl Fn(&Value, &Record) -> Result<()>,
+) -> Result<Value> {
     let Value::Array(rows) = rows else {
         return Err(format!("{source}: expected a nonempty list of benchmark rows").into());
     };
@@ -403,6 +412,7 @@ pub(crate) fn library_rows(rows: Value, source: &str, strict: bool) -> Result<Va
     for (index, mut row) in rows.into_iter().enumerate() {
         let record = normalize_ref(&row, strict)
             .map_err(|error| format!("{source}: row {}: {error}", index + 1))?;
+        inspect(&row, &record)?;
         if !keys.insert(record.key.clone()) {
             return Err(format!("{source}: duplicate case {}", record.key.label()).into());
         }
@@ -430,6 +440,14 @@ pub(crate) fn library_rows(rows: Value, source: &str, strict: bool) -> Result<Va
 }
 
 pub(crate) fn library_hotspots(rows: Value, metric: &str) -> Result<Value> {
+    library_hotspots_checked(rows, metric, |_, _, _| Ok(()))
+}
+
+pub(crate) fn library_hotspots_checked(
+    rows: Value,
+    metric: &str,
+    inspect: impl Fn(&Value, &str, &Hotspot) -> Result<()>,
+) -> Result<Value> {
     let Value::Array(rows) = rows else {
         return Err("expected a nonempty list of hotspot results".into());
     };
@@ -440,6 +458,7 @@ pub(crate) fn library_hotspots(rows: Value, metric: &str) -> Result<Value> {
     let mut output = Vec::with_capacity(rows.len());
     for mut row in rows {
         let (scenario, normalized) = hotspot(&row, metric)?;
+        inspect(&row, &scenario, &normalized)?;
         if !keys.insert(scenario.clone()) {
             return Err(format!("duplicate hotspot scenario: {scenario}").into());
         }
@@ -519,6 +538,15 @@ pub(crate) fn compatible(
 pub(crate) fn observations(
     profile: &str,
     records: Vec<Value>,
+    reference: Option<BTreeMap<String, (Value, Value)>>,
+    collect: bool,
+) -> Result<Value> {
+    observations_ref(profile, &records, reference, collect)
+}
+
+pub(crate) fn observations_ref(
+    profile: &str,
+    records: &[Value],
     reference: Option<BTreeMap<String, (Value, Value)>>,
     collect: bool,
 ) -> Result<Value> {
