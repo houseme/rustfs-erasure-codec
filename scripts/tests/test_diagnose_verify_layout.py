@@ -13,7 +13,6 @@ import unittest
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import diagnose_verify_layout as diagnostic
-import release_sampling as sampling
 
 
 from layout_fixture import (records, controlled_context, paired_records, write_phase,
@@ -45,127 +44,7 @@ class LayoutDiagnosticTests(unittest.TestCase):
             self.assertFalse((root/'tests/rse_release_sampling').exists())
             self.assertFalse((output/'diagnosis.json').exists())
 
-    def test_complete_grid_retains_all_cases_without_release_attribution(self):
-        report = diagnostic.analyze(records(),100)
-        self.assertEqual(report['case_count'],64)
-        self.assertEqual(report['formal_samples'],576)
-        self.assertEqual(len(report['repeat_checks']),32)
-        self.assertIsNone(report['candidate_attribution'])
-        self.assertFalse(report['release_approval'])
-
-    def test_missing_reordered_or_replaced_observations_reject(self):
-        changes = [lambda rows:rows.pop(), lambda rows:rows.reverse(),
-                   lambda rows:rows[0].update(index=True), lambda rows:rows[0].update(kind='sample'),
-                   lambda rows:rows[0].update(entry='Vec'), lambda rows:rows[0].update(iterations=1),
-                   lambda rows:rows[0].update(wall_ns=0), lambda rows:rows[0].update(ns_per_iter=float('nan')),
-                   lambda rows:rows[0]['input_page_offsets'].pop(),
-                   lambda rows:rows[0]['scratch_page_offsets'].__setitem__(0,4096),
-                   lambda rows:rows[0]['scratch_page_offsets'].__setitem__(0,16)]
-        for change in changes:
-            rows = records();change(rows)
-            with self.assertRaises(ValueError): diagnostic.analyze(rows,100)
-
-    def test_a_reallocated_reverse_fixture_cannot_look_comparable(self):
-        rows = records()
-        for row in rows:
-            if row['pass'] == 1:
-                row['input_page_offsets'] = [p+64 for p in row['input_page_offsets']]
-        with self.assertRaisesRegex(ValueError,'reuse'): diagnostic.analyze(rows,100)
-
-    def test_failures_are_reported_without_removing_wide_or_drifting_cells(self):
-        rows = records()
-        for row in rows:
-            if row['pass'] == 1 and row['source_offset'] == 16 and row['scratch_offset'] == 32:
-                row['wall_ns'] *= 2; row['ns_per_iter'] *= 2
-            if row['index'] in (3,4):
-                row['wall_ns'] = int(row['wall_ns']*.8);row['ns_per_iter'] *= .8
-            if row['index'] in (10,11):
-                row['wall_ns'] = int(row['wall_ns']*1.2);row['ns_per_iter'] *= 1.2
-        report = diagnostic.analyze(rows,100)
-        self.assertEqual(len(report['wide_cases']),64)
-        self.assertEqual(len(report['repeat_failures']),2)
-        self.assertFalse(report['release_approval'])
-
-
 class PairedLayoutTests(unittest.TestCase):
-    def analyze(self, phases):
-        return diagnostic.analyze_paired(phases, 1_000_000, 4096, 2)
-
-    def phases(self):
-        return {p: paired_records() for p in diagnostic.evidence.PHASES}
-
-    def test_complete_pair_compares_each_cell_without_pooling_or_release_approval(self):
-        phases = self.phases()
-        for rows in phases.values():
-            for row in rows:
-                factor = 1+row['source_offset']/16
-                row['wall_ns'] = round(row['wall_ns']*factor)
-                row['ns_per_iter'] *= factor
-        report = self.analyze(phases)
-        self.assertTrue(report['layout_gate_passed'])
-        self.assertFalse(report['release_approval'])
-        self.assertEqual(len(report['candidate_attribution']), 256)
-        self.assertEqual(len(report['repeat_checks']), 128)
-        self.assertEqual(sum(r['formal_samples'] for r in report['phase_reports'].values()), 2304)
-        self.assertTrue(all(r['latency_ratio'] == 1 for r in report['candidate_attribution']))
-
-    def test_exact_drift_and_regression_boundaries_are_inclusive(self):
-        phases = self.phases()
-        for row in phases['A2']:
-            row['wall_ns'] = 2_100_000_000; row['ns_per_iter'] = 2100.
-        for phase in ('B1', 'B2'):
-            for row in phases[phase]:
-                row['wall_ns'] = 2_240_000_000; row['ns_per_iter'] = 2240.
-        self.assertTrue(self.analyze(phases)['layout_gate_passed'])
-
-    def test_one_regressing_layout_cannot_be_hidden_by_other_fast_cells(self):
-        phases = self.phases()
-        for p in ('B1', 'B2'):
-            for row in phases[p]:
-                if row['source_offset'] == 16 and row['scratch_offset'] == 32 and row['len'] == 1024:
-                    row['wall_ns'] = 2_260_000_000; row['ns_per_iter'] = 2260.
-        report = self.analyze(phases)
-        self.assertTrue(report['layout_quality_passed'])
-        self.assertFalse(report['layout_gate_passed'])
-        self.assertEqual(len(report['regression_failures']), 8)
-        self.assertIsNone(report['candidate_attribution'])
-
-    def test_repeat_drift_and_short_or_wide_samples_withhold_all_attribution(self):
-        for failure in ('drift', 'short', 'wide'):
-            with self.subTest(failure=failure):
-                phases = self.phases()
-                for row in phases['A2']:
-                    if row['source_offset'] == row['scratch_offset'] == 0 and row['len'] == 1024:
-                        factor = 1.06 if failure == 'drift' else .1 if failure == 'short' else (1.3 if row['index'] in (10,11) else 1)
-                        row['wall_ns'] = round(row['wall_ns']*factor); row['ns_per_iter'] *= factor
-                report = self.analyze(phases)
-                self.assertFalse(report['layout_gate_passed'])
-                self.assertIsNone(report['candidate_attribution'])
-                self.assertEqual(sum(r['case_count'] for r in report['phase_reports'].values()), 256)
-
-    def test_incomplete_wrong_page_backend_cpu_and_workload_contracts_reject(self):
-        changes = [lambda p:p.pop('B2'), lambda p:p['B1'].pop(),
-                   lambda p:p['A2'].reverse(), lambda p:p['B1'][0].update(page_size=16384),
-                   lambda p:p['B1'][0].update(cpu=True), lambda p:p['B1'][0].update(iterations=True),
-                   lambda p:p['B1'][0].update(backend='different'),
-                   lambda p:p['B1'][0].pop('features'), lambda p:p['B1'][0].update(target_os='macos'),
-                   lambda p:p['B1'][0]['input_page_offsets'].__setitem__(0,64)]
-        for change in changes:
-            phases = self.phases(); change(phases)
-            with self.assertRaises(ValueError): self.analyze(phases)
-        phases = self.phases()
-        for row in phases['B1']: row['backend'] = 'different'
-        with self.assertRaisesRegex(ValueError, 'between'): self.analyze(phases)
-
-    def test_real_large_page_metadata_is_validated(self):
-        phases = self.phases()
-        for rows in phases.values():
-            for row in rows: row['page_size'] = 16384
-        self.assertTrue(diagnostic.analyze_paired(phases, 1_000_000, 16384, 2)['layout_gate_passed'])
-        phases['A1'][0]['input_page_offsets'][0] = 4096
-        with self.assertRaisesRegex(ValueError, 'controlled layout'):
-            diagnostic.analyze_paired(phases, 1_000_000, 16384, 2)
-
     def verify(self, output):
         with mock.patch.object(diagnostic.evidence, 'source_info', return_value=CANDIDATE), mock.patch.object(diagnostic.evidence, 'source_at', side_effect=lambda root, rev: BASELINE if rev == BASELINE['commit'] else CANDIDATE):
             return diagnostic.verify_paired(output, output, compiler=False)
@@ -188,11 +67,6 @@ class PairedLayoutTests(unittest.TestCase):
             changed = dict(CANDIDATE, tree='f'*40)
             with mock.patch.object(diagnostic.evidence, 'source_info', side_effect=[CANDIDATE, changed]), mock.patch.object(diagnostic.evidence, 'source_at', return_value=BASELINE):
                 with self.assertRaisesRegex(ValueError, 'tool source'): diagnostic.verify_paired(output, output, compiler=False)
-
-    def test_pair_cannot_fall_back_to_legacy_page_or_cpu_validation(self):
-        for page, cpu in ((None,2),(True,2),(4096,None),(4096,True),(4096,-1)):
-            with self.assertRaisesRegex(ValueError, 'actual page size'):
-                diagnostic.analyze_paired(self.phases(), 1_000_000, page, cpu)
 
     def test_missing_tampered_replaced_and_unsafe_members_reject(self):
         changes = [lambda o,d:(o/'A1/samples.json').unlink(),

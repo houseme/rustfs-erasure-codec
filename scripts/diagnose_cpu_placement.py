@@ -3,13 +3,11 @@
 import argparse
 import hashlib
 import json
-import math
 import os
 import pathlib
 import native_tools
 import selectors
 import signal
-import statistics
 import subprocess
 import time
 
@@ -27,51 +25,13 @@ def render(root, allocation_check=False):
 
 
 def worker_plan(cpus):
-    forward, reverse = list(sorted(cpus)), list(sorted(cpus, reverse=True))
-    return [('same-buffer-forward-reverse', forward+reverse),
-            ('same-buffer-reverse-forward', reverse+forward)]+[
-                (f'fresh-{wave}-cpu-{cpu}', [cpu]) for wave, order in enumerate((forward, reverse)) for cpu in order]
+    return [(name, sequence) for name, sequence in native_tools.request('diagnostic-layout',
+        request=dict(operation='cpu-plan', cpus=list(cpus)))]
 
 
 def analyze(records, sequence, iterations, page_size):
-    if len(records) != len(sequence)*12:
-        raise ValueError('every placement warmup and sample is required')
-    fixture, backend, groups = None, None, []
-    for epoch, cpu in enumerate(sequence):
-        group = records[epoch*12:(epoch+1)*12]
-        for index, row in enumerate(group):
-            expected = {'epoch': epoch, 'cpu': cpu, 'index': index, 'iterations': iterations}
-            if any(type(row.get(k)) is not int or row[k] != v for k, v in expected.items()) or row.get('kind') != ('warmup' if index < 3 else 'sample'):
-                raise ValueError('placement observation order differs from the declared plan')
-            if row.get('case') != CASE or row.get('call_entry') != 'Vec<Vec<u8>>' or not isinstance(row.get('backend'), str) or not row['backend']:
-                raise ValueError('ordinary encode contract is required')
-            sampling.validate_fixture(row, 'small_file', page_size)
-            sampling.validate_telemetry(row, {cpu})
-            if fixture is not None and fixture != row['fixture'] or backend is not None and backend != row['backend']:
-                raise ValueError('same-worker caller geometry or selected backend changed')
-            fixture, backend = row['fixture'], row['backend']
-            for key in ('ns_per_iter', 'wall_ns', 'timed_ns'):
-                if type(row.get(key)) not in (int, float) or not math.isfinite(row[key]) or row[key] <= 0:
-                    raise ValueError('invalid placement interval')
-            if not math.isclose(row['timed_ns'], row['ns_per_iter']*iterations, rel_tol=1e-12, abs_tol=1):
-                raise ValueError('placement timed interval differs')
-            before, after = row.get('faults_before'), row.get('faults_after')
-            if any(not isinstance(point, dict) or set(point) != {'minor', 'major', 'cpu'} or any(type(v) is not int or v < 0 for v in point.values()) or point['cpu'] != cpu for point in (before, after)) or any(after[k] < before[k] for k in ('minor', 'major')):
-                raise ValueError('missing or invalid fault/CPU counters')
-        measured = group[3:]
-        values = sorted(row['ns_per_iter'] for row in measured)
-        median = statistics.median(values)
-        groups.append({'epoch': epoch, 'cpu': cpu, 'median_ns_per_iter': median,
-                       'central_spread': (values[-2]-values[1])/median,
-                       'short_samples': sum(r['wall_ns'] < sampling.PROTOCOL['minimum_wall_ns'] or r['timed_ns'] < sampling.PROTOCOL['minimum_timed_ns'] for r in measured),
-                       'measured_minor_faults': sum(r['faults_after']['minor']-r['faults_before']['minor'] for r in measured),
-                       'measured_major_faults': sum(r['faults_after']['major']-r['faults_before']['major'] for r in measured)})
-    repeats = []
-    for cpu in sorted(set(sequence)):
-        pair = [g for g in groups if g['cpu'] == cpu]
-        if len(pair) == 2:
-            repeats.append({'cpu': cpu, 'absolute_drift': abs(pair[1]['median_ns_per_iter']/pair[0]['median_ns_per_iter']-1)})
-    return {'groups': groups, 'same_worker_repeats': repeats, 'release_approval': False, 'candidate_attribution': None}
+    return native_tools.request('diagnostic-layout', request=dict(operation='cpu', records=records,
+        sequence=list(sequence), iterations=iterations, page_size=page_size))
 
 
 def run_worker(repository, environment, sequence, iterations, output, cpus):

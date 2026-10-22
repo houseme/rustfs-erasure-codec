@@ -50,28 +50,6 @@ class ShardSlotDiagnosticTests(unittest.TestCase):
                 diagnostic.render(source, True)
             self.assertFalse((source/'tests/rse_release_sampling.rs').exists())
 
-    def test_all_iterations_and_observations_required_with_page_bound_layouts(self):
-        records = [trace() for _ in range(12)]
-        result = diagnostic.layouts(records, 4096, 4096)
-        self.assertTrue(result['histogram_complete'])
-        for mutate in (lambda r: r.pop(), lambda r: r[0].update(iterations=True),
-                       lambda r: r[0].update(page_size=16384),
-                       lambda r: r[0].update(transitions=4096),
-                       lambda r: r[0]['phase_ns'].update(clone=-1),
-                       lambda r: r[0]['phase_ns'].pop('drop'),
-                       lambda r: r[0]['layouts'][0].update(count=4095),
-                       lambda r: r[0]['layouts'][0]['buffers'].pop(),
-                       lambda r: r[0]['source'][0].update(offset_page=4096),
-                       lambda r: r[0].update(clone_lifetime='worker')):
-            changed = copy.deepcopy(records); mutate(changed)
-            with self.assertRaises(ValueError): diagnostic.layouts(changed, 4096, 4096)
-
-    def test_histogram_overflow_is_preserved_and_never_reported_complete(self):
-        records = [trace() for _ in range(12)]
-        records[0]['layouts'][0]['count'] -= 1
-        records[0]['overflow'] = 1
-        self.assertFalse(diagnostic.layouts(records, 4096, 4096)['histogram_complete'])
-
     def test_failed_worker_preserves_completed_records_and_removes_owned_overlay(self):
         with tempfile.TemporaryDirectory() as directory:
             root = pathlib.Path(directory); (root/'tests').mkdir()

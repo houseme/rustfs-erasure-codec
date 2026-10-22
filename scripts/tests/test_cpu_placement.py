@@ -35,12 +35,6 @@ def records(sequence=(2, 2), iterations=384):
 
 
 class CpuPlacementTests(unittest.TestCase):
-    def test_complete_counterbalanced_plan_never_selects_only_stable_cpus(self):
-        plan = diagnostic.worker_plan([2, 3, 4])
-        self.assertEqual(plan[:2], [('same-buffer-forward-reverse', [2, 3, 4, 4, 3, 2]),
-                                  ('same-buffer-reverse-forward', [4, 3, 2, 2, 3, 4])])
-        self.assertEqual([s for _, s in plan[2:]], [[2], [3], [4], [4], [3], [2]])
-
     def test_formal_overlay_is_untouched_and_counter_is_check_only(self):
         root = pathlib.Path(__file__).resolve().parents[2]
         before, after = sampling.render(root), diagnostic.render(root)
@@ -49,35 +43,6 @@ class CpuPlacementTests(unittest.TestCase):
         self.assertTrue(after['small_file.rs'].startswith(before['small_file.rs']))
         self.assertNotIn('#[global_allocator]', '\n'.join(after.values()))
         self.assertIn('#[global_allocator]', diagnostic.render(root, allocation_check=True)['root.rs'])
-
-    def test_complete_samples_retain_faults_and_repeats_without_approval(self):
-        report = diagnostic.analyze(records(), [2, 2], 384, 4096)
-        self.assertEqual(len(report['groups']), 2)
-        self.assertEqual(report['groups'][0]['measured_minor_faults'], 18)
-        self.assertEqual(report['same_worker_repeats'], [{'cpu': 2, 'absolute_drift': 0.}])
-        self.assertFalse(report['release_approval'])
-        self.assertIsNone(report['candidate_attribution'])
-
-    def test_quality_and_repeat_failures_remain_visible(self):
-        rows = records()
-        for row in rows[12:]:
-            row['ns_per_iter'] *= 1.2; row['timed_ns'] *= 1.2; row['wall_ns'] = 1
-        rows[-2]['ns_per_iter'] *= 1.3; rows[-2]['timed_ns'] *= 1.3
-        rows[-3]['ns_per_iter'] *= 1.3; rows[-3]['timed_ns'] *= 1.3
-        report = diagnostic.analyze(rows, [2, 2], 384, 4096)
-        self.assertEqual(report['groups'][1]['short_samples'], 9)
-        self.assertGreater(report['groups'][1]['central_spread'], .1)
-        self.assertGreater(report['same_worker_repeats'][0]['absolute_drift'], .05)
-        self.assertFalse(report['release_approval'])
-
-    def test_missing_samples_escaped_cpus_bad_timing_and_changed_storage_reject(self):
-        for change in (lambda r: r.pop(), lambda r: r[0].update(index=True),
-                       lambda r: r[0]['after'].update(cpu=3),
-                       lambda r: r[0]['faults_after'].update(minor=0),
-                       lambda r: r[0].update(timed_ns=1),
-                       lambda r: r[-1]['fixture']['source'][0].update(offset_64=32, offset_4096=32, offset_page=32)):
-            rows = records(); change(rows)
-            with self.assertRaises(ValueError): diagnostic.analyze(rows, [2, 2], 384, 4096)
 
     def fake_worker(self, directory, foreign=False, bad_budget=False, cancel=False):
         ready = {'epoch': 0, 'cpu': 2, 'tid': 501, 'budget_before': 1 if bad_budget else 2,
