@@ -1,0 +1,124 @@
+{
+  "schema": "rse-benchmark-contract-v1",
+  "operations": [
+    "encode",
+    "verify",
+    "verify_with_buffer",
+    "reconstruct",
+    "reconstruct_data",
+    "encode_stream",
+    "verify_stream",
+    "reconstruct_stream"
+  ],
+  "case_key": [
+    "data_shards",
+    "parity_shards",
+    "shard_size"
+  ],
+  "optional_case_key": [
+    "stream_block_size"
+  ],
+  "provenance_fields": [
+    "schema_version",
+    "artifact_kind",
+    "target_triple",
+    "features",
+    "benchmark_metrics_enabled",
+    "backend",
+    "backend_id",
+    "backend_kind",
+    "backend_override",
+    "override_honored",
+    "stream_io_backend",
+    "stream_io_mode",
+    "cpu_model",
+    "compiler",
+    "build_profile",
+    "profile",
+    "rayon_threads",
+    "available_parallelism",
+    "max_parallel_jobs",
+    "effective_max_jobs",
+    "target_cpu",
+    "rustflags"
+  ],
+  "provenance_aliases": {
+    "backend": [
+      "backend",
+      "backend_name"
+    ],
+    "cpu_model": [
+      "cpu_model",
+      "cpu"
+    ],
+    "compiler": [
+      "compiler",
+      "compiler_version",
+      "rustc",
+      "rustc_version"
+    ],
+    "build_profile": [
+      "build_profile",
+      "cargo_profile"
+    ],
+    "rayon_threads": [
+      "rayon_threads",
+      "rayon_num_threads"
+    ],
+    "max_parallel_jobs": [
+      "max_parallel_jobs",
+      "max_jobs"
+    ]
+  },
+  "strict_provenance_fields": [
+    "target_triple",
+    "features",
+    "benchmark_metrics_enabled",
+    "backend",
+    "cpu_model",
+    "compiler",
+    "build_profile",
+    "rayon_threads",
+    "available_parallelism",
+    "max_parallel_jobs"
+  ],
+  "stream_provenance_fields": [
+    "stream_io_backend",
+    "stream_io_mode"
+  ],
+  "thread_fields": [
+    "rayon_threads",
+    "available_parallelism",
+    "max_parallel_jobs",
+    "effective_max_jobs"
+  ],
+  "unknown_provenance": [
+    "n/a",
+    "nan",
+    "none",
+    "null",
+    "unavailable",
+    "unknown",
+    "unspecified"
+  ],
+  "default_thresholds": {
+    "encode": 0.1,
+    "verify": 0.12,
+    "verify_with_buffer": 0.12,
+    "reconstruct": 0.15,
+    "reconstruct_data": 0.15,
+    "encode_stream": 0.12,
+    "verify_stream": 0.12,
+    "reconstruct_stream": 0.15
+  },
+  "hotspot_case_fields": [
+    "missing_pattern",
+    "required_pattern",
+    "baseline_operation",
+    "candidate_operation",
+    "data_shards",
+    "parity_shards",
+    "shard_size",
+    "useful_shards"
+  ]
+}

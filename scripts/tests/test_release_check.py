@@ -69,7 +69,7 @@ class ReleaseCheckTests(unittest.TestCase):
         result, trace = self.run_checks("release", **dict.fromkeys(SWITCHES, "0"))
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("check_backend_consistency.sh", trace)
-        self.assertIn("check_reconstruction_hotspot_gate.py", trace)
+        self.assertIn("check-hotspot", trace)
         self.assertIn("small-file-results.json", trace)
         self.assertIn("stream-path-results.json", trace)
         self.assertIn("smoke-results.json", trace)
@@ -94,8 +94,8 @@ class ReleaseCheckTests(unittest.TestCase):
         self.assertNotIn("benchmark_small_file_matrix_runs_and_exports_results", trace)
         self.assertNotIn("benchmark_reconstruction_hotspots --", trace)
         self.assertNotIn("benchmark_stream_path_matrix_runs_and_exports_results", trace)
-        self.assertEqual(trace.count("check_benchmark_regression.py"), 3)
-        self.assertEqual(trace.count("check_reconstruction_hotspot_gate.py"), 1)
+        self.assertEqual(trace.count("check-benchmark"), 3)
+        self.assertEqual(trace.count("check-hotspot"), 1)
         self.assertIn("check_backend_consistency.sh", trace)
         self.assertIn("cargo test --features std simd-accel", trace)
         self.assertIn("--test golden_vectors", trace)
@@ -105,10 +105,10 @@ class ReleaseCheckTests(unittest.TestCase):
         result, trace = self.run_checks("fast", baselines=False)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("profile=quick", trace)
-        self.assertNotIn("check_benchmark_regression.py", trace)
+        self.assertNotIn("check-benchmark", trace)
 
     def test_failed_gate_stops_the_pipeline(self):
-        result, trace = self.run_checks("release", FAIL_ON="check_benchmark_regression.py")
+        result, trace = self.run_checks("release", FAIL_ON="check-benchmark")
         self.assertEqual(result.returncode, 42)
         self.assertNotIn("check_backend_consistency.sh", trace)
 

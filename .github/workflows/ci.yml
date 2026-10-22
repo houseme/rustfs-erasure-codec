@@ -93,12 +93,18 @@ jobs:
 
       - name: Test benchmark and release gates
         run: |
-          python3 scripts/check_release_manifest.py
+          cargo xtask check-release
+          cargo test --locked --package xtask
+          cargo xtask audit-json
+          cargo xtask audit-package
+          cargo xtask audit-workspace
           python3 -m unittest discover -s scripts/tests -p 'test_*.py'
           bash -n scripts/release-check.sh
 
       - name: Check read-only Linux kernel memory policy provenance
-        run: python3 -c "import sys; sys.path.insert(0, 'scripts'); import release_evidence as e; e.validate_runtime(e.runtime_context(e.capture_environment()))"
+        run: |
+          cargo xtask memory-policy
+          python3 -c "import sys; sys.path.insert(0, 'scripts'); import release_evidence as e; e.validate_runtime(e.runtime_context(e.capture_environment()))"
 
       - name: Check shared workers and real published-baseline input replay
         run: |
@@ -136,7 +142,7 @@ jobs:
         run: python3 scripts/diagnose_verify_layout.py --check
 
       - name: Verify ordinary sampler telemetry has no Rust heap activity
-        run: python3 scripts/check_sampler_telemetry.py
+        run: cargo xtask check-sampler-telemetry
 
       - name: Compile and test the isolated ShardSlot diagnostic
         run: python3 scripts/diagnose_shard_slot.py --check
@@ -345,7 +351,7 @@ jobs:
         run: cargo check -p rustfs-erasure-codec --target powerpc64le-unknown-linux-gnu --features simd-vsx
 
       - name: Clippy VSX backend
-        run: cargo clippy -p rustfs-erasure-codec --target powerpc64le-unknown-linux-gnu --features simd-vsx -- -D warnings
+        run: cargo clippy -p "$(cargo pkgid --manifest-path Cargo.toml)" --target powerpc64le-unknown-linux-gnu --features simd-vsx -- -D warnings
 
   test-linux:
     name: Test Linux (${{ matrix.toolchain }})
@@ -581,9 +587,9 @@ jobs:
           REF_TYPE: ${{ github.ref_type }}
         run: |
           if [[ "$REF_TYPE" == "tag" ]]; then
-            python3 scripts/check_release_manifest.py --tag "$GITHUB_REF_NAME"
+            cargo xtask check-release --tag "$GITHUB_REF_NAME"
           else
-            python3 scripts/check_release_manifest.py
+            cargo xtask check-release
           fi
 
       - name: Release preflight checks
@@ -637,7 +643,7 @@ jobs:
         uses: Swatinem/rust-cache@v2.9.1 # v2.9.1
 
       - name: Verify release tag and versions
-        run: python3 scripts/check_release_manifest.py --tag "$GITHUB_REF_NAME"
+        run: cargo xtask check-release --tag "$GITHUB_REF_NAME"
 
       - name: Verify package
         run: cargo publish --dry-run --locked --registry crates-io --package rustfs-erasure-codec
