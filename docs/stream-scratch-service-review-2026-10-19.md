@@ -97,8 +97,8 @@ favorable case/count or silently replace per-call allocation/free with reuse.
 
 ## Replay and review boundaries
 
-`perf_stack_audit.py` only analyzes a saved perf-script stream, aggregate record
-counts and the exact codec source. `stream_allocator_audit.py` only reads a saved
+`cargo xtask perf-stack-audit` (migrated from `perf_stack_audit.py`) only analyzes a saved perf-script stream, aggregate record
+counts and the exact codec source. `cargo xtask stream-allocator-audit` (migrated from `stream_allocator_audit.py`) only reads a saved
 syscall trace and its original sample JSON. Neither executes a benchmark or
 modifies codec/workspace state. Their tests cover unknown/inline frames, raw/decoded
 conservation, real periods, Rust generic-name ambiguity, corrupted captures,
