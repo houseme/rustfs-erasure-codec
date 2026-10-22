@@ -387,17 +387,18 @@ impl<F: Field> ReedSolomon<F> {
         self.options.fast_one_parity && self.parity_shard_count() == 1
     }
 
-    /// Select a supported ISA/shape and validate all native views exactly once
-    /// before execution. Unsupported or inconsistent Field views use the generic
-    /// Classic path, preserving the public safe-Field fallback contract.
+    /// Prepare and execute native views in their final scoped storage. Returning
+    /// only the result keeps inline metadata out of the caller's return slot.
+    /// Unsupported or inconsistent Field views still use the generic Classic
+    /// path; execution errors never fall back after parity has been modified.
     #[inline]
-    fn prepare_native_encode<'a, T, U>(
-        &'a self,
-        data: &'a [T],
-        parity: &'a mut [U],
+    fn try_native_encode<T, U>(
+        &self,
+        data: &[T],
+        parity: &mut [U],
         shard_len: usize,
         execution: NativeEncodeExecution,
-    ) -> Option<PreparedNativeEncode<'a>>
+    ) -> Option<Result<usize, Error>>
     where
         T: AsRef<[F::Elem]>,
         U: AsMut<[F::Elem]>,
@@ -407,22 +408,22 @@ impl<F: Field> ReedSolomon<F> {
         }
         let kernel =
             SelectedEncodeKernel::select(self.data_shard_count(), self.parity_shard_count())?;
-        let shards = NativeByteShardViews::prepare::<F, _, _>(data, parity, shard_len).ok()?;
-        let mut rows = SmallVec::new();
-        for row in self.get_parity_rows() {
-            let bytes = F::as_gf8_slice(row)?;
+        let mut prepared = PreparedNativeEncode {
+            kernel,
+            execution,
+            rows: SmallVec::new(),
+            shards: NativeByteShardViews::prepare::<F, _, _>(data, parity, shard_len).ok()?,
+            shard_len,
+        };
+        let matrix = self.encoding_format().matrix();
+        for index in self.data_shard_count()..self.total_shard_count() {
+            let bytes = F::as_gf8_slice(matrix.get_row(index))?;
             if bytes.len() != self.data_shard_count() {
                 return None;
             }
-            rows.push(bytes);
+            prepared.rows.push(bytes);
         }
-        Some(PreparedNativeEncode {
-            kernel,
-            execution,
-            rows,
-            shards,
-            shard_len,
-        })
+        Some(prepared.execute())
     }
 
     pub(crate) fn encode_fast_one_parity<
@@ -526,10 +527,10 @@ impl<F: Field> ReedSolomon<F> {
 
         // Try SIMD codegen path for GF(2^8) with common configurations.
         let shard_len = data[0].as_ref().len();
-        if let Some(mut prepared) =
-            self.prepare_native_encode(data, parity, shard_len, NativeEncodeExecution::Serial)
+        if let Some(result) =
+            self.try_native_encode(data, parity, shard_len, NativeEncodeExecution::Serial)
         {
-            return prepared.execute().map(|_| ());
+            return result.map(|_| ());
         }
 
         let parity_rows = self.get_parity_rows();
@@ -697,10 +698,9 @@ impl<F: Field> ReedSolomon<F> {
             self.parity_shard_count(),
             shard_len,
             decision,
-        ) && let Some(mut prepared) =
-            self.prepare_native_encode(data, parity, shard_len, execution)
+        ) && let Some(result) = self.try_native_encode(data, parity, shard_len, execution)
         {
-            let chunk_len = prepared.execute()?;
+            let chunk_len = result?;
             if decision.use_parallel {
                 self.runtime_profile_metrics.record_code_some(
                     true,
