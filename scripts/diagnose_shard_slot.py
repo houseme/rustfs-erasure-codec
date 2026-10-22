@@ -107,7 +107,7 @@ def capture(tool, repository, output, group, iterations):
                         sampling.validate_fixture(record, 'small_file', page_size)
                         normalize('small_file', record['rows'][0], source['commit'])
                 else:
-                    sampling.sample_groups(records, 'small_file', source['commit'], {CASE}, counts, normalize, {cpu}, page_size)
+                    sampling.sample_groups(records, 'small_file', source['commit'], {CASE}, counts, {cpu}, page_size)
                 detail = layouts(traces, iterations, page_size) if traced else {}
                 if traced and any(sum(trace['phase_ns'].values()) > row['timed_ns'] + 1 for trace, row in zip(traces, records)):
                     raise ValueError('phase intervals exceed the enclosing diagnostic timer')

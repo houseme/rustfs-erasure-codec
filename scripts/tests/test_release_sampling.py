@@ -37,6 +37,25 @@ class SamplingContractTests(unittest.TestCase):
         records=json.loads(path.read_text());change(records)
         self.doc['files'][phase][profile]['samples']=self.write(phase,profile,records)
 
+    def test_complete_profile_uses_one_frame_and_keeps_original_selected_and_grouped_objects(self):
+        profile = 'small_file'
+        records = evidence.json_data(self.root/self.doc['files']['A1'][profile]['samples']['path'])
+        original = copy.deepcopy(records)
+        counts = self.doc['sampling']['common_iterations'][profile]
+        revision = self.doc['sources']['baseline']['commit']
+        with mock.patch.object(sampling.native_tools, '_request_payload', wraps=sampling.native_tools._request_payload) as frames:
+            selected, spreads = sampling.selected_row(records, profile, evidence.METRICS[profile],
+                revision, evidence.expected_cases(profile), counts)
+            self.assertEqual(frames.call_count, 1)
+        identities = {id(r['rows'][0]) for r in records}
+        self.assertTrue(all(id(row) in identities for row in selected))
+        self.assertEqual(len(spreads), len(counts))
+        with mock.patch.object(sampling.native_tools, '_request_payload', wraps=sampling.native_tools._request_payload) as frames:
+            groups = sampling.sample_groups(records, profile, revision, evidence.expected_cases(profile), counts)
+            self.assertEqual(frames.call_count, 1)
+        self.assertEqual({id(r) for group in groups.values() for r in group}, {id(r) for r in records})
+        self.assertEqual(records, original)
+
     def test_every_warmup_and_nonmedian_sample_requires_comparable_provenance(self):
         for profile,field in (('small_file','backend_id'),('stream','stream_io_mode'),('small_file','compiler'),('hotspot','backend_id'),('small_file','constructor_budget')):
             entry=self.doc['files']['B2'][profile]['samples']
@@ -479,8 +498,7 @@ class SamplingContractTests(unittest.TestCase):
             if row['case']==case:
                 row['wall_ns']=120_000_000;row['timed_ns']/=20
                 row['rows'][0]['ns_per_iter']/=20
-        normalize=lambda p,row,rev:next(iter(evidence.indexed_rows(p,[row],rev,counts,complete=False)))
-        with self.assertRaisesRegex(ValueError,'interval is insufficient'):sampling.selected_row(rows,profile,evidence.METRICS[profile],self.sources_commit('baseline'),evidence.expected_cases(profile),counts,normalize)
+        with self.assertRaisesRegex(ValueError,'interval is insufficient'):sampling.selected_row(rows,profile,evidence.METRICS[profile],self.sources_commit('baseline'),evidence.expected_cases(profile),counts)
 
     def test_calibration_and_protocol_cannot_be_changed(self):
         original=copy.deepcopy(self.doc)

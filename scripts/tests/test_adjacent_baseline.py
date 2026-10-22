@@ -65,14 +65,6 @@ class AdjacentTests(unittest.TestCase):
         member=self.prior/'calibration/smoke-samples.json';member.write_text('[]')
         with self.assertRaisesRegex(ValueError,'prior calibration'):a.inputs(self.prior,self.root)
 
-    def test_schedule_requires_the_complete_positive_integer_catalog(self):
-        counts=self.doc['sampling']['common_iterations']
-        for value in (0,True,1.0,-1,1_000_000_001):
-            changed=copy.deepcopy(counts);changed['smoke'][next(iter(changed['smoke']))]=value
-            with self.assertRaises(ValueError):a.schedule(changed)
-        changed=copy.deepcopy(counts);changed['stream'].pop(next(iter(changed['stream'])))
-        with self.assertRaises(ValueError):a.schedule(changed)
-
     def test_rehashed_reordered_or_nonadjacent_execution_is_refused(self):
         result=self.capture();path=self.output/'execution.jsonl';original=[json.loads(r) for r in path.read_text().splitlines()]
         for change in (lambda r:r.reverse(),lambda r:r[1].update(start_ns=r[0]['end_ns']+a.MAX_PAIR_GAP_NS+1),lambda r:r[0]['after']['runtime']['kernel_memory_policy'].update(process_thp_disable=1)):

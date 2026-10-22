@@ -13,18 +13,8 @@ def service_window_contract():
     return native_tools.sampling_catalog()['service_window']
 
 
-PROTOCOL = {"name": "shared-external-duration-sampler", "version": 15, "samples": 9, "warmups": 3, "case_isolation": "fresh-process-per-count", "case_order": "lexicographic", "max_calibration_batches": 12, "max_calibration_records": 144,
-            **service_window_contract(),
-            "service_window_policy": "uniform-duration-before-calibration; all-126-cases-and-paired-layouts; no-count-floor-or-case-exceptions",
-            "central_spread_limit": .10,
-            "observer_buffer_policy": "bounded-stack-procfs-no-rust-heap",
-            "fault_counter_scope": "guest-process-including-workers-excluding-children; no IDs; outside inner timers",
-            "result_metadata_policy": "bounded-inline-hotspot-patterns-deferred-formatting",
-            "stream_output_policy": "independent-capacity-per-writer-per-iteration",
-            "workload_contract": {"scope":"all-126-cases", "codec_lifetime":"worker", "hotspot_input":"worker-seeded-SmallRng-u32-low-byte", "state_witness":"generated-byte-count-and-next-two-u64-words", "geometry_scope":"unchanged-caller-only; dynamic destinations and internal views untracked"},
-            "thread_placement": {"measuring_cpu":"minimum-reserved-cpu", "pin":"thread-only-after-codec-and-pool-preparation", "pool_affinity":"complete-reservation", "observation_checks":"actual-mask-before-and-after-timer"},
-            "fixture_layout": {"scope": "small_file:all;stream:all;caller-storage-only", "codec_lifetime": "worker", "dynamic_outputs": "original per-iteration policy; offsets explicitly untracked", "entry": "Vec<Vec<u8>>", "lifetime": "worker", "construction": "caller-buffers-before-codec", "offset_moduli": [64, 4096, "os_base_page_size"], "page_size_source": "controller-sysconf", "untracked_cases": "original allocation contract; no layout guarantee"},
-            "timing_scope": {"smoke":"original per-iteration workload", "small_file":"operation loops excluding one-time fixture preparation", "stream":"operation loops excluding one-time fixture preparation", "hotspot":"original inner recovery intervals"}}
+PROTOCOL = native_tools.sampling_catalog()['protocol']
+REPEAT_DRIFT_LIMIT = native_tools.sampling_catalog()['repeat_drift_limit']
 
 
 def block(text, name):
@@ -232,41 +222,29 @@ def run_profile(root, environment, profile, mode, log_path, counts_file=None, *,
     return records
 
 
-def sample_groups(records, profile, revision, expected, counts, normalize, allowed_cpus=None, expected_page_size=None):
-    groups = {}
-    for record in records:
-        if record.get("revision") != revision or record.get("case") not in expected:
-            raise ValueError("sampling revision or case mismatch")
-        groups.setdefault(record["case"], []).append(record)
-    if set(groups) != expected:
-        raise ValueError("complete sampling catalog is required")
-    for case, group in groups.items():
-        native_tools.sampling_request('validate-worker', profile=profile, records=group, count=counts[case],
-                                      allowed_cpus=None if allowed_cpus is None else list(allowed_cpus),
-                                      expected_page_size=expected_page_size)
-        if any(normalize(profile, record['rows'][0], revision) != case for record in group):
-            raise ValueError('raw sample workload mismatch')
-    return groups
+def _sample_batch(records, profile, revision, expected, counts, allowed_cpus, expected_page_size, output):
+    result = native_tools.sampling_request('batch', request=dict(profile=profile, revision=revision,
+        records=records, expected=sorted(expected), counts=counts,
+        allowed_cpus=None if allowed_cpus is None else list(allowed_cpus),
+        expected_page_size=expected_page_size, output=output))
+    return result
 
 
-def selected_row(records, profile, metric, revision, expected, counts, normalize, allowed_cpus=None, expected_page_size=None, *, diagnostic=False):
-    groups = sample_groups(records, profile, revision, expected, counts, normalize, allowed_cpus, expected_page_size)
-    selected, spread = [], []
-    for case, group in groups.items():
-        samples = group[PROTOCOL["warmups"]:]
-        short = [{"index": r["index"], "wall_ns": r["wall_ns"], "timed_ns": r["timed_ns"]}
-                 for r in samples if r["wall_ns"] < PROTOCOL["minimum_wall_ns"]
-                 or r["timed_ns"] < PROTOCOL["minimum_timed_ns"]]
-        if short and not diagnostic:
-            raise ValueError("sample measurement interval is insufficient")
-        ordered = sorted(samples, key=lambda r: r["rows"][0][metric])
-        median = ordered[len(ordered)//2]["rows"][0]
-        width = (ordered[-2]["rows"][0][metric] - ordered[1]["rows"][0][metric]) / median[metric]
-        item = {"case":case,"central_spread":width}
-        if diagnostic: item["short_samples"] = short
-        spread.append(item)
-        selected.append(median)
-    return selected, spread
+def sample_groups(records, profile, revision, expected, counts, allowed_cpus=None, expected_page_size=None):
+    result = _sample_batch(records, profile, revision, expected, counts, allowed_cpus,
+                           expected_page_size, dict(kind='groups'))
+    return {case: [records[i] for i in indices] for case, indices in result['groups']}
+
+
+def selected_row(records, profile, metric, revision, expected, counts, allowed_cpus=None, expected_page_size=None, *, diagnostic=False):
+    result = _sample_batch(records, profile, revision, expected, counts, allowed_cpus,
+                           expected_page_size, dict(kind='select', metric=metric, diagnostic=diagnostic))
+    return [records[i]['rows'][0] for i in result['selected_indices']], result['spreads']
+
+
+def describe_groups(records, profile, revision, expected, counts, fixtures, allowed_cpus=None, expected_page_size=None):
+    return _sample_batch(records, profile, revision, expected, counts, allowed_cpus,
+                          expected_page_size, dict(kind='describe', fixtures=fixtures))['descriptions']
 
 
 def checkout_baseline(source, destination, revision):

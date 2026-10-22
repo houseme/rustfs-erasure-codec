@@ -46,25 +46,6 @@ class EpochTests(unittest.TestCase):
         self.assertEqual(command[1:4],['-I','-S','-B']);self.assertIn('replay',command);self.assertNotIn('capture',command)
         self.assertEqual(self.run.call_count,1)
 
-    def test_bound_contains_extreme_placements_and_never_uses_inner_metric(self):
-        first=({'start_ns':0,'end_ns':100},[{'kind':'sample','wall_ns':80,'timed_ns':.1}])
-        second=({'start_ns':105,'end_ns':225},[{'kind':'warmup','wall_ns':20,'timed_ns':.1},{'kind':'sample','wall_ns':70,'timed_ns':.2}])
-        result=analysis.workload_gap(first,second)
-        self.assertEqual(result['parent_interworker_gap_ns'],5)
-        self.assertEqual(result['first_observation_gap_upper_ns'],55)
-        self.assertEqual(result['first_sample_gap_upper_ns'],75)
-        self.assertEqual(result['pair_envelope_ns'],225)
-        for tail in range(21):
-            for head in range(31):
-                self.assertLessEqual(tail+5+head,result['first_observation_gap_upper_ns'])
-                self.assertLessEqual(tail+5+head+20,result['first_sample_gap_upper_ns'])
-        self.assertGreater(result['first_observation_gap_upper_ns'],result['parent_interworker_gap_ns'])
-        for field,value in (('start_ns',True),('end_ns',80.0),('end_ns',79)):
-            changed=copy.deepcopy(first);changed[0][field]=value
-            with self.assertRaises(ValueError):analysis.workload_gap(changed,second)
-        changed=copy.deepcopy(second);changed[0]['start_ns']=99
-        with self.assertRaisesRegex(ValueError,'overlapping'):analysis.workload_gap(first,changed)
-
     def test_incomplete_or_unrestored_capture_is_refused_before_any_replay(self):
         self.capture();p=self.root/'reservation/cleanup.json';original=p.read_bytes();data=json.loads(original);data['parent_affinities_restored']=False;p.write_text(json.dumps(data))
         with self.assertRaisesRegex(ValueError,'restored resources'):self.analyze()

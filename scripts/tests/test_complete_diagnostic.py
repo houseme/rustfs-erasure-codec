@@ -60,9 +60,8 @@ class CompleteReplayTests(unittest.TestCase):
         self.doc['files'][phase][profile]['samples'] = self.f.write_samples(phase, profile, records)
         counts = self.doc['sampling']['common_iterations'][profile]
         revision = self.doc['sources']['baseline' if phase.startswith('A') else 'candidate']['commit']
-        normalize = lambda p, row, rev: next(iter(e.indexed_rows(p, [row], rev, counts, complete=False)))
         selected, _ = e.diagnostic_rows(records, profile, e.METRICS[profile], revision,
-                                         e.expected_cases(profile), counts, normalize)
+                                         e.expected_cases(profile), counts)
         self.f.write_rows(phase, profile, selected)
 
     def test_wide_short_repeat_and_all_regression_failures_are_reported_together(self):
