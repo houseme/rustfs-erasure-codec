@@ -64,6 +64,40 @@ impl Drop for Fixture {
 }
 
 #[test]
+fn baseline_cli_preserves_inputs_and_rejects_noninteger_worker_intervals() {
+    let f = Fixture::new();
+    let mut request = json!({"operation":"gap","first":[{"start_ns":0,"end_ns":100},[{"kind":"sample","wall_ns":80}]],
+        "second":[{"start_ns":105,"end_ns":225},[{"kind":"warmup","wall_ns":20},{"kind":"sample","wall_ns":70}]]});
+    let bytes = serde_json::to_vec(&request).unwrap();
+    fs::write(f.0.join("request.json"), &bytes).unwrap();
+    let output = f
+        .command("analyze-baseline-data")
+        .args(["--input", "request.json"])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let result: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(result["first_observation_gap_upper_ns"], 55);
+    assert_eq!(result["first_sample_gap_upper_ns"], 75);
+    assert_eq!(fs::read(f.0.join("request.json")).unwrap(), bytes);
+    request["first"][0]["start_ns"] = json!(true);
+    let bytes = serde_json::to_vec(&request).unwrap();
+    fs::write(f.0.join("request.json"), &bytes).unwrap();
+    let output = f
+        .command("analyze-baseline-data")
+        .args(["--input", "request.json"])
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stdout.is_empty());
+    assert_eq!(fs::read(f.0.join("request.json")).unwrap(), bytes);
+}
+
+#[test]
 fn layout_cli_keeps_the_full_cpu_plan_and_rejects_invalid_input_without_rewriting_it() {
     let f = Fixture::new();
     let bytes = br#"{"operation":"cpu-plan","cpus":[4,2,3]}"#;

@@ -120,3 +120,21 @@ pub(crate) fn center<'a>(values: impl Iterator<Item = &'a Value>) -> Result<(Val
     let spread = ratio(&difference(values[7], values[1]), &median)?;
     Ok((median, spread))
 }
+/// Python preserves integer subtraction until one operand is floating point.
+pub(crate) fn subtract(a: &Value, b: &Value) -> Result<Value> {
+    if let (Some(a), Some(b)) = (a.as_u64(), b.as_u64()) {
+        let difference = i128::from(a) - i128::from(b);
+        Ok(if difference >= 0 {
+            json!(difference as u64)
+        } else {
+            json!(i64::try_from(difference).map_err(|_| "signed measurement difference overflow")?)
+        })
+    } else {
+        let value = a.as_f64().ok_or("invalid measurement difference")?
+            - b.as_f64().ok_or("invalid measurement difference")?;
+        if !value.is_finite() {
+            return Err("nonfinite measurement difference".into());
+        }
+        Ok(json!(value))
+    }
+}

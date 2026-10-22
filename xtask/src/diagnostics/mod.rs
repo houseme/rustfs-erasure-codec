@@ -1,4 +1,5 @@
 //! Repository-only source generation. No Python is executed by native tools.
+pub(crate) mod baseline;
 pub(crate) mod catalog;
 pub(crate) mod dynamic;
 mod dynamic_ledger;
