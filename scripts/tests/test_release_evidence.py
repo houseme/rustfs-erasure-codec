@@ -396,9 +396,22 @@ class EvidenceTests(unittest.TestCase):
                 self.doc["contexts"][phase][key] = "changed"
                 with self.assertRaises(ValueError): self.verify()
 
+    def test_arm_environment_accepts_actual_proc_fields_without_model_name(self):
+        text = '\n\n'.join('processor: '+str(cpu)+'\nCPU implementer: 0x61\nCPU architecture: 8\nCPU variant: 0x0\nCPU part: 0x0\nCPU revision: 0\nFeatures: fp asimd aes' for cpu in (0,1))
+        isolation = {'cpu_affinity': [0, 1]}
+        with mock.patch.object(evidence, 'isolation_context', return_value=isolation), \
+             mock.patch.object(evidence.pathlib.Path, 'read_text', return_value=text), \
+             mock.patch.object(evidence.platform, 'machine', return_value='aarch64'), \
+             mock.patch.object(evidence, 'command', return_value='rustc fixture'), \
+             mock.patch.object(evidence, 'runtime_context', return_value={}):
+            result = evidence.environment_context(pathlib.Path('.'), evidence.SAMPLING_ENV, pathlib.Path('/unused'))
+        self.assertTrue(result['cpu_model'].startswith('aarch64 guest CPU identity: '))
+        self.assertEqual(result['isolation'], isolation)
+
+
     def test_allocator_runtime_records_controls_and_excludes_unrelated_environment(self):
         env = {'MALLOC_TRIM_THRESHOLD_':'100', 'GLIBC_TUNABLES':'glibc.malloc.top_pad=100', 'LD_PRELOAD':'fixture.so', 'LD_LIBRARY_PATH':'fixture-libs', 'UNRELATED':'private'}
-        with mock.patch.object(evidence.sampling,'base_page_size',return_value=4096), mock.patch.object(evidence.platform, 'libc_ver', return_value=('glibc','2.39')), mock.patch.object(evidence.memory_policy,'capture',return_value=self.doc['contexts']['A1']['runtime']['kernel_memory_policy']):
+        with mock.patch.object(evidence.sampling,'base_page_size',return_value=4096), mock.patch.object(evidence.platform, 'libc_ver', return_value=('glibc','2.39')), mock.patch.object(evidence.native_tools,'capture_memory_policy',return_value=self.doc['contexts']['A1']['runtime']['kernel_memory_policy']):
             runtime = evidence.runtime_context(env)
         self.assertEqual(runtime['libc'], {'name':'glibc','version':'2.39'})
         self.assertEqual(set(runtime['allocator_environment']), {'MALLOC_TRIM_THRESHOLD_','GLIBC_TUNABLES','LD_PRELOAD','LD_LIBRARY_PATH'})

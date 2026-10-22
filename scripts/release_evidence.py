@@ -19,16 +19,14 @@ import re
 import shutil
 import subprocess
 import statistics
-import sys
 import time
 import copy
 
 import release_sampling as sampling
-import release_memory_policy as memory_policy
+import native_tools
 from diagnostic_overlay import overlay
 
-from check_benchmark_regression import PROVENANCE_FIELDS, index_records, provenance_value
-from check_reconstruction_hotspot_gate import CASE_FIELDS, index_results
+from native_tools import PROVENANCE_FIELDS, index_records, provenance_value, CASE_FIELDS, index_results
 
 SCHEMA_VERSION = 4
 QUALIFICATION_SCHEMA = "baseline-qualification-v2"
@@ -73,20 +71,11 @@ SAMPLING_ENV = {k: v for k, v in BASE_ENV.items() if not k.endswith("_ITERATIONS
 SAMPLING_ENV["RSE_SAMPLER_PROTOCOL"] = f"duration-v{sampling.PROTOCOL['version']}"
 
 # Complete exported profile catalogs; harness changes require an explicit review.
+_CASE_CATALOG = {profile: frozenset(cases) for profile, cases in native_tools.sampling_catalog()['cases'].items()}
+
+
 def expected_cases(profile):
-    if profile == "hotspot":
-        return set(REQUIRED[profile])
-    if profile == "smoke":
-        cases = [(4, 2, 65536), (10, 4, 1048576), (32, 16, 1048576)]
-        operations = ("encode", "update", "verify", "reconstruct", "reconstruct_data")
-    elif profile == "small_file":
-        cases = [(4, 2, size * 1024) for size in (1, 4, 16, 64, 128, 256, 512)]
-        cases += [(10, 4, size * 1024) for size in (16, 64, 256, 512)]
-        operations = ("encode", "verify", "verify_with_buffer", "reconstruct", "reconstruct_opt", "reconstruct_shard_slot", "reconstruct_some_data_only", "reconstruct_data")
-    else:
-        cases = [(4, 2, 65536, 65536), (4, 2, 1048576, 262144), (10, 4, 65536, 65536), (10, 4, 1048576, 1048576), (10, 4, 16777216, 4194304)]
-        operations = ("encode_stream", "verify_stream", "reconstruct_stream")
-    return {":".join(map(str, (operation, *case))) for operation in operations for case in cases}
+    return set(_CASE_CATALOG[profile])
 
 
 class EvidenceFailure(ValueError):
@@ -175,7 +164,7 @@ def validate_runtime(runtime):
         raise ValueError("libc, allocator, base page and kernel memory policy provenance is required")
     if not sampling.valid_page_size(runtime["page_size"]):
         raise ValueError("invalid recorded OS base page size")
-    memory_policy.validate(runtime["kernel_memory_policy"],runtime["page_size"])
+    native_tools.validate_memory_policy(runtime["kernel_memory_policy"],runtime["page_size"])
     libc = runtime["libc"]
     if not isinstance(libc, dict) or set(libc) != {"name", "version"} or any(not isinstance(v, str) or not v for v in libc.values()):
         raise ValueError("invalid libc identity")
@@ -190,7 +179,7 @@ def runtime_context(env):
         raise ValueError("libc identity must be available for release evidence")
     result = {"libc": {"name": name, "version": version},
             "page_size": sampling.base_page_size(),
-            "kernel_memory_policy": memory_policy.capture(),
+            "kernel_memory_policy": native_tools.capture_memory_policy(),
             "allocator_environment": {k: env[k] for k in sorted(env) if allocator_override_key(k)}}
 
     validate_runtime(result)
@@ -198,51 +187,7 @@ def runtime_context(env):
 
 
 def cpu_identity(text, machine, reserved_cpus):
-    """Keep named models; bind unnamed ARM guests to their reported CPU IDs.
-
-    MIDR fields identify the guest-visible processors, not the physical host.
-    Reserved CPU indices and ISA flags are retained, including heterogeneous IDs.
-    """
-    named = next((line.split(":", 1)[1].strip() for line in text.splitlines()
-                  if line.startswith("model name") and ":" in line), "")
-    if named:
-        return named
-    if machine.lower() not in ("aarch64", "arm64"):
-        raise ValueError("CPU model must be available for release evidence")
-    required = ("CPU implementer", "CPU architecture", "CPU variant", "CPU part", "CPU revision")
-    processors = {}
-    for block in re.split(r"\n\s*\n", text.strip()):
-        fields = {}
-        for line in block.splitlines():
-            if ":" not in line:
-                continue
-            key, value = (piece.strip() for piece in line.split(":", 1))
-            if key in fields:
-                raise ValueError("duplicate ARM CPU identity field")
-            fields[key] = value
-        if "processor" not in fields:
-            continue
-        if not fields["processor"].isdecimal():
-            raise ValueError("invalid ARM CPU index")
-        cpu = int(fields["processor"])
-        if cpu in processors:
-            raise ValueError("duplicate ARM CPU index")
-        processors[cpu] = fields
-    identities = []
-    for cpu in sorted(reserved_cpus):
-        fields = processors.get(cpu, {})
-        if any(not fields.get(key) for key in (*required, "Features")):
-            raise ValueError("complete ARM identity required for every reserved CPU")
-        try:
-            values = [int(fields[key], 10 if key == "CPU architecture" else 0) for key in required]
-        except ValueError as error:
-            raise ValueError("invalid ARM CPU identity value") from error
-        if any(value < 0 for value in values):
-            raise ValueError("invalid ARM CPU identity value")
-        identities.append({"cpu": cpu, **dict(zip(required, values)), "Features": sorted(set(fields["Features"].split()))})
-    if not identities:
-        raise ValueError("reserved ARM CPUs are required")
-    return "aarch64 guest CPU identity: " + json.dumps(identities, sort_keys=True, separators=(",", ":"))
+    return native_tools.request('cpu-identity', text=text, machine=machine, reserved_cpus=list(reserved_cpus))
 
 
 def environment_context(root, env, group):
@@ -299,45 +244,12 @@ def indexed_rows(profile, original, revision, iteration_counts=None, complete=Tr
 
 
 def compatible(profile, left, right):
-    if left.keys() != right.keys():
-        raise ValueError("complete evidence case sets must match")
-    for key in left:
-        for field in PROVENANCE_FIELDS:
-            if provenance_value(left[key], field) != provenance_value(right[key], field):
-                raise ValueError(f"{profile}: incompatible {field}")
-        if profile == "hotspot":
-            for field in CASE_FIELDS:
-                if left[key].get(field) != right[key].get(field):
-                    raise ValueError(f"hotspot: incompatible {field}")
+    native_tools.request('compatible-rows', profile=profile, left=left, right=right)
 
 
 def observation_contracts(profile, records, reference=None):
-    """Compare every validated raw observation, including warmups and outliers.
-
-    Metric/iteration values may differ; the existing provenance and hotspot-case
-    contract must not. Placement is worker-lived and must match each observation,
-    not only index zero. Inputs are read-only; the returned cache keeps one
-    reference per case and can span calibration workers and measurement phases.
-    This is an offline/controller check, never a new sampler or timing hook.
-    """
-    contracts = dict(reference) if reference is not None else {}
-    for record in records:
-        case = record['case']
-        row, placement = record['rows'][0], record['placement']
-        if case not in contracts:
-            if reference is not None:
-                raise ValueError(f'{profile}: observation case differs from calibration')
-            contracts[case] = (row, placement)
-        else:
-            expected_row, expected_placement = contracts[case]
-            label = f"{case} {record.get('kind', 'observation')}[{record.get('index', '?')}] batch={record.get('calibration_batch', 0)}"
-            try:
-                compatible(profile, {case: expected_row}, {case: row})
-            except ValueError as error:
-                raise ValueError(f'{label}: {error}') from error
-            if placement != expected_placement:
-                raise ValueError(f'{profile}/{label}: observation placement differs from calibration/worker')
-    return contracts
+    """Validate the complete batch natively; retain original read-only references."""
+    return native_tools.observation_contracts(profile, records, reference)
 
 
 def safe_file(root, name):
@@ -353,12 +265,15 @@ def safe_file(root, name):
 
 
 def checker_args(profile, baseline, current):
-    scripts = pathlib.Path(__file__).resolve().parent
+    # Offline evidence directories need not contain Cargo aliases or a workspace.
+    # Select the controller's tool explicitly, as the former Python paths did.
+    manifest = pathlib.Path(__file__).resolve().parents[1] / 'xtask/Cargo.toml'
+    command = ['cargo', 'run', '--quiet', '--locked', '--offline', '--manifest-path', str(manifest), '--package', 'xtask', '--']
     if profile == "hotspot":
-        args = [sys.executable, str(scripts / "check_reconstruction_hotspot_gate.py"), "--baseline", str(baseline), "--current", str(current)]
+        args = command + ["check-hotspot", "--baseline", str(baseline), "--current", str(current)]
         for case in REQUIRED[profile]: args += ["--require-scenario", case]
         return args
-    args = [sys.executable, str(scripts / "check_benchmark_regression.py"), "--baseline", str(baseline), "--current", str(current)]
+    args = command + ["check-benchmark", "--baseline", str(baseline), "--current", str(current)]
     if profile != "smoke": args += ["--metric", METRICS[profile]]
     thresholds = {"small_file": ("encode=0.12", "verify=0.12", "verify_with_buffer=0.12", "reconstruct=0.18", "reconstruct_data=0.18"), "stream": ("encode_stream=0.15", "verify_stream=0.15", "reconstruct_stream=0.18")}
     for threshold in thresholds.get(profile, ()): args += ["--threshold", threshold]
@@ -493,20 +408,8 @@ def verify_worker_journal(document, root):
 def diagnostic_rows(records, profile, metric, revision, expected, counts, normalize,
                     allowed_cpus=None, expected_page_size=None):
     """Use the original nine-sample median; record short windows without trimming."""
-    groups = sampling.sample_groups(records, profile, revision, expected, counts, normalize,
-                                    allowed_cpus, expected_page_size)
-    selected, widths = [], []
-    for case, group in groups.items():
-        samples = group[sampling.PROTOCOL['warmups']:]
-        ordered = sorted(samples, key=lambda r: r['rows'][0][metric])
-        median = ordered[len(ordered)//2]['rows'][0]
-        short = [{'index': r['index'], 'wall_ns': r['wall_ns'], 'timed_ns': r['timed_ns']}
-                 for r in samples if r['wall_ns'] < sampling.PROTOCOL['minimum_wall_ns']
-                 or r['timed_ns'] < sampling.PROTOCOL['minimum_timed_ns']]
-        selected.append(median)
-        widths.append({'case': case, 'central_spread': (ordered[-2]['rows'][0][metric]-ordered[1]['rows'][0][metric])/median[metric],
-                       'short_samples': short})
-    return selected, widths
+    return sampling.selected_row(records, profile, metric, revision, expected, counts, normalize,
+                                 allowed_cpus, expected_page_size, diagnostic=True)
 
 
 def _verify_profiles(document, root, repository, compiler=True, *, diagnostic=False):
@@ -692,12 +595,8 @@ def calibration_counts(records, profile, revision, expected_page_size=None):
             raise ValueError("invalid calibration sample")
         if not isinstance(record.get("rows"), list) or len(record["rows"]) != 1:
             raise ValueError("calibration must contain one raw row")
-        sampling.validate_telemetry(record)
-        sampling.validate_placement(record)
-        sampling.validate_fixture(record, profile, expected_page_size)
         if set(indexed_rows(profile, record["rows"], revision, {key: count}, complete=False)) != {key}:
             raise ValueError("calibration row does not match declared case")
-        sampling.validate_timing(record, profile, count)
         groups.setdefault(key, []).append(record)
     if set(groups) != expected_cases(profile): raise ValueError("calibration case catalog is incomplete")
     counts = {}
@@ -707,8 +606,8 @@ def calibration_counts(records, profile, revision, expected_page_size=None):
             raise ValueError("calibration rehearsal is incomplete or exceeds its budget")
         count = 1
         for offset in range(0, len(group), width):
-            sampling.validate_workload_sequence(group[offset:offset+width], profile)
-            following = sampling.calibration_batch(group[offset:offset+width], count, offset//width+1)
+            following = sampling.calibration_worker(group[offset:offset+width], profile, count,
+                                                    offset//width+1, expected_page_size)
             if following is None:
                 if offset+width != len(group):
                     raise ValueError("extra calibration records after a complete rehearsal")

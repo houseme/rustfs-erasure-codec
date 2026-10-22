@@ -6,6 +6,7 @@ import json
 import math
 import os
 import pathlib
+import native_tools
 import selectors
 import signal
 import statistics
@@ -22,26 +23,7 @@ COMMAND = ['cargo', 'test', '--locked', '--release', '--features', 'std simd-acc
 
 
 def render(root, allocation_check=False):
-    files = sampling.render(root)
-    declaration = 'fn read_bounded'
-    if files['engine.rs'].count(declaration) != 1:
-        raise ValueError('bounded observer changed; review the diagnostic adapter')
-    files['engine.rs'] = files['engine.rs'].replace(declaration, 'pub(super) '+declaration, 1)
-    files['small_file.rs'] += '\n'+TEMPLATE.read_text()
-    files['root.rs'] += '\n#[test]\n#[ignore]\nfn release_cpu_placement() { small_file::cpu_placement_diagnostic(); }\n'
-    if allocation_check:
-        counter = (root/'scripts/diagnostics/telemetry_allocations.rs').read_text()
-        counter = '\n'.join(line for line in counter.splitlines() if not line.startswith(('//!', '#![allow')))
-        original = sampling.block((root/'src/tests/mod.rs').read_text(), 'fn shard_index_pattern').replace('fn shard_index_pattern', 'fn original_pattern', 1)
-        files['root.rs'] += '\n'+counter+'\n'+original+'''
-#[test]
-#[cfg(target_os = "linux")]
-fn placement_fault_reads_keep_the_rust_heap_untouched() {
-    let (_, counts) = count_heap(|| { for _ in 0..16 { std::hint::black_box(small_file::placement_faults()); } });
-    assert_eq!(counts, Counts::default());
-}
-'''
-    return files
+    return native_tools.diagnostic_render(root, 'cpu-placement', allocation_check=allocation_check)
 
 
 def worker_plan(cpus):

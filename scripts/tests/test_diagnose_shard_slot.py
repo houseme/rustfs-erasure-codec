@@ -36,13 +36,19 @@ class ShardSlotDiagnosticTests(unittest.TestCase):
         self.assertEqual(after['small_file.rs'].count('trace.after(&shards, original);'), 1)
 
     def test_changed_original_workload_rejects_instead_of_silently_adapting(self):
-        from unittest import mock
         root = pathlib.Path(__file__).resolve().parents[2]
-        files = sampling.render(root)
-        files['small_file.rs'] = files['small_file.rs'].replace('mark_missing_slots(&mut shards, &[0, case.data_shards]);', 'changed();')
-        with mock.patch.object(diagnostic.sampling, 'render', return_value=files):
+        with tempfile.TemporaryDirectory() as directory:
+            source = pathlib.Path(directory)
+            for name in ('tests/benchmark_smoke.rs', 'tests/benchmark_small_files.rs',
+                         'tests/benchmark_stream_paths.rs', 'src/tests/mod.rs'):
+                target = source/name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text((root/name).read_text())
+            target = source/'tests/benchmark_small_files.rs'
+            target.write_text(target.read_text().replace('mark_missing_slots(&mut shards, &[0, case.data_shards]);', 'changed();'))
             with self.assertRaisesRegex(ValueError, 'workload changed'):
-                diagnostic.render(root, True)
+                diagnostic.render(source, True)
+            self.assertFalse((source/'tests/rse_release_sampling.rs').exists())
 
     def test_all_iterations_and_observations_required_with_page_bound_layouts(self):
         records = [trace() for _ in range(12)]

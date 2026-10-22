@@ -3,6 +3,7 @@ import copy
 import json
 import pathlib
 import sys
+import subprocess
 import tempfile
 import unittest
 from unittest import mock
@@ -490,6 +491,67 @@ class SamplingContractTests(unittest.TestCase):
         key=next(iter(self.doc['sampling']['common_iterations']['small_file']))
         self.doc['sampling']['common_iterations']['small_file'][key]=2
         with self.assertRaises(ValueError):self.verify()
+
+
+class SamplingWorkerIntegrationTests(unittest.TestCase):
+    def test_worker_uses_the_same_minimum_reserved_cpu_without_mutating_caller(self):
+        caller={'RSE_SAMPLER_CPU':'999','RAYON_NUM_THREADS':'4'}
+        with mock.patch.object(sampling.os,'sched_getaffinity',return_value={24,25,31},create=True):
+            worker=sampling.worker_environment(caller)
+        self.assertEqual(worker,{'RSE_SAMPLER_CPU':'24','RAYON_NUM_THREADS':'4'})
+        self.assertEqual(caller['RSE_SAMPLER_CPU'],'999')
+
+
+    def test_published_and_candidate_build_outputs_ignore_a_shared_caller_cache(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=pathlib.Path(temporary)
+            caller={'CARGO_TARGET_DIR':str(root/'shared'),'RUSTUP_TOOLCHAIN':'stable'}
+            baseline=sampling.build_environment(root/'baseline',caller)
+            candidate=sampling.build_environment(root/'candidate',caller)
+            self.assertNotEqual(baseline['CARGO_TARGET_DIR'],candidate['CARGO_TARGET_DIR'])
+            self.assertEqual(baseline['CARGO_TARGET_DIR'],str(root.resolve()/'baseline/target'))
+            self.assertEqual(caller['CARGO_TARGET_DIR'],str(root/'shared'))
+            self.assertEqual(candidate['RUSTUP_TOOLCHAIN'],'stable')
+
+
+    def test_exact_baseline_tree_is_available_from_a_shallow_ci_checkout(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root=pathlib.Path(temporary);origin=root/'origin';origin.mkdir()
+            def git(folder,*args):
+                return subprocess.check_output(['git',*args],cwd=folder,text=True,stderr=subprocess.PIPE).strip()
+            git(origin,'init','--quiet')
+            git(origin,'config','user.name','Fixture')
+            git(origin,'config','user.email','fixture@example.invalid')
+            (origin/'data').write_text('baseline')
+            git(origin,'add','data');git(origin,'commit','--quiet','-m','baseline')
+            revision=git(origin,'rev-parse','HEAD')
+            (origin/'data').write_text('candidate')
+            git(origin,'commit','--quiet','-am','candidate')
+            source=root/'shallow'
+            git(root,'clone','--quiet','--no-local','--depth=1',str(origin),str(source))
+            git(source,'fetch','--quiet','--depth=1',str(origin),revision)
+            self.assertEqual(git(source,'rev-parse','--is-shallow-repository'),'true')
+            destination=root/'baseline'
+            sampling.checkout_baseline(source,destination,revision)
+            self.assertEqual(git(destination,'rev-parse','HEAD'),revision)
+            self.assertEqual((destination/'data').read_text(),'baseline')
+            self.assertEqual((source/'data').read_text(),'candidate')
+
+
+    def test_rendered_smoke_and_hotspot_use_one_prepared_entry_and_no_entropy(self):
+        root=pathlib.Path(__file__).resolve().parents[2]
+        rendered=sampling.render(root)
+        self.assertNotIn('rand::random',rendered['hotspot.rs'])
+        self.assertEqual(rendered['smoke.rs'].count('fn execute_smoke_kernel('),1)
+        for profile in ('smoke','hotspot','small_file','stream'):
+            self.assertIn('sampling::run_prepared',rendered[profile+'.rs'])
+        for name in ('data','some'):
+            body=sampling.block(rendered['hotspot.rs'],'fn bench_reconstruct_'+name+'_hotspot')
+            self.assertNotIn('ReedSolomon::new',body)
+            self.assertIn('option_shards_with_missing',body)
+            self.assertIn('let baseline_start = Instant::now();',body)
+            self.assertIn('let candidate_start = Instant::now();',body)
+        self.assertEqual({r[2] for r in sampling.HOTSPOT_CASES},evidence.expected_cases('hotspot'))
 
 
 if __name__=='__main__':unittest.main()
