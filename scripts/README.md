@@ -2,9 +2,24 @@
 
 Build, benchmark, release validation, and report generation scripts for `rustfs-erasure-codec`.
 
+Repository-wide tooling inventory, packaging policy and the Rust migration
+boundaries are documented in [`xtask/README.md`](../xtask/README.md).
+
 ## Quick Reference
 
 ```bash
+# Rust repository tools (no Python needed for these commands)
+cargo xtask check-release
+cargo xtask audit-json
+cargo xtask audit-package
+cargo xtask audit-workspace
+cargo xtask check-sampler-telemetry
+# Linux only: read-only THP/mTHP and process policy
+cargo xtask memory-policy
+# Pure sampling validation: {"operation":"catalog"} or a typed validation request
+cargo xtask sampling-contract --input request.json
+cargo test --locked --package xtask
+
 # Developer checks (fast profile; not release acceptance)
 bash scripts/release-check.sh
 
@@ -33,21 +48,59 @@ bash scripts/verify-x86_64.sh
 
 | Script | Language | Description |
 |---|---|---|
-| [`collect_x86_simd_benchmarks.sh`](collect_x86_simd_benchmarks.sh) | Bash + Python | Runs criterion benchmarks and release smoke tests for all x86 SIMD backends, then generates a machine JSON via `summarize_x86_simd_benchmarks.py`. |
+| [`collect_x86_simd_benchmarks.sh`](collect_x86_simd_benchmarks.sh) | Bash + Rust | Runs Criterion benchmarks and release smoke tests for all x86 SIMD backends, then generates machine reports and metadata through `xtask`. |
 | [`run_x86_backend_smoke_matrix.sh`](run_x86_backend_smoke_matrix.sh) | Bash | Runs release smoke tests for all x86 backends and saves per-backend CSV files. |
 | [`run_aarch64_backend_smoke_matrix.sh`](run_aarch64_backend_smoke_matrix.sh) | Bash | Same as above but for aarch64 backends (auto, scalar, rust-neon). |
 | [`run_small_file_benchmark_matrix.sh`](run_small_file_benchmark_matrix.sh) | Bash | Runs small-file EC benchmark matrix with configurable profile and iterations. |
 | [`archive_x86_simd_machine.sh`](archive_x86_simd_machine.sh) | Bash | Full x86_64 machine archival workflow: runs smoke matrix, renders summary and ledger entry Markdown files. |
+| [`run_galois_backend_abba.sh`](run_galois_backend_abba.sh) | Bash + Rust | Freezes one Rust executable before switching revisions; extracts fresh Criterion records and rejects attribution for the entire campaign if either repeat drifts. |
 
-### Regression Gates (Python)
+### Regression gates (Rust)
 
 | Script | Language | Description |
 |---|---|---|
-| [`check_benchmark_regression.py`](check_benchmark_regression.py) | Python 3 | Compares baseline vs current benchmark results (JSON/CSV). Detects throughput regressions per operation with configurable thresholds. Used by `release-check.sh`. |
-| [`check_reconstruction_hotspot_gate.py`](check_reconstruction_hotspot_gate.py) | Python 3 | Compares reconstruction hotspot results against a baseline. Validates per-scenario regression and minimum speedup floors. Used by `release-check.sh`. |
-| [`summarize_x86_simd_benchmarks.py`](summarize_x86_simd_benchmarks.py) | Python 3 | Collects criterion and release smoke results, computes weighted backend rankings, and generates machine JSON with policy eligibility analysis. Used by `collect_x86_simd_benchmarks.sh`. |
+| `cargo xtask check-benchmark` | Rust | Compares baseline/current JSON or CSV, enforcing case completeness, provenance and per-operation regression limits. Used by `release-check.sh`. |
+| `cargo xtask check-hotspot` | Rust | Checks every baseline reconstruction scenario, comparable provenance, regression limits and speedup floors. Used by `release-check.sh`. |
+
+The fields, aliases and default thresholds are defined once in
+[`xtask/contracts/benchmark.json`](../xtask/contracts/benchmark.json).
+Capture/replay and native gates use the same Rust normalization model through
+`native_tools.py`; the Python normalization implementation is removed.
+The binding reuses one owned JSON-lines worker, bounds frames, serializes
+concurrent callers and caches immutable pure results. Release replay invokes the native gates
+through the controller's explicit tool manifest, so evidence directories need
+not contain Cargo aliases or their own workspace.
+
+Formal sampler generation, diagnostic overlays and their source observers now
+use Rust through `native_tools.py`. This binding builds a
+locked host tool once per Python controller and exchanges JSON over stdin/stdout.
+Rust tools do not launch Python. `cargo xtask check-sampler-telemetry` runs the
+separate Rust allocation probe and removes only its unchanged owned input,
+including after a failed or cancelled check.
+
+`cargo xtask memory-policy` reads Linux THP/mTHP and inherited process policy.
+`--input FILE --base-page-size BYTES` validates recorded JSON instead. Missing
+controls, malformed choices and failed queries remain errors. Capture/replay uses
+the same Rust module through the binding; only successful pure validation is
+cached, and live policy is read each time.
 
 ### Report Rendering
+
+`cargo xtask summarize-simd --machine-json FILE --machine-slug NAME --date DATE`
+replaces the Python machine-report generator. Add `--root PATH` to read another
+checkout; `--summary` summarizes archived machine report objects. Raw result
+arrays and run metadata are excluded from that archive summary.
+
+`cargo xtask perf-stack-audit` replaces the offline Python perf stack inventory.
+Its `--input`, `--records`, `--record-log`, `--record-exit-code`, `--source`,
+`--event` and `--output` flags are retained. `perf-record-stats --input FILE
+--output FILE` converts native aggregate statistics to its record-count input.
+Existing inventories cannot be overwritten. These tools do not approve release.
+
+`cargo xtask stream-allocator-audit --trace FILE --samples FILE --output FILE`
+replaces the Python syscall ledger. It reconstructs split writes and resumed
+calls, binds all original timing/sample journals, and reports anonymous mapping
+lifetimes without addresses. It also refuses to overwrite an existing ledger.
 
 | Script | Language | Description |
 |---|---|---|
@@ -63,8 +116,6 @@ bash scripts/verify-x86_64.sh
 - `cargo` (Rust toolchain)
 
 ### Python scripts
-
-- `check_release_manifest.py` and its tests require Python 3.11+ (`tomllib`).
 
 - Python 3.8+
 - Standard library only (`json`, `csv`, `argparse`, `pathlib`, `statistics`, `platform`, `subprocess`) — no third-party packages required
@@ -108,7 +159,7 @@ SIMD, backend and regression checks even if their switches were disabled.
 benchmark-only `--ignored` filter.
 
 ```bash
-python3 scripts/check_release_manifest.py
+cargo xtask check-release
 python3 -m unittest discover -s scripts/tests -p 'test_*.py'
 cargo publish --dry-run --locked --registry crates-io --package rustfs-erasure-codec
 ```

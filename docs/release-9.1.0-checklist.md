@@ -58,7 +58,7 @@ RUSTUP_TOOLCHAIN=stable cargo test --locked --workspace
 RUSTUP_TOOLCHAIN=stable cargo test --locked --no-default-features --lib
 RUSTUP_TOOLCHAIN=stable cargo clippy --locked --workspace --all-targets --all-features -- -D warnings
 RUSTUP_TOOLCHAIN=stable cargo fmt --all --check
-python3 scripts/check_release_manifest.py --tag 9.1.0
+cargo xtask check-release --tag 9.1.0
 ```
 
 ## Remaining performance and publication gates

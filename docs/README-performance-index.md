@@ -1,5 +1,9 @@
 # Performance Index
 
+The [repository evidence catalog](../benchmarks/README.md) describes JSON
+retention, directory purposes and the boundary between GitHub archives and the
+published crate. Use `cargo xtask audit-json` to refresh the file inventory.
+
 ## Current Useful References
 
 - `docs/main-vs-origin-main-performance-2026-05-28.md`
