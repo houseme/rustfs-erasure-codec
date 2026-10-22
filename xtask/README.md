@@ -33,6 +33,7 @@ cargo test --locked --package xtask
 | `scripts/release_memory_policy.py` | `cargo xtask memory-policy` / native capture bindings | Read-only THP/mTHP policy, full process mode, explicit absent interfaces and strict replay validation |
 | Intermediate `scripts/benchmark_contract.py` | Shared native `benchmark_contract` model | Row order, extra fields, normalization, aliases, strict provenance and hotspot dimensions |
 | Python CPU identity parser/test module | Native `runtime::cpu_identity` | Named models, reserved ARM CPUs, canonical fields and rejection of incomplete identities |
+| `verify-x86_64.sh` inline Python | `cargo xtask summarize-smoke` | One read pass, ordinary/legacy smoke rows, separate A/B/profile inputs and recorded backend metadata |
 | Python sampling contracts/validators and their pure test module | Shared `sampling_contract` and `diagnostics::catalog`; `cargo xtask sampling-contract --input FILE` | All 126 cases, API/masks/seeds, RNG witnesses, CPU masks/counters, retained buffers, measured intervals and complete calibration rehearsals |
 
 The obsolete implementations and their Python test entry points are removed.
@@ -205,8 +206,8 @@ are migrated. A blanket deletion or a Python launcher hidden behind `xtask`
 would not satisfy those contracts. Future migrations belong in these modules of
 the same tool rather than additional one-off executable layers.
 
-The inventory also checks embedded Python. `verify-x86_64.sh` still has three
-active JSON-display fragments; CI retains resource-record validation, locked
+The inventory also checks embedded Python. `verify-x86_64.sh` now uses one native
+report command instead of three JSON-display fragments; CI retains resource-record validation, locked
 wasm-bindgen version extraction, runtime/evidence commands, and failure outcome
 journals. The journals run with `always()` even when Rust installation or checks
 fail, so replacing them with a freshly compiled tool would lose failure evidence.
@@ -301,6 +302,20 @@ formats. No throughput improvement is claimed from a tooling refactor. Real
 performance attribution still requires qualified, isolated ABBA measurements;
 diagnostic runs retain their existing inability to authorize release.
 
+The review following functional commits found an unsupported DIT4 strategy
+assertion in the x86 verification report. The script inferred `auto`/`direct`
+from shard size even though `RSE_DIT4_STRATEGY` can override the choice and the
+JSON exporter does not record it. Its filename glob also included A/B arrays
+and instrumented profiles. `summarize-smoke` replaces those inline parsers with
+one pass using the shared strict JSON reader. It distinguishes measurement
+types, preserves legacy ordinary objects and reported values, and states that
+actual strategy is unavailable. It neither changes encoder behavior nor mutates
+artifacts. Invalid measured inputs fail before any partial report is printed.
+Native CLI tests exercise mixed artifacts, explicit strategy overrides, legacy
+fields, malformed metrics/JSON and empty input. The x86 wrapper's build/test
+steps are unchanged; local ARM64 execution validates the portable report, not
+a new x86 hardware benchmark.
+
 ## Local validation for this change
 
 Validated on the native macOS ARM64 host with stable Rust 1.99.1 (seventh migration;
@@ -311,7 +326,7 @@ migration, whose codec sources remain unchanged):
 | --- | --- |
 | Core `--all-features --lib --tests` | 517 passed; 43 existing benchmark/manual tests ignored |
 | Core all-feature doctests | 10 passed |
-| Rust tooling unit/executable tests | 79 passed, including generator bytes, LF/CRLF/CR, framing/bounds, exact float bits, CPU identity, policy, batched agreement, sampling contracts, cancellation and cleanup |
+| Rust tooling unit/executable tests | 82 passed, including generator bytes, LF/CRLF/CR, framing/bounds, exact float bits, CPU identity, policy, batched agreement, sampling contracts, smoke-report scope, cancellation and cleanup |
 | Native row normalization | Ten archived JSON artifacts / 672 rows match the original Python results |
 | Exact numeric transport | All 2,000 numeric pairs retain their original float values |
 | Sampling contract migration | All 126 workload/fixture contracts retain the old model digest; 5,206 acceptance/value comparisons match |

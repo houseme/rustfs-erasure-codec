@@ -18,6 +18,8 @@ cargo xtask check-sampler-telemetry
 cargo xtask memory-policy
 # Pure sampling validation: {"operation":"catalog"} or a typed validation request
 cargo xtask sampling-contract --input request.json
+# Read-only local smoke report; actual DIT4 strategy is not exported by this schema
+cargo xtask summarize-smoke --input target/benchmark-smoke
 cargo test --locked --package xtask
 
 # Developer checks (fast profile; not release acceptance)

@@ -96,6 +96,7 @@ impl Args {
 }
 
 const COMMANDS: &[(&str, &[&str])] = &[
+    ("summarize-smoke", &["--input"]),
     ("sampling-contract", &["--input"]),
     ("memory-policy", &["--input", "--base-page-size"]),
     ("check-sampler-telemetry", &["--root"]),
@@ -251,6 +252,7 @@ fn run() -> Result<bool> {
         "audit-package" => audit::package(&args.root())?,
         "audit-workspace" => workspace::audit(&args.root())?,
         "summarize-simd" => summary::run(&args)?,
+        "summarize-smoke" => summary::local_smoke(&args)?,
         "machine-metadata" => metadata::write_machine(&args)?,
         "perf-stack-audit" => perf::run(&args)?,
         "perf-record-stats" => perf::stats(&args)?,

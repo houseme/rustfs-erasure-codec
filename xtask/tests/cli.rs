@@ -64,6 +64,112 @@ impl Drop for Fixture {
 }
 
 #[test]
+fn smoke_report_keeps_plain_and_legacy_rows_separate_from_ab_and_profile_inputs() {
+    let f = Fixture::new();
+    let inputs = [
+        (
+            "leopard-encode-tiny.json",
+            json!({"artifact_kind":"leopard-encode","case":"tiny","shard_size":1024,"throughput_mb_s":123.5}),
+        ),
+        (
+            "leopard-encode-large.json",
+            json!({"artifact_kind":"leopard-encode","case":"large","shard_size":1048576,"throughput_mb_s":1000.25}),
+        ),
+        (
+            "leopard-encode-legacy.json",
+            json!({"throughput_mb_s":12.5}),
+        ),
+        (
+            "leopard-encode-ab-large.json",
+            json!([{"artifact_kind":"leopard-encode-ab","case":"ab-only","throughput_mb_s":777777.0}]),
+        ),
+        (
+            "leopard-encode-profile-large.json",
+            json!({"artifact_kind":"leopard-encode-profile","case":"profile-only","shard_size":1048576,"throughput_mb_s":888888.0}),
+        ),
+        (
+            "smoke-results.json",
+            json!([{"backend":"scalar","backend_id":"scalar","target_triple":"recorded-target"}]),
+        ),
+    ];
+    for (name, value) in &inputs {
+        fs::write(f.0.join(name), serde_json::to_vec(value).unwrap()).unwrap();
+    }
+    let output = f
+        .command("summarize-smoke")
+        .args(["--input", "."])
+        .env("RSE_DIT4_STRATEGY", "direct-safe")
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let text = String::from_utf8(output.stdout).unwrap();
+    assert!(text.contains("legacy: shard_size=unknown, 12.50 MB/s"));
+    assert!(text.contains("tiny: shard_size=1K, 123.50 MB/s"));
+    assert!(text.contains("large: shard_size=1024K, 1000.25 MB/s"));
+    assert!(text.find("tiny:").unwrap() < text.find("large:").unwrap());
+    assert!(!text.contains("profile-only") && !text.contains("ab-only"));
+    assert!(text.contains("backend: scalar") && text.contains("target: recorded-target"));
+    assert!(text.contains("未记录实际策略"));
+    assert!(!text.contains("→ direct") && !text.contains("→ decomposed"));
+    for (name, value) in inputs {
+        let current: Value = serde_json::from_slice(&fs::read(f.0.join(name)).unwrap()).unwrap();
+        assert_eq!(current, value);
+    }
+}
+
+#[test]
+fn smoke_report_rejects_invalid_json_or_metrics_before_printing_partial_results() {
+    let f = Fixture::new();
+    fs::write(
+        f.0.join("leopard-encode-first.json"),
+        r#"{"throughput_mb_s":100}"#,
+    )
+    .unwrap();
+    for invalid in [
+        r#"{"throughput_mb_s":1,"throughput_mb_s":2}"#,
+        r#"{"throughput_mb_s":NaN}"#,
+        r#"{"throughput_mb_s":-1}"#,
+        r#"{"throughput_mb_s":true}"#,
+        r#"{"throughput_mb_s":0}"#,
+        r#"{"throughput_mb_s":1,"shard_size":0}"#,
+        r#"{"throughput_mb_s":1,"case":""}"#,
+        r#"{}"#,
+    ] {
+        fs::write(f.0.join("leopard-encode-invalid.json"), invalid).unwrap();
+        let output = f
+            .command("summarize-smoke")
+            .args(["--input", "."])
+            .output()
+            .unwrap();
+        assert_eq!(output.status.code(), Some(2), "accepted {invalid}");
+        assert!(output.stdout.is_empty());
+        assert_eq!(
+            fs::read_to_string(f.0.join("leopard-encode-invalid.json")).unwrap(),
+            invalid
+        );
+    }
+}
+
+#[test]
+fn smoke_report_handles_empty_input_without_inventing_observations_or_backend() {
+    let f = Fixture::new();
+    let output = f
+        .command("summarize-smoke")
+        .args(["--input", "missing"])
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let text = String::from_utf8(output.stdout).unwrap();
+    assert!(text.contains("未找到普通 encode 记录"));
+    assert!(text.contains("backend: unknown"));
+    assert!(!f.0.join("missing").exists());
+}
+
+#[test]
 fn sampling_contract_cli_exposes_the_full_catalog_and_rejects_duplicate_json_keys() {
     let f = Fixture::new();
     let bytes = br#"{"operation":"catalog"}"#;
