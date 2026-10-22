@@ -10,6 +10,9 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Remove unused MinGW provisioning from the Windows GNU metadata-check matrix.
+  Retain all default, no_std and SIMD checks plus native Windows execution jobs.
+
 - Keep native diagnostic process-group ownership until cleanup completes, even
   when a wrapper exits before its background workers. Reap the leader only after
   stopping the owned group; retain failure/cancellation and source-preservation
