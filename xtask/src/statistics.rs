@@ -2,12 +2,12 @@ use crate::Result;
 use serde_json::{Value, json};
 use std::cmp::Ordering;
 
-pub(super) fn uint(value: &Value) -> Result<u64> {
+pub(crate) fn uint(value: &Value) -> Result<u64> {
     value
         .as_u64()
         .ok_or_else(|| "invalid unsigned layout counter".into())
 }
-pub(super) fn positive(value: &Value) -> Result<f64> {
+pub(crate) fn positive(value: &Value) -> Result<f64> {
     value
         .as_f64()
         .filter(|n| n.is_finite() && *n > 0.0)
@@ -65,36 +65,57 @@ fn integer_ratio(n: u64, d: u64) -> f64 {
     }
     q as f64 * 2.0_f64.powi(exponent - 52)
 }
-pub(super) fn ratio(a: &Value, b: &Value) -> Result<f64> {
+pub(crate) fn ratio(a: &Value, b: &Value) -> Result<f64> {
     positive(b)?;
-    Ok(match (a.as_u64(), b.as_u64()) {
+    let value = match (a.as_u64(), b.as_u64()) {
         (Some(a), Some(b)) => integer_ratio(a, b),
         _ => a.as_f64().ok_or("invalid layout numerator")? / positive(b)?,
-    })
+    };
+    value
+        .is_finite()
+        .then_some(value)
+        .ok_or_else(|| "nonfinite measurement ratio".into())
 }
-pub(super) fn difference(a: &Value, b: &Value) -> Value {
+pub(crate) fn difference(a: &Value, b: &Value) -> Value {
     match (a.as_u64(), b.as_u64()) {
         (Some(a), Some(b)) => json!(a.abs_diff(b)),
         _ => json!((a.as_f64().unwrap_or(0.0) - b.as_f64().unwrap_or(0.0)).abs()),
     }
 }
-pub(super) fn close_product(metric: &Value, count: u64, total: &Value) -> Result<bool> {
+pub(crate) fn close_product(metric: &Value, count: u64, total: &Value) -> Result<bool> {
     let a = positive(metric)?;
     let b = positive(total)?;
     let product = metric.as_u64().map_or(a * count as f64, |v| {
         (u128::from(v) * u128::from(count)) as f64
     });
+    if !product.is_finite() {
+        return Ok(false);
+    }
     Ok((product - b).abs() <= 1.0_f64.max(1e-12 * product.abs()).max(1e-12 * b.abs()))
 }
-pub(super) fn center<'a>(values: impl Iterator<Item = &'a Value>) -> Result<(Value, f64)> {
-    let mut values: Vec<_> = values.collect();
-    if values.len() != 9 {
-        return Err("all nine layout measurements are required".into());
+/// Stable, exact ordering of the fixed nine observations; keep scalar types.
+pub(crate) fn ordered<'a>(
+    mut values: impl Iterator<Item = &'a Value>,
+    allow_zero: bool,
+) -> Result<[&'a Value; 9]> {
+    let mut result = [&Value::Null; 9];
+    for slot in &mut result {
+        *slot = values.next().ok_or("all nine measurements are required")?;
+        if !slot
+            .as_f64()
+            .is_some_and(|n| n.is_finite() && if allow_zero { n >= 0.0 } else { n > 0.0 })
+        {
+            return Err("invalid measurement distribution".into());
+        }
     }
-    for value in &values {
-        positive(value)?;
+    if values.next().is_some() {
+        return Err("all nine measurements are required".into());
     }
-    values.sort_by(|a, b| compare(a, b));
+    result.sort_by(|a, b| compare(a, b));
+    Ok(result)
+}
+pub(crate) fn center<'a>(values: impl Iterator<Item = &'a Value>) -> Result<(Value, f64)> {
+    let values = ordered(values, false)?;
     let median = values[4].clone();
     let spread = ratio(&difference(values[7], values[1]), &median)?;
     Ok((median, spread))

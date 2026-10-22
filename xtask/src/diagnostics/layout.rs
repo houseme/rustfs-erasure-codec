@@ -1,6 +1,6 @@
 //! Whole-worker layout analysis with the original diagnostic-only schemas.
 mod cpu;
-mod numeric;
+use crate::statistics as numeric;
 mod slots;
 mod verify;
 use crate::{Args, Result};

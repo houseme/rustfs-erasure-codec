@@ -15,6 +15,7 @@ mod regression;
 mod release_rows;
 mod runtime;
 mod sampling_contract;
+mod statistics;
 mod summary;
 mod workspace;
 

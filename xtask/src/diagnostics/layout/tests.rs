@@ -334,3 +334,15 @@ fn slot_observation_counts_phase_extents_and_owner_geometry_are_required() {
         .pop();
     assert!(slots::analyze(&rows, 4096, 4096).is_err());
 }
+
+#[test]
+fn overflowing_finite_intervals_cannot_pass_layout_timing_or_become_null_ratios() {
+    let mut rows = grid(None);
+    for row in &mut rows {
+        row["ns_per_iter"] = json!(1e308);
+        row["wall_ns"] = json!(1);
+    }
+    assert!(verify::analyze(&rows, 1000000, None, None).is_err());
+    assert!(!numeric::close_product(&json!(1e308), 100, &json!(1)).unwrap());
+    assert!(numeric::ratio(&json!(1e308), &json!(1e-308)).is_err());
+}
