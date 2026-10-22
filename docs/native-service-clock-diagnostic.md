@@ -90,3 +90,10 @@ reporter and an actual serial libtest subprocess; it reproduced the rejection
 before this fix and passes afterwards. Duplicate, missing and truncated records
 remain errors. The original failed attempt is retained and is not promoted into
 a successful capability check. A fresh source-bound Linux probe is required.
+
+A fresh Linux x86_64 zero-codec probe on source
+`d7eb79af7a0b6bce2979a289f4adbd99867915e1` subsequently passed the unchanged
+strict parser and synchronous envelope checks. The excess enclosure was about
+0.0784% of the original wall window; all four resource-restoration checks passed.
+This establishes read/record/envelope capability only, not virtualized counter
+fidelity, exclusive API cycles, a stable baseline or release approval.
