@@ -1,6 +1,21 @@
 use rustfs_erasure_codec::{CodecFamily, CodecOptions, Field, MatrixMode, ReedSolomon};
 
-fn probe<F: Field>(snapshots: &mut Vec<super::Snapshot>, field: &str, family: CodecFamily)
+/// Retained from the former Python-2-style Sage worksheet. In GF(256), `a=2`
+/// uses x^8+x^4+x^3+x^2+1; the extension is X^2+a*X+a^7.
+/// Element bytes are [X coefficient, constant coefficient].
+pub(super) fn field_reference_vectors() {
+    type Tower = rustfs_erasure_codec::galois_16::Field;
+    // (a^7+a^6+a^4+a)*X + a^3+a^2+a+1
+    let e1 = [0xd2, 0x0f];
+    // (a^7+a^5+a^2)*X + a^7+a^4+a^3+a
+    let e2 = [0xa4, 0x9a];
+    assert_eq!(Tower::add(e1, e2), [0x76, 0x95], "Sage addition vector");
+    assert_eq!(Tower::mul(e1, e2), [0x17, 0xaa], "Sage multiplication vector");
+    assert_eq!(Tower::div(e1, e2), [0xfd, 0x4a], "Sage division vector");
+    assert_eq!(Tower::div(Tower::one(), [1, 0]), [0x1b, 0x36], "Sage inverse-X vector");
+}
+
+fn probe<F: Field>(snapshots: &mut Vec<super::Snapshot>, field: &str, family: CodecFamily, peer: Option<&[super::Snapshot]>)
 where
     F::Elem: super::ElementBytes,
 {
@@ -51,8 +66,18 @@ where
                     .collect();
                 codec.encode(&mut shards).unwrap();
                 assert!(codec.verify(&shards).unwrap(), "verification: {id}");
+                if let Some(peer) = peer {
+                    let reference = &peer[snapshots.len()];
+                    assert_eq!(reference.id, id, "cross-version case ordering");
+                    assert_eq!(reference.parity.len(), m);
+                    for (destination, bytes) in shards[k..].iter_mut().zip(&reference.parity) {
+                        *destination = <F::Elem as super::ElementBytes>::from_bytes(bytes);
+                    }
+                    assert!(codec.verify(&shards).unwrap(), "cross-version verification: {id}");
+                }
                 let mut lost: Vec<_> = shards.iter().cloned().map(Some).collect();
                 lost[0] = None;
+                if peer.is_some() && m > 1 { lost[k + m - 1] = None; }
                 codec.reconstruct(&mut lost).unwrap();
                 assert!(
                     lost.iter()
@@ -79,19 +104,28 @@ where
     }
 }
 
-pub(super) fn run() -> Vec<super::Snapshot> {
+fn run_with_peer(peer: Option<&[super::Snapshot]>) -> Vec<super::Snapshot> {
     let mut snapshots = Vec::new();
     for family in [
         CodecFamily::Classic,
         CodecFamily::LeopardGF8,
         CodecFamily::LeopardGF16,
     ] {
-        probe::<rustfs_erasure_codec::galois_8::Field>(&mut snapshots, "gf8", family);
+        probe::<rustfs_erasure_codec::galois_8::Field>(&mut snapshots, "gf8", family, peer);
     }
     probe::<rustfs_erasure_codec::galois_16::Field>(
         &mut snapshots,
         "tower-gf16",
         CodecFamily::Classic,
+        peer,
     );
     snapshots
+}
+
+pub(super) fn run() -> Vec<super::Snapshot> { run_with_peer(None) }
+
+pub(super) fn cross_decode(peer: &[super::Snapshot]) {
+    assert_eq!(peer.len(), 200);
+    let decoded = run_with_peer(Some(peer));
+    assert_eq!(decoded, peer, "cross-version decoded parity");
 }
