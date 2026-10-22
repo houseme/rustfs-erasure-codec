@@ -222,3 +222,21 @@ fn adjacent_counts_reject_boolean_fractional_unbounded_and_incomplete_values() {
             .is_err()
     );
 }
+
+#[test]
+fn service_time_summary_retains_faults_zero_runtime_and_all_nine_samples() {
+    let mut records = rows();
+    for row in &mut records {
+        row["case"] = json!("fixture");
+        row["after"]["run_ns"] = row["before"]["run_ns"].clone();
+    }
+    let result = service_times(&records).unwrap();
+    assert_eq!(result["fixture"]["timed_ns_per_iteration"], 19.0);
+    assert_eq!(result["fixture"]["wall_ns_per_iteration"], 20.0);
+    assert_eq!(result["fixture"]["thread_run_ns_per_iteration"], 0.0);
+    assert_eq!(result["fixture"]["maximum_runnable_wait_fraction"], 0.005);
+    assert_eq!(
+        result["fixture"]["process_minor_faults_per_iteration"],
+        json!(vec![0.02; 9])
+    );
+}

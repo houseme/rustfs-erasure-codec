@@ -15,6 +15,9 @@ const REPEAT_LIMIT: f64 = sampling_contract::REPEAT_DRIFT_LIMIT;
 #[derive(Deserialize)]
 #[serde(tag = "operation", rename_all = "kebab-case", deny_unknown_fields)]
 pub(crate) enum Request {
+    ServiceTimes {
+        records: Vec<Value>,
+    },
     Gap {
         first: (Interval, Vec<Value>),
         second: (Interval, Vec<Value>),
@@ -373,9 +376,60 @@ fn report(phases: &[String], groups: Vec<Group>, frozen: Option<Frozen>) -> Resu
     }
     Ok(result)
 }
+/// Formal baseline service summaries over the retained nine samples.
+fn service_times(records: &[Value]) -> Result<Value> {
+    let mut groups = BTreeMap::<&str, Vec<&Value>>::new();
+    for r in records {
+        if r["kind"] == "sample" {
+            groups
+                .entry(r["case"].as_str().ok_or("missing baseline case")?)
+                .or_default()
+                .push(r);
+        }
+    }
+    let mut result = serde_json::Map::new();
+    for (case, rows) in groups {
+        let ratios = |field: &str| -> Result<Vec<Value>> {
+            rows.iter()
+                .map(|r| {
+                    let value = if field == "run_ns" {
+                        delta(r, field)?
+                    } else {
+                        r[field].clone()
+                    };
+                    let count = stats::uint(&r["iterations"])?;
+                    if count == 0 {
+                        return Err("invalid baseline iteration count".into());
+                    }
+                    Ok(json!(stats::ratio(&value, &json!(count))?))
+                })
+                .collect()
+        };
+        let timed = ratios("timed_ns")?;
+        let wall = ratios("wall_ns")?;
+        let run = ratios("run_ns")?;
+        let timed = stats::ordered(timed.iter(), true)?[4].clone();
+        let wall = stats::ordered(wall.iter(), true)?[4].clone();
+        let run = stats::ordered(run.iter(), true)?[4].clone();
+        let mut wait = 0.0_f64;
+        for r in &rows {
+            wait = wait.max(stats::ratio(&delta(r, "wait_ns")?, &r["wall_ns"])?);
+        }
+        let faults = |key| -> Result<Vec<f64>> {
+            rows.iter()
+                .map(|r| stats::ratio(&delta(r, key)?, &r["iterations"]))
+                .collect()
+        };
+        result.insert(case.to_owned(),json!({"timed_ns_per_iteration":timed,"wall_ns_per_iteration":wall,"thread_run_ns_per_iteration":run,
+            "maximum_runnable_wait_fraction":wait,"process_minor_faults_per_iteration":faults("process_minor_faults")?,"process_major_faults_per_iteration":faults("process_major_faults")?}));
+    }
+    Ok(Value::Object(result))
+}
+
 impl Request {
     pub(crate) fn execute(self) -> Result<Value> {
         match self {
+            Self::ServiceTimes { records } => service_times(&records),
             Self::Gap {
                 first: (a, rows),
                 second: (b, other),
