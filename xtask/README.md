@@ -40,6 +40,7 @@ cargo test --locked --package xtask
 | Python dynamic allocation models and six pure tests | `diagnostics::dynamic_ledger`; `cargo xtask validate-diagnostic-ledger --input FILE` | Live generations, original payload stages, old/current decoder owners, typed lane/byte extents, supplement headers and diagnostic-only workload markers |
 | CPU placement, Slot histogram and verify-layout calculations and 17 pure tests | `diagnostics::layout`; `cargo xtask analyze-layout --input FILE` | Complete CPU plans, bounded histograms, forward/reverse cells, paired phase gates, exact integer medians/ratios and original report schemas |
 | Profile grouping/selection, v15 protocol and baseline statistics | `sampling_contract::{batch,protocol}`, `statistics`, `diagnostics::baseline`; `cargo xtask analyze-baseline-data --input FILE` | Whole-profile validation, stable original observation indices, service ranks, complete repeat cohorts, adjacent schedules and conservative wall-window bounds |
+| VM process/thread analysis, synchronous counters and frequency deltas | `diagnostics::vm::{process,clock}`; `cargo xtask analyze-vm-data --input FILE` | Independent validation copies, shared/retired thread sets, per-thread reset checks, explicit unavailable/idle readings, ordered MSRs, enclosing windows and unchanged diagnostic schemas |
 
 The obsolete implementations and their Python test entry points are removed.
 Rust unit and executable tests cover the retained contracts. The migration was
@@ -212,8 +213,8 @@ The initial inventory contained **56 Python files / 13,120 lines**. Twenty-three
 original files were removed (twelve implementations/helpers and eleven test
 modules). One native-tool compatibility binding remains. The intermediate Python
 normalization library was also removed after its consumers moved to Rust.
-The remaining **34 files / 7,988 lines** consist of 15 production/helper modules
-and 19 test/fixture modules: about 39% fewer Python lines overall. This count
+The remaining **34 files / 7,813 lines** consist of 15 production/helper modules
+and 19 test/fixture modules: about 40% fewer Python lines overall. This count
 includes the latest merged VM observer/cleanup checks. Layout consolidation removes
 349 lines from its immediate parent (`75bc034`, 8,486 lines). The
 stream-view migration removed its Python test module after all eleven original tests
@@ -252,6 +253,15 @@ to `4f74e0c`. Two pure checks move to Rust after all 84 original subsystem tests
 pass; an additional Python integration checks one frame and original object
 identity. A primed-cache complete-catalog comparison drops 126 selection frames
 to four (one per profile) while retaining complete values and original inputs.
+VM process/counter statistics and formal service-time summaries now share native
+models. Sampling prepares independent validation copies and reports in one frame;
+calibration copies use bounded batches of 64 records. Hardware reads and process,
+source and resource ownership stay in the existing controller. All 45 original
+VM/frequency/qualification tests passed before eleven pure checks moved to Rust.
+The obsolete point/window wrappers and unused Python clock constants are removed.
+A binding regression checks one request, bounded copies and raw-input independence.
+Including the separately committed reset fix, this removes 175 Python lines from
+`e7d1142`; 3,745 production/helper and 4,068 test/fixture lines remain.
 The unreferenced Python-2-style `sage/galois_ext_test.sage` worksheet was also
 removed. Its four fixed tower-field addition/multiplication/division/inverse
 vectors now execute against both codec versions in the compatibility probe.
@@ -263,7 +273,7 @@ and validation copies are outside this inventory.
 | Remaining group | Modules | Rust migration boundary |
 | --- | --- | --- |
 | Native tool binding | `native_tools` | Own/reap one host worker for source generation, normalization, CPU identity and memory policy; bounded immutable-value caches |
-| Campaign and machine qualification | `release_evidence`, `release_sampling`, `analyze_baseline_variability`, `diagnose_adjacent_baseline`, `diagnose_release_vm` | Protocol, grouping/selection, baseline service distributions and adjacent summaries are native; retain process/resource ownership, platform adapters, trusted frozen replay and immutable evidence contracts |
+| Campaign and machine qualification | `release_evidence`, `release_sampling`, `analyze_baseline_variability`, `diagnose_adjacent_baseline`, `diagnose_release_vm` | Protocol, grouping/selection, baseline/VM distributions and counter windows are native; retain process/resource ownership, hardware reads, platform adapters, trusted frozen replay and immutable evidence contracts |
 | Native probes and source overlays | `diagnostic_overlay`, `diagnose_fixture_layout`, `diagnose_verify_layout`, `diagnose_shard_slot`, `diagnose_cpu_placement` | Layout calculations, shared buffer validation, probe programs and templates are native; retain rollback/cancellation behavior and original-source digests |
 | Allocation/lifecycle audits | `dynamic_buffer_audit`, `stream_core_audit`, `stream_view_audit`, `verify_scratch_audit` | All four allocation/source/view ledger models and summaries, decoder headers/catalog, source transforms and overlay generation are native; retain capture/replay, envelope/source binding and integration orchestration |
 | Tests and fixture support | `scripts/tests/*.py` | Move each behavior test with its owning subsystem; remove the old test only after exercising its replacement |
@@ -391,14 +401,16 @@ a new x86 hardware benchmark.
 ## Local validation for this change
 
 Validated on the native macOS ARM64 host with stable Rust 1.99.1. The latest code
-snapshot is `46426b6`; earlier capture campaigns below retain their individual
+snapshot is `0e44c58`; earlier capture campaigns below retain their individual
 source bindings. Production codec sources remain unchanged:
 
 | Check | Result |
 | --- | --- |
 | Core `--all-features --lib --tests` | 517 passed; 43 existing benchmark/manual tests ignored |
 | Core all-feature doctests | 10 passed |
-| Rust tooling unit/executable tests | 157 passed on optimized `46426b6` (130 unit, 27 executable); the independent `cc51995` timing fix also passes all 144 tests and strict Clippy |
+| Rust tooling unit/executable tests | 168 passed on optimized `0e44c58` (140 unit, 28 executable); earlier snapshots retain their separate bindings |
+| VM/counter model | 763 original/native comparisons agree without changing inputs; 45 original subsystem tests passed before consolidation; the independent `d7c4c77` reset fix passes all 33 VM/frequency tests |
+| Per-thread reset review | A shared thread's backwards run/wait/timeslice counter is refused before aggregation; another thread's progress cannot conceal it |
 | Profile selection and baseline replay | 2,316 original/native checks agree, including all 126 cases, protocol identity, interleaved cases, malformed raw rows, single/paired phases and frozen adjacent service reports |
 | Floating-point timing review | A finite metric/iteration product overflow previously passed tolerance comparison; the original Python and corrected Rust refuse it. Nonfinite quotients also fail before becoming null JSON fields |
 | Complete layout migration | All 38 original subsystem tests passed before consolidation; 2,115 original/native data and protocol comparisons plus six raw-evidence diagnostic replays agree without input mutation |
@@ -426,7 +438,7 @@ source bindings. Production codec sources remain unchanged:
 | Real archived small-file rows | All 447 cases from six JSON archives produce identical gate reports on self-comparison |
 | Original syscall ledger tests | 5 passed; 8 CLI comparisons preserve complete reports |
 | Machine report comparison | Full compatible-operation report and seven archived machine summaries match Python; regression tests cover the corrected XOR grouping and raw arrays |
-| Remaining Python suite | 256 passed on frozen `46426b6`; the earlier 257 tests preceded two pure-test migrations and the new original-object/batch integration |
+| Remaining Python suite | 247 passed on frozen `0e44c58`, following the reset regression, eleven pure-test migrations and the independent-copy/batch integration |
 | Published 9.0.0/local 9.1.0 probe with locked dependencies | 200 exact parity comparisons, 200 cross-decoding cases per direction and four retained Sage arithmetic vectors on each version passed |
 | Core and tooling Clippy, all targets, `-D warnings` | Passed |
 | Core `--no-default-features` check | Passed |

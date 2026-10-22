@@ -558,3 +558,73 @@ uses. The JSON audit remains 579 files / 2,833,273 bytes, with eleven identical
 groups retained under their historical paths and no errors. Repository tools and
 evidence remain excluded from both published crates. Earlier timing campaigns
 retain their original source identities and release-acceptance status.
+
+## VM snapshot and counter consolidation
+
+Review reproduced a counter-reset defect in `diagnose_release_vm.analyze`.
+Anonymous slots are stable for the process observer's `(tid, start time)`
+identity. One shared thread's run counter can regress from 100 to 2 while another
+advances by 200, leaving a positive aggregate of 102. The former aggregate-only
+check accepted the data and emitted ordinary shared service. Commit `d7c4c77`
+checks run, wait and timeslice counters per shared thread before summing them.
+The regression fails before the fix and passes afterward; a standalone checkout
+passes all 33 VM/frequency tests. Original snapshots remain available on refusal.
+
+Commits `9b8dedf` and `0e44c58` consolidate the VM data model in
+`diagnostics::vm::{process,clock}`. One native path owns snapshot validation,
+shared-thread statistics, explicit missing/idle readings, synchronous clock
+enclosure and external frequency deltas. The ordered register list is exported
+as pairs so JSON object sorting cannot reorder TSC/APERF/MPERF reads. The same
+shared baseline module now computes formal service-time summaries. Exact ratios,
+the v1 clock schema, alignment boundary, scope and absence of timing normalization
+are preserved.
+
+The profile preparation request validates process observations once and returns
+both the sampler copy and diagnostic report. Parsed input trees move into the
+reply rather than being cloned again. Calibration copies use batches of 64
+records. Python retains device reads, capability/source checks, original journals,
+worker supervision and cleanup. No formal worker, process-observer template,
+clock-reader template or production codec changes are introduced. Obsolete
+point/window wrappers and unused Python clock constants are removed.
+
+All 45 original VM/frequency/qualification tests passed before eleven pure checks
+moved to native tests. Retained integration tests verify source restoration,
+failure journals, zero-codec capability refusal, real Rust clock serialization,
+ordered read-only device access and frozen replay. A new boundary test verifies
+one profile request, bounded calibration batches and independent returned copies.
+The 763 original/native comparisons agree on complete values and refusals for
+valid JSON observations, including malformed snapshots, thread changes, read
+skew, CPU sets, window boundaries, unavailable readings, probes and every formal
+profile's service report. The VM reference is the committed post-fix Python at
+`d7c4c77`; the service-summary reference is `e7d1142`. The local ignored
+`target/tooling-review-round14` retains the source-bound drivers and reset witness.
+
+The current inventory is **34 Python files / 7,813 lines**, comprising 3,745
+production/helper lines and 4,068 test/fixture lines. This removes 175 lines from
+`e7d1142`, including the reset fix and retained integration coverage, and about
+40% from the initial 13,120 lines. All remaining files have active uses. The JSON
+audit retains 579 files / 2,833,273 bytes and eleven historical identical-byte
+groups, with no errors. All five members inherit root dependencies; core/WASM
+allowlists remain 67/6 files and exclude these repository-only tools and records.
+
+The final independent checkout at `0e44c58` passes all 168 optimized native tests
+(140 unit / 28 executable), 247 Python tests, strict tooling Clippy and x86_64
+Linux compilation. The same source passes 517 core tests (43 existing ignored
+cases), ten doctests, no_std and 200 exact-parity configurations with decoding in
+both directions between published 9.0.0 and local 9.1.0. Offline Cargo packaging
+successfully rebuilds the extracted 67-file crate. Production sources, build
+scripts, sampling/clock templates and dependency declarations are unchanged from
+this round's parent. Actual Linux MSR capability is not established by these
+portable tests and cross-compilation.
+
+A local optimized preparation diagnostic includes Python serialization, native
+execution, response parsing and independent returned records. Its fixed synthetic
+input contains 88 small-file cases / 1,056 observations, with six threads per
+snapshot. Original and native complete outputs agree before timing; input bytes
+remain unchanged afterward. Each A1/B1/B2/A2 phase retains two warmups and nine
+timed invocations. Original medians are 103.12/102.59 ms and native medians are
+64.59/63.67 ms, with 0.51%/1.42% respective repeat drift. The desktop has no proven
+exclusive resource partition, so this remains an overhead observation with null
+performance attribution and false release approval. It is not codec timing and
+does not qualify a release or a general speedup claim. Raw durations, input hash
+and code binding are retained locally with the review artifacts.
