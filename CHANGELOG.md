@@ -16,6 +16,12 @@ All notable changes to this project are documented in this file.
   behavior. Scope local no_std release tests to the codec package so WASM/fuzz
   defaults cannot silently re-enable std through workspace feature unification.
 
+- Restore VM-diagnostic source copies after success, build or sampling failure,
+  and interruption; preserve unexpected edits and publish completion only after
+  cleanup. Add optional synchronous service-counter windows with a zero-codec
+  capability probe, conservative bounds and explicit unavailable readings.
+  Keep formal timers, codec algorithms and release acceptance unchanged.
+
 - Add explicit complete diagnostic capture/replay: collect all four 126-case
   phases and paired layouts despite statistical failures, then report every
   distribution, duration, repeat and regression result with unqualified ratios.

@@ -1,0 +1,148 @@
+{
+  "schema": "a1-service-drift-review-v1",
+  "as_of": "2026-10-22T23:40:15+08:00",
+  "scope": "Read-only replay of complete four profile phases; ongoing layout campaign, full calibration/envelope/layout replay and regression programs are outside this report.",
+  "published_baseline_commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+  "old_collector_commit": "e671c0ac24f9deaf2ee2f1e5ebbd8358cd4d6133",
+  "new_measured_candidate_commit": "022c0a7476e3d91bee33f86bf4ade55d27122949",
+  "reviewed_main_commit": "d88e69a895d059af1aa4179d39de91decaa20b49",
+  "diagnostic_only": true,
+  "formal_qualification": false,
+  "release_approval": false,
+  "candidate_attribution": null,
+  "drift_fixed": false,
+  "original_case": {
+    "profile": "small_file",
+    "case": "reconstruct:4:2:65536",
+    "observations": 12,
+    "warmups": 3,
+    "samples": 9,
+    "iterations_per_observation": 262144,
+    "central_spread": 0.20652751520610957,
+    "thread_run_central_spread": 0.20635666310547077,
+    "formal_ns_per_iteration": [
+      14283.88,
+      12187.38,
+      10205.96,
+      10096.45,
+      10115.11,
+      10124.22,
+      10070.22,
+      10100.75,
+      10149.42
+    ],
+    "maximum_runnable_wait_fraction": 9.735356581254143e-05,
+    "formal_minor_faults": 0,
+    "formal_major_faults": 0,
+    "loop_sha256": "f7ccfa70035dacc59569e2807a1c14244e222447908ab1e27f6a0633a153d470",
+    "source_loop_unchanged": true
+  },
+  "new_case_phases": {
+    "A1": {
+      "median_timed_ns_per_iteration": 9691.318492889404,
+      "central_spread": 0.01763949596133436,
+      "thread_run_central_spread": 0.017761888372742174
+    },
+    "B1": {
+      "median_timed_ns_per_iteration": 9690.523338317871,
+      "central_spread": 0.014816542352732352,
+      "thread_run_central_spread": 0.01465324751231312
+    },
+    "B2": {
+      "median_timed_ns_per_iteration": 9023.619613647461,
+      "central_spread": 0.01701866878259498,
+      "thread_run_central_spread": 0.016886237476154906
+    },
+    "A2": {
+      "median_timed_ns_per_iteration": 9696.458847045898,
+      "central_spread": 0.01668959599688958,
+      "thread_run_central_spread": 0.0165277122971813
+    }
+  },
+  "full_profiles": {
+    "phases": [
+      "A1",
+      "B1",
+      "B2",
+      "A2"
+    ],
+    "cases_per_phase": 126,
+    "observations": 6048,
+    "central_spread_checks": 504,
+    "central_spread_failures": [
+      {
+        "case": "reconstruct:10:4:16384",
+        "central_spread": 0.11640238220637686,
+        "short_samples": [],
+        "phase": "A2",
+        "profile": "small_file"
+      }
+    ],
+    "short_formal_observations": 0,
+    "original_metric_repeat_checks": 252,
+    "original_metric_repeat_failures": [
+      {
+        "profile": "small_file",
+        "case": "encode:10:4:524288",
+        "pair": "A1A2",
+        "drift": 0.10101596398639084
+      },
+      {
+        "profile": "small_file",
+        "case": "reconstruct_data:4:2:65536",
+        "pair": "A1A2",
+        "drift": 0.092512710318178
+      },
+      {
+        "profile": "small_file",
+        "case": "reconstruct_some_data_only:4:2:65536",
+        "pair": "A1A2",
+        "drift": 1.0305784308516694
+      },
+      {
+        "profile": "small_file",
+        "case": "verify_with_buffer:4:2:1024",
+        "pair": "A1A2",
+        "drift": 0.14567650050864714
+      },
+      {
+        "profile": "small_file",
+        "case": "reconstruct:4:2:65536",
+        "pair": "B1B2",
+        "drift": 0.06881983629361475
+      },
+      {
+        "profile": "small_file",
+        "case": "reconstruct_some_data_only:10:4:16384",
+        "pair": "B1B2",
+        "drift": 0.05812432917588836
+      },
+      {
+        "profile": "small_file",
+        "case": "reconstruct_some_data_only:4:2:65536",
+        "pair": "B1B2",
+        "drift": 0.08107430904855378
+      },
+      {
+        "profile": "small_file",
+        "case": "verify_with_buffer:4:2:131072",
+        "pair": "B1B2",
+        "drift": 0.07462463022090811
+      },
+      {
+        "profile": "hotspot",
+        "case": "reconstruct_data_missing_2_data",
+        "pair": "B1B2",
+        "drift": 0.05298873747573984
+      }
+    ],
+    "caller_geometry_workload_input_traces_and_backend_match": true
+  },
+  "limitations": [
+    "Per-window thread runtime includes user and kernel service and is not exclusive decoder cycles.",
+    "Worker-enclosing guest CPU user/system snapshots include setup/export, shared guest activity and approximately one-second endpoint uncertainty; not per-sample attribution.",
+    "Matching caller offsets do not identify dynamic output owners, physical pages or cache placement.",
+    "No synchronous per-window APERF/MPERF/cache witness exists for the historical failure.",
+    "A complete diagnostic manifest never becomes formal release evidence; all release gates remain unchanged."
+  ]
+}

@@ -13,15 +13,17 @@ import subprocess
 
 import release_evidence as evidence
 import release_sampling as sampling
+import native_tools
 
 
-def basic_records(records):
+def basic_records(records, *, native_service_clock=False):
     """Validate timing with the shared contract while retaining full raw records."""
     result=copy.deepcopy(records)
     for record in result:
         for side in ('before','after'):
             point=record[side]
             process=point.pop('process')
+            if native_service_clock:native_clock_point(process.get('service_clock'))
             if process.get('available') is not True or process.get('complete') is not True:
                 raise ValueError('incomplete process observation')
             if not process.get('threads') or len({r['slot'] for r in process['threads']})!=len(process['threads']):
@@ -37,7 +39,7 @@ def basic_records(records):
     return result
 
 
-def analyze(records,profile):
+def analyze(records,profile, *, native_service_clock=False):
     groups={}
     for record in records:
         if record['kind']=='sample':groups.setdefault(record['case'],[]).append(record)
@@ -59,45 +61,139 @@ def analyze(records,profile):
                 'thread_count':len(new),'shared_thread_run_ms':deltas['run_ns']/1e6,'shared_thread_wait_ms':deltas['wait_ns']/1e6,
                 'thread_cpu_migrations':sum(old[t]['cpu']!=new[t]['cpu'] for t in shared),
                 'observer_ms':(before['snapshot_ns']+after['snapshot_ns'])/1e6})
+            clock=native_window_summary(record)
+            if native_service_clock and clock is None:raise ValueError('native service-clock observation is missing')
+            if clock is not None:trace[-1]['native_service_clock']=clock
         ordered=sorted(values)
         result.append({'profile':profile,'case':case,'central_ns_spread':(ordered[-2]-ordered[1])/median,'samples':trace})
     return result
 
 
-def capture(baseline,output,group):
+NATIVE_CLOCK_SCHEMA='native-service-clock-v1'
+NATIVE_ALIGNMENT_LIMIT=.05  # Diagnostic interpretation only; not a release gate.
+NATIVE_CLOCK_TEMPLATE=pathlib.Path(__file__).resolve().parent/'diagnostics/native_service_clock.rs'
+NATIVE_CLOCK_SCOPE='synchronous guest measuring-CPU counters enclosing original wall windows; includes observer/setup service; virtualized fidelity and physical-host exclusivity unproven; no exclusive API cycles, GHz inference or timing normalization'
+
+
+def native_clock_render(root):
+    """Change only the separate process observer, never a formal timer/kernel."""
+    return native_tools.diagnostic_render(root,'native-service-clock')
+
+
+def native_clock_point(point):
+    if not isinstance(point,dict) or point.get('schema')!=NATIVE_CLOCK_SCHEMA or type(point.get('available')) is not bool:
+        raise ValueError('invalid native service-clock point')
+    expected={'schema','start_ns','end_ns','available'}|({'cpu','counters'} if point['available'] else {'reason','errno'})
+    if set(point)!=expected or any(type(point.get(k)) is not int or point[k]<0 for k in ('start_ns','end_ns')) or point['end_ns']<point['start_ns']:
+        raise ValueError('invalid native service-clock read bounds')
+    if point['available']:
+        if type(point['cpu']) is not int or point['cpu']<0 or not isinstance(point['counters'],dict) or set(point['counters'])!=set(MSRS) or any(type(v) is not int or not 0<=v<2**64 for v in point['counters'].values()):
+            raise ValueError('invalid native service counters')
+    elif point['reason'] not in ('unsupported','configuration','io','short-read') or point['errno'] is not None and (type(point['errno']) is not int or point['errno']<=0):
+        raise ValueError('invalid native service-clock failure')
+    return point
+
+
+def native_window_summary(record):
+    points=[record[side]['process'].get('service_clock') for side in ('before','after')]
+    if points==[None,None]:return None
+    before,after=[native_clock_point(p) for p in points]
+    wall=record['wall_ns']
+    if type(wall) is not int or wall<=0 or before['end_ns']>after['start_ns'] or after['start_ns']-before['end_ns']<wall:
+        raise ValueError('native counter reads do not enclose the original wall window')
+    fraction=(after['end_ns']-before['start_ns']-wall)/wall
+    result={'interpretation_qualified':False,'enclosure_overhead_fraction':fraction,
+            'alignment_limit':NATIVE_ALIGNMENT_LIMIT,'scope':NATIVE_CLOCK_SCOPE,
+            'exclusive_api_cycles':False,'time_normalization':False,'counters':None}
+    if not all(p['available'] for p in (before,after)):
+        result['refusal']='counter-unavailable';return result
+    cpu=record['placement']['cpu']
+    if type(cpu) is not int or any(p['cpu']!=cpu for p in (before,after)):
+        raise ValueError('native counters do not belong to the measuring CPU')
+    def snapshot(p):return {'start_ns':p['start_ns'],'end_ns':p['end_ns'],'cpus':{str(cpu):p['counters']}}
+    counters=frequency_deltas(snapshot(before),snapshot(after),[cpu],before['end_ns'],after['start_ns'])
+    if fraction>NATIVE_ALIGNMENT_LIMIT:
+        result['refusal']='counter-enclosure-too-wide';return result
+    result.update(interpretation_qualified=True,counters=counters)
+    return result
+
+
+def probe_native_clock(baseline,env,output):
+    """Close the synchronous zero-codec capability check before any calibration."""
+    probe_env=sampling.build_environment(baseline,sampling.worker_environment(env))
+    command=['cargo','test','--locked','--release','--features','std simd-accel',
+             '--test','rse_release_sampling','native_service_clock_probe','--','--exact','--ignored','--nocapture','--test-threads=1']
+    path=output/'native-service-clock-probe.log'
+    with path.open('x') as log:
+        subprocess.run(command,cwd=baseline,env=probe_env,stdout=log,stderr=subprocess.STDOUT,check=True)
+    summary=parse_native_probe(path.read_text(),int(probe_env['RSE_SAMPLER_CPU']))
+    return {'codec_calls':0,'log_sha256':evidence.digest(path.read_bytes()),'summary':summary}
+
+
+def parse_native_probe(text,cpu):
+    prefix='RSE_NATIVE_CLOCK_PROBE '
+    lines=[line for line in text.splitlines(keepends=True) if line.startswith(prefix)]
+    if len(lines)!=1 or not lines[0].endswith('\n'):
+        raise ValueError('one complete zero-codec clock probe is required')
+    raw=json.loads(lines[0][len(prefix):])
+    if not isinstance(raw,dict) or set(raw)!={'wall_ns','before','after'}:raise ValueError('invalid zero-codec clock probe')
+    summary=native_window_summary({'wall_ns':raw['wall_ns'],'placement':{'cpu':cpu},
+                                  'before':{'process':raw['before']},'after':{'process':raw['after']}})
+    if summary is None or not summary['interpretation_qualified']:
+        raise ValueError('zero-codec native service-clock capability was not established')
+    return summary
+
+
+def capture(baseline,output,group, *, native_service_clock=False, probe_only=False):
+    if probe_only and not native_service_clock:raise ValueError('probe-only requires native service counters')
     if output.exists():raise ValueError('a new diagnostic directory is required')
     output.mkdir(parents=True,mode=0o700)
-    env={k:v for k,v in os.environ.items() if not k.startswith(('RSE_','RS_','CARGO_PROFILE_')) and k not in ('CARGO_ENCODED_RUSTFLAGS','RUSTC_WRAPPER','RUSTC_WORKSPACE_WRAPPER')}
-    env.update(evidence.SAMPLING_ENV);env['RSE_SAMPLER_DIAGNOSTIC_PROCESS']='1'
-    source=evidence.source_info(baseline)
-    if source['commit']!=evidence.BASELINE_COMMIT:raise ValueError('diagnose the published 9.0.0 baseline only')
-    context=evidence.environment_context(baseline,env,group)
-    sampling.generate(baseline)
-    with (output/'build.log').open('w') as log:
-        subprocess.run(['cargo','test','--locked','--release','--features','std simd-accel','--test','rse_release_sampling','--no-run'],cwd=baseline,env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
-    report={'schema_version':'baseline-vm-diagnostic-v1','purpose':'within-version diagnosis only; never release acceptance',
-            'candidate_attribution':None,'source':source,'context':context,'diagnostic_tool':evidence.source_info(pathlib.Path(__file__).resolve().parents[1]),'renderer_sha256':sampling.implementation_digest(),
-            'diagnostic_process_observer':True,'observer':'anonymous live threads plus process minor/major faults; snapshots outside timers; counters may include observation/setup effects',
-            'cases':[]}
-    (output/'diagnosis.partial.json').write_text(json.dumps(report,indent=2)+'\n')
-    counts={}
-    for profile in evidence.FILES:
-        records=sampling.run_profile(baseline,env,profile,'calibrate',output/(profile+'-calibration.log'),cases=evidence.expected_cases(profile))
-        (output/(profile+'-calibration.json')).write_text(json.dumps(records,indent=2)+'\n')
-        counts[profile]=evidence.calibration_counts(basic_records(records),profile,source['commit'])
-        if evidence.environment_context(baseline,env,group)!=context:raise ValueError('resource context changed during calibration')
-    for profile in evidence.FILES:
-        path=output/(profile+'-counts.tsv');path.write_text(''.join(f'{k}\t{v}\n' for k,v in sorted(counts[profile].items())))
-        records=sampling.run_profile(baseline,env,profile,'sample',output/(profile+'.log'),path,cases=evidence.expected_cases(profile))
-        (output/(profile+'-samples.json')).write_text(json.dumps(records,indent=2)+'\n')
-        normalize=lambda p,row,rev: next(iter(evidence.indexed_rows(p,[row],rev,counts[p],complete=False)))
-        sampling.sample_groups(basic_records(records),profile,source['commit'],evidence.expected_cases(profile),counts[profile],normalize,context['isolation']['cpu_affinity'])
-        report['cases'].extend(analyze(records,profile))
-        (output/'diagnosis.partial.json').write_text(json.dumps(report,indent=2)+'\n')
-        if evidence.environment_context(baseline,env,group)!=context:raise ValueError('resource context changed')
-    if evidence.source_info(baseline)!=source:raise ValueError('baseline source changed')
-    report['status']='collected; diagnostic only'
-    (output/'diagnosis.json').write_text(json.dumps(report,indent=2)+'\n')
+    try:
+        env=evidence.capture_environment();env['RSE_SAMPLER_DIAGNOSTIC_PROCESS']='1'
+        source=evidence.source_info(baseline)
+        if source['commit']!=evidence.BASELINE_COMMIT:raise ValueError('diagnose the published 9.0.0 baseline only')
+        context=evidence.environment_context(baseline,env,group)
+        tool_root=pathlib.Path(__file__).resolve().parents[1]
+        tool=evidence.source_info(tool_root)
+        rendered=(native_clock_render if native_service_clock else sampling.render)(baseline)
+        overlay_sha=evidence.digest(b''.join(name.encode()+b'\0'+text.replace(str(baseline),'<SOURCE>').encode() for name,text in sorted(rendered.items())))
+        report={'schema_version':'baseline-vm-diagnostic-v1','purpose':'within-version diagnosis only; never release acceptance',
+                'candidate_attribution':None,'source':source,'context':context,'diagnostic_tool':tool,'renderer_sha256':sampling.implementation_digest(),'diagnostic_overlay_sha256':overlay_sha,
+                'diagnostic_process_observer':True,'observer':'anonymous live threads plus process minor/major faults; snapshots outside timers; counters may include observation/setup effects',
+                'native_service_clock':native_service_clock,'release_approval':False,'formal_qualification':False,'cases':[]}
+        with ExitStack() as overlays:
+            evidence.prepare_capture_source(overlays,baseline,env,output/'build.log',
+                                            render=lambda _root:rendered)
+            if native_service_clock:
+                report['service_clock_probe']=probe_native_clock(baseline,env,output)
+                report['service_clock_template_sha256']=evidence.digest(rendered['native_service_clock.rs'].encode())
+            (output/'diagnosis.partial.json').write_text(json.dumps(report,indent=2,allow_nan=False)+'\n')
+            if not probe_only:
+                counts={}
+                for profile in evidence.FILES:
+                    records=sampling.run_profile(baseline,env,profile,'calibrate',output/(profile+'-calibration.log'),cases=evidence.expected_cases(profile))
+                    adjacent.dump(output/(profile+'-calibration.json'),records)
+                    counts[profile]=evidence.calibration_counts(basic_records(records,native_service_clock=native_service_clock),profile,source['commit'])
+                    if evidence.environment_context(baseline,env,group)!=context:raise ValueError('resource context changed during calibration')
+                for profile in evidence.FILES:
+                    path=output/(profile+'-counts.tsv');path.write_text(''.join(f'{k}\t{v}\n' for k,v in sorted(counts[profile].items())))
+                    records=sampling.run_profile(baseline,env,profile,'sample',output/(profile+'.log'),path,cases=evidence.expected_cases(profile))
+                    adjacent.dump(output/(profile+'-samples.json'),records)
+                    normalize=lambda p,row,rev: next(iter(evidence.indexed_rows(p,[row],rev,counts[p],complete=False)))
+                    sampling.sample_groups(basic_records(records,native_service_clock=native_service_clock),profile,source['commit'],evidence.expected_cases(profile),counts[profile],normalize,context['isolation']['cpu_affinity'])
+                    report['cases'].extend(analyze(records,profile,native_service_clock=native_service_clock))
+                    (output/'diagnosis.partial.json').write_text(json.dumps(report,indent=2,allow_nan=False)+'\n')
+                    if evidence.environment_context(baseline,env,group)!=context:raise ValueError('resource context changed')
+        # Only publish completion after the owned overlay has been restored.
+        if evidence.source_info(baseline)!=source:raise ValueError('baseline source changed')
+        if evidence.source_info(tool_root)!=tool:raise ValueError('diagnostic tool source changed')
+        if evidence.environment_context(baseline,env,group)!=context:raise ValueError('resource context changed after cleanup')
+        report['status']='zero-codec-probe-complete; diagnostic only' if probe_only else 'collected; diagnostic only'
+        adjacent.dump(output/'diagnosis.json',report)
+    except BaseException as error:
+        adjacent.dump(output/'failure.json',{'error':f'{type(error).__name__}: {error}',
+            'release_approval':False,'candidate_attribution':None,'original_records_preserved':True})
+        raise
 
 
 FREQUENCY_SCHEMA='baseline-worker-frequency-v1'
@@ -251,7 +347,12 @@ def main():
     parser.add_argument('--prior',type=pathlib.Path)
     parser.add_argument('--frozen-tool',type=pathlib.Path)
     parser.add_argument('--replay-frequency',action='store_true')
+    parser.add_argument('--native-service-clock',action='store_true',help='synchronous read-only Linux x86 guest counters in the diagnostic source copy only')
+    parser.add_argument('--probe-only',action='store_true',help='build and test the native counter capability with zero codec calls')
     args=parser.parse_args()
+    if args.probe_only and not args.native_service_clock:parser.error('--probe-only requires --native-service-clock')
+    if args.native_service_clock and args.frequency_from_adjacent:
+        parser.error('native window counters and external whole-worker frequency modes are distinct')
     if args.frequency_from_adjacent:
         if not args.prior or not args.frozen_tool:parser.error('frequency mode requires --prior and trusted --frozen-tool')
         if not args.replay_frequency and (not args.baseline or not args.isolation_cgroup):parser.error('capture requires baseline and isolation cgroup')
@@ -262,7 +363,7 @@ def main():
             if args.replay_frequency:result=replay_frequency(repository,args.frequency_from_adjacent.resolve(),args.prior.resolve(),args.frozen_tool.resolve(),args.output.resolve())
             else:result=capture_frequency(repository,args.baseline.resolve(),args.frequency_from_adjacent.resolve(),args.prior.resolve(),args.frozen_tool.resolve(),args.output.resolve(),args.isolation_cgroup.resolve())
             print(json.dumps({'cases':result['cases'],'observations':result['observations'],'release_approval':False,'formal_qualification':False}))
-        else:capture(args.baseline.resolve(),args.output.resolve(),args.isolation_cgroup)
+        else:capture(args.baseline.resolve(),args.output.resolve(),args.isolation_cgroup,native_service_clock=args.native_service_clock,probe_only=args.probe_only)
     except (OSError,ValueError,KeyError,TypeError,subprocess.CalledProcessError) as error:
         parser.exit(1,f'diagnostic capture failed; observations preserved: {error}\n')
 
