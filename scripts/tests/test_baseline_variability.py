@@ -167,6 +167,54 @@ class BaselineVariabilityTests(unittest.TestCase):
         self.assertTrue(all(c['repeat'] is None for c in report['cases']))
         self.assertFalse(report['release_approval'])
 
+    def service_case(self, run_values):
+        path = self.root/'A1/small_file-samples.json'
+        records = json.loads(path.read_text())
+        case = 'encode:4:2:1024'
+        for record in records:
+            if record['case'] != case:
+                continue
+            index = record['index']
+            timed = {3: 1_400_000_000, 4: 1_200_000_000}.get(index, 1_000_000_000)
+            record['timed_ns'] = timed
+            record['wall_ns'] = timed + 1_000
+            record['rows'][0]['ns_per_iter'] = timed / record['iterations']
+            run = run_values[index-3] if index >= 3 else timed
+            record['after']['run_ns'] = record['before']['run_ns'] + run
+            record['after']['wait_ns'] = record['before']['wait_ns'] + 100
+            for key in ('process_minor_faults', 'process_major_faults'):
+                record['after'][key] = record['before'][key]
+        self.save('A1/small_file-samples.json', records)
+        original = path.read_bytes()
+        report = analysis.analyze(self.root)
+        self.assertEqual(path.read_bytes(), original)
+        result = next(c for c in report['cases'] if c['profile'] == 'small_file' and c['case'] == case)
+        self.assertFalse(report['release_approval'])
+        return result['phases']['A1']
+
+    def test_service_transition_keeps_all_samples_and_the_original_failure(self):
+        detail = self.service_case([1_400_000_000, 1_200_000_000] + [1_000_000_000]*7)
+        self.assertEqual([r['index'] for r in detail['trace']], list(range(12)))
+        self.assertAlmostEqual(detail['central_spread'], .2)
+        service = detail['measured_service']
+        self.assertAlmostEqual(service['main_run_central_spread'], .2)
+        self.assertEqual(service['total_process_minor_faults'], 0)
+        self.assertEqual(service['total_process_major_faults'], 0)
+        self.assertLess(service['wall_minus_timed_fraction_range'][1], .000002)
+        self.assertLess(detail['maximum_measured_main_wait_to_wall'], .000001)
+
+    def test_service_distribution_uses_its_own_ranks_and_does_not_clamp(self):
+        detail = self.service_case([1_000_000_000]*5 + [1_300_000_000, 900_000_000] + [1_000_000_000]*2)
+        self.assertAlmostEqual(detail['central_spread'], .2)
+        service = detail['measured_service']
+        self.assertEqual(service['main_run_central_spread'], 0)
+        self.assertGreater(service['main_run_to_wall_range'][1], 1)
+
+    def test_zero_thread_runtime_keeps_unknown_spread_instead_of_dividing_by_zero(self):
+        detail = self.service_case([0]*9)
+        self.assertIsNone(detail['measured_service']['main_run_central_spread'])
+        self.assertEqual(detail['measured_service']['main_run_to_wall_range'], [0, 0])
+
     def test_incomplete_phase_and_mismatched_protocol_reject(self):
         name = 'A2/small_file-samples.json'
         original = (self.root/name).read_bytes()

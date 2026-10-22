@@ -82,8 +82,15 @@ retains 13,104 calibration/A1 records. A1's `reconstruct:4:2:65536` distribution
 is 20.6528%, exceeding 10%; B1/B2/A2 and layouts never start. Its complete repeat
 and candidate regression gates are unexecuted. Neither report establishes a
 9.1.0 regression or release acceptance. Reported resource restoration passed;
-this review does not rerun either campaign or independently replay its private
-raw data.
+neither campaign has been rerun. The later authorized read-only replay of all
+12 original observations for the failed `small_file` case reproduces 20.6527515206%
+exactly. Calling-thread run-time central spread is 20.6357%, process faults are
+zero, maximum runnable wait/wall is 0.0097354%, and wall-minus-timed gaps are below
+0.000033%. These constrain the residual to execution service inside the original
+operation, including caller clone/allocation/recovery/drop costs. The excerpt
+does not revalidate complete calibration or external isolation, identify a unique
+frequency/cache/host mechanism, or approve any candidate timing. See the
+[read-only replay](drift-analysis-9.1.0-2026-10-22.md#linux-失败-case-的授权只读复算).
 
 In the failed cases from the first two controls, formal observations have zero
 process minor/major faults and at most about 0.0147% calling-thread runnable wait

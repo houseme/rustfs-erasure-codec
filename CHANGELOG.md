@@ -10,6 +10,12 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Extend the existing offline baseline analyzer with per-iteration thread service,
+  independently ranked service spread, timer-boundary gaps and process-fault
+  summaries. Retain all original observations and unclamped counter ratios;
+  read-only failed-case replay preserves the Linux distribution refusal and
+  does not identify a unique cause or change release acceptance.
+
 - Skip identical Classic incremental-update chunks after complete validation.
   Reserve one scratch buffer bounded by the existing serial chunk policy and
   initialize it directly from differences, without a redundant zero-fill pass.
