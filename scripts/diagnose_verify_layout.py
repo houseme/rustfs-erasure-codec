@@ -3,13 +3,12 @@
 import argparse
 import hashlib
 import json
-import math
 import os
 import pathlib
-import statistics
 import signal
 import subprocess
 import tempfile
+import native_tools
 
 from diagnostic_overlay import overlay
 import release_evidence as evidence
@@ -43,83 +42,8 @@ def parse_output(output):
 
 
 def analyze(records, iterations, page_size=None, measuring_cpu=None):
-    """Reject missing/reordered layouts; retain every warmup and observation."""
-    if not isinstance(records, list):
-        raise ValueError("layout records must be a complete list")
-    if type(iterations) is not int or not 1 <= iterations <= 1_000_000_000:
-        raise ValueError("invalid bounded iteration count")
-    if page_size is not None and not sampling.valid_page_size(page_size):
-        raise ValueError("invalid actual base page size")
-    provenance = None
-    width = sampling.PROTOCOL['warmups'] + sampling.PROTOCOL['samples']
-    grid = [(a, b) for a in OFFSETS for b in OFFSETS]
-    schedule = [(length, order, a, b, index)
-                for length in LENGTHS for order in (0, 1)
-                for a, b in (grid if order == 0 else list(reversed(grid)))
-                for index in range(width)]
-    if len(records) != len(schedule):
-        raise ValueError("complete forward/reverse grid and every observation are required")
-    groups = {}
-    for record, (length, order, source, scratch, index) in zip(records, schedule):
-        if not isinstance(record, dict):
-            raise ValueError("invalid layout observation")
-        fields = {'len': length, 'pass': order, 'source_offset': source,
-                  'scratch_offset': scratch, 'index': index, 'iterations': iterations}
-        if any(type(record.get(k)) is not int or record[k] != v for k, v in fields.items()):
-            raise ValueError("layout order or iteration count differs from the complete grid")
-        if record.get('entry') != 'slice_views' or record.get('fixture_lifetime') != 'same_backing_per_length':
-            raise ValueError("explicit slice fixture contract is required")
-        if record.get('kind') != ('warmup' if index < sampling.PROTOCOL['warmups'] else 'sample'):
-            raise ValueError("all fixed warmups must precede the samples")
-        wall, ns = record.get('wall_ns'), record.get('ns_per_iter')
-        if type(wall) is not int or wall <= 0 or type(ns) not in (float, int) or not math.isfinite(ns) or ns <= 0 or not math.isclose(ns * iterations, wall, rel_tol=1e-12, abs_tol=1):
-            raise ValueError("invalid layout timing")
-        if page_size is not None:
-            if type(record.get('page_size')) is not int or record['page_size'] != page_size:
-                raise ValueError("actual page size does not match the controlled context")
-            if type(record.get('cpu')) is not int or record['cpu'] != measuring_cpu:
-                raise ValueError("actual measuring CPU does not match the reserved CPU")
-            current = {k: record.get(k) for k in ('backend', 'backend_id', 'backend_kind', 'features', 'target_arch', 'target_os')}
-            if any(not isinstance(v, str) or not v for v in current.values()) or current['features'] != 'simd-accel|std' or current['target_os'] != 'linux':
-                raise ValueError("complete native backend/features/target provenance is required")
-            if provenance is not None and current != provenance:
-                raise ValueError("backend or target changed inside the layout grid")
-            provenance = current
-            for key, count, offset in (('input_4096_offsets', 6, source), ('scratch_4096_offsets', 2, scratch)):
-                positions = record.get(key)
-                if not isinstance(positions, list) or len(positions) != count or any(type(p) is not int or p != offset for p in positions):
-                    raise ValueError("actual 4096-byte offsets differ from the controlled layout")
-        for key, count, offset in (('input_page_offsets', 6, source), ('scratch_page_offsets', 2, scratch)):
-            positions = record.get(key)
-            if not isinstance(positions, list) or len(positions) != count or any(type(p) is not int or not 0 <= p < (page_size or 4096) or p % 64 != offset for p in positions):
-                raise ValueError("actual buffer offsets differ from the selected layout")
-            if page_size is not None and positions != [offset]*count:
-                raise ValueError("actual page offsets differ from the controlled layout")
-        groups.setdefault((length, order, source, scratch), []).append(record)
-    cases, repeats = [], []
-    for key, group in groups.items():
-        if any((r['input_page_offsets'], r['scratch_page_offsets']) != (group[0]['input_page_offsets'], group[0]['scratch_page_offsets']) for r in group):
-            raise ValueError("buffer layout changed inside an observation group")
-        values = sorted(r['ns_per_iter'] for r in group[sampling.PROTOCOL['warmups']:])
-        median = statistics.median(values)
-        cases.append(dict(zip(('len', 'pass', 'source_offset', 'scratch_offset'), key),
-                          median_ns=median, central_spread=(values[-2]-values[1])/median))
-    for length in LENGTHS:
-        for a, b in grid:
-            forward, reverse = (groups[(length, order, a, b)][0] for order in (0, 1))
-            if (forward['input_page_offsets'], forward['scratch_page_offsets']) != (reverse['input_page_offsets'], reverse['scratch_page_offsets']):
-                raise ValueError("forward/reverse passes did not reuse the same buffer layout")
-            values = [statistics.median(r['ns_per_iter'] for r in groups[(length, order, a, b)][sampling.PROTOCOL['warmups']:]) for order in (0, 1)]
-            repeats.append({'len': length, 'source_offset': a, 'scratch_offset': b,
-                            'drift': abs(values[1]-values[0])/values[0]})
-    return {'purpose': 'within-version layout diagnosis only; never release acceptance',
-            'candidate_attribution': None, 'release_approval': False,
-            'provenance': provenance,
-            'short_samples': [r for r in records if r['kind'] == 'sample' and r['wall_ns'] < LAYOUT_PROTOCOL['minimum_wall_ns']],
-            'case_count': len(cases), 'formal_samples': len(cases)*sampling.PROTOCOL['samples'],
-            'cases': cases, 'repeat_checks': repeats,
-            'wide_cases': [r for r in cases if r['central_spread'] > .10],
-            'repeat_failures': [r for r in repeats if r['drift'] > .05]}
+    return native_tools.request('diagnostic-layout', request=dict(operation='verify', records=records,
+        iterations=iterations, page_size=page_size, measuring_cpu=measuring_cpu))
 
 
 def save(output, name, value):
@@ -220,37 +144,8 @@ def phase_passed(report):
 
 
 def analyze_paired(phases, iterations, page_size, measuring_cpu):
-    if not sampling.valid_page_size(page_size) or type(measuring_cpu) is not int or measuring_cpu < 0:
-        raise ValueError('paired analysis requires actual page size and measuring CPU')
-    if not isinstance(phases, dict) or set(phases) != set(evidence.PHASES):
-        raise ValueError('complete A1/B1/B2/A2 layout phases are required')
-    reports = {p: analyze(phases[p], iterations, page_size, measuring_cpu) for p in evidence.PHASES}
-    if any(r['provenance'] != reports['A1']['provenance'] for r in reports.values()):
-        raise ValueError('backend/features/target differ between paired phases')
-    cases = {p: {(r['len'], r['pass'], r['source_offset'], r['scratch_offset']): r for r in report['cases']}
-             for p, report in reports.items()}
-    drift = []
-    for left, right in (('A1', 'A2'), ('B1', 'B2')):
-        for key, row in cases[left].items():
-            drift.append({'pair': left+'/'+right, 'cell': list(key),
-                          'drift': abs(cases[right][key]['median_ns']-row['median_ns'])/row['median_ns']})
-    qualified = all(phase_passed(r) for r in reports.values()) and all(r['drift'] <= .05 for r in drift)
-    # Withhold candidate attribution until every layout satisfies quality gates.
-    comparisons = []
-    if qualified:
-        for a in ('A1', 'A2'):
-            for b in ('B1', 'B2'):
-                for key, row in cases[a].items():
-                    comparisons.append({'pair': a+'/'+b, 'cell': list(key),
-                                        'latency_ratio': cases[b][key]['median_ns']/row['median_ns']})
-    regressions = [r for r in comparisons if r['latency_ratio'] > 1+LAYOUT_PROTOCOL['regression_limit']]
-    return {'purpose': 'per-layout supplemental acceptance only; original full profiles remain required',
-            'release_approval': False, 'phase_order': list(evidence.PHASES),
-            'layout_quality_passed': qualified, 'layout_gate_passed': qualified and not regressions,
-            'phase_reports': reports, 'repeat_checks': drift,
-            'repeat_failures': [r for r in drift if r['drift'] > .05],
-            'candidate_attribution': comparisons if qualified and not regressions else None,
-            'regression_failures': regressions}
+    return native_tools.request('diagnostic-layout', request=dict(operation='paired', phases=phases,
+        iterations=iterations, page_size=page_size, measuring_cpu=measuring_cpu))
 
 
 def validate_context(context, measuring_cpu):

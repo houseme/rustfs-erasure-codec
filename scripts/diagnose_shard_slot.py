@@ -41,36 +41,8 @@ def check(repository):
 
 
 def layouts(records, iterations, page_size):
-    if len(records) != 12:
-        raise ValueError('all twelve instrumented observations are required')
-    for record in records:
-        if record.get('entry') != 'Vec<ShardSlot<Vec<u8>>>' or record.get('source_lifetime') != 'worker' or record.get('clone_lifetime') != 'iteration' or type(record.get('iterations')) is not int or record['iterations'] != iterations or type(record.get('page_size')) is not int or record['page_size'] != page_size:
-            raise ValueError('incorrect Slot workload contract')
-        if type(record.get('overflow')) is not int or record['overflow'] < 0 or type(record.get('transitions')) is not int or not 0 <= record['transitions'] < iterations:
-            raise ValueError('invalid bounded histogram counters')
-        phases = record.get('phase_ns')
-        if not isinstance(phases, dict) or set(phases) != {'clone', 'reconstruct', 'drop'} or any(type(v) is not int or v <= 0 for v in phases.values()):
-            raise ValueError('complete positive phase intervals are required')
-        buckets = record.get('layouts')
-        if not isinstance(buckets, list) or not 1 <= len(buckets) <= 128:
-            raise ValueError('invalid bounded histogram')
-        for bucket in buckets:
-            if type(bucket.get('count')) is not int or not 1 <= bucket['count'] <= iterations:
-                raise ValueError('invalid layout count')
-        if sum(b['count'] for b in buckets) + record['overflow'] != iterations:
-            raise ValueError('missing clone observations')
-        for buffers in [record.get('source'), *(b.get('buffers') for b in buckets)]:
-            # Reuse the formal buffer-shape checks without declaring a Slot case
-            # to be an accepted retained Vec workload.
-            synthetic = {'case': 'verify_with_buffer:4:2:65536', 'fixture': {
-                'entry': 'Vec<Vec<u8>>', 'lifetime': 'worker', 'page_size': page_size,
-                'source': buffers, 'scratch': buffers[:2] if isinstance(buffers, list) else None,
-                **sampling.fixture_contract('small_file', 'verify_with_buffer:4:2:65536')}}
-            sampling.validate_fixture(synthetic, 'small_file', page_size)
-    return {'histogram_complete': all(r['overflow'] == 0 for r in records),
-            'source_layouts': [r['source'] for r in records],
-            'clone_layout_counts': [len(r['layouts']) for r in records],
-            'clone_layout_transitions': [r['transitions'] for r in records]}
+    return native_tools.request('diagnostic-layout', request=dict(operation='slots', records=records,
+        iterations=iterations, page_size=page_size))
 
 
 def capture(tool, repository, output, group, iterations):
