@@ -52,8 +52,10 @@ def analyze(records,profile, *, native_service_clock=False):
             before,after=(record[s]['process'] for s in ('before','after'))
             old={r['slot']:r for r in before['threads']};new={r['slot']:r for r in after['threads']}
             shared=old.keys()&new.keys();stable=old.keys()==new.keys()
+            # Another thread's progress cannot cancel a live thread's reset.
+            if any(new[t][key]<old[t][key] for t in shared for key in ('run_ns','wait_ns','timeslices')):
+                raise ValueError('thread counters reset')
             deltas={key:sum(new[t][key]-old[t][key] for t in shared) for key in ('run_ns','wait_ns','timeslices')}
-            if any(v<0 for v in deltas.values()):raise ValueError('thread counters reset')
             fault_delta={key:after[key]-before[key] for key in ('minor_faults','major_faults')}
             if any(v<0 for v in fault_delta.values()):raise ValueError('process fault counters reset')
             trace.append({'index':record['index'],'relative_ns':value/median,'timed_ms':record['timed_ns']/1e6,
