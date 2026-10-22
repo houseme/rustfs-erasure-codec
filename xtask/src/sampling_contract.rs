@@ -227,7 +227,7 @@ fn shape<'a>(profile: &str, case: &'a str, max_shards: u32) -> Result<Case<'a>> 
 fn api(entry: &str, policy: &str, missing: u64, required: u64) -> Value {
     json!({"call_entry":entry,"output_policy":policy,"missing_mask":missing,"required_mask":required})
 }
-fn fixture_contract(profile: &str, case: &str) -> Result<Value> {
+pub(crate) fn fixture_contract(profile: &str, case: &str) -> Result<Value> {
     let allowed = match profile {
         "small_file" => catalog::SMALL_KERNELS,
         "stream" => catalog::STREAM_KERNELS,

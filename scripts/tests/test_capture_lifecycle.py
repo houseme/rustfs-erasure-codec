@@ -262,6 +262,25 @@ class NativeControllerBindingsTests(unittest.TestCase):
     def field(self, value):
         return self.native.request('provenance-field', row={'cpu_model':value}, field='cpu_model')
 
+    def test_view_batches_reuse_validation_summaries_and_recheck_mutated_records(self):
+        import stream_view_audit as views
+        from layout_fixture import view_fixture
+        case='encode_stream:4:2:65536:65536'
+        data=[view_fixture(case,iterations=1,observation=i) for i in range(9)]
+        source=[dict(len=e['len'],capacity=e['capacity'],offset_64=e['offsets'][0],
+                     offset_4096=e['offsets'][1],offset_page=e['offsets'][2])
+                for e in data[0]['events'] if e['call']==0]
+        samples=[dict(case=case,index=i,fixture=dict(source=source)) for i in range(9)]
+        with mock.patch.object(self.native,'request',wraps=self.native.request) as calls:
+            reports=views.validate_samples(data,samples,1,4096,require_counters=True,summary=True)
+        self.assertEqual(calls.call_count,3)
+        self.assertEqual(len(reports),9)
+        self.assertEqual(reports[0],views.summarize_windows(data[0]))
+        child=self.native._worker
+        data[-1]['events'][0]['capacity']=True
+        with self.assertRaises(ValueError):views.validate_samples(data,samples,1,4096)
+        self.assertIs(self.native._worker,child)
+
     def test_sampling_contract_cache_returns_private_copies_and_reuses_the_native_worker(self):
         self.field('sampling cache test')
         case='reconstruct_shard_slot:4:2:1024'

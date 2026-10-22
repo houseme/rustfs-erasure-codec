@@ -10,6 +10,8 @@ import unittest
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 import diagnose_fixture_layout as inventory
+import stream_view_audit as audit
+from layout_fixture import view_fixture
 import release_evidence as evidence
 import release_sampling as sampling
 import test_release_evidence as fixtures
@@ -84,6 +86,89 @@ class FixtureInventoryTests(unittest.TestCase):
         for change in (lambda r:r.update(iterations=2),lambda r:r['after'].update(cpu=7)):
             phases=copy.deepcopy(self.phases);change(phases['B1'][0])
             with self.assertRaises(ValueError):inventory.analyze(phases,self.sources,range(8))
+
+
+class StreamViewIntegrationTests(unittest.TestCase):
+    def test_diagnostic_entries_are_explicit_and_normalization_keeps_originals(self):
+        helper=fixtures.EvidenceTests(methodName='runTest');helper.setUp();self.addCleanup(helper.doCleanups)
+        row=helper.fixture_rows('A1','stream')[0];sample=helper.record(row,'stream','baseline','sample',3)
+        operation=sample['case'].split(':')[0]
+        for field in ('fixture','workload'):sample[field]['call_entry']=audit.ENTRIES[operation]
+        normalized=audit.underlying_records([sample])[0]
+        self.assertNotEqual(normalized['fixture']['call_entry'],sample['fixture']['call_entry'])
+        sampling.validate_workload(normalized,'stream')
+        with self.assertRaises(ValueError):sampling.validate_workload(sample,'stream')
+
+
+    def test_decorator_does_not_change_the_formal_renderer_or_library(self):
+        root=pathlib.Path(__file__).resolve().parents[2]
+        before=sampling.render(root);traced=audit.render(root)
+        self.assertEqual(before,sampling.render(root))
+        self.assertNotIn('stream_views.rs',before)
+        self.assertIn('stream_views.rs',traced)
+        self.assertLess(traced['stream_views.rs'].index('fn read_bounded'),traced['stream_views.rs'].rindex('mod tests {'))
+        engine=(sampling.TEMPLATES/'engine.rs').read_text()
+        for declaration in ('fn read_bounded','fn process_faults'):
+            self.assertIn(sampling.block(engine,declaration),traced['stream_views.rs'])
+        for name in before:
+            if name not in ('root.rs','stream.rs'):self.assertEqual(before[name],traced[name])
+        self.assertIn('super::stream_views::cursors(&cursors, 8)',traced['stream.rs'])
+        self.assertIn('super::stream_views::drop_outputs(writers); drop(readers);',traced['stream.rs'])
+        import diagnose_cpu_placement
+        placement=diagnose_cpu_placement.render(root,allocation_check=True)
+        self.assertNotIn('stream_views::',placement['root.rs'])
+        self.assertNotIn('stream_views.rs',placement)
+
+
+    def inventory_fixture(self):
+        helper=fixtures.EvidenceTests(methodName='runTest');helper.setUp();self.addCleanup(helper.doCleanups)
+        phases={};views={}
+        for phase in evidence.PHASES:
+            role='baseline' if phase.startswith('A') else 'candidate';phases[phase]=[];views[phase]=[]
+            for row in helper.fixture_rows(phase,'stream'):
+                for index in range(12):
+                    record=helper.record(row,'stream',role,'warmup' if index<3 else 'sample',index)
+                    record['iterations']=2;record['rows'][0]['iterations']=2;record['timed_ns']*=2
+                    operation=record['case'].split(':')[0]
+                    for field in ('fixture','workload'):record[field]['call_entry']=audit.ENTRIES[operation]
+                    phases[phase].append(record);views[phase].append(view_fixture(record['case'],observation=index))
+        return helper,phases,views
+
+
+    def test_cross_phase_backend_io_and_constructor_budget_mismatch_are_rejected(self):
+        helper,original,views=self.inventory_fixture()
+        for field in ('features','backend_id','stream_io_mode','constructor_budget'):
+            phases=copy.deepcopy(original)
+            for row in phases['B1']:
+                if field=='constructor_budget':row['placement'][field]=7
+                else:row['rows'][0][field]='serial' if field=='stream_io_mode' else 'std' if field=='features' else 'changed'
+            with self.subTest(field=field):
+                with self.assertRaises(ValueError):inventory.analyze_stream_views(phases,views,helper.sources,list(range(8)),4096,2)
+
+
+    def test_linux_inventory_rejects_missing_lifecycle_counters_in_raw_data(self):
+        helper,phases,views=self.inventory_fixture()
+        for view in views['B1']:
+            for window in view['windows']:window.update(before=None,after=None)
+        with self.assertRaisesRegex(ValueError,'Linux lifecycle counters'):
+            inventory.analyze_stream_views(phases,views,helper.sources,list(range(8)),4096,2)
+
+
+    def test_four_phase_inventory_reports_differences_without_performance_approval(self):
+        helper,phases,views=self.inventory_fixture()
+        report=inventory.analyze_stream_views(phases,views,helper.sources,list(range(8)),4096,2)
+        self.assertEqual(report['observations'],720)
+        self.assertEqual(report['case_count'],15)
+        self.assertFalse(report['release_approval']);self.assertFalse(report['coverage']['internal_verify_scratch'])
+        self.assertFalse(report['layout_mismatches'])
+        event=next(e for e in views['B1'][0]['events'] if e['role']=='read_scratch_view');event['offsets']=[32,32,32]
+        for other in views['B1'][0]['events']:
+            if other['call']==event['call'] and other['role']==event['role'] and other['index']==event['index']:other['offsets']=[32,32,32]
+        for value in views['B1'][0]['residency']:
+            if value['call']==event['call'] and value['role']==event['role'] and value['index']==event['index']:value['offset_page']=32
+        report=inventory.analyze_stream_views(phases,views,helper.sources,list(range(8)),4096,2)
+        self.assertTrue(report['layout_mismatches'])
+        with self.assertRaises(ValueError):inventory.analyze_stream_views(phases,dict(views,A2=[]),helper.sources,list(range(8)),4096,2)
 
 
 if __name__=='__main__':unittest.main()

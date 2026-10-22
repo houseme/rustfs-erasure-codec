@@ -81,3 +81,75 @@ def write_campaign(output, *, sources=None, tool=None, context=None, iterations=
                                     for name in ('provenance.json', 'samples.json', 'measurement.log')}
     diagnostic.save(output, 'manifest.json', document)
     return document
+
+
+def view_fixture(case,iterations=2,observation=0,page_size=4096):
+    operation,k,m,size,block=case.split(':');k,m,size,block=map(int,(k,m,size,block));count=k if operation=='encode_stream' else k+m
+    events=[]
+    def add(call,role,index,length,capacity,amount=0):
+        events.append({'call':call,'role':role,'index':index,'len':length,'capacity':capacity,
+          'offsets':[16,16,16] if (capacity>0 if capacity is not None else length>0) else None,
+          'bytes':amount,'same_address_as_previous_view':None})
+    for index in range(count):add(0,'retained_source',index,size,size)
+    for call in range(1,iterations+1):
+        if operation=='reconstruct_stream':
+            for role in ('cursor_before_missing','cursor_missing','cursor_after_recovery'):
+                for index in range(count):
+                    missing=role=='cursor_missing' and index in (0,k)
+                    add(call,role,index,0 if missing else size,0 if missing else size)
+            continue
+        for index in range(count):
+            remaining=size
+            while remaining:
+                length=min(block,remaining)
+                add(call,'source_read_view',index,remaining,None,length)
+                add(call,'read_scratch_view',index,block,None,length)
+                remaining-=length
+            add(call,'source_read_view',index,0,None)
+            add(call,'read_scratch_view',index,block,None)
+        if operation=='encode_stream':
+            for index in range(m):
+                used=0
+                while used<size:
+                    n=min(block,size-used)
+                    add(call,'parity_write_view',index,n,None,n)
+                    add(call,'writer_before',index,used,size)
+                    add(call,'writer_after',index,used+n,size,n)
+                    used+=n
+    windows=[];clock=0;counter=0
+    def window(call,phase,index=None,amount=0):
+        nonlocal clock,counter
+        clock+=10;counter+=2
+        w={'call':call,'phase':phase,'index':index,'bytes':amount,'start_ns':clock,'end_ns':clock+5,'before':[counter]*4,'after':[counter+1]*4}
+        clock+=10;counter+=2;windows.append(w)
+    for call in range(1,iterations+1):
+        start=clock;before=counter
+        if operation=='encode_stream':
+            window(call,'reserve',amount=m*size)
+            for event in events:
+                if event['call']==call and event['role']=='parity_write_view':window(call,'append',event['index'],event['bytes'])
+            window(call,'drop',amount=m*size)
+        clock+=10;counter+=2
+        windows.append({'call':call,'phase':'call','index':None,'bytes':0,'start_ns':start,'end_ns':clock,'before':[before]*4,'after':[counter]*4})
+    residency=[]
+    def resident(call,boundary,role,index,size,offset=16):
+        pages=(offset+size+page_size-1)//page_size if size else 0
+        residency.append({'call':call,'boundary':boundary,'role':role,'index':index,'bytes':size,'offset_page':offset if size else None,
+                          'snapshot':{'status':'mapped' if size else 'empty','pages':pages,'resident_pages':pages,'errno':None}})
+    for call in range(iterations+1):
+        current=[e for e in events if e['call']==call]
+        if call and operation=='encode_stream':
+            for index in range(m):resident(call,'after_reserve','writer_before',index,size)
+        for e in current:
+            span=e['capacity'] if e['capacity'] is not None else e['len']
+            if e['role']=='source_read_view':
+                # Native queries precede each delegated read; source/scratch events follow it.
+                scratch=current[current.index(e)+1]
+                resident(call,'before_read','read_scratch_view',e['index'],scratch['len'])
+            resident(call,'view',e['role'],e['index'],span, e['offsets'][2] if e['offsets'] else 0)
+        if call and operation=='encode_stream':
+            for role in ('read_scratch_view','parity_write_view','writer_after'):
+                values={e['index']:e for e in current if e['role']==role}
+                for index,e in sorted(values.items()):
+                    resident(call,'after_writer_drop' if role=='writer_after' else 'after_api_return',role,index,e['capacity'] if e['capacity'] is not None else e['len'])
+    return {'schema':'stream-buffer-views-v3','observation':observation,'iterations':iterations,'calls':iterations,'completed':iterations,'page_size':page_size,'overflow':0,'release_approval':False,'events':events,'windows':windows,'residency':residency}
