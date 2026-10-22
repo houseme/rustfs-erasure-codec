@@ -342,7 +342,7 @@ fn seed(operation: &str, data: u32, parity: u32, size: u64) -> Result<u64> {
 fn mask(indices: &[usize]) -> u64 {
     indices.iter().fold(0, |mask, index| mask | (1 << index))
 }
-fn workload_contract(profile: &str, case: &str) -> Result<Value> {
+pub(crate) fn workload_contract(profile: &str, case: &str) -> Result<Value> {
     let (mut contract, seed, lifetime, construction, generator) = if profile == "hotspot" {
         let c = hotspot(case)?;
         let hash = case.bytes().fold(0xcbf29ce484222325_u64, |hash, byte| {
