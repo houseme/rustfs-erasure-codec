@@ -495,3 +495,66 @@ compressed). Formatting, workspace dependency and package allowlist audits pass.
 No production codec or build-script delta exists against the reviewed main.
 This establishes tooling and compatibility behavior, not new codec performance
 acceptance or permission to publish.
+
+## Profile batches, shared baseline statistics and finite arithmetic
+
+Review reproduced a concrete timing regression in the previous native layout
+implementation. A finite metric such as `1e308`, multiplied by 100 iterations,
+overflows to infinity. Comparing its error against an equally infinite relative
+tolerance accepted the input; the original Python rejected it. An independent
+request confirms the earlier `cc73d76` helper accepts all 64 layout cells while
+the corrected helper refuses the same input. Commit `cc51995` rejects the
+nonfinite product before comparison and rejects nonfinite quotients before JSON
+can encode them as null. Its standalone checkout passes all 144 native tests and
+strict Clippy. A regression exercises the actual complete-grid validation path.
+
+Commits `cae8589` and `46426b6` consolidate the remaining profile grouping,
+selection and baseline calculations. A whole profile now shares the existing
+worker and raw-row validators. Validation borrows records; the response contains
+stable indices rather than copied original rows. Python bindings preserve the
+identity of selected rows and grouped objects. Stable nine-sample ordering uses
+a fixed array and preserves integer precision and ties. All former normalization
+callbacks delegated to the same row contract and have been removed from callers.
+
+The native baseline model retains independent service ranks, unclamped run/wall
+ratios, unknown spread for zero runtime, short windows, layout mismatches and every
+repeat category. It also computes the complete adjacent schedule, repeat checks
+and conservative wall-window separation. Original files, trusted frozen-tool
+execution, source identities, snapshot bounds and resource restoration stay with
+the existing controllers. Frozen replay disagreement remains a refusal.
+
+The complete v15 protocol moves to the native catalog with its original canonical
+digest. Python and Rust share spread/repeat constants, including the formal and
+paired-layout consumers. Protocol values, schemas, measured workers and codec
+algorithms are unchanged. With the immutable normalization cache primed, one
+complete 126-case fixture falls from 126 selection frames to four: smoke 15 to
+one, small-file 88 to one, hotspot eight to one and stream 15 to one. Complete
+outputs and inputs agree; this is an IPC count, not codec throughput attribution.
+
+Validation is fixed to clean source `46426b6`. All 157 optimized native tests
+(130 unit / 27 executable), 256 Python tests, strict tooling Clippy and x86_64
+Linux compilation pass. The original 84 subsystem tests passed before two pure
+schedule/bound tests moved to Rust; a new controller regression checks one frame
+and original object identity. All 2,316 original/native sampling and baseline
+comparisons agree, including complete and interleaved profiles, malformed
+nonmedian rows, protocol identity, legacy/current provenance and frozen adjacent
+service replay. The reference Python files are byte-identical to `4f74e0c`.
+Another 2,115 layout comparisons and six raw-evidence layout replays also agree.
+The local ignored `target/tooling-review-round13` retains the comparisons,
+overflow reproducer and source-bound logs.
+
+The same source passes 517 core tests with 43 existing ignored cases, ten
+doctests, no_std and the 200-configuration 9.0.0/9.1.0 parity and bidirectional
+decode probe. Both source versions pass 16 generated native checks and all 23
+one-iteration smoke/hotspot workers; every hotspot input witness matches.
+Offline packaging rebuilds the extracted 67-file crate successfully. All five
+workspace members inherit root dependencies, and core/WASM allowlists remain
+67/6 files. No production codec, build-script or dependency delta is introduced.
+
+The inventory is now **34 Python files / 7,988 lines**: 3,865 production/helper
+lines and 4,123 test/fixture lines. This removes 149 lines from `4f74e0c` and about
+39% from the original 13,120-line inventory. Retained modules still have active
+uses. The JSON audit remains 579 files / 2,833,273 bytes, with eleven identical
+groups retained under their historical paths and no errors. Repository tools and
+evidence remain excluded from both published crates. Earlier timing campaigns
+retain their original source identities and release-acceptance status.

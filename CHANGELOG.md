@@ -24,6 +24,15 @@ All notable changes to this project are documented in this file.
   retain explicit backend overrides and existing NEON/AVX2 behavior, and verify
   generated kernel bytes directly even when automatic GFNI bypasses that path.
 
+- Reject nonfinite intermediate timing products and ratios before tolerance
+  comparison or JSON serialization. Preserve the original refusal of overflowing
+  layout intervals instead of accepting infinity as its own error tolerance.
+
+- Move complete-profile grouping, stable median selection and baseline service
+  statistics into the shared Rust tool. Reuse checked raw-row validation, return
+  original observation indices, export the unchanged v15 protocol and preserve
+  frozen adjacent replay, full cohorts and conservative workload-window bounds.
+
 - Consolidate CPU-placement, Slot-histogram and paired verify-layout analysis in
   Rust. Share formal buffer checks and one exported layout protocol, batch whole
   requests, and preserve exact numeric results, complete diagnostic comparisons,
