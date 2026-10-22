@@ -17,17 +17,25 @@ struct Snapshot {
 
 trait ElementBytes: Copy {
     fn append_bytes(self, output: &mut Vec<u8>);
+    fn from_bytes(bytes: &[u8]) -> Vec<Self>;
 }
 
 impl ElementBytes for u8 {
     fn append_bytes(self, output: &mut Vec<u8>) {
         output.push(self);
     }
+    fn from_bytes(bytes: &[u8]) -> Vec<Self> {
+        bytes.to_vec()
+    }
 }
 
 impl ElementBytes for [u8; 2] {
     fn append_bytes(self, output: &mut Vec<u8>) {
         output.extend_from_slice(&self);
+    }
+    fn from_bytes(bytes: &[u8]) -> Vec<Self> {
+        assert_eq!(bytes.len() % 2, 0);
+        bytes.as_chunks::<2>().0.to_vec()
     }
 }
 
@@ -55,6 +63,9 @@ mod new {
 }
 
 fn main() {
+    old::field_reference_vectors();
+    new::field_reference_vectors();
+    println!("Historical tower-field arithmetic vectors passed on both versions");
     let baseline = old::run();
     let candidate = new::run();
     assert_eq!(baseline.len(), 200);
@@ -62,6 +73,11 @@ fn main() {
     for (before, after) in baseline.iter().zip(&candidate) {
         assert_eq!(before, after, "parity compatibility: {}", before.id);
     }
+    old::cross_decode(&candidate);
+    new::cross_decode(&baseline);
+    println!(
+        "200 configurations: exact parity and old/new cross-decoding passed in both directions"
+    );
     let args: Vec<_> = std::env::args_os().skip(1).collect();
     if !args.is_empty() {
         assert!(
