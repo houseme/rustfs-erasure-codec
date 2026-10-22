@@ -5,6 +5,7 @@ from contextlib import ExitStack
 import json
 import pathlib
 import time
+import native_tools
 
 import release_evidence as e
 import release_sampling as s
@@ -71,17 +72,14 @@ def inputs(prior,repository):
 
 
 def schedule(counts):
-    if set(counts)!=set(e.FILES) or any(set(counts[p])!=e.expected_cases(p) or any(type(n) is not int or not 1<=n<=1_000_000_000 for n in counts[p].values()) for p in e.FILES):raise ValueError('all 126 original cases required')
-    return [dict(ordinal=i,profile=p,case=c,phase=phase,iterations=counts[p][c])
-            for i,(p,c,phase) in enumerate((p,c,phase) for p in e.FILES for c in sorted(counts[p]) for phase in PHASES)]
+    return native_tools.request('baseline-analysis', request=dict(operation='schedule', counts=counts))
 
 
 def check_worker(rows,raw,step,calibration,context):
     profile=step['profile'];case=step['case'];counts={case:step['iterations']}
     timing=s.parse_output(raw,'RSE_TIMING ')
     if not same(s.parse_output(raw),rows) or len(timing)!=12 or any(not same({k:t[k] for k in ('case','index','iterations','wall_ns','timed_ns','fixture','workload','placement','before','after')},{k:r[k] for k in ('case','index','iterations','wall_ns','timed_ns','fixture','workload','placement','before','after')}) for t,r in zip(timing,rows)):raise ValueError('raw original worker journal differs')
-    normalize=lambda p,row,rev:next(iter(e.indexed_rows(p,[row],rev,counts,complete=False)))
-    selected,widths=s.selected_row(rows,profile,e.METRICS[profile],e.BASELINE_COMMIT,{case},counts,normalize,context['isolation']['cpu_affinity'],context['runtime']['page_size'])
+    selected,widths=s.selected_row(rows,profile,e.METRICS[profile],e.BASELINE_COMMIT,{case},counts,context['isolation']['cpu_affinity'],context['runtime']['page_size'])
     reference,fixtures,workloads,traces=calibration
     e.observation_contracts(profile,rows,reference)
     for actual,wanted,label in ((s.fixture_catalog(rows),fixtures,'caller geometry'),(s.workload_catalog(rows),workloads,'workload'),(s.workload_traces(rows),traces,'input replay')):
@@ -122,11 +120,8 @@ def replay(output,prior,repository):
 
 
 def summarize(output,prov,summaries,gaps):
-    checks=[]
-    for key,pair in summaries.items():
-        old,new=pair['A1']['value'],pair['A2']['value']
-        checks.append({'case':key,'first':old,'second':new,'metric':pair['A1']['metric'],'drift':abs(new-old)/old,'widths':[pair[p]['central_spread'] for p in PHASES]})
-    return {'schema':SCHEMA,'release_approval':False,'candidate_attribution':None,'formal_qualification':False,'baseline':prov['source'],'cases':126,'observations':3024,'execution_sha256':e.digest((output/'execution.jsonl').read_bytes()),'plan_sha256':e.digest((output/'plan.json').read_bytes()),'maximum_pair_gap_ns':max(gaps),'checks':checks}
+    statistics=native_tools.request('baseline-analysis', request=dict(operation='adjacent-checks', summaries=list(summaries.items()), gaps=gaps))
+    return {'schema':SCHEMA,'release_approval':False,'candidate_attribution':None,'formal_qualification':False,'baseline':prov['source'],'cases':126,'observations':3024,'execution_sha256':e.digest((output/'execution.jsonl').read_bytes()),'plan_sha256':e.digest((output/'plan.json').read_bytes()),**statistics}
 
 
 def capture(repository,baseline,prior,output,group):
@@ -175,6 +170,6 @@ def main():
         if not args.baseline or not args.isolation_cgroup:parser.error('capture requires --baseline and --isolation-cgroup')
         result=capture(repository,args.baseline.resolve(),args.prior.resolve(),args.output.resolve(),args.isolation_cgroup.resolve())
     else:result=replay(args.output.resolve(),args.prior.resolve(),repository)
-    print(json.dumps({'cases':result['cases'],'observations':result['observations'],'release_approval':False,'formal_qualification':False,'drift_failures':sum(c['drift']>.05 for c in result['checks']),'spread_failures':sum(any(v>s.PROTOCOL['central_spread_limit'] for v in c['widths']) for c in result['checks'])}))
+    print(json.dumps({'cases':result['cases'],'observations':result['observations'],'release_approval':False,'formal_qualification':False,'drift_failures':sum(c['drift']>s.REPEAT_DRIFT_LIMIT for c in result['checks']),'spread_failures':sum(any(v>s.PROTOCOL['central_spread_limit'] for v in c['widths']) for c in result['checks'])}))
 
 if __name__=='__main__':main()

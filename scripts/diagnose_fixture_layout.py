@@ -38,12 +38,11 @@ def analyze(phases, sources, cpus, page_size=None):
     layouts = {};contracts={}
     for phase in evidence.PHASES:
         revision = sources['baseline' if phase.startswith('A') else 'candidate']['commit']
-        normalize = lambda p, row, rev: next(iter(evidence.indexed_rows(p, [row], rev, counts, complete=False)))
         if any(r.get('case') not in case_catalog() for r in phases[phase]):
             raise ValueError('unexpected inventory case')
         for profile in PROFILES:
             records = [r for r in phases[phase] if r['case'] in case_catalog(profile)]
-            groups=sampling.sample_groups(records, profile, revision, case_catalog(profile), counts, normalize, cpus, page_size)
+            groups=sampling.sample_groups(records, profile, revision, case_catalog(profile), counts, cpus, page_size)
             contracts[profile]=comparable_inventory_contract(groups,profile,contracts.get(profile))
         layouts[phase] = sampling.fixture_catalog(phases[phase])
     checks = []
@@ -70,8 +69,7 @@ def analyze_stream_views(phases, views, sources, cpus, page_size, iterations):
     for phase in evidence.PHASES:
         revision=sources['baseline' if phase.startswith('A') else 'candidate']['commit']
         normalized=view_audit.underlying_records(phases[phase])
-        normalize=lambda p,row,rev:next(iter(evidence.indexed_rows(p,[row],rev,counts,complete=False)))
-        groups=sampling.sample_groups(normalized,'stream',revision,case_catalog('stream'),counts,normalize,cpus,page_size)
+        groups=sampling.sample_groups(normalized,'stream',revision,case_catalog('stream'),counts,cpus,page_size)
         reference=comparable_inventory_contract(groups,'stream',reference)
         reports=view_audit.validate_samples(views[phase],phases[phase],iterations,page_size,require_counters=True,summary=True)
         lifecycle[phase]=[{'case':sample['case'],'observation':view['observation'],'calls':report}

@@ -371,10 +371,10 @@ def verify_worker_journal(document, root):
     return len(expected)
 
 
-def diagnostic_rows(records, profile, metric, revision, expected, counts, normalize,
+def diagnostic_rows(records, profile, metric, revision, expected, counts,
                     allowed_cpus=None, expected_page_size=None):
     """Use the original nine-sample median; record short windows without trimming."""
-    return sampling.selected_row(records, profile, metric, revision, expected, counts, normalize,
+    return sampling.selected_row(records, profile, metric, revision, expected, counts,
                                  allowed_cpus, expected_page_size, diagnostic=True)
 
 
@@ -444,7 +444,7 @@ def _verify_profiles(document, root, repository, compiler=True, *, diagnostic=Fa
                 old, new = float(row[METRICS[profile]]), float(data[second][profile][case][METRICS[profile]])
                 drift = abs(new - old) / old
                 drifts.append({"profile": profile, "case": case, "pair": first + second, "drift": drift})
-    if not diagnostic and any(item["drift"] > .05 for item in drifts):
+    if not diagnostic and any(item["drift"] > sampling.REPEAT_DRIFT_LIMIT for item in drifts):
         raise EvidenceFailure("ABBA drift exceeds 5%; no candidate attribution or release approval",
                               {"drift_checks": drifts, "sample_spreads": sample_spreads, "candidate_attribution": None})
     checks, comparisons = [], []
@@ -467,7 +467,7 @@ def _verify_profiles(document, root, repository, compiler=True, *, diagnostic=Fa
         wide = [r for r in sample_spreads if r['central_spread'] > sampling.PROTOCOL['central_spread_limit']]
         short = [dict(phase=r['phase'], profile=r['profile'], case=r['case'], **window)
                  for r in sample_spreads for window in r['short_samples']]
-        repeats = [r for r in drifts if r['drift'] > .05]
+        repeats = [r for r in drifts if r['drift'] > sampling.REPEAT_DRIFT_LIMIT]
         return paths, data, {'status': 'diagnostic_profiles_complete', 'diagnostic_only': True,
                             'release_approval': False, 'candidate_attribution': None,
                             'sample_spreads': sample_spreads, 'distribution_failures': wide,
@@ -525,9 +525,8 @@ def verify_sampling(document, root, repository, summarized, *, diagnostic=False)
             entry = document["files"][phase][profile].get("samples")
             records = evidence_member(root, entry, f"{phase}/{profile}-samples.json")
             role = "baseline" if phase.startswith("A") else "candidate"
-            normalize = lambda p, row, rev: next(iter(indexed_rows(p, [row], rev, counts[p], complete=False)))
             select = diagnostic_rows if diagnostic else sampling.selected_row
-            selected, widths = select(records, profile, METRICS[profile], revision, expected_cases(profile), counts[profile], normalize, document["contexts"][phase]["isolation"].get("cpu_affinity"), document["contexts"][phase]["runtime"]["page_size"])
+            selected, widths = select(records, profile, METRICS[profile], revision, expected_cases(profile), counts[profile], document["contexts"][phase]["isolation"].get("cpu_affinity"), document["contexts"][phase]["runtime"]["page_size"])
             observation_contracts(profile, records, pilot_contracts[role][profile])
             layouts[profile][phase] = sampling.fixture_catalog(records)
             workloads[phase] = sampling.workload_catalog(records)
@@ -669,9 +668,8 @@ def qualify_baseline(baseline, output, group):
             report["phases"][phase] = {}; medians[phase] = {}
             for profile in FILES:
                 records, entry = capture_profile(baseline, folder, profile, "sample", env, output, group, output/("counts-"+profile+".tsv"))
-                normalize = lambda p, row, rev: next(iter(indexed_rows(p, [row], rev, counts[p], complete=False)))
                 selected, widths = sampling.selected_row(records, profile, METRICS[profile], source["commit"],
-                    expected_cases(profile), counts[profile], normalize, context["isolation"]["cpu_affinity"], context["runtime"]["page_size"])
+                    expected_cases(profile), counts[profile], context["isolation"]["cpu_affinity"], context["runtime"]["page_size"])
                 observation_contracts(profile, records, contracts[profile])
                 if (sampling.fixture_catalog(records) != fixtures[profile]
                         or sampling.workload_catalog(records) != workloads[profile]
@@ -693,7 +691,7 @@ def qualify_baseline(baseline, output, group):
                                                 "metric": METRICS[profile], "drift": abs(new-old)/old})
         unchanged()
         save("qualification.partial.json", report)
-        if any(item["drift"] > .05 for item in report["repeat_checks"]):
+        if any(item["drift"] > sampling.REPEAT_DRIFT_LIMIT for item in report["repeat_checks"]):
             raise EvidenceFailure("baseline drift exceeds 5%; no candidate attribution", report)
     # A clean overlay close is part of successful qualification, not an afterthought.
     unchanged()
@@ -787,9 +785,8 @@ def capture(baseline, candidate, output, group, *, diagnostic=False):
             phase_spreads=[]
             for profile,filename in FILES.items():
                 records,entry=capture_profile(root,folder,profile,"sample",env,output,group,count_files[profile], **capture_options)
-                normalize=lambda p,row,rev: next(iter(indexed_rows(p,[row],rev,counts[p],complete=False)))
                 select = diagnostic_rows if diagnostic else sampling.selected_row
-                selected,spreads=select(records,profile,METRICS[profile],sources[role]["commit"],expected_cases(profile),counts[profile],normalize)
+                selected,spreads=select(records,profile,METRICS[profile],sources[role]["commit"],expected_cases(profile),counts[profile])
                 observation_contracts(profile,records,contracts[role][profile])
                 phase_spreads.extend(dict(item, profile=profile) for item in spreads)
                 result=folder/filename;result.write_text(json.dumps(selected,indent=2)+"\n")
