@@ -16,6 +16,17 @@ mechanism/resource improvements, not a unique cause or cure of the Linux drift.
 They require a new final candidate freeze; rejected timing campaigns remain
 rejected under their original source bindings.
 
+## Latest complete diagnostic follow-through
+
+The [complete Linux review](complete-linux-diagnostic-2026-10-22.md) supersedes
+pending-collection status for frozen `022c0a7`: all 20,712 observations were
+collected and the independent frozen replay exactly matches. The retained result
+has one profile distribution failure, nine profile repeat failures, sixteen
+program-level threshold refusals and sixteen cross-phase layout repeat failures.
+It supplies complete diagnostic data, not accepted release evidence. All original
+failures below keep their own dates, sources and scope. Further bounded mechanism
+controls wait for an existing controlled measurement to release the owned CPUs.
+
 ## Production progress and actual version differences
 
 Recent production fixes include excess-shard error classification before stream
