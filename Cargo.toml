@@ -44,17 +44,13 @@ version = "9.1.0"
 authors = ["houseme <housemecn@gmail.com>"]
 edition.workspace = true
 build = "build.rs"
-exclude = [
-    ".gitattributes",
-    ".github",
-    ".gitignore",
-    ".typos.toml",
-    "benches",
-    "benchmarks",
-    "docs",
-    "fuzz",
-    "sage",
-    "scripts",
+include = [
+    "/src/**/*.rs",
+    "/build.rs",
+    "/Cargo.toml",
+    "/Cargo.lock",
+    "/LICENSE",
+    "/README.md",
 ]
 description = "Rust implementation of Reed-Solomon erasure coding"
 documentation = "https://docs.rs/rustfs-erasure-codec"
