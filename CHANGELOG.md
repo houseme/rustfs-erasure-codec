@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Prepare and execute generated native encoding views in the same owning scope,
+  returning only the execution result. Read coefficient rows directly instead
+  of constructing an intermediate 32-row container. Preserve complete safe-Field
+  validation, generic fallback, ISA selection and encoding bytes.
+
 - Frame synchronous native-counter probe records on their own complete line,
   even when serial libtest writes the test-name prefix first. Exercise the actual
   reporter under libtest without hardware access; keep strict record parsing,
