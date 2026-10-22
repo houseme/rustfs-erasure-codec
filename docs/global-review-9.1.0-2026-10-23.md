@@ -358,3 +358,53 @@ suite. The new build-policy regression fails before adding `--release` and passe
 afterward. Rust sources, codec manifests/lockfile and generated sampling workers
 retain the previously tested implementation; this follow-up changes the shared
 helper's build command, its regression, documentation and retained observations.
+
+## Integration: native worker batches and merged helper
+
+Commits `d29b264` and `01f3667` consolidate the remaining per-record Python
+worker checks into one shared Rust request. The same release-row validator now
+serves evidence replay and all three source-worker families. Its callbacks see
+original field types before normalization, so string schema IDs or boolean
+iteration counts cannot gain validity through normalization. Worker rows are
+borrowed for validation; no normalized output JSON is built merely to discard it.
+Stream ledgers also borrow their views. Sampling, raw source identity, caller
+geometry, fault counters and I/O-window enclosure retain their existing rules.
+Portable diagnostic telemetry remains explicitly null, while formal sampling
+still requires native telemetry; a regression protects that distinction.
+
+Python bindings reuse the existing 512-entry immutable row cache, including the
+64 KiB bypass. Keys contain the current values and full validation context.
+Changed counts, revisions or inputs revalidate, and callers receive fresh result
+objects. This preserves evidence replay's existing cache behavior rather than
+replacing cached checks with repeated IPC. One actual worker drops from 42 framed
+native requests to one; this is a request-count result, not codec throughput.
+
+The final inventory is 34 Python files / 8,177 lines, about 38% below the original
+13,120 lines. This batching step removes 73 Python lines including its regression
+coverage; the merged build-policy test adds 14, for a net reduction of 59 since
+the previous inventory. All remaining modules retain active callers. The newly
+retained, source-bound helper-profile comparison brings JSON inventory to
+577 files / 2,818,980 bytes, with no audit errors. Historical bytes are unchanged.
+Core/WASM package allowlists remain 67/6 members; all five workspace members use
+the root dependency catalog. No production codec source or build script changes.
+
+Validation is bound to exact sources. A shared-checkout campaign stopped after
+350 complete steps when a parallel merge changed HEAD; its failure is preserved.
+An independent clean checkout of `9b75e02` then completes all 574 capture/replay
+workers: 516 dynamic workers, 28 ordinary verify workers and 30 stream workers,
+covering 6,888 observations. It passes all 126 native tests (101 unit, 25 CLI),
+258 Python tests, strict Clippy, Linux compilation, 517 core tests with 43 existing
+ignored cases, ten doctests and a package-scoped no_std check. The compatibility
+probe again passes 200 exact parity configurations and both decoding directions;
+offline packaging rebuilds the extracted 67-file crate.
+
+The later `39f6ee7` integration changes the helper build profile, its test,
+documentation and archived benchmark. Its Rust source, codec manifests and
+lockfile are identical to `9b75e02`. Optimized native tests again pass all 126
+cases, and all 35 relevant current controller/integration tests pass, including
+the new optimized-build policy test. Both the development and optimized helpers
+agree with the original paths across 7,503 checks: 562 complete real workers,
+6,744 raw row batches and 197 mutated inputs. Complete values and refusal
+decisions agree, including all newly captured sampling workers. The larger native
+counterpart and source-bound replay validations remain distinct from performance
+qualification; no new codec latency or throughput claim is made.
