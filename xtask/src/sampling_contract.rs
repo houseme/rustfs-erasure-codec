@@ -5,6 +5,8 @@ use serde_json::{Value, json};
 
 #[path = "../../scripts/release-sampling/service_window.rs"]
 mod service_window;
+pub(crate) const MINIMUM_WALL_NS: u64 = service_window::MINIMUM_WALL_NS;
+pub(crate) const MINIMUM_TIMED_NS: u64 = service_window::MINIMUM_TIMED_NS;
 
 const _: () = {
     use service_window::*;
@@ -608,7 +610,7 @@ fn placement(record: &Value, allowed: Option<&[u64]>) -> Result<()> {
     }
     Ok(())
 }
-fn telemetry(record: &Value, allowed: Option<&[u64]>) -> Result<()> {
+pub(crate) fn telemetry(record: &Value, allowed: Option<&[u64]>) -> Result<()> {
     for point in [&record["before"], &record["after"]] {
         if !keys(point, COUNTERS) {
             return Err("per-sample scheduling telemetry is required".into());
@@ -631,7 +633,7 @@ fn telemetry(record: &Value, allowed: Option<&[u64]>) -> Result<()> {
 pub(crate) fn valid_page_size(page: u64) -> bool {
     (1024..=1048576).contains(&page) && page.is_power_of_two()
 }
-fn fixture(record: &Value, profile: &str, page: Option<u64>) -> Result<()> {
+pub(crate) fn fixture(record: &Value, profile: &str, page: Option<u64>) -> Result<()> {
     let contract = fixture_contract(profile, text(&record["case"], "missing fixture case")?)?;
     let f = &record["fixture"];
     if contract.is_null() {
@@ -679,40 +681,48 @@ fn fixture(record: &Value, profile: &str, page: Option<u64>) -> Result<()> {
             },
         ),
     ] {
-        let buffers = f[role]
-            .as_array()
-            .filter(|v| v.len() == count as usize)
-            .ok_or("incomplete fixture buffer layout")?;
-        for buffer in buffers {
-            if !keys(
-                buffer,
-                &["len", "capacity", "offset_64", "offset_4096", "offset_page"],
-            ) {
-                return Err("invalid fixture buffer position".into());
-            }
-            let n = |key: &str| uint(&buffer[key], "invalid fixture buffer position");
-            let (len, cap, small, large, offset) = (
-                n("len")?,
-                n("capacity")?,
-                n("offset_64")?,
-                n("offset_4096")?,
-                n("offset_page")?,
-            );
-            let modulus = actual.min(4096);
-            if len != c.size
-                || cap < c.size
-                || large >= 4096
-                || small >= 64
-                || large % 64 != small
-                || offset >= actual
-                || offset % modulus != large % modulus
-            {
-                return Err("invalid fixture shape or offset".into());
-            }
+        positions(&f[role], count as usize, c.size, actual)?;
+    }
+    Ok(())
+}
+pub(crate) fn positions(value: &Value, count: usize, size: u64, page: u64) -> Result<()> {
+    if !valid_page_size(page) {
+        return Err("invalid fixture page size".into());
+    }
+    let buffers = value
+        .as_array()
+        .filter(|v| v.len() == count)
+        .ok_or("incomplete fixture buffer layout")?;
+    for buffer in buffers {
+        if !keys(
+            buffer,
+            &["len", "capacity", "offset_64", "offset_4096", "offset_page"],
+        ) {
+            return Err("invalid fixture buffer position".into());
+        }
+        let n = |key: &str| uint(&buffer[key], "invalid fixture buffer position");
+        let (len, cap, small, large, offset) = (
+            n("len")?,
+            n("capacity")?,
+            n("offset_64")?,
+            n("offset_4096")?,
+            n("offset_page")?,
+        );
+        let modulus = page.min(4096);
+        if len != size
+            || cap < size
+            || large >= 4096
+            || small >= 64
+            || large % 64 != small
+            || offset >= page
+            || offset % modulus != large % modulus
+        {
+            return Err("invalid fixture shape or offset".into());
         }
     }
     Ok(())
 }
+
 fn timing(record: &Value, profile: &str, count: u64) -> Result<()> {
     let timed = positive(&record["timed_ns"], "invalid measured interval")?;
     positive(&record["wall_ns"], "invalid measured interval")?;

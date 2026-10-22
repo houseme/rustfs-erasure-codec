@@ -2,6 +2,7 @@
 pub(crate) mod catalog;
 pub(crate) mod dynamic;
 mod dynamic_ledger;
+pub(crate) mod layout;
 pub(crate) mod ledger;
 pub mod leopard;
 pub(crate) mod overlays;
