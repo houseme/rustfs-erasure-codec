@@ -168,6 +168,25 @@ fn cpu_placement(files: &mut Files, root: &Path, tool: &Path, allocations: bool)
     Ok(())
 }
 
+fn native_service_clock(files: &mut Files, tool: &Path) -> Result<()> {
+    let mut process = source::replace_once(
+        &files["process.rs"],
+        "pub(super) fn snapshot() -> String {",
+        "fn snapshot_process() -> String {",
+        "diagnostic process entry changed",
+    )?;
+    process.push_str("\n#[path = \"native_service_clock.rs\"] mod native_service_clock;\npub(super) fn snapshot() -> String { native_service_clock::snapshot(snapshot_process) }\npub(super) fn native_clock_probe() { native_service_clock::probe(); }\n");
+    files.insert("process.rs".into(), process);
+    files.insert(
+        "native_service_clock.rs".into(),
+        source::read(tool.join("scripts/diagnostics/native_service_clock.rs"))?,
+    );
+    files.get_mut("root.rs").ok_or("missing sampler root")?.push_str(
+        "\n#[test]\n#[ignore]\nfn native_service_clock_probe() { process::native_clock_probe(); }\n",
+    );
+    Ok(())
+}
+
 pub fn render(root: &Path, tool: &Path, variant: &str, allocations: bool) -> Result<Files> {
     if allocations && variant != "cpu-placement" {
         return Err("allocation probe is only supported for CPU placement".into());
@@ -177,6 +196,7 @@ pub fn render(root: &Path, tool: &Path, variant: &str, allocations: bool) -> Res
     }
     let mut files = sampler::render(root, tool)?;
     match variant {
+        "native-service-clock" => native_service_clock(&mut files, tool)?,
         "views" => views(&mut files, tool)?,
         "verify" => {
             files.insert("engine.rs".into(), verify_engine(&files["engine.rs"])?);
@@ -221,6 +241,28 @@ mod tests {
             write!(result, "{byte:02x}").unwrap();
         }
         result
+    }
+
+    #[test]
+    fn native_clock_changes_only_the_independent_process_observer() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
+        let original = sampler::render(root, root).unwrap();
+        let observed = render(root, root, "native-service-clock", false).unwrap();
+        for (name, value) in &original {
+            if name != "process.rs" && name != "root.rs" {
+                assert_eq!(&observed[name], value, "{name}");
+            }
+        }
+        assert!(observed["root.rs"].starts_with(&original["root.rs"]));
+        assert!(observed.contains_key("native_service_clock.rs"));
+    }
+
+    #[test]
+    fn native_clock_rejects_a_changed_process_entry() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
+        let mut files = sampler::render(root, root).unwrap();
+        files.insert("process.rs".into(), "fn changed() {}".into());
+        assert!(native_service_clock(&mut files, root).is_err());
     }
 
     #[test]
