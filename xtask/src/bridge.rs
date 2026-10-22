@@ -191,7 +191,8 @@ impl Request {
     }
 }
 
-const REQUEST_LIMIT: usize = 16 * 1024 * 1024;
+// A complete 32 MiB artifact plus the small typed request envelope/newline.
+const REQUEST_LIMIT: usize = 32 * 1024 * 1024 + 64 * 1024;
 const RESPONSE_LIMIT: usize = 32 * 1024 * 1024;
 
 fn decode(bytes: &[u8]) -> Result<Request> {
@@ -223,7 +224,7 @@ fn serve(
             return Ok(());
         }
         if read > request_limit {
-            return Err("native request exceeds 16 MiB".into());
+            return Err("native request exceeds artifact transport byte budget".into());
         }
         let result = decode(&bytes).and_then(Request::execute);
         let reply = match result {
@@ -266,7 +267,7 @@ pub(crate) fn run(args: &Args) -> Result<()> {
             .take(REQUEST_LIMIT as u64 + 1)
             .read_to_end(&mut bytes)?;
         if bytes.len() > REQUEST_LIMIT {
-            return Err("native source request exceeds 16 MiB".into());
+            return Err("native source request exceeds artifact transport byte budget".into());
         }
         decode(&bytes)?
     } else {

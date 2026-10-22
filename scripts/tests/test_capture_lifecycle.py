@@ -262,6 +262,14 @@ class NativeControllerBindingsTests(unittest.TestCase):
     def field(self, value):
         return self.native.request('provenance-field', row={'cpu_model':value}, field='cpu_model')
 
+    def test_artifact_sized_requests_preserve_the_next_worker_frame(self):
+        self.native.close_worker()
+        value=self.native.request('provenance-field',row={'backend':'scalar','extra':'x'*(17*1024*1024)},field='backend')
+        self.assertEqual(value,'scalar')
+        worker=self.native._worker
+        self.assertEqual(self.field('ordinary cpu'),'ordinary cpu')
+        self.assertIs(self.native._worker,worker)
+
     def test_native_controller_builds_the_optimized_host_tool(self):
         host='aarch64-apple-darwin'
         artifact=dict(reason='compiler-artifact',target=dict(name='xtask'),
