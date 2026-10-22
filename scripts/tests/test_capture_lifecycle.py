@@ -252,4 +252,90 @@ class CaptureLifecycleTests(unittest.TestCase):
         self.assert_removed(self.candidate)
 
 
+class NativeControllerBindingsTests(unittest.TestCase):
+    def setUp(self):
+        import native_tools
+        self.native = native_tools
+        self.native.close_worker()
+        self.addCleanup(self.native.close_worker)
+
+    def field(self, value):
+        return self.native.request('provenance-field', row={'cpu_model':value}, field='cpu_model')
+
+    def test_sampling_contract_cache_returns_private_copies_and_reuses_the_native_worker(self):
+        self.field('sampling cache test')
+        case='reconstruct_shard_slot:4:2:1024'
+        first=self.native.sampling_contract('workload-contract','small_file',case)
+        child=self.native._worker
+        first['seed']=0
+        self.assertEqual(self.native.sampling_contract('workload-contract','small_file',case)['seed'],65406575726428439)
+        catalog=self.native.sampling_catalog();catalog['cases']['smoke'].clear()
+        self.assertEqual(len(self.native.sampling_catalog()['cases']['smoke']),15)
+        self.assertIs(self.native._worker,child)
+
+    def test_controller_reuses_one_owned_worker_and_validation_errors_do_not_reset_it(self):
+        self.assertEqual(self.field('CPU one'),'CPU one')
+        child=self.native._worker
+        with self.assertRaises(ValueError):
+            self.native.request('benchmark-rows',rows=[],source='fixture')
+        self.assertIs(self.native._worker,child)
+        self.assertEqual(self.field('CPU two'),'CPU two')
+        self.native.close_worker()
+        self.assertEqual(child.returncode,0)
+
+    def test_concurrent_calls_do_not_exchange_each_others_responses(self):
+        from concurrent.futures import ThreadPoolExecutor
+        expected=['CPU '+str(i) for i in range(40)]
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            self.assertEqual(list(pool.map(self.field,expected)),expected)
+        self.assertIsNone(self.native._worker.poll())
+
+    def test_dead_worker_fails_the_current_call_without_replay_and_next_call_can_restart(self):
+        self.field('before')
+        child=self.native._worker
+        child.terminate();child.wait(timeout=5)
+        with self.assertRaises((OSError,ValueError)):
+            self.field('interrupted')
+        self.assertIsNone(self.native._worker)
+        self.assertEqual(self.field('after'),'after')
+        self.assertIsNot(self.native._worker,child)
+
+    def test_normalization_cache_is_immutable_and_provenance_alias_mutations_are_rechecked(self):
+        row={'operation':'encode','data_shards':4,'parity_shards':2,'shard_size':1024,
+             'throughput_mb_s':2866592468.8449306,'ns_per_iter':8.344125545873929e-19,'backend':'scalar'}
+        result=next(iter(self.native.index_records([row]).values()))
+        self.assertEqual(result['throughput_mb_s'],row['throughput_mb_s'])
+        self.assertEqual(result['ns_per_iter'],row['ns_per_iter'])
+        result['backend']='changed'
+        self.assertEqual(next(iter(self.native.index_records([row]).values()))['backend'],'scalar')
+        self.assertEqual(self.native.provenance_value(row,'backend'),'scalar')
+        row['backend_name']='rust-neon'
+        with self.assertRaisesRegex(ValueError,'conflicting aliases'):
+            self.native.provenance_value(row,'backend')
+
+    def test_observation_batches_keep_references_and_validate_across_frame_boundaries(self):
+        rows=[dict(case='a',kind='sample',index=i,rows=[{'backend':'scalar'}],placement={'cpu':2}) for i in range(130)]
+        with mock.patch.object(self.native,'request',wraps=self.native.request) as calls:
+            reference=self.native.observation_contracts('smoke',rows)
+        self.assertEqual(calls.call_count,3)
+        self.assertIs(reference['a'][0],rows[0]['rows'][0])
+        self.assertIs(reference['a'][1],rows[0]['placement'])
+        self.assertEqual(self.native.observation_contracts('smoke',rows,reference),reference)
+        rows[-1]['rows'][0]['backend_id']='changed'
+        with self.assertRaisesRegex(ValueError,'a sample\\[129\\].*backend_id'):
+            self.native.observation_contracts('smoke',rows,reference)
+
+    def test_live_capture_and_file_adapters_use_fresh_caller_context(self):
+        self.field('pure worker')
+        child=self.native._worker
+        self.native._executable()
+        with mock.patch.object(self.native,'_run',side_effect=['{"process_thp_disable":0}','{"process_thp_disable":3}','"source"']) as fresh:
+            self.assertEqual(self.native.capture_memory_policy()['process_thp_disable'],0)
+            self.assertEqual(self.native.capture_memory_policy()['process_thp_disable'],3)
+            self.assertEqual(self.native.native_template('views'),'source')
+        self.assertEqual(fresh.call_count,3)
+        self.assertIs(self.native._worker,child)
+        self.assertIsNone(child.poll())
+
+
 if __name__ == '__main__': unittest.main()

@@ -2,9 +2,9 @@
 import copy
 import hashlib
 import pathlib
+import native_tools
 import release_sampling as sampling
 
-TEMPLATE = pathlib.Path(__file__).resolve().parent/'diagnostics/stream_views.rs'
 PREFIX = 'RSE_STREAM_VIEWS '
 ENTRIES = {"encode_stream":"Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
            "verify_stream":"Vec<stream_views::Reader<'_>>",
@@ -12,14 +12,7 @@ ENTRIES = {"encode_stream":"Vec<stream_views::Reader<'_>> -> Vec<stream_views::W
 
 
 def native_template():
-    # Reuse the exact ordinary parser implementations without changing its
-    # visibility, source, protocol or formal overlay digest.
-    engine=(sampling.TEMPLATES/'engine.rs').read_text()
-    helpers=''.join('\n#[cfg(target_os = "linux")]\n'+sampling.block(engine, declaration)+'\n'
-        for declaration in ('fn read_bounded','fn process_faults'))
-    text=TEMPLATE.read_text();marker='\n#[cfg(test)]\nmod tests {'
-    if text.count(marker)!=1:raise ValueError('stream diagnostic test boundary changed')
-    return text.replace(marker,helpers+marker,1).replace('mod page_residency;', 'mod page_residency {\n'+(TEMPLATE.parent/'page_residency.rs').read_text()+'\n}',1)
+    return native_tools.native_template('views')
 
 
 def implementation_digest():
@@ -27,54 +20,7 @@ def implementation_digest():
 
 
 def render(root):
-    result = sampling.render(root)
-    text = result['stream.rs']
-    kernel = sampling.block(text,'fn execute_release_kernel')
-    changed = kernel
-    for pattern,operation in sampling.STREAM_KERNELS:
-        original = sampling.original_loop(kernel,pattern)
-        loop=original;edits=[]
-        def edit(before,after):
-            nonlocal loop
-            if loop.count(before)!=1:raise ValueError('stream diagnostic adapter source changed')
-            loop=loop.replace(before,after,1);edits.append((before,after))
-        edit('for _ in 0..iterations {','for _ in 0..iterations {\n                super::stream_views::call();')
-        if operation != 'reconstruct_stream':
-            edit('let mut readers: Vec<&[u8]> = original.iter().map(Vec::as_slice).collect();',
-                 'let mut readers: Vec<_> = original.iter().map(|v| super::stream_views::Reader(v.as_slice())).collect();\n                super::stream_views::readers(&readers);')
-            if operation=='encode_stream':
-                edit('reserved_stream_outputs(case.parity_shards, case.shard_size)','super::stream_views::outputs(case.parity_shards, case.shard_size)')
-                edit('                rs.encode_stream(', '                super::stream_views::writers(&writers);\n                rs.encode_stream(')
-                edit('                .unwrap();', '                .unwrap();\n                super::stream_views::after_encode();')
-        else:
-            marker='                cursors[0] = Cursor::new(Vec::new());'
-            edit(marker,'                super::stream_views::cursors(&cursors, 6);\n'+marker)
-            marker='                assert_eq!(cursors[0].get_ref(), &original[0]);'
-            edit(marker,marker+'\n                super::stream_views::cursors(&cursors, 7);')
-            edit('                rs.reconstruct_stream(', '                super::stream_views::cursors(&cursors, 8);\n                rs.reconstruct_stream(')
-        drops='super::stream_views::drop_outputs(writers); drop(readers);' if operation=='encode_stream' else 'drop(readers);' if operation=='verify_stream' else 'drop(cursors);'
-        edit('\n            }','\n                '+drops+'\n                super::stream_views::end_call();\n            }')
-        restored=loop
-        for before,after in reversed(edits):
-            if restored.count(after)!=1:raise ValueError('stream diagnostic edit no longer reversible')
-            restored=restored.replace(after,before,1)
-        if restored!=original:raise ValueError('diagnostic changed an original non-observer statement')
-        changed=changed.replace(original,loop,1)
-    text=text.replace(kernel,changed,1)
-    marker='        let elapsed = execute_release_kernel(self, iterations);'
-    if text.count(marker)!=1:raise ValueError('stream preparation changed')
-    text=text.replace(marker,'        super::stream_views::begin(&self.source, iterations, self.fixture.page_size());\n'+marker+'\n        super::stream_views::finish();',1)
-    # Keep the raw entry declarations honest: this is an explicitly different,
-    # transparent I/O adapter, never an original Vec performance observation.
-    text=text.replace('"Vec<&[u8]> -> Vec<Vec<u8>>"','"'+ENTRIES['encode_stream']+'"')
-    text=text.replace('"Vec<&[u8]>"','"'+ENTRIES['verify_stream']+'"')
-    result['stream.rs']=text
-    result['stream_views.rs']=native_template()
-    marker='fn release_controlled_profile() {'
-    if result['root.rs'].count(marker)!=1:raise ValueError('controlled worker entry changed')
-    result['root.rs']=result['root.rs'].replace(marker,marker+' stream_views::enable();',1)
-    result['root.rs']+='\n#[path="rse_release_sampling/stream_views.rs"] mod stream_views;\n'
-    return result
+    return native_tools.diagnostic_render(root, 'views')
 
 
 def underlying_records(records):

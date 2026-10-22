@@ -48,7 +48,7 @@ for backend in "${BACKENDS[@]}"; do
 done
 
 OUT_JSON="benchmarks/x86_64-simd/${DATE_UTC}-${CPU_SLUG}.json"
-python3 scripts/summarize_x86_simd_benchmarks.py \
+cargo xtask summarize-simd \
   --root "${ROOT_DIR}" \
   --machine-json "${OUT_JSON}" \
   --machine-slug "${CPU_SLUG}" \

@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 import pathlib
+import native_tools
 import subprocess
 
 from diagnostic_overlay import overlay as generated_overlay
@@ -23,25 +24,7 @@ PREFIX = 'RSE_SLOT_LAYOUT '
 
 
 def render(root, traced):
-    result = sampling.render(root)
-    if not traced:
-        return result
-    kernel = sampling.block(result['small_file.rs'], 'fn execute_release_kernel')
-    original = sampling.original_loop(kernel, 'SmallFileOp::ReconstructShardSlot')
-    if any(original.count(fragment) != 1 for fragment in ('let mut shards = shards_to_slots(original);', 'mark_missing_slots(&mut shards, &[0, case.data_shards]);', 'rs.reconstruct(&mut shards).unwrap();')):
-        raise ValueError('ShardSlot workload changed; review the diagnostic adapter')
-    changed = '            let mut trace = super::slot_trace::Trace::for_process(original, iterations);\n'+original
-    changed = changed.replace('                let mut shards = shards_to_slots(original);',
-        '                let clone_start = Instant::now();\n                let mut shards = shards_to_slots(original);')
-    changed = changed.replace('                rs.reconstruct(&mut shards).unwrap();',
-        '                let clone_ns = clone_start.elapsed().as_nanos();\n                trace.before(&shards);\n                let reconstruct_start = Instant::now();\n                rs.reconstruct(&mut shards).unwrap();\n                let reconstruct_ns = reconstruct_start.elapsed().as_nanos();\n                trace.after(&shards, original);\n                let drop_start = Instant::now();\n                drop(shards);\n                trace.phases(clone_ns, reconstruct_ns, drop_start.elapsed().as_nanos());')
-    changed += '\n            trace.finish();'
-    if kernel.count(original) != 1 or changed == original:
-        raise ValueError('ShardSlot workload changed; review the diagnostic adapter')
-    result['small_file.rs'] = result['small_file.rs'].replace(kernel, kernel.replace(original, changed, 1), 1)
-    result['slot_trace.rs'] = TEMPLATE.read_text()
-    result['root.rs'] += '\n#[path="rse_release_sampling/slot_trace.rs"] mod slot_trace;\n'
-    return result
+    return native_tools.diagnostic_render(root, 'shard-slot') if traced else sampling.render(root)
 
 
 @contextmanager

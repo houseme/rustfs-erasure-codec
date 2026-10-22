@@ -28,8 +28,7 @@ JSONL_PATH="${OUT_DIR}/estimates.jsonl"
 SUMMARY_JSON="${OUT_DIR}/summary.json"
 SUMMARY_MD="${OUT_DIR}/summary.md"
 META_JSON="${OUT_DIR}/run-meta.json"
-EXTRACT_HELPER="${OUT_DIR}/extract_galois_backend_criterion.py"
-ANALYZE_HELPER="${OUT_DIR}/analyze_galois_backend_abba.py"
+TOOLS="${OUT_DIR}/rse-tools"
 
 if ! git diff --quiet || ! git diff --cached --quiet; then
   echo "working tree must be clean before ABBA switching" >&2
@@ -48,68 +47,17 @@ cleanup() {
 trap cleanup EXIT
 
 mkdir -p "${OUT_DIR}"
-cp scripts/extract_galois_backend_criterion.py "${EXTRACT_HELPER}"
-cp scripts/analyze_galois_backend_abba.py "${ANALYZE_HELPER}"
-
-python3 - "${META_JSON}" \
-  "${BASELINE_REF}" \
-  "${CANDIDATE_REF}" \
-  "${BACKEND}" \
-  "${FEATURES}" \
-  "${SAMPLE_SIZE}" \
-  "${WARMUP_TIME}" \
-  "${MEASUREMENT_TIME}" \
-  "${COOLDOWN_SECONDS}" \
-  "${DRIFT_THRESHOLD}" \
-  "${CPUSET}" <<'PY'
-import json
-import os
-import pathlib
-import platform
-import subprocess
-import sys
-
-(
-    out,
-    baseline,
-    candidate,
-    backend,
-    features,
-    sample_size,
-    warmup_time,
-    measurement_time,
-    cooldown_seconds,
-    drift_threshold,
-    cpuset,
-) = sys.argv[1:]
-
-def capture(cmd):
-    try:
-        return subprocess.check_output(cmd, text=True, stderr=subprocess.STDOUT).strip()
-    except Exception as exc:
-        return f"<unavailable: {exc}>"
-
-payload = {
-    "baseline_ref": baseline,
-    "candidate_ref": candidate,
-    "backend_override": backend,
-    "features": features,
-    "sample_size": sample_size,
-    "warmup_time": warmup_time,
-    "measurement_time": measurement_time,
-    "cooldown_seconds": cooldown_seconds,
-    "drift_threshold": drift_threshold,
-    "cpuset": cpuset,
-    "hostname": platform.node(),
-    "machine": platform.machine(),
-    "platform": platform.platform(),
-    "uname": capture(["uname", "-a"]),
-    "lscpu": capture(["lscpu"]),
-    "rustc": capture(["rustc", "--version", "--verbose"]),
-    "cargo": capture(["cargo", "--version"]),
-}
-pathlib.Path(out).write_text(json.dumps(payload, indent=2, sort_keys=True))
-PY
+# Freeze one executable before switching revisions. Old revisions do not need
+# xtask sources or its dependencies, and no Python helper is copied or invoked.
+TOOL_HOST="$(rustc -vV | sed -n 's/^host: //p')"
+cargo build --locked --release --package xtask --target "${TOOL_HOST}" --target-dir target/rse-tools
+cp "target/rse-tools/${TOOL_HOST}/release/xtask" "${TOOLS}"
+"${TOOLS}" abba-metadata --output "${META_JSON}" \
+  --baseline-ref "${BASELINE_REF}" --candidate-ref "${CANDIDATE_REF}" \
+  --backend-override "${BACKEND}" --features "${FEATURES}" \
+  --sample-size "${SAMPLE_SIZE}" --warmup-time "${WARMUP_TIME}" \
+  --measurement-time "${MEASUREMENT_TIME}" --cooldown-seconds "${COOLDOWN_SECONDS}" \
+  --drift-threshold "${DRIFT_THRESHOLD}" --cpuset "${CPUSET}"
 
 run_stage() {
   local stage="$1"
@@ -120,7 +68,7 @@ run_stage() {
   git switch --quiet --detach "${ref}"
   commit="$(git rev-parse --short HEAD)"
   echo "==> ${stage} ${commit} backend=${BACKEND}"
-  stage_start="$(python3 -c 'import time; print(time.time())')"
+  stage_start="$("${TOOLS}" epoch)"
 
   local -a command=(
     cargo bench --bench galois_backend --features "${FEATURES}" --
@@ -137,7 +85,7 @@ run_stage() {
     "${command[@]}" 2>&1 | tee "${OUT_DIR}/${stage}-${commit}.log"
 
   if [[ "${write_header}" == "yes" ]]; then
-    python3 "${EXTRACT_HELPER}" \
+    "${TOOLS}" extract-criterion \
       --stage "${stage}" \
       --commit "${commit}" \
       --backend-override "${BACKEND}" \
@@ -146,7 +94,7 @@ run_stage() {
       --updated-after-epoch "${stage_start}" \
       --write-header
   else
-    python3 "${EXTRACT_HELPER}" \
+    "${TOOLS}" extract-criterion \
       --stage "${stage}" \
       --commit "${commit}" \
       --backend-override "${BACKEND}" \
@@ -171,7 +119,7 @@ run_stage B2 "${CANDIDATE_REF}" no
 cooldown
 run_stage A2 "${BASELINE_REF}" no
 
-python3 "${ANALYZE_HELPER}" \
+"${TOOLS}" analyze-abba \
   --csv "${CSV_PATH}" \
   --summary-json "${SUMMARY_JSON}" \
   --summary-md "${SUMMARY_MD}" \

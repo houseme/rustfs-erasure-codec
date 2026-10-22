@@ -8,14 +8,13 @@ import copy
 import json
 import os
 import pathlib
+import native_tools
 import re
 import subprocess
 
 import release_evidence as e
 import release_sampling as s
 from diagnostic_overlay import overlay
-import stream_core_source as edits
-import dynamic_leopard_source as leopard
 
 MODULE = '__rse_dynamic_buffers'
 PREFIX = 'RSE_DYNAMIC_BUFFERS '
@@ -28,81 +27,23 @@ SUPPLEMENTS = {
     'leopard_gf16:10:4:32768': ('LeopardGF16',1,True),
     'leopard_gf16:10:4:65600': ('LeopardGF16',1,True),
 }
-NAMES = ('src/lib.rs', 'src/matrix.rs', 'src/core/reconstruct.rs', 'src/galois_8/policy.rs') + leopard.FILES
-TEMPLATE = pathlib.Path(__file__).resolve().parent/'diagnostics/dynamic_buffers.rs'
-API = 'rustfs_erasure_codec::' + MODULE + '::'
-LIB = 'crate::' + MODULE + '::'
+NAMES = ('src/lib.rs', 'src/matrix.rs', 'src/core/reconstruct.rs', 'src/galois_8/policy.rs') + native_tools.LEOPARD_FILES
 
 
 def native_template():
-    text = TEMPLATE.read_text().replace('mod page_residency;', 'mod page_residency {\n'+(TEMPLATE.parent/'page_residency.rs').read_text()+'\n}', 1)
-    engine = (s.TEMPLATES/'engine.rs').read_text()
-    shared=s.block((TEMPLATE.parent/'stream_core.rs').read_text(),'fn faults()')
-    return text+'\n'+shared+'\n'+''.join('\n#[cfg(target_os="linux")]\n'+s.block(engine, name)+'\n' for name in ('fn read_bounded', 'fn process_faults'))
+    return native_tools.native_template('dynamic')
 
 
 def patch_matrix(text):
-    heap = 'self.data.spilled()' if 'data: SmallVec<' in text else 'true'
-    helper = ('\n    pub(crate) fn __rse_buffer_view(&self, stage: &\'static str) {\n'
-              f'        {LIB}span("matrix",stage,0,self.data.as_ptr(),self.data.len(),Some(self.data.capacity()),if {heap} {{"heap"}} else {{"inline"}},true);\n'
-              '    }\n')
-    marker = 'impl<F: Field> Matrix<F> {'
-    if text.count(marker) != 1: raise ValueError('matrix implementation changed')
-    text = text.replace(marker, marker+helper, 1)
-    def change(original, edit):
-        if original.count('        let mut work = self.augment(&Self::identity(row_count))?;') != 1: raise ValueError('matrix scratch initializer changed')
-        marker = '        work.gaussian_elim()?;'
-        edit(marker, '        work.__rse_buffer_view("invert_ready");\n'+marker+'\n        work.__rse_buffer_view("invert_coded");')
-    text = edits.method(text, '    pub fn invert(', change)
-    # Observe every original matrix constructor's initialized element storage.
-    def change_new(original, edit):
-        marker = '        Matrix {'
-        h = 'data.spilled()' if 'data: SmallVec<' in text else 'true'
-        edit(marker, f'        {LIB}span("matrix","constructed",0,data.as_ptr(),data.len(),Some(data.capacity()),if {h} {{"heap"}} else {{"inline"}},true);\n'+marker)
-    return edits.method(text, '    pub fn new(rows:', change_new)
-
-
-def region(text, declaration):
-    def change(original, edit):
-        prefix = original[:original.index('{')+1]
-        edit(prefix, prefix+f'\n        let _rse_region = {LIB}Region::new("decode");')
-    return edits.method(text, declaration, change)
+    return native_tools.request('matrix-source', text=text)
 
 
 def patch_decode(text):
-    for declaration in ('    pub fn reconstruct<', '    pub fn reconstruct_data<', '    pub fn reconstruct_some<'):
-        text = region(text, declaration)
-    def matrix(original, edit):
-        marker = '            if let Some(entry) = cache.get(invalid_indices) {'
-        edit(marker, marker+'\n                entry.__rse_buffer_view("decode_cached");')
-        marker = '        let data_decode_matrix = Arc::new('
-        edit(marker, '        sub_matrix.__rse_buffer_view("decode_submatrix");\n'+marker)
-        marker = '        Ok(data_decode_matrix)'
-        edit(marker, '        data_decode_matrix.__rse_buffer_view("decode_ready");\n'+marker)
-    text = edits.method(text, '    pub(crate) fn get_data_decode_matrix(', matrix)
-    text=region(text, '    pub(crate) fn get_data_decode_matrix(')
-    if '    fn reconstruct_leopard_impl<' in text:
-        def owned(original,edit):
-            if 'let mut recovered: SmallVec<[Vec<u8>; 32]>' in original:
-                marker='        let mut outputs: SmallVec<[&mut [u8]; 32]> ='
-                edit(marker,'        '+LIB+'buffers("leopard_decoded","prepared",&recovered);\n'+marker)
-                marker='        drop(input_data);'
-                edit(marker,marker+'\n        '+LIB+'buffers("leopard_decoded","decoded",&recovered);')
-            else:
-                marker='        let mut outputs: Vec<&mut [u8]> = output_bufs'
-                edit(marker,'        '+LIB+'buffers("leopard_decoded","prepared",&output_bufs);\n'+marker)
-                marker='        for i in 0..total {\n            if present[i] {'
-                edit(marker,'        '+LIB+'buffers("leopard_decoded","decoded",&output_bufs);\n'+marker)
-        text=edits.method(text,'    fn reconstruct_leopard_impl<',owned)
-    return text
+    return native_tools.request('decode-source', text=text)
 
 
 def patch_inputs(original):
-    return {'src/lib.rs': original['src/lib.rs']+'\n#[doc(hidden)]\npub mod '+MODULE+';\n',
-            'src/matrix.rs': patch_matrix(original['src/matrix.rs']),
-            'src/core/reconstruct.rs': patch_decode(original['src/core/reconstruct.rs']),
-            'src/galois_8/policy.rs': region(original['src/galois_8/policy.rs'], '    pub fn reconstruct_opt('),
-            'src/'+MODULE+'.rs': native_template(), **leopard.patch(original)}
+    return native_tools.request('dynamic-source', original=original, tool=str(native_tools.ROOT))
 
 
 def bindings(original):
@@ -127,121 +68,8 @@ def source_overlay(root):
         added.unlink()
 
 
-def patch_loop(loop, transform):
-    changes = []
-    def change(before, after, count=1):
-        nonlocal loop
-        if loop.count(before) != count: raise ValueError('dynamic caller boundary changed: '+before)
-        loop = loop.replace(before, after); changes.append((before, after, count))
-    original = loop
-    transform(change)
-    restored = loop
-    for before, after, count in reversed(changes):
-        if restored.count(after) != count: raise ValueError('caller observer is not reversible')
-        restored = restored.replace(after, before)
-    if restored != original: raise ValueError('observer changed original caller work')
-    return loop
-
-
-def caller_kernel(text, profile):
-    declaration='fn execute_smoke_kernel' if profile=='smoke' else 'fn execute_release_kernel'
-    kernel=s.block(text,declaration)
-    if profile=='smoke':
-        def transform(change):
-            change('    for _ in 0..iterations {', '    for _ in 0..iterations {\n        let _rse_epoch = '+API+'Epoch::begin();')
-            statement = '                    make_full_shards(seed, case.data_shards, case.parity_shards, case.shard_size);'
-            # Also retain non-catalog Leopard source arms unchanged and honest.
-            change(statement, statement+'\n                '+API+'vectors("source","created",&shards);', 6)
-            change('                let old_refs =', '                '+API+'vectors("old_data","cloned",&old_data);\n                '+API+'vectors("updated","changed",&updated);\n                '+API+'vectors("parity","before",&parity);\n                let old_refs =')
-            marker='                rs.update(&old_refs, &changes, &mut parity_refs).unwrap();'
-            change(marker,marker+'\n                '+API+'vectors("parity","updated",&parity);')
-            for method in ('reconstruct', 'reconstruct_data'):
-                marker = f'                rs.{method}(&mut shards).unwrap();'
-                change(marker, '                '+API+'optional("dynamic","missing",&shards);\n'+marker+'\n                '+API+'optional("dynamic","recovered",&shards);')
-            marker = '                rs.encode(&mut shards).unwrap();'
-            change(marker, marker+'\n                '+API+'vectors("source","encoded",&shards);', 5)
-            marker = '                let mut shards: Vec<Option<Vec<u8>>> = shards.into_iter().map(Some).collect();'
-            change(marker, marker+'\n                '+API+'optional("dynamic","moved",&shards);', 2)
-
-        changed=patch_loop(kernel,transform)
-    else:
-        changed=kernel
-        entries=s.SMALL_KERNELS if profile=='small_file' else s.STREAM_KERNELS
-        for pattern,operation in entries:
-            loop=s.original_loop(kernel,pattern)
-            def transform(change):
-                marker='            for _ in 0..iterations {'
-                change(marker,marker+'\n                let _rse_epoch = '+API+'Epoch::begin();\n                '+API+'vectors("source","retained",original);'+('\n                '+API+'vectors("scratch","retained",scratch);' if profile=='small_file' else ''))
-                if profile!='small_file' or not operation.startswith('reconstruct'):return
-                slot=operation=='reconstruct_shard_slot'
-                helper='slots' if slot else 'optional'
-                marker='                let mut shards = shards_to_slots(original);' if slot else '                let mut shards: Vec<Option<Vec<u8>>> = original.iter().cloned().map(Some).collect();'
-                change(marker,marker+'\n                '+API+helper+'("dynamic","cloned",&shards);')
-                method='reconstruct' if slot else 'reconstruct_some' if operation=='reconstruct_some_data_only' else operation
-                args='&mut shards, required' if operation=='reconstruct_some_data_only' else '&mut shards'
-                marker=f'                rs.{method}({args}).unwrap();'
-                change(marker,'                '+API+helper+'("dynamic","missing",&shards);\n'+marker+'\n                '+API+helper+'("dynamic","recovered",&shards);')
-            changed=changed.replace(loop,patch_loop(loop,transform),1)
-    return text.replace(kernel,changed,1)
-
-
-def hotspot_kernel(text):
-    helper=s.block(text,'fn option_shards_with_missing')
-    marker='    let mut working = shards_to_option_shards(shards);'
-    if helper.count(marker)!=1:raise ValueError('hotspot original clone helper changed')
-    text=text.replace(helper,helper.replace(marker,marker+'\n    '+API+'optional("clone","cloned",&working);',1),1)
-    for name in ('data','some'):
-        declaration = 'fn bench_reconstruct_'+name+'_hotspot'
-        kernel = s.block(text,declaration)
-        def transform(change):
-            change('    for _ in 0..iterations {', '    for _ in 0..iterations {\n        let _rse_epoch = '+API+'Epoch::begin();')
-            marker='        let mut shards = make_random_shards!(rng, shard_size, data_shards + parity_shards);'
-            change(marker, marker+'\n        '+API+'vectors("source","created",&shards);')
-            marker='        r.encode(&mut shards).unwrap();'
-            change(marker, marker+'\n        '+API+'vectors("source","encoded",&shards);')
-            for role in ('baseline','candidate'):
-                marker=f'        let mut {role} = option_shards_with_missing(&shards, missing_indices);'
-                change(marker, marker+'\n        '+API+f'optional("{role}","missing",&{role});')
-                method = ('reconstruct' if name=='data' else 'reconstruct_data') if role=='baseline' else ('reconstruct_data' if name=='data' else 'reconstruct_some')
-                args=f'&mut {role}'+(', required' if method=='reconstruct_some' else '')
-                marker=f'        r.{method}({args}).unwrap();'
-                change(marker, marker+'\n        '+API+f'optional("{role}","recovered",&{role});')
-        text=text.replace(kernel,patch_loop(kernel,transform),1)
-    return text
-
-
 def render(root):
-    files=s.render(root)
-    for profile in ('smoke','small_file','stream'): files[profile+'.rs']=caller_kernel(files[profile+'.rs'],profile)
-    files['hotspot.rs']=hotspot_kernel(files['hotspot.rs'])
-    text=files['engine.rs']
-    markers=(('    let constructor_budget = std::thread::available_parallelism().unwrap().get();',
-              '    let _rse_root = '+API+'Root::start(page_size);\n    let constructor_budget = std::thread::available_parallelism().unwrap().get();'),
-             ('            ITERATIONS.with(|n| n.set(count));', '            '+API+'observation(index);\n            ITERATIONS.with(|n| n.set(count));'))
-    for old,new in markers:
-        if text.count(old)!=1:raise ValueError('original sampler dynamic boundary changed')
-        text=text.replace(old,new,1)
-    for marker in ('            println!(\n                "\\nRSE_TIMING ', '        println!(\n            "\\nRSE_SAMPLE '):
-        if text.count(marker)!=1:raise ValueError('original numeric export boundary changed')
-        indent=marker.split('println!',1)[0]
-        text=text.replace(marker,indent+'let rse_diagnostic_workload = RseDiagnosticWorkload(&workload);\n'+marker,1)
-    marker='\\"workload\\":{workload}'
-    if text.count(marker)!=2:raise ValueError('original workload formatter changed')
-    text=text.replace(marker,'\\"workload\\":{rse_diagnostic_workload}')
-    text+='\nstruct RseDiagnosticWorkload<\'a>(&\'a super::workload::OptionalWorkload);\nimpl std::fmt::Display for RseDiagnosticWorkload<\'_> {fn fmt(&self,f:&mut std::fmt::Formatter<\'_>)->std::fmt::Result {write!(f, "{{\\"observer\\":\\"dynamic-source-copy-v1\\",\\"contract\\":{}}}", self.0)}}\n'
-    text+='\npub(super) fn rse_dynamic_placement(budget:usize)->impl Fn() {let placement=Placement::prepare(budget); move || {if let Some(p)=&placement {p.check(); assert!(p.is_current());}}}\n'
-    helper_start=text.index('\nstruct RseDiagnosticWorkload')
-    helpers=text[helper_start:]
-    text=text[:helper_start]
-    marker='\n#[cfg(test)]\nmod tests {'
-    if text.count(marker)!=1:raise ValueError('sampler test module boundary changed')
-    text=text.replace(marker,helpers+marker,1)
-    files['engine.rs']=text
-    files['root.rs']+='\n#[global_allocator]\nstatic RSE_DYNAMIC_ALLOCATOR: '+API+'Allocator = '+API+'Allocator;\n'
-    semantics=(TEMPLATE.parent/'dynamic_buffer_semantics.rs').read_text().replace('__RSE_PAGE_SIZE__','observer::native_page_size()').replace('__RSE_CURRENT_SOURCE__','current_source()')
-    files['root.rs']+='\n'+(TEMPLATE.parent/'dynamic_decoder_supplement.rs').read_text()+'\n'+semantics
-
-    return files
+    return native_tools.diagnostic_render(root, 'dynamic')
 # Appended to dynamic_buffer_audit.py; shared strict capture/replay contract.
 MODES = ('calibrate', 'sample')
 EVENT_FIELDS = {'kind','observation','call','thread','region','allocation','allocation_offset','previous',
@@ -275,7 +103,6 @@ def snapshot(event, page, native):
     elif status=='over_budget':
         if pages<=4097 or resident is not None or error is not None:raise ValueError('invalid bounded dynamic query')
     else:raise ValueError('unavailable live dynamic residency')
-
 
 
 def inventory_steps():
@@ -498,7 +325,6 @@ def validate_ledger(data,profile,case,page,native=False,legacy=False):
             'bounded_residency_queries':sum(v['snapshot']['status']=='over_budget' for v in events)}
 
 
-
 def underlying_records(records):
     """Unwrap only the known diagnostic envelope in a private validator copy.
 
@@ -515,14 +341,13 @@ def underlying_records(records):
 
 
 def validate_envelope(report,output,repository):
-    import release_memory_policy
     fields={'schema','release_approval','candidate_attribution','formal_performance_geometry_equivalence','tool','sources','cases','source_overlays','harness_sha256','overlay_sha256','context','page_size','cpu_affinity','native_sha256','sampler_implementation_sha256','controller_sha256'}
     if set(report)!=fields:raise ValueError('unexpected dynamic inventory envelope')
     context=report['context']
     if not isinstance(context,dict) or set(context)!={'compiler','machine','cpu_identity','cpu_affinity','page_size','kernel_memory_policy','libc','allocator_environment','settings'}:raise ValueError('missing dynamic runtime provenance')
     if any(not isinstance(context[k],str) or not context[k] for k in ('compiler','machine','cpu_identity')) or context['cpu_affinity']!=report['cpu_affinity'] or context['page_size']!=report['page_size'] or context['settings']!=e.SAMPLING_ENV:raise ValueError('dynamic runtime/settings differ')
     if not isinstance(context['libc'],list) or len(context['libc'])!=2 or any(not isinstance(v,str) for v in context['libc']) or not isinstance(context['allocator_environment'],dict) or any(not e.allocator_override_key(k) or not isinstance(v,str) for k,v in context['allocator_environment'].items()):raise ValueError('invalid dynamic allocator provenance')
-    if report['cpu_affinity'] is not None:release_memory_policy.validate(context['kernel_memory_policy'],report['page_size'])
+    if report['cpu_affinity'] is not None:native_tools.validate_memory_policy(context['kernel_memory_policy'],report['page_size'])
     elif context['kernel_memory_policy'] is not None:raise ValueError('unrecorded native memory policy')
     tool=report['tool']
     for source in (tool,*report['sources'].values()):
@@ -636,16 +461,14 @@ def overlay_digest(root):
     return e.digest(b''.join(n.encode()+b'\0'+t.replace(str(root),'<SOURCE>').encode() for n,t in sorted(render(root).items())))
 
 
-
 def dynamic_context(root,env):
     import platform
-    import release_memory_policy
     cpus=sorted(os.sched_getaffinity(0)) if hasattr(os,'sched_getaffinity') else None
     linux=platform.system()=='Linux'
     return {'compiler':e.command(['rustc','--version'],root,env),'machine':platform.machine(),
             'cpu_identity':e.cpu_identity(pathlib.Path('/proc/cpuinfo').read_text(),platform.machine(),cpus) if linux else platform.processor() or platform.machine(),
             'cpu_affinity':cpus,'page_size':s.base_page_size(),
-            'kernel_memory_policy':release_memory_policy.capture() if linux else None,
+            'kernel_memory_policy':native_tools.capture_memory_policy() if linux else None,
             'libc':list(platform.libc_ver()),'allocator_environment':{k:v for k,v in sorted(env.items()) if e.allocator_override_key(k)},
             'settings':{k:env[k] for k in e.SAMPLING_ENV}}
 

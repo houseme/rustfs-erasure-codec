@@ -9,11 +9,6 @@ if ! command -v cargo >/dev/null 2>&1; then
   exit 1
 fi
 
-if ! command -v python3 >/dev/null 2>&1; then
-  echo "python3 not found"
-  exit 1
-fi
-
 DATE_UTC="$(date -u +%F)"
 CPU_SLUG="${1:-}"
 if [[ -z "${CPU_SLUG}" ]]; then
@@ -47,42 +42,10 @@ feature_set() {
 }
 
 write_run_meta() {
-  RUN_META_PATH="${RUN_META}" \
-  DATE_UTC_VALUE="${DATE_UTC}" \
-  CPU_SLUG_VALUE="${CPU_SLUG}" \
-  GIT_REVISION_VALUE="$(git_revision)" \
-  FEATURE_SET_VALUE="$(feature_set)" \
-  BACKENDS_VALUE="${BACKENDS[*]}" \
-  python3 - <<'PY'
-import json
-import os
-import pathlib
-import platform
-import subprocess
-
-out = pathlib.Path(os.environ["RUN_META_PATH"])
-
-def capture(cmd):
-    try:
-        return subprocess.check_output(cmd, text=True).strip()
-    except Exception:
-        return ""
-
-payload = {
-    "date_utc": os.environ["DATE_UTC_VALUE"],
-    "machine_slug": os.environ["CPU_SLUG_VALUE"],
-    "git_revision": os.environ["GIT_REVISION_VALUE"],
-    "feature_set": os.environ["FEATURE_SET_VALUE"],
-    "backends": os.environ["BACKENDS_VALUE"].split(),
-    "hostname": platform.node(),
-    "arch": platform.machine(),
-    "platform": platform.platform(),
-    "uname_a": capture(["uname", "-a"]),
-    "lscpu": capture(["lscpu"]),
-}
-out.write_text(json.dumps(payload, indent=2))
-print(out)
-PY
+  cargo xtask machine-metadata --output "${RUN_META}" \
+    --date "${DATE_UTC}" --machine-slug "${CPU_SLUG}" \
+    --git-revision "$(git_revision)" --feature-set "$(feature_set)" \
+    --backends "${BACKENDS[*]}"
 }
 
 run_smoke() {
@@ -111,7 +74,7 @@ for backend in "${BACKENDS[@]}"; do
 done
 
 echo "==> writing ${OUT_JSON}"
-python3 scripts/summarize_x86_simd_benchmarks.py \
+cargo xtask summarize-simd \
   --root "${ROOT_DIR}" \
   --machine-json "${OUT_JSON}" \
   --machine-slug "${CPU_SLUG}" \

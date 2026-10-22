@@ -8,6 +8,7 @@ import argparse
 import json
 import os
 import pathlib
+import native_tools
 import subprocess
 import tempfile
 
@@ -17,54 +18,18 @@ from diagnostic_overlay import overlay
 
 PREFIX = 'RSE_VERIFY_SCRATCH '
 MODULE = '__rse_verify_scratch'
-TEMPLATE = pathlib.Path(__file__).resolve().parent/'diagnostics/verify_scratch.rs'
 
 
 def native_template():
-    text=TEMPLATE.read_text()
-    engine=(sampling.TEMPLATES/'engine.rs').read_text()
-    helpers=''.join('\n#[cfg(target_os = "linux")]\n'+sampling.block(engine,d)+'\n'
-                    for d in ('fn read_bounded','fn process_faults'))
-    text=text.replace('mod page_residency;', 'mod page_residency {\n'+(TEMPLATE.parent/'page_residency.rs').read_text()+'\n}',1)
-    return text+'\n'+helpers
+    return native_tools.native_template('verify')
 
 
 def source_patch(text):
-    declaration='    pub fn verify<T: AsRef<[F::Elem]>>(&self, slices: &[T]) -> Result<bool, Error> {'
-    if text.count(declaration)!=1:raise ValueError('ordinary verify declaration changed')
-    start=text.index(declaration);end=text.index('\n    }',start)+6
-    original=text[start:end];changed=original;edits=[]
-    def edit(a,b):
-        nonlocal changed
-        if changed.count(a)!=1:raise ValueError('ordinary verify scratch statement changed')
-        changed=changed.replace(a,b,1);edits.append((a,b))
-    marker='        let mut scratch: SmallVec<[F::Elem; VERIFY_INLINE_SCRATCH_ELEMS]> ='
-    edit(marker, '        let mut rse_probe = crate::'+MODULE+'::Guard::new(scratch_len);\n'+marker)
-    marker='        scratch.resize(scratch_len, F::zero());'
-    edit(marker,'        rse_probe.reserved(scratch.as_ptr(), scratch.capacity(), !scratch.spilled());\n'+marker+'\n        rse_probe.initialized(scratch.as_ptr(), scratch.len(), scratch.capacity());')
-    marker='        Ok(self.check_some_slices_with_buffer_raw(&parity_rows, data, to_check, &mut buffer_views))'
-    edit(marker,'        let valid = self.check_some_slices_with_buffer_raw(&parity_rows, data, to_check, &mut buffer_views);\n        rse_probe.verified(valid);\n        Ok(valid)')
-    restored=changed
-    for a,b in reversed(edits):
-        if restored.count(b)!=1:raise ValueError('verify diagnostic edit is not reversible')
-        restored=restored.replace(b,a,1)
-    if restored!=original:raise ValueError('verify diagnostic changed a non-observer statement')
-    return text[:start]+changed+text[end:]
+    return native_tools.request('verify-source', text=text)
 
 
 def render(root):
-    files=sampling.render(root);text=files['engine.rs'];prefix='rustfs_erasure_codec::'+MODULE+'::'
-    edits=(('            ITERATIONS.with(|n| n.set(count));','            '+prefix+'observation(index);\n            ITERATIONS.with(|n| n.set(count));'),
-      ('    let (observations, outcome) =\n        measure_fixed(key, count, &mut operation, &ns_per_iter, placement);',
-       '    '+prefix+'start(page_size);\n    let (observations, outcome) =\n        measure_fixed(key, count, &mut operation, &ns_per_iter, placement);'),
-      ('    if let Err(error) = outcome {\n        std::panic::resume_unwind(error);\n    }',
-       '    let diagnostic_ok = '+prefix+'export();\n    if let Err(error) = outcome {\n        std::panic::resume_unwind(error);\n    }\n    assert!(diagnostic_ok, "verify scratch observation failed; raw rows retained");'))
-    for before,after in edits:
-        if text.count(before)!=1:raise ValueError('ordinary sampler diagnostic boundary changed')
-        text=text.replace(before,after,1)
-    files['engine.rs']=text
-    return files
-
+    return native_tools.diagnostic_render(root, 'verify')
 
 
 def patch_inputs(original):
@@ -270,7 +235,6 @@ def _check(repository,output,baseline_ref):
     replay=verify(output,repository)
     (output/'replay.json').write_text(json.dumps(replay,indent=2)+'\n')
     return report
-
 
 
 def check(repository,output,baseline_ref):

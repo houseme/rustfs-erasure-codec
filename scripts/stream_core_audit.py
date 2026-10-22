@@ -8,6 +8,7 @@ import argparse
 import json
 import os
 import pathlib
+import native_tools
 import subprocess
 import tempfile
 
@@ -16,25 +17,18 @@ import release_sampling as sampling
 import stream_view_audit as views
 import verify_scratch_audit as ordinary
 from diagnostic_overlay import overlay
-from stream_core_source import MODULE, source_patch, verify_par_patch
+from native_tools import STREAM_CORE_MODULE as MODULE, stream_source_patch as source_patch, verify_par_patch
 
 PREFIX='RSE_STREAM_CORE '
 NAMES=('src/lib.rs','src/core/stream.rs','src/core/verify.rs')
-TEMPLATE=pathlib.Path(__file__).resolve().parent/'diagnostics/stream_core.rs'
 
 
 def native_template():
-    text=TEMPLATE.read_text().replace('mod page_residency;','mod page_residency {\n'+(TEMPLATE.parent/'page_residency.rs').read_text()+'\n}',1)
-    engine=(sampling.TEMPLATES/'engine.rs').read_text()
-    return text+''.join('\n#[cfg(target_os = "linux")]\n'+sampling.block(engine,d)+'\n' for d in ('fn read_bounded','fn process_faults'))
+    return native_tools.native_template('stream')
 
 
 def render(root):
-    files=views.render(root)
-    # Reuse the same original observation/catch-unwind boundaries. Only the
-    # diagnostic module/message differs; original timing statements are intact.
-    files['engine.rs']=ordinary.render(root)['engine.rs'].replace(ordinary.MODULE,MODULE).replace('verify scratch observation failed','stream core observation failed')
-    return files
+    return native_tools.diagnostic_render(root, 'stream')
 
 
 def patch_inputs(original):
@@ -213,7 +207,6 @@ def _original(repository,source):
     return {n:subprocess.check_output(['git','show',source['commit']+':'+n],cwd=repository).decode() for n in NAMES}
 
 
-
 def worker_data(output,name,entry):
     member=output/(name+'.json');numeric=output/(name+'-journal.jsonl')
     if entry.get('path')!=member.name or entry.get('numeric_journal_path')!=numeric.name:raise ValueError('invalid stream member path')
@@ -230,7 +223,7 @@ def verify(output,repository):
     if any((output/n).exists() for n in ('failure.json','diagnostic-status.json')):raise ValueError('failed diagnostic remains unaccepted')
     report=e.json_data(output/'result.json')
     if report.get('schema')!='stream-core-check-v1' or report.get('release_approval') is not False or report.get('candidate_attribution') is not None or report.get('formal_performance_geometry_equivalence') is not False or report.get('source_copies') is not True:raise ValueError('invalid diagnostic-only source report')
-    if report.get('native_sha256')!=e.digest(native_template().encode()) or report.get('sampler_implementation_sha256')!=sampling.implementation_digest() or not e.DIGEST.fullmatch(report.get('controller_sha256','')) or report.get('source_patcher_sha256')!=e.digest((TEMPLATE.parent.parent/'stream_core_source.py').read_bytes()):raise ValueError('source diagnostic implementation differs')
+    if report.get('native_sha256')!=e.digest(native_template().encode()) or report.get('sampler_implementation_sha256')!=sampling.implementation_digest() or not e.DIGEST.fullmatch(report.get('controller_sha256','')) or report.get('source_patcher_sha256')!=native_tools.implementation_digest():raise ValueError('source diagnostic implementation differs')
     page=report.get('page_size');cpus=report.get('cpu_affinity')
     if not sampling.valid_page_size(page) or cpus is not None and (not isinstance(cpus,list) or not cpus or any(type(c) is not int or c<0 for c in cpus) or cpus!=sorted(set(cpus))):raise ValueError('invalid native page/affinity contract')
     if report.get('harness_sha256')!={r:e.harness_digest(repository) for r in ('baseline','candidate')} or report.get('overlay_sha256')!={r:ordinary.overlay_digest(repository,render(repository)) for r in ('baseline','candidate')}:raise ValueError('stream workers differ')
@@ -262,7 +255,7 @@ def _check(repository,output,baseline_ref):
     report={'schema':'stream-core-check-v1','source_copies':True,'release_approval':False,'candidate_attribution':None,'formal_performance_geometry_equivalence':False,
             'sources':{},'cases':{},'source_overlays':{},'harness_sha256':{},'overlay_sha256':{},
             'sampler_implementation_sha256':sampling.implementation_digest(),'controller_sha256':e.digest(pathlib.Path(__file__).read_bytes()),
-            'native_sha256':e.digest(native_template().encode()),'source_patcher_sha256':e.digest((TEMPLATE.parent.parent/'stream_core_source.py').read_bytes()),
+            'native_sha256':e.digest(native_template().encode()),'source_patcher_sha256':native_tools.implementation_digest(),
             'page_size':sampling.base_page_size(),'cpu_affinity':sorted(os.sched_getaffinity(0)) if hasattr(os,'sched_getaffinity') else None}
     env=dict(e.capture_environment(),RUSTUP_TOOLCHAIN='stable')
     for role,revision in roles.items():
