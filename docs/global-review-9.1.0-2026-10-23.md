@@ -33,6 +33,55 @@ The migration is a consolidation around common contracts. The concrete lifecycle
 defect below belongs in its shared process owner, not in individual collectors.
 No new production fast path is justified by an unfinished diagnostic campaign.
 
+## Source-ledger consolidation
+
+The subsequent review moves ordinary verify scratch and stream-core ownership
+validation into the same unpublished Rust tool (`0350381`, Python bindings in
+`eed9867`). This removes two duplicate Python schedule/shape models. The stream
+validator consumes the expected sequence directly, keeps only actual owners in
+live scopes, and releases scope state on exit. It allocates neither a second
+complete event schedule nor a second map of expected owner shapes. All three
+source/view ledgers share nullable-field, offset and residency rules.
+
+Published 9.0.0 and retained-buffer layouts remain explicit alternatives. The
+former preserves nested per-block `verify_par`, transferred Option owners and
+replacement boundaries. Former-range queries must match the last actual owner;
+an unmapped former range cannot certify a live allocation. Empty source storage
+still requires an explicit empty snapshot, while view snapshots retain their
+existing nonnative unsupported representation. V1/V3 schemas and summaries stay
+unchanged. Typed unsigned fields additionally reject negative first timestamps
+and values beyond u64 that the old Python model accidentally accepted.
+
+The inventory is now 34 Python files / 8,564 lines, down 225 lines in this step
+and about 35% from the original 13,120 lines. Remaining files have active capture,
+rollback, replay or test responsibilities. No additional file is classified as
+obsolete merely to reduce the count. The 576 JSON files retain their original
+bytes and provenance; duplicate historical evidence is not rewritten. Core/WASM
+package allowlists still contain 67/6 members and exclude repository-only tools,
+Python, evidence and contracts. All five workspace
+members inherit dependency declarations from the root Cargo.toml.
+
+The new native tests cover source-version distinctions, required nullable fields,
+counter availability, unchanged original verify results, former owners and page
+arithmetic at u64 limits. These are tooling resource/structure improvements;
+they do not establish a new codec throughput or latency result.
+
+The finalized implementation passes 105 native tests (80 unit, 25 executable),
+strict Clippy and Linux all-target compilation. Its original/native comparison
+covers 3,941 requests: 3,937 identical decisions/summaries plus four explicit
+refusals of the malformed timestamps above. The existing 1,305 stream-view
+comparisons also agree after the shared-rule extraction. The two source copies
+complete 28 ordinary verify and 30 stream workers, capture and replay, totaling
+696 observations / 98,448 events. All 58 complete ledger summaries agree with
+the original Python validators. A prior run is retained as failed because source
+edits during capture changed the implementation fingerprint; the finalized run
+uses the frozen implementation throughout.
+
+The 200-configuration published/local compatibility probe again passes exact
+parity, cross-decoding in both directions and the retained field vectors. An
+offline Cargo package again contains 67 files / 192.0 KiB compressed and rebuilds
+its extracted sources. Package, JSON and workspace audits pass without uploads.
+
 ## Verified defects and fixes
 
 ### Background worker surviving its leader
