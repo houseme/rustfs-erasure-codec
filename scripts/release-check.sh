@@ -205,7 +205,7 @@ run_fast_checks() {
     run_benchmark smoke env RSE_SMOKE_PROFILE=extended cargo test --release --features "std simd-accel" \
       --test benchmark_smoke benchmark_smoke_matrix_runs_and_exports_results -- --ignored --nocapture
   fi
-  run cargo test --no-default-features
+  run cargo test --package rustfs-erasure-codec --no-default-features
   run cargo test --features std
 }
 

@@ -1,6 +1,9 @@
 # 9.1.0 release preparation
 
 Status at the 2026-10-22 audit: **prepared candidate, not tagged or uploaded**.
+The [2026-10-23 global review](global-review-9.1.0-2026-10-23.md) records the
+subsequent main merge, process-ownership fix, actual no_std package selection
+and in-progress complete Linux diagnostic without replacing historical results.
 The [current readiness assessment](release-9.1.0-blockers.md) is the canonical
 remaining-work list. It supersedes historical checklist snapshots, without
 changing their source bindings or promoting rejected measurements.
@@ -55,7 +58,7 @@ These are completed functional/structural checks, not strict release preflight.
 
 ```sh
 RUSTUP_TOOLCHAIN=stable cargo test --locked --workspace
-RUSTUP_TOOLCHAIN=stable cargo test --locked --no-default-features --lib
+RUSTUP_TOOLCHAIN=stable cargo test --locked --package rustfs-erasure-codec --no-default-features --lib
 RUSTUP_TOOLCHAIN=stable cargo clippy --locked --workspace --all-targets --all-features -- -D warnings
 RUSTUP_TOOLCHAIN=stable cargo fmt --all --check
 cargo xtask check-release --tag 9.1.0
