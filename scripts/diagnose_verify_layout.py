@@ -14,8 +14,6 @@ from diagnostic_overlay import overlay
 import release_evidence as evidence
 import release_sampling as sampling
 
-OFFSETS = (0, 16, 32, 48)
-LENGTHS = (1024, 4096)
 PAIRED_SCHEMA = 'verify-layout-paired-v2'
 PHASE_SCHEMA = 'verify-layout-diagnostic-v3'
 PREFIX = "RSE_LAYOUT_SAMPLE "
@@ -23,18 +21,9 @@ TEMPLATE = pathlib.Path(__file__).resolve().parent/'diagnostics/verify_layout.rs
 TOOL = pathlib.Path(__file__).resolve().parents[1]
 COMMAND = ['cargo', 'test', '--locked', '--release', '--features', 'std simd-accel',
            '--test', 'rse_release_sampling']
-LAYOUT_PROTOCOL = {'name': 'paired-buffered-verify-slices', 'version': 2,
-                   'offsets': list(OFFSETS), 'lengths': list(LENGTHS),
-                   'passes': ['forward', 'reverse'], 'warmups': 3, 'samples': 9,
-                   'fixture': 'same_backing_per_length',
-                   'page_alignment': 'max(os_base_page_size,4096)',
-                   'iterations': 'one-predeclared-count-for-all-cells-and-phases',
-                   'minimum_wall_ns': sampling.PROTOCOL['minimum_wall_ns'], 'minimum_timed_ns': sampling.PROTOCOL['minimum_timed_ns'],
-                   'timing_scope': 'wall-and-timed-are-the-same-complete-verify-loop',
-                   'central_spread_limit': .10,
-                   'repeat_drift_limit': .05, 'regression_limit': .12,
-                   'measuring_affinity': 'one-reserved-cpu-before-codec-construction',
-                   'release_approval': False}
+LAYOUT_PROTOCOL = native_tools.request('diagnostic-layout', request=dict(operation='protocol'))
+OFFSETS = tuple(LAYOUT_PROTOCOL['offsets'])
+LENGTHS = tuple(LAYOUT_PROTOCOL['lengths'])
 
 
 def parse_output(output):
@@ -143,9 +132,9 @@ def phase_passed(report):
     return not any(report[k] for k in ('short_samples', 'wide_cases', 'repeat_failures'))
 
 
-def analyze_paired(phases, iterations, page_size, measuring_cpu):
+def analyze_paired(phases, iterations, page_size, measuring_cpu, *, diagnostic=False):
     return native_tools.request('diagnostic-layout', request=dict(operation='paired', phases=phases,
-        iterations=iterations, page_size=page_size, measuring_cpu=measuring_cpu))
+        iterations=iterations, page_size=page_size, measuring_cpu=measuring_cpu, diagnostic=diagnostic))
 
 
 def validate_context(context, measuring_cpu):
@@ -224,18 +213,8 @@ def verify_paired(directory, candidate, compiler=True, *, diagnostic=False):
             raise ValueError('paired samples differ from the completed numeric journal')
     if compiler and context['compiler'] != evidence.command(['rustc', '--version'], candidate, dict(os.environ, RUSTUP_TOOLCHAIN='stable')):
         raise ValueError('paired compiler differs from the current compiler')
-    result = dict(analyze_paired(phases, iterations, context['runtime']['page_size'], cpu),
+    result = dict(analyze_paired(phases, iterations, context['runtime']['page_size'], cpu, diagnostic=diagnostic),
                   sources=sources, tool=document['tool'], context=context, iterations=iterations, measuring_cpu=cpu)
-    if diagnostic:
-        cases = {p: {(r['len'], r['pass'], r['source_offset'], r['scratch_offset']): r for r in report['cases']}
-                 for p, report in result['phase_reports'].items()}
-        result.update(diagnostic_only=True, candidate_attribution=None,
-                      unqualified_layout_comparisons=[{'pair': a+'/'+b, 'cell': list(key),
-                                                      'latency_ratio': cases[b][key]['median_ns']/row['median_ns']}
-                                                     for a in ('A1','A2') for b in ('B1','B2')
-                                                     for key, row in cases[a].items()])
-        result['unqualified_regression_failures'] = [r for r in result['unqualified_layout_comparisons']
-                                                    if r['latency_ratio'] > 1+LAYOUT_PROTOCOL['regression_limit']]
     return result
 
 

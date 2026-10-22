@@ -6,6 +6,24 @@ use std::collections::BTreeMap;
 const LENGTHS: [u64; 2] = [1024, 4096];
 const OFFSETS: [u64; 4] = [0, 16, 32, 48];
 const PHASES: [&str; 4] = ["A1", "B1", "B2", "A2"];
+const CENTRAL_SPREAD_LIMIT: f64 = 0.10;
+const REPEAT_DRIFT_LIMIT: f64 = 0.05;
+const REGRESSION_LIMIT: f64 = 0.12;
+
+pub(super) fn protocol() -> Value {
+    json!({"name":"paired-buffered-verify-slices","version":2,
+        "offsets":OFFSETS,"lengths":LENGTHS,"passes":["forward","reverse"],
+        "warmups":3,"samples":9,"fixture":"same_backing_per_length",
+        "page_alignment":"max(os_base_page_size,4096)",
+        "iterations":"one-predeclared-count-for-all-cells-and-phases",
+        "minimum_wall_ns":sampling_contract::MINIMUM_WALL_NS,
+        "minimum_timed_ns":sampling_contract::MINIMUM_TIMED_NS,
+        "timing_scope":"wall-and-timed-are-the-same-complete-verify-loop",
+        "central_spread_limit":CENTRAL_SPREAD_LIMIT,"repeat_drift_limit":REPEAT_DRIFT_LIMIT,
+        "regression_limit":REGRESSION_LIMIT,
+        "measuring_affinity":"one-reserved-cpu-before-codec-construction",
+        "release_approval":false})
+}
 
 #[derive(PartialEq, Eq, Serialize)]
 struct Provenance<'a> {
@@ -185,11 +203,11 @@ pub(super) fn analyze(
         .collect();
     let wide: Vec<_> = cases
         .iter()
-        .filter(|r| r["central_spread"].as_f64().unwrap_or(0.0) > 0.10)
+        .filter(|r| r["central_spread"].as_f64().unwrap_or(0.0) > CENTRAL_SPREAD_LIMIT)
         .collect();
     let failed: Vec<_> = repeats
         .iter()
-        .filter(|r| r["drift"].as_f64().unwrap_or(0.0) > 0.05)
+        .filter(|r| r["drift"].as_f64().unwrap_or(0.0) > REPEAT_DRIFT_LIMIT)
         .collect();
     Ok(
         json!({"purpose":"within-version layout diagnosis only; never release acceptance","candidate_attribution":null,"release_approval":false,"provenance":provenance,
@@ -206,6 +224,7 @@ pub(super) fn paired(
     iterations: u64,
     page: u64,
     cpu: u64,
+    diagnostic: bool,
 ) -> Result<Value> {
     if !sampling_contract::valid_page_size(page) {
         return Err("paired analysis requires actual page size and measuring CPU".into());
@@ -243,9 +262,9 @@ pub(super) fn paired(
     let qualified = reports.values().all(passed)
         && drift
             .iter()
-            .all(|r| r["drift"].as_f64().is_some_and(|d| d <= 0.05));
+            .all(|r| r["drift"].as_f64().is_some_and(|d| d <= REPEAT_DRIFT_LIMIT));
     let mut comparisons = Vec::new();
-    if qualified {
+    if qualified || diagnostic {
         for a in ["A1", "A2"] {
             for b in ["B1", "B2"] {
                 for (index, row) in reports[a]["cases"]
@@ -261,18 +280,36 @@ pub(super) fn paired(
     }
     let regressions: Vec<_> = comparisons
         .iter()
-        .filter(|r| r["latency_ratio"].as_f64().is_some_and(|r| r > 1.0 + 0.12))
+        .filter(|r| {
+            qualified
+                && r["latency_ratio"]
+                    .as_f64()
+                    .is_some_and(|r| r > 1.0 + REGRESSION_LIMIT)
+        })
         .collect();
     let failed: Vec<_> = drift
         .iter()
-        .filter(|r| r["drift"].as_f64().is_some_and(|r| r > 0.05))
+        .filter(|r| r["drift"].as_f64().is_some_and(|r| r > REPEAT_DRIFT_LIMIT))
         .collect();
-    let attribution = if qualified && regressions.is_empty() {
+    let attribution = if qualified && regressions.is_empty() && !diagnostic {
         json!(comparisons)
     } else {
         Value::Null
     };
-    Ok(
-        json!({"purpose":"per-layout supplemental acceptance only; original full profiles remain required","release_approval":false,"phase_order":PHASES,"layout_quality_passed":qualified,"layout_gate_passed":qualified && regressions.is_empty(),"phase_reports":reports,"repeat_checks":drift,"repeat_failures":failed,"candidate_attribution":attribution,"regression_failures":regressions}),
-    )
+    let mut report = json!({"purpose":"per-layout supplemental acceptance only; original full profiles remain required","release_approval":false,"phase_order":PHASES,"layout_quality_passed":qualified,"layout_gate_passed":qualified && regressions.is_empty(),"phase_reports":reports,"repeat_checks":drift,"repeat_failures":failed,"candidate_attribution":attribution,"regression_failures":regressions});
+    if diagnostic {
+        let failures: Vec<_> = comparisons
+            .iter()
+            .filter(|r| {
+                r["latency_ratio"]
+                    .as_f64()
+                    .is_some_and(|r| r > 1.0 + REGRESSION_LIMIT)
+            })
+            .collect();
+        report["diagnostic_only"] = json!(true);
+        report["candidate_attribution"] = Value::Null;
+        report["unqualified_regression_failures"] = json!(failures);
+        report["unqualified_layout_comparisons"] = json!(comparisons);
+    }
+    Ok(report)
 }
