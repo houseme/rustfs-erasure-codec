@@ -320,6 +320,14 @@ fn case_catalog() -> std::collections::BTreeMap<&'static str, Vec<String>> {
     );
     result
 }
+
+pub(crate) fn known_case(profile: &str, case: &str) -> bool {
+    static CASES: std::sync::LazyLock<std::collections::BTreeMap<&'static str, Vec<String>>> =
+        std::sync::LazyLock::new(case_catalog);
+    CASES
+        .get(profile)
+        .is_some_and(|cases| cases.iter().any(|value| value == case))
+}
 fn seed(operation: &str, data: u32, parity: u32, size: u64) -> Result<u64> {
     let tag = match operation {
         "encode" => 0x11,
@@ -620,7 +628,7 @@ fn telemetry(record: &Value, allowed: Option<&[u64]>) -> Result<()> {
     }
     Ok(())
 }
-fn valid_page_size(page: u64) -> bool {
+pub(crate) fn valid_page_size(page: u64) -> bool {
     (1024..=1048576).contains(&page) && page.is_power_of_two()
 }
 fn fixture(record: &Value, profile: &str, page: Option<u64>) -> Result<()> {

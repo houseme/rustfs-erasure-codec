@@ -1,13 +1,16 @@
 //! Repository-only source generation. No Python is executed by native tools.
 pub(crate) mod catalog;
 pub(crate) mod dynamic;
+pub(crate) mod ledger;
 pub mod leopard;
 pub(crate) mod overlays;
 mod owned;
 pub mod sampler;
 pub mod source;
 pub mod stream;
+mod stream_core;
 pub mod templates;
+mod verify_scratch;
 pub(crate) mod views;
 
 use crate::{Args, Result};
