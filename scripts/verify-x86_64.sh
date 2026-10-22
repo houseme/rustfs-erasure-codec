@@ -86,62 +86,7 @@ echo ""
 echo "=== Step 5: 结果收集 ==="
 SMOKE_DIR="target/benchmark-smoke"
 
-if [ -d "$SMOKE_DIR" ]; then
-    echo ""
-    echo "Leopard encode 吞吐量："
-    echo "┌─────────────────────┬──────────────┐"
-    echo "│ Case                │ Throughput   │"
-    echo "├─────────────────────┼──────────────┤"
-    for f in "$SMOKE_DIR"/leopard-encode-*.json; do
-        if [ -f "$f" ]; then
-            CASE=$(basename "$f" .json | sed 's/leopard-encode-//')
-            THROUGHPUT=$(python3 -c "import json; d=json.load(open('$f')); print(f\"{d['throughput_mb_s']:.2f} MB/s\")" 2>/dev/null || echo "N/A")
-            printf "│ %-19s │ %12s │\n" "$CASE" "$THROUGHPUT"
-        fi
-    done
-    echo "└─────────────────────┴──────────────┘"
-    echo ""
-
-    echo "galois_8 后端信息："
-    if [ -f "$SMOKE_DIR/smoke-results.json" ]; then
-        python3 -c "
-import json
-data = json.load(open('$SMOKE_DIR/smoke-results.json'))
-if isinstance(data, list) and len(data) > 0:
-    print(f\"  backend: {data[0].get('backend', 'unknown')}\")
-    print(f\"  backend_id: {data[0].get('backend_id', 'unknown')}\")
-    print(f\"  target: {data[0].get('target_triple', 'unknown')}\")
-" 2>/dev/null || echo "  无法读取"
-    fi
-fi
-echo ""
-
-# --- Step 6: Strategy verification ---
-echo "=== Step 6: 自适应策略验证 ==="
-info "检查 auto 策略选择..."
-
-# 从基准结果中检查 shard_size 对应的策略
-python3 -c "
-import json, os, glob
-
-smoke_dir = 'target/benchmark-smoke'
-results = []
-for f in glob.glob(os.path.join(smoke_dir, 'leopard-encode-*.json')):
-    try:
-        d = json.load(open(f))
-        case = d.get('case', os.path.basename(f).replace('leopard-encode-', '').replace('.json', ''))
-        shard_size = d.get('shard_size', 0)
-        throughput = d.get('throughput_mb_s', 0)
-        results.append((case, shard_size, throughput))
-    except:
-        pass
-
-if results:
-    print('  所有 smoke case 使用 auto 策略 (shard_size >= 64K → direct)')
-    for case, ss, tp in sorted(results, key=lambda x: x[1]):
-        strategy = 'decomposed' if ss < 65536 else 'direct'
-        print(f'  {case}: shard_size={ss//1024}K → {strategy}, {tp:.1f} MB/s')
-" 2>/dev/null || echo "  无法验证策略"
+cargo xtask summarize-smoke --input "$SMOKE_DIR"
 echo ""
 
 echo "========================================"

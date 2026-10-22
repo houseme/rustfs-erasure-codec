@@ -335,6 +335,118 @@ pub(crate) fn run(args: &Args) -> Result<()> {
     Ok(())
 }
 
+/// The smoke JSON records timings and backend metadata, but no actual DIT4
+/// strategy. In particular, shard size cannot disprove an environment override.
+fn local_smoke_report(folder: &Path) -> Result<String> {
+    use std::fmt::Write;
+    #[derive(Deserialize)]
+    struct Row {
+        case: Option<String>,
+        shard_size: Option<u64>,
+        throughput_mb_s: f64,
+    }
+    let mut rows = Vec::new();
+    let mut backend = None;
+    for entry in artifact::entries(folder)? {
+        if !entry.file_type()?.is_file() {
+            continue;
+        }
+        let name = entry.file_name();
+        let Some(name) = name.to_str() else {
+            continue;
+        };
+        if name == "smoke-results.json" {
+            let value: Value = artifact::read_json(&entry.path())?;
+            let values = value
+                .as_array()
+                .ok_or("smoke-results.json must contain a result array")?;
+            if let Some(first) = values.first() {
+                let first = first
+                    .as_object()
+                    .ok_or("smoke-results.json must contain result objects")?;
+                backend = Some(
+                    ["backend", "backend_id", "target_triple"]
+                        .map(|key| crate::benchmark_contract::provenance_value(first, key))
+                        .into_iter()
+                        .collect::<Result<Vec<_>>>()?,
+                );
+            }
+            continue;
+        }
+        let Some(label) = name
+            .strip_prefix("leopard-encode-")
+            .and_then(|n| n.strip_suffix(".json"))
+        else {
+            continue;
+        };
+        let value: Value = artifact::read_json(&entry.path())?;
+        // A/B arrays and instrumented profiles use different measurement scopes.
+        // Older ordinary objects may omit artifact_kind and case.
+        if value.is_array()
+            || value
+                .get("artifact_kind")
+                .is_some_and(|kind| kind != "leopard-encode")
+        {
+            continue;
+        }
+        let mut row: Row = serde_json::from_value(value).map_err(|e| format!("{name}: {e}"))?;
+        if !row.throughput_mb_s.is_finite()
+            || row.throughput_mb_s <= 0.0
+            || row.shard_size == Some(0)
+        {
+            return Err(
+                format!("{name}: expected positive finite throughput and shard size").into(),
+            );
+        }
+        let case = row.case.get_or_insert_with(|| label.to_owned());
+        if case.is_empty() {
+            return Err(format!("{name}: empty smoke case").into());
+        }
+        rows.push(row);
+    }
+    rows.sort_by(|a, b| {
+        a.shard_size
+            .cmp(&b.shard_size)
+            .then_with(|| a.case.cmp(&b.case))
+    });
+    let mut output = String::from("Leopard encode 吞吐量（普通 smoke 记录）：\n");
+    if rows.is_empty() {
+        output.push_str("  未找到普通 encode 记录\n");
+    }
+    for row in rows {
+        let size = row
+            .shard_size
+            .map_or_else(|| "unknown".to_owned(), |n| format!("{}K", n / 1024));
+        writeln!(
+            output,
+            "  {}: shard_size={size}, {:.2} MB/s",
+            row.case.as_deref().unwrap_or("unknown"),
+            row.throughput_mb_s
+        )?;
+    }
+    output.push_str("\ngalois_8 已记录后端信息：\n");
+    for (index, key) in ["backend", "backend_id", "target"].iter().enumerate() {
+        let value = backend
+            .as_ref()
+            .and_then(|values| values[index].as_deref())
+            .unwrap_or("unknown");
+        writeln!(output, "  {key}: {value}")?;
+    }
+    output.push_str(
+        "\nDIT4 策略：当前 smoke schema 未记录实际策略，不能根据分片大小确认 auto 或显式覆盖。\n",
+    );
+    Ok(output)
+}
+
+pub(crate) fn local_smoke(args: &Args) -> Result<()> {
+    // Validate all inputs before printing a report; never modify source evidence.
+    print!(
+        "{}",
+        local_smoke_report(Path::new(args.get("--input", "target/benchmark-smoke")))?
+    );
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
