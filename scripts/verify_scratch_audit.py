@@ -71,47 +71,8 @@ def cases(profile):return {c for c in evidence.expected_cases(profile) if c.star
 
 
 def validate(data,case,iterations,page,native=False):
-    if case not in cases('smoke')|cases('small_file') or not sampling.valid_page_size(page):raise ValueError('unknown verify case or page size')
-    fields={'schema','page_size','errors','calls','release_approval','events'}
-    if not isinstance(data,dict) or set(data)!=fields or data['schema']!='verify-scratch-lifecycle-v1' or type(data['page_size']) is not int or data['page_size']!=page or data['release_approval'] is not False or type(data['errors']) is not int or data['errors']!=0:
-        raise ValueError('invalid verify scratch observation')
-    if type(iterations) is not int or not 1<=iterations<=2 or data['calls']!=[iterations]*12 or any(type(v) is not int for v in data['calls']):raise ValueError('incomplete verify scratch calls')
-    _,k,m,size=case.split(':');k,m,size=map(int,(k,m,size));length=m*size
-    events=data['events']
-    if not isinstance(events,list) or len(events)!=12*iterations*4:raise ValueError('incomplete scratch lifecycle')
-    last_time=-1;last_fault=None;availability=set()
-    for index,event in enumerate(events):
-        observation,within=divmod(index,iterations*4);call,phase=divmod(within,4)
-        expected=('reserved','initialized','verified','released')[phase]
-        keys={'observation','call','phase','len','capacity','offsets','inline','elapsed_ns','faults','snapshot','valid'}
-        if not isinstance(event,dict) or set(event)!=keys or event['phase']!=expected or type(event['observation']) is not int or event['observation']!=observation or type(event['call']) is not int or event['call']!=call+1:
-            raise ValueError('reordered scratch boundary')
-        if type(event['len']) is not int or event['len']!=(0 if phase==0 else length) or type(event['capacity']) is not int or not length<=event['capacity']<=2**64-1 or type(event['inline']) is not bool:
-            raise ValueError('wrong scratch storage shape')
-        offsets=event['offsets']
-        if not isinstance(offsets,list) or len(offsets)!=3 or any(type(v) is not int or not 0<=v<mod for v,mod in zip(offsets,(64,4096,page))) or offsets[1]%64!=offsets[0] or offsets[2]%min(page,4096)!=offsets[1]%min(page,4096):raise ValueError('invalid scratch offsets')
-        if type(event['elapsed_ns']) is not int or event['elapsed_ns']<last_time:raise ValueError('nonmonotonic scratch boundary')
-        last_time=event['elapsed_ns'];fault=event['faults'];availability.add(fault is not None)
-        if fault is not None:
-            if not isinstance(fault,list) or len(fault)!=2 or any(type(v) is not int or v<0 for v in fault) or last_fault is not None and any(a>b for a,b in zip(last_fault,fault)):raise ValueError('invalid scratch fault counters')
-            last_fault=fault
-        elif native:raise ValueError('missing native scratch counters')
-        valid=event['valid']
-        if valid is not (True if phase>=2 else None):raise ValueError('original verify result was not retained')
-        snapshot=event['snapshot'];pages=(offsets[2]+event['capacity']+page-1)//page
-        if not isinstance(snapshot,dict) or set(snapshot)!={'status','pages','resident_pages','errno'}:raise ValueError('invalid scratch residency')
-        if snapshot['status']=='unsupported' and not native:
-            if any(snapshot[k] is not None for k in ('pages','resident_pages','errno')):raise ValueError('fabricated nonnative residency')
-        elif snapshot['status']=='mapped':
-            if type(snapshot['pages']) is not int or snapshot['pages']!=pages or type(snapshot['resident_pages']) is not int or not 0<=snapshot['resident_pages']<=pages or snapshot['errno'] is not None:raise ValueError('invalid native residency count')
-        elif expected=='released' and snapshot['status']=='not_fully_mapped':
-            if type(snapshot['pages']) is not int or snapshot['pages']!=pages or snapshot['resident_pages'] is not None or type(snapshot['errno']) is not int or snapshot['errno']!=12:raise ValueError('invalid former-range result')
-        else:raise ValueError('unavailable live scratch residency')
-        if phase:
-            previous=events[index-1]
-            if any(event[k]!=previous[k] for k in ('capacity','offsets','inline')):raise ValueError('scratch storage changed within call')
-    if len(availability)!=1:raise ValueError('scratch counter availability changed')
-    return {'calls':12*iterations,'events':len(events),'inline_calls':sum(e['phase']=='reserved' and e['inline'] for e in events)}
+    return native_tools.request('diagnostic-ledger', request=dict(
+        kind='verify-scratch', data=data, case=case, iterations=iterations, page=page, native=native))
 
 
 def worker_report(rows,observed,profile,case,source,page,cpus):

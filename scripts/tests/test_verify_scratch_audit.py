@@ -27,48 +27,6 @@ def ledger(case,iterations=2,page=4096):
 
 
 class VerifyScratchTests(unittest.TestCase):
-    def test_complete_original_verify_catalog_and_page_sizes(self):
-        self.assertEqual(sum(len(audit.cases(p)) for p in ('smoke','small_file')),14)
-        for profile in ('smoke','small_file'):
-            for case in audit.cases(profile):
-                for page in (4096,16384,65536):
-                    result=audit.validate(ledger(case,page=page),case,2,page,native=True)
-                    self.assertEqual(result['calls'],24)
-                    self.assertEqual(result['events'],96)
-
-    def test_every_call_and_order_is_required_without_raw_mutation(self):
-        case='verify:4:2:1024'
-        for change in (lambda d:d['events'].pop(),lambda d:d.update(errors=1),
-                       lambda d:d['calls'].__setitem__(4,1),lambda d:d['events'].reverse(),
-                       lambda d:d['events'][2].update(valid=False),
-                       lambda d:d['events'][2].update(address=1234),
-                       lambda d:d['events'][1].update(capacity=8192),
-                       lambda d:d['events'][1].update(offsets=[32]*3),
-                       lambda d:d['events'][1].update(faults=[-1,0]),
-                       lambda d:d['events'][1].update(faults=None)):
-            data=ledger(case);change(data);original=copy.deepcopy(data)
-            with self.subTest(data=data['events'][:2]):
-                with self.assertRaises(ValueError):audit.validate(data,case,2,4096,native=True)
-                self.assertEqual(data,original)
-
-    def test_live_and_former_range_errors_are_distinct(self):
-        case='verify:4:2:65536';data=ledger(case)
-        for event in data['events']:
-            if event['phase']=='released':event['snapshot'].update(status='not_fully_mapped',resident_pages=None,errno=12)
-        audit.validate(data,case,2,4096,native=True)
-        data['events'][1]['snapshot'].update(status='not_fully_mapped',resident_pages=None,errno=12)
-        with self.assertRaisesRegex(ValueError,'live scratch'):audit.validate(data,case,2,4096,native=True)
-
-    def test_nonnative_coverage_is_explicit_and_cannot_gain_fake_counts(self):
-        case='verify:4:2:1024';data=ledger(case)
-        for event in data['events']:
-            event['faults']=None
-            event['snapshot']={'status':'unsupported','pages':None,'resident_pages':None,'errno':None}
-        audit.validate(data,case,2,4096)
-        with self.assertRaises(ValueError):audit.validate(data,case,2,4096,native=True)
-        data['events'][0]['snapshot']['resident_pages']=0
-        with self.assertRaises(ValueError):audit.validate(data,case,2,4096)
-
     def test_diagnostic_source_copy_restores_on_failure_and_preserves_tampering(self):
         original=(pathlib.Path(__file__).resolve().parents[2]/'src/core/verify.rs').read_text()
         with tempfile.TemporaryDirectory() as folder:

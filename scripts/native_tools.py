@@ -24,7 +24,7 @@ _provenance_keys = frozenset(PROVENANCE_FIELDS).union(
     key for aliases in _contract['provenance_aliases'].values() for key in aliases)
 _comparison_keys = _provenance_keys.union(CASE_FIELDS)
 _pure_requests = frozenset(('benchmark-rows','hotspot-rows','benchmark-provenance','provenance-field',
-                            'compatible-rows','observation-contracts','cpu-identity','memory-policy-validate','sampling','stream-views'))
+                            'compatible-rows','observation-contracts','cpu-identity','memory-policy-validate','sampling','stream-views','diagnostic-ledger'))
 _worker = None
 _worker_owner = None
 _worker_lock = threading.Lock()
