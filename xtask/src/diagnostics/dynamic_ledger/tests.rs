@@ -302,3 +302,111 @@ fn decoder_header_preserves_byte_width_constructor_budget_and_diagnostic_fence()
     supplement_header(&native, case, Some(&[0, 1, 2, 3])).unwrap();
     assert!(supplement_header(&native, case, Some(&[0, 1])).is_err());
 }
+
+fn reconstruction_fixture() -> Value {
+    let mut events = Vec::new();
+    let mut generation = 0;
+    for call in 1..=24 {
+        event(&mut events, "begin", call, json!({}));
+        let mut owners = [None; 6];
+        for owner in &mut owners {
+            generation += 1;
+            *owner = Some(generation);
+            let mut fields = storage(generation);
+            fields["align"] = json!(1);
+            event(&mut events, "alloc", call, fields);
+        }
+        let views = |events: &mut Vec<Value>, role, stage, owners: &[Option<u64>; 6]| {
+            for (index, owner) in owners.iter().enumerate() {
+                let mut fields = owner.map_or(json!({}), storage);
+                let length = if owner.is_some() { 65536 } else { 0 };
+                fields.as_object_mut().unwrap().extend(json!({"role":role,"stage":stage,"index":index,
+                    "len":length,"capacity":length,"storage":if owner.is_some() {"heap"} else {"empty"},
+                    "occupied":owner.is_some(),"present":owner.is_some()}).as_object().unwrap().clone());
+                event(events, "view", call, fields);
+            }
+        };
+        views(&mut events, "source", "created", &owners);
+        views(&mut events, "source", "encoded", &owners);
+        views(&mut events, "dynamic", "moved", &owners);
+        for index in [0, 4] {
+            let mut fields = storage(owners[index].take().unwrap());
+            fields["align"] = json!(1);
+            event(&mut events, "free", call, fields);
+        }
+        views(&mut events, "dynamic", "missing", &owners);
+        event(
+            &mut events,
+            "view",
+            call,
+            json!({"role":"matrix","stage":"decode_ready","region":"decode",
+            "len":16,"capacity":16,"storage":"inline","occupied":true,"bytes":16,"offsets":[0,0,0],
+            "snapshot":{"status":"unsupported","pages":null,"resident_pages":null,"errno":null}}),
+        );
+        for index in [0, 4] {
+            generation += 1;
+            owners[index] = Some(generation);
+            let mut fields = storage(generation);
+            fields["align"] = json!(1);
+            event(&mut events, "alloc", call, fields);
+        }
+        views(&mut events, "dynamic", "recovered", &owners);
+        for owner in owners {
+            let mut fields = storage(owner.unwrap());
+            fields["align"] = json!(1);
+            event(&mut events, "free", call, fields);
+        }
+        event(&mut events, "end", call, json!({}));
+    }
+    event(&mut events, "finish", 0, json!({"region":"between"}));
+    json!({"schema":"dynamic-buffer-lifecycle-v1","page_size":4096,"errors":0,"calls":vec![2;12],"release_approval":false,"events":events})
+}
+
+#[test]
+fn decoder_evidence_must_belong_to_the_observed_iteration() {
+    let original = reconstruction_fixture();
+    let validate = |value| -> Result<Value> {
+        serde_json::from_value::<Ledger>(value)?.validate(
+            "smoke",
+            "reconstruct:4:2:65536",
+            4096,
+            false,
+            false,
+        )
+    };
+    let summary = validate(original.clone()).unwrap();
+    assert_eq!(summary["iterations"], 24);
+    assert_eq!(summary["decoder_matrix_views"], 24);
+    for call in [0, 25] {
+        let mut data = original.clone();
+        for event in data["events"].as_array_mut().unwrap() {
+            if event["role"] == "matrix" {
+                event["call"] = json!(call);
+            }
+        }
+        assert!(validate(data).is_err(), "decoder call {call}");
+    }
+    let mut data = original;
+    for event in data["events"].as_array_mut().unwrap() {
+        if event["role"] == "matrix" {
+            event["observation"] = Value::Null;
+        }
+    }
+    assert!(validate(data).is_err());
+}
+
+#[test]
+fn unscoped_leopard_work_cannot_supply_iteration_evidence() {
+    let contract = Contract::parse("decoder", "leopard_gf16:10:4:65600", false).unwrap();
+    let mut fields = json!({"role":"leopard_work","shape":[16,32,32768],"capacity":524288,"len":524288,
+        "element_size":2,"stage":"chunk_coded","region":"decode","index":0,"present":null,"occupied":true,"storage":"heap"});
+    fields["call"] = json!(0);
+    let error = contract
+        .iteration(&[internal(fields)], &BTreeMap::new(), &mut BTreeMap::new())
+        .unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("iteration lacks actual Leopard decode work")
+    );
+}

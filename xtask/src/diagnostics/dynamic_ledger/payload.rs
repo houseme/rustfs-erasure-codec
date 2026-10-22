@@ -324,9 +324,12 @@ impl Contract {
         live: &BTreeMap<u64, &Event>,
         retained: &mut BTreeMap<(&'a str, u64), &'a Event>,
     ) -> Result<()> {
+        // The borrowed slice also spans unscoped events. Only events already
+        // bound to this call by Ledger::validate may witness decoder work.
         if self.leopard {
             if !events.iter().any(|v| {
                 v.kind == Kind::View
+                    && v.call > 0
                     && v.role == "leopard_work"
                     && v.stage == "chunk_coded"
                     && v.region == Region::Decode
@@ -336,6 +339,7 @@ impl Contract {
         } else if self.recovery()
             && !events.iter().any(|v| {
                 v.kind == Kind::View
+                    && v.call > 0
                     && v.role == "matrix"
                     && matches!(v.stage.as_str(), "decode_ready" | "decode_cached")
                     && v.region == Region::Decode
