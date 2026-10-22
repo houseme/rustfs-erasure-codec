@@ -14,7 +14,9 @@ All notable changes to this project are documented in this file.
   share geometry/counter rules, prepare payload schedules once and track only
   live allocation generations. Preserve artifact-sized framed requests and
   require decoder-work witnesses to belong to the observed iteration, including
-  Leopard work. Retain original diagnostic records and release boundaries.
+  Leopard work. Validate complete workers in one native frame and share checked
+  row normalization with release evidence, preserving fresh cached results,
+  original diagnostic records and release boundaries.
 
 - Build the shared native capture/replay helper with the release profile, reusing
   the existing owned worker, batched requests and cached host executable. Keep

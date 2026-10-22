@@ -1,0 +1,475 @@
+{
+  "schema": "complete-worker-tooling-comparison-v1",
+  "purpose": "local unisolated synthetic controller validation; no codec performance or release acceptance",
+  "sources": {
+    "before": "02c681287bb99657edf4658af5147b4a45701a5f",
+    "after": "39f6ee7240772d83804942bf2ca22595966c9c43"
+  },
+  "case": "verify_stream:4:2:65536:65536",
+  "observations_per_request": 12,
+  "iterations_per_observation": 2,
+  "core_events": 1200,
+  "views_per_request": 12,
+  "summary": {
+    "calls": 24,
+    "events": 1200,
+    "nested_verify_calls": 0
+  },
+  "phase_order": [
+    "A1",
+    "B1",
+    "B2",
+    "A2"
+  ],
+  "sampling": {
+    "warmup_blocks": 3,
+    "sample_blocks": 9,
+    "requests_per_block": 5
+  },
+  "samples": [
+    {
+      "requests": 5,
+      "wall_ns": 59357500,
+      "native_frames": 275,
+      "phase": "A1",
+      "version": "before",
+      "index": 0,
+      "kind": "warmup"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 59323417,
+      "native_frames": 275,
+      "phase": "A1",
+      "version": "before",
+      "index": 1,
+      "kind": "warmup"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 58450709,
+      "native_frames": 275,
+      "phase": "A1",
+      "version": "before",
+      "index": 2,
+      "kind": "warmup"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 58040625,
+      "native_frames": 275,
+      "phase": "A1",
+      "version": "before",
+      "index": 3,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 58130792,
+      "native_frames": 275,
+      "phase": "A1",
+      "version": "before",
+      "index": 4,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 59282625,
+      "native_frames": 275,
+      "phase": "A1",
+      "version": "before",
+      "index": 5,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 60144125,
+      "native_frames": 275,
+      "phase": "A1",
+      "version": "before",
+      "index": 6,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 61304583,
+      "native_frames": 275,
+      "phase": "A1",
+      "version": "before",
+      "index": 7,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 58498958,
+      "native_frames": 275,
+      "phase": "A1",
+      "version": "before",
+      "index": 8,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 59500833,
+      "native_frames": 275,
+      "phase": "A1",
+      "version": "before",
+      "index": 9,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 59595208,
+      "native_frames": 275,
+      "phase": "A1",
+      "version": "before",
+      "index": 10,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 58014500,
+      "native_frames": 275,
+      "phase": "A1",
+      "version": "before",
+      "index": 11,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 44141541,
+      "native_frames": 5,
+      "phase": "B1",
+      "version": "after",
+      "index": 0,
+      "kind": "warmup"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 44150667,
+      "native_frames": 5,
+      "phase": "B1",
+      "version": "after",
+      "index": 1,
+      "kind": "warmup"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 42702042,
+      "native_frames": 5,
+      "phase": "B1",
+      "version": "after",
+      "index": 2,
+      "kind": "warmup"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 43477000,
+      "native_frames": 5,
+      "phase": "B1",
+      "version": "after",
+      "index": 3,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 42476708,
+      "native_frames": 5,
+      "phase": "B1",
+      "version": "after",
+      "index": 4,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 43925667,
+      "native_frames": 5,
+      "phase": "B1",
+      "version": "after",
+      "index": 5,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 43803208,
+      "native_frames": 5,
+      "phase": "B1",
+      "version": "after",
+      "index": 6,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 43094708,
+      "native_frames": 5,
+      "phase": "B1",
+      "version": "after",
+      "index": 7,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 43441917,
+      "native_frames": 5,
+      "phase": "B1",
+      "version": "after",
+      "index": 8,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 43491291,
+      "native_frames": 5,
+      "phase": "B1",
+      "version": "after",
+      "index": 9,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 43996458,
+      "native_frames": 5,
+      "phase": "B1",
+      "version": "after",
+      "index": 10,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 43166375,
+      "native_frames": 5,
+      "phase": "B1",
+      "version": "after",
+      "index": 11,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 43964459,
+      "native_frames": 5,
+      "phase": "B2",
+      "version": "after",
+      "index": 0,
+      "kind": "warmup"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 43885500,
+      "native_frames": 5,
+      "phase": "B2",
+      "version": "after",
+      "index": 1,
+      "kind": "warmup"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 43379584,
+      "native_frames": 5,
+      "phase": "B2",
+      "version": "after",
+      "index": 2,
+      "kind": "warmup"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 43591083,
+      "native_frames": 5,
+      "phase": "B2",
+      "version": "after",
+      "index": 3,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 43376792,
+      "native_frames": 5,
+      "phase": "B2",
+      "version": "after",
+      "index": 4,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 43136833,
+      "native_frames": 5,
+      "phase": "B2",
+      "version": "after",
+      "index": 5,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 43141208,
+      "native_frames": 5,
+      "phase": "B2",
+      "version": "after",
+      "index": 6,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 44069000,
+      "native_frames": 5,
+      "phase": "B2",
+      "version": "after",
+      "index": 7,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 43980125,
+      "native_frames": 5,
+      "phase": "B2",
+      "version": "after",
+      "index": 8,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 42525833,
+      "native_frames": 5,
+      "phase": "B2",
+      "version": "after",
+      "index": 9,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 43769250,
+      "native_frames": 5,
+      "phase": "B2",
+      "version": "after",
+      "index": 10,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 44336958,
+      "native_frames": 5,
+      "phase": "B2",
+      "version": "after",
+      "index": 11,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 60192334,
+      "native_frames": 275,
+      "phase": "A2",
+      "version": "before",
+      "index": 0,
+      "kind": "warmup"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 59149250,
+      "native_frames": 275,
+      "phase": "A2",
+      "version": "before",
+      "index": 1,
+      "kind": "warmup"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 59757375,
+      "native_frames": 275,
+      "phase": "A2",
+      "version": "before",
+      "index": 2,
+      "kind": "warmup"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 60263084,
+      "native_frames": 275,
+      "phase": "A2",
+      "version": "before",
+      "index": 3,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 58361375,
+      "native_frames": 275,
+      "phase": "A2",
+      "version": "before",
+      "index": 4,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 57874666,
+      "native_frames": 275,
+      "phase": "A2",
+      "version": "before",
+      "index": 5,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 59348458,
+      "native_frames": 275,
+      "phase": "A2",
+      "version": "before",
+      "index": 6,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 61555667,
+      "native_frames": 275,
+      "phase": "A2",
+      "version": "before",
+      "index": 7,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 60947375,
+      "native_frames": 275,
+      "phase": "A2",
+      "version": "before",
+      "index": 8,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 59869500,
+      "native_frames": 275,
+      "phase": "A2",
+      "version": "before",
+      "index": 9,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 59421375,
+      "native_frames": 275,
+      "phase": "A2",
+      "version": "before",
+      "index": 10,
+      "kind": "sample"
+    },
+    {
+      "requests": 5,
+      "wall_ns": 58768167,
+      "native_frames": 275,
+      "phase": "A2",
+      "version": "before",
+      "index": 11,
+      "kind": "sample"
+    }
+  ],
+  "median_ns_per_request": {
+    "A1": 11856525.0,
+    "B1": 8695400.0,
+    "B2": 8718216.6,
+    "A2": 11884275.0
+  },
+  "repeat_percent": {
+    "before": 0.2340483404707605,
+    "after": 0.2623985095567827
+  },
+  "release_approval": false,
+  "candidate_attribution": null
+}

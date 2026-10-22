@@ -167,6 +167,57 @@ verify, stream-core and controller-binding integrations pass 32 tests, including
 the artifact-sized request followed by a second frame in the same worker.
 These are functional/tooling checks; no new codec performance conclusion follows.
 
+The reviewed helper release-profile change is integrated with this migration.
+Keep both its host-build-policy test and the artifact-sized-request/next-frame
+regression when resolving their shared insertion point. Both change-record
+entries and the complete synthetic helper profile report remain present. This
+combination uses the optimized host executable with the same persistent worker,
+request bounds and strict ledger contracts; it does not alter codec sampling.
+
+## Complete worker validation
+
+The following independent review freezes `39f6ee7`, which includes the completed
+`d29b264` native worker batch and `01f3667` controller bindings together with the
+reviewed scope fix and optimized host-helper build. Remote main remains
+`69379b3` and is already in the branch. The frozen Linux campaign is unchanged.
+
+Validate each complete twelve-observation diagnostic worker in one native frame.
+The worker reuses the sampling workload/schedule, original row normalization,
+caller geometry, source ledger and counter-window models. Row callbacks inspect
+original field types before normalization; formal telemetry requirements stay
+separate from portable diagnostic observations. Preserve calibration rehearsals,
+stream I/O windows, retained owners, exact call/observation binding and complete
+summaries. Borrow rows and stream views rather than build their normalized output
+only to discard it. Release evidence shares the same checked row normalization.
+Its existing bounded cache keys include current input and context, store immutable
+serialized results and return fresh dictionaries on every call.
+
+Independent validation of this fixed source passes 101 native unit tests,
+25 executable tests, strict Clippy and all 259 Python controller tests. A separate
+105-request comparison with `02c6812` covers complete/reversed/partial rows for
+all four profiles, three full worker types, calibration and malformed inputs.
+All acceptance decisions and complete outputs agree; both paths preserve their
+input objects. The complete ordinary, stream and dynamic fixtures are positively
+accepted, so matching refusals cannot stand in for successful replay coverage.
+The production codec, build script, package manifests and lockfile match main.
+
+The retained [complete-worker comparison](../benchmarks/tooling/2026-10-23/complete-worker-batching.json)
+uses the synthetic `WorkerContractTests` stream fixture from this source:
+twelve observations, two calls each, 1,200 core events and twelve view ledgers.
+Both versions use optimized native helpers. Each A1/B1/B2/A2 phase starts a fresh
+Python/native worker; one untimed call validates the common summary and primes
+its caches. Three warmup blocks and nine sample blocks each execute five complete
+requests. Retain all 48 blocks / 240 requests and compare every returned summary.
+The timer includes controller validation, native IPC, decoding and full-summary
+comparison; executable build/startup and fixture construction are outside it.
+
+On this local unisolated run, steady-state IPC falls from 55 frames per complete
+worker to one. Phase medians are 11.856525 / 8.695400 / 8.7182166 / 11.884275 ms per
+request. Before/after same-version repeats differ by +0.2340% / +0.2624%. These are
+descriptive timings for one synthetic tooling workload, not codec throughput,
+overall RSS, Linux drift attribution or publication acceptance. The full report
+keeps candidate attribution null and release approval false.
+
 ## Verified defects and fixes
 
 ### Background worker surviving its leader
