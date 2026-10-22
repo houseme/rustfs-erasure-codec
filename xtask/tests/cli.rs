@@ -64,6 +64,58 @@ impl Drop for Fixture {
 }
 
 #[test]
+fn stream_view_cli_checks_a_complete_cursor_ledger_without_python_or_rewriting_inputs() {
+    let f = Fixture::new();
+    let mut events = Vec::new();
+    for (call, role) in [
+        (0, "retained_source"),
+        (1, "cursor_before_missing"),
+        (1, "cursor_missing"),
+        (1, "cursor_after_recovery"),
+    ] {
+        for index in 0..2 {
+            let size = if role == "cursor_missing" { 0 } else { 1024 };
+            events.push(json!({"call":call,"role":role,"index":index,"len":size,"capacity":size,
+                "offsets":if size>0 {json!([16,16,16])} else {Value::Null},"bytes":0,"same_address_as_previous_view":null}));
+        }
+    }
+    let residency:Vec<_>=events.iter().map(|e|json!({"call":e["call"],"boundary":"view","role":e["role"],"index":e["index"],"bytes":e["len"],"offset_page":if e["len"]==0 {Value::Null} else {json!(16)},
+        "snapshot":{"status":if e["len"]==0 {"empty"} else {"mapped"},"pages":if e["len"]==0 {0} else {1},"resident_pages":if e["len"]==0 {0} else {1},"errno":null}})).collect();
+    let mut request = json!({"operation":"validate","summary":true,"observations":[{"case":"reconstruct_stream:1:1:1024:1024","iterations":1,"page_size":4096,"observation":0,
+        "view":{"schema":"stream-buffer-views-v3","observation":0,"iterations":1,"calls":1,"completed":1,"page_size":4096,"overflow":0,"release_approval":false,
+        "events":events,"residency":residency,"windows":[{"call":1,"phase":"call","index":null,"bytes":0,"start_ns":0,"end_ns":10,"before":null,"after":null}]}}]});
+    let bytes = serde_json::to_vec(&request).unwrap();
+    fs::write(f.0.join("request.json"), &bytes).unwrap();
+    let output = f
+        .command("validate-stream-views")
+        .args(["--input", "request.json"])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let value: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(value[0][0]["windows"]["call"]["wall_ns"], 10);
+    assert!(value[0][0]["windows"]["call"]["process_minor_faults"].is_null());
+    assert_eq!(fs::read(f.0.join("request.json")).unwrap(), bytes);
+    request["observations"][0]["view"]["events"][0]["address"] = json!(123);
+    fs::write(
+        f.0.join("request.json"),
+        serde_json::to_vec(&request).unwrap(),
+    )
+    .unwrap();
+    let output = f
+        .command("validate-stream-views")
+        .args(["--input", "request.json"])
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stdout.is_empty());
+}
+
+#[test]
 fn smoke_report_keeps_plain_and_legacy_rows_separate_from_ab_and_profile_inputs() {
     let f = Fixture::new();
     let inputs = [

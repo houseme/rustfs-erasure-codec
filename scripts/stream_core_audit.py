@@ -179,11 +179,11 @@ def worker_report(rows,io,core,case,source,page,cpus,current):
     normalized=views.underlying_records(rows)
     sampling.validate_workload_sequence(normalized,'stream')
     if len(rows)!=12 or len(io)!=12 or [r['kind'] for r in rows]!=['warmup']*3+['sample']*9:raise ValueError('incomplete original stream worker')
+    views.validate_samples(io,rows,2,page,require_counters=cpus is not None)
     for index,(row,raw,view) in enumerate(zip(normalized,rows,io)):
         if any(type(row[n]) is not int for n in ('index','iterations','calibration_batch')) or row['index']!=index or row['case']!=case or row['iterations']!=2 or row['calibration_batch']!=0 or row['isolated_case'] is not True or row['revision']!=source['commit']:raise ValueError('wrong original stream observation')
         if set(e.indexed_rows('stream',row['rows'],source['commit'],{case:2},complete=False))!={case}:raise ValueError('wrong stream case rows')
         sampling.validate_fixture(row,'stream',page);sampling.validate_timing(row,'stream',2)
-        views.validate(view,case,2,page,index,raw['fixture']['source'],require_counters=cpus is not None)
         if cpus is not None:
             sampling.validate_telemetry(row,cpus);sampling.validate_placement(row,cpus)
             for window in view['windows']:

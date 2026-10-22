@@ -66,18 +66,19 @@ def analyze(phases, sources, cpus, page_size=None):
 def analyze_stream_views(phases, views, sources, cpus, page_size, iterations):
     counts={case:iterations for case in case_catalog('stream')}
     if set(phases)!=set(evidence.PHASES) or set(views)!=set(phases):raise ValueError('all four stream-view inventory phases are required')
-    signatures={};reference=None
+    signatures={};reference=None;lifecycle={}
     for phase in evidence.PHASES:
         revision=sources['baseline' if phase.startswith('A') else 'candidate']['commit']
         normalized=view_audit.underlying_records(phases[phase])
         normalize=lambda p,row,rev:next(iter(evidence.indexed_rows(p,[row],rev,counts,complete=False)))
         groups=sampling.sample_groups(normalized,'stream',revision,case_catalog('stream'),counts,normalize,cpus,page_size)
         reference=comparable_inventory_contract(groups,'stream',reference)
-        if len(views[phase])!=len(phases[phase]):raise ValueError('missing stream-view observations')
+        reports=view_audit.validate_samples(views[phase],phases[phase],iterations,page_size,require_counters=True,summary=True)
+        lifecycle[phase]=[{'case':sample['case'],'observation':view['observation'],'calls':report}
+                          for sample,view,report in zip(phases[phase],views[phase],reports)]
         signatures[phase]={}
         for sample,view in zip(phases[phase],views[phase]):
             case=sample['case']
-            view_audit.validate(view,case,iterations,page_size,sample['index'],sample['fixture']['source'],require_counters=True)
             keys=signatures[phase].setdefault(case,set())
             keys.update((e['role'],e['index'],e['len'],e['capacity'],tuple(e['offsets']) if e['offsets'] is not None else None) for e in view['events'])
     checks=[]
@@ -92,7 +93,7 @@ def analyze_stream_views(phases, views, sources, cpus, page_size, iterations):
                         'native_virtual_page_snapshots':True,'former_encode_scratch_ranges':True,'former_writer_ranges':True,
                         'physical_page_identity':False,'first_fault_instruction':False,'internal_verify_scratch':False,'internal_recovery_scratch':False,'non_stream_dynamic_buffers':False,
                         'formal_performance_geometry_equivalence':False},
-            'lifecycle_windows':{phase:[{'case':sample['case'],'observation':view['observation'],'calls':view_audit.summarize_windows(view)} for sample,view in zip(phases[phase],views[phase])] for phase in evidence.PHASES},
+            'lifecycle_windows':lifecycle,
             'layout_checks':checks,'layout_mismatches':[c for c in checks if not c['matches']]}
 
 

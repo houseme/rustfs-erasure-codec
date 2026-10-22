@@ -114,7 +114,7 @@ class WorkerContractTests(unittest.TestCase):
     def setUp(self):
         import json
         import test_release_evidence as fixtures
-        from test_stream_view_audit import view_fixture
+        from layout_fixture import view_fixture
         self.json=json;self.temporary=tempfile.TemporaryDirectory();self.addCleanup(self.temporary.cleanup)
         self.root=pathlib.Path(self.temporary.name);self.source={'commit':'c'*40}
         factory=fixtures.EvidenceTests(methodName='runTest');factory.sources={'candidate':self.source}

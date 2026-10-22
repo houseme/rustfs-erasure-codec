@@ -8,6 +8,7 @@ pub mod sampler;
 pub mod source;
 pub mod stream;
 pub mod templates;
+pub(crate) mod views;
 
 use crate::{Args, Result};
 

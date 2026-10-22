@@ -1,14 +1,11 @@
 """Diagnostic decorators for real stream buffer views; never formal release timing."""
-import copy
 import hashlib
 import pathlib
 import native_tools
 import release_sampling as sampling
 
 PREFIX = 'RSE_STREAM_VIEWS '
-ENTRIES = {"encode_stream":"Vec<stream_views::Reader<'_>> -> Vec<stream_views::Writer>",
-           "verify_stream":"Vec<stream_views::Reader<'_>>",
-           "reconstruct_stream":"Vec<Cursor<Vec<u8>>>"}
+ENTRIES = native_tools.request('stream-views', request=dict(operation='entries'))
 
 
 def native_template():
@@ -16,7 +13,7 @@ def native_template():
 
 
 def implementation_digest():
-    return hashlib.sha256(pathlib.Path(__file__).read_bytes()+native_template().encode()).hexdigest()
+    return hashlib.sha256(pathlib.Path(__file__).read_bytes()+native_template().encode()+native_tools.implementation_bytes()).hexdigest()
 
 
 def render(root):
@@ -24,248 +21,32 @@ def render(root):
 
 
 def underlying_records(records):
-    """Validate known adapter declarations, then reuse strict scalar/seed validators.
-
-    Only a private copy is normalized. Published observations keep actual entries;
-    formal verification rejects their entry/overlay differences.
-    """
-    result=copy.deepcopy(records)
-    for row in result:
-        operation=row['case'].split(':')[0]
-        expected=ENTRIES[operation]
-        for value in (row.get('fixture'),row.get('workload')):
-            if not isinstance(value,dict) or value.get('call_entry')!=expected:
-                raise ValueError('missing actual stream audit entry')
-            value['call_entry']=sampling.fixture_contract('stream',row['case'])['call_entry']
-    return result
-
-
-COUNTERS = ('process_minor_faults','process_major_faults','calling_thread_run_ns','calling_thread_wait_ns')
-
-
-def validate_windows(view, case, iterations, require_counters=False):
-    operation,data,parity,size,block=case.split(':');data,parity,size,block=map(int,(data,parity,size,block))
-    windows=view['windows']
-    if not isinstance(windows,list) or not 1<=len(windows)<=4096:raise ValueError('missing bounded lifecycle windows')
-    fields={'call','phase','index','bytes','start_ns','end_ns','before','after'}
-    available=set()
-    for window in windows:
-        if not isinstance(window,dict) or set(window)!=fields or window['phase'] not in {'call','reserve','append','drop'}:
-            raise ValueError('invalid lifecycle window')
-        if any(type(window[k]) is not int or window[k]<0 for k in ('call','bytes','start_ns','end_ns')) or not 1<=window['call']<=iterations or window['end_ns']<window['start_ns']:
-            raise ValueError('invalid lifecycle window counters/time')
-        if window['phase']=='append':
-            if type(window['index']) is not int or not 0<=window['index']<parity:raise ValueError('wrong append shard')
-        elif window['index'] is not None:raise ValueError('unexpected lifecycle shard')
-        before,after=window['before'],window['after']
-        available.add(before is not None)
-        if (before is None)!=(after is None):raise ValueError('partial lifecycle counters')
-        if before is not None and (any(not isinstance(a,list) or len(a)!=4 or any(type(v) is not int or not 0<=v<2**64 for v in a) for a in (before,after)) or any(b<a for a,b in zip(before,after))):
-            raise ValueError('invalid or decreasing lifecycle counters')
-    if len(available)!=1:raise ValueError('lifecycle counter availability changed')
-    if require_counters and available!={True}:raise ValueError('native Linux lifecycle counters are missing')
-    if [w['call'] for w in windows]!=sorted(w['call'] for w in windows):raise ValueError('lifecycle calls reordered')
-    previous_end=0
-    for call in range(1,iterations+1):
-        current=[w for w in windows if w['call']==call]
-        if not current or current[-1]['phase']!='call':raise ValueError('missing completed lifecycle call')
-        parent=current[-1];children=current[:-1]
-        if parent['index'] is not None or parent['bytes']!=0 or parent['start_ns']<previous_end:raise ValueError('overlapping lifecycle calls')
-        previous_end=parent['end_ns']
-        if operation!='encode_stream':
-            if children:raise ValueError('unexpected writer lifecycle')
-            continue
-        phases=[w['phase'] for w in children]
-        count=parity*((size+block-1)//block)
-        if phases!=['reserve']+['append']*count+['drop']:raise ValueError('incomplete reserve/append/drop lifecycle')
-        if children[0]['bytes']!=parity*size or children[-1]['bytes']!=parity*size:raise ValueError('writer lifecycle byte total changed')
-        expected=[(e['index'],e['bytes']) for e in view['events'] if e['call']==call and e['role']=='parity_write_view']
-        if [(w['index'],w['bytes']) for w in children[1:-1]]!=expected:raise ValueError('append windows differ from actual I/O views')
-        last=parent['start_ns'];last_counters=parent['before']
-        for child in children:
-            if not last<=child['start_ns']<=child['end_ns']<=parent['end_ns']:raise ValueError('overlapping or escaping writer windows')
-            if child['before'] is not None and (any(b<a for a,b in zip(last_counters,child['before'])) or any(b<a for a,b in zip(child['after'],parent['after']))):
-                raise ValueError('writer counters escape the enclosing call')
-            last=child['end_ns'];last_counters=child['after']
-
-
-def summarize_windows(view):
-    """Partition diagnostic calls, not codec CPU or formal benchmark speedups.
-
-    Counter read intervals contain observer cost; outside_writer_windows also
-    contains probes and adapter metadata. Native snapshots are a separate ledger.
-    """
-    result=[]
-    for call in range(1,view['calls']+1):
-        windows=[w for w in view['windows'] if w['call']==call]
-        def totals(selected):
-            answer={'wall_ns':sum(w['end_ns']-w['start_ns'] for w in selected)}
-            answer.update({name:sum(w['after'][i]-w['before'][i] for w in selected) if all(w['before'] is not None for w in selected) else None for i,name in enumerate(COUNTERS)})
-            return answer
-        groups={phase:totals([w for w in windows if w['phase']==phase]) for phase in ('call','reserve','append','drop')}
-        groups['outside_writer_windows']={key:(value-sum(groups[p][key] for p in ('reserve','append','drop')) if value is not None else None) for key,value in groups['call'].items()}
-        result.append({'call':call,'windows':groups})
-    return result
-
-
-def validate_residency(view, case, iterations, page_size, *, require_native=False):
-    """Require the whole declared boundary schedule, including failed former ranges.
-
-    Counts are virtual-page snapshots, never allocation IDs, physical ownership,
-    first-fault instruction attribution, or formal timing evidence.
-    """
-    entries=view['residency'];events=view['events'];operation,_,parity,_,_=case.split(':');parity=int(parity)
-    if not isinstance(entries,list) or not 1<=len(entries)<=4096:raise ValueError('missing bounded residency ledger')
-    fields={'call','boundary','role','index','bytes','offset_page','snapshot'}
-    for value in entries:
-        if not isinstance(value,dict) or set(value)!=fields:raise ValueError('invalid residency record')
-        if any(type(value[k]) is not int or value[k]<0 for k in ('call','index','bytes')) or value['call']>iterations:raise ValueError('invalid residency range')
-        offset=value['offset_page'];size=value['bytes'];snap=value['snapshot']
-        if size and (type(offset) is not int or not 0<=offset<page_size) or not size and offset is not None:raise ValueError('invalid residency offset')
-        if not isinstance(snap,dict) or set(snap)!={'status','pages','resident_pages','errno'}:raise ValueError('invalid residency snapshot')
-        status=snap['status'];pages=snap['pages'];resident=snap['resident_pages'];errno=snap['errno']
-        expected=(offset+size+page_size-1)//page_size if size else 0
-        former=value['boundary'] in {'after_api_return','after_writer_drop'}
-        if status=='unsupported' and not require_native:
-            if any(v is not None for v in (pages,resident,errno)):raise ValueError('unsupported residency fabricated a count')
-        elif status=='empty' and not size:
-            if type(pages) is not int or type(resident) is not int or pages!=0 or resident!=0 or errno is not None:raise ValueError('invalid empty residency')
-        elif status=='mapped' and size:
-            if type(pages) is not int or pages!=expected or type(resident) is not int or not 0<=resident<=pages or errno is not None:raise ValueError('invalid mapped residency')
-        elif status=='not_fully_mapped' and former and size:
-            if type(pages) is not int or pages!=expected or resident is not None or type(errno) is not int or errno!=12:raise ValueError('partial range must not fabricate residency')
-        else:raise ValueError('native residency coverage failed or live storage unmapped')
-    if [v['call'] for v in entries]!=sorted(v['call'] for v in entries):raise ValueError('residency calls reordered')
-    # Every ordinary view has exactly one native query of that actual span.
-    def identity(v):return tuple(v[k] for k in ('call','role','index','bytes','offset_page'))
-    projected=[(e['call'],e['role'],e['index'],e['capacity'] if e['capacity'] is not None else e['len'],None if e['offsets'] is None else e['offsets'][2]) for e in events]
-    if [identity(v) for v in entries if v['boundary']=='view']!=projected:raise ValueError('residency differs from actual view schedule')
-    for call in range(iterations+1):
-        current=[v for v in entries if v['call']==call]
-        actual=[e for e in events if e['call']==call]
-        before=[v for v in current if v['boundary']=='before_read']
-        reads=[e for e in actual if e['role']=='read_scratch_view']
-        expected=[(e['call'],e['role'],e['index'],e['len'],e['offsets'][2]) for e in reads]
-        if sorted(map(identity,before))!=sorted(expected):raise ValueError('missing before-read residency')
-        pending=set()
-        for value in current:
-            if value['boundary']=='before_read':
-                if value['index'] in pending:raise ValueError('overlapping read for one shard')
-                pending.add(value['index'])
-            elif value['boundary']=='view' and value['role']=='read_scratch_view':
-                if value['index'] not in pending:raise ValueError('read snapshot without preceding boundary')
-                pending.remove(value['index'])
-        if pending:raise ValueError('unfinished read residency boundary')
-        extra=[v for v in current if v['boundary'] not in {'view','before_read'}]
-        if operation!='encode_stream' or call==0:
-            if extra:raise ValueError('unexpected residency boundary')
-            continue
-        reserved=[v for v in extra if v['boundary']=='after_reserve']
-        if len(reserved)!=parity or [v['index'] for v in reserved]!=list(range(parity)):raise ValueError('incomplete reserved-writer residency')
-        for value in reserved:
-            first=next(e for e in actual if e['role']=='writer_before' and e['index']==value['index'])
-            if identity(value)!=(call,'writer_before',first['index'],first['capacity'],first['offsets'][2]):raise ValueError('reserved range changed before write')
-        def last_views(roles):
-            result={}
-            for e in actual:
-                if e['role'] in roles:result[(e['role'],e['index'])]=e
-            return [(e['call'],e['role'],e['index'],e['capacity'] if e['capacity'] is not None else e['len'],e['offsets'][2]) for _,e in sorted(result.items())]
-        returned=[v for v in extra if v['boundary']=='after_api_return']
-        dropped=[v for v in extra if v['boundary']=='after_writer_drop']
-        if sorted(map(identity,returned))!=sorted(last_views({'read_scratch_view','parity_write_view'})) or sorted(map(identity,dropped))!=sorted(last_views({'writer_after'})):
-            raise ValueError('missing former scratch/writer ranges')
-        expected_order=['after_reserve']*parity+['after_api_return']*len(returned)+['after_writer_drop']*parity
-        if [v['boundary'] for v in extra]!=expected_order:raise ValueError('residency release boundaries reordered')
-        phases=[v['boundary'] for v in current]
-        if phases[:parity]!=['after_reserve']*parity or phases[-len(returned)-parity:]!=['after_api_return']*len(returned)+['after_writer_drop']*parity:raise ValueError('residency boundaries escape API lifetime')
+    return native_tools.request('stream-views', request=dict(operation='underlying', records=records))
 
 
 def validate(view, case, iterations, page_size, observation, source_fixture=None, *, require_counters=False):
-    """Require every call, transferred byte, reservation and missing transition."""
-    if set(view) != {'schema','observation','iterations','calls','completed','page_size','overflow','release_approval','events','windows','residency'} or view['schema']!='stream-buffer-views-v3' or view['release_approval'] is not False:
-        raise ValueError('invalid stream view schema')
-    expected={'observation':observation,'iterations':iterations,'calls':iterations,'completed':iterations,'page_size':page_size,'overflow':0}
-    if any(type(view.get(k)) is not int or view[k]!=v for k,v in expected.items()):
-        raise ValueError('incomplete call/drop schedule or bounded view overflow')
-    operation,data,parity,size,block=case.split(':');data,parity,size,block=map(int,(data,parity,size,block))
-    if operation not in ENTRIES or not 1<=data<data+parity<=48 or size<=0 or not 1024<=block<=16777216:raise ValueError('invalid stream audit shape')
-    source_count=data if operation=='encode_stream' else data+parity
-    events=view['events']
-    if not isinstance(events,list) or not 1<=len(events)<=4096:raise ValueError('missing bounded stream events')
-    roles={'retained_source','source_read_view','read_scratch_view','parity_write_view','writer_before','writer_after','cursor_before_missing','cursor_after_recovery','cursor_missing'}
-    calls={i:[] for i in range(iterations+1)}
-    for event in events:
-        if set(event)!= {'call','role','index','len','capacity','offsets','bytes','same_address_as_previous_view'} or event['role'] not in roles:
-            raise ValueError('invalid stream buffer view')
-        if any(type(event[k]) is not int or event[k]<0 for k in ('call','index','len','bytes')) or event['call'] not in calls:
-            raise ValueError('invalid stream event counters')
-        role=event['role'];owned=role in {'retained_source','writer_before','writer_after','cursor_before_missing','cursor_after_recovery','cursor_missing'}
-        cap=event['capacity'];length=event['len']
-        if owned and (type(cap) is not int or not length<=cap<=2**64-1) or not owned and cap is not None:
-            raise ValueError('owned capacity must not be inferred from a borrowed view')
-        storage=(cap>0) if owned else length>0
-        offsets=event['offsets']
-        if storage:
-            if not isinstance(offsets,list) or len(offsets)!=3 or any(type(n) is not int for n in offsets) or not all(0<=n<mod for n,mod in zip(offsets,(64,4096,page_size))) or offsets[1]%64!=offsets[0] or offsets[2]%min(4096,page_size)!=offsets[1]%min(4096,page_size):
-                raise ValueError('invalid actual view offsets')
-        elif offsets is not None:raise ValueError('empty storage must not export dangling positions')
-        if event['same_address_as_previous_view'] is not None and type(event['same_address_as_previous_view']) is not bool:
-            raise ValueError('invalid private identity comparison')
-        limit=parity if role.startswith('writer') or role=='parity_write_view' else source_count
-        if event['index']>=limit:raise ValueError('stream role/index mismatch')
-        if event['bytes']>length and role!='writer_after':raise ValueError('transfer exceeds actual view')
-        calls[event['call']].append(event)
-    if [e['call'] for e in events]!=sorted(e['call'] for e in events):raise ValueError('stream calls reordered')
-    retained=calls[0]
-    if len(retained)!=source_count or [e['index'] for e in retained]!=list(range(source_count)) or any(e['role']!='retained_source' or e['len']!=size for e in retained):raise ValueError('missing retained source views')
-    if source_fixture is not None:
-        actual=[{'len':e['len'],'capacity':e['capacity'],'offset_64':e['offsets'][0],
-                 'offset_4096':e['offsets'][1],'offset_page':e['offsets'][2]} for e in retained]
-        if actual!=source_fixture:raise ValueError('stream view source differs from retained caller fixture')
-    validate_windows(view,case,iterations,require_counters)
-    validate_residency(view,case,iterations,page_size,require_native=require_counters)
-    for index in range(1,iterations+1):
-        current=calls[index]
-        if operation=='reconstruct_stream':
-            if [e['role'] for e in current]!=['cursor_before_missing']*source_count+['cursor_missing']*source_count+['cursor_after_recovery']*source_count:raise ValueError('cursor stages reordered')
-            for role in ('cursor_before_missing','cursor_missing','cursor_after_recovery'):
-                selected=[e for e in current if e['role']==role]
-                if len(selected)!=source_count or {e['index'] for e in selected}!=set(range(source_count)):raise ValueError('missing cursor lifecycle stage')
-                for event in selected:
-                    missing=role=='cursor_missing' and event['index'] in (0,data)
-                    if event['len']!=(0 if missing else size) or missing and event['capacity']!=0:raise ValueError('wrong missing/recovered cursor storage')
-            if len(current)!=3*source_count:raise ValueError('unexpected cursor observations')
-            continue
-        read_events=[e for e in current if e['role'] in {'source_read_view','read_scratch_view'}]
-        if len(read_events)%2 or any(a['role']!='source_read_view' or b['role']!='read_scratch_view' or a['index']!=b['index'] or a['bytes']!=b['bytes'] for a,b in zip(read_events[::2],read_events[1::2])):raise ValueError('reader/scratch callback pairs changed')
-        for role in ('source_read_view','read_scratch_view'):
-            for shard in range(source_count):
-                selected=[e for e in current if e['role']==role and e['index']==shard]
-                if not selected or sum(e['bytes'] for e in selected)!=size or not any(e['bytes']==0 for e in selected) or any(e['len']>block for e in selected if role=='read_scratch_view'):
-                    raise ValueError('incomplete reader/scratch transfer')
-        for shard in range(source_count):
-            remaining=size
-            origin=retained[shard]['offsets']
-            for event in (e for e in current if e['role']=='source_read_view' and e['index']==shard):
-                if event['len']!=remaining:raise ValueError('source prefix consumption changed')
-                if remaining and event['offsets']!=[(start+size-remaining)%mod for start,mod in zip(origin,(64,4096,page_size))]:
-                    raise ValueError('source view moved outside retained backing')
-                remaining-=event['bytes']
-        if operation=='verify_stream':
-            if any(e['role'] not in {'source_read_view','read_scratch_view'} for e in current):raise ValueError('unexpected verify view')
-            continue
-        if any(e['role'] not in {'source_read_view','read_scratch_view','parity_write_view','writer_before','writer_after'} for e in current):raise ValueError('unexpected encode view')
-        for shard in range(parity):
-            inputs=[e for e in current if e['role']=='parity_write_view' and e['index']==shard]
-            before=[e for e in current if e['role']=='writer_before' and e['index']==shard]
-            after=[e for e in current if e['role']=='writer_after' and e['index']==shard]
-            if not inputs or len(inputs)!=len(before) or len(before)!=len(after) or sum(e['bytes'] for e in inputs)!=size:raise ValueError('incomplete parity/writer transfer')
-            previous=0
-            for source,old,new in zip(inputs,before,after):
-                if not 0<source['len']<=block or old['len']!=previous or new['len']!=old['len']+source['bytes'] or new['bytes']!=source['bytes'] or old['capacity']<size or old['capacity']!=new['capacity'] or old['offsets']!=new['offsets']:
-                    raise ValueError('writer reservation or append lifecycle changed')
-                previous=new['len']
-            if previous!=size:raise ValueError('incomplete writer output')
+    native_tools.request('stream-views', request=dict(operation='validate', observations=[dict(
+        view=view, case=case, iterations=iterations, page_size=page_size,
+        observation=observation, source_fixture=source_fixture, require_counters=require_counters)]))
+
+
+def validate_samples(views, samples, iterations, page_size, *, require_counters=False, summary=False):
+    if len(views) != len(samples): raise ValueError('missing stream-view observations')
+    result=[]
+    # Four bounded ledgers fit one native frame, including full u64 counters.
+    for offset in range(0,len(views),4):
+        observations=[dict(view=view, case=row['case'], iterations=iterations, page_size=page_size,
+                           observation=row['index'], source_fixture=row['fixture']['source'],
+                           require_counters=require_counters)
+                      for view,row in zip(views[offset:offset+4],samples[offset:offset+4])]
+        result.extend(native_tools.request('stream-views', request=dict(operation='validate',
+                          observations=observations, summary=summary)))
+    return result
+
+
+def summarize_windows(view):
+    return native_tools.request('stream-views', request=dict(operation='summarize',
+                                view=dict(calls=view['calls'], windows=view['windows'])))
 
 
 def check(repository, baseline_ref=None):
@@ -293,9 +74,9 @@ def check(repository, baseline_ref=None):
                 rows=sampling.parse_output(proc.stdout);views=sampling.parse_output(proc.stdout,PREFIX)
                 if len(rows)!=12 or len(views)!=12:raise ValueError('incomplete native view worker')
                 sampling.validate_workload_sequence(underlying_records(rows),'stream')
+                validate_samples(views,rows,1,sampling.base_page_size(),require_counters=hasattr(os,'sched_getaffinity'))
                 for index,(row,view) in enumerate(zip(rows,views)):
                     if row['case']!=case or row['index']!=index:raise ValueError('native view worker case/order mismatch')
-                    validate(view,case,1,sampling.base_page_size(),index,row['fixture']['source'],require_counters=hasattr(os,'sched_getaffinity'))
                     if hasattr(os,'sched_getaffinity'):
                         sampling.validate_placement(row,os.sched_getaffinity(0))
                         sampling.validate_telemetry(row,os.sched_getaffinity(0))
