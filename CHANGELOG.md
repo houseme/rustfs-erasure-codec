@@ -10,6 +10,12 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Add explicit complete diagnostic capture/replay: collect all four 126-case
+  phases and paired layouts despite statistical failures, then report every
+  distribution, duration, repeat and regression result with unqualified ratios.
+  Preserve normal acceptance behavior, source/resource integrity and original
+  workers; distinct diagnostic manifests cannot become release evidence.
+
 - Extend the existing offline baseline analyzer with per-iteration thread service,
   independently ranked service spread, timer-boundary gaps and process-fault
   summaries. Retain all original observations and unclamped counter ratios;

@@ -5,6 +5,12 @@ The [current readiness assessment](release-9.1.0-blockers.md) is the canonical
 remaining-work list. It supersedes historical checklist snapshots, without
 changing their source bindings or promoting rejected measurements.
 
+The subsequently requested [complete diagnostic mode](release-evidence.md#complete-diagnostic-collection)
+collects the full A1/B1/B2/A2 profiles and paired layouts before evaluating all
+statistical failures. A distribution or repeat failure no longer truncates that
+diagnostic campaign. Its distinct manifest/report remains separate from the
+formal publication checks below, with all original observations and failures kept.
+
 ## Compatibility and functional review
 
 - Review the [incremental-update implementation and drift validation](drift-analysis-9.1.0-2026-10-22.md).
