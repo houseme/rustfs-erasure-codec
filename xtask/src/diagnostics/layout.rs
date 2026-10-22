@@ -11,6 +11,7 @@ use std::collections::BTreeMap;
 #[derive(Deserialize)]
 #[serde(tag = "operation", rename_all = "kebab-case", deny_unknown_fields)]
 pub(crate) enum Request {
+    Protocol,
     CpuPlan {
         cpus: Vec<u64>,
     },
@@ -36,11 +37,14 @@ pub(crate) enum Request {
         iterations: u64,
         page_size: Value,
         measuring_cpu: Value,
+        #[serde(default)]
+        diagnostic: bool,
     },
 }
 impl Request {
     pub(crate) fn execute(self) -> Result<Value> {
         match self {
+            Self::Protocol => Ok(verify::protocol()),
             Self::CpuPlan { cpus } => Ok(cpu::plan(cpus)),
             Self::Cpu {
                 records,
@@ -64,6 +68,7 @@ impl Request {
                 iterations,
                 page_size,
                 measuring_cpu,
+                diagnostic,
             } => verify::paired(
                 &phases,
                 iterations,
@@ -73,6 +78,7 @@ impl Request {
                 measuring_cpu
                     .as_u64()
                     .ok_or("paired analysis requires actual page size and measuring CPU")?,
+                diagnostic,
             ),
         }
     }

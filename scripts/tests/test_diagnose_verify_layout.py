@@ -45,9 +45,37 @@ class LayoutDiagnosticTests(unittest.TestCase):
             self.assertFalse((output/'diagnosis.json').exists())
 
 class PairedLayoutTests(unittest.TestCase):
-    def verify(self, output):
+    def verify(self, output, **kwargs):
         with mock.patch.object(diagnostic.evidence, 'source_info', return_value=CANDIDATE), mock.patch.object(diagnostic.evidence, 'source_at', side_effect=lambda root, rev: BASELINE if rev == BASELINE['commit'] else CANDIDATE):
-            return diagnostic.verify_paired(output, output, compiler=False)
+            return diagnostic.verify_paired(output, output, compiler=False, **kwargs)
+
+    def test_diagnostic_replay_recomputes_all_unqualified_cells_without_approval(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output = pathlib.Path(directory)
+            document = write_campaign(output)
+            document['diagnostic_only'] = True
+            rows = paired_records()
+            for row in rows:
+                row['ns_per_iter'] *= 1.2
+                row['wall_ns'] = round(row['wall_ns'] * 1.2)
+            diagnostic.save(output/'B1', 'samples.json', rows)
+            (output/'B1/measurement.log').write_text(''.join(
+                diagnostic.PREFIX+json.dumps(row)+'\n' for row in rows))
+            for name in ('samples.json', 'measurement.log'):
+                document['files']['B1'][name]['sha256'] = diagnostic.evidence.digest(
+                    (output/'B1'/name).read_bytes())
+            diagnostic.save(output, 'diagnostic-manifest.json', document)
+            # Saved summaries cannot override raw, source-bound observations.
+            diagnostic.save(output, 'pairing.json', {'layout_gate_passed': True})
+            report = self.verify(output, diagnostic=True)
+            self.assertFalse(report['layout_gate_passed'])
+            self.assertFalse(report['release_approval'])
+            self.assertIsNone(report['candidate_attribution'])
+            self.assertEqual(len(report['unqualified_layout_comparisons']), 256)
+            self.assertEqual(len(report['unqualified_regression_failures']), 128)
+            (output/'manifest.json').write_text(json.dumps(document))
+            with self.assertRaisesRegex(ValueError, 'modes must match'):
+                self.verify(output)
 
     def test_immutable_replay_uses_raw_rows_instead_of_any_summary(self):
         with tempfile.TemporaryDirectory() as directory:

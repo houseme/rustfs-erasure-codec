@@ -108,7 +108,7 @@ fn drift_and_regression_limits_are_inclusive_per_cell() {
             r["ns_per_iter"] = json!(2240.0);
         }
     }
-    let report = verify::paired(&phases, 1000000, 4096, 2).unwrap();
+    let report = verify::paired(&phases, 1000000, 4096, 2, false).unwrap();
     assert_eq!(report["layout_gate_passed"], true);
     assert_eq!(
         report["candidate_attribution"].as_array().unwrap().len(),
@@ -128,7 +128,7 @@ fn one_regressing_cell_is_not_pooled_with_faster_cells() {
             }
         }
     }
-    let report = verify::paired(&phases, 1000000, 4096, 2).unwrap();
+    let report = verify::paired(&phases, 1000000, 4096, 2, false).unwrap();
     assert_eq!(report["layout_quality_passed"], true);
     assert_eq!(report["layout_gate_passed"], false);
     assert!(report["candidate_attribution"].is_null());
@@ -148,11 +148,48 @@ fn short_wide_or_drifting_phases_withhold_all_attribution() {
             row["ns_per_iter"] = json!(2000.0 * factor);
             row["wall_ns"] = json!((2000000000.0 * factor) as u64);
         }
-        let report = verify::paired(&phases, 1000000, 4096, 2).unwrap();
+        let report = verify::paired(&phases, 1000000, 4096, 2, false).unwrap();
         assert_eq!(report["layout_gate_passed"], false, "{failure}");
         assert!(report["candidate_attribution"].is_null());
     }
 }
+#[test]
+fn diagnostic_comparisons_keep_unqualified_cells_without_candidate_attribution() {
+    let mut phases = phases();
+    for row in phases.get_mut("B1").unwrap() {
+        row["ns_per_iter"] = json!(2400.0);
+        row["wall_ns"] = json!(2400000000_u64);
+    }
+    let ordinary = verify::paired(&phases, 1000000, 4096, 2, false).unwrap();
+    let mut diagnostic = verify::paired(&phases, 1000000, 4096, 2, true).unwrap();
+    assert_eq!(diagnostic["diagnostic_only"], true);
+    assert_eq!(diagnostic["layout_gate_passed"], false);
+    assert_eq!(diagnostic["release_approval"], false);
+    assert!(diagnostic["candidate_attribution"].is_null());
+    assert_eq!(
+        diagnostic["unqualified_layout_comparisons"]
+            .as_array()
+            .unwrap()
+            .len(),
+        256
+    );
+    assert_eq!(
+        diagnostic["unqualified_regression_failures"]
+            .as_array()
+            .unwrap()
+            .len(),
+        128
+    );
+    for key in [
+        "diagnostic_only",
+        "unqualified_layout_comparisons",
+        "unqualified_regression_failures",
+    ] {
+        diagnostic.as_object_mut().unwrap().remove(key);
+    }
+    assert_eq!(diagnostic, ordinary);
+}
+
 #[test]
 fn integer_medians_and_ratios_keep_precision_above_f64_integer_range() {
     let a = json!(9007199254740993_u64);
