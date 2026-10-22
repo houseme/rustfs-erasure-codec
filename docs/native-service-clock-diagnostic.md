@@ -39,8 +39,32 @@ Linux x86_64 and read access to the existing measuring CPU's MSR device are
 required for this optional observation. Other platforms are unsupported; unavailable device reads are retained as
 unavailable data. Local container tests and compilation do not prove
 that this VM's virtualized counters are faithful or that a native positive probe
-has passed. Positive VM validation is pending while the existing complete
-layout campaign owns the test resources.
+has passed. The completed source-bound Linux probe and its independent strict
+replay are recorded below; their capability result does not establish virtualized fidelity
+or release acceptance.
+
+## Controller process ownership
+
+Run the controller as the owning process inside the reserved partition. Keep
+the reservation supervisor outside that partition. A subprocess controller
+rejects a waiting parent in the same partition because that parent is not its
+descendant; the refusal happens before hardware capability measurement.
+
+When handing an already reserved process to the CLI, replace that process:
+
+```sh
+exec python3 scripts/diagnose_release_vm.py \
+  --baseline /path/to/clean-9.0.0 \
+  --isolation-cgroup /sys/fs/cgroup/owned-test \
+  --output /path/to/new-private-probe \
+  --native-service-clock --probe-only
+```
+
+A same-process call to the existing controller is also supported, as used by the
+completed source-bound positive probe below. The partition must contain only
+that controller and its owned descendants. Do not admit arbitrary ancestors or
+relax the isolation check to work around a nested invocation. Preserve such a
+refusal separately from unavailable-counter or unqualified-record results.
 
 ## Counter interpretation
 

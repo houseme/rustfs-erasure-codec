@@ -72,28 +72,76 @@ campaign. Retained caller offsets cover neither dynamic output owners nor
 physical cache/page geometry. Global guest pressure and calling-thread counters
 therefore cannot justify attributing every change to either the codec or the VM.
 
-## Bounded follow-through
+## Completed fixed-count controls — 2026-10-23
 
-A separately frozen sixteen-worker plan targets the two slow paths and a stable
-encode control, with complete A1/B1/B2/A2 repeats. Original variants preserve the
-captured loop counts, timing kernels and three warmups/nine samples. A separate
-reconstruction variant adds one explicit result-consumption barrier to test an
-optimizer/unused-result hypothesis; it has a diagnostic workload marker refused
-by formal validation. That hypothesis is not a confirmed defect. Optional
-software CPU-clock profiles and a zero-codec synchronous-counter capability check
-will be retained with their own limitations, without normalizing API timings.
+The separate plan completed all sixteen workers and 192 observations: 48 warmups
+and 144 measured samples. Independent replay reproduced every twelve-observation
+summary exactly, checked every parent start/end journal and original iteration
+binding, and verified source restoration. All sixteen software-profiler reports
+completed. No sample was short, no distribution was wide, and all eight
+same-version repeat checks passed. All 48 result-retention observations remain
+rejected by formal workload validation; their marker is unwrapped only in the
+private diagnostic replay.
 
-All variants compile and restore their owned source overlays. The first resource
-attempt was refused before any codec measurement because another controlled
-measurement owns the requested CPU partition. Its failed preflight and cleanup
-are retained; no foreign process or partition is changed. A new resource attempt
-is prepared with the same immutable driver/count plan and starts only after the
-partition is free. Completed results from the related active control are reviewed
-before launching any redundant measurement. Statistical failures will not truncate
-remaining controls.
+The controller is `75bc034`; the original sampler/candidate remains `022c0a7`
+against published 9.0.0. These software-profiled controls do not measure later
+integrated main or replace the failed complete release campaign. The
+[derived comparison](../benchmarks/release-9.1.0/2026-10-23/output-retention-control.json)
+retains all sixteen cross-version comparisons.
 
-The frozen capture does not match every later tool/dependency byte. A final
-candidate still needs its own source-bound accepted evidence and strict positive
-release preflight. Keep 9.1.0 unreleased, without a tag or registry upload. See the
-[publication blockers](release-9.1.0-blockers.md) and
-[release checklist](release-9.1.0-checklist.md).
+| Control, 10+4 / 64 KiB | Candidate/baseline latency ratio across all four pairs |
+| --- | ---: |
+| Original `reconstruct_data` | 11.7125–11.8830 |
+| Same reconstruction plus `black_box(&shards)` | 11.7079–12.1540 |
+| Original `verify_stream`, 64 KiB block | 7.6583–7.8247 |
+| Original `encode` control | 0.9850–0.9906 |
+
+The result-retention barrier leaves the reconstruction minor-fault contrast
+unchanged. All four corresponding original/retained caller fixtures match.
+This control does not support unused-output elimination alone as an explanation
+of the observed gap. It does not prove identical dynamic owners or physical
+memory/cache geometry. Stream verification retains its fault contrast, while
+the encode control has no measured minor faults. These complete controls
+strengthen allocation/page-lifetime investigation; the earlier fault-free
+unchanged-baseline drift remains a counterexample to a universal fault cause.
+
+Whole-process user CPU-clock profiles retain substantial libc execution
+and finite-field computation. Unresolved libc addresses, their sampling scope
+and exclusion of kernel execution prevent interpreting relative weights as
+exclusive API work or converting them into hardware cycles.
+
+Two initial resource attempts were refused before sampling and retain their
+original errors and successful cleanup. The third attempt completed with all
+source overlays, owned partitions, controllers and parent affinities restored;
+both original observer services remained active.
+
+## Counter capability and current-main integration
+
+The optional nested probe was refused before capability measurement: its waiting
+parent occupied the same partition, outside the child controller's descendant
+set. That invocation error says nothing about hardware availability. Keep the
+strict ownership contract and execute the controller in the partition's owning
+process. See the [invocation contract](native-service-clock-diagnostic.md#controller-process-ownership).
+
+A separate completed probe on `d7eb79a` already uses that owning-process entry
+and the framed reporter now merged into main. Independent replay matches its
+single complete raw record, strict counter/enclosure summary, zero codec-call
+declaration and restored resources exactly. The enclosure excess is about
+0.0784%. This establishes source-bound read/record/envelope capability without
+rerunning a probe to select a favorable result. Virtualized counter fidelity,
+exclusive API cycles and release qualification remain unproven.
+
+Remote main `db69018` is integrated separately from these historical controls.
+Its native encoder prepares and executes borrowed views in one scope, returns
+only the result and reads matrix rows directly. Review confirms complete
+safe-Field preparation before writes and no generic fallback after an execution
+error. The merged implementation passes the encoding/identity/construction/
+parallel regression programs, three byte-view storage tests, 128 native-tool
+tests, all 273 Python tests, strict codec/tool Clippy, formatting and the
+codec-only no_std check. Those checks establish correctness and tool integration;
+the original diagnostic ratios do not become measurements of this merged source.
+
+A final candidate still needs source-bound accepted evidence and a strict
+positive release preflight. Keep 9.1.0 unreleased, without a tag or registry
+upload; preserve every failed campaign and distinguish mechanism, resource and
+publication evidence.
