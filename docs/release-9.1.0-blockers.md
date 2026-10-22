@@ -92,6 +92,17 @@ does not revalidate complete calibration or external isolation, identify a uniqu
 frequency/cache/host mechanism, or approve any candidate timing. See the
 [read-only replay](drift-analysis-9.1.0-2026-10-22.md#linux-失败-case-的授权只读复算).
 
+A later [Linux native control](drift-analysis-9.1.0-2026-10-22.md#linux-原生功能与有界服务验证)
+on merged main `c687e24` passes eight incremental regressions, 200 normal-format
+compatibility cases and 45 resource cases. Its fixed four-worker 9.0.0-only
+control retains all 48 observations: distributions span 1.9517% to 2.6447%, and
+unobserved U1/U2 repeat drift is 0.1113%. The two observed workers exceed their
+predeclared 5% counter-alignment uncertainty bound (5.3021%/5.3169%); per-marker
+execution-rate interpretation is refused. Zero-codec kernel-marker checks also
+do not establish byte-count closure. All raw failures remain retained and owned
+resources are restored. This single-case window neither repairs the failed full
+controls nor supplies final baseline/candidate qualification.
+
 In the failed cases from the first two controls, formal observations have zero
 process minor/major faults and at most about 0.0147% calling-thread runnable wait
 relative to wall time.
