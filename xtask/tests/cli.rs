@@ -64,6 +64,45 @@ impl Drop for Fixture {
 }
 
 #[test]
+fn layout_cli_keeps_the_full_cpu_plan_and_rejects_invalid_input_without_rewriting_it() {
+    let f = Fixture::new();
+    let bytes = br#"{"operation":"cpu-plan","cpus":[4,2,3]}"#;
+    fs::write(f.0.join("request.json"), bytes).unwrap();
+    let output = f
+        .command("analyze-layout")
+        .args(["--input", "request.json"])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let plan: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(
+        plan[0],
+        json!(["same-buffer-forward-reverse", [2, 3, 4, 4, 3, 2]])
+    );
+    assert_eq!(
+        plan[1],
+        json!(["same-buffer-reverse-forward", [4, 3, 2, 2, 3, 4]])
+    );
+    assert_eq!(plan.as_array().unwrap().len(), 8);
+    assert_eq!(fs::read(f.0.join("request.json")).unwrap(), bytes);
+
+    let invalid = br#"{"operation":"cpu-plan","cpus":[true]}"#;
+    fs::write(f.0.join("request.json"), invalid).unwrap();
+    let output = f
+        .command("analyze-layout")
+        .args(["--input", "request.json"])
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stdout.is_empty());
+    assert_eq!(fs::read(f.0.join("request.json")).unwrap(), invalid);
+}
+
+#[test]
 fn stream_view_cli_checks_a_complete_cursor_ledger_without_python_or_rewriting_inputs() {
     let f = Fixture::new();
     let mut events = Vec::new();

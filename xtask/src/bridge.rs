@@ -9,6 +9,9 @@ use std::{collections::BTreeMap, path::PathBuf};
 #[derive(Deserialize)]
 #[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
 enum Request {
+    DiagnosticLayout {
+        request: crate::diagnostics::layout::Request,
+    },
     DiagnosticWorker {
         request: crate::diagnostics::worker::Request,
     },
@@ -116,6 +119,7 @@ enum Response {
 impl Request {
     fn execute(self) -> Result<Response> {
         Ok(match self {
+            Self::DiagnosticLayout { request } => Response::Data(request.execute()?),
             Self::DiagnosticWorker { request } => Response::Data(request.execute()?),
             Self::ReleaseRows { request } => Response::Data(request.records()?),
             Self::DiagnosticLedger { request } => Response::Data(request.execute()?),
