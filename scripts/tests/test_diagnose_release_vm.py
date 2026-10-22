@@ -267,7 +267,7 @@ class NativeClockTests(unittest.TestCase):
             subprocess.run(['rustc','--edition=2024','--test','--crate-name','native_clock_tests',str(wrapper),'-o',str(binary)],
                            env=dict(os.environ,RUSTUP_TOOLCHAIN='stable'),check=True,capture_output=True,text=True)
             result=subprocess.run([str(binary),'--nocapture'],check=True,capture_output=True,text=True)
-            self.assertIn('5 passed',result.stdout)
+            self.assertIn('6 passed',result.stdout)
             self.assertIn('1 ignored',result.stdout)
             values=[json.loads(line[len('RSE_NATIVE_FIXTURE '):]) for line in result.stdout.splitlines() if line.startswith('RSE_NATIVE_FIXTURE ')]
             self.assertEqual(len(values),2)
@@ -275,6 +275,15 @@ class NativeClockTests(unittest.TestCase):
                 self.assertEqual(value['marker'],19)
                 diagnostic.native_clock_point(value['service_clock'])
             self.assertEqual({v['service_clock']['available'] for v in values},{True,False})
+            # Serial libtest writes its test name without a terminating newline.
+            # Exercise the same reporter as the real probe, without MSR access.
+            framed=subprocess.run([str(binary),'--exact','process::native_service_clock::tests::probe_record_under_libtest',
+                                   '--nocapture','--test-threads=1'],check=True,capture_output=True,text=True)
+            frames=[line for line in framed.stdout.splitlines(keepends=True) if line.startswith('RSE_NATIVE_CLOCK_PROBE ')]
+            self.assertEqual(len(frames),1,framed.stdout)
+            self.assertTrue(frames[0].endswith('\n'))
+            self.assertEqual(json.loads(frames[0][len('RSE_NATIVE_CLOCK_PROBE '):]),
+                             {'wall_ns':1000,'before':{'fixture':'before'},'after':{'fixture':'after'}})
 
 
 if __name__=='__main__':unittest.main()
