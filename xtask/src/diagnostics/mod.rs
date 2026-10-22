@@ -15,6 +15,7 @@ mod stream_core;
 pub mod templates;
 mod verify_scratch;
 pub(crate) mod views;
+pub(crate) mod vm;
 pub(crate) mod worker;
 
 use crate::{Args, Result};

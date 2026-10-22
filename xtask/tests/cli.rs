@@ -64,6 +64,43 @@ impl Drop for Fixture {
 }
 
 #[test]
+fn vm_cli_validates_process_snapshots_and_keeps_every_other_original_field() {
+    let f = Fixture::new();
+    let point = json!({"available":true,"complete":true,"minor_faults":0,"major_faults":0,"snapshot_ns":10,
+        "threads":[{"slot":0,"measuring_thread":true,"cpu":0,"minor_faults":0,"major_faults":0,"run_ns":1,"wait_ns":0,"timeslices":1}]});
+    let mut request = json!({"operation":"basic","records":[{"before":{"cpu":0,"process":point},"after":{"cpu":0,"process":point},"retained":{"bytes":[1,2,3]}}]});
+    let bytes = serde_json::to_vec(&request).unwrap();
+    fs::write(f.0.join("request.json"), &bytes).unwrap();
+    let output = f
+        .command("analyze-vm-data")
+        .args(["--input", "request.json"])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let records: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert!(records[0]["before"].get("process").is_none());
+    assert_eq!(records[0]["retained"], request["records"][0]["retained"]);
+    assert_eq!(fs::read(f.0.join("request.json")).unwrap(), bytes);
+    request["records"][0]["before"]["process"]["threads"][0]["slot"] = json!(true);
+    fs::write(
+        f.0.join("request.json"),
+        serde_json::to_vec(&request).unwrap(),
+    )
+    .unwrap();
+    let output = f
+        .command("analyze-vm-data")
+        .args(["--input", "request.json"])
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(2));
+    assert!(output.stdout.is_empty());
+}
+
+#[test]
 fn baseline_cli_preserves_inputs_and_rejects_noninteger_worker_intervals() {
     let f = Fixture::new();
     let mut request = json!({"operation":"gap","first":[{"start_ns":0,"end_ns":100},[{"kind":"sample","wall_ns":80}]],
