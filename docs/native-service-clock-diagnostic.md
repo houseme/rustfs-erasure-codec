@@ -79,3 +79,14 @@ The report records the controller source, exact generated diagnostic-overlay
 digest and counter-template digest. Formal sampler templates are not edited.
 The historical [20.6528% refusal and subsequent profile analysis](a1-service-drift-review-2026-10-22.md)
 remain valid; this implementation is not evidence that their mechanism is fixed.
+
+## Probe framing regression
+
+The first Linux probe read available before/after counters, but serial libtest
+prefixed the record with `test native_service_clock_probe ... `. The strict
+parser correctly refused this non-framed line. The reporter now begins a new
+line before its marker. A hardware-free Rust fixture runs through the same
+reporter and an actual serial libtest subprocess; it reproduced the rejection
+before this fix and passes afterwards. Duplicate, missing and truncated records
+remain errors. The original failed attempt is retained and is not promoted into
+a successful capability check. A fresh source-bound Linux probe is required.

@@ -138,6 +138,14 @@ pub(super) fn snapshot(process: impl FnOnce() -> String) -> String {
     snapshot_with(process, read_device)
 }
 
+#[cfg(any(test, all(target_os = "linux", target_arch = "x86_64")))]
+fn report_probe(wall_ns: u128, before: &str, after: &str) {
+    // Serial libtest prints its test name without a terminating newline.
+    println!(
+        "\nRSE_NATIVE_CLOCK_PROBE {{\"wall_ns\":{wall_ns},\"before\":{before},\"after\":{after}}}"
+    );
+}
+
 #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
 pub(super) fn probe() {
     let cpu = std::env::var("RSE_SAMPLER_CPU").expect("probe requires the reserved CPU");
@@ -160,9 +168,7 @@ pub(super) fn probe() {
     std::hint::black_box(value);
     let wall_ns = start.elapsed().as_nanos();
     let after = snapshot(|| "{\"available\":true}".to_owned());
-    println!(
-        "RSE_NATIVE_CLOCK_PROBE {{\"wall_ns\":{wall_ns},\"before\":{before},\"after\":{after}}}"
-    );
+    report_probe(wall_ns, &before, &after);
 }
 
 #[cfg(not(all(target_os = "linux", target_arch = "x86_64")))]
@@ -174,6 +180,11 @@ pub(super) fn probe() {
 mod tests {
     use super::*;
     use std::cell::RefCell;
+
+    #[test]
+    fn probe_record_under_libtest() {
+        report_probe(1000, r#"{"fixture":"before"}"#, r#"{"fixture":"after"}"#);
+    }
 
     struct Reader {
         calls: RefCell<Vec<u64>>,

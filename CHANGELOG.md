@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Frame synchronous native-counter probe records on their own complete line,
+  even when serial libtest writes the test-name prefix first. Exercise the actual
+  reporter under libtest without hardware access; keep strict record parsing,
+  original failure records and all performance limits unchanged.
+
 - Remove unused MinGW provisioning from the Windows GNU metadata-check matrix.
   Retain all default, no_std and SIMD checks plus native Windows execution jobs.
 
