@@ -1,0 +1,220 @@
+{
+  "schema": "complete-fixed-count-mechanism-control-v1",
+  "purpose": "Mechanism diagnosis only; source-bound instrumented controls do not replace final release evidence.",
+  "sources": {
+    "controller": "75bc0341fc62ef47e2a287d42dbd04f8a238e9b7",
+    "sampler_and_candidate": "022c0a7476e3d91bee33f86bf4ade55d27122949",
+    "baseline": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6"
+  },
+  "protocol": {
+    "workers": 16,
+    "observations": 192,
+    "warmups": 48,
+    "measured_samples": 144,
+    "original_iteration_counts_preserved": true,
+    "software_profile": "whole-process user CPU-clock; 49 Hz; dwarf,4096; not exclusive API cycles"
+  },
+  "verification": {
+    "summaries_exactly_replayed": 16,
+    "retention_records_formally_refused": 48,
+    "all_profiler_reports_exit_zero": true,
+    "wide_distributions": 0,
+    "short_samples": 0,
+    "repeat_checks": 8,
+    "repeat_failures": 0
+  },
+  "controls": [
+    {
+      "cohort": 0,
+      "profile": "small_file",
+      "case": "reconstruct_data:10:4:65536",
+      "variant": "original",
+      "latency_ratio_range": [
+        11.712479830750775,
+        11.882983844406347
+      ],
+      "candidate_minor_faults_present": true,
+      "baseline_minor_faults_present": false
+    },
+    {
+      "cohort": 1,
+      "profile": "small_file",
+      "case": "reconstruct_data:10:4:65536",
+      "variant": "retained",
+      "latency_ratio_range": [
+        11.707879221974483,
+        12.153992717976527
+      ],
+      "candidate_minor_faults_present": true,
+      "baseline_minor_faults_present": false
+    },
+    {
+      "cohort": 2,
+      "profile": "stream",
+      "case": "verify_stream:10:4:65536:65536",
+      "variant": "original",
+      "latency_ratio_range": [
+        7.658298070523733,
+        7.824666117575264
+      ],
+      "candidate_minor_faults_present": true,
+      "baseline_minor_faults_present": false
+    },
+    {
+      "cohort": 3,
+      "profile": "small_file",
+      "case": "encode:10:4:65536",
+      "variant": "original",
+      "latency_ratio_range": [
+        0.985010480170029,
+        0.9905536315210431
+      ],
+      "candidate_minor_faults_present": false,
+      "baseline_minor_faults_present": false
+    }
+  ],
+  "comparisons": [
+    {
+      "cohort": 0,
+      "pair": "A1/B1",
+      "latency_ratio": 11.864183629276742,
+      "candidate_attribution": null
+    },
+    {
+      "cohort": 0,
+      "pair": "A1/B2",
+      "latency_ratio": 11.712479830750775,
+      "candidate_attribution": null
+    },
+    {
+      "cohort": 0,
+      "pair": "A2/B1",
+      "latency_ratio": 11.882983844406347,
+      "candidate_attribution": null
+    },
+    {
+      "cohort": 0,
+      "pair": "A2/B2",
+      "latency_ratio": 11.731039653103483,
+      "candidate_attribution": null
+    },
+    {
+      "cohort": 1,
+      "pair": "A1/B1",
+      "latency_ratio": 11.776493008482781,
+      "candidate_attribution": null
+    },
+    {
+      "cohort": 1,
+      "pair": "A1/B2",
+      "latency_ratio": 12.153992717976527,
+      "candidate_attribution": null
+    },
+    {
+      "cohort": 1,
+      "pair": "A2/B1",
+      "latency_ratio": 11.707879221974483,
+      "candidate_attribution": null
+    },
+    {
+      "cohort": 1,
+      "pair": "A2/B2",
+      "latency_ratio": 12.083179491918994,
+      "candidate_attribution": null
+    },
+    {
+      "cohort": 2,
+      "pair": "A1/B1",
+      "latency_ratio": 7.658298070523733,
+      "candidate_attribution": null
+    },
+    {
+      "cohort": 2,
+      "pair": "A1/B2",
+      "latency_ratio": 7.780681296577498,
+      "candidate_attribution": null
+    },
+    {
+      "cohort": 2,
+      "pair": "A2/B1",
+      "latency_ratio": 7.701591049241123,
+      "candidate_attribution": null
+    },
+    {
+      "cohort": 2,
+      "pair": "A2/B2",
+      "latency_ratio": 7.824666117575264,
+      "candidate_attribution": null
+    },
+    {
+      "cohort": 3,
+      "pair": "A1/B1",
+      "latency_ratio": 0.9854845696700044,
+      "candidate_attribution": null
+    },
+    {
+      "cohort": 3,
+      "pair": "A1/B2",
+      "latency_ratio": 0.985010480170029,
+      "candidate_attribution": null
+    },
+    {
+      "cohort": 3,
+      "pair": "A2/B1",
+      "latency_ratio": 0.9905536315210431,
+      "candidate_attribution": null
+    },
+    {
+      "cohort": 3,
+      "pair": "A2/B2",
+      "latency_ratio": 0.9900771034349426,
+      "candidate_attribution": null
+    }
+  ],
+  "retention": [
+    {
+      "phase": "A1",
+      "role": "baseline",
+      "retained_over_original_metric": 0.9894717477205395,
+      "separate_process_fixtures_equal": true
+    },
+    {
+      "phase": "B1",
+      "role": "candidate",
+      "retained_over_original_metric": 0.982158358571573,
+      "separate_process_fixtures_equal": true
+    },
+    {
+      "phase": "B2",
+      "role": "candidate",
+      "retained_over_original_metric": 1.0267708111534968,
+      "separate_process_fixtures_equal": true
+    },
+    {
+      "phase": "A2",
+      "role": "baseline",
+      "retained_over_original_metric": 0.9968476515925655,
+      "separate_process_fixtures_equal": true
+    }
+  ],
+  "retention_minor_fault_contrast_unchanged": true,
+  "zero_codec_capability": {
+    "tool_commit": "d7eb79af7a0b6bce2979a289f4adbd99867915e1",
+    "baseline_commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "codec_calls": 0,
+    "strict_raw_record_replay_exact": true,
+    "enclosure_overhead_fraction": 0.0007838794434455952,
+    "source_and_cleanup_checks_passed": true,
+    "virtualized_counter_fidelity_proven": false,
+    "exclusive_api_cycles": false
+  },
+  "interpretation": [
+    "The explicit result-retention barrier did not remove the reconstruction latency or minor-fault contrast in these controls.",
+    "The stream-verification contrast also persists, while the encode control remains close to baseline.",
+    "The earlier fault-free unchanged-baseline drift remains a counterexample to a universal page-fault explanation.",
+    "Separate-process caller-layout equality does not prove identical dynamic owners or physical memory/cache conditions.",
+    "The earlier nested probe was refused before capability measurement; retain that failure separately from the completed source-bound positive probe."
+  ],
+  "release_approval": false,
+  "candidate_attribution": null
+}

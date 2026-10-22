@@ -378,13 +378,18 @@ Changed counts, revisions or inputs revalidate, and callers receive fresh result
 objects. This preserves evidence replay's existing cache behavior rather than
 replacing cached checks with repeated IPC. One actual worker drops from 42 framed
 native requests to one; this is a request-count result, not codec throughput.
+The independent synthetic stream fixture above has its own fixed input and
+primed-cache context and reports 55 frames to one. Keep those counts attached to
+their respective workers rather than treating either as a universal request cost.
 
 The final inventory is 34 Python files / 8,177 lines, about 38% below the original
 13,120 lines. This batching step removes 73 Python lines including its regression
 coverage; the merged build-policy test adds 14, for a net reduction of 59 since
-the previous inventory. All remaining modules retain active callers. The newly
-retained, source-bound helper-profile comparison brings JSON inventory to
-577 files / 2,818,980 bytes, with no audit errors. Historical bytes are unchanged.
+the previous inventory. All remaining modules retain active callers. At that snapshot the
+source-bound helper-profile comparison brings JSON inventory to 577 files /
+2,818,980 bytes, with no audit errors. The independently retained complete-worker
+comparison subsequently brings the audited inventory to 578 files / 2,828,460
+bytes, including 37 versioned records. Historical bytes are unchanged.
 Core/WASM package allowlists remain 67/6 members; all five workspace members use
 the root dependency catalog. No production codec source or build script changes.
 

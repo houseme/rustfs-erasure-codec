@@ -268,13 +268,14 @@ reports exact-byte duplicate groups without modifying files.
 The initial audit found **575 files / 2,807,430 bytes**, all valid. These archives
 and WASM inputs remain unchanged; an active tool contract and the deliberately
 retained helper-profile/complete-worker comparisons, the merged service-drift
-review and complete Linux diagnostic review bring the current total to
-**580 files / 2,837,994 bytes**:
+review, complete Linux diagnostic review and fixed-count mechanism controls
+bring the current total to
+**581 files / 2,844,236 bytes**:
 
 | Category | Files | Policy |
 | --- | ---: | --- |
 | Raw Criterion evidence | 448 | Preserve phase-local records and manifest paths |
-| Versioned evidence | 39 | Preserve schema and digest-bound contents |
+| Versioned evidence | 40 | Preserve schema and digest-bound contents |
 | Historical reports/evidence | 89 | Repository-only; do not reinterpret old runs as current acceptance |
 | WASM configuration/lockfiles | 3 | Preserve build and dependency reproducibility |
 | Shared tool contract | 1 | Field, alias and default-threshold definition; excluded from the codec crate |
@@ -382,6 +383,7 @@ migration, whose codec sources remain unchanged):
 | Real verify-scratch/stream-core workers, both versions | 58 workers, 696 observations and 98,448 events pass capture/replay and match the original Python ledger summaries; 30 stream workers also exercise native view validation |
 | Dynamic allocation migration | 1,583 original/native ledger checks plus 72 supplement-header checks agree; the large 50,625-event request preserves its summary and worker framing |
 | Full dynamic capture/replay against both sources | All 516 workers pass, including 6,192 observations and 1,491,044 events; every complete summary and all twelve actual supplement headers also match the original Python model |
+| Independent complete-worker comparison | 105 old/new complete-output/refusal checks agree without input mutation; the retained synthetic stream fixture uses 1 frame instead of 55 across all 48 warmup/sample blocks |
 | Whole diagnostic workers and release rows | 7,503 original/native checks agree: 562 complete workers, 6,744 raw row batches and 197 mutated inputs; one measured worker uses 1 framed request instead of 42 |
 | Final merged capture/replay | Clean `9b75e02` completes all 574 workers / 6,888 observations; `39f6ee7` retains identical Rust/codec sources and passes the optimized-helper agreement checks |
 | Controller worker lifecycle | Reuse after validation errors, concurrent calls, crash recovery and immutable caches are exercised by Python tests |

@@ -24,8 +24,12 @@ collected and the independent frozen replay exactly matches. The retained result
 has one profile distribution failure, nine profile repeat failures, sixteen
 program-level threshold refusals and sixteen cross-phase layout repeat failures.
 It supplies complete diagnostic data, not accepted release evidence. All original
-failures below keep their own dates, sources and scope. Further bounded mechanism
-controls wait for an existing controlled measurement to release the owned CPUs.
+failures below keep their own dates, sources and scope. The separate fixed-count
+mechanism controls have now completed all 16 workers / 192 observations with exact independent replay and no spread, duration or
+repeat failures. Result retention does not remove the reconstruction contrast;
+these targeted controls do not supersede the failed complete campaign. The
+existing source-bound zero-codec capability probe also replays exactly. See the
+completed-control and counter-ownership sections of that review.
 
 ## Production progress and actual version differences
 
