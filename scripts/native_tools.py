@@ -28,6 +28,7 @@ _pure_requests = frozenset(('benchmark-rows','hotspot-rows','benchmark-provenanc
 _worker = None
 _worker_owner = None
 _worker_lock = threading.Lock()
+_request_limit = 32*1024*1024 + 64*1024  # 32 MiB artifact plus the request envelope.
 
 
 def _run(command, text=None, cwd=None):
@@ -86,8 +87,8 @@ atexit.register(close_worker)
 
 def _request_payload(payload):
     global _worker, _worker_owner
-    if len(payload.encode())+1 > 16*1024*1024:
-        raise ValueError('native request exceeds 16 MiB')
+    if len(payload.encode())+1 > _request_limit:
+        raise ValueError('native request exceeds artifact transport byte budget')
     with _worker_lock:
         if _worker_owner != os.getpid():
             _discard_worker()
@@ -118,7 +119,7 @@ def _request_payload(payload):
 
 def _payload(values):
     try:
-        return json.dumps(values, sort_keys=True, allow_nan=False)
+        return json.dumps(values, sort_keys=True, allow_nan=False, separators=(',',':'))
     except ValueError as error:
         raise ValueError('native request requires finite JSON numbers') from error
 
