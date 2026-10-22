@@ -10,6 +10,12 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Keep native diagnostic process-group ownership until cleanup completes, even
+  when a wrapper exits before its background workers. Reap the leader only after
+  stopping the owned group; retain failure/cancellation and source-preservation
+  behavior. Scope local no_std release tests to the codec package so WASM/fuzz
+  defaults cannot silently re-enable std through workspace feature unification.
+
 - Add explicit complete diagnostic capture/replay: collect all four 126-case
   phases and paired layouts despite statistical failures, then report every
   distribution, duration, repeat and regression result with unqualified ratios.

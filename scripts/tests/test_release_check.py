@@ -106,6 +106,12 @@ class ReleaseCheckTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("profile=quick", trace)
         self.assertNotIn("check-benchmark", trace)
+        no_std = next(line.split('|')[0].split() for line in trace.splitlines()
+                      if '--no-default-features' in line)
+        # Selecting the codec alone prevents wasm/fuzz defaults from enabling
+        # std again through workspace feature unification.
+        self.assertIn('--package', no_std)
+        self.assertEqual(no_std[no_std.index('--package')+1], 'rustfs-erasure-codec')
 
     def test_failed_gate_stops_the_pipeline(self):
         result, trace = self.run_checks("release", FAIL_ON="check-benchmark")
