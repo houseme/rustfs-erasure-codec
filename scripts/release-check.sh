@@ -62,9 +62,9 @@ run_benchmark() {
 
 run_benchmark_regression_gate() {
   if [[ "${RSE_BENCHMARK_ALLOW_MISSING_CASES:-0}" == "1" ]]; then
-    run python3 scripts/check_benchmark_regression.py --allow-missing-cases "$@"
+    run cargo xtask check-benchmark --allow-missing-cases "$@"
   else
-    run python3 scripts/check_benchmark_regression.py "$@"
+    run cargo xtask check-benchmark "$@"
   fi
 }
 
@@ -110,7 +110,7 @@ run_reconstruction_hotspot_gate() {
     benchmark_reconstruction_hotspots -- --ignored --nocapture
 
   if [[ -n "${RSE_RECONSTRUCTION_HOTSPOT_BASELINE:-}" ]]; then
-    run python3 scripts/check_reconstruction_hotspot_gate.py \
+    run cargo xtask check-hotspot \
       --baseline "${RSE_RECONSTRUCTION_HOTSPOT_BASELINE}" \
       --current target/benchmark-smoke/reconstruction-hotspot-results.json \
       --require-scenario reconstruct_data_missing_1_data \

@@ -1,5 +1,6 @@
 [workspace]
-members = [".", "wasm", "fuzz"]
+members = [".", "wasm", "fuzz", "xtask", "scripts/release-compatibility"]
+default-members = [".", "wasm", "fuzz"]
 resolver = "3"
 
 [workspace.package]
@@ -9,17 +10,27 @@ repository = "https://github.com/houseme/rustfs-erasure-codec"
 
 [workspace.dependencies]
 cfg_aliases = "0.2.2"
+codec_old = { package = "rustfs-erasure-codec", version = "=9.0.0", features = ["simd-accel"] }
+codec_new = { package = "rustfs-erasure-codec", version = "=9.1.0", path = ".", features = ["simd-accel"] }
 criterion = { version = "0.8.2", features = ["html_reports"] }
+ctrlc = { version = "3.5.2", features = ["termination"] }
+csv = "1.4.0"
 hashlink = { version = "0.12", default-features = false }
 libfuzzer-sys = "0.4"
 libm = "0.2.16"
+libc = "0.2.191"
 parking_lot = "0.13.0"
 quickcheck = "1.1.0"
 rand = "0.10.3"
 rayon = "1.12.0"
+regex = "1.13.1"
 rustfs-erasure-codec = { version = "9.1.0", path = "." }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = { version = "1.0.154", features = ["float_roundtrip"] }
+sha2 = "0.11.1"
 smallvec = "1.16.3"
 spin = { version = "0.12.3", default-features = false, features = ["once", "spin_mutex"] }
+toml = "1.1.8"
 wasm-bindgen = "0.2.129"
 
 # CI lint baseline (rustfs/backlog#1237, #1243). Members opt in via `[lints] workspace = true`.
