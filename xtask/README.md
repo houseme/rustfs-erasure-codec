@@ -104,7 +104,8 @@ for the current and published-baseline sources. A permanent native golden test
 also checks every formal sampler file and keeps the allocation counter separate.
 
 The remaining capture controllers call Rust through `native_tools.py`. It builds
-the host executable once and reuses an owned JSON-lines worker, serializing calls
+the optimized host executable with `--release --locked --offline` once and reuses
+an owned JSON-lines worker, serializing calls
 from multiple threads. Invalid requests return an error without losing the next
 frame. EOF/shutdown reaps the child; a dead worker fails the current call without
 automatic replay. Request/response limits are 16/32 MiB. The original one-shot
@@ -115,6 +116,12 @@ validation and process/evidence ownership remain in Python until those contracts
 migrate together. The native telemetry command
 runs the real generated Rust tests, supervises its owned child process group on
 Unix, and checks the generated input before cleanup.
+
+The controller's repeated data-validation path uses the optimized tool. The
+interactive `cargo xtask` alias keeps Cargo's ordinary developer profile. A
+[retained local synthetic comparison](../benchmarks/tooling/2026-10-23/native-helper-profiles.json)
+binds both profiles to identical source and replies; it measures helper service,
+not codec performance or release acceptance.
 
 Only pure data operations use the persistent worker. File adapters use a fresh
 child so relative paths follow the caller's current directory. Live kernel-policy

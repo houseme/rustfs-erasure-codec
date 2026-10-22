@@ -130,3 +130,46 @@ compatibility/package checks, complete accepted performance evidence and strict
 positive preflight remain necessary before a separately authorized tag/upload.
 See the [release checklist](release-9.1.0-checklist.md) and preserve the historical
 [blocker assessment](release-9.1.0-blockers.md) with its original source bindings.
+
+## Follow-up on merged main: optimized native helper
+
+PR #51 was merged as main `69379b3`. Merging that main again produced the same
+reviewed file tree. The subsequent review identified a measurable build-policy
+cost: the long-lived native helper used Cargo's unoptimized developer profile
+for every repeated validation request.
+
+A local diagnostic freezes source `8f214c5` and builds both native profiles with
+the same compiler, lockfile and defaults. Each request validates three synthetic
+`encode_stream:4:2:65536:16384` ledgers, two calls per observation, complete source
+positions/counters and window summaries. The request is 187,523 bytes. Four new
+workers run dev/release/release/dev; each keeps three warmup and nine sample
+blocks, with 40 requests per block. All 48 blocks and 1,920 complete, equal-result
+replies are retained in the
+[source-bound diagnostic](../benchmarks/tooling/2026-10-23/native-helper-profiles.json).
+
+| Profile | First median per request | Second median per request | Repeat change |
+| --- | ---: | ---: | ---: |
+| Developer | 7.2773 ms | 7.2367 ms | -0.5586% |
+| Release | 0.8195 ms | 0.8208 ms | +0.1624% |
+
+These are parent wall times for framed IPC, native validation, reply decoding and
+complete-result comparison, excluding build/startup. The host is not isolated
+and the workload is synthetic. The values describe this tool request and do not
+establish codec throughput, explain Linux drift or approve a release.
+
+The common Python binding now builds the host tool with `--release`, retaining
+`--locked --offline`, native target selection, Cargo artifact discovery and the
+existing cache. This is a single shared build-policy fix. Persistent workers,
+batch boundaries, validators, original sampling code and the interactive Cargo
+alias are unchanged. A build-policy regression first fails on the former command;
+real controller tests and optimized native-tool tests verify behavior afterward.
+The already-running Linux campaign keeps its frozen tool and plan.
+
+The measurement's source tree is also bound to public main `69379b3` in the
+report's `equivalent_main_commit` field; both trees are identical. In a separate
+worktree based on that main, stable Rust 1.99.1 passes all 69 optimized native
+unit tests and 24 CLI tests, followed by the complete 270-test Python controller
+suite. The new build-policy regression fails before adding `--release` and passes
+afterward. Rust sources, codec manifests/lockfile and generated sampling workers
+retain the previously tested implementation; this follow-up changes the shared
+helper's build command, its regression, documentation and retained observations.

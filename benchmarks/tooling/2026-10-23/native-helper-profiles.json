@@ -1,0 +1,446 @@
+{
+  "purpose": "local tooling-only synthetic validation; no codec throughput or release acceptance",
+  "source": "8f214c5d9d58f3281dfd1dd4479c300dc150cbb5",
+  "case": "encode_stream:4:2:65536:16384",
+  "observations_per_request": 3,
+  "request_bytes": 187523,
+  "schedule": "A1 dev / B1 release / B2 release / A2 dev",
+  "samples": [
+    {
+      "phase": "A1",
+      "profile": "dev",
+      "index": 0,
+      "kind": "warmup",
+      "requests": 40,
+      "wall_ns": 307525708
+    },
+    {
+      "phase": "A1",
+      "profile": "dev",
+      "index": 1,
+      "kind": "warmup",
+      "requests": 40,
+      "wall_ns": 290666083
+    },
+    {
+      "phase": "A1",
+      "profile": "dev",
+      "index": 2,
+      "kind": "warmup",
+      "requests": 40,
+      "wall_ns": 288729833
+    },
+    {
+      "phase": "A1",
+      "profile": "dev",
+      "index": 3,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 291092625
+    },
+    {
+      "phase": "A1",
+      "profile": "dev",
+      "index": 4,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 290050958
+    },
+    {
+      "phase": "A1",
+      "profile": "dev",
+      "index": 5,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 292455583
+    },
+    {
+      "phase": "A1",
+      "profile": "dev",
+      "index": 6,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 290916333
+    },
+    {
+      "phase": "A1",
+      "profile": "dev",
+      "index": 7,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 308672833
+    },
+    {
+      "phase": "A1",
+      "profile": "dev",
+      "index": 8,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 294138500
+    },
+    {
+      "phase": "A1",
+      "profile": "dev",
+      "index": 9,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 292234166
+    },
+    {
+      "phase": "A1",
+      "profile": "dev",
+      "index": 10,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 290316000
+    },
+    {
+      "phase": "A1",
+      "profile": "dev",
+      "index": 11,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 288540458
+    },
+    {
+      "phase": "B1",
+      "profile": "release",
+      "index": 0,
+      "kind": "warmup",
+      "requests": 40,
+      "wall_ns": 351128166
+    },
+    {
+      "phase": "B1",
+      "profile": "release",
+      "index": 1,
+      "kind": "warmup",
+      "requests": 40,
+      "wall_ns": 33765208
+    },
+    {
+      "phase": "B1",
+      "profile": "release",
+      "index": 2,
+      "kind": "warmup",
+      "requests": 40,
+      "wall_ns": 34490959
+    },
+    {
+      "phase": "B1",
+      "profile": "release",
+      "index": 3,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 32981792
+    },
+    {
+      "phase": "B1",
+      "profile": "release",
+      "index": 4,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 32780417
+    },
+    {
+      "phase": "B1",
+      "profile": "release",
+      "index": 5,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 32463500
+    },
+    {
+      "phase": "B1",
+      "profile": "release",
+      "index": 6,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 32857459
+    },
+    {
+      "phase": "B1",
+      "profile": "release",
+      "index": 7,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 32753416
+    },
+    {
+      "phase": "B1",
+      "profile": "release",
+      "index": 8,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 32698541
+    },
+    {
+      "phase": "B1",
+      "profile": "release",
+      "index": 9,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 33239334
+    },
+    {
+      "phase": "B1",
+      "profile": "release",
+      "index": 10,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 33249625
+    },
+    {
+      "phase": "B1",
+      "profile": "release",
+      "index": 11,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 32773000
+    },
+    {
+      "phase": "B2",
+      "profile": "release",
+      "index": 0,
+      "kind": "warmup",
+      "requests": 40,
+      "wall_ns": 37208666
+    },
+    {
+      "phase": "B2",
+      "profile": "release",
+      "index": 1,
+      "kind": "warmup",
+      "requests": 40,
+      "wall_ns": 32892666
+    },
+    {
+      "phase": "B2",
+      "profile": "release",
+      "index": 2,
+      "kind": "warmup",
+      "requests": 40,
+      "wall_ns": 33147542
+    },
+    {
+      "phase": "B2",
+      "profile": "release",
+      "index": 3,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 33252500
+    },
+    {
+      "phase": "B2",
+      "profile": "release",
+      "index": 4,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 33179125
+    },
+    {
+      "phase": "B2",
+      "profile": "release",
+      "index": 5,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 33019250
+    },
+    {
+      "phase": "B2",
+      "profile": "release",
+      "index": 6,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 32833667
+    },
+    {
+      "phase": "B2",
+      "profile": "release",
+      "index": 7,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 32786375
+    },
+    {
+      "phase": "B2",
+      "profile": "release",
+      "index": 8,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 32788292
+    },
+    {
+      "phase": "B2",
+      "profile": "release",
+      "index": 9,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 32577375
+    },
+    {
+      "phase": "B2",
+      "profile": "release",
+      "index": 10,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 32835875
+    },
+    {
+      "phase": "B2",
+      "profile": "release",
+      "index": 11,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 32767042
+    },
+    {
+      "phase": "A2",
+      "profile": "dev",
+      "index": 0,
+      "kind": "warmup",
+      "requests": 40,
+      "wall_ns": 292464416
+    },
+    {
+      "phase": "A2",
+      "profile": "dev",
+      "index": 1,
+      "kind": "warmup",
+      "requests": 40,
+      "wall_ns": 289354958
+    },
+    {
+      "phase": "A2",
+      "profile": "dev",
+      "index": 2,
+      "kind": "warmup",
+      "requests": 40,
+      "wall_ns": 288403542
+    },
+    {
+      "phase": "A2",
+      "profile": "dev",
+      "index": 3,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 291713625
+    },
+    {
+      "phase": "A2",
+      "profile": "dev",
+      "index": 4,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 286428458
+    },
+    {
+      "phase": "A2",
+      "profile": "dev",
+      "index": 5,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 291030709
+    },
+    {
+      "phase": "A2",
+      "profile": "dev",
+      "index": 6,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 286360042
+    },
+    {
+      "phase": "A2",
+      "profile": "dev",
+      "index": 7,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 289783459
+    },
+    {
+      "phase": "A2",
+      "profile": "dev",
+      "index": 8,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 287406750
+    },
+    {
+      "phase": "A2",
+      "profile": "dev",
+      "index": 9,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 289466458
+    },
+    {
+      "phase": "A2",
+      "profile": "dev",
+      "index": 10,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 286676792
+    },
+    {
+      "phase": "A2",
+      "profile": "dev",
+      "index": 11,
+      "kind": "sample",
+      "requests": 40,
+      "wall_ns": 290556958
+    }
+  ],
+  "equal_results": true,
+  "isolation_proven": false,
+  "release_approval": false,
+  "candidate_attribution": null,
+  "median_ns_per_request": {
+    "A1": 7277315.625,
+    "B1": 819510.425,
+    "B2": 820841.675,
+    "A2": 7236661.45
+  },
+  "repeat_percent": {
+    "dev": -0.5586424595951156,
+    "release": 0.16244454730396374
+  },
+  "schema_version": "native-helper-profile-diagnostic-v1",
+  "workload_builder": {
+    "module": "scripts/tests/layout_fixture.py",
+    "function": "view_fixture",
+    "sha256": "77234dd8e23f952f33ce584eb2f9d048155cd82504a80d3b9ba818cc80c6165a",
+    "iterations": 2,
+    "page_size": 4096,
+    "observation_indices": [
+      0,
+      1,
+      2
+    ],
+    "require_counters": true,
+    "summary": true
+  },
+  "compiler": "rustc 1.99.1",
+  "architecture": "aarch64",
+  "build": {
+    "tool": "xtask",
+    "features": "default",
+    "native_target": true,
+    "locked": true,
+    "offline": true,
+    "profiles": [
+      "dev",
+      "release"
+    ]
+  },
+  "timing_scope": "parent wall time: write framed request, flush, read and decode reply, compare complete reply; build/startup excluded",
+  "limitations": [
+    "synthetic stream-view validation only",
+    "uncontrolled local host",
+    "no codec latency or throughput claim",
+    "no formal release acceptance"
+  ],
+  "equivalent_main_commit": "69379b3fd4214423eefa57f7b5e1df7be83b0947",
+  "source_tree": "142521f5b87720f3671c031bc78202a52dd202bf",
+  "source_binding_note": "Both profiles were built before subsequent parallel source edits; checkout source tree equals the referenced published main tree."
+}

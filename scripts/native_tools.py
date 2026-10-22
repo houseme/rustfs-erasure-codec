@@ -45,7 +45,7 @@ def _run(command, text=None, cwd=None):
 @functools.lru_cache(maxsize=1)
 def _executable():
     host = next(line[len('host: '):] for line in _run(['rustc', '-vV'], cwd=ROOT).splitlines() if line.startswith('host: '))
-    output = _run(['cargo', 'build', '--locked', '--offline', '--manifest-path', str(ROOT/'xtask/Cargo.toml'),
+    output = _run(['cargo', 'build', '--release', '--locked', '--offline', '--manifest-path', str(ROOT/'xtask/Cargo.toml'),
                    '--package', 'xtask', '--target', host, '--message-format=json'], cwd=ROOT)
     executables = [row['executable'] for line in output.splitlines() for row in [json.loads(line)]
                    if row.get('reason') == 'compiler-artifact' and row.get('target', {}).get('name') == 'xtask' and row.get('executable')]

@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Build the shared native capture/replay helper with the release profile, reusing
+  the existing owned worker, batched requests and cached host executable. Keep
+  original validation, frame limits and source provenance; preserve the full
+  local synthetic profile comparison separately from codec timing evidence.
+
 - Keep native diagnostic process-group ownership until cleanup completes, even
   when a wrapper exits before its background workers. Reap the leader only after
   stopping the owned group; retain failure/cancellation and source-preservation

@@ -77,7 +77,9 @@ not contain Cargo aliases or their own workspace.
 
 Formal sampler generation, diagnostic overlays and their source observers now
 use Rust through `native_tools.py`. This binding builds a
-locked host tool once per Python controller and exchanges JSON over stdin/stdout.
+locked release-profile host tool once per Python controller and exchanges JSON
+over stdin/stdout. The optimized executable and its dependencies are reused from
+Cargo's cache; no compiler or process startup runs per pure-data request.
 Rust tools do not launch Python. `cargo xtask check-sampler-telemetry` runs the
 separate Rust allocation probe and removes only its unchanged owned input,
 including after a failed or cancelled check.
