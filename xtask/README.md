@@ -267,13 +267,14 @@ reports exact-byte duplicate groups without modifying files.
 
 The initial audit found **575 files / 2,807,430 bytes**, all valid. These archives
 and WASM inputs remain unchanged; an active tool contract and the deliberately
-retained helper-profile/complete-worker comparisons and the merged service-drift
-review bring the current total to **579 files / 2,833,273 bytes**:
+retained helper-profile/complete-worker comparisons, the merged service-drift
+review and complete Linux diagnostic review bring the current total to
+**580 files / 2,837,994 bytes**:
 
 | Category | Files | Policy |
 | --- | ---: | --- |
 | Raw Criterion evidence | 448 | Preserve phase-local records and manifest paths |
-| Versioned evidence | 38 | Preserve schema and digest-bound contents |
+| Versioned evidence | 39 | Preserve schema and digest-bound contents |
 | Historical reports/evidence | 89 | Repository-only; do not reinterpret old runs as current acceptance |
 | WASM configuration/lockfiles | 3 | Preserve build and dependency reproducibility |
 | Shared tool contract | 1 | Field, alias and default-threshold definition; excluded from the codec crate |

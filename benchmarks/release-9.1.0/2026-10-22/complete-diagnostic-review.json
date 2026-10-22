@@ -1,0 +1,108 @@
+{
+  "schema": "complete-linux-diagnostic-review-v1",
+  "review_date": "2026-10-23",
+  "capture_date_utc": "2026-10-22",
+  "purpose": "complete diagnostic review; no release acceptance or unique causal inference",
+  "sources": {
+    "baseline_release": "9.0.0",
+    "baseline_commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "candidate_commit": "022c0a7476e3d91bee33f86bf4ade55d27122949",
+    "frozen_tool_commit": "022c0a7476e3d91bee33f86bf4ade55d27122949"
+  },
+  "collection": {
+    "all_planned_phases_completed": true,
+    "all_original_records_retained": true,
+    "worker_invocations": 1470,
+    "calibration_workers": 966,
+    "calibration_observations": 11592,
+    "profile_workers": 504,
+    "profile_observations": 6048,
+    "layout_observations": 3072,
+    "total_observations": 20712,
+    "sampler_execution_failures": 0
+  },
+  "independent_replay": {
+    "frozen_tool_used": true,
+    "original_report_equal": true,
+    "initial_environment_failure_preserved": true,
+    "initial_error": "noninteractive compiler search path unavailable",
+    "resolved_with_matching_captured_compiler": true
+  },
+  "checks": {
+    "profile_distributions": 504,
+    "profile_distribution_failures": 1,
+    "short_profile_samples": 0,
+    "same_version_repeats": 252,
+    "same_version_repeat_failures": 9,
+    "regression_programs_executed": 16,
+    "regression_programs_with_threshold_failures": 16,
+    "unqualified_profile_comparisons": 504,
+    "layout_distributions": 256,
+    "layout_distribution_failures": 0,
+    "layout_within_phase_repeats": 128,
+    "layout_within_phase_repeat_failures": 0,
+    "layout_cross_phase_repeats": 128,
+    "layout_cross_phase_repeat_failures": 16,
+    "unqualified_layout_comparisons": 256
+  },
+  "restoration": {
+    "owned_partitions_removed": true,
+    "controller_restored": true,
+    "parent_affinities_restored": true,
+    "owned_load_holders_stopped": true,
+    "original_observer_services_active_when_checked": true
+  },
+  "cross_analysis": {
+    "profile_workers_analyzed": 504,
+    "guest_host_snapshots": 47653,
+    "explicit_post_capture_markers": 1,
+    "host_missing_inside_collected_timeline": 0,
+    "all_parent_worker_intervals_joined": true,
+    "inner_api_absolute_timestamps_recorded": false,
+    "profile_sample_major_faults": 0,
+    "small_file_failed_repeat_pairs_with_equal_recorded_caller_fixtures": 8,
+    "hotspot_failed_repeat_pairs_without_caller_fixture": 1,
+    "maximum_same_version_metric_drift_percent_rounded": 103.06,
+    "calling_thread_wait_alone_does_not_explain_observed_drift": true,
+    "hotspot_service_scope": "calling-thread counters enclose both operations; candidate metric covers its own subwindow",
+    "physical_host_exclusivity_proven": false,
+    "priority_slow_paths_have_repeated_candidate_minor_fault_activity": true,
+    "largest_unchanged_baseline_drift_has_no_measured_faults": true,
+    "minor_fault_scope": "process counters enclose clone/recovery/drop wall windows; they do not identify the faulting allocation"
+  },
+  "unqualified_code_investigation_priorities": [
+    {
+      "profile": "small_file",
+      "case": "reconstruct_data:10:4:65536",
+      "signal": "larger candidate latency in every cross-phase pair"
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:10:4:65536:65536",
+      "signal": "larger candidate latency in every cross-phase pair"
+    }
+  ],
+  "post_completion_controls": {
+    "planned_workers": 16,
+    "planned_observations": 192,
+    "precompiled_and_source_restoration_checked": true,
+    "original_variants_keep_frozen_counts_and_loops": true,
+    "retention_variant": "single explicit output-consumption barrier and a formal-validator-refused workload marker",
+    "profile_strategy": "optional software CPU-clock sampling; no cycle or timing normalization",
+    "state": "waiting_for_existing_controlled_measurement_to_release_resources",
+    "resource_precondition_refusals_before_measurement": 1,
+    "performance_observations_collected": 0,
+    "foreign_processes_preserved": true,
+    "review_related_completed_results_before_launch": true
+  },
+  "all_original_limits_passed": false,
+  "release_approval": false,
+  "candidate_attribution": null,
+  "limitations": [
+    "Guest CPU accounting/pressure does not expose physical-host frequency, cache or bandwidth.",
+    "Host observations join enclosing parent-worker intervals; no inner API timestamps are inferred.",
+    "Equal caller offsets do not prove matching dynamic outputs or physical/cache geometry.",
+    "Every cross-version comparison remains unqualified despite individually stable cases.",
+    "Later tool, dependency and source identities cannot inherit acceptance from this frozen capture."
+  ]
+}

@@ -14,6 +14,12 @@ statistical failures. A distribution or repeat failure no longer truncates that
 diagnostic campaign. Its distinct manifest/report remains separate from the
 formal publication checks below, with all original observations and failures kept.
 
+The [completed frozen Linux diagnostic](complete-linux-diagnostic-2026-10-22.md)
+now retains all calibration, profile and layout observations and independently
+replays exactly. Its failed distributions/repeats/regression checks remain
+unaccepted. Its source identity and diagnostic-only manifest do not satisfy the
+final-candidate publication boxes below.
+
 ## Compatibility and functional review
 
 - Review the [incremental-update implementation and drift validation](drift-analysis-9.1.0-2026-10-22.md).
