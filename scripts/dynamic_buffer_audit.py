@@ -4,12 +4,10 @@ All modifications are reversible source-copy observers. No production allocator,
 sampler, algorithm, original allocation statement or release gate is changed.
 """
 from contextlib import contextmanager
-import copy
 import json
 import os
 import pathlib
 import native_tools
-import re
 import subprocess
 
 import release_evidence as e
@@ -18,15 +16,10 @@ from diagnostic_overlay import overlay
 
 MODULE = '__rse_dynamic_buffers'
 PREFIX = 'RSE_DYNAMIC_BUFFERS '
-PROFILES = ('smoke', 'small_file', 'hotspot', 'stream')
-SUPPLEMENTS = {
-    'classic_uncached:10:4:16384': ('Classic',1,False),
-    'tower_gf16:10:4:65': ('Classic',2,False),
-    'leopard_gf8:10:4:32768': ('LeopardGF8',1,True),
-    'leopard_gf8:10:4:65600': ('LeopardGF8',1,True),
-    'leopard_gf16:10:4:32768': ('LeopardGF16',1,True),
-    'leopard_gf16:10:4:65600': ('LeopardGF16',1,True),
-}
+_catalog = native_tools.request('diagnostic-ledger', request=dict(kind='dynamic-catalog'))
+PROFILES = tuple(_catalog['profiles'])
+MODES = tuple(_catalog['modes'])
+SUPPLEMENTS = _catalog['supplements']
 NAMES = ('src/lib.rs', 'src/matrix.rs', 'src/core/reconstruct.rs', 'src/galois_8/policy.rs') + native_tools.LEOPARD_FILES
 
 
@@ -70,39 +63,11 @@ def source_overlay(root):
 
 def render(root):
     return native_tools.diagnostic_render(root, 'dynamic')
-# Appended to dynamic_buffer_audit.py; shared strict capture/replay contract.
-MODES = ('calibrate', 'sample')
-EVENT_FIELDS = {'kind','observation','call','thread','region','allocation','allocation_offset','previous',
-                'role','stage','index','len','capacity','element_size','shape','storage','occupied','present',
-                'bytes','align','offsets','elapsed_ns','faults','snapshot'}
+# Shared strict capture/replay contract.
 
 
 def integer(value, minimum=0):
     return type(value) is int and minimum <= value <= 2**64-1
-
-
-def snapshot(event, page, native):
-    value=event['snapshot']; size=event['bytes']; offsets=event['offsets']
-    if not isinstance(value,dict) or set(value)!={'status','pages','resident_pages','errno'}:
-        raise ValueError('invalid dynamic native snapshot')
-    if size==0:
-        if value!={'status':'empty','pages':0,'resident_pages':0,'errno':None}:
-            raise ValueError('nonempty snapshot for empty dynamic range')
-        return
-    if not native:
-        if value!={'status':'unsupported','pages':None,'resident_pages':None,'errno':None}:
-            raise ValueError('unrecorded native dynamic residency')
-        return
-    pages=(offsets[2]+size+page-1)//page
-    if type(value['pages']) is not int or value['pages']!=pages:raise ValueError('dynamic page extent differs')
-    status=value['status']; resident=value['resident_pages']; error=value['errno']
-    if status=='mapped':
-        if not integer(resident) or resident>pages or error is not None:raise ValueError('invalid dynamic resident count')
-    elif status=='not_fully_mapped' and event['kind']=='free':
-        if resident is not None or type(error) is not int or error!=12:raise ValueError('invalid former dynamic range')
-    elif status=='over_budget':
-        if pages<=4097 or resident is not None or error is not None:raise ValueError('invalid bounded dynamic query')
-    else:raise ValueError('unavailable live dynamic residency')
 
 
 def inventory_steps():
@@ -115,229 +80,19 @@ def inventory_steps():
 
 
 def supplement_report(header,ledger,case,page,cpus,source):
-    if case not in SUPPLEMENTS:raise ValueError('unknown fixed decoder supplement')
-    family,width,cache=SUPPLEMENTS[case];_,k,m,size=case.split(':');k,m,size=map(int,(k,m,size))
-    expected={'schema':'decoder-owner-supplement-v1','observer':'dynamic-source-copy-v1','case':case,
-              'data_shards':k,'parity_shards':m,'shard_size_elements':size,'element_size':width,'family':family,
-              'inversion_cache':cache,'fast_one_parity':False,'source_lifetime':'worker','construction':'codec-then-source-then-explicit-pool-preparation','output_policy':'iteration-cloned-options-drop-missing-reconstruct-all','missing_mask':1025,'required_mask':16383,'pool_threads':4,'native_placement_checked':cpus is not None,
-              'normal_outputs_match_source':True,'release_approval':False}
-    if not isinstance(header,dict) or set(header)!=set(expected)|{'constructor_budget'} or any(type(header.get(key)) is not type(value) or header[key]!=value for key,value in expected.items()) or not integer(header['constructor_budget'],1) or cpus is not None and header['constructor_budget']>len(cpus):raise ValueError('invalid source-bound decoder supplement')
-    return validate_ledger(ledger,'decoder',case,page,native=cpus is not None,legacy=source['commit']==e.BASELINE_COMMIT)
-
-
-def validate_internal_view(v,profile,case,legacy):
-    role=v['role']
-    if role=='leopard_work':
-        if profile!='decoder' or not SUPPLEMENTS[case][0].startswith('Leopard'):raise ValueError('work view outside declared decoder family')
-        shape=v['shape']
-        if not isinstance(shape,list) or len(shape)!=3 or any(not integer(x) for x in shape) or shape[0]!=16 or not 0<shape[2] or shape[1]>shape[2] or v['capacity']!=shape[0]*shape[2] or v['len']!=v['capacity'] or v['element_size']!=(2 if case.startswith('leopard_gf16:') else 1) or v['stage'] not in ('leased','returned','chunk_ready','chunk_coded') or v['stage'].startswith('chunk_') and shape[1]==0 or v['index']!=0 or v['present'] is not None or v['occupied'] is not True or v['storage']!='heap':raise ValueError('invalid actual Leopard work/lane shape')
-    else:
-        if v['shape'] is not None:raise ValueError('non-work view contains lane metadata')
-        if role.startswith('leopard_'):
-            if profile!='decoder' or not SUPPLEMENTS[case][0].startswith('Leopard'):raise ValueError('Leopard storage outside declared family')
-            if v['present'] is not None or v['occupied'] is not True or v['capacity'] is None:raise ValueError('invalid internal decoder owner')
-            if role=='leopard_locator':
-                width=2 if case.startswith('leopard_gf16:') else 1;length=65536 if width==2 else 256
-                if v['len']!=length or v['capacity']!=length or v['element_size']!=width or v['storage']!='inline' or v['stage'] not in ('leased','returned','chunk_ready','chunk_coded') or v['index']!=0:raise ValueError('invalid error-locator storage')
-            elif role in ('leopard_scratch','leopard_out_scratch'):
-                if v['element_size']!=(2 if case.startswith('leopard_gf16:') else 1) or v['storage']!='heap' or v['stage'] not in ('leased','returned','chunk_ready','chunk_coded') or v['index']!=0:raise ValueError('invalid FFT conversion/scaling scratch')
-            elif role=='leopard_decoded':
-                _,k,m,size=case.split(':');k,m,size=map(int,(k,m,size))
-                length=size if legacy or v['index'] in (0,k) else 0
-                if not v['index']<k+m or v['len']!=length or v['capacity']<length or v['element_size']!=1 or v['storage']!='heap' or v['stage'] not in ('prepared','decoded'):raise ValueError('invalid decoded-before-publication owner')
-
-def dimensions(profile,case):
-    if profile=='decoder':
-        _,k,m,size=case.split(':');return int(k),int(m),int(size),(0,int(k)),None
-    if profile=='hotspot':
-        k,m,_,missing,required=s.hotspot_case(case)
-        return k,m,1048576,missing,required
-    parts=case.split(':');k,m,size=map(int,parts[1:4])
-    return k,m,size,(),None
-
-
-def payload_contract(events,profile,case):
-    k,m,size,missing,required=dimensions(profile,case);n=k+m
-    operation=case.split(':')[0]
-    recovery=operation.startswith('reconstruct') or profile in ('hotspot','decoder')
-    count=k if profile=='stream' and operation=='encode_stream' else n
-    schedule=[]
-    def group(role,stage,amount):schedule.extend((role,stage,index) for index in range(amount))
-    if profile in ('small_file','stream','decoder'):
-        group('source','retained',count)
-        if profile in ('small_file','decoder'):
-            if operation=='verify_with_buffer':group('scratch','retained',m)
-            if recovery:
-                for stage in ('cloned','missing','recovered'):group('dynamic',stage,n)
-    else:
-        group('source','created',n);group('source','encoded',n)
-        if profile=='smoke' and operation=='update':
-            group('old_data','cloned',k);group('updated','changed',k)
-            group('parity','before',m);group('parity','updated',m)
-        elif profile=='smoke' and recovery:
-            for stage in ('moved','missing','recovered'):group('dynamic',stage,n)
-        elif profile=='hotspot':
-            for role in ('baseline','candidate'):
-                group('clone','cloned',n);group(role,'missing',n);group(role,'recovered',n)
-    payload_roles={'source','scratch','dynamic','baseline','candidate','clone','old_data','updated','parity'}
-    views=[v for v in events if v['kind']=='view' and v['role'] in payload_roles]
-    if [(v['role'],v['stage'],v['index']) for v in views]!=schedule:
-        raise ValueError('incomplete or reordered dynamic payload stages')
-    mask=(1|(1<<k)) if profile=='decoder' else s.workload_contract(profile,case)['missing_mask']
-    wanted=(1<<n)-1 if profile=='decoder' else s.workload_contract(profile,case)['required_mask']
-    width=SUPPLEMENTS[case][1] if profile=='decoder' else 1
-    clone_groups=[];current=[];previous=None
-    for v in views:
-        key=(v['role'],v['stage'])
-        if previous is not None and (key!=previous or v['index']==0):
-            clone_groups.append(current);current=[]
-        current.append(v);previous=key
-        expected=True
-        if v['role'] in ('dynamic','baseline','candidate'):
-            absent=bool(mask&(1<<v['index']))
-            if v['stage']=='missing':expected=not absent
-            elif v['stage']=='recovered':
-                requested=(v['index']<k if required is not None else True) if v['role']=='baseline' else bool(wanted&(1<<v['index']))
-                expected=not absent or requested
-        owner=True if operation=='reconstruct_shard_slot' and v['role']=='dynamic' else expected
-        if type(v['present']) is not bool or v['present']!=expected or v['occupied']!=owner:
-            raise ValueError('dynamic presence differs from actual missing/required policy')
-        length=size if owner else 0
-        if v['len']!=length or v['capacity'] is None or v['capacity']<length or v['element_size']!=width:
-            raise ValueError('dynamic payload initialized length/capacity differs')
-        if not owner and v['capacity']!=0:raise ValueError('absent dynamic owner retains undocumented capacity')
-        if length and (v['storage']!='heap' or v['allocation'] is None or v['allocation_offset']!=0):
-            raise ValueError('dynamic payload lacks an observed allocation generation')
-    if current:clone_groups.append(current)
-    # Moved owners retain request identity. Slot flags never release backing
-    # storage; ordinary Option erasures do. New generations cannot masquerade
-    # as retained storage even when the numerical pointer is reused.
-    by={(g[0]['role'],g[0]['stage']):g for g in clone_groups}
-    if profile in ('smoke','hotspot'):
-        shape=lambda group:[(v['allocation'],v['allocation_offset'],v['len'],v['capacity'],v['offsets']) for v in group]
-        if shape(by['source','created'])!=shape(by['source','encoded']):raise ValueError('encoding replaced generated source storage')
-    if profile=='smoke' and operation=='update':
-        if [(v['allocation'],v['capacity']) for v in by['parity','before']]!=[(v['allocation'],v['capacity']) for v in by['parity','updated']]:raise ValueError('update replaced parity backing storage')
-    if profile=='smoke' and recovery:
-        if [v['allocation'] for v in by['source','encoded']]!=[v['allocation'] for v in by['dynamic','moved']]:
-            raise ValueError('smoke source ownership move became a clone')
-    if operation=='reconstruct_shard_slot':
-        first=[(v['allocation'],v['allocation_offset']) for v in by['dynamic','cloned']]
-        if any([(v['allocation'],v['allocation_offset']) for v in by['dynamic',stage]]!=first for stage in ('missing','recovered')):
-            raise ValueError('ShardSlot storage was replaced while changing presence')
-    return views
+    return native_tools.request('diagnostic-ledger', request=dict(
+        kind='dynamic-supplement', header=header, data=ledger, case=case, page=page,
+        cpus=cpus, legacy=source['commit']==e.BASELINE_COMMIT))
 
 
 def validate_ledger(data,profile,case,page,native=False,legacy=False):
-    if profile not in PROFILES+('decoder',) or case not in (SUPPLEMENTS if profile=='decoder' else e.expected_cases(profile)) or not s.valid_page_size(page):raise ValueError('unknown dynamic inventory contract')
-    if not isinstance(data,dict) or set(data)!={'schema','page_size','errors','calls','release_approval','events'} or data['schema']!='dynamic-buffer-lifecycle-v1' or type(data['page_size']) is not int or data['page_size']!=page or data['release_approval'] is not False or type(data['errors']) is not int or data['errors']!=0 or data['calls']!=[2]*12 or any(type(v) is not int for v in data['calls']):
-        raise ValueError('invalid or incomplete dynamic lifecycle ledger')
-    events=data['events']
-    if not isinstance(events,list) or not 1<=len(events)<=65536 or events[-1].get('kind')!='finish':raise ValueError('bounded complete dynamic ledger required')
-    allocations={};live={};regions={};last_faults={};last_time=-1;next_id=0;epoch=0;opened=None;epochs=[];current=[];retained={}
-    for ordinal,v in enumerate(events):
-        if not isinstance(v,dict) or set(v)!=EVENT_FIELDS:raise ValueError('unknown dynamic event fields')
-        kind=v['kind']
-        if any(not isinstance(v[k],str) for k in ('kind','region','role','stage','storage')):raise ValueError('invalid dynamic labels')
-        if v['region'] not in ('setup','caller','between','decode'):raise ValueError('unknown dynamic region')
-        if kind not in ('alloc','alloc_zeroed','realloc','free','view','enter','leave','begin','end','finish'):raise ValueError('unknown dynamic event kind')
-        if any(not integer(v[key]) for key in ('call','thread','index','len','element_size','bytes','align','elapsed_ns')) or v['thread']>=64 or v['element_size']==0 or v['elapsed_ns']<last_time:
-            raise ValueError('invalid dynamic scalar/order')
-        last_time=v['elapsed_ns']
-        observation=v['observation']
-        if observation is not None and (not integer(observation) or observation>=12):raise ValueError('invalid dynamic observation')
-        for key in ('allocation','previous','allocation_offset','capacity'):
-            if v[key] is not None and not integer(v[key],0 if key in ('allocation_offset','capacity') else 1):raise ValueError('invalid dynamic allocation reference')
-        if type(v['occupied']) is not bool or v['present'] is not None and type(v['present']) is not bool:raise ValueError('invalid dynamic owner flags')
-        offsets=v['offsets']
-        if v['bytes']:
-            if not isinstance(offsets,list) or len(offsets)!=3 or any(not integer(x) or x>=mod for x,mod in zip(offsets,(64,4096,page))) or offsets[1]%64!=offsets[0] or offsets[2]%min(page,4096)!=offsets[1]%min(page,4096):raise ValueError('invalid dynamic offsets')
-        elif offsets is not None:raise ValueError('empty dynamic range has offsets')
-        snapshot(v,page,native)
-        if kind!='view' and (v['role'] or v['stage'] or v['index'] or v['len'] or v['capacity'] is not None or v['element_size']!=1 or v['storage'] or v['occupied'] is not False or v['present'] is not None or v['shape'] is not None or v['faults'] is not None):raise ValueError('non-view event contains forged view metadata')
-        if kind in ('enter','leave','begin','end','finish') and (v['bytes'] or v['align'] or any(v[k] is not None for k in ('allocation','allocation_offset','previous'))):raise ValueError('scope marker contains allocation data')
-        if kind=='view' and (v['previous'] is not None or v['align'] or v['role'] in ('source','scratch','dynamic','baseline','candidate','clone','old_data','updated','parity') and v['call']==0):raise ValueError('view escapes its declared scope')
-        stack=regions.setdefault(v['thread'],[])
-        if kind=='enter':stack.append(v['region'])
-        elif kind=='leave':
-            if not stack or stack.pop()!=v['region']:raise ValueError('unbalanced decoder region')
-        if kind=='finish' and ordinal!=len(events)-1:raise ValueError('duplicate dynamic finish marker')
-        if kind=='begin':
-            epoch+=1
-            if opened is not None or v['thread']!=0 or v['call']!=epoch or observation!=(epoch-1)//2:raise ValueError('overlapping or reordered dynamic iteration')
-            opened=(v['call'],observation);current=[]
-        if v['call']:
-            if opened!=(v['call'],observation):raise ValueError('event escapes its dynamic iteration')
-            current.append(v)
-        if kind in ('alloc','alloc_zeroed','realloc'):
-            if not integer(v['align'],1) or v['align']&(v['align']-1) or v['bytes']==0 or v['allocation']!=next_id+1 or v['allocation_offset']!=0:raise ValueError('invalid allocation request generation')
-            if offsets[2]%min(v['align'],page):raise ValueError('allocator alignment differs from request')
-            if kind=='realloc' and v['previous'] is not None:
-                if v['previous'] not in live or live[v['previous']]['align']!=v['align']:raise ValueError('realloc references a dead/foreign generation')
-                del live[v['previous']]
-            elif kind!='realloc' and v['previous'] is not None:raise ValueError('unexpected previous allocation')
-            next_id+=1;live[next_id]=v;allocations[next_id]=v
-        elif kind=='free':
-            ident=v['allocation']
-            if ident is not None:
-                if ident not in live or any(v[k]!=live[ident][k] for k in ('bytes','align','offsets')) or v['allocation_offset']!=0:raise ValueError('free generation/layout mismatch')
-                del live[ident]
-            elif v['allocation_offset'] is not None:raise ValueError('unattributed free has an allocation offset')
-        elif kind=='view':
-            if v['role'] not in {'matrix','source','scratch','dynamic','baseline','candidate','clone','old_data','updated','parity','leopard_work','leopard_locator','leopard_scratch','leopard_out_scratch','leopard_decoded'} or v['storage'] not in ('heap','inline','empty','borrowed') or not isinstance(v['stage'],str):raise ValueError('unknown dynamic view role/storage')
-            if v['capacity'] is not None and v['len']>v['capacity'] or v['bytes']!=v['element_size']*(v['capacity'] if v['capacity'] is not None else v['len']):raise ValueError('dynamic element/byte extent mismatch')
-            if native:
-                if not isinstance(v['faults'],list) or len(v['faults'])!=2 or any(not integer(a) for a in v['faults']) or any(a>b for a,b in zip(last_faults.get(v['thread'],v['faults']),v['faults'])):raise ValueError('invalid native dynamic fault counters')
-                last_faults[v['thread']]=v['faults']
-            elif v['faults'] is not None:raise ValueError('unrecorded native dynamic counters')
-            validate_internal_view(v,profile,case,legacy)
-            if v['role']=='matrix':
-                k=dimensions(profile,case)[0]
-                if v['stage'] not in ('constructed','invert_ready','invert_coded','decode_submatrix','decode_ready','decode_cached') or v['index']!=0 or v['capacity'] is None or v['occupied'] is not True or v['present'] is not None or v['storage'] not in ('heap','inline') or v['element_size']!=(SUPPLEMENTS[case][1] if profile=='decoder' else 1):raise ValueError('unknown decoder matrix view')
-                if v['stage'] in ('decode_submatrix','decode_ready','decode_cached') and v['len']!=k*k or v['stage'] in ('invert_ready','invert_coded') and v['len']!=2*k*k:raise ValueError('wrong decoder matrix dimensions')
-            ident=v['allocation'];offset=v['allocation_offset']
-            if ident is not None:
-                if ident not in live or offset is None or offset+v['bytes']>live[ident]['bytes'] or v['offsets']!=[(a+offset)%mod for a,mod in zip(live[ident]['offsets'],(64,4096,page))]:raise ValueError('view is not inside its live allocation generation')
-            elif offset is not None or v['storage']=='heap' and v['bytes']:raise ValueError('heap view has no live allocation')
-        if kind=='end':
-            if v['thread']!=0 or opened!=(v['call'],observation) or any(regions.values()):raise ValueError('dynamic iteration ended inside a decoder region')
-            leopard_case=profile=='decoder' and SUPPLEMENTS[case][0].startswith('Leopard')
-            if leopard_case:
-                if not any(q['kind']=='view' and q['role']=='leopard_work' and q['stage']=='chunk_coded' and q['region']=='decode' for q in current):raise ValueError('iteration lacks actual Leopard decode work')
-            elif (case.startswith('reconstruct') or profile in ('hotspot','decoder')) and not any(q['kind']=='view' and q['role']=='matrix' and q['stage'] in ('decode_ready','decode_cached') and q['region']=='decode' for q in current):raise ValueError('iteration lacks actual decoder matrix storage')
-            views=payload_contract(current,profile,case)
-            for view in views:
-                ident=view['allocation']
-                if ident is None:continue
-                if profile in ('small_file','stream','decoder') and view['role'] in ('source','scratch'):
-                    key=(view['role'],view['index']);signature=(ident,view['len'],view['capacity'],view['offsets'])
-                    if retained.setdefault(key,signature)!=signature or ident not in live:raise ValueError('retained caller storage changed between iterations')
-                elif ident in live:raise ValueError('iteration-owned payload outlives its original scope')
-            epochs.append(current);opened=None
-        if kind=='finish' and (ordinal!=len(events)-1 or opened is not None or v['call']!=0 or any(regions.values())):raise ValueError('incomplete dynamic owner teardown')
-    if epoch!=24 or len(epochs)!=24:raise ValueError('incomplete dynamic iteration catalog')
-    for ident,_,_,_ in retained.values():
-        if ident in live:raise ValueError('prepared caller owner was not released before final ledger')
-
-    return {'iterations':24,'events':len(events),'allocation_generations':len(allocations),'retained_requests':len(live),
-            'payload_views':sum(v['kind']=='view' and v['role']!='matrix' for v in events),
-            'decoder_matrix_views':sum(v['kind']=='view' and v['role']=='matrix' and v['region']=='decode' for v in events),
-            'bounded_residency_queries':sum(v['snapshot']['status']=='over_budget' for v in events)}
+    return native_tools.request('diagnostic-ledger', request=dict(
+        kind='dynamic', data=data, profile=profile, case=case, page=page, native=native, legacy=legacy))
 
 
 def underlying_records(records):
-    """Unwrap only the known diagnostic envelope in a private validator copy.
-
-    Formal workload validation rejects the actual raw observations. Never strip
-    this marker in a stored journal or promote these numbers to release data.
-    """
-    result=copy.deepcopy(records)
-    for record in result:
-        value=record.get('workload')
-        if not isinstance(value,dict) or set(value)!={'observer','contract'} or value['observer']!='dynamic-source-copy-v1' or not isinstance(value['contract'],dict):
-            raise ValueError('missing explicit dynamic diagnostic workload marker')
-        record['workload']=value['contract']
-    return result
+    """Validate a private copy; raw stored observations retain their marker."""
+    return native_tools.request('diagnostic-ledger', request=dict(kind='dynamic-records', records=records))
 
 
 def validate_envelope(report,output,repository):

@@ -289,3 +289,22 @@ fn negative_first_timestamps_and_out_of_range_counts_are_refused() {
         assert!(validate(overflow).is_err());
     }
 }
+
+#[test]
+fn dynamic_workload_unwrapping_preserves_the_original_record_and_refuses_formal_labels() {
+    let record = json!({"rows":[{"extra":1.25}],"workload":{"observer":"dynamic-source-copy-v1","contract":{"call_entry":"original","rng":null}}});
+    let before = record.clone();
+    let result = validate(json!({"kind":"dynamic-records","records":[record.clone()]})).unwrap();
+    assert_eq!(record, before);
+    assert_eq!(result[0]["workload"], before["workload"]["contract"]);
+    assert_eq!(result[0]["rows"], before["rows"]);
+    for wrong in [
+        json!({"observer":"formal","contract":{}}),
+        json!({"observer":"dynamic-source-copy-v1","contract":{},"address":1}),
+        json!({"observer":"dynamic-source-copy-v1","contract":null}),
+    ] {
+        let mut bad = record.clone();
+        bad["workload"] = wrong;
+        assert!(validate(json!({"kind":"dynamic-records","records":[bad]})).is_err());
+    }
+}

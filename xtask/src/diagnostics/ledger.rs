@@ -22,6 +22,35 @@ pub(super) struct Snapshot {
     pub errno: Option<u64>,
 }
 impl Snapshot {
+    /// Dynamic observers bound native queries and require unsupported on other OSes.
+    pub fn validate_dynamic(
+        &self,
+        size: u64,
+        offset: Option<u64>,
+        page: u64,
+        native: bool,
+        former: bool,
+    ) -> Result<()> {
+        if size > 0 && !native && self.status != "unsupported" {
+            return Err("unrecorded native dynamic residency".into());
+        }
+        if self.status == "over_budget" && native && size > 0 {
+            if page == 0 || offset.is_none_or(|n| n >= page) {
+                return Err("invalid bounded residency extent".into());
+            }
+            let pages = (u128::from(offset.ok_or("missing dynamic offset")?) + u128::from(size))
+                .div_ceil(u128::from(page));
+            if pages <= 4097
+                || self.pages.map(u128::from) != Some(pages)
+                || self.resident_pages.is_some()
+                || self.errno.is_some()
+            {
+                return Err("invalid bounded dynamic query".into());
+            }
+            return Ok(());
+        }
+        self.validate(size, offset, page, native, former, false)
+    }
     pub fn validate(
         &self,
         size: u64,
@@ -122,6 +151,29 @@ impl Clock {
 #[derive(Deserialize)]
 #[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
 pub(crate) enum Request {
+    DynamicCatalog,
+    DynamicSupplement {
+        header: Value,
+        data: super::dynamic_ledger::Ledger,
+        case: String,
+        page: u64,
+        cpus: Option<Vec<u64>>,
+        #[serde(default)]
+        legacy: bool,
+    },
+    DynamicRecords {
+        records: Vec<Value>,
+    },
+    Dynamic {
+        data: super::dynamic_ledger::Ledger,
+        profile: String,
+        case: String,
+        page: u64,
+        #[serde(default)]
+        native: bool,
+        #[serde(default)]
+        legacy: bool,
+    },
     VerifyScratch {
         data: super::verify_scratch::Ledger,
         case: String,
@@ -143,6 +195,57 @@ pub(crate) enum Request {
 impl Request {
     pub(crate) fn execute(self) -> Result<Value> {
         match self {
+            Self::DynamicCatalog => Ok(super::dynamic_ledger::catalog()),
+            Self::DynamicSupplement {
+                header,
+                data,
+                case,
+                page,
+                cpus,
+                legacy,
+            } => super::dynamic_ledger::supplement(
+                &header,
+                &data,
+                &case,
+                page,
+                cpus.as_deref(),
+                legacy,
+            ),
+            Self::DynamicRecords { mut records } => {
+                for record in &mut records {
+                    let record = record
+                        .as_object_mut()
+                        .ok_or("invalid dynamic diagnostic record")?;
+                    let envelope = record
+                        .remove("workload")
+                        .ok_or("missing explicit dynamic diagnostic workload marker")?;
+                    let Value::Object(mut envelope) = envelope else {
+                        return Err("missing explicit dynamic diagnostic workload marker".into());
+                    };
+                    if envelope.len() != 2
+                        || envelope.get("observer").and_then(Value::as_str)
+                            != Some("dynamic-source-copy-v1")
+                        || !envelope.get("contract").is_some_and(Value::is_object)
+                    {
+                        return Err("missing explicit dynamic diagnostic workload marker".into());
+                    }
+                    record.insert(
+                        "workload".into(),
+                        envelope
+                            .remove("contract")
+                            .ok_or("missing dynamic contract")?,
+                    );
+                }
+                Ok(Value::Array(records))
+            }
+            Self::Dynamic {
+                data,
+                profile,
+                case,
+                page,
+                native,
+                legacy,
+            } => data.validate(&profile, &case, page, native, legacy),
             Self::VerifyScratch {
                 data,
                 case,
