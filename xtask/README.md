@@ -199,8 +199,9 @@ The initial inventory contained **56 Python files / 13,120 lines**. Twenty-three
 original files were removed (twelve implementations/helpers and eleven test
 modules). One native-tool compatibility binding remains. The intermediate Python
 normalization library was also removed after its consumers moved to Rust.
-The remaining **34 files / 8,783 lines** consist of 15 production/helper modules
-and 19 test/fixture modules: about 33% fewer Python lines overall. The latest
+The remaining **34 files / 8,789 lines** consist of 15 production/helper modules
+and 19 test/fixture modules: about 33% fewer Python lines overall. This count
+also includes the concurrently integrated release-check isolation assertions. The latest
 migration removed the stream-view test module after all eleven original tests
 passed against Rust. Its six pure checks moved to native tests; five controller
 integration tests remain in the layout suite and the shared fixture remains in
