@@ -776,3 +776,77 @@ reduction from 13,120 lines is about 41%. Retained files have active callers.
 The 579 JSON files / 2,833,273 bytes and eleven historical identical-byte groups
 remain valid and unchanged. Repository tools and evidence remain excluded from
 both published crates.
+
+## Native baseline directory replay
+
+Commit `411fdb4` adds an independent native baseline capture analyzer and shared
+bounded snapshot, runtime and fingerprint implementations. Commit `6b2f61a`
+replaces the Python baseline directory pipeline with a thin native call. The new
+`analyze-baseline-capture` command loads the original provenance, calibration and
+measurement files directly, borrows prepared workload/trace/fixture references,
+and invokes the existing complete calibration, worker, provenance, statistics
+and report models. It avoids serializing complete input trees between Python
+and Rust or sending descriptive reports back through the helper for assembly.
+No statistical thresholds or codec implementation changes are introduced.
+
+The source-fingerprint implementation retains the former byte ordering and
+matches the Python producer on the real source tree. The standalone command
+produces the complete legacy report with an empty PATH, requiring neither Python
+nor Cargo at replay time. It still needs the matching tool sources to calculate
+the retained source fingerprints. Python keeps its existing CLI and explicit
+trusted historical-controller adapter, including isolated execution and the
+before/after source, resource and original-member checks. This step does not
+replace or bypass the historical controller with a current interpretation.
+
+The shared snapshot reads regular members with a 32 MiB per-file and 256 MiB
+aggregate byte budget. Input hashes cover the exact original encoded bytes.
+UTF-8, UTF-16 and UTF-32 with or without their supported byte-order marks retain
+the former byte-loader behavior. Member hashes and the optional A2 directory are
+checked again before returning a report. The analyzer preserves v1 history's
+explicit unknown CPU/page policy; v2 still requires the complete recorded runtime.
+Shared runtime validation retains libc, allocator environment, base-page and
+kernel-policy checks. Three complete-file service tests move to Rust after all
+original baseline behavior tests pass; CLI, ownership, frozen replay and malformed
+input tests remain active.
+
+The 51 old/native comparisons use the Python analyzer at `9210509`. Forty-nine
+retain complete values or refusal decisions, allowing only the expected analyzer
+source-stamp difference. Two explicit original-file policy changes refuse linked
+members and duplicate JSON keys that the former unbounded byte loader accepted.
+Coverage includes basic/v1/v2 provenance, missing policies, original encoded-byte
+hashes, one/two phases, optional historical policies, protocol numeric equality,
+interleaved workers, changed nonmedian records, counters, repeat limits, short
+windows and geometry differences. The new reports retain false release approval
+and null candidate attribution.
+
+A primed-helper witness replays every original baseline case. The two-phase
+fixture changes from 68 cross-language requests / 15,257,891 request bytes to one
+fresh file-adapter request / 289 bytes; the one-phase fixture changes from 39
+requests / 9,399,810 bytes to the same small request. The Rust process reads and
+rechecks the files directly. Complete report values and original hashes agree.
+These are request counts and transfer volumes, with no timing, codec throughput
+or release-acceptance inference. Source-bound drivers, reference bytes and
+comparison results remain in ignored local review output.
+
+Commit `62bbb43` also consolidates pure runtime and kernel-policy validation
+caches. Each current value is serialized before lookup; successful checks alone
+are cached. At most 128 payloads below 64 KiB remain resident, bounding cached
+serialized text below 8 MiB. Larger inputs are validated without retention. The
+binding regression verifies repeated small values, changed invalid input and
+large-value bypass. Live policy capture remains a fresh uncached process.
+
+The current inventory is **34 Python files / 7,693 lines**: 3,594 production/helper
+and 4,099 test/fixture lines. This round removes 52 net lines including the added
+boundary checks. All remaining modules have active capture, replay, adapter or
+test responsibilities. Historical JSON bytes and repository-only packaging
+boundaries remain intact.
+
+The independent clean checkout at `62bbb43` passes all fourteen final verification
+steps: 193 optimized native tests (165 unit / 28 executable), 247 Python tests,
+strict Clippy, x86_64 Linux compilation, 517 core tests (43 existing ignored
+cases), ten doctests, no_std and the 200 published-9.0.0/local-9.1.0 non-fast
+exact-parity and bidirectional-decode configurations. The 579 JSON files /
+2,833,273 bytes and eleven historical identical-byte groups remain valid and
+unchanged. All five workspace members inherit root dependencies. Core/WASM
+allowlists remain 67/6 members; the extracted core package compiles offline.
+No production codec, build input or dependency delta exists in this round.

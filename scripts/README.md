@@ -22,6 +22,8 @@ cargo xtask sampling-contract --input request.json
 cargo xtask summarize-smoke --input target/benchmark-smoke
 # Read-only stream I/O/window/residency validation, with optional summaries
 cargo xtask validate-stream-views --input stream-views-request.json
+# Read-only complete baseline directory replay from matching frozen tool sources
+cargo xtask analyze-baseline-capture --capture /path/to/capture --tool /path/to/frozen-source
 cargo test --locked --package xtask
 
 # Developer checks (fast profile; not release acceptance)
