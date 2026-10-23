@@ -167,6 +167,10 @@ class StreamViewIntegrationTests(unittest.TestCase):
         self.assertEqual(len(batches),180)
         self.assertTrue(all(batch['operation']=='inventory' and len(batch['observations'])<=4 for batch in batches))
         self.assertEqual(len(report['lifecycle_windows']['A1']),180)
+        comparison=calls.call_args.kwargs['request']['request']
+        self.assertEqual(comparison['operation'],'stream-comparison')
+        self.assertTrue(all('calls' not in row for rows in comparison['phases'].values() for row in rows))
+        self.assertEqual(report['lifecycle_windows']['A1'][0]['calls'],audit.summarize_windows(views['A1'][0]))
         self.assertEqual(views,original)
         self.assertEqual(report['observations'],720)
         self.assertEqual(report['case_count'],15)

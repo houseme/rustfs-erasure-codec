@@ -184,7 +184,7 @@ impl Request {
                         let calls = validate(o, true).map_err(|e| {
                             format!("{} observation {}: {e}", o.case, o.observation)
                         })?;
-                        let shapes = o
+                        let shapes: BTreeSet<_> = o
                             .view
                             .events
                             .iter()
@@ -196,15 +196,10 @@ impl Request {
                                 offsets: e.offsets,
                             })
                             .collect();
-                        Ok(Inventory {
-                            case: o.case.clone(),
-                            observation: o.observation,
-                            calls,
-                            shapes,
-                        })
+                        Ok(json!({"case":o.case,"observation":o.observation,"calls":calls,"shapes":shapes}))
                     })
                     .collect::<Result<Vec<_>>>()?;
-                Ok(serde_json::to_value(reports)?)
+                Ok(Value::Array(reports))
             }
             Self::Validate {
                 observations,
@@ -237,12 +232,11 @@ pub(crate) struct ViewShape {
     #[serde(deserialize_with = "nullable")]
     offsets: Option<[u64; 3]>,
 }
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct Inventory {
+pub(crate) struct Signature {
     pub case: String,
     pub observation: u64,
-    pub calls: Value,
     pub shapes: BTreeSet<ViewShape>,
 }
 
