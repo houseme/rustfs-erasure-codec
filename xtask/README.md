@@ -50,6 +50,7 @@ cargo test --locked --package xtask
 | Python dynamic campaign plan/envelope and fixed capture settings | `diagnostics::dynamic_ledger::campaign` and `sampling_contract::protocol`; existing native ledger/catalog frames | Frozen 516-step order, complete runtime/source provenance, every execution boundary, unchanged environment values and diagnostic-only markers |
 | Python original diagnostic journal comparison and repeated pair-contract requests | Shared `sampling_contract::output`, `artifact::{snapshot,python_json}` and existing diagnostic workers | Bound original bytes, complete prefix counts, actual raw sample/view types, legacy numeric equality, paired provenance and unchanged summaries |
 | Python paired-layout directory, context and journal validation | Shared `diagnostics::layout::replay`, snapshot reader and paired grid model; existing `analyze-layout` command | Every ABBA member/hash, actual source tree/lock, strict runtime/CPU context, original JSON numeric rules, complete raw rows and no release approval |
+| Python native/sampler/view source byte assembly and generated-overlay hashing | Shared `fingerprint` model and typed files/digest/plan render outputs | Original byte ordering, caller-file binding, fresh source reads, root normalization, identical generated files and unchanged digest fields |
 
 The obsolete implementations and their Python test entry points are removed.
 Rust unit and executable tests cover the retained contracts. The migration was
@@ -322,9 +323,9 @@ The initial inventory contained **56 Python files / 13,120 lines**. Twenty-three
 original files were removed (twelve implementations/helpers and eleven test
 modules). One native-tool compatibility binding remains. The intermediate Python
 normalization library was also removed after its consumers moved to Rust.
-The remaining **34 files / 7,607 lines** consist of 15 production/helper modules
-and 19 test/fixture modules: about 41% fewer Python lines overall. The current
-production/helper and test/fixture split is 3,403/4,204 lines. This count
+The remaining **34 files / 7,596 lines** consist of 15 production/helper modules
+and 19 test/fixture modules: about 42% fewer Python lines overall. The current
+production/helper and test/fixture split is 3,390/4,206 lines. This count
 includes the latest merged VM observer/cleanup checks, native dynamic envelopes
 and original-journal/paired-directory integration. Layout consolidation removes
 349 lines from its immediate parent (`75bc034`, 8,486 lines). The
@@ -506,14 +507,18 @@ added to a member manifest, and no package is uploaded.
 
 ## Current branch review and compatibility
 
-The latest paired replay implementation is frozen at `c2bde58`, following the
-journal integration `fffe679`. Codec/build inputs, dependencies and lockfiles
-continue to match main `a773e74`. All 15 final checks pass: 242 native, 252 Python
+The latest source/overlay fingerprint implementation is frozen at `a4976bd`,
+following paired replay `b3296b5`. Codec/build inputs, dependencies and lockfiles
+continue to match main `a773e74`. All 15 final checks pass: 245 native, 252 Python
 and 536 top-level codec tests, ten doctests, strict tooling Clippy, Linux tool
 compilation, no_std, published/local compatibility, all audits and actual core
-package reconstruction. The extracted package passes 370 library tests. Paired
-replay now validates original files and computes all four phases in one small
-native frame. See the [paired directory review](../docs/global-review-9.1.0-2026-10-23.md#native-paired-layout-directory-replay).
+package reconstruction. The extracted package passes 370 library tests. Overlay
+checks now request only digests; installation receives files and digest from one
+rendered plan. See the [fingerprint review](../docs/global-review-9.1.0-2026-10-23.md#native-source-and-overlay-fingerprints).
+
+The preceding paired replay implementation is frozen at `c2bde58`.
+Its source-bound [paired directory review](../docs/global-review-9.1.0-2026-10-23.md#native-paired-layout-directory-replay)
+retains its original validation and transport scope.
 
 The preceding journal implementation is frozen at `12144ea` on main `a773e74`.
 Its source-bound [original journal review](../docs/global-review-9.1.0-2026-10-23.md#original-diagnostic-journals-in-native-worker-frames)
