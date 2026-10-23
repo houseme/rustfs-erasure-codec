@@ -41,6 +41,7 @@ cargo test --locked --package xtask
 | CPU placement, Slot histogram and verify-layout calculations and 17 pure tests | `diagnostics::layout`; `cargo xtask analyze-layout --input FILE` | Complete CPU plans, bounded histograms, forward/reverse cells, paired phase gates, exact integer medians/ratios and original report schemas |
 | Profile grouping/selection, v15 protocol and baseline statistics | `sampling_contract::{batch,protocol}`, `statistics`, `diagnostics::baseline`; `cargo xtask analyze-baseline-data --input FILE` | Whole-profile validation, stable original observation indices, service ranks, complete repeat cohorts, adjacent schedules and conservative wall-window bounds |
 | VM process/thread analysis, synchronous counters and frequency deltas | `diagnostics::vm::{process,clock}`; `cargo xtask analyze-vm-data --input FILE` | Independent validation copies, shared/retired thread sets, per-thread reset checks, explicit unavailable/idle readings, ordered MSRs, enclosing windows and unchanged diagnostic schemas |
+| Retained-layout comparisons and stream-view inventory signatures | `diagnostics::layout::inventory` and the shared typed `diagnostics::views` ledger; `cargo xtask analyze-layout --input FILE` | All four phases, six comparison pairs, 103 retained cases, 15 stream cases, exact difference fields, lifecycle ordering and explicit absence of performance attribution |
 
 The obsolete implementations and their Python test entry points are removed.
 Rust unit and executable tests cover the retained contracts. The migration was
@@ -156,6 +157,24 @@ permanent digest covers all 15 shapes, two iteration counts and two page sizes.
 This improves the tooling's traversal and IPC structure, not codec kernels or
 performance acceptance rules.
 
+Structural inventory comparisons also use native models. Complete retained
+inventories validate all 4,944 observations through the existing profile/worker
+and provenance checks in one frame. The stream controller submits one preparation
+frame per phase, retains batches of at most four original view ledgers, and sends
+only compact validated shapes to the final comparison. The controller reuses
+validated lifecycle summaries locally, avoiding another JSON roundtrip of those
+unchanged values.
+Each bounded batch unions shapes per case while retaining all original
+observation indices. Private wire tuples avoid repeated field names; the original
+V3 ledger schema stays intact. Mixed-case batches preserve distinct shapes and
+lifecycle order, and the final comparison still requires all twelve observations
+for every case in every phase.
+It no longer normalizes complete stream rows back into Python or traverses raw
+events to construct another signature model. Sorted case/pair/difference order,
+original inputs, report schemas and explicit diagnostic coverage remain intact.
+Both inventory modes share the existing workload catalog and complete worker
+validation; no new codec implementation or dependency is introduced.
+
 The sampler renderer and offline verifier now share one native API/mask catalog.
 Mask values and emitted Rust expressions come from the same model. Service-window
 constants are compiled directly from the worker's Rust module, with the original
@@ -213,8 +232,8 @@ The initial inventory contained **56 Python files / 13,120 lines**. Twenty-three
 original files were removed (twelve implementations/helpers and eleven test
 modules). One native-tool compatibility binding remains. The intermediate Python
 normalization library was also removed after its consumers moved to Rust.
-The remaining **34 files / 7,813 lines** consist of 15 production/helper modules
-and 19 test/fixture modules: about 40% fewer Python lines overall. This count
+The remaining **34 files / 7,789 lines** consist of 15 production/helper modules
+and 19 test/fixture modules: about 41% fewer Python lines overall. This count
 includes the latest merged VM observer/cleanup checks. Layout consolidation removes
 349 lines from its immediate parent (`75bc034`, 8,486 lines). The
 stream-view migration removed its Python test module after all eleven original tests
@@ -261,7 +280,10 @@ VM/frequency/qualification tests passed before eleven pure checks moved to Rust.
 The obsolete point/window wrappers and unused Python clock constants are removed.
 A binding regression checks one request, bounded copies and raw-input independence.
 Including the separately committed reset fix, this removes 175 Python lines from
-`e7d1142`; 3,745 production/helper and 4,068 test/fixture lines remain.
+`e7d1142`. Retained/stream structural inventories subsequently remove another 24
+lines, including added binding checks: 3,705 production/helper and 4,084
+test/fixture lines remain. All fifty old/native comparisons retain the original
+complete reports and refusal decisions.
 The unreferenced Python-2-style `sage/galois_ext_test.sage` worksheet was also
 removed. Its four fixed tower-field addition/multiplication/division/inverse
 vectors now execute against both codec versions in the compatibility probe.

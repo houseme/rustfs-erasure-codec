@@ -628,3 +628,88 @@ exclusive resource partition, so this remains an overhead observation with null
 performance attribution and false release approval. It is not codec timing and
 does not qualify a release or a general speedup claim. Raw durations, input hash
 and code binding are retained locally with the review artifacts.
+
+## Structural inventory consolidation
+
+Commits `1cffa46` and `b197cdb` remove the remaining Python retained-layout
+comparison and raw stream-event signature model. The shared native
+`sampling_contract::batch::validate_groups` checks complete workers and original
+release rows for both sampling and structural inventories. Provenance validation
+borrows the original rows; only the compact cross-phase preparation contract is
+serialized back to the stream controller. The typed stream ledger produces its
+lifecycle summary and unique shapes from the same validated parse. The native
+inventory module compares all six phase pairs and retains sorted cases, exact
+changed-buffer fields and the original coverage/refusal flags. The controller
+retains the validated lifecycle summaries in observation order.
+Capture, original journals, source ownership and cleanup stay in their existing
+controller.
+
+The retained inventory covers 103 cases / 4,944 observations / 618 comparisons.
+The stream inventory covers 15 cases / 720 ledgers / 90 comparisons. Stream
+ledgers remain bounded to four observations per frame. Both modes preserve null
+candidate attribution and false release approval. No codec fast path, field,
+matrix, format, worker template or dependency declaration changes in this round.
+The production sources and build/package inputs also have no delta from the
+current branch's `origin/main` comparison base.
+
+The 50 old/native comparisons agree on complete reports and refusal decisions.
+The reference is the committed Python inventory at `e7766d7`; its bytes and the
+source-bound driver are retained under the ignored local tooling-review output.
+Coverage includes interleaved case workers, u64 capacities, changed source and
+scratch offsets, malformed nonmedian rows, missing observations/phases,
+constructor/backend changes, all 15 stream geometries, 4 KiB/64 KiB pages and
+one/two/three-call ledgers. Retained integration checks verify a single request
+for the complete retained inventory, at most four stream ledgers per frame and
+unchanged original records. Eight additional native tests protect the complete
+phase/catalog/schedule, exact difference fields, per-iteration shape deduplication
+and lifecycle summaries.
+
+The current inventory is **34 Python files / 7,789 lines**: 3,705
+production/helper lines and 4,084 test/fixture lines. The net reduction from this
+round's parent is 24 lines, including added binding checks; the reduction from
+the original 13,120-line inventory is about 41%. Every retained module has a
+caller. The obsolete comparison helper is removed; active capture and replay
+modules remain executable while their ownership boundaries are retained.
+
+The final expanded review reproduced an input-boundary regression introduced by
+the migration: the previous stream inventory accepted an absent CPU policy,
+while converting `None` to a Python list raised a type error before validation.
+Commit `4ee794a` retains the optional policy in both bindings and native
+preparation. The new native test also rejects a regressing original worker
+counter with that policy absent; complete-report integration compares both
+policy forms. Native lifecycle-counter requirements remain enforced.
+
+The independent clean checkout at `7fce4b2` passes all 176 optimized native tests
+(148 unit / 28 executable), 247 Python tests, strict tooling Clippy, x86_64 Linux
+compilation, 517 core tests (43 existing ignored cases), ten doctests and no_std.
+The published 9.0.0/local 9.1.0 probe passes all 200 non-fast configurations,
+exact parity, decoding in both directions and historical field vectors. All five
+workspace members inherit root dependencies. The JSON audit retains 579 files /
+2,833,273 bytes and eleven historical identical-byte groups, with no errors.
+Core/WASM package allowlists remain 67/6 members. Explicitly selecting the core
+package and crates.io registry verifies the extracted 67-file crate offline;
+the initial unqualified command encountered the local registry replacement and
+default workspace members, and is retained as an unsuccessful invocation.
+
+The local overhead review found redundant work in the first stream migration:
+validated lifecycle summaries and repeated shape objects made another complete
+JSON roundtrip through the comparator. Commits `7f24aa5` and `7fce4b2` retain the
+validated summaries locally and union shapes per case within each bounded native
+batch. Private wire tuples carry the same role/index/length/capacity/offset
+values. Every original observation index remains present, and the comparator
+still requires the complete twelve-observation schedule. A mixed-case native
+regression retains both equal and distinct geometries, all lifecycle entries and
+the four-ledger bound. Python only relays the resulting summaries and signatures.
+
+The final source-bound synthetic comparison reduces retained-inventory frames
+from 88 to one and request bytes from 17,593,995 to 12,026,533. The single retained
+frame remains within the existing 32 MiB plus envelope limit. Stream frames fall
+from 200 to 185, request bytes from 40,443,047 to 38,521,452, and the largest stream
+request is 530,168 bytes. Complete outputs agree and input hashes remain unchanged.
+These counts apply to the 103-case retained and 15-case/two-call stream fixtures.
+Each A1/B1/B2/A2 phase has two warmups and nine timed invocations. Native repeat
+variation reaches 8.72%/7.63%, exceeding the five-percent repeat criterion, and the
+desktop has no proven exclusive resource partition. No candidate timing
+conclusion or release approval follows from these measurements. The source-bound
+drivers, original timings, frame counts, pre-projection trials and fifty-case
+semantic comparison remain in the ignored local review artifacts.
