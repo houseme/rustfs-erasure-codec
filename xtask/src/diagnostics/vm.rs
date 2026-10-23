@@ -1,5 +1,6 @@
 //! Whole-record VM diagnosis over shared typed snapshots, without device I/O.
 mod clock;
+mod frequency;
 mod process;
 use crate::{Args, Result};
 use serde::Deserialize;
@@ -9,6 +10,9 @@ use serde_json::{Value, json};
 #[serde(tag = "operation", rename_all = "kebab-case", deny_unknown_fields)]
 pub(crate) enum Request {
     Contract,
+    FrequencyWorker {
+        request: Box<frequency::Request>,
+    },
     Basic {
         records: Vec<Value>,
         #[serde(default)]
@@ -48,6 +52,7 @@ impl Request {
     pub(crate) fn execute(self) -> Result<Value> {
         match self {
             Self::Contract => Ok(clock::contract()),
+            Self::FrequencyWorker { request } => request.execute(),
             Self::Basic {
                 records,
                 native_service_clock,

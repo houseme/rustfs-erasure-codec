@@ -54,26 +54,8 @@ impl Request {
             match &self.output {
                 Output::Groups => {}
                 Output::Select { metric, diagnostic } => {
-                    let measured = &rows[3..];
-                    let short: Vec<_> = measured.iter().filter(|r|
-                        r["wall_ns"].as_f64().is_some_and(|n| n < super::MINIMUM_WALL_NS as f64)
-                        || r["timed_ns"].as_f64().is_some_and(|n| n < super::MINIMUM_TIMED_NS as f64))
-                        .map(|r|json!({"index":r["index"],"wall_ns":r["wall_ns"],"timed_ns":r["timed_ns"]})).collect();
-                    if !short.is_empty() && !diagnostic {
-                        return Err("sample measurement interval is insufficient".into());
-                    }
-                    let ordered =
-                        statistics::ordered(measured.iter().map(|r| &r["rows"][0][metric]), false)?;
-                    let median = ordered[4];
-                    let offset = measured
-                        .iter()
-                        .position(|r| std::ptr::eq(&r["rows"][0][metric], median))
-                        .ok_or("selected observation is absent")?;
-                    selected.push(indices[offset + 3]);
-                    let mut spread = json!({"case":case,"central_spread":statistics::ratio(&statistics::difference(ordered[7],ordered[1]),median)?});
-                    if *diagnostic {
-                        spread["short_samples"] = json!(short);
-                    }
+                    let (offset, spread) = select(&rows, case, metric, *diagnostic)?;
+                    selected.push(indices[offset]);
                     spreads.push(spread);
                 }
                 Output::Describe { fixtures } => {
@@ -137,3 +119,49 @@ pub(crate) fn validate_groups<'a, T: Borrow<Value>>(
 
 #[cfg(test)]
 mod tests;
+
+/// Stable median selection over an already validated fixed worker.
+pub(crate) fn select<T: Borrow<Value>>(
+    rows: &[T],
+    case: &str,
+    metric: &str,
+    diagnostic: bool,
+) -> Result<(usize, Value)> {
+    if rows.len() != 12 {
+        return Err("all fixed worker observations required".into());
+    }
+    let measured = &rows[3..];
+    let short: Vec<_> = measured
+        .iter()
+        .filter(|r| {
+            let r: &Value = (*r).borrow();
+            r["wall_ns"]
+                .as_f64()
+                .is_some_and(|n| n < super::MINIMUM_WALL_NS as f64)
+                || r["timed_ns"]
+                    .as_f64()
+                    .is_some_and(|n| n < super::MINIMUM_TIMED_NS as f64)
+        })
+        .map(|r| {
+            let r: &Value = r.borrow();
+            json!({"index":r["index"],"wall_ns":r["wall_ns"],"timed_ns":r["timed_ns"]})
+        })
+        .collect();
+    if !short.is_empty() && !diagnostic {
+        return Err("sample measurement interval is insufficient".into());
+    }
+    let ordered = statistics::ordered(
+        measured.iter().map(|r| &r.borrow()["rows"][0][metric]),
+        false,
+    )?;
+    let median = ordered[4];
+    let offset = measured
+        .iter()
+        .position(|r| std::ptr::eq(&r.borrow()["rows"][0][metric], median))
+        .ok_or("selected observation is absent")?;
+    let mut spread = json!({"case":case,"central_spread":statistics::ratio(&statistics::difference(ordered[7],ordered[1]),median)?});
+    if diagnostic {
+        spread["short_samples"] = json!(short);
+    }
+    Ok((offset + 3, spread))
+}

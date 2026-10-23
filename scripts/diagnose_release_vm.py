@@ -159,21 +159,13 @@ def frequency_result(output,plan,calibration,context):
     if len(entries)!=len(plan['cohort']['steps']):raise ValueError('incomplete frequency cohort')
     reports=[];last=0
     for step,entry in zip(plan['cohort']['steps'],entries):
-        if set(entry)!={'step','before','after','start_ns','end_ns','counters_before','counters_after','samples_sha256','log_sha256'} or entry['step']!=step or entry['before']!=context or entry['after']!=context:raise ValueError('frequency order/context differs')
         stem=f"{step['ordinal']:03}";rows_path=adjacent.member(output,'workers/'+stem+'.json');log=adjacent.member(output,'workers/'+stem+'.log')
-        rows=evidence.json_data(rows_path,entry['samples_sha256']);raw=evidence.member_text(log,entry['log_sha256'])
+        rows=evidence.json_data(rows_path,entry.get('samples_sha256'));raw=evidence.member_text(log,entry.get('log_sha256'))
         begin=evidence.json_data(adjacent.member(output,'workers/'+stem+'.start.json'))
-        if begin!={k:entry[k] for k in ('step','before','start_ns','counters_before')}:raise ValueError('frequency start journal differs')
-        start,end=entry['start_ns'],entry['end_ns']
-        if type(start) is not int or start<last:raise ValueError('frequency workers overlap')
-        counters=frequency_deltas(entry['counters_before'],entry['counters_after'],context['isolation']['cpu_affinity'],start,end);last=end
-        if end-start<sum(r['wall_ns'] for r in rows):raise ValueError('frequency worker cannot contain original windows')
-        summary=adjacent.check_worker(rows,raw,step,calibration[step['profile']],context)
-        cpu=str(rows[0]['placement']['cpu'])
-        if counters[cpu]['mperf_delta']<=0:raise ValueError('no measuring-CPU counter activity')
-        reports.append({'step':step,'original_metric':summary,'worker_elapsed_ns':end-start,
-                        'original_wall_ns':sum(r['wall_ns'] for r in rows),'original_timed_ns':sum(r['timed_ns'] for r in rows),
-                        'service':evidence.baseline_service_times(rows)[step['case']],'measuring_cpu':int(cpu),'counters':counters})
+        replay=adjacent.worker_request(rows,raw,step,calibration[step['profile']],context)
+        reports.append(native_tools.request('vm-analysis',request=dict(operation='frequency-worker',
+            request=dict(replay=replay,step=step,entry=entry,begin=begin,context=context,last_end=last))))
+        last=entry['end_ns']
     return {'schema':FREQUENCY_SCHEMA,'release_approval':False,'formal_qualification':False,'candidate_attribution':None,
             'exclusive_api_cycles':False,'time_normalization':False,'scope':plan['scope'],
             'cases':len(plan['cohort']['failed_cases']),'observations':12*len(reports),'workers':reports,

@@ -91,8 +91,9 @@ class FrequencyTests(unittest.TestCase):
                     target.write_bytes(original+b'\n');changed=True
                 return raw
             try:
-                with mock.patch.object(d.evidence,'member_bytes',side_effect=read):
+                with mock.patch.object(d.evidence,'member_bytes',side_effect=read), mock.patch.object(d.native_tools,'_request_payload',wraps=d.native_tools._request_payload) as transport:
                     actual=d.frequency_result(self.output,plan,calibration,self.fixture.context)
+                self.assertEqual(transport.call_count,len(plan['cohort']['steps']))
                 self.assertTrue(changed)
                 with self.subTest(name=name):self.assertEqual(actual,expected,name)
             finally:target.write_bytes(original)

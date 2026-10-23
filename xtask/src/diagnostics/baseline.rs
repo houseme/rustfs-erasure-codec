@@ -382,7 +382,7 @@ fn report(phases: &[String], groups: Vec<Group>, frozen: Option<Frozen>) -> Resu
     Ok(result)
 }
 /// Formal baseline service summaries over the retained nine samples.
-fn service_times(records: &[Value]) -> Result<Value> {
+pub(crate) fn service_times(records: &[Value]) -> Result<Value> {
     let mut groups = BTreeMap::<&str, Vec<&Value>>::new();
     for r in records {
         if r["kind"] == "sample" {
