@@ -1,14 +1,19 @@
 # GF16 subfield slice review
 
-Baseline: unreleased main `ebb60f286b639c266eb3c46ae556cdd7519de188`.
+Timing baseline: unreleased main `8d59e774dd4b3f75eebbd48afdcc2e05d6614d07`.
+The initial temporary plan incorrectly retained the earlier `ebb60f2` label; see
+the source correction below. Raw observations and statistical refusals are unchanged.
 This change targets actual Classic GF16 payload multiplication during encoding
 and recovery, separately from matrix planning and PR #73.
 
-Native ARM64 sampling of 10+4 / 1024-element encoding on that exact main source
+The separate path-localization profile uses frozen `ebb60f2`, whose GF16
+arithmetic source is identical to `8d59e77`. Native ARM64 sampling of its
+10+4 / 1024-element encoding
 found substantial byte-plane conversion and initialization. Recorded top-of-stack
 counts include 456 for deinterleave and 290 for memset in a two-second sample.
 These are path-localization samples, not a latency measurement or a full-version
-comparison. Actual encoding-format inspection finds all 8 / 40 / 512 parity
+comparison; that profiling binary is not the timed comparator. Encoding-format
+inspection on the timed baseline finds all 8 / 40 / 512 parity
 coefficients for 4+2 / 10+4 / 32+16 within the GF8 subfield.
 
 ## One algebraic shortcut
@@ -38,7 +43,7 @@ sides of the borrowed destination. Existing mixed and pure-X coefficient cases
 continue to test the general tower path. Two panic regressions ensure mismatched
 lengths remain rejected before the zero-coefficient shortcut.
 
-Final code passes 364 release/all-feature library tests (five existing ignored),
+Original checked source `ff107f6` passes 364 release/all-feature library tests (five existing ignored),
 242 codec-only no_std tests, strict all-target/all-feature codec Clippy, formatting
 and diff checks. The real published 9.0.0 comparison passes 200 exact-parity
 configurations and bidirectional cross-decoding, including historical GF16
@@ -134,19 +139,41 @@ Every ratio is unqualified.
 
 ## Integration and release boundary
 
-During this capture, the maintainer rebased and merged PR #73 as
+Before the timing baseline was frozen, the maintainer rebased and merged PR #73 as
 `8d59e774dd4b3f75eebbd48afdcc2e05d6614d07`. Its complete tree equals checked
 `bce7023a38f859d859772e7684b3ad0def81acc6`; its ordinary checks completed
 31 success / three conditional skips. Its earlier performance refusals remain
 refusals. This assistant did not execute that merge.
 
-The local GF16 comparison retains its frozen parent `ebb60f2`: both roles use
-the matrix implementation preceding PR #73. The changed GF16 arithmetic source
-is bound separately in the numerical artifact. Later integration or CI on newer
-main must not relabel these observations as its complete timing proof. PR #74's
-independent scalar length-contract repair retains its own source and checks.
+The local GF16 comparison uses frozen parent `8d59e77`: both timing roles include
+PR #73's matrix implementation. The earlier profiling reference remains separate.
+The changed GF16 arithmetic source is bound independently in the numerical
+artifact. Later integration or CI on newer main must not relabel these observations
+as its complete timing proof. PR #74's independent scalar length-contract repair
+retains its own source and checks.
 
-Keep this pure performance implementation draft pending controlled qualification.
+### Source correction without recapturing timings
+
+The initial plan copied the `ebb60f2` source label from an earlier cohort, instead
+of recording the actual baseline build's Git state. Candidate `ff107f6` has parent
+`8d59e77`. Rebuilding the original frozen 27-case probe with the same lockfile,
+source path and `8d59e77` reproduces the retained baseline executable byte for byte.
+The frozen candidate patch also matches that parent. Applying the patch through
+an isolated Git index verifies the complete codec input tree; the initially
+claimed source chain refuses, while the corrected chain exactly matches the
+frozen candidate. Executable digests and full build records stay private.
+
+The numerical artifact retains its original-label correction and immutable first
+artifact commit. Every case, calibration, wall/CPU observation, median, width,
+repeat, ratio and refusal is unchanged. No new performance observation is taken,
+and the four width/four repeat failures remain rejected. This metadata error does
+not explain service-time variation or justify a speedup claim. The temporary
+collector now refuses existing captures before copying binaries or starting a
+worker, computes its patch from the explicit baseline, and verifies the complete
+source chain before timing. Its rejection checks preserve all original files.
+
+Performance qualification remains open. A ready/merged PR state does not change
+the original statistical refusals or provide release acceptance.
 Ordinary CI and the published-9.0.0 functional comparison do not satisfy final
 performance acceptance. The existing Linux full diagnostic keeps its frozen
 sources and exclusive ownership; no compile or new workload was added there.
