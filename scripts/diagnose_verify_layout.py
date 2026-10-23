@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Capture and replay complete paired slice layouts; never replace Vec release evidence."""
 import argparse
-import hashlib
 import json
 import os
 import pathlib
@@ -39,11 +38,13 @@ def save(output, name, value):
     (output/name).write_text(json.dumps(value, indent=2, allow_nan=False)+'\n')
 
 
+def tool_sources():
+    return dict(native_root=str(native_tools.ROOT),controller=str(pathlib.Path(__file__).resolve()),
+                template=str(TEMPLATE),sampler=str(pathlib.Path(sampling.__file__).resolve()))
+
+
 def tool_contract():
-    return {'protocol': LAYOUT_PROTOCOL,
-            'template_sha256': hashlib.sha256(TEMPLATE.read_bytes()).hexdigest(),
-            'controller_sha256': hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest(),
-            'sampling_implementation_sha256': sampling.implementation_digest()}
+    return native_tools.request('diagnostic-layout',request=dict(operation='contract',code=tool_sources()))
 
 
 def run_checked(command, **kwargs):
@@ -139,7 +140,7 @@ def analyze_paired(phases, iterations, page_size, measuring_cpu, *, diagnostic=F
 
 def verify_paired(directory, candidate, compiler=True, *, diagnostic=False, manifest_sha256=evidence._UNBOUND):
     """Bind Git/compiler state around one native original-directory replay."""
-    request=dict(directory=str(directory.resolve()),diagnostic=diagnostic,contract=tool_contract(),
+    request=dict(directory=str(directory.resolve()),diagnostic=diagnostic,code=tool_sources(),
                  baseline=evidence.source_at(candidate,evidence.BASELINE_COMMIT),
                  candidate=evidence.source_info(candidate),tool=evidence.source_info(TOOL))
     if manifest_sha256 is not evidence._UNBOUND:request['manifest_sha256']=manifest_sha256

@@ -1,5 +1,4 @@
 """Generate and validate the same external sampling overlay on unmodified codecs."""
-import hashlib
 import json
 import os
 import pathlib
@@ -23,8 +22,7 @@ def block(text, name):
 
 
 def implementation_digest():
-    files = [pathlib.Path(__file__).resolve(), *sorted(TEMPLATES.glob("*.rs"))]
-    return hashlib.sha256(b"".join(p.name.encode() + b"\0" + p.read_bytes() for p in files)+native_tools.implementation_bytes()).hexdigest()
+    return native_tools.fingerprint('sampling',pathlib.Path(__file__).resolve())
 
 
 # The native renderer and verifier share one workload/fixture catalog.
@@ -60,13 +58,12 @@ def fixture_contract(profile, case):
     return native_tools.sampling_contract('fixture-contract', profile, case)
 
 
-def render(root):
-    return native_tools.request('sampler-render', root=str(root), tool=str(native_tools.ROOT))
+def render(root, output='files'):
+    return native_tools.request('sampler-render', root=str(root), tool=str(native_tools.ROOT), output=output)
 
 
 def overlay_digest(root):
-    return hashlib.sha256(b"".join(name.encode() + b"\0" + text.replace(str(root), "<SOURCE>").encode()
-                                  for name, text in sorted(render(root).items()))).hexdigest()
+    return render(root,output='digest')
 
 
 def generate(root):

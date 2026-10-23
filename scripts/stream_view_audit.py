@@ -1,5 +1,4 @@
 """Diagnostic decorators for real stream buffer views; never formal release timing."""
-import hashlib
 import pathlib
 import native_tools
 import release_sampling as sampling
@@ -13,11 +12,11 @@ def native_template():
 
 
 def implementation_digest():
-    return hashlib.sha256(pathlib.Path(__file__).read_bytes()+native_template().encode()+native_tools.implementation_bytes()).hexdigest()
+    return native_tools.fingerprint('views',pathlib.Path(__file__).resolve())
 
 
-def render(root):
-    return native_tools.diagnostic_render(root, 'views')
+def render(root, output='files'):
+    return native_tools.diagnostic_render(root, 'views', output=output)
 
 
 def underlying_records(records):

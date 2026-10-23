@@ -14,7 +14,6 @@ import tempfile
 import release_evidence as e
 import release_sampling as sampling
 import stream_view_audit as views
-import verify_scratch_audit as ordinary
 from diagnostic_overlay import overlay, source_overlay as owned_source_overlay
 from native_tools import STREAM_CORE_MODULE as MODULE
 
@@ -26,8 +25,8 @@ def native_template():
     return native_tools.native_template('stream')
 
 
-def render(root):
-    return native_tools.diagnostic_render(root, 'stream')
+def render(root, output='files'):
+    return native_tools.diagnostic_render(root, 'stream', output=output)
 
 
 def bindings(original):
@@ -72,7 +71,7 @@ def verify(output,repository):
     if report.get('native_sha256')!=e.digest(native_template().encode()) or report.get('sampler_implementation_sha256')!=sampling.implementation_digest() or not e.DIGEST.fullmatch(report.get('controller_sha256','')) or report.get('source_patcher_sha256')!=native_tools.implementation_digest():raise ValueError('source diagnostic implementation differs')
     page=report.get('page_size');cpus=report.get('cpu_affinity')
     if not sampling.valid_page_size(page) or cpus is not None and (not isinstance(cpus,list) or not cpus or any(type(c) is not int or c<0 for c in cpus) or cpus!=sorted(set(cpus))):raise ValueError('invalid native page/affinity contract')
-    if report.get('harness_sha256')!={r:e.harness_digest(repository) for r in ('baseline','candidate')} or report.get('overlay_sha256')!={r:ordinary.overlay_digest(repository,render(repository)) for r in ('baseline','candidate')}:raise ValueError('stream workers differ')
+    if report.get('harness_sha256')!={r:e.harness_digest(repository) for r in ('baseline','candidate')} or report.get('overlay_sha256')!=dict.fromkeys(('baseline','candidate'),render(repository,output='digest')):raise ValueError('stream workers differ')
     if set(report.get('sources',{}))!={'baseline','candidate'} or set(report.get('cases',{}))!={'baseline','candidate'}:raise ValueError('require both actual codec sources')
     if report['sources']['baseline']['commit']!=e.BASELINE_COMMIT or report['sources']['candidate']['commit']==e.BASELINE_COMMIT:raise ValueError('wrong published baseline or candidate')
     contracts={};workloads={};members={};total=0
@@ -107,7 +106,7 @@ def _check(repository,output,baseline_ref):
     env=dict(e.capture_environment(),RUSTUP_TOOLCHAIN='stable')
     for role,revision in roles.items():
         root=output/role;sampling.checkout_baseline(repository,root,revision);source=e.source_info(root);report['sources'][role]=source;report['cases'][role]={}
-        files=render(root);report['harness_sha256'][role]=e.harness_digest(root);report['overlay_sha256'][role]=ordinary.overlay_digest(root,files)
+        plan=render(root,output='plan');files=plan['files'];report['harness_sha256'][role]=e.harness_digest(root);report['overlay_sha256'][role]=plan['sha256']
         current='struct StreamReadBuffer {' in (root/'src/core/stream.rs').read_text()
         with source_overlay(root) as patches,overlay(root,files):
             report['source_overlays'][role]=patches
