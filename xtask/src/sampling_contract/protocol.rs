@@ -1,15 +1,20 @@
 //! Frozen v15 contract exported from the same constants used by analysis.
 use serde_json::{Value, json};
+pub(super) const WARMUPS: usize = 3;
+pub(super) const SAMPLES: usize = 9;
+pub(super) const WIDTH: usize = WARMUPS + SAMPLES;
+pub(super) const MAX_CALIBRATION_BATCHES: u64 = 12;
+pub(super) const MAX_CALIBRATION_RECORDS: usize = WIDTH * MAX_CALIBRATION_BATCHES as usize;
 pub(super) fn value() -> Value {
     json!({
         "name": "shared-external-duration-sampler",
         "version": 15,
-        "samples": 9,
-        "warmups": 3,
+        "samples": SAMPLES,
+        "warmups": WARMUPS,
         "case_isolation": "fresh-process-per-count",
         "case_order": "lexicographic",
-        "max_calibration_batches": 12,
-        "max_calibration_records": 144,
+        "max_calibration_batches": MAX_CALIBRATION_BATCHES,
+        "max_calibration_records": MAX_CALIBRATION_RECORDS,
         "minimum_timed_ns": super::service_window::MINIMUM_TIMED_NS,
         "minimum_wall_ns": super::service_window::MINIMUM_WALL_NS,
         "target_timed_ns": super::service_window::TARGET_TIMED_NS,
