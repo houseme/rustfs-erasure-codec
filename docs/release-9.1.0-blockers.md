@@ -19,9 +19,13 @@ rejected under their original source bindings.
 ## Current merged implementation
 
 The [merged-candidate review](release-9.1.0-readiness-2026-10-23.md) now covers
-reviewed main `549b0ac` and integrated proof source `aa89274`, including shared
-ordinary Classic verification, empty aligned-shard storage, concurrent cache
-metrics and the newer source-plan/process-owner checks. It differs
+reviewed main `0a85348`, including contiguous matrix rows, shared ordinary
+Classic verification, empty aligned storage, concurrent cache metrics and the
+newer bound-original/source-plan/process-owner checks. Its exact new functional
+record passes 211 native, 527 all-feature codec (43 existing ignored), 239 no_std,
+246 Python and the 200-case published-9.0.0 parity/cross-decoding comparison.
+Strict codec/tool Clippy, Linux tool Clippy and preparation audits also pass.
+These checks are not throughput measurements or strict positive preflight. It differs
 from both the running frozen `9f935ee` tree and earlier runtime `449920e`. The earlier `14cf56e` and
 `09597e4` file-tree equality remains a historical fact; their ordinary CI and
 package dry-run do not provide later-source performance acceptance. Strict
@@ -37,8 +41,9 @@ native and 248 Python tests plus strict macOS/Linux tool Clippy and all 96 bound
 post-fix cancellation trials. Integrated `aa89274` preserves main's newer repair
 and adds the shared proof/refusal tests; 205 native, 359 codec (five ignored),
 237 no_std, all 248 Python tests and strict codec/macOS/Linux tool Clippy pass.
-Its own new-head CI remains pending; neither local success nor another passing
-workflow erases the old refusal. The separate full
+PR #67 subsequently completed both workflow sets with 62 SUCCESS / 6 SKIPPED;
+the original failure remains retained. Those skips are not accepted evidence or
+strict positive preflight. The separate full
 Linux campaign continues on frozen `9f935ee`. The earlier 64-worker encode/stream plan has completed and
 independently replays exactly. All
 64 distributions and eight regression programs pass, but three of 32 repeats fail
@@ -46,6 +51,14 @@ independently replays exactly. All
 retains all sixteen cases and failures. This unaccepted result cannot
 be relabeled as a measurement of the later combined main. Final-source freeze,
 complete accepted evidence and strict positive preflight remain required.
+
+The subsequently merged [matrix-row change](matrix-row-review-2026-10-23.md)
+retains both rejected local cohorts. A fresh independent replay of all 2,208
+observations reproduces every report field and refusal, without codec execution.
+The later cohort still has five width, fourteen repeat and three regression-case
+refusals. Its integration does not approve those comparisons. The current
+functional record and original matrix-source binding are explicit in the
+[merged-candidate review](release-9.1.0-readiness-2026-10-23.md).
 
 ## 2026-10-23 adaptive verification candidate
 

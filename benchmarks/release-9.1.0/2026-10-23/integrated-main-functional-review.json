@@ -1,0 +1,223 @@
+{
+  "artifact_kind": "integrated-main-functional-review",
+  "executed_source": "0a853482d19a0b903837cc8975b16793a6356375",
+  "executed_tree": "2ab60ed64279fe8ac67f26df1ffd8fc01067f85b",
+  "source_inputs_unchanged": true,
+  "scope": "Functional and compatibility review of integrated matrix rows and bound original-file replay; not codec timing or final release evidence.",
+  "checks": [
+    {
+      "name": "native",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "-p",
+        "xtask"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "codec",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "-p",
+        "rustfs-erasure-codec",
+        "--all-features",
+        "--lib"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "no-std",
+      "command": [
+        "cargo",
+        "test",
+        "--locked",
+        "--release",
+        "-p",
+        "rustfs-erasure-codec",
+        "--no-default-features",
+        "--lib"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "tool-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--release",
+        "-p",
+        "xtask",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "codec-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--release",
+        "-p",
+        "rustfs-erasure-codec",
+        "--all-targets",
+        "--all-features",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "linux-clippy",
+      "command": [
+        "cargo",
+        "clippy",
+        "--locked",
+        "--release",
+        "-p",
+        "xtask",
+        "--target",
+        "x86_64-unknown-linux-gnu",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "compatibility",
+      "command": [
+        "cargo",
+        "run",
+        "--locked",
+        "--release",
+        "-p",
+        "rse-release-compatibility"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "python",
+      "command": [
+        "python3",
+        "-B",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts/tests"
+      ],
+      "exit_code": 0
+    },
+    {
+      "name": "fmt",
+      "command": [
+        "cargo",
+        "fmt",
+        "--all",
+        "--check"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "test_counts": {
+    "codec_library": {
+      "passed": 361,
+      "ignored": 5
+    },
+    "codec_all_feature_programs_including_library": {
+      "programs": 34,
+      "passed": 527,
+      "ignored": 43
+    },
+    "codec_integration_excluding_library": {
+      "passed": 166
+    },
+    "codec_only_no_std": {
+      "passed": 239
+    },
+    "native": {
+      "unit": 182,
+      "cli": 29
+    },
+    "python": {
+      "passed": 246
+    }
+  },
+  "published_9_0_compatibility": {
+    "configurations": 200,
+    "exact_parity": true,
+    "cross_decode_both_directions": true,
+    "historical_gf16_vectors": true
+  },
+  "preparation_checks": [
+    {
+      "name": "check-release",
+      "exit_code": 0
+    },
+    {
+      "name": "audit-workspace",
+      "exit_code": 0
+    },
+    {
+      "name": "audit-json",
+      "exit_code": 0
+    },
+    {
+      "name": "audit-package",
+      "exit_code": 0
+    }
+  ],
+  "actual_package_members": {
+    "core": 67,
+    "wasm": 6
+  },
+  "matrix_existing_report_replay": {
+    "input": "matrix-row-component-diagnostics.json",
+    "input_unchanged": true,
+    "all_reported_checks_match": true,
+    "observations": 2208,
+    "codec_calls": 0,
+    "cohorts": [
+      {
+        "prototype": "rejected-all-field-batch-prototype",
+        "observations": 1104,
+        "distributions": 92,
+        "width_failures": 0,
+        "repeats": 46,
+        "repeat_failures": 1,
+        "unqualified_comparisons": 92,
+        "regression_cases": 2,
+        "short_samples": 0
+      },
+      {
+        "prototype": "byte-field-batch-with-scalar-row-fallback",
+        "observations": 1104,
+        "distributions": 92,
+        "width_failures": 5,
+        "repeats": 46,
+        "repeat_failures": 14,
+        "unqualified_comparisons": 92,
+        "regression_cases": 3,
+        "short_samples": 0
+      }
+    ]
+  },
+  "platform_boundary": "Native functional checks on macOS ARM64; Linux x86_64 tool Clippy is compilation evidence, not positive Linux ISA or timing execution.",
+  "strict_release_preflight": false,
+  "accepted_codec_performance": false,
+  "candidate_attribution": null,
+  "release_approval": false
+}

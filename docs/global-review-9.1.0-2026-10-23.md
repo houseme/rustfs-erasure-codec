@@ -1087,3 +1087,30 @@ manifest or lockfile delta. Core/WASM allowlists remain 67/6 members and exclude
 repository-only tools, Python, tests and archived JSON. All 585 original JSON
 members match main. There is no new codec timing result, release approval, tag
 or registry upload in this review.
+
+
+## Current integrated main review
+
+Main `0a85348` combines the earlier process/source ownership work with contiguous
+matrix rows and bound original-file replay. Matrix multiplication and elimination
+share borrowed row operations; GF8-capable arithmetic uses its existing batch
+operator, while other fields retain scalar row traversal. The independent
+GF8/GF16 algebra oracle and actual 200-configuration published-9.0.0 parity and
+bidirectional cross-decoding probe pass. Reconstruction still publishes only
+successfully decoded outputs and preserves late failure and selective recovery.
+
+The new exact source passes 527 all-feature codec tests including 361 library
+and 166 integration tests, 239 codec-only no_std, 211 native and 246 Python tests,
+strict codec/tool Clippy and Linux tool Clippy. The 43 existing codec ignores stay
+ignored. All source inputs remain unchanged during validation. Manifest, workspace,
+JSON and actual 67/6-member package-list checks pass. These counts do not relabel
+previous checks or imply Linux hardware/timing execution.
+
+The complete independent numerical replay checks both matrix cohorts' 2,208
+observations and retains every refusal. The final prototype's local comparison
+still has five distribution, fourteen repeat and three regression-case failures.
+No new runtime defect requiring another policy branch is established; final
+performance approval remains withheld. The running Linux source remains frozen
+at `9f935ee`, and its results cannot be relabeled as this later matrix/tool tree.
+See the [current readiness review](release-9.1.0-readiness-2026-10-23.md) and
+[complete functional record](../benchmarks/release-9.1.0/2026-10-23/integrated-main-functional-review.json).
