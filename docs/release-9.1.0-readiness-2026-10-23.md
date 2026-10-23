@@ -1,6 +1,6 @@
 # 9.1.0 merged-candidate review
 
-Review date: 2026-10-23 (Asia/Shanghai). The combined implementation is on main `9f935ee`;
+Review date: 2026-10-23 (Asia/Shanghai). The combined implementation is on main `bfff0fc`;
 performance acceptance and publication remain incomplete.
 
 ## Exact source and review scope
@@ -94,6 +94,26 @@ corruption detection, caller scratch contents, safe-Field view fallback and the
 single preparation contract. The observer adapter recognizes both old and new
 verification return forms; it does not rewrite the frozen sampler or approve
 instrumented geometry as formal performance evidence.
+
+## Repository-tool integration
+
+Source `709c40b` additionally integrates the native diagnostic consolidation with
+main `e3aca32`. Its implementation corresponds to published review head
+`c176ac2`; their full Git file difference contains only three documentation files.
+Executed validation labels remain `709c40b`. Main `bfff0fc` has the same complete
+Git file tree as `c176ac2`; no measurement label is changed. Codec sources, manifests, lockfile, build configuration and WASM
+match main; the tool implementation changes. The new tree passes 194 native tests,
+247 Python controller tests, strict tooling Clippy and Linux x86_64 metadata
+compilation. All 167 legacy/native comparisons and both complete baseline request
+witnesses are recorded in the [current global review](global-review-9.1.0-2026-10-23.md#current-main-integration-and-complete-native-diagnostic-boundary).
+These results describe repository tools and do not rebind codec measurements.
+
+The complete combined-source Linux diagnosis is running separately at frozen
+`9f935ee` versus published 9.0.0, including both calibrations, all 126 original
+ABBA cases and all paired layouts. Its Linux functional/input checks passed;
+full collection and frozen independent replay remain pending. New tool code is
+not deployed into that owned campaign, and its diagnostic-only schema cannot
+supply automatic release approval.
 
 ## Retained performance results and next execution
 

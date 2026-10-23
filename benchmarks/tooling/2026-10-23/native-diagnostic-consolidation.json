@@ -1,0 +1,823 @@
+{
+  "schema": "native-diagnostic-consolidation-review-v1",
+  "reviewed_source": "709c40b2d1f7d67dab50b98191ba1c420378cc7b",
+  "integrated_main": "e3aca327264b2956f14690456b06e060aaad53b8",
+  "codec_sources_manifests_lock_build_configuration_and_wasm_match_main": true,
+  "release_approval": false,
+  "codec_performance_attribution": null,
+  "validation": {
+    "native_unit_tests": 166,
+    "native_cli_tests": 28,
+    "python_controller_tests": 247,
+    "strict_tool_clippy": true,
+    "linux_x86_64_all_targets_metadata_check": true,
+    "fmt_diff_typos": true,
+    "core_package_members": 67,
+    "wasm_package_members": 6
+  },
+  "baseline_replay_comparison": {
+    "reference_commit": "9210509",
+    "comparisons": 51,
+    "unexplained_mismatches": 0,
+    "declared_stricter_original_file_refusals": 2,
+    "results": [
+      {
+        "case": "complete basic control",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "baseline-qualification-v1",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "baseline-qualification-v1 missing policy",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "baseline-qualification-v2",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "baseline-qualification-v2 missing policy",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "CPU unknown",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "page unknown",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "numeric protocol equality",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "wrong CPU policy",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "wrong page",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "wrong source",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "wrong protocol",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "wrong renderer",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "complete first phase only",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "interleaved complete workers",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "provenance.json utf-8-sig",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "provenance.json utf-16",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "provenance.json utf-16-be",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "provenance.json utf-32",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "provenance.json utf-32-be",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "calibration/smoke-samples.json utf-8-sig",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "calibration/smoke-samples.json utf-16",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "calibration/smoke-samples.json utf-16-be",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "calibration/smoke-samples.json utf-32",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "calibration/smoke-samples.json utf-32-be",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "A2/stream-samples.json utf-8-sig",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "A2/stream-samples.json utf-16",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "A2/stream-samples.json utf-16-be",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "A2/stream-samples.json utf-32",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "A2/stream-samples.json utf-32-be",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "nonmedian backend_id",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "nonmedian features",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "nonmedian iterations",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "nonmedian ns_per_iter",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "A2/small_file-samples.json incomplete or bad counter",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "calibration/stream-samples.json incomplete or bad counter",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "A1/smoke-samples.json incomplete or bad counter",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "A2/small_file-samples.json incomplete or bad counter",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "complete repeat 1.05",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "complete repeat 1.1",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "complete repeat 1.2",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "short windows and caller differences retained",
+        "accepted": true,
+        "policy_refusal": false
+      },
+      {
+        "case": "linked input",
+        "accepted": false,
+        "policy_refusal": true
+      },
+      {
+        "case": "duplicate original JSON key",
+        "accepted": false,
+        "policy_refusal": true
+      },
+      {
+        "case": "runtime page_size True",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "runtime page_size 4096.0",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "runtime page_size None",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "runtime libc {'name': 'x', 'version': ''}",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "runtime allocator_environment {'PATH': 'x'}",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "runtime allocator_environment {'MALLOC_X': 2}",
+        "accepted": false,
+        "policy_refusal": false
+      },
+      {
+        "case": "runtime allocator_environment {'MALLOC_X': '2', 'LD_A': 'x', 'GLIBC_TUNABLES': 'x'}",
+        "accepted": true,
+        "policy_refusal": false
+      }
+    ]
+  },
+  "calibration_campaign_comparison": {
+    "reference_commit": "9d30044",
+    "comparisons": 116,
+    "mismatches": 0,
+    "results": [
+      {
+        "case": "smoke complete calibration",
+        "accepted": true
+      },
+      {
+        "case": "smoke optional page",
+        "accepted": true
+      },
+      {
+        "case": "smoke bad iterations True",
+        "accepted": false
+      },
+      {
+        "case": "smoke bad iterations 0",
+        "accepted": false
+      },
+      {
+        "case": "smoke bad iterations 1000000001",
+        "accepted": false
+      },
+      {
+        "case": "smoke bad calibration_batch 0",
+        "accepted": false
+      },
+      {
+        "case": "smoke bad index True",
+        "accepted": false
+      },
+      {
+        "case": "smoke bad isolated_case False",
+        "accepted": false
+      },
+      {
+        "case": "smoke bad revision cccccccccccccccccccccccccccccccccccccccc",
+        "accepted": false
+      },
+      {
+        "case": "smoke bad kind sample",
+        "accepted": false
+      },
+      {
+        "case": "smoke bad case unknown",
+        "accepted": false
+      },
+      {
+        "case": "smoke raw schema_version",
+        "accepted": false
+      },
+      {
+        "case": "smoke raw iterations",
+        "accepted": false
+      },
+      {
+        "case": "smoke raw backend_id",
+        "accepted": false
+      },
+      {
+        "case": "smoke raw git_revision",
+        "accepted": false
+      },
+      {
+        "case": "smoke missing final",
+        "accepted": false
+      },
+      {
+        "case": "smoke extra complete",
+        "accepted": false
+      },
+      {
+        "case": "smoke empty rows",
+        "accepted": false
+      },
+      {
+        "case": "smoke missing complete",
+        "accepted": false
+      },
+      {
+        "case": "smoke reset counter",
+        "accepted": false
+      },
+      {
+        "case": "smoke bad placement",
+        "accepted": false
+      },
+      {
+        "case": "smoke interleaved",
+        "accepted": true
+      },
+      {
+        "case": "smoke CPU [0, 1, 2, 3, 4, 5, 6, 7]",
+        "accepted": true
+      },
+      {
+        "case": "smoke CPU [2, 3]",
+        "accepted": false
+      },
+      {
+        "case": "smoke CPU None",
+        "accepted": true
+      },
+      {
+        "case": "small_file complete calibration",
+        "accepted": true
+      },
+      {
+        "case": "small_file optional page",
+        "accepted": true
+      },
+      {
+        "case": "small_file bad iterations True",
+        "accepted": false
+      },
+      {
+        "case": "small_file bad iterations 0",
+        "accepted": false
+      },
+      {
+        "case": "small_file bad iterations 1000000001",
+        "accepted": false
+      },
+      {
+        "case": "small_file bad calibration_batch 0",
+        "accepted": false
+      },
+      {
+        "case": "small_file bad index True",
+        "accepted": false
+      },
+      {
+        "case": "small_file bad isolated_case False",
+        "accepted": false
+      },
+      {
+        "case": "small_file bad revision cccccccccccccccccccccccccccccccccccccccc",
+        "accepted": false
+      },
+      {
+        "case": "small_file bad kind sample",
+        "accepted": false
+      },
+      {
+        "case": "small_file bad case unknown",
+        "accepted": false
+      },
+      {
+        "case": "small_file raw schema_version",
+        "accepted": false
+      },
+      {
+        "case": "small_file raw iterations",
+        "accepted": false
+      },
+      {
+        "case": "small_file raw backend_id",
+        "accepted": false
+      },
+      {
+        "case": "small_file raw git_revision",
+        "accepted": false
+      },
+      {
+        "case": "small_file missing final",
+        "accepted": false
+      },
+      {
+        "case": "small_file extra complete",
+        "accepted": false
+      },
+      {
+        "case": "small_file empty rows",
+        "accepted": false
+      },
+      {
+        "case": "small_file missing complete",
+        "accepted": false
+      },
+      {
+        "case": "small_file reset counter",
+        "accepted": false
+      },
+      {
+        "case": "small_file bad placement",
+        "accepted": false
+      },
+      {
+        "case": "small_file interleaved",
+        "accepted": true
+      },
+      {
+        "case": "small_file CPU [0, 1, 2, 3, 4, 5, 6, 7]",
+        "accepted": true
+      },
+      {
+        "case": "small_file CPU [2, 3]",
+        "accepted": false
+      },
+      {
+        "case": "small_file CPU None",
+        "accepted": true
+      },
+      {
+        "case": "hotspot complete calibration",
+        "accepted": true
+      },
+      {
+        "case": "hotspot optional page",
+        "accepted": true
+      },
+      {
+        "case": "hotspot bad iterations True",
+        "accepted": false
+      },
+      {
+        "case": "hotspot bad iterations 0",
+        "accepted": false
+      },
+      {
+        "case": "hotspot bad iterations 1000000001",
+        "accepted": false
+      },
+      {
+        "case": "hotspot bad calibration_batch 0",
+        "accepted": false
+      },
+      {
+        "case": "hotspot bad index True",
+        "accepted": false
+      },
+      {
+        "case": "hotspot bad isolated_case False",
+        "accepted": false
+      },
+      {
+        "case": "hotspot bad revision cccccccccccccccccccccccccccccccccccccccc",
+        "accepted": false
+      },
+      {
+        "case": "hotspot bad kind sample",
+        "accepted": false
+      },
+      {
+        "case": "hotspot bad case unknown",
+        "accepted": false
+      },
+      {
+        "case": "hotspot raw schema_version",
+        "accepted": false
+      },
+      {
+        "case": "hotspot raw iterations",
+        "accepted": true
+      },
+      {
+        "case": "hotspot raw backend_id",
+        "accepted": false
+      },
+      {
+        "case": "hotspot raw git_revision",
+        "accepted": true
+      },
+      {
+        "case": "hotspot missing final",
+        "accepted": false
+      },
+      {
+        "case": "hotspot extra complete",
+        "accepted": false
+      },
+      {
+        "case": "hotspot empty rows",
+        "accepted": false
+      },
+      {
+        "case": "hotspot missing complete",
+        "accepted": false
+      },
+      {
+        "case": "hotspot reset counter",
+        "accepted": false
+      },
+      {
+        "case": "hotspot bad placement",
+        "accepted": false
+      },
+      {
+        "case": "hotspot interleaved",
+        "accepted": true
+      },
+      {
+        "case": "hotspot CPU [0, 1, 2, 3, 4, 5, 6, 7]",
+        "accepted": true
+      },
+      {
+        "case": "hotspot CPU [2, 3]",
+        "accepted": false
+      },
+      {
+        "case": "hotspot CPU None",
+        "accepted": true
+      },
+      {
+        "case": "stream complete calibration",
+        "accepted": true
+      },
+      {
+        "case": "stream optional page",
+        "accepted": true
+      },
+      {
+        "case": "stream bad iterations True",
+        "accepted": false
+      },
+      {
+        "case": "stream bad iterations 0",
+        "accepted": false
+      },
+      {
+        "case": "stream bad iterations 1000000001",
+        "accepted": false
+      },
+      {
+        "case": "stream bad calibration_batch 0",
+        "accepted": false
+      },
+      {
+        "case": "stream bad index True",
+        "accepted": false
+      },
+      {
+        "case": "stream bad isolated_case False",
+        "accepted": false
+      },
+      {
+        "case": "stream bad revision cccccccccccccccccccccccccccccccccccccccc",
+        "accepted": false
+      },
+      {
+        "case": "stream bad kind sample",
+        "accepted": false
+      },
+      {
+        "case": "stream bad case unknown",
+        "accepted": false
+      },
+      {
+        "case": "stream raw schema_version",
+        "accepted": false
+      },
+      {
+        "case": "stream raw iterations",
+        "accepted": false
+      },
+      {
+        "case": "stream raw backend_id",
+        "accepted": false
+      },
+      {
+        "case": "stream raw git_revision",
+        "accepted": false
+      },
+      {
+        "case": "stream missing final",
+        "accepted": false
+      },
+      {
+        "case": "stream extra complete",
+        "accepted": false
+      },
+      {
+        "case": "stream empty rows",
+        "accepted": false
+      },
+      {
+        "case": "stream missing complete",
+        "accepted": false
+      },
+      {
+        "case": "stream reset counter",
+        "accepted": false
+      },
+      {
+        "case": "stream bad placement",
+        "accepted": false
+      },
+      {
+        "case": "stream interleaved",
+        "accepted": true
+      },
+      {
+        "case": "stream CPU [0, 1, 2, 3, 4, 5, 6, 7]",
+        "accepted": true
+      },
+      {
+        "case": "stream CPU [2, 3]",
+        "accepted": false
+      },
+      {
+        "case": "stream CPU None",
+        "accepted": true
+      },
+      {
+        "case": "complete campaign False",
+        "accepted": true
+      },
+      {
+        "case": "original case order False",
+        "accepted": true
+      },
+      {
+        "case": "repeat 1.05 False",
+        "accepted": true
+      },
+      {
+        "case": "repeat 1.1 False",
+        "accepted": false
+      },
+      {
+        "case": "wide False",
+        "accepted": false
+      },
+      {
+        "case": "short False",
+        "accepted": false
+      },
+      {
+        "case": "gates fail False",
+        "accepted": false
+      },
+      {
+        "case": "complete campaign True",
+        "accepted": true
+      },
+      {
+        "case": "original case order True",
+        "accepted": true
+      },
+      {
+        "case": "repeat 1.05 True",
+        "accepted": true
+      },
+      {
+        "case": "repeat 1.1 True",
+        "accepted": true
+      },
+      {
+        "case": "wide True",
+        "accepted": true
+      },
+      {
+        "case": "short True",
+        "accepted": true
+      },
+      {
+        "case": "gates fail True",
+        "accepted": true
+      },
+      {
+        "case": "nonfinite False",
+        "accepted": false
+      },
+      {
+        "case": "nonfinite True",
+        "accepted": false
+      }
+    ]
+  },
+  "complete_baseline_request_witnesses": [
+    {
+      "phases": 2,
+      "cases": 126,
+      "members": 13,
+      "counts": {
+        "previous": {
+          "requests": 68,
+          "request_bytes": 15257891,
+          "maximum_request_bytes": 2632431,
+          "worker_requests": 68,
+          "file_adapter_requests": 0
+        },
+        "native": {
+          "requests": 1,
+          "request_bytes": 289,
+          "maximum_request_bytes": 289,
+          "worker_requests": 0,
+          "file_adapter_requests": 1
+        }
+      }
+    },
+    {
+      "phases": 1,
+      "cases": 126,
+      "members": 9,
+      "counts": {
+        "previous": {
+          "requests": 39,
+          "request_bytes": 9399810,
+          "maximum_request_bytes": 2632431,
+          "worker_requests": 39,
+          "file_adapter_requests": 0
+        },
+        "native": {
+          "requests": 1,
+          "request_bytes": 289,
+          "maximum_request_bytes": 289,
+          "worker_requests": 0,
+          "file_adapter_requests": 1
+        }
+      }
+    }
+  ],
+  "metadata_cache": {
+    "maximum_entries": 128,
+    "payload_length_exclusive_limit": 65536,
+    "serialized_text_maximum_exclusive_bytes": 8388608,
+    "only_successful_pure_validation_cached": true,
+    "live_capture_uncached": true
+  },
+  "limits": [
+    "The comparison fixtures are synthetic complete original catalogs, with source-bound legacy oracles.",
+    "The two declared policy differences reject linked members and duplicate original JSON keys; they do not relax statistical gates.",
+    "The request witness measures IPC count and request bytes, without codec timing, throughput, RSS or Linux drift attribution.",
+    "The Linux target check is compilation evidence, not positive hardware counter or ISA execution evidence.",
+    "The running complete Linux campaign remains frozen at 9f935ee versus published 9.0.0; this tool source is not deployed into it.",
+    "Final source-bound accepted ABBA/layout evidence and actual strict positive preflight remain required."
+  ],
+  "published_equivalent_implementation": "c176ac2af252da7fd2a3c090f93d5fa8bcc99adc",
+  "implementation_equivalence": {
+    "complete_git_file_differences": [
+      "CHANGELOG.md",
+      "docs/global-review-9.1.0-2026-10-23.md",
+      "xtask/README.md"
+    ],
+    "code_tests_workflows_manifests_and_existing_data_match": true,
+    "executed_source_labels_retained": true
+  },
+  "current_main_equivalent_implementation": "bfff0fcf187b99109927ec1de824b0977f2b4e6e",
+  "current_main_and_published_review_file_trees_equal": true
+}
