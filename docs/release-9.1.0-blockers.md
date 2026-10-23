@@ -72,6 +72,18 @@ These are functional/work-count results, not accepted throughput evidence.
 The existing complete diagnostic refusals remain unchanged; native Linux CI and
 final-source performance/release acceptance still need their own actual results.
 
+## GF16 norm inversion candidate
+
+The [GF16 norm review](gf16-norm-review-2026-10-24.md) binds candidate `14b1b98`
+to reviewed main `a773e74`. All 65,536 inverses and 327,680 quotients match both
+the retained Euclidean algorithm and the actual published 9.0.0 crate; the
+200-case byte/cross-decoding probe, 538 all-feature codec tests, 246 no_std tests
+and strict codec Clippy pass. The complete local 29-case / 1,392-observation
+comparison is rejected: 30 width, 25 repeat and five regression-case refusals,
+with zero short samples. All cases and failures are retained. This arithmetic
+refactor is a review candidate, not accepted codec throughput or Linux release
+evidence; frozen `9f935ee` remains a separate source.
+
 ## 2026-10-23 adaptive verification candidate
 
 The [complete affected-catalog review](verify-dispatch-review-2026-10-23.md) of
