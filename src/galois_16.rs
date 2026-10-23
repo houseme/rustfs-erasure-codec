@@ -59,12 +59,14 @@ impl crate::Field for Field {
         [(n >> 8) as u8, n as u8]
     }
 
+    #[inline]
     fn mul_slice(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]]) {
-        gf16_mul_slice(elem, input, out, false);
+        gf16_mul_slice::<false>(elem, input, out);
     }
 
+    #[inline]
     fn mul_slice_add(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]]) {
-        gf16_mul_slice(elem, input, out, true);
+        gf16_mul_slice::<true>(elem, input, out);
     }
 }
 
@@ -88,13 +90,14 @@ impl crate::Field for Field {
 /// On x86 with GFNI the GF(2^8) multiplies are so fast that a *scalar* byte
 /// de-/re-interleave dominates the runtime (Amdahl); SIMD-ing the layout
 /// conversion is what restores the tower decomposition's speed-up there.
-fn gf16_mul_slice(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]], accumulate: bool) {
+#[inline]
+fn gf16_mul_slice<const ACCUMULATE: bool>(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]]) {
     assert_eq!(input.len(), out.len());
 
     // A constant tower element scales both byte coordinates independently.
     // Keep their interleaved representation and reuse one GF8 slice operation.
     if elem[0] == 0 {
-        if accumulate {
+        if ACCUMULATE {
             galois_8::mul_slice_xor(elem[1], input.as_flattened(), out.as_flattened_mut());
         } else {
             galois_8::mul_slice(elem[1], input.as_flattened(), out.as_flattened_mut());
@@ -102,6 +105,33 @@ fn gf16_mul_slice(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]], accumul
         return;
     }
 
+    // Preserve length validation even for an empty general-field operation.
+    if !input.is_empty() {
+        gf16_mul_general::<ACCUMULATE>(elem, input, out);
+    }
+}
+
+const GF16_CHUNK: usize = 1024;
+
+// Every plane starts on a 64-byte boundary, including when the stack's page
+// offset varies between workers. The element format and caller slices stay
+// unchanged; only this private scratch has a stronger alignment.
+#[repr(C, align(64))]
+struct BytePlanes {
+    ax: [u8; GF16_CHUNK],
+    ac: [u8; GF16_CHUNK],
+    ox: [u8; GF16_CHUNK],
+    oc: [u8; GF16_CHUNK],
+}
+
+const _: () = assert!(core::mem::size_of::<BytePlanes>() == 4 * GF16_CHUNK);
+
+// Keep the 4 KiB plane frame out of the common subfield entry. Inlining this
+// body back into its dispatcher would reintroduce unconditional stack probing.
+#[inline(never)]
+fn gf16_mul_general<const ACCUMULATE: bool>(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]]) {
+    debug_assert_ne!(elem[0], 0);
+    debug_assert_eq!(input.len(), out.len());
     let cx = elem[0];
     let cc = elem[1];
     let coef_a = cc ^ galois_8::mul(2, cx);
@@ -109,15 +139,17 @@ fn gf16_mul_slice(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]], accumul
     let coef_c = galois_8::mul(128, cx);
     let coef_d = cc;
 
-    const CHUNK: usize = 1024;
-    let mut ax = [0u8; CHUNK];
-    let mut ac = [0u8; CHUNK];
-    let mut ox = [0u8; CHUNK];
-    let mut oc = [0u8; CHUNK];
+    let mut planes = BytePlanes {
+        ax: [0; GF16_CHUNK],
+        ac: [0; GF16_CHUNK],
+        ox: [0; GF16_CHUNK],
+        oc: [0; GF16_CHUNK],
+    };
+    let BytePlanes { ax, ac, ox, oc } = &mut planes;
 
     let mut offset = 0;
     while offset < input.len() {
-        let n = core::cmp::min(CHUNK, input.len() - offset);
+        let n = core::cmp::min(GF16_CHUNK, input.len() - offset);
 
         // Split the interleaved `[[u8; 2]]` input into the two GF(2^8) byte
         // planes `ax`/`ac`. `as_flattened` is the safe `&[[u8; 2]] -> &[u8]`
@@ -136,19 +168,11 @@ fn gf16_mul_slice(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]], accumul
         galois_8::mul_slice(coef_c, &ax[..n], &mut oc[..n]);
         galois_8::mul_slice_xor(coef_d, &ac[..n], &mut oc[..n]);
 
-        if accumulate {
-            interleave::<true>(
-                &ox[..n],
-                &oc[..n],
-                out[offset..offset + n].as_flattened_mut(),
-            );
-        } else {
-            interleave::<false>(
-                &ox[..n],
-                &oc[..n],
-                out[offset..offset + n].as_flattened_mut(),
-            );
-        }
+        interleave::<ACCUMULATE>(
+            &ox[..n],
+            &oc[..n],
+            out[offset..offset + n].as_flattened_mut(),
+        );
         offset += n;
     }
 }
@@ -852,12 +876,19 @@ mod tests {
                     let mut output = vec![[0xa5, 0x5a]; length + 2];
                     for accumulate in [false, true] {
                         output.fill([0xa5, 0x5a]);
-                        gf16_mul_slice(
-                            scalar,
-                            &input[start..start + length],
-                            &mut output[1..length + 1],
-                            accumulate,
-                        );
+                        if accumulate {
+                            Field::mul_slice_add(
+                                scalar,
+                                &input[start..start + length],
+                                &mut output[1..length + 1],
+                            );
+                        } else {
+                            Field::mul_slice(
+                                scalar,
+                                &input[start..start + length],
+                                &mut output[1..length + 1],
+                            );
+                        }
                         assert_eq!(output[0], [0xa5, 0x5a]);
                         assert_eq!(output[length + 1], [0xa5, 0x5a]);
                         for i in 0..length {
@@ -882,13 +913,13 @@ mod tests {
     #[test]
     #[should_panic]
     fn constant_tower_multiply_rejects_mismatched_lengths() {
-        gf16_mul_slice([0, 0], &[], &mut [[0xa5, 0x5a]], false);
+        Field::mul_slice([0, 0], &[], &mut [[0xa5, 0x5a]]);
     }
 
     #[test]
     #[should_panic]
     fn constant_tower_accumulate_rejects_mismatched_lengths() {
-        gf16_mul_slice([0, 0], &[[0xa5, 0x5a]], &mut [], true);
+        Field::mul_slice_add([0, 0], &[[0xa5, 0x5a]], &mut []);
     }
 
     #[test]
@@ -912,7 +943,11 @@ mod tests {
                         product
                     };
                 }
-                gf16_mul_slice(coefficient, &input, &mut output[1..N + 1], accumulate);
+                if accumulate {
+                    Field::mul_slice_add(coefficient, &input, &mut output[1..N + 1]);
+                } else {
+                    Field::mul_slice(coefficient, &input, &mut output[1..N + 1]);
+                }
                 assert_eq!(
                     output, expected,
                     "coefficient {coefficient:?}, accumulate {accumulate}"
