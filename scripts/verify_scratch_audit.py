@@ -3,7 +3,6 @@
 Never a formal performance capture. Original API loops and all non-observer
 statements are retained. No production checkout is patched by this command.
 """
-from contextlib import contextmanager
 import argparse
 import json
 import os
@@ -14,7 +13,7 @@ import tempfile
 
 import release_evidence as evidence
 import release_sampling as sampling
-from diagnostic_overlay import overlay
+from diagnostic_overlay import overlay, source_overlay as owned_source_overlay
 
 PREFIX = 'RSE_VERIFY_SCRATCH '
 MODULE = '__rse_verify_scratch'
@@ -32,39 +31,16 @@ def render(root):
     return native_tools.diagnostic_render(root, 'verify')
 
 
-def patch_inputs(original):
-    return {'src/lib.rs':original['src/lib.rs']+'\n#[doc(hidden)]\npub mod '+MODULE+';\n',
-            'src/core/verify.rs':source_patch(original['src/core/verify.rs']),
-            'src/'+MODULE+'.rs':native_template()}
-
-
 def bindings(original):
-    return {name:{'original_sha256':evidence.digest(original[name].encode()) if name in original else None,
-                  'diagnostic_sha256':evidence.digest(text.encode())} for name,text in patch_inputs(original).items()}
+    return native_tools.source_plan('verify-scratch', original, output='bindings')
 
 
 def overlay_digest(root,files):
     return evidence.digest(b''.join(name.encode()+b'\0'+text.replace(str(root),'<SOURCE>').encode() for name,text in sorted(files.items())))
 
 
-@contextmanager
 def source_overlay(root):
-    """Only caller-owned disposable copies; preserve any unexpected modifications."""
-    names=('src/lib.rs','src/core/verify.rs')
-    if any((root/name).is_symlink() or not (root/name).is_file() for name in names):raise ValueError('require regular diagnostic source files')
-    original={name:(root/name).read_text() for name in names}
-    changes=patch_inputs(original)
-    added=root/('src/'+MODULE+'.rs')
-    if added.exists() or added.is_symlink():raise ValueError('diagnostic source already exists')
-    # All inputs are prepared before the first mutation.
-    try:
-        for name,text in changes.items():(root/name).write_text(text)
-        yield bindings(original)
-    finally:
-        if any((root/name).is_symlink() or not (root/name).is_file() or (root/name).read_text()!=text for name,text in changes.items()):
-            raise ValueError('unexpected diagnostic source change; copy preserved')
-        for name,text in original.items():(root/name).write_text(text)
-        added.unlink()
+    return owned_source_overlay(root, ('src/lib.rs','src/core/verify.rs'), MODULE, 'verify-scratch')
 
 
 def cases(profile):return {c for c in evidence.expected_cases(profile) if c.startswith('verify:')}

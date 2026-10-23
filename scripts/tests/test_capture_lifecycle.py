@@ -253,6 +253,23 @@ class CaptureLifecycleTests(unittest.TestCase):
 
 
 class NativeControllerBindingsTests(unittest.TestCase):
+    def test_source_overlays_prepare_once_and_restore_each_owned_input(self):
+        import verify_scratch_audit as verify, stream_core_audit as stream, dynamic_buffer_audit as dynamic
+        tools=verify.native_tools;tools._executable()
+        for audit,names in ((verify,('src/lib.rs','src/core/verify.rs')),(stream,stream.NAMES),(dynamic,dynamic.NAMES)):
+            with self.subTest(observer=audit.MODULE), tempfile.TemporaryDirectory() as folder:
+                root=pathlib.Path(folder)
+                original={n:(tools.ROOT/n).read_text() for n in names}
+                for name,text in original.items():
+                    path=root/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_text(text)
+                with mock.patch.object(tools,'_run',wraps=tools._run) as calls:
+                    with audit.source_overlay(root) as bindings:
+                        self.assertEqual(calls.call_count,1)
+                        for name,entry in bindings.items():
+                            self.assertEqual(entry['diagnostic_sha256'],evidence.digest((root/name).read_text().encode()))
+                self.assertEqual({n:(root/n).read_text() for n in names},original)
+                self.assertFalse((root/('src/'+audit.MODULE+'.rs')).exists())
+
     def setUp(self):
         import native_tools
         self.native = native_tools

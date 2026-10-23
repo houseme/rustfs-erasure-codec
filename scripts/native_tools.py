@@ -144,12 +144,15 @@ def implementation_digest():
 
 
 def stream_source_patch(text): return request('stream-source', text=text)
-def verify_par_patch(text): return request('verify-par-source', text=text)
 def native_template(kind): return request('template', variant=kind, tool=str(ROOT))
 
 
 def diagnostic_render(root, variant, allocation_check=False):
     return request('diagnostic-render', root=str(root), tool=str(ROOT), variant=variant, allocation_check=allocation_check)
+
+
+def source_plan(variant, original, output='plan'):
+    return request('source-plan', request=dict(variant=variant, original=original, tool=str(ROOT), output=output))
 
 
 def capture_memory_policy():
