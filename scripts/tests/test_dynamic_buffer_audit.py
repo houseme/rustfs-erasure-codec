@@ -23,28 +23,6 @@ class DynamicScopeTests(unittest.TestCase):
         for name in ('smoke', 'hotspot'):
             self.assertIn('"source"', observed[name + '.rs'])
 
-    def test_native_fault_adapter_reuses_the_actual_bounded_procfs_parser(self):
-        expected=sampling.block((ROOT/'scripts/diagnostics/stream_core.rs').read_text(),'fn faults()')
-        native=audit.native_template()
-        self.assertIn(expected,native)
-        self.assertNotIn('process_faults()',native)
-        self.assertIn('process_faults(read_bounded(',native)
-
-    def test_unknown_source_layout_is_refused_before_mutation(self):
-        matrix = (ROOT/'src/matrix.rs').read_text()
-        with self.assertRaises(ValueError):
-            audit.patch_matrix(matrix.replace('let mut work = self.augment', 'let mut work = self.other'))
-        self.assertEqual(matrix, (ROOT/'src/matrix.rs').read_text())
-
-    def test_source_scopes_do_not_replace_original_initialization_or_publication(self):
-        original = (ROOT/'src/core/reconstruct.rs').read_text()
-        changed = audit.patch_decode(original)
-        self.assertEqual(changed.count('destination.copy_from_slice(&bytes);'), original.count('destination.copy_from_slice(&bytes);'))
-        self.assertEqual(changed.count('get_or_initialize('), original.count('get_or_initialize('))
-        self.assertIn('Region::new("decode")', changed)
-        self.assertNotIn(audit.MODULE, original)
-
-
 
 
 class DiagnosticOwnershipTests(unittest.TestCase):

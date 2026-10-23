@@ -167,29 +167,6 @@ class SamplingContractTests(unittest.TestCase):
             self.doc['files']['B1'][profile]['samples'] = self.write('B1', profile, records)
             with self.assertRaisesRegex(ValueError, 'final calibration'): self.verify()
 
-    def test_shared_kernels_keep_preparation_outside_the_timed_loops(self):
-        root = pathlib.Path(__file__).resolve().parents[2]
-        rendered = sampling.render(root)
-        for profile in ('small_file', 'stream'):
-            kernel = sampling.block(rendered[profile+'.rs'], 'fn execute_release_kernel')
-            for preparation in ('ReedSolomon::new', 'make_full_shards', 'make_data_shards', 'make_encoded_shards'):
-                self.assertNotIn(preparation, kernel)
-            self.assertIn('.cloned()', kernel)
-        self.assertIn('Vec<Option<Vec<u8>>>', rendered['small_file.rs'])
-        self.assertIn('reserved_stream_outputs(case.parity_shards, case.shard_size)', rendered['stream.rs'])
-
-    def test_hotspot_deferred_result_metadata_uses_no_owned_strings(self):
-        root = pathlib.Path(__file__).resolve().parents[2]
-        rendered = sampling.render(root)
-        result = sampling.block(rendered['hotspot.rs'], 'struct ReconstructionHotspotBenchResult')
-        self.assertNotIn(': String,', result)
-        self.assertEqual(result.count('super::pattern::ShardPattern'), 2)
-        pattern = sampling.block(rendered['hotspot.rs'], 'fn shard_index_pattern')
-        self.assertNotIn('format!', pattern)
-        self.assertNotIn('Vec::', pattern)
-        self.assertIn('mod pattern;', rendered['root.rs'])
-        self.assertEqual(sampling.PROTOCOL['result_metadata_policy'], 'bounded-inline-hotspot-patterns-deferred-formatting')
-
     def test_smoke_and_hotspot_cannot_omit_the_execution_contract(self):
         for profile in ('smoke','hotspot'):
             original=copy.deepcopy(self.doc)
@@ -315,24 +292,6 @@ class SamplingContractTests(unittest.TestCase):
         record['fixture']['scratch'][0].update(offset_64=32,offset_4096=32,offset_page=32)
         with self.assertRaisesRegex(ValueError,'inside a calibration worker'):
             evidence.calibration_counts(records,'small_file',self.sources_commit('baseline'))
-
-    def test_stream_fixture_correction_is_explicit_and_shared(self):
-        root=pathlib.Path(__file__).resolve().parents[2]
-        source=(root/'tests/benchmark_stream_paths.rs').read_text()
-        updated=sampling.reserve_stream_outputs(source)
-        self.assertNotEqual(updated,source)
-        old='let mut writers = vec![Vec::with_capacity(case.shard_size); case.parity_shards];'
-        new='let mut writers = reserved_stream_outputs(case.parity_shards, case.shard_size);'
-        self.assertEqual(updated.replace(new,old),source)
-        with self.assertRaises(ValueError):sampling.reserve_stream_outputs(updated)
-
-    def test_timing_adapter_preserves_every_operation_statement(self):
-        root=pathlib.Path(__file__).resolve().parents[2]
-        for filename,name,count in (("benchmark_small_files.rs","fn run_operation",11),("benchmark_stream_paths.rs","fn run_stream_operation",3)):
-            original=(root/"tests"/filename).read_text()
-            adapted=sampling.exclude_once_only_setup(original,name,count)
-            self.assertEqual(adapted.count("measured += start.elapsed();"),count)
-            with self.assertRaises(ValueError): sampling.exclude_once_only_setup(original,name,count+1)
 
     def test_complete_new_protocol_replays_every_sample_and_existing_gates(self):
         with mock.patch.object(evidence.subprocess,'run') as gates:

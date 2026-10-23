@@ -225,10 +225,6 @@ def environment_context(root, env, group):
             "isolation": isolation, "runtime": runtime_context(env), "settings": {k: env[k] for k in SAMPLING_ENV}}
 
 
-def rows(profile, path, revision, iteration_counts=None):
-    return indexed_rows(profile, json_data(path), revision, iteration_counts)
-
-
 def indexed_rows(profile, original, revision, iteration_counts=None, complete=True):
     defaults={'smoke':'RSE_SMOKE_ITERATIONS','small_file':'RSE_SMALL_FILE_ITERATIONS','stream':'RSE_STREAM_ITERATIONS'}
     default=int(BASE_ENV[defaults[profile]]) if profile in defaults and iteration_counts is None else None

@@ -1,7 +1,7 @@
 //! Private JSON bridge for legacy controllers; never invokes Python.
 use crate::{
     Args, Result, artifact,
-    diagnostics::{dynamic, overlays, sampler, stream, templates},
+    diagnostics::{overlays, sampler, templates},
 };
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, path::PathBuf};
@@ -88,33 +88,13 @@ enum Request {
     SourcePlan {
         request: crate::diagnostics::source_plan::Request,
     },
-    MatrixSource {
-        text: String,
-    },
-    DecodeSource {
-        text: String,
-    },
     SamplerRender {
         root: PathBuf,
         tool: PathBuf,
     },
-    ExcludeSetup {
-        text: String,
-        name: String,
-        count: usize,
-    },
-    ReserveOutputs {
-        text: String,
-    },
     Template {
         variant: String,
         tool: PathBuf,
-    },
-    StreamSource {
-        text: String,
-    },
-    VerifySource {
-        text: String,
     },
 }
 #[derive(Serialize)]
@@ -201,16 +181,8 @@ impl Request {
                 allocation_check,
             } => Response::Files(overlays::render(&root, &tool, &variant, allocation_check)?),
             Self::SourcePlan { request } => Response::Data(request.execute()?),
-            Self::MatrixSource { text } => Response::Text(dynamic::matrix(&text)?),
-            Self::DecodeSource { text } => Response::Text(dynamic::decode(&text)?),
             Self::SamplerRender { root, tool } => Response::Files(sampler::render(&root, &tool)?),
-            Self::ExcludeSetup { text, name, count } => {
-                Response::Text(sampler::exclude_setup(&text, &name, count)?)
-            }
-            Self::ReserveOutputs { text } => Response::Text(sampler::reserve_outputs(&text)?),
             Self::Template { variant, tool } => Response::Text(templates::native(&variant, &tool)?),
-            Self::StreamSource { text } => Response::Text(stream::patch(&text)?),
-            Self::VerifySource { text } => Response::Text(stream::verify(&text)?),
         })
     }
 }

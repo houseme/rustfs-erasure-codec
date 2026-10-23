@@ -143,7 +143,6 @@ def implementation_digest():
     return hashlib.sha256(implementation_bytes()).hexdigest()
 
 
-def stream_source_patch(text): return request('stream-source', text=text)
 def native_template(kind): return request('template', variant=kind, tool=str(ROOT))
 
 

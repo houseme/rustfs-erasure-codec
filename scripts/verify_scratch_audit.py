@@ -23,10 +23,6 @@ def native_template():
     return native_tools.native_template('verify')
 
 
-def source_patch(text):
-    return native_tools.request('verify-source', text=text)
-
-
 def render(root):
     return native_tools.diagnostic_render(root, 'verify')
 

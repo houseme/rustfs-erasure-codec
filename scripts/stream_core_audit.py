@@ -16,7 +16,7 @@ import release_sampling as sampling
 import stream_view_audit as views
 import verify_scratch_audit as ordinary
 from diagnostic_overlay import overlay, source_overlay as owned_source_overlay
-from native_tools import STREAM_CORE_MODULE as MODULE, stream_source_patch as source_patch
+from native_tools import STREAM_CORE_MODULE as MODULE
 
 PREFIX='RSE_STREAM_CORE '
 NAMES=('src/lib.rs','src/core/stream.rs','src/core/verify.rs')

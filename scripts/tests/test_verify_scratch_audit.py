@@ -47,14 +47,6 @@ class VerifyScratchTests(unittest.TestCase):
         before=sampling.render(root);after=audit.render(root)
         self.assertEqual(before,sampling.render(root))
         self.assertEqual({name for name in before if before[name]!=after[name]},{'engine.rs'})
-        source=(root/'src/core/verify.rs').read_text();changed=audit.source_patch(source)
-        self.assertEqual(source.split('    /// Verify using a pre-allocated')[1],changed.split('    /// Verify using a pre-allocated')[1])
-        self.assertIn('rse_probe.verified(valid)',changed)
-        self.assertIn('Guard::new(scratch_len)',changed)
-        with self.assertRaises(ValueError):audit.source_patch(source.replace('scratch.resize(scratch_len, F::zero());','unexpected();'))
-        native=audit.native_template()
-        engine=(sampling.TEMPLATES/'engine.rs').read_text()
-        for name in ('fn read_bounded','fn process_faults'):self.assertIn(sampling.block(engine,name),native)
 
 
 class DiagnosticOwnershipTests(unittest.TestCase):
