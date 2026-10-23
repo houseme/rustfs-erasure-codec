@@ -168,4 +168,4 @@ fn json_text(bytes: &[u8]) -> Result<std::borrow::Cow<'_, str>> {
 }
 
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;

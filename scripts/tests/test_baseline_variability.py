@@ -1,10 +1,14 @@
 """Synthetic replay tests never establish performance acceptance."""
 import copy
+import hashlib
 import json
+import os
 import pathlib
 import shutil
+import subprocess
 import sys
 import unittest
+from unittest import mock
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 import analyze_baseline_variability as analysis
@@ -14,6 +18,7 @@ import test_release_evidence as fixtures
 
 class BaselineVariabilityTests(unittest.TestCase):
     def setUp(self):
+        self.renderer_sha256=sampling.implementation_digest()
         self.fixture = fixtures.EvidenceTests()
         self.fixture.setUp()
         self.addCleanup(self.fixture.doCleanups)
@@ -36,13 +41,46 @@ class BaselineVariabilityTests(unittest.TestCase):
         self.save(name, records)
 
     def test_complete_catalog_retains_warmups_and_never_approves(self):
-        report = analysis.analyze(self.root)
+        analysis.native_tools._executable()
+        with mock.patch.object(analysis.native_tools,'_request_payload',side_effect=AssertionError('file replay must use a fresh process')):
+            with mock.patch.object(analysis.native_tools,'_run',wraps=analysis.native_tools._run) as calls:
+                report = analysis.analyze(self.root)
+        self.assertEqual(calls.call_count,1)
         self.assertEqual(report['case_count'], 126)
         self.assertEqual(report['repeat_endpoint_counts'], {'single_endpoint_cpu_same': {'cases': 126, 'repeat_failures': 0}})
         self.assertEqual(len(report['input_sha256']), 13)
         self.assertFalse(report['release_approval'])
         self.assertIsNone(report['candidate_attribution'])
         self.assertTrue(all(len(case['phases']['A1']['trace']) == 12 for case in report['cases']))
+
+    def test_native_command_matches_the_complete_report_without_python_on_path(self):
+        self.provenance['renderer_sha256']=self.renderer_sha256
+        self.save('provenance.json',self.provenance)
+        with mock.patch.object(sampling,'implementation_digest',return_value=self.renderer_sha256):
+            expected=analysis.analyze(self.root)
+        result=subprocess.run([analysis.native_tools._executable(),'analyze-baseline-capture','--capture',str(self.root),
+                               '--tool',str(analysis.native_tools.ROOT)],env=dict(os.environ,PATH=''),
+                              check=True,capture_output=True,text=True)
+        self.assertEqual(json.loads(result.stdout),expected)
+
+    def test_legacy_unknown_policy_and_original_encoded_hashes_remain_supported(self):
+        self.provenance['context']['isolation']['cpu_affinity']=None
+        self.provenance['context']['runtime']['page_size']=None
+        self.provenance['protocol']['samples']=9.0
+        self.provenance['tool']['note']='雪😀'
+        raw=json.dumps(self.provenance,ensure_ascii=False).encode('utf-16')
+        path=self.root/'provenance.json';path.write_bytes(raw)
+        report=analysis.analyze(self.root)
+        self.assertEqual(report['case_count'],126)
+        self.assertFalse(report['kernel_memory_policy_recorded'])
+        self.assertEqual(report['input_sha256']['provenance.json'],hashlib.sha256(raw).hexdigest())
+        self.assertEqual(path.read_bytes(),raw)
+
+    def test_linked_original_members_are_refused_with_source_bytes_preserved(self):
+        path=self.root/'A1/smoke-samples.json';original=path.read_bytes()
+        target=self.root/'original.json';target.write_bytes(original);path.unlink();path.symlink_to(target)
+        with self.assertRaisesRegex(ValueError,'regular original'):analysis.analyze(self.root)
+        self.assertEqual(target.read_bytes(),original)
 
     def qualification_provenance(self):
         self.provenance.update(schema_version='baseline-qualification-v1',
@@ -166,54 +204,6 @@ class BaselineVariabilityTests(unittest.TestCase):
         self.assertFalse(report['repeat_endpoint_counts'])
         self.assertTrue(all(c['repeat'] is None for c in report['cases']))
         self.assertFalse(report['release_approval'])
-
-    def service_case(self, run_values):
-        path = self.root/'A1/small_file-samples.json'
-        records = json.loads(path.read_text())
-        case = 'encode:4:2:1024'
-        for record in records:
-            if record['case'] != case:
-                continue
-            index = record['index']
-            timed = {3: 1_400_000_000, 4: 1_200_000_000}.get(index, 1_000_000_000)
-            record['timed_ns'] = timed
-            record['wall_ns'] = timed + 1_000
-            record['rows'][0]['ns_per_iter'] = timed / record['iterations']
-            run = run_values[index-3] if index >= 3 else timed
-            record['after']['run_ns'] = record['before']['run_ns'] + run
-            record['after']['wait_ns'] = record['before']['wait_ns'] + 100
-            for key in ('process_minor_faults', 'process_major_faults'):
-                record['after'][key] = record['before'][key]
-        self.save('A1/small_file-samples.json', records)
-        original = path.read_bytes()
-        report = analysis.analyze(self.root)
-        self.assertEqual(path.read_bytes(), original)
-        result = next(c for c in report['cases'] if c['profile'] == 'small_file' and c['case'] == case)
-        self.assertFalse(report['release_approval'])
-        return result['phases']['A1']
-
-    def test_service_transition_keeps_all_samples_and_the_original_failure(self):
-        detail = self.service_case([1_400_000_000, 1_200_000_000] + [1_000_000_000]*7)
-        self.assertEqual([r['index'] for r in detail['trace']], list(range(12)))
-        self.assertAlmostEqual(detail['central_spread'], .2)
-        service = detail['measured_service']
-        self.assertAlmostEqual(service['main_run_central_spread'], .2)
-        self.assertEqual(service['total_process_minor_faults'], 0)
-        self.assertEqual(service['total_process_major_faults'], 0)
-        self.assertLess(service['wall_minus_timed_fraction_range'][1], .000002)
-        self.assertLess(detail['maximum_measured_main_wait_to_wall'], .000001)
-
-    def test_service_distribution_uses_its_own_ranks_and_does_not_clamp(self):
-        detail = self.service_case([1_000_000_000]*5 + [1_300_000_000, 900_000_000] + [1_000_000_000]*2)
-        self.assertAlmostEqual(detail['central_spread'], .2)
-        service = detail['measured_service']
-        self.assertEqual(service['main_run_central_spread'], 0)
-        self.assertGreater(service['main_run_to_wall_range'][1], 1)
-
-    def test_zero_thread_runtime_keeps_unknown_spread_instead_of_dividing_by_zero(self):
-        detail = self.service_case([0]*9)
-        self.assertIsNone(detail['measured_service']['main_run_central_spread'])
-        self.assertEqual(detail['measured_service']['main_run_to_wall_range'], [0, 0])
 
     def test_incomplete_phase_and_mismatched_protocol_reject(self):
         name = 'A2/small_file-samples.json'

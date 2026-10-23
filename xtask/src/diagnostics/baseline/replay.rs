@@ -319,3 +319,6 @@ pub(crate) fn run(args: &Args) -> Result<()> {
     println!("{}", serde_json::to_string(&request.execute()?)?);
     Ok(())
 }
+
+#[cfg(test)]
+mod tests;

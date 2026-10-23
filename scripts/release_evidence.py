@@ -165,17 +165,7 @@ def allocator_override_key(key):
 
 
 def validate_runtime(runtime):
-    if not isinstance(runtime, dict) or set(runtime) != {"libc", "allocator_environment", "page_size", "kernel_memory_policy"}:
-        raise ValueError("libc, allocator, base page and kernel memory policy provenance is required")
-    if not sampling.valid_page_size(runtime["page_size"]):
-        raise ValueError("invalid recorded OS base page size")
-    native_tools.validate_memory_policy(runtime["kernel_memory_policy"],runtime["page_size"])
-    libc = runtime["libc"]
-    if not isinstance(libc, dict) or set(libc) != {"name", "version"} or any(not isinstance(v, str) or not v for v in libc.values()):
-        raise ValueError("invalid libc identity")
-    allocator = runtime["allocator_environment"]
-    if not isinstance(allocator, dict) or any(not allocator_override_key(k) or not isinstance(v, str) for k, v in allocator.items()):
-        raise ValueError("invalid allocator environment")
+    native_tools.validate_runtime(runtime)
 
 
 def runtime_context(env):

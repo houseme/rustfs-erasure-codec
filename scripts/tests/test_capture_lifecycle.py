@@ -262,6 +262,21 @@ class NativeControllerBindingsTests(unittest.TestCase):
     def field(self, value):
         return self.native.request('provenance-field', row={'cpu_model':value}, field='cpu_model')
 
+    def test_runtime_cache_revalidates_mutations_and_leaves_original_values_intact(self):
+        from layout_fixture import kernel_policy_fixture
+        value={'libc':{'name':'cache-fixture','version':'1'},'allocator_environment':{},
+               'page_size':4096,'kernel_memory_policy':kernel_policy_fixture()}
+        original=json.loads(json.dumps(value))
+        self.native._validate_runtime.cache_clear()
+        with mock.patch.object(self.native,'_request_payload',wraps=self.native._request_payload) as frames:
+            self.native.validate_runtime(value);self.native.validate_runtime(value)
+            self.assertEqual(frames.call_count,1)
+            value['allocator_environment']['PATH']='not an allocator setting'
+            with self.assertRaises(ValueError):self.native.validate_runtime(value)
+            self.assertEqual(frames.call_count,2)
+        value['allocator_environment'].clear()
+        self.assertEqual(value,original)
+
     def test_artifact_sized_requests_preserve_the_next_worker_frame(self):
         self.native.close_worker()
         value=self.native.request('provenance-field',row={'backend':'scalar','extra':'x'*(17*1024*1024)},field='backend')

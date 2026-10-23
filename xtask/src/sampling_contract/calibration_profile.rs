@@ -99,4 +99,4 @@ pub(crate) fn counts<'a>(
 }
 
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;
