@@ -202,27 +202,6 @@ pub fn active_backend_id() -> BackendId {
     backend::active_backend().id
 }
 
-#[cfg(rse_x86_gfni)]
-pub(crate) fn try_mul_tower_slice(
-    coefficients: [u8; 4],
-    input: &[[u8; 2]],
-    out: &mut [[u8; 2]],
-    accumulate: bool,
-) -> bool {
-    // Consult the same selected backend as GF8 operations. Explicit scalar or
-    // other backend overrides must not silently enter a GFNI implementation.
-    match active_backend_id() {
-        BackendId::RustGfniAvx2 => {
-            x86::gfni::rust_gfni_avx2_mul_tower(coefficients, input, out, accumulate)
-        }
-        BackendId::RustGfniAvx512 => {
-            x86::gfni::rust_gfni_avx512_mul_tower(coefficients, input, out, accumulate)
-        }
-        _ => return false,
-    }
-    true
-}
-
 pub(crate) fn generated_encode_allowed() -> bool {
     backend::generated_encode_allowed()
 }
