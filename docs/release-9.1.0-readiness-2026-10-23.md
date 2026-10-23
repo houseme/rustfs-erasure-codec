@@ -1,6 +1,6 @@
 # 9.1.0 merged-candidate review
 
-Review date: 2026-10-23 (Asia/Shanghai). The implementation is on main;
+Review date: 2026-10-23 (Asia/Shanghai). The combined implementation is on main `9f935ee`;
 performance acceptance and publication remain incomplete.
 
 ## Exact source and review scope
@@ -10,34 +10,48 @@ performance acceptance and publication remain incomplete.
 | Frozen runtime candidate | `449920e428cee723e27f9280f62f917e08f784e0` | Candidate used by the prepared Linux comparison |
 | Original checked PR head | `09597e43aae2c5d454683f056a72e7bd295371b9` | Completed ordinary CI and package dry-run |
 | Rebased PR head | `51bdd8cd0dc4356304639d528ae554d4d152531d` | External rebase of PR #57 |
-| Merged main | `14cf56e0d4381451af12e3c163677d811729d13a` | PR #57 merged externally |
+| Prior merged main | `14cf56e0d4381451af12e3c163677d811729d13a` | PR #57 merged externally |
+| Current combined main | `9f935eef9c1af721165b245709897f7c4b9acc37` | Also includes PR #58 shared Classic verification |
 
-All four identities have the same complete Git file tree. Measurements retain
-their original commit labels; file equality does not rewrite their provenance or
-make a diagnostic report accepted release evidence. Any later source change
-requires a new review and final-source freeze.
+The first four historical identities have the same complete Git file tree.
+Current combined main additionally changes `src/core/encode.rs` and
+`src/core/verify.rs`, related tests and the verification observer adapter. It is
+not source-identical to frozen `449920e`. Manifests, lockfile, build script and
+Cargo configuration remain unchanged, but that does not establish timing or
+allocation-lifetime equivalence. Measurements retain their original commit
+labels; the final combined source requires its own freeze and accepted evidence.
 
-The review followed the changed adaptive verification methods through core
-verification and encoding, backend initialization and eligibility, checked kernel
-execution, and their regression tests. No additional supported runtime defect was
-found in this scope. Preserve the existing validation and ownership boundaries
-while the prepared comparison tests the resulting performance.
+The review followed ordinary and adaptive verification through their callers,
+public count/length validation, shared matrix encoding, backend initialization
+and eligibility, checked kernel execution, and regression tests. Every current
+caller validates nonempty Classic inputs before entering the private serial
+helper. Family and fast-parity dispatch remain at the public boundary. No
+additional supported runtime defect was found in this scope.
 
 ## Shared execution design
 
-Adaptive verification now reaches the existing encoding policy once. Backend
-eligibility is cached: an automatically selected GFNI backend keeps its priority
+Ordinary verification, caller-buffer verification and workspace verification
+share `check_classic_parity` and the serial `encode_classic_matrix` implementation
+with ordinary encoding. The two duplicate parity-check implementations are
+removed. Serial APIs retain their existing generic bounds; this refactor does
+not require their callers to become `Send` or `Sync`.
+
+Adaptive verification reaches the existing encoding policy once. Both execution
+routes use the shared checked encoding boundary. Backend eligibility is cached: an automatically selected GFNI backend keeps its priority
 over generated table-based AVX2 encoding. Explicit overrides, other backends,
 Leopard handling, scratch ownership and encoded bytes retain their contracts.
 The change adds no shape-specific exception, size threshold or allocator tuning.
 
 ```mermaid
 flowchart LR
-    A[Adaptive verification] --> B[Validate and prepare scratch]
-    B --> C[Shared encoding policy]
-    C --> D[Cached backend eligibility]
-    D --> E[Selected serial, generated or parallel execution]
-    E --> F[Compare parity]
+    A[Ordinary verification APIs] --> B[Validate and prepare scratch]
+    B --> S[Shared serial matrix encoding]
+    C[Adaptive verification APIs] --> D[Validate and prepare scratch]
+    D --> P[Shared encoding policy once]
+    S --> K[Checked encoding or generic arithmetic]
+    P --> K
+    E[Cached eligibility preserves GFNI] --> K
+    K --> F[Compare parity]
 ```
 
 Generated kernels still validate every coefficient row and shard before writing.
@@ -66,6 +80,21 @@ and `Publish to crates.io` checks were skipped. None supplies positive release
 acceptance or publication. A merged PR and green ordinary CI do not check those
 boxes.
 
+## Validation of the combined implementation
+
+The merged `9f935ee` implementation passed 356 codec unit tests (five existing
+ignored tests), 93 tests across the same eleven integration programs, 129
+native-tool tests and all 273 Python controller tests. Strict codec/tool Clippy,
+codec-only no_std, formatting and diff checks passed. These are new-source checks;
+they do not relabel the frozen candidate's results above. New main CI remains
+bound to its own actual run status.
+
+The expanded dispatch tests exercise all three ordinary verification entries,
+corruption detection, caller scratch contents, safe-Field view fallback and the
+single preparation contract. The observer adapter recognizes both old and new
+verification return forms; it does not rewrite the frozen sampler or approve
+instrumented geometry as formal performance evidence.
+
 ## Retained performance results and next execution
 
 The [complete verification review](verify-dispatch-review-2026-10-23.md) preserves
@@ -85,8 +114,11 @@ has now been launched after the previous controlled capture completed and restor
 its resource and observer services. Complete collection and independent replay
 are pending; launching the guard does not establish a performance result.
 
-This affected catalog compares two unreleased sources. It cannot replace the
-complete published-9.0.0 baseline/final-candidate comparison or paired layouts.
+This affected catalog compares two earlier unreleased sources. It does not
+include the later shared Classic helper and cannot be promoted to timing evidence
+for combined main `9f935ee`, even if every scoped check passes. It also cannot
+replace the complete published-9.0.0 baseline/final-candidate comparison or paired
+layouts.
 The [publication blockers](release-9.1.0-blockers.md) and
 [release checklist](release-9.1.0-checklist.md) remain authoritative: freeze the
 final source/lock/harness, obtain accepted complete baseline/ABBA/layout evidence,
