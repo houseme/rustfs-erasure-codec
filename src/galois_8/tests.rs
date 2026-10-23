@@ -786,3 +786,50 @@ fn test_x86_cross_backend_conformance_matrix() {
         }
     }
 }
+
+#[test]
+#[should_panic]
+fn scalar_zero_multiply_rejects_short_input() {
+    mul_slice_scalar_for_test(0, &[], &mut [0xa5]);
+}
+
+#[test]
+#[should_panic]
+fn scalar_zero_accumulate_rejects_short_output() {
+    mul_slice_xor_scalar_for_test(0, &[0xa5], &mut []);
+}
+
+#[cfg(feature = "std")]
+#[test]
+fn byte_field_slice_lengths_are_checked_before_output_mutation() {
+    use std::panic::{AssertUnwindSafe, catch_unwind};
+
+    let operations: [(&str, backend::MulSliceFn); 6] = [
+        ("scalar multiply", mul_slice_scalar_for_test),
+        ("scalar accumulate", mul_slice_xor_scalar_for_test),
+        ("dispatched multiply", mul_slice),
+        ("dispatched accumulate", mul_slice_xor),
+        ("Field multiply", <Field as crate::Field>::mul_slice),
+        ("Field accumulate", <Field as crate::Field>::mul_slice_add),
+    ];
+    for (name, operation) in operations {
+        for coefficient in [0, 1, 2, 255] {
+            for (input_len, output_len) in [(0, 1), (1, 0), (15, 16), (16, 15), (31, 32), (32, 31)]
+            {
+                let input = vec![0x5a; input_len];
+                let mut output = vec![0xa5; output_len];
+                let result = catch_unwind(AssertUnwindSafe(|| {
+                    operation(coefficient, &input, &mut output)
+                }));
+                assert!(
+                    result.is_err(),
+                    "{name}, coefficient {coefficient}, {input_len}/{output_len}"
+                );
+                assert!(
+                    output.iter().all(|&byte| byte == 0xa5),
+                    "{name} mutated mismatched output"
+                );
+            }
+        }
+    }
+}
