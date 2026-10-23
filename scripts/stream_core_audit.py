@@ -3,7 +3,6 @@
 These deliberately instrumented runs are never formal performance evidence.
 The original per-call allocation/free work, loops and API results are retained.
 """
-from contextlib import contextmanager
 import argparse
 import json
 import os
@@ -16,8 +15,8 @@ import release_evidence as e
 import release_sampling as sampling
 import stream_view_audit as views
 import verify_scratch_audit as ordinary
-from diagnostic_overlay import overlay
-from native_tools import STREAM_CORE_MODULE as MODULE, stream_source_patch as source_patch, verify_par_patch
+from diagnostic_overlay import overlay, source_overlay as owned_source_overlay
+from native_tools import STREAM_CORE_MODULE as MODULE, stream_source_patch as source_patch
 
 PREFIX='RSE_STREAM_CORE '
 NAMES=('src/lib.rs','src/core/stream.rs','src/core/verify.rs')
@@ -31,32 +30,12 @@ def render(root):
     return native_tools.diagnostic_render(root, 'stream')
 
 
-def patch_inputs(original):
-    return {'src/lib.rs':original['src/lib.rs']+'\n#[doc(hidden)]\npub mod '+MODULE+';\n',
-            'src/core/stream.rs':source_patch(original['src/core/stream.rs']),
-            'src/core/verify.rs':verify_par_patch(original['src/core/verify.rs']),
-            'src/'+MODULE+'.rs':native_template()}
-
-
 def bindings(original):
-    return {n:{'original_sha256':e.digest(original[n].encode()) if n in original else None,
-               'diagnostic_sha256':e.digest(t.encode())} for n,t in patch_inputs(original).items()}
+    return native_tools.source_plan('stream-core', original, output='bindings')
 
 
-@contextmanager
 def source_overlay(root):
-    if any((root/n).is_symlink() or not (root/n).is_file() for n in NAMES):raise ValueError('require regular source-copy inputs')
-    original={n:(root/n).read_text() for n in NAMES};changes=patch_inputs(original)
-    added=root/('src/'+MODULE+'.rs')
-    if added.exists() or added.is_symlink():raise ValueError('refuse an existing source observer')
-    try:
-        for n,t in changes.items():(root/n).write_text(t)
-        yield bindings(original)
-    finally:
-        if any((root/n).is_symlink() or not (root/n).is_file() or (root/n).read_text()!=t for n,t in changes.items()):
-            raise ValueError('unexpected diagnostic source mutation; copy preserved')
-        for n,t in original.items():(root/n).write_text(t)
-        added.unlink()
+    return owned_source_overlay(root, NAMES, MODULE, 'stream-core')
 
 
 def validate(data,case,iterations,page,current,native=False):

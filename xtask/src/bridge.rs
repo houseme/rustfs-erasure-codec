@@ -88,10 +88,6 @@ enum Request {
     SourcePlan {
         request: crate::diagnostics::source_plan::Request,
     },
-    DynamicSource {
-        original: BTreeMap<String, String>,
-        tool: PathBuf,
-    },
     MatrixSource {
         text: String,
     },
@@ -115,9 +111,6 @@ enum Request {
         tool: PathBuf,
     },
     StreamSource {
-        text: String,
-    },
-    VerifyParSource {
         text: String,
     },
     VerifySource {
@@ -208,9 +201,6 @@ impl Request {
                 allocation_check,
             } => Response::Files(overlays::render(&root, &tool, &variant, allocation_check)?),
             Self::SourcePlan { request } => Response::Data(request.execute()?),
-            Self::DynamicSource { original, tool } => {
-                Response::Files(dynamic::patch(&original, &tool)?)
-            }
             Self::MatrixSource { text } => Response::Text(dynamic::matrix(&text)?),
             Self::DecodeSource { text } => Response::Text(dynamic::decode(&text)?),
             Self::SamplerRender { root, tool } => Response::Files(sampler::render(&root, &tool)?),
@@ -220,7 +210,6 @@ impl Request {
             Self::ReserveOutputs { text } => Response::Text(sampler::reserve_outputs(&text)?),
             Self::Template { variant, tool } => Response::Text(templates::native(&variant, &tool)?),
             Self::StreamSource { text } => Response::Text(stream::patch(&text)?),
-            Self::VerifyParSource { text } => Response::Text(stream::verify_par(&text)?),
             Self::VerifySource { text } => Response::Text(stream::verify(&text)?),
         })
     }

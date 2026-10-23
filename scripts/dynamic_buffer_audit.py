@@ -3,7 +3,6 @@
 All modifications are reversible source-copy observers. No production allocator,
 sampler, algorithm, original allocation statement or release gate is changed.
 """
-from contextlib import contextmanager
 import json
 import os
 import pathlib
@@ -12,7 +11,7 @@ import subprocess
 
 import release_evidence as e
 import release_sampling as s
-from diagnostic_overlay import overlay
+from diagnostic_overlay import overlay, source_overlay as owned_source_overlay
 
 MODULE = '__rse_dynamic_buffers'
 PREFIX = 'RSE_DYNAMIC_BUFFERS '
@@ -36,29 +35,15 @@ def patch_decode(text):
 
 
 def patch_inputs(original):
-    return native_tools.request('dynamic-source', original=original, tool=str(native_tools.ROOT))
+    return native_tools.source_plan('dynamic', original, output='files')
 
 
 def bindings(original):
-    return {name: {'original_sha256': e.digest(original[name].encode()) if name in original else None,
-                   'diagnostic_sha256': e.digest(text.encode())} for name, text in patch_inputs(original).items()}
+    return native_tools.source_plan('dynamic', original, output='bindings')
 
 
-@contextmanager
 def source_overlay(root):
-    if any((root/n).is_symlink() or not (root/n).is_file() for n in NAMES): raise ValueError('require regular source-copy inputs')
-    original = {n: (root/n).read_text() for n in NAMES}
-    changes = patch_inputs(original)
-    added = root/('src/'+MODULE+'.rs')
-    if added.exists() or added.is_symlink(): raise ValueError('preserve an existing dynamic observer')
-    try:
-        for name, text in changes.items(): (root/name).write_text(text)
-        yield bindings(original)
-    finally:
-        if any((root/n).is_symlink() or not (root/n).is_file() or (root/n).read_text() != text for n, text in changes.items()):
-            raise ValueError('unexpected diagnostic source change; preserve copy')
-        for name, text in original.items(): (root/name).write_text(text)
-        added.unlink()
+    return owned_source_overlay(root, NAMES, MODULE, 'dynamic')
 
 
 def render(root):
