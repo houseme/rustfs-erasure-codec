@@ -55,6 +55,13 @@ class SamplingContractTests(unittest.TestCase):
             self.assertEqual(frames.call_count, 1)
         self.assertEqual({id(r) for group in groups.values() for r in group}, {id(r) for r in records})
         self.assertEqual(records, original)
+        calibration=evidence.json_data(self.root/self.doc['calibration']['baseline'][profile]['path'])
+        original=copy.deepcopy(calibration)
+        with mock.patch.object(sampling.native_tools,'_request_payload',wraps=sampling.native_tools._request_payload) as frames:
+            counts=evidence.calibration_counts(calibration,profile,revision,4096,allowed_cpus=range(8))
+        self.assertEqual(frames.call_count,1)
+        self.assertEqual(counts,self.doc['sampling']['common_iterations'][profile])
+        self.assertEqual(calibration,original)
 
     def test_every_warmup_and_nonmedian_sample_requires_comparable_provenance(self):
         for profile,field in (('small_file','backend_id'),('stream','stream_io_mode'),('small_file','compiler'),('hotspot','backend_id'),('small_file','constructor_budget')):
@@ -365,32 +372,6 @@ class SamplingContractTests(unittest.TestCase):
                 records[index]['rows'][0]['ns_per_iter']*=1.2;records[index]['timed_ns']*=1.2
         self.mutate(change)
         with self.assertRaisesRegex(ValueError,'distributions'):self.verify()
-
-    def test_incomplete_rehearsal_does_not_freeze_calibration(self):
-        path=self.root/self.doc['calibration']['baseline']['smoke']['path']
-        records=json.loads(path.read_text())
-        records.pop(sampling.PROTOCOL['warmups']+sampling.PROTOCOL['samples']-1)
-        with self.assertRaisesRegex(ValueError,'incomplete'):
-            evidence.calibration_counts(records,'smoke',self.sources_commit('baseline'))
-
-    def test_late_short_probe_grows_a_fresh_complete_rehearsal(self):
-        path=self.root/self.doc['calibration']['baseline']['smoke']['path']
-        records=json.loads(path.read_text());first=records[0];case=first['case']
-        replacement=[]
-        width=sampling.PROTOCOL['warmups']+sampling.PROTOCOL['samples']
-        for batch,count in ((1,1),(2,3)):
-            for index in range(width):
-                row=copy.deepcopy(first)
-                warming=index<sampling.PROTOCOL['warmups']
-                ns=sampling.PROTOCOL["target_wall_ns"]*102//100 if batch==1 else sampling.PROTOCOL["target_wall_ns"]*42//100
-                wall=sampling.PROTOCOL["target_wall_ns"]*106//100 if batch==1 else sampling.PROTOCOL["target_wall_ns"]*126//100
-                if batch==1 and index==width-1:ns=sampling.PROTOCOL["target_wall_ns"]*42//100;wall=ns
-                row.update(index=index,kind='calibration_warmup' if warming else 'calibration',iterations=count,calibration_batch=batch,timed_ns=ns*count,wall_ns=wall,target_met=wall>=sampling.PROTOCOL['target_wall_ns'] and ns*count>=sampling.PROTOCOL['target_timed_ns'],complete=batch==2 and index==width-1)
-                row['rows'][0].update(iterations=count,ns_per_iter=ns)
-                replacement.append(row)
-        records=replacement+[r for r in records if r['case']!=case]
-        counts=evidence.calibration_counts(records,'smoke',self.sources_commit('baseline'))
-        self.assertEqual(counts[case],3)
 
     def test_calibration_must_warm_before_rehearsal_and_finish_every_probe(self):
         path=self.root/self.doc['calibration']['baseline']['smoke']['path']

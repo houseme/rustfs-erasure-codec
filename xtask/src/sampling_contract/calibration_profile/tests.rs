@@ -51,12 +51,24 @@ fn all_profiles_keep_original_order_counts_and_inputs_without_normalizing_rows()
     for profile in ["smoke", "small_file", "hotspot", "stream"] {
         let rows = records(profile);
         let before = rows.clone();
-        let counts = analyze(&rows, profile, &"a".repeat(40), Some(4096)).unwrap();
+        let counts = analyze(&rows, profile, &"a".repeat(40), Some(4096), None).unwrap();
         assert_eq!(rows, before);
         let output = counts.as_array().unwrap();
         assert_eq!(output.len() * protocol::WIDTH, rows.len());
         assert_eq!(output[0][0], rows[0]["case"]);
         assert!(output.iter().all(|r| r[1] == 1));
+        assert_eq!(
+            counts,
+            analyze(
+                &rows,
+                profile,
+                &"a".repeat(40),
+                Some(4096),
+                Some(&[0, 1, 2, 3, 4, 5, 6, 7])
+            )
+            .unwrap()
+        );
+        assert!(analyze(&rows, profile, &"a".repeat(40), Some(4096), Some(&[2, 3])).is_err());
     }
 }
 #[test]
@@ -64,11 +76,11 @@ fn an_incomplete_or_completed_rehearsal_cannot_hide_missing_or_extra_records() {
     let rows = records("small_file");
     let mut changed = rows.clone();
     changed.pop();
-    assert!(analyze(&changed, "small_file", &"a".repeat(40), Some(4096)).is_err());
+    assert!(analyze(&changed, "small_file", &"a".repeat(40), Some(4096), None).is_err());
     let mut changed = rows.clone();
     changed.extend_from_slice(&rows[..12]);
     assert!(
-        analyze(&changed, "small_file", &"a".repeat(40), Some(4096))
+        analyze(&changed, "small_file", &"a".repeat(40), Some(4096), None)
             .unwrap_err()
             .to_string()
             .contains("extra calibration")
@@ -82,37 +94,45 @@ fn an_incomplete_or_completed_rehearsal_cannot_hide_missing_or_extra_records() {
         let mut changed = rows.clone();
         changed[11][key] = value;
         assert!(
-            analyze(&changed, "small_file", &"a".repeat(40), Some(4096)).is_err(),
+            analyze(&changed, "small_file", &"a".repeat(40), Some(4096), None).is_err(),
             "{key}"
         );
     }
     let mut changed = rows;
     changed[1]["rows"][0]["backend_id"] = json!("changed");
-    assert!(analyze(&changed, "small_file", &"a".repeat(40), Some(4096)).is_err());
+    assert!(analyze(&changed, "small_file", &"a".repeat(40), Some(4096), None).is_err());
 }
 #[test]
 fn growth_is_driven_by_the_worst_probe_and_requires_a_fresh_complete_worker() {
     let rows = records("small_file");
     let case = rows[0]["case"].clone();
-    let mut group = rows[..12].to_vec();
-    for row in &mut group {
-        row["wall_ns"] = json!(1_000_000);
-        row["timed_ns"] = json!(1_000_000);
-        row["rows"][0]["ns_per_iter"] = json!(1_000_000);
-        row["complete"] = json!(false);
-        row["target_met"] = json!(false);
+    for (short, proposal) in [(1_000_000_u64, 64_u64), (840_000_000, 3)] {
+        let mut group = rows[..12].to_vec();
+        for (index, row) in group.iter_mut().enumerate() {
+            let (wall, timed) = if proposal == 64 || index == 11 {
+                (short, short)
+            } else {
+                (2_120_000_000, 2_040_000_000)
+            };
+            row["wall_ns"] = json!(wall);
+            row["timed_ns"] = json!(timed);
+            row["rows"][0]["ns_per_iter"] = json!(timed);
+            row["complete"] = json!(false);
+            row["target_met"] = json!(wall >= 2_000_000_000 && timed >= 100_000_000);
+        }
+        let mut next = rows[..12].to_vec();
+        for row in &mut next {
+            row["iterations"] = json!(proposal);
+            row["rows"][0]["iterations"] = json!(proposal);
+            row["timed_ns"] = json!(200_000_000_u64 * proposal);
+            row["wall_ns"] = json!(20_000_000_000_u64);
+            row["calibration_batch"] = json!(2);
+        }
+        group.extend(next);
+        group.extend_from_slice(&rows[12..]);
+        let counts = analyze(&group, "small_file", &"a".repeat(40), Some(4096), None).unwrap();
+        assert_eq!(counts[0], json!([case, proposal]));
+        group[12]["iterations"] = json!(1);
+        assert!(analyze(&group, "small_file", &"a".repeat(40), Some(4096), None).is_err());
     }
-    let mut next = rows[..12].to_vec();
-    for row in &mut next {
-        row["iterations"] = json!(64);
-        row["rows"][0]["iterations"] = json!(64);
-        row["timed_ns"] = json!(200_000_000_u64 * 64);
-        row["calibration_batch"] = json!(2);
-    }
-    group.extend(next);
-    group.extend_from_slice(&rows[12..]);
-    let counts = analyze(&group, "small_file", &"a".repeat(40), Some(4096)).unwrap();
-    assert_eq!(counts[0], json!([case, 64]));
-    group[12]["iterations"] = json!(1);
-    assert!(analyze(&group, "small_file", &"a".repeat(40), Some(4096)).is_err());
 }

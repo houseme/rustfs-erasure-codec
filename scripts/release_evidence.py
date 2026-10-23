@@ -11,7 +11,6 @@ from contextlib import ExitStack
 import argparse
 import hashlib
 import json
-import math
 import os
 import pathlib
 import platform
@@ -90,11 +89,12 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def campaign_ratio(numerator, denominator):
-    value = numerator / denominator
-    if not math.isfinite(value):
-        raise ValueError('nonfinite campaign ratio')
-    return value
+def campaign_analysis(data, sample_spreads, diagnostic):
+    # Pairs preserve each phase's original case order across JSON object sorting.
+    projected={phase:{profile:list(rows.items()) for profile,rows in profiles.items()}
+               for phase,profiles in data.items()}
+    return native_tools.request('baseline-analysis', request=dict(operation='campaign', request=dict(
+        data=projected, sample_spreads=sample_spreads if diagnostic else [], diagnostic=diagnostic)))
 
 
 def json_data(path):
@@ -443,18 +443,12 @@ def _verify_profiles(document, root, repository, compiler=True, *, diagnostic=Fa
             counts = document.get("sampling", {}).get("common_iterations", {}).get(profile)
             data[phase][profile] = rows(profile, path, sources[role]["commit"], counts)
     sample_spreads = verify_sampling(document, root, repository, data, diagnostic=diagnostic)
-    drifts = []
-    for profile in FILES:
-        for phase in PHASES[1:]: compatible(profile, data["A1"][profile], data[phase][profile])
-        for first, second in (("A1", "A2"), ("B1", "B2")):
-            for case, row in data[first][profile].items():
-                old, new = float(row[METRICS[profile]]), float(data[second][profile][case][METRICS[profile]])
-                drift = campaign_ratio(abs(new - old), old)
-                drifts.append({"profile": profile, "case": case, "pair": first + second, "drift": drift})
+    analysis = campaign_analysis(data, sample_spreads, diagnostic)
+    drifts = analysis['repeat_checks']
     if not diagnostic and any(item["drift"] > sampling.REPEAT_DRIFT_LIMIT for item in drifts):
         raise EvidenceFailure("ABBA drift exceeds 5%; no candidate attribution or release approval",
                               {"drift_checks": drifts, "sample_spreads": sample_spreads, "candidate_attribution": None})
-    checks, comparisons = [], []
+    checks = []
     for profile in FILES:
         for a in ("A1", "A2"):
             for b in ("B1", "B2"):
@@ -463,26 +457,12 @@ def _verify_profiles(document, root, repository, compiler=True, *, diagnostic=Fa
                     result = subprocess.run(args, cwd=repository, check=False, capture_output=True, text=True)
                     checks.append({'profile': profile, 'pair': a+'/'+b, 'exit_code': result.returncode,
                                    'stdout': result.stdout, 'stderr': result.stderr})
-                    for case, row in data[a][profile].items():
-                        old, new = row[METRICS[profile]], data[b][profile][case][METRICS[profile]]
-                        comparisons.append({'profile': profile, 'pair': a+'/'+b, 'case': case,
-                                            'metric': METRICS[profile], 'baseline': old, 'candidate': new,
-                                            'candidate_over_baseline': campaign_ratio(new,old)})
                 else:
                     subprocess.run(args, cwd=repository, check=True, stdout=subprocess.DEVNULL)
     if diagnostic:
-        wide = [r for r in sample_spreads if r['central_spread'] > sampling.PROTOCOL['central_spread_limit']]
-        short = [dict(phase=r['phase'], profile=r['profile'], case=r['case'], **window)
-                 for r in sample_spreads for window in r['short_samples']]
-        repeats = [r for r in drifts if r['drift'] > sampling.REPEAT_DRIFT_LIMIT]
-        return paths, data, {'status': 'diagnostic_profiles_complete', 'diagnostic_only': True,
-                            'release_approval': False, 'candidate_attribution': None,
-                            'sample_spreads': sample_spreads, 'distribution_failures': wide,
-                            'short_samples': short, 'repeat_checks': drifts, 'repeat_failures': repeats,
-                            'regression_checks': checks, 'unqualified_metric_comparisons': comparisons,
-                            'metric_direction': {'smoke': 'higher', 'small_file': 'lower', 'hotspot': 'higher', 'stream': 'lower'},
-                            'all_original_limits_passed': not (wide or short or repeats or any(r['exit_code'] for r in checks)),
-                            'scope': 'complete diagnostic; raw comparisons remain unqualified even if every check passes'}
+        analysis['regression_checks']=checks
+        analysis['all_original_limits_passed'] &= not any(r['exit_code'] for r in checks)
+        return paths, data, analysis
     return paths, data, {"status": "profiles_verified", "candidate_commit": actual["commit"], "candidate_tree": actual["tree"], "measured_candidate_commit": sources["candidate"]["commit"], "baseline_commit": sources["baseline"]["commit"], "drift_checks": len(drifts), "sample_distribution_checks": len(sample_spreads), "case_counts": {p: len(data["A1"][p]) for p in FILES}, "scope": "controlled recorded VM campaign; no new measurement on the verification runner"}
 
 
@@ -512,12 +492,10 @@ def verify_sampling(document, root, repository, summarized, *, diagnostic=False)
         for profile in FILES:
             name = f"calibration-{role}/{profile}-samples.json"
             records = evidence_member(root, document.get("calibration", {}).get(role, {}).get(profile), name)
-            pilot_counts[role][profile] = calibration_counts(records, profile, document["sources"][role]["commit"], document["contexts"]["A1"]["runtime"]["page_size"])
+            pilot_counts[role][profile] = calibration_counts(records, profile, document["sources"][role]["commit"], document["contexts"]["A1"]["runtime"]["page_size"], allowed_cpus=document["contexts"]["A1"]["isolation"]["cpu_affinity"])
             pilot_contracts[role][profile] = observation_contracts(profile, [r for r in records if r['complete']],
                 pilot_contracts['baseline'][profile] if role == 'candidate' else None)
             pilot_layouts[role][profile] = sampling.fixture_catalog(records, calibration=True)
-            for record in records:
-                sampling.validate_placement(record, document["contexts"]["A1"]["isolation"]["cpu_affinity"])
             pilot_workloads[role][profile] = sampling.workload_catalog(records, calibration=True)
             pilot_traces[role][profile] = sampling.workload_traces(records, calibration=True)
     spreads = []
@@ -558,39 +536,10 @@ def verify_sampling(document, root, repository, summarized, *, diagnostic=False)
     return spreads
 
 
-def calibration_counts(records, profile, revision, expected_page_size=None):
-    groups = {}
-    for record in records:
-        key = record.get("case")
-        count = record.get("iterations")
-        if record.get("isolated_case") is not True or record.get("kind") not in ("calibration", "calibration_warmup") or record.get("revision") != revision or key not in expected_cases(profile) or type(count) is not int or not 0 < count <= 1_000_000_000:
-            raise ValueError("invalid calibration sample")
-        if not isinstance(record.get("rows"), list) or len(record["rows"]) != 1:
-            raise ValueError("calibration must contain one raw row")
-        if set(indexed_rows(profile, record["rows"], revision, {key: count}, complete=False)) != {key}:
-            raise ValueError("calibration row does not match declared case")
-        groups.setdefault(key, []).append(record)
-    if set(groups) != expected_cases(profile): raise ValueError("calibration case catalog is incomplete")
-    counts = {}
-    width = sampling.PROTOCOL["warmups"] + sampling.PROTOCOL["samples"]
-    for key, group in groups.items():
-        if not 1 <= len(group) <= sampling.PROTOCOL["max_calibration_records"] or len(group) % width:
-            raise ValueError("calibration rehearsal is incomplete or exceeds its budget")
-        count = 1
-        for offset in range(0, len(group), width):
-            following = sampling.calibration_worker(group[offset:offset+width], profile, count,
-                                                    offset//width+1, expected_page_size)
-            if following is None:
-                if offset+width != len(group):
-                    raise ValueError("extra calibration records after a complete rehearsal")
-                counts[key] = count
-            else:
-                count = following
-        if key not in counts:
-            raise ValueError("calibration rehearsal is incomplete")
-
-    observation_contracts(profile, records)
-    return counts
+def calibration_counts(records, profile, revision, expected_page_size=None, *, allowed_cpus=None):
+    return dict(native_tools.sampling_request('calibration-profile', records=records, profile=profile,
+                                            revision=revision, expected_page_size=expected_page_size,
+                                            allowed_cpus=None if allowed_cpus is None else list(allowed_cpus)))
 
 
 def capture_environment():
@@ -644,8 +593,7 @@ def qualify_baseline(baseline, output, group):
         folder = output/"calibration"; folder.mkdir()
         for profile in FILES:
             records, entry = capture_profile(baseline, folder, profile, "calibrate", env, output, group)
-            counts[profile] = calibration_counts(records, profile, source["commit"], context["runtime"]["page_size"])
-            for row in records: sampling.validate_placement(row, context["isolation"]["cpu_affinity"])
+            counts[profile] = calibration_counts(records, profile, source["commit"], context["runtime"]["page_size"], allowed_cpus=context["isolation"]["cpu_affinity"])
             final_rows = {row["case"]: row["rows"][0] for row in records}
             calibrated[profile] = indexed_rows(profile, list(final_rows.values()), source["commit"], counts[profile])
             contracts[profile] = observation_contracts(profile, [r for r in records if r["complete"]])
