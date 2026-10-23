@@ -65,16 +65,17 @@ class CompleteReplayTests(unittest.TestCase):
         self.f.write_rows(phase, profile, selection['selected'])
 
     def test_worker_journal_reuses_each_bound_profile_read(self):
-        from collections import Counter
-        reads=Counter();reader=e.member_bytes
+        reader=e.member_bytes;native=e.native_tools
         def read(path,*args,**kwargs):
-            if path.name.endswith('-samples.json'):reads[path]+=1
+            if path.name.endswith('-samples.json'):raise AssertionError('Python sampling member read')
             return reader(path,*args,**kwargs)
-        with mock.patch.object(e,'member_bytes',side_effect=read), mock.patch.object(e.subprocess,'run',return_value=subprocess.CompletedProcess([],0,'','')):
+        with mock.patch.object(e,'member_bytes',side_effect=read), mock.patch.object(native,'_request_payload',wraps=native._request_payload) as frames, mock.patch.object(e.subprocess,'run',return_value=subprocess.CompletedProcess([],0,'','')):
             report=self.replay()
         self.assertEqual(report['worker_invocations'],756)
-        self.assertEqual(len(reads),24)
-        self.assertEqual(set(reads.values()),{1})
+        requests=[c.args[0] for c in frames.call_args_list if json.loads(c.args[0]).get('kind')=='sampling' and json.loads(c.args[0]).get('request',{}).get('operation')=='campaign']
+        self.assertEqual(len(requests),1)
+        original_bytes=sum(p.stat().st_size for p in self.root.rglob('*-samples.json'))
+        self.assertLess(len(requests[0].encode()),original_bytes//10)
 
     def test_execution_errors_do_not_become_complete_statistical_diagnostics(self):
         with mock.patch.object(e.subprocess,'run',return_value=subprocess.CompletedProcess([],2,'','input integrity failed')) as checks:
