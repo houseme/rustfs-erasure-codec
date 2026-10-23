@@ -63,6 +63,44 @@ The [derived JSON](../benchmarks/release-9.1.0/2026-10-23/verify-dispatch-affect
 retains every phase aggregate, all 14 repeats, all 28 comparisons and all eight
 checker outcomes, including the failure.
 
+## Subsequent fixed backend control
+
+A separate predeclared control kept the same sampler, source pair and original
+counts for 4+2/64 KiB verification and the unchanged 4+2/64 KiB encode control.
+It compared automatic backend selection with the existing explicit
+`rust-gfni-avx512` override. The override uses the same recorded ordinary GFNI
+backend and disables generated encoding through the existing source contract.
+Both conditions ran complete A1/B1/B2/A2 schedules: 16 workers, 192 observations,
+48 warmups, 144 measurements, eight repeats and sixteen checker programs.
+
+Independent replay exactly matches all original log/JSON pairs, 16 summaries,
+32 parent events and all sixteen program results. Source and resource restoration
+and the original observer services pass. All distributions, durations, repeats
+and checker programs pass; maximum central width is 3.1087% and maximum repeat
+drift is 2.5490%. This does not replace the previous seven-case threshold failure.
+
+| Condition / case | A1 | B1 | B2 | A2 | Four-pair latency ratio |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Auto / encode | 6,730.17 | 6,848.51 | 6,964.76 | 6,901.72 | 0.992290–1.034856 |
+| Auto / stream verify | 14,068.50 | 15,847.69 | 15,485.64 | 14,132.95 | 1.095712–1.126466 |
+| Explicit GFNI / encode | 5,881.51 | 5,814.74 | 5,840.74 | 5,882.52 | 0.988478–0.993068 |
+| Explicit GFNI / stream verify | 14,026.56 | 13,906.53 | 14,258.29 | 14,244.50 | 0.976274–1.016521 |
+
+All measured process fault counts are zero. Workload witnesses match across both
+conditions. Recorded caller fixtures match within each condition, but stream
+fixtures differ between the automatic and explicit conditions. The control
+supports investigating generated-kernel selection; this layout difference and
+untracked internal/physical state prevent a unique ISA-only causal claim.
+The [complete backend-control JSON](../benchmarks/release-9.1.0/2026-10-23/verify-dispatch-backend-control.json)
+retains all four cohorts, every phase and comparison, and this counterexample.
+
+The next candidate should preserve automatic GFNI backend priority at the shared
+encoding eligibility boundary, then validate all affected encoding and verification
+cases under automatic selection. Do not repair only the failing shape or introduce
+a size threshold based on this control. The previous source pair and failed
+report remain immutable; the new source requires its own correctness and timing
+validation.
+
 ## Mechanism and limits
 
 All seven cases have matching recorded caller fixtures and workload witnesses
@@ -81,8 +119,8 @@ that implementation uses nibble-table shuffles. Thus equal exported backend name
 do not prove equal kernel execution. Delegating serial verification to encoding
 can replace generic field arithmetic with this generated path. The capture does
 not profile individual kernel costs, so this source-derived hypothesis is not a
-proven unique cause. An explicit same-backend control can disable generated
-encoding through the existing override without changing the sampler or counts.
+proven unique cause. The subsequent same-backend control above disables generated encoding through
+the existing override without changing the sampler or counts.
 Do not add a shape-specific threshold, allocator override or temporary heap anchor
 merely to make the retained failure pass.
 

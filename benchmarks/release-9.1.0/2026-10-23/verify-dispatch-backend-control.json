@@ -1,0 +1,766 @@
+{
+  "schema": "verify-dispatch-backend-control-review-v1",
+  "scope": "paired main/runtime serial verification and unchanged encode; existing auto versus explicit rust-gfni-avx512 override disables generated encoding; diagnostic mechanism control, not release acceptance",
+  "release_approval": false,
+  "candidate_attribution": null,
+  "workers": 16,
+  "observations": 192,
+  "warmups": 48,
+  "measurements": 144,
+  "parent_events": 32,
+  "all_summaries_match": true,
+  "all_raw_logs_match": true,
+  "all_fixed_counts_match": true,
+  "all_backend_conditions_match": true,
+  "all_inputs_unchanged": true,
+  "all_sources_restored": true,
+  "all_resources_restored": true,
+  "observer_services_active": true,
+  "render_signatures_match": true,
+  "distribution_checks": 16,
+  "distribution_failures": 0,
+  "short_samples": 0,
+  "repeat_checks": 8,
+  "repeat_failures": 0,
+  "cross_version_comparisons": 16,
+  "regression_programs": 16,
+  "regression_program_failures": 0,
+  "maximum_central_spread": 0.031087451235370562,
+  "maximum_repeat_drift": 0.025489697882817186,
+  "measured_sources": {
+    "tool": "022c0a7476e3d91bee33f86bf4ade55d27122949",
+    "baseline": "db690184811584d96c8c3509f37a802156c5b61f",
+    "candidate": "17432e50f1fd2a790034e3de213ebf58c7d4635c"
+  },
+  "formal_performance_acceptance": false,
+  "original_affected_catalog_failure_retained": true,
+  "cases": [
+    {
+      "backend_override": "auto",
+      "profile": "small_file",
+      "case": "encode:4:2:65536",
+      "metric": "ns_per_iter",
+      "iterations": 524288,
+      "repeat_checks": [
+        {
+          "backend_override": "auto",
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A1/A2",
+          "drift": 0.025489697882817186
+        },
+        {
+          "backend_override": "auto",
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "B1/B2",
+          "drift": 0.016974495182163762
+        }
+      ],
+      "comparisons": [
+        {
+          "backend_override": "auto",
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A1/B1",
+          "latency_ratio": 1.0175835082917668,
+          "candidate_attribution": null
+        },
+        {
+          "backend_override": "auto",
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A1/B2",
+          "latency_ratio": 1.0348564746507147,
+          "candidate_attribution": null
+        },
+        {
+          "backend_override": "auto",
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A2/B1",
+          "latency_ratio": 0.9922903276284752,
+          "candidate_attribution": null
+        },
+        {
+          "backend_override": "auto",
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A2/B2",
+          "latency_ratio": 1.0091339550141125,
+          "candidate_attribution": null
+        }
+      ],
+      "phases": {
+        "A1": {
+          "median": 6730.17,
+          "central_spread": 0.014883725076781132,
+          "short_samples": 0,
+          "maximum_measured_main_wait_to_wall": 9.13174513065328e-05,
+          "caller_fixture_matches_condition_A1": true,
+          "caller_fixture_matches_auto_A1": true,
+          "workload_catalog_matches_condition_A1": true,
+          "workload_trace_matches_condition_A1": true,
+          "workload_catalog_matches_auto_A1": true,
+          "workload_trace_matches_auto_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 6848.51,
+          "central_spread": 0.010507395039212913,
+          "short_samples": 0,
+          "maximum_measured_main_wait_to_wall": 9.160120271819009e-05,
+          "caller_fixture_matches_condition_A1": true,
+          "caller_fixture_matches_auto_A1": true,
+          "workload_catalog_matches_condition_A1": true,
+          "workload_trace_matches_condition_A1": true,
+          "workload_catalog_matches_auto_A1": true,
+          "workload_trace_matches_auto_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 6964.76,
+          "central_spread": 0.02551990305480731,
+          "short_samples": 0,
+          "maximum_measured_main_wait_to_wall": 0.00010984602526676079,
+          "caller_fixture_matches_condition_A1": true,
+          "caller_fixture_matches_auto_A1": true,
+          "workload_catalog_matches_condition_A1": true,
+          "workload_trace_matches_condition_A1": true,
+          "workload_catalog_matches_auto_A1": true,
+          "workload_trace_matches_auto_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 6901.72,
+          "central_spread": 0.016026439786024436,
+          "short_samples": 0,
+          "maximum_measured_main_wait_to_wall": 9.454862392141473e-05,
+          "caller_fixture_matches_condition_A1": true,
+          "caller_fixture_matches_auto_A1": true,
+          "workload_catalog_matches_condition_A1": true,
+          "workload_trace_matches_condition_A1": true,
+          "workload_catalog_matches_auto_A1": true,
+          "workload_trace_matches_auto_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "latency_ratio_range": [
+        0.9922903276284752,
+        1.0348564746507147
+      ]
+    },
+    {
+      "backend_override": "auto",
+      "profile": "stream",
+      "case": "verify_stream:4:2:65536:65536",
+      "metric": "ns_per_block",
+      "iterations": 176128,
+      "repeat_checks": [
+        {
+          "backend_override": "auto",
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A1/A2",
+          "drift": 0.00458115648434454
+        },
+        {
+          "backend_override": "auto",
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "B1/B2",
+          "drift": 0.02284560084151077
+        }
+      ],
+      "comparisons": [
+        {
+          "backend_override": "auto",
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A1/B1",
+          "latency_ratio": 1.126466218857732,
+          "candidate_attribution": null
+        },
+        {
+          "backend_override": "auto",
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A1/B2",
+          "latency_ratio": 1.1007314212602624,
+          "candidate_attribution": null
+        },
+        {
+          "backend_override": "auto",
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A2/B1",
+          "latency_ratio": 1.1213292341655492,
+          "candidate_attribution": null
+        },
+        {
+          "backend_override": "auto",
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A2/B2",
+          "latency_ratio": 1.0957117940698862,
+          "candidate_attribution": null
+        }
+      ],
+      "phases": {
+        "A1": {
+          "median": 14068.5,
+          "central_spread": 0.019679425667270895,
+          "short_samples": 0,
+          "maximum_measured_main_wait_to_wall": 0.00011360100545609057,
+          "caller_fixture_matches_condition_A1": true,
+          "caller_fixture_matches_auto_A1": true,
+          "workload_catalog_matches_condition_A1": true,
+          "workload_trace_matches_condition_A1": true,
+          "workload_catalog_matches_auto_A1": true,
+          "workload_trace_matches_auto_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 15847.69,
+          "central_spread": 0.017214496245194062,
+          "short_samples": 0,
+          "maximum_measured_main_wait_to_wall": 9.808108784800017e-05,
+          "caller_fixture_matches_condition_A1": true,
+          "caller_fixture_matches_auto_A1": true,
+          "workload_catalog_matches_condition_A1": true,
+          "workload_trace_matches_condition_A1": true,
+          "workload_catalog_matches_auto_A1": true,
+          "workload_trace_matches_auto_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 15485.64,
+          "central_spread": 0.02914635752865226,
+          "short_samples": 0,
+          "maximum_measured_main_wait_to_wall": 0.00010966575829054036,
+          "caller_fixture_matches_condition_A1": true,
+          "caller_fixture_matches_auto_A1": true,
+          "workload_catalog_matches_condition_A1": true,
+          "workload_trace_matches_condition_A1": true,
+          "workload_catalog_matches_auto_A1": true,
+          "workload_trace_matches_auto_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 14132.95,
+          "central_spread": 0.016742435231144298,
+          "short_samples": 0,
+          "maximum_measured_main_wait_to_wall": 8.636937374036064e-05,
+          "caller_fixture_matches_condition_A1": true,
+          "caller_fixture_matches_auto_A1": true,
+          "workload_catalog_matches_condition_A1": true,
+          "workload_trace_matches_condition_A1": true,
+          "workload_catalog_matches_auto_A1": true,
+          "workload_trace_matches_auto_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "latency_ratio_range": [
+        1.0957117940698862,
+        1.126466218857732
+      ]
+    },
+    {
+      "backend_override": "rust-gfni-avx512",
+      "profile": "small_file",
+      "case": "encode:4:2:65536",
+      "metric": "ns_per_iter",
+      "iterations": 524288,
+      "repeat_checks": [
+        {
+          "backend_override": "rust-gfni-avx512",
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A1/A2",
+          "drift": 0.0001717246081363033
+        },
+        {
+          "backend_override": "rust-gfni-avx512",
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "B1/B2",
+          "drift": 0.00447139510966954
+        }
+      ],
+      "comparisons": [
+        {
+          "backend_override": "rust-gfni-avx512",
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A1/B1",
+          "latency_ratio": 0.988647473182907,
+          "candidate_attribution": null
+        },
+        {
+          "backend_override": "rust-gfni-avx512",
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A1/B2",
+          "latency_ratio": 0.9930681066596843,
+          "candidate_attribution": null
+        },
+        {
+          "backend_override": "rust-gfni-avx512",
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A2/B1",
+          "latency_ratio": 0.9884777272325465,
+          "candidate_attribution": null
+        },
+        {
+          "backend_override": "rust-gfni-avx512",
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A2/B2",
+          "latency_ratio": 0.9928976017081114,
+          "candidate_attribution": null
+        }
+      ],
+      "phases": {
+        "A1": {
+          "median": 5881.51,
+          "central_spread": 0.024743645764438,
+          "short_samples": 0,
+          "maximum_measured_main_wait_to_wall": 8.311113301329776e-05,
+          "caller_fixture_matches_condition_A1": true,
+          "caller_fixture_matches_auto_A1": true,
+          "workload_catalog_matches_condition_A1": true,
+          "workload_trace_matches_condition_A1": true,
+          "workload_catalog_matches_auto_A1": true,
+          "workload_trace_matches_auto_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 5814.74,
+          "central_spread": 0.026106068371070795,
+          "short_samples": 0,
+          "maximum_measured_main_wait_to_wall": 8.731864563925532e-05,
+          "caller_fixture_matches_condition_A1": true,
+          "caller_fixture_matches_auto_A1": true,
+          "workload_catalog_matches_condition_A1": true,
+          "workload_trace_matches_condition_A1": true,
+          "workload_catalog_matches_auto_A1": true,
+          "workload_trace_matches_auto_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 5840.74,
+          "central_spread": 0.012195372504169074,
+          "short_samples": 0,
+          "maximum_measured_main_wait_to_wall": 0.00010404718413298097,
+          "caller_fixture_matches_condition_A1": true,
+          "caller_fixture_matches_auto_A1": true,
+          "workload_catalog_matches_condition_A1": true,
+          "workload_trace_matches_condition_A1": true,
+          "workload_catalog_matches_auto_A1": true,
+          "workload_trace_matches_auto_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 5882.52,
+          "central_spread": 0.024280410436343592,
+          "short_samples": 0,
+          "maximum_measured_main_wait_to_wall": 8.839076916698325e-05,
+          "caller_fixture_matches_condition_A1": true,
+          "caller_fixture_matches_auto_A1": true,
+          "workload_catalog_matches_condition_A1": true,
+          "workload_trace_matches_condition_A1": true,
+          "workload_catalog_matches_auto_A1": true,
+          "workload_trace_matches_auto_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "latency_ratio_range": [
+        0.9884777272325465,
+        0.9930681066596843
+      ]
+    },
+    {
+      "backend_override": "rust-gfni-avx512",
+      "profile": "stream",
+      "case": "verify_stream:4:2:65536:65536",
+      "metric": "ns_per_block",
+      "iterations": 176128,
+      "repeat_checks": [
+        {
+          "backend_override": "rust-gfni-avx512",
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A1/A2",
+          "drift": 0.01553766568567072
+        },
+        {
+          "backend_override": "rust-gfni-avx512",
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "B1/B2",
+          "drift": 0.025294591821252377
+        }
+      ],
+      "comparisons": [
+        {
+          "backend_override": "rust-gfni-avx512",
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A1/B1",
+          "latency_ratio": 0.9914426630620766,
+          "candidate_attribution": null
+        },
+        {
+          "backend_override": "rust-gfni-avx512",
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A1/B2",
+          "latency_ratio": 1.0165208005384072,
+          "candidate_attribution": null
+        },
+        {
+          "backend_override": "rust-gfni-avx512",
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A2/B1",
+          "latency_ratio": 0.9762736494787462,
+          "candidate_attribution": null
+        },
+        {
+          "backend_override": "rust-gfni-avx512",
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A2/B2",
+          "latency_ratio": 1.0009680929481555,
+          "candidate_attribution": null
+        }
+      ],
+      "phases": {
+        "A1": {
+          "median": 14026.56,
+          "central_spread": 0.031087451235370562,
+          "short_samples": 0,
+          "maximum_measured_main_wait_to_wall": 7.896393724489092e-05,
+          "caller_fixture_matches_condition_A1": true,
+          "caller_fixture_matches_auto_A1": false,
+          "workload_catalog_matches_condition_A1": true,
+          "workload_trace_matches_condition_A1": true,
+          "workload_catalog_matches_auto_A1": true,
+          "workload_trace_matches_auto_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 13906.53,
+          "central_spread": 0.02304456970933807,
+          "short_samples": 0,
+          "maximum_measured_main_wait_to_wall": 8.629176448963333e-05,
+          "caller_fixture_matches_condition_A1": true,
+          "caller_fixture_matches_auto_A1": false,
+          "workload_catalog_matches_condition_A1": true,
+          "workload_trace_matches_condition_A1": true,
+          "workload_catalog_matches_auto_A1": true,
+          "workload_trace_matches_auto_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 14258.29,
+          "central_spread": 0.015739615339567373,
+          "short_samples": 0,
+          "maximum_measured_main_wait_to_wall": 0.0001379142874259732,
+          "caller_fixture_matches_condition_A1": true,
+          "caller_fixture_matches_auto_A1": false,
+          "workload_catalog_matches_condition_A1": true,
+          "workload_trace_matches_condition_A1": true,
+          "workload_catalog_matches_auto_A1": true,
+          "workload_trace_matches_auto_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 14244.5,
+          "central_spread": 0.021019340798202803,
+          "short_samples": 0,
+          "maximum_measured_main_wait_to_wall": 7.893028836581158e-05,
+          "caller_fixture_matches_condition_A1": true,
+          "caller_fixture_matches_auto_A1": false,
+          "workload_catalog_matches_condition_A1": true,
+          "workload_trace_matches_condition_A1": true,
+          "workload_catalog_matches_auto_A1": true,
+          "workload_trace_matches_auto_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "latency_ratio_range": [
+        0.9762736494787462,
+        1.0165208005384072
+      ]
+    }
+  ],
+  "regression_program_results": [
+    {
+      "backend_override": "auto",
+      "profile": "small_file",
+      "pair": "A1/B1",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 1,
+      "failures": []
+    },
+    {
+      "backend_override": "auto",
+      "profile": "small_file",
+      "pair": "A1/B2",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 1,
+      "failures": []
+    },
+    {
+      "backend_override": "auto",
+      "profile": "small_file",
+      "pair": "A2/B1",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 1,
+      "failures": []
+    },
+    {
+      "backend_override": "auto",
+      "profile": "small_file",
+      "pair": "A2/B2",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 1,
+      "failures": []
+    },
+    {
+      "backend_override": "auto",
+      "profile": "stream",
+      "pair": "A1/B1",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 1,
+      "failures": []
+    },
+    {
+      "backend_override": "auto",
+      "profile": "stream",
+      "pair": "A1/B2",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 1,
+      "failures": []
+    },
+    {
+      "backend_override": "auto",
+      "profile": "stream",
+      "pair": "A2/B1",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 1,
+      "failures": []
+    },
+    {
+      "backend_override": "auto",
+      "profile": "stream",
+      "pair": "A2/B2",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 1,
+      "failures": []
+    },
+    {
+      "backend_override": "rust-gfni-avx512",
+      "profile": "small_file",
+      "pair": "A1/B1",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 1,
+      "failures": []
+    },
+    {
+      "backend_override": "rust-gfni-avx512",
+      "profile": "small_file",
+      "pair": "A1/B2",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 1,
+      "failures": []
+    },
+    {
+      "backend_override": "rust-gfni-avx512",
+      "profile": "small_file",
+      "pair": "A2/B1",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 1,
+      "failures": []
+    },
+    {
+      "backend_override": "rust-gfni-avx512",
+      "profile": "small_file",
+      "pair": "A2/B2",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 1,
+      "failures": []
+    },
+    {
+      "backend_override": "rust-gfni-avx512",
+      "profile": "stream",
+      "pair": "A1/B1",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 1,
+      "failures": []
+    },
+    {
+      "backend_override": "rust-gfni-avx512",
+      "profile": "stream",
+      "pair": "A1/B2",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 1,
+      "failures": []
+    },
+    {
+      "backend_override": "rust-gfni-avx512",
+      "profile": "stream",
+      "pair": "A2/B1",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 1,
+      "failures": []
+    },
+    {
+      "backend_override": "rust-gfni-avx512",
+      "profile": "stream",
+      "pair": "A2/B2",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 1,
+      "failures": []
+    }
+  ],
+  "limitations": [
+    "The previous seven-case affected-catalog A1/B1 threshold failure remains retained and unaccepted.",
+    "Each backend condition contains complete ABBA at the original iteration counts, three warmups and nine samples.",
+    "Ordinary backend metadata is rust-gfni-avx512 in all observations. Existing explicit override disables generated encoding in source; metadata alone is not a kernel profiler.",
+    "Caller fixtures match within each backend condition; stream caller fixtures differ between backend conditions. This prevents a claim that every layout or physical-state variable was held fixed across conditions.",
+    "Workload witnesses match across conditions; all measured process fault counts are zero. Equal faults do not prove equal internal owner lifetimes or physical cache/memory placement.",
+    "Complete raw logs/JSON, worker summaries, parent events and all 16 checker outputs replay exactly; no codec call occurs during replay.",
+    "No release approval or unique explanation of historical Linux drift follows from these diagnostic controls."
+  ]
+}
