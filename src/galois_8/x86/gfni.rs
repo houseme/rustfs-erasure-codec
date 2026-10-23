@@ -445,7 +445,9 @@ mod tests {
         std::println!("GFNI_AVX512_EXHAUSTIVE_EXECUTED");
     }
 
-    fn exercise_tower_coefficients(multiply: fn([u8; 4], &[[u8; 2]], &mut [[u8; 2]], bool)) {
+    type TowerSliceFn = fn([u8; 4], &[[u8; 2]], &mut [[u8; 2]], bool);
+
+    fn exercise_tower_coefficients(multiply: TowerSliceFn) {
         use crate::Field as _;
         use crate::galois_16::{Field, tower_mul_coefficients};
 
