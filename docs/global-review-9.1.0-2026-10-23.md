@@ -1674,3 +1674,83 @@ their provenance. The core/WASM allowlists remain 67/six files; repository tools
 Python and archived JSON remain GitHub-only. All five members inherit root
 dependencies. No dependency, codec format, tag, registry upload or performance
 approval is introduced.
+
+
+## Original summaries and borrowed campaign statistics
+
+The final runtime `882efff` is rebased onto main `afb9a52`, retaining the newly
+merged Darwin owned-process exit fix. Codec sources, build inputs, dependency declarations
+and lockfiles match that main. The original Python comparison remains bound to
+`580a6df` and is rerun against this final runtime. The native implementation and
+Python integration are separate functional commits. The existing sampling command and helper remain
+the entry points; no crate or command is added.
+
+The remaining complete-profile flow decoded sixteen declared summary files in
+Python and sent their rows to native normalization. It then transferred all
+normalized rows into sampling replay and into another statistical request.
+The existing campaign snapshot now reads and normalizes those original summaries
+alongside the raw calibration, samples and journal. The row validator's persisted
+artifact-kind mapping also defines the filenames, avoiding another profile-name
+mapping in production. Statistical analysis exposes its existing model over
+borrowed ordered rows; both the standalone statistical request and directory
+replay invoke that same function. No second arithmetic implementation is added.
+
+The complete directory catalog is sixteen summaries, twenty-four raw members and
+an optional journal. Its fixed aggregate budget is 41 times the unchanged 32 MiB
+per-member limit. The existing explicitly supplied-summary interface retains its
+25-member budget and response fields. Other snapshots retain their 256 MiB
+budget. All declared originals are decoded from bound bytes and reread for a final
+hash check before returning. This adds summary revalidation reads in Rust while
+removing Python summary parsing and repeated transport.
+
+Summary input arrays retain their first-seen case order through normalization and
+statistical reports. Median comparison uses the same original numeric equality;
+legacy duplicate keys, integer negative zero and newlines retain their behavior.
+Formal distribution refusals retain priority over campaign ratio analysis.
+The controller receives its report, case counts and the A1 small-file rows used
+by the paired-layout binding. Live Git/compiler checks, source/protocol preflight,
+regression subprocesses and final approval rules remain in their existing flow.
+The obsolete Python path validator and statistical transport wrapper are removed.
+
+An original-Python comparison at `580a6df` covers 756 workers / 9,072 observations.
+Four accepted variants preserve every complete diagnostic report field: ordinary,
+legacy raw JSON, reversed original summary order and legacy summary JSON. Seven
+refused variants cover original summary hash/path declarations, raw hash/path
+declarations, incomplete observations, changed preparation and changed medians.
+Every original file remains unchanged. Under the same fixture source/compiler
+bindings, mocked regression subprocess results and cleared pure row/provenance
+caches, persistent helper frames fall from thirteen to four and request bytes
+from 1,002,314 to 19,370. Python campaign member reads fall from sixteen summaries /
+273,528 bytes to zero. These are synthetic transport and report-equivalence
+checks, not codec-throughput or release-performance conclusions.
+The existing compiled `sampling-contract` command also runs the complete directory
+request with an empty PATH and matches its sample, worker and statistical fields,
+without Python or Cargo.
+
+Native tests cover both supplied and original summary inputs, the complete case
+counts, original case order, all statistical comparisons, summary path/hash
+refusals, forged medians and formal spread-refusal precedence. Python integration
+refuses any summary/raw member read, requires one campaign frame without supplied
+rows and bounds it below one hundredth of the original sample bytes. The former
+path-helper test now exercises traversal and symlinks through complete replay;
+the diagnostic approval test also checks the unchanged manifest and one frame.
+
+All fifteen final checks pass in a new independent frozen checkout after rebase:
+253 native (224 unit / 29 CLI), 252 Python and 536 top-level codec tests, ten doctests, strict
+tooling Clippy, Linux tool compilation, codec-only no_std, compatibility, all three
+audits, actual core packaging/reconstruction, extracted-package tests, formatting
+and diff checks. The three additional native tests come from
+the merged Darwin exit-confirmation fix. The extracted package passes 370 library tests with five existing
+ignores; the repository retains 43 existing codec ignores. All 200 non-fast
+published-9.0.0/local-9.1.0 configurations pass exact parity and bidirectional
+cross-decoding, plus historical tower-field vectors. The older inconsistent
+fast-one-parity mode remains outside that probe. Spelling passes.
+
+The inventory is 34 active Python files / 7,495 lines: 3,283 production/helper
+and 4,212 test/fixture lines. This round removes 37 production lines and adds five
+integration-test lines, for a net reduction of 32 lines. Remaining modules retain
+active callers. All 590 JSON files / 3,464,634 bytes and eleven equal-byte groups
+retain their provenance. The core/WASM allowlists remain 67/six files, excluding
+repository tooling, Python and archived JSON. All five members inherit root
+dependencies. No dependency, codec format, tag, registry upload or performance
+approval is introduced.
