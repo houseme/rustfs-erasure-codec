@@ -42,6 +42,7 @@ cargo test --locked --package xtask
 | Profile grouping/selection, v15 protocol and baseline statistics | `sampling_contract::{batch,protocol}`, `statistics`, `diagnostics::baseline`; `cargo xtask analyze-baseline-data --input FILE` | Whole-profile validation, stable original observation indices, service ranks, complete repeat cohorts, adjacent schedules and conservative wall-window bounds |
 | VM process/thread analysis, synchronous counters and frequency deltas | `diagnostics::vm::{process,clock}`; `cargo xtask analyze-vm-data --input FILE` | Independent validation copies, shared/retired thread sets, per-thread reset checks, explicit unavailable/idle readings, ordered MSRs, enclosing windows and unchanged diagnostic schemas |
 | Retained-layout comparisons and stream-view inventory signatures | `diagnostics::layout::inventory` and the shared typed `diagnostics::views` ledger; `cargo xtask analyze-layout --input FILE` | All four phases, six comparison pairs, 103 retained cases, 15 stream cases, exact difference fields, lifecycle ordering and explicit absence of performance attribution |
+| Complete calibration profiles and campaign comparisons/classification | `sampling_contract::calibration_profile`, `diagnostics::baseline::campaign`; existing `sampling-contract` and `analyze-baseline-data` commands | Every raw calibration row, complete bounded rehearsals, frozen counts, optional CPU policy, original case order, finite ratios, complete diagnostic failures and existing report fields |
 
 The obsolete implementations and their Python test entry points are removed.
 Rust unit and executable tests cover the retained contracts. The migration was
@@ -232,7 +233,7 @@ The initial inventory contained **56 Python files / 13,120 lines**. Twenty-three
 original files were removed (twelve implementations/helpers and eleven test
 modules). One native-tool compatibility binding remains. The intermediate Python
 normalization library was also removed after its consumers moved to Rust.
-The remaining **34 files / 7,789 lines** consist of 15 production/helper modules
+The remaining **34 files / 7,745 lines** consist of 15 production/helper modules
 and 19 test/fixture modules: about 41% fewer Python lines overall. This count
 includes the latest merged VM observer/cleanup checks. Layout consolidation removes
 349 lines from its immediate parent (`75bc034`, 8,486 lines). The
@@ -281,9 +282,20 @@ The obsolete point/window wrappers and unused Python clock constants are removed
 A binding regression checks one request, bounded copies and raw-input independence.
 Including the separately committed reset fix, this removes 175 Python lines from
 `e7d1142`. Retained/stream structural inventories subsequently remove another 24
-lines, including added binding checks: 3,705 production/helper and 4,084
-test/fixture lines remain. All fifty old/native comparisons retain the original
-complete reports and refusal decisions.
+lines, including added binding checks. All fifty old/native comparisons retain
+the original complete reports and refusal decisions.
+Complete calibration and campaign analysis subsequently remove another 44 lines
+relative to `c9ad921`, including a separately committed finite-ratio fix and new
+binding coverage. The current count is 3,657 production/helper and 4,088
+test/fixture lines. All 44 original sampling tests passed before two pure
+rehearsal checks moved to Rust; 42 sampling integration tests remain. Complete
+calibration validation borrows the original rows and checks the CPU reservation
+in the same pass. Baseline replay, adjacent controls and release verification
+remove their redundant per-record CPU-validation calls. Native campaign analysis
+keeps all 252 repeats, 504 comparisons and simultaneous diagnostic failure
+classes; the controller still owns source/file checks and regression programs.
+Finite input metrics can overflow their quotient, so nonfinite repeat and
+candidate ratios are refused before a JSON report is constructed.
 The unreferenced Python-2-style `sage/galois_ext_test.sage` worksheet was also
 removed. Its four fixed tower-field addition/multiplication/division/inverse
 vectors now execute against both codec versions in the compatibility probe.
@@ -295,7 +307,7 @@ and validation copies are outside this inventory.
 | Remaining group | Modules | Rust migration boundary |
 | --- | --- | --- |
 | Native tool binding | `native_tools` | Own/reap one host worker for source generation, normalization, CPU identity and memory policy; bounded immutable-value caches |
-| Campaign and machine qualification | `release_evidence`, `release_sampling`, `analyze_baseline_variability`, `diagnose_adjacent_baseline`, `diagnose_release_vm` | Protocol, grouping/selection, baseline/VM distributions and counter windows are native; retain process/resource ownership, hardware reads, platform adapters, trusted frozen replay and immutable evidence contracts |
+| Campaign and machine qualification | `release_evidence`, `release_sampling`, `analyze_baseline_variability`, `diagnose_adjacent_baseline`, `diagnose_release_vm` | Protocol, complete calibration, grouping/selection, campaign/baseline/VM distributions and counter windows are native; retain process/resource ownership, hardware reads, platform adapters, trusted frozen replay and immutable evidence contracts |
 | Native probes and source overlays | `diagnostic_overlay`, `diagnose_fixture_layout`, `diagnose_verify_layout`, `diagnose_shard_slot`, `diagnose_cpu_placement` | Layout calculations, shared buffer validation, probe programs and templates are native; retain rollback/cancellation behavior and original-source digests |
 | Allocation/lifecycle audits | `dynamic_buffer_audit`, `stream_core_audit`, `stream_view_audit`, `verify_scratch_audit` | All four allocation/source/view ledger models and summaries, decoder headers/catalog, source transforms and overlay generation are native; retain capture/replay, envelope/source binding and integration orchestration |
 | Tests and fixture support | `scripts/tests/*.py` | Move each behavior test with its owning subsystem; remove the old test only after exercising its replacement |
