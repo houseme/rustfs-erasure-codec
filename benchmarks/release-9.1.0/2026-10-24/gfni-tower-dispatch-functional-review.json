@@ -1,0 +1,69 @@
+{
+  "artifact_kind": "gfni-tower-cached-dispatch-functional-review-v1",
+  "runtime_source": "678ddd60c28f6a198be58397a0603a5ff1c43fad",
+  "comparator": "9ddcac9348504d1c9b6b55231ec4596a1e938984",
+  "original_portable_body_preserved_except_constant_aliases": true,
+  "gf8_module_restored_to_comparator": true,
+  "new_global_state": "one immutable selected function pointer; no payload retention",
+  "static_linux_x86_frame_review": {
+    "actual_field_slice_entries_checked": 2,
+    "entry_stack_subtraction_bytes": 24,
+    "portable_stack_subtractions_bytes": [
+      4096,
+      120
+    ],
+    "hardware_execution": false,
+    "rss_claim": false
+  },
+  "local_arm64": {
+    "codec_library": 372,
+    "codec_integration": 168,
+    "codec_documentation": 10,
+    "existing_ignored": 43,
+    "no_std": 245,
+    "strict_clippy": true,
+    "published_normal_configurations": 200,
+    "published_custom_configurations": 27,
+    "published_custom_cross_recoveries": 162,
+    "independent_pr83_wide_reference_cases": 12,
+    "wide_reference_source": "3c9ab7e8bb202ea233c78dfe9896cc7a31dca166",
+    "wide_reference_temporary_scaffold_removed": true
+  },
+  "native_linux": {
+    "gfni_units": 9,
+    "both_new_tower_execution_markers": true,
+    "cached_selector_mapping_test": 1,
+    "coefficient_basis_test": 1,
+    "affine_matrix_test": 1,
+    "encoding_dispatch": 7,
+    "owned_buffer_reuse": 2,
+    "published_normal_configurations": 200,
+    "custom_cases_per_backend": 27,
+    "custom_recoveries_per_backend": 162,
+    "custom_backend_conditions": [
+      "auto",
+      "rust-gfni-avx2",
+      "rust-gfni-avx512"
+    ],
+    "functional_payload_cases_per_role": 20,
+    "payload_witnesses_equal": true,
+    "timed_sampler_metrics_disabled": true
+  },
+  "strict_x86_all_target_clippy_compile": true,
+  "strict_linux_library_clippy_compile": true,
+  "strict_linux_gfni_no_std_clippy_compile": true,
+  "ordinary_ci_on_runtime_source": {
+    "success": 31,
+    "skipped": 3,
+    "pending": 0,
+    "failure": 0
+  },
+  "package_members": {
+    "core": 67,
+    "wasm": 6
+  },
+  "portable_interleave_candidate_pr83_included": false,
+  "first_cohort_refusals_retained": true,
+  "component_performance_acceptance": false,
+  "release_approval": false
+}

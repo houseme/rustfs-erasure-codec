@@ -129,3 +129,53 @@ strict Clippy `type_complexity`. Follow-through `25c5e5d` gives that callback a
 type alias without changing a kernel, test assertion or frozen measurement.
 The old failure remains retained. Source review checks the exact test-only
 replacement and unchanged runtime items; the new head requires its own CI.
+
+## Cached execution and portable-frame follow-through
+
+Source `678ddd60c28f6a198be58397a0603a5ff1c43fad` retains the same fused vector
+kernels and restores the original portable executor body, apart from naming its
+existing polynomial constants. Builds without GFNI alias that executor directly.
+GFNI-capable builds resolve one field-specific function pointer from the same
+immutable GF8 backend, instead of probing/rejecting GFNI on every general call.
+The constant-coordinate path remains outside that general dispatch.
+
+A separate static Linux x86 compilation checks the actual `Field::mul_slice` and
+`Field::mul_slice_add` entries: each reserves 24 bytes; the portable executor
+retains its original 4,096+120-byte frame. Thus the portable planes are no longer
+reserved on fused/constant entry paths in that build. The original generic body
+and loop operations remain preserved; these source/code-generation facts do not
+prove that all observed scalar refusal or drift has one cause.
+
+The new source repeats all 550 local codec/integration/doc tests, 245 no_std
+tests, the 200 published configurations and 27 custom / 162 cross-recovery cases.
+Strict ARM64 and x86-64 all-target Clippy, Linux library and Linux GFNI/no_std
+Clippy, fmt and typos pass. An independent execution of the public wide oracle
+from [PR #83](https://github.com/houseme/rustfs-erasure-codec/pull/83) also passes
+all twelve 2+255 GF16 Vandermonde/Cauchy cases against published 9.0.0 on ARM64,
+including data-only and full cross-recovery. The temporary reference test is
+removed afterward; this is a new execution on this runtime, not a relabeling of
+that PR's source or measurements. Source `678ddd6` ordinary CI completes
+31 SUCCESS / 3 SKIPPED; those skips are not positive strict preflight.
+
+The [new dispatch plan](../benchmarks/release-9.1.0/2026-10-24/gfni-tower-dispatch-plan.json)
+retains all twenty cases, identical harness bytes, count calibration and limits.
+Its candidate is the actual dispatch/frame change; original baseline remains
+`9ddcac9`. The first cohort and initial zero-sample resource wait remain intact.
+The new plan launches only after the earlier owner fully restores resources and
+the original observers. It requires its own native cached-selector, kernel and
+published-version checks before eighty ABBA workers / 960 observations. No
+sample is replaced by another source or selected from a favorable phase.
+
+PR #83 independently changes portable accumulation/interleave and overlaps the
+thin-entry work. Its different baseline/candidate/catalog cannot validate this
+source. That portable optimization is not included here; integrating both needs
+an explicit source review, conflict resolution and new final evidence.
+
+
+Native checks on cached source `678ddd6` subsequently pass as well: nine GFNI
+units with both tower markers, the new selector mapping, coefficient/matrix,
+encoding dispatch and owned-buffer reuse tests, the existing 200 published cases,
+and all 81 custom configurations / 486 cross recoveries under the three backend
+settings. Both twenty-case one-iteration payload catalogs agree. The fresh
+sampler is rebuilt without metrics before its fixed eighty-worker comparison;
+that comparison is still in progress and is not yet accepted.
