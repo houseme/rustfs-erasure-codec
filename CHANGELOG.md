@@ -18,6 +18,9 @@ All notable changes to this project are documented in this file.
   the overwrite product planes and XOR directly into initialized destinations,
   avoiding a destination deinterleave pass without changing field arithmetic,
   scratch ownership, byte format or reconstruction publication.
+  Keep the common subfield dispatcher free of the general kernel's 4 KiB
+  plane frame, specialize overwrite/XOR mode at compile time, and align the
+  four unchanged scratch planes to 64 bytes for the existing SIMD backends.
 
 - Allow identified Darwin group members to finish exiting within the existing
   cleanup deadline before requiring two fresh complete exit snapshots. Retain
