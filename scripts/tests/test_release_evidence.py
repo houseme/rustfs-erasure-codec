@@ -445,14 +445,18 @@ class EvidenceTests(unittest.TestCase):
                 with self.assertRaises(ValueError): self.verify()
 
     def test_tampered_bytes_path_and_symlinks(self):
+        original = copy.deepcopy(self.doc)
         self.doc["files"]["A1"]["smoke"]["sha256"] = "0" * 64
         with self.assertRaisesRegex(ValueError, "digest"): self.verify()
         for name in ("../escape", "/tmp/file", "A1/../smoke-results.json", "unknown/smoke-results.json"):
-            with self.assertRaises(ValueError): evidence.safe_file(self.root, name)
+            self.doc = copy.deepcopy(original)
+            self.doc["files"]["A1"]["smoke"]["path"] = name
+            with self.assertRaises(ValueError): self.verify()
+        self.doc = original
         target = self.root / "A1" / evidence.FILES["smoke"]
         target.unlink()
         target.symlink_to(self.root / "B1" / evidence.FILES["smoke"])
-        with self.assertRaises(ValueError): evidence.safe_file(self.root, "A1/" + evidence.FILES["smoke"])
+        with self.assertRaisesRegex(ValueError, "symlinked"): self.verify()
 
     def test_environment_changes_including_after_reject(self):
         original = copy.deepcopy(self.doc)

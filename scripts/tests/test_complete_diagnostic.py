@@ -67,7 +67,7 @@ class CompleteReplayTests(unittest.TestCase):
     def test_worker_journal_reuses_each_bound_profile_read(self):
         reader=e.member_bytes;native=e.native_tools
         def read(path,*args,**kwargs):
-            if path.name.endswith('-samples.json'):raise AssertionError('Python sampling member read')
+            if path.name.endswith('-samples.json') or path.name in e.FILES.values():raise AssertionError('Python campaign member read')
             return reader(path,*args,**kwargs)
         with mock.patch.object(e,'member_bytes',side_effect=read), mock.patch.object(native,'_request_payload',wraps=native._request_payload) as frames, mock.patch.object(e.subprocess,'run',return_value=subprocess.CompletedProcess([],0,'','')):
             report=self.replay()
@@ -75,7 +75,8 @@ class CompleteReplayTests(unittest.TestCase):
         requests=[c.args[0] for c in frames.call_args_list if json.loads(c.args[0]).get('kind')=='sampling' and json.loads(c.args[0]).get('request',{}).get('operation')=='campaign']
         self.assertEqual(len(requests),1)
         original_bytes=sum(p.stat().st_size for p in self.root.rglob('*-samples.json'))
-        self.assertLess(len(requests[0].encode()),original_bytes//10)
+        self.assertLess(len(requests[0].encode()),original_bytes//100)
+        self.assertNotIn('summarized',json.loads(requests[0])['request']['request'])
 
     def test_execution_errors_do_not_become_complete_statistical_diagnostics(self):
         with mock.patch.object(e.subprocess,'run',return_value=subprocess.CompletedProcess([],2,'','input integrity failed')) as checks:
@@ -110,15 +111,15 @@ class CompleteReplayTests(unittest.TestCase):
         self.assertFalse((self.root/'manifest.json').exists())
 
     def test_passing_diagnostic_cannot_be_used_by_formal_verify_or_materialize(self):
-        original=e.campaign_analysis
-        def analyze(data,spreads,diagnostic):
-            before=copy.deepcopy(data)
+        original=e.verify_sampling
+        def analyze(document,root,repository,*,diagnostic=False):
+            before=copy.deepcopy(document)
             with mock.patch.object(e.native_tools,'_request_payload',wraps=e.native_tools._request_payload) as frames:
-                result=original(data,spreads,diagnostic)
+                result=original(document,root,repository,diagnostic=diagnostic)
             self.assertEqual(frames.call_count,1)
-            self.assertEqual(data,before)
+            self.assertEqual(document,before)
             return result
-        with mock.patch.object(e.subprocess,'run',return_value=subprocess.CompletedProcess([],0,'','')),mock.patch.object(e,'campaign_analysis',side_effect=analyze) as analysis:
+        with mock.patch.object(e.subprocess,'run',return_value=subprocess.CompletedProcess([],0,'','')),mock.patch.object(e,'verify_sampling',side_effect=analyze) as analysis:
             report=self.replay()
         analysis.assert_called_once()
         self.assertTrue(report['all_original_limits_passed']); self.assertFalse(report['release_approval'])

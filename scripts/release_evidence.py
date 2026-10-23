@@ -81,14 +81,6 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def campaign_analysis(data, sample_spreads, diagnostic):
-    # Pairs preserve each phase's original case order across JSON object sorting.
-    projected={phase:{profile:list(rows.items()) for profile,rows in profiles.items()}
-               for phase,profiles in data.items()}
-    return native_tools.request('baseline-analysis', request=dict(operation='campaign', request=dict(
-        data=projected, sample_spreads=sample_spreads if diagnostic else [], diagnostic=diagnostic)))
-
-
 def member_bytes(path, expected_sha256=_UNBOUND):
     if expected_sha256 is not _UNBOUND and (not isinstance(expected_sha256, str) or not DIGEST.fullmatch(expected_sha256)):
         raise ValueError("original member digest mismatch")
@@ -236,18 +228,6 @@ def compatible(profile, left, right):
 def observation_contracts(profile, records, reference=None):
     """Validate the complete batch natively; retain original read-only references."""
     return native_tools.observation_contracts(profile, records, reference)
-
-
-def safe_file(root, name):
-    path = pathlib.PurePosixPath(name)
-    if path.is_absolute() or ".." in path.parts or len(path.parts) != 2 or path.parts[0] not in PHASES + ("calibration-baseline", "calibration-candidate") or path.name not in set(FILES.values()) | {p + "-samples.json" for p in FILES}:
-        raise ValueError("invalid evidence member path")
-    current = root
-    for part in path.parts:
-        current /= part
-        if current.is_symlink():
-            raise ValueError("symlinks are not evidence members")
-    return current
 
 
 def checker_args(profile, baseline, current, digests=None):
@@ -398,28 +378,11 @@ def _verify_profiles(document, root, repository, compiler=True, *, diagnostic=Fa
         raise ValueError("measurement environment changed during the campaign")
     if compiler and reference.get("compiler") != command(["rustc", "--version"], repository, dict(os.environ, RUSTUP_TOOLCHAIN="stable")):
         raise ValueError("release compiler differs from measured evidence")
-    data, paths = {}, {}
-    if set(document.get("files", {})) != set(PHASES):
-        raise ValueError("unexpected or missing measurement phases")
-    for phase in PHASES:
-        role = "baseline" if phase.startswith("A") else "candidate"
-        data[phase], paths[phase] = {}, {}
-        entries = document.get("files", {}).get(phase, {})
-        if set(entries) != set(FILES): raise ValueError("every phase needs all four release profiles")
-        for profile, filename in FILES.items():
-            entry = entries[profile]
-            if not isinstance(entry, dict):
-                raise ValueError("evidence member must be an object")
-            expected = f"{phase}/{filename}"
-            if entry.get("path") != expected or not DIGEST.fullmatch(entry.get("sha256", "")):
-                raise ValueError("invalid evidence member declaration")
-            path = safe_file(root, expected)
-            original=json_data(path,entry["sha256"])
-            paths[phase][profile] = path
-            counts = document.get("sampling", {}).get("common_iterations", {}).get(profile)
-            data[phase][profile] = indexed_rows(profile, original, sources[role]["commit"], counts)
-    sample_spreads, invocations = verify_sampling(document, root, repository, data, diagnostic=diagnostic)
-    analysis = campaign_analysis(data, sample_spreads, diagnostic)
+    replay = verify_sampling(document, root, repository, diagnostic=diagnostic)
+    sample_spreads, invocations = replay['sample_spreads'], replay['worker_invocations']
+    analysis, data = replay['analysis'], replay['layout_rows']
+    paths = {phase:{profile:root/entry['path'] for profile,entry in entries.items()}
+             for phase,entries in document['files'].items()}
     drifts = analysis['repeat_checks']
     if not diagnostic and any(item["drift"] > sampling.REPEAT_DRIFT_LIMIT for item in drifts):
         raise EvidenceFailure("ABBA drift exceeds 5%; no candidate attribution or release approval",
@@ -442,20 +405,20 @@ def _verify_profiles(document, root, repository, compiler=True, *, diagnostic=Fa
         analysis['regression_checks']=checks
         analysis['all_original_limits_passed'] &= not any(r['exit_code'] for r in checks)
         return paths, data, analysis
-    return paths, data, {"status": "profiles_verified", "candidate_commit": actual["commit"], "candidate_tree": actual["tree"], "measured_candidate_commit": sources["candidate"]["commit"], "baseline_commit": sources["baseline"]["commit"], "drift_checks": len(drifts), "sample_distribution_checks": len(sample_spreads), "case_counts": {p: len(data["A1"][p]) for p in FILES}, "scope": "controlled recorded VM campaign; no new measurement on the verification runner"}
+    return paths, data, {"status": "profiles_verified", "candidate_commit": actual["commit"], "candidate_tree": actual["tree"], "measured_candidate_commit": sources["candidate"]["commit"], "baseline_commit": sources["baseline"]["commit"], "drift_checks": len(drifts), "sample_distribution_checks": len(sample_spreads), "case_counts": replay["case_counts"], "scope": "controlled recorded VM campaign; no new measurement on the verification runner"}
 
 
-def verify_sampling(document, root, repository, summarized, *, diagnostic=False):
+def verify_sampling(document, root, repository, *, diagnostic=False):
     contract = document.get("sampling", {})
     expected = dict(sampling.PROTOCOL, implementation_sha256=sampling.implementation_digest(), overlay_sha256=sampling.overlay_digest(repository))
     if any(contract.get(k) != v for k, v in expected.items()):
         raise ValueError("sampling protocol/implementation mismatch")
     result = native_tools.sampling_request('campaign', request=dict(capture=str(root.resolve()),
-        document=document, summarized=summarized, diagnostic=diagnostic))
+        document=document, diagnostic=diagnostic))
     spreads = result['sample_spreads']
     if result['unstable'] and not diagnostic:
         raise EvidenceFailure("sample distributions are unstable; no candidate attribution", {"sample_spreads": spreads, "candidate_attribution": None})
-    return spreads, result['worker_invocations']
+    return result
 
 
 def calibration_counts(records, profile, revision, expected_page_size=None, *, allowed_cpus=None):
