@@ -1,9 +1,12 @@
 # 9.1.0 release preparation
 
-Status at the 2026-10-22 audit: **prepared candidate, not tagged or uploaded**.
-The [2026-10-23 global review](global-review-9.1.0-2026-10-23.md) records the
-subsequent main merge, process-ownership fix, actual no_std package selection
-and in-progress complete Linux diagnostic without replacing historical results.
+Status at the 2026-10-23 review: **implementation merged, performance acceptance
+incomplete, not tagged or uploaded**. The
+[current merged-candidate review](release-9.1.0-readiness-2026-10-23.md) records
+main `14cf56e`, its complete file-tree equality with frozen candidate `449920e`,
+completed ordinary checks and the prepared affected-catalog comparison. The
+[earlier global review](global-review-9.1.0-2026-10-23.md) retains its own sources,
+process-ownership fixes and complete Linux diagnostic history.
 The [current readiness assessment](release-9.1.0-blockers.md) is the canonical
 remaining-work list. It supersedes historical checklist snapshots, without
 changing their source bindings or promoting rejected measurements.
@@ -82,12 +85,15 @@ cargo xtask check-release --tag 9.1.0
       compatibility scope.
 - [ ] Establish a controlled condition or distinguishing observation for residual
       execution-service variability before a new full baseline campaign. The
-      latest complete qualification failed 8/126 repeat checks despite passing
-      all 252 distributions. The subsequent forced diagnostic refused a 20.6528%
-      A1 distribution; candidate phases and complete repeat/regression checks
-      never started. Historical failures remain retained. None is accepted
-      performance evidence. Fixed frequency, PMU and unique historical-cause
-      attribution are not additional release conditions.
+      historical qualification failed 8/126 repeats despite passing all 252
+      distributions; an earlier forced diagnostic stopped at its A1 distribution.
+      The later complete diagnostic collected every planned phase and layout,
+      retaining one profile distribution failure, nine profile repeat failures,
+      sixteen regression-program refusals and sixteen cross-phase layout repeat
+      failures. The new affected-catalog plan tests a changed candidate and does
+      not replace those failures or qualify the complete baseline. Fixed
+      frequency, PMU and unique historical-cause attribution are not additional
+      release conditions.
 - [ ] Freeze final source/lock/harness and qualify the complete baseline, retaining
       5% same-version drift, 10% central spread and uniform protocol-15 duration
       gates (2 s wall / 100 ms measured calibration targets; 1 s / 40 ms sample
