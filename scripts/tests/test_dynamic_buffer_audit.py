@@ -65,6 +65,12 @@ class CompleteInventoryContractTests(unittest.TestCase):
             self.assertEqual({v['case'] for v in steps if v['role']==role and v['profile']=='decoder'},set(audit.SUPPLEMENTS))
         self.assertEqual(len({tuple(sorted(v.items())) for v in steps}),len(steps))
 
+    def test_fixed_plan_returns_fresh_values_without_another_native_request(self):
+        from unittest import mock
+        with mock.patch.object(audit.native_tools,'_request_payload',side_effect=AssertionError('unexpected IPC')):
+            first=audit.inventory_steps();first[0]['role']='foreign'
+            self.assertEqual(audit.inventory_steps()[0]['role'],'candidate')
+
     def test_raw_dynamic_workload_is_refused_by_formal_validation(self):
         import copy
         for profile in audit.PROFILES:
@@ -106,8 +112,11 @@ class CompleteInventoryContractTests(unittest.TestCase):
         from unittest import mock
         with tempfile.TemporaryDirectory() as directory:
             root=pathlib.Path(directory);report,sources=self.envelope(root)
-            with mock.patch.object(audit.e,'source_at',side_effect=lambda root,revision:copy.deepcopy(sources[revision])):
-                audit.validate_envelope(report,root,ROOT)
+            with mock.patch.object(audit.e,'source_at',side_effect=lambda root,revision:copy.deepcopy(sources[revision])) as source_read:
+                with mock.patch.object(audit.native_tools,'_request_payload',wraps=audit.native_tools._request_payload) as frames:
+                    audit.validate_envelope(report,root,ROOT)
+                self.assertEqual(source_read.call_count,2)
+                self.assertEqual(frames.call_count,1)
                 raw=(root/'execution.jsonl').read_text();entries=[json.loads(v) for v in raw.splitlines()]
                 for mutation in ('missing','order','context','summary'):
                     bad=copy.deepcopy(entries)

@@ -19,6 +19,7 @@ _catalog = native_tools.request('diagnostic-ledger', request=dict(kind='dynamic-
 PROFILES = tuple(_catalog['profiles'])
 MODES = tuple(_catalog['modes'])
 SUPPLEMENTS = _catalog['supplements']
+_STEPS = json.dumps(_catalog.pop('steps'),separators=(',',':'))
 NAMES = ('src/lib.rs', 'src/matrix.rs', 'src/core/reconstruct.rs', 'src/galois_8/policy.rs') + native_tools.LEOPARD_FILES
 
 
@@ -43,17 +44,8 @@ def render(root):
 # Shared strict capture/replay contract.
 
 
-def integer(value, minimum=0):
-    return type(value) is int and minimum <= value <= 2**64-1
-
-
 def inventory_steps():
-    steps=[]
-    for role in ('candidate','baseline'):
-        steps.extend({'role':role,'mode':mode,'profile':profile,'case':case}
-                     for mode in MODES for profile in PROFILES for case in sorted(e.expected_cases(profile)))
-        steps.extend({'role':role,'mode':'structure','profile':'decoder','case':case} for case in SUPPLEMENTS)
-    return steps
+    return json.loads(_STEPS)
 
 
 def supplement_report(header,ledger,case,page,cpus,source):
@@ -73,31 +65,11 @@ def underlying_records(records):
 
 
 def validate_envelope(report,output,repository):
-    fields={'schema','release_approval','candidate_attribution','formal_performance_geometry_equivalence','tool','sources','cases','source_overlays','harness_sha256','overlay_sha256','context','page_size','cpu_affinity','native_sha256','sampler_implementation_sha256','controller_sha256'}
-    if set(report)!=fields:raise ValueError('unexpected dynamic inventory envelope')
-    context=report['context']
-    if not isinstance(context,dict) or set(context)!={'compiler','machine','cpu_identity','cpu_affinity','page_size','kernel_memory_policy','libc','allocator_environment','settings'}:raise ValueError('missing dynamic runtime provenance')
-    if any(not isinstance(context[k],str) or not context[k] for k in ('compiler','machine','cpu_identity')) or context['cpu_affinity']!=report['cpu_affinity'] or context['page_size']!=report['page_size'] or context['settings']!=e.SAMPLING_ENV:raise ValueError('dynamic runtime/settings differ')
-    if not isinstance(context['libc'],list) or len(context['libc'])!=2 or any(not isinstance(v,str) for v in context['libc']) or not isinstance(context['allocator_environment'],dict) or any(not e.allocator_override_key(k) or not isinstance(v,str) for k,v in context['allocator_environment'].items()):raise ValueError('invalid dynamic allocator provenance')
-    if report['cpu_affinity'] is not None:native_tools.validate_memory_policy(context['kernel_memory_policy'],report['page_size'])
-    elif context['kernel_memory_policy'] is not None:raise ValueError('unrecorded native memory policy')
-    tool=report['tool']
-    for source in (tool,*report['sources'].values()):
-        if not isinstance(source,dict) or set(source)!={'commit','tree','lock_sha256'} or not isinstance(source['commit'],str) or not e.REVISION.fullmatch(source['commit']) or not isinstance(source['tree'],str) or not e.REVISION.fullmatch(source['tree']) or not isinstance(source['lock_sha256'],str) or not e.DIGEST.fullmatch(source['lock_sha256']):raise ValueError('invalid source/tool identity')
+    sources=native_tools.request('diagnostic-ledger',request=dict(kind='dynamic-envelope',request=dict(
+        report=report,plan=e.json_data(output/'plan.json'),execution=e.member_text(output/'execution.jsonl'))))
+    for source in sources.values():
         if source!=e.source_at(repository,source['commit']):raise ValueError('original dynamic source/tool differs')
-    if tool!=report['sources']['candidate']:raise ValueError('dynamic tool/candidate identity differs')
-    for key in ('cases','source_overlays','harness_sha256','overlay_sha256'):
-        if set(report[key])!={'candidate','baseline'}:raise ValueError('incomplete per-source dynamic envelope')
-    plan=e.json_data(output/'plan.json')
-    steps=inventory_steps()
-    if set(plan)!=fields|{'steps'} or plan['steps']!=steps or plan['cases']!={'candidate':{},'baseline':{}} or any(plan[k]!=report[k] for k in fields-{'cases'}):raise ValueError('frozen complete dynamic plan differs')
-    path=output/'execution.jsonl'
-    entries=[json.loads(line) for line in e.member_text(path).splitlines()]
-    if len(entries)!=2*len(steps):raise ValueError('incomplete original execution journal')
-    for i,step in enumerate(steps):
-        begin,end=entries[2*i:2*i+2]
-        entry=report['cases'][step['role']][step['mode']+'/'+step['profile']+'/'+step['case']]
-        if begin!={'stage':'begin','step':step,'context':context} or end!={'stage':'end','step':step,'context':context,'entry':entry}:raise ValueError('dynamic execution order/context/member differs')
+
 
 def worker_report(rows,ledger,profile,case,source,page,cpus,mode):
     return native_tools.request('diagnostic-worker', request=dict(rows=rows, profile=profile, case=case,
@@ -116,13 +88,12 @@ def verify(output,repository):
     if report.get('native_sha256')!=e.digest(native_template().encode()) or report.get('sampler_implementation_sha256')!=s.implementation_digest() or report.get('controller_sha256')!=e.digest(pathlib.Path(__file__).read_bytes()):raise ValueError('dynamic diagnostic implementation differs')
     validate_envelope(report,output,repository)
     page=report.get('page_size');cpus=report.get('cpu_affinity')
-    if not s.valid_page_size(page) or cpus is not None and (not isinstance(cpus,list) or not cpus or any(not integer(c) for c in cpus) or cpus!=sorted(set(cpus))):raise ValueError('invalid dynamic page/CPU contract')
-    sources=report.get('sources',{})
-    if set(sources)!={'baseline','candidate'} or sources['baseline']['commit']!=e.BASELINE_COMMIT or sources['candidate']['commit']==e.BASELINE_COMMIT:raise ValueError('require both actual codec sources')
+    sources=report['sources']
+    if sources['baseline']['commit']!=e.BASELINE_COMMIT or sources['candidate']['commit']==e.BASELINE_COMMIT:raise ValueError('require both actual codec sources')
     expected={v['mode']+'/'+v['profile']+'/'+v['case'] for v in inventory_steps() if v['role']=='candidate'}
     contracts={};workloads={};traces={};members={};totals={'workers':0,'observations':0,'iterations':0,'events':0};differences={}
     for role,source in sources.items():
-        if source!=e.source_at(repository,source['commit']) or report['source_overlays'][role]!=bindings(original_inputs(repository,source)):raise ValueError('original dynamic source/lock/overlay differs')
+        if report['source_overlays'][role]!=bindings(original_inputs(repository,source)):raise ValueError('original dynamic source overlay differs')
         if report['harness_sha256'][role]!=e.harness_digest(repository) or report['overlay_sha256'][role]!=overlay_digest(repository):raise ValueError('dynamic original worker/harness differs')
         cases=report['cases'][role]
         if set(cases)!=expected:raise ValueError('incomplete dynamic mode/profile/catalog')

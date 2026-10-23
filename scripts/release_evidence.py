@@ -56,18 +56,8 @@ REVISION = re.compile(r"[0-9a-f]{40}\Z")
 DIGEST = re.compile(r"[0-9a-f]{64}\Z")
 MAX_BYTES = 32 * 1024 * 1024
 _UNBOUND = object()
-BASE_ENV = {
-    "RUSTUP_TOOLCHAIN": "stable", "RUSTFLAGS": "", "RAYON_NUM_THREADS": "4",
-    "RS_PARALLEL_POLICY_MAX_JOBS": "4", "RSE_BACKEND_OVERRIDE": "auto",
-    "RSE_STRICT_BACKEND_OVERRIDE": "1", "RSE_SMOKE_PROFILE": "extended",
-    "RSE_SMALL_FILE_PROFILE": "fast", "RSE_STREAM_PROFILE": "fast", "RSE_STREAM_IO_MODE": "auto",
-    "RSE_BENCHMARK_ALLOW_MISSING_CASES": "0", "CARGO_BUILD_JOBS": "4",
-    "RSE_SMOKE_ITERATIONS": "200", "RSE_SMALL_FILE_ITERATIONS": "1000",
-    "RSE_STREAM_ITERATIONS": "30", "RSE_TEST_BENCH_ITERATIONS": "100",
-}
-
-SAMPLING_ENV = {k: v for k, v in BASE_ENV.items() if not k.endswith("_ITERATIONS")}
-SAMPLING_ENV["RSE_SAMPLER_PROTOCOL"] = f"duration-v{sampling.PROTOCOL['version']}"
+BASE_ENV = native_tools.sampling_catalog()['base_environment']
+SAMPLING_ENV = native_tools.sampling_catalog()['sampling_environment']
 
 # Complete exported profile catalogs; harness changes require an explicit review.
 _CASE_CATALOG = {profile: frozenset(cases) for profile, cases in native_tools.sampling_catalog()['cases'].items()}
