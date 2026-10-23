@@ -215,9 +215,10 @@ impl<F: Field> Matrix<F> {
         }
     }
 
-    /// Add a scaled, disjoint source row without copying it into scratch.
+    /// Eliminate with a normalized pivot row whose preceding columns are zero.
+    /// Borrow disjoint rows without copying the pivot into scratch.
     #[inline]
-    fn add_scaled_row(
+    fn add_scaled_pivot_row(
         &mut self,
         source: usize,
         destination: usize,
@@ -239,7 +240,17 @@ impl<F: Field> Matrix<F> {
                 &mut before[destination * width..(destination + 1) * width],
             )
         };
-        Self::add_scaled_slice(scale, input, output, byte_rows);
+        // Earlier forward pivots made this prefix zero. Row swaps only involve
+        // remaining rows, and back substitution preserves the same invariant.
+        // Retain full byte-field batch rows: trimming each pivot introduces
+        // varying SIMD tails. Scalar arithmetic can omit the zero prefix.
+        let zero_prefix = if byte_rows { 0 } else { source };
+        Self::add_scaled_slice(
+            scale,
+            &input[zero_prefix..],
+            &mut output[zero_prefix..],
+            byte_rows,
+        );
     }
 
     pub fn gaussian_elim(&mut self) -> Result<(), Error> {
@@ -261,7 +272,8 @@ impl<F: Field> Matrix<F> {
             if acc!(self, r, r) != F::one() {
                 let scale = F::div(F::one(), acc!(self, r, r));
                 let start = r * self.col_count;
-                for value in &mut self.data[start..start + self.col_count] {
+                let zero_prefix = if byte_rows { 0 } else { r };
+                for value in &mut self.data[start + zero_prefix..start + self.col_count] {
                     *value = F::mul(scale, *value);
                 }
             }
@@ -271,7 +283,7 @@ impl<F: Field> Matrix<F> {
             for r_below in r + 1..self.row_count {
                 if acc!(self, r_below, r) != F::zero() {
                     let scale = acc!(self, r_below, r);
-                    self.add_scaled_row(r, r_below, scale, byte_rows);
+                    self.add_scaled_pivot_row(r, r_below, scale, byte_rows);
                 }
             }
         }
@@ -281,7 +293,7 @@ impl<F: Field> Matrix<F> {
             for r_above in 0..d {
                 if acc!(self, r_above, d) != F::zero() {
                     let scale = acc!(self, r_above, d);
-                    self.add_scaled_row(d, r_above, scale, byte_rows);
+                    self.add_scaled_pivot_row(d, r_above, scale, byte_rows);
                 }
             }
         }
@@ -520,6 +532,30 @@ mod tests {
                     }
                 }
                 let inverse = matrix.invert().unwrap();
+                // Multiple right-hand sides exercise the triangular zero-prefix
+                // invariant after swaps, normalization and both elimination passes.
+                for columns in [1, 3, 17] {
+                    let mut rhs = Matrix::<F>::new(size, columns);
+                    for row in 0..size {
+                        for column in 0..columns {
+                            rhs.set(row, column, F::nth((row * 17 + column * 7 + 1) % F::ORDER));
+                        }
+                    }
+                    let expected = scalar_product(&inverse, &rhs);
+                    let mut augmented = matrix.augment(&rhs).unwrap();
+                    augmented.gaussian_elim().unwrap();
+                    for row in 0..size {
+                        for column in 0..size {
+                            assert_eq!(
+                                augmented.get(row, column),
+                                if row == column { F::one() } else { F::zero() }
+                            );
+                        }
+                    }
+                    for (row, expected) in expected.iter().enumerate() {
+                        assert_eq!(&augmented.get_row(row)[size..], expected.as_slice());
+                    }
+                }
                 for actual in [
                     scalar_product(&matrix, &inverse),
                     scalar_product(&inverse, &matrix),

@@ -10,6 +10,10 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Skip proven zero columns in scalar Gaussian pivot normalization and
+  elimination while retaining full GF8 batch rows. Keep field arithmetic, row
+  ownership, inverse errors, matrix format and reconstruction publication semantics.
+
 - Compute Classic matrix products and elimination through contiguous rows with
   safe disjoint borrows. Reuse GF8 batch operations while retaining scalar row
   arithmetic for other fields; preserve matrix bytes, inversion errors, cache
