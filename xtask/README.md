@@ -45,6 +45,7 @@ cargo test --locked --package xtask
 | Complete calibration profiles and campaign comparisons/classification | `sampling_contract::calibration_profile`, `diagnostics::baseline::campaign`; existing `sampling-contract` and `analyze-baseline-data` commands | Every raw calibration row, complete bounded rehearsals, frozen counts, optional CPU policy, original case order, finite ratios, complete diagnostic failures and existing report fields |
 | Baseline directory loading, preparation comparison, runtime validation and complete report assembly | `diagnostics::baseline::replay`, shared `artifact::snapshot`, `runtime`; `cargo xtask analyze-baseline-capture --capture DIR --tool FROZEN_SOURCE` | Legacy basic/v1/v2 qualification schemas, original encoded-byte hashes, optional historical policies, complete cases/traces, bounded original members and descriptive-only reports |
 | Python fixture/workload/RNG projections | Shared `sampling_contract::preparation` in existing calibration, selection and diagnostic-worker frames | Last observed per-case calibration batches, exact seeds/placement, all trace positions and unchanged persisted evidence |
+| Python original-worker and frequency-result calculations | `sampling_contract::replay`, shared `batch::select` and `diagnostics::vm::frequency`; existing sampling/VM commands | Original journal agreement, frozen preparation/provenance, exact interval types, counter enclosure and unchanged complete reports |
 
 The obsolete implementations and their Python test entry points are removed.
 Rust unit and executable tests cover the retained contracts. The migration was
@@ -94,6 +95,22 @@ last observed calibration batches and exact seeds remain covered by native tests
 a frozen digest covers all 126 workload catalogs without duplicate JSON fixtures.
 The private bridge responses change together with their source-bound consumers;
 persisted report schemas and the encoding/decoding contract remain unchanged.
+
+## Original-worker replay and frequency reports
+
+Adjacent and frequency workers now share one borrowed Rust replay model. It
+parses sample/timing journals once, checks their original values, reuses frozen
+preparation/provenance and the same median selector as complete profiles.
+Frequency replay combines that model with existing counter and service summaries
+in one frame per worker. An eight-worker old/native comparison preserves every
+report value while reducing requests from 32 to eight and request bytes from
+810,888 to 675,681. All 126 adjacent workloads also agree exactly.
+
+The file controller binds frequency plan/journal hashes to the bounded bytes
+used for parsing. Integer/float intervals, interrupted final fragments, duplicate
+journal keys and original rejection rules retain their behavior. Original file
+and live MSR ownership remain in Python. These private tooling changes preserve
+persisted schemas and do not alter codec formats or provide throughput evidence.
 
 ## Root dependency policy and shared implementation
 
@@ -289,9 +306,9 @@ The initial inventory contained **56 Python files / 13,120 lines**. Twenty-three
 original files were removed (twelve implementations/helpers and eleven test
 modules). One native-tool compatibility binding remains. The intermediate Python
 normalization library was also removed after its consumers moved to Rust.
-The remaining **34 files / 7,675 lines** consist of 15 production/helper modules
+The remaining **34 files / 7,690 lines** consist of 15 production/helper modules
 and 19 test/fixture modules: about 41% fewer Python lines overall. The current
-production/helper and test/fixture split is 3,547/4,128 lines. This count
+production/helper and test/fixture split is 3,542/4,148 lines. This count
 includes the latest merged VM observer/cleanup checks. Layout consolidation removes
 349 lines from its immediate parent (`75bc034`, 8,486 lines). The
 stream-view migration removed its Python test module after all eleven original tests
@@ -472,13 +489,18 @@ added to a member manifest, and no package is uploaded.
 
 ## Current branch review and compatibility
 
-The latest implementation is frozen at `b5ab95e` on main `0a85348`. Its complete
-14-check run passes 214 native, 246 Python and 527 top-level codec tests, ten
-doctests, strict tooling Clippy, Linux tool compilation, no_std, compatibility
-and actual core package reconstruction. The subsequent digest-only test commit
-`ccedab1` passes all 215 native tests and strict Clippy. Preparation extraction
-now shares one Rust model across capture, selection and directory replay, with
-no extra helper frame. See the [preparation review](../docs/global-review-9.1.0-2026-10-23.md#shared-preparation-projections-in-native-batches).
+The latest implementation is represented by `d1d3402` on merged main `a771c04`.
+Its complete 14-check frozen-tree run passes 221 native, 247 Python and 527
+top-level codec tests, ten doctests, strict tooling Clippy, Linux tooling
+compilation, no_std, published/local compatibility and actual core package
+reconstruction. It binds frequency root hashes to parsed snapshots and shares
+original-worker validation and statistics in one native frequency frame.
+See the [worker replay review](../docs/global-review-9.1.0-2026-10-23.md#shared-original-worker-and-frequency-replay).
+
+The preceding preparation implementation is frozen at `b5ab95e` on main
+`0a85348`; its subsequent digest test at `ccedab1` passes 215 native tests.
+The source-bound [preparation review](../docs/global-review-9.1.0-2026-10-23.md#shared-preparation-projections-in-native-batches)
+retains its complete validation and equivalence scope.
 
 The preceding bound I/O review is frozen at `71d951e` on main `549b0ac`; its
 original 206 native, 246 Python and 519 codec test totals remain source-bound.

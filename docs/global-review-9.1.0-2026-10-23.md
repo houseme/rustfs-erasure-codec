@@ -1174,3 +1174,69 @@ allowlists remain 67/6 members: tools, Python, archived JSON and repository test
 harnesses remain GitHub-only. The core package is rebuilt from its actual
 extracted contents. There is no new dependency, codec change, release tag or
 registry upload in this follow-up.
+
+
+## Shared original-worker and frequency replay
+
+This follow-up retains merged main `a771c04`, including the preceding native
+preparation review and integrated matrix/ownership evidence. Its first functional
+commit binds frequency root hashes to their parsed snapshots; its second moves
+original-worker replay and complete frequency-worker calculations into shared
+Rust models. Codec sources, build inputs and dependency declarations are unchanged.
+
+A deterministic regression replaces the plan or execution journal after the
+original bytes are consumed. The former frequency reporter rereads those paths
+for its final hashes, allowing parsed old data to be associated with different
+new bytes. JSON and frequency roots now share one bounded text snapshot; each
+reported hash belongs to the exact bytes used for parsing. The report's plan
+also has to agree with the plan that was validated by the controller. This is a
+per-member snapshot binding, not a claim of a transactional filesystem snapshot.
+
+Adjacent and frequency replay share `sampling_contract::replay`. It parses the
+sample/timing prefixes in one journal pass, compares original JSON values,
+validates every raw row, and borrows the native preparation and provenance
+models. Full-profile selection and original-worker replay use one stable median
+selector. `diagnostics::vm::frequency` then reuses the existing enclosing-counter
+and baseline-service models in the same native request. Step, context and replay
+identities must agree. No new crate or replacement statistics policy is added.
+
+The original interrupted-final-fragment rule, last-key journal parsing,
+integer/float distinctions and signed-zero agreement remain covered. Interval
+exports retain integer or floating values as before; mixed numeric enclosure
+checks use the shared exact comparator. Reordered/context-mismatched workers,
+changed start journals, overlapping/short windows, stale preparation and idle
+measuring CPUs remain refused. Python keeps original-file binding, capture and
+MSR descriptor ownership; it no longer combines the numerical worker checks.
+
+A differential comparison uses the published Python functions at `ca72d70`.
+All 126 adjacent workloads / 1,512 observations agree exactly. The eight-worker
+frequency fixture retains all 96 observations and every report value, including
+mixed interval types. Its requests fall from 32 to eight and serialized request
+bytes from 810,888 to 675,681 after clearing the provenance cache. Every original
+member is unchanged after the comparison. These are fixture-specific transport
+and correctness results; no codec throughput or release acceptance is inferred.
+
+The complete final file tree, represented by implementation `d1d3402`, passes
+all fourteen checks from an independent frozen checkout: 221 native tests,
+247 Python tests, strict tooling Clippy, Linux tooling compilation, 527 top-level
+codec tests, ten doctests, codec-only no_std, the compatibility probe, all three
+audits, actual extracted core package reconstruction, formatting and diff checks.
+The main integration preserves the tested file tree exactly. The 43 existing
+codec ignores remain unchanged. The 200 non-fast compatibility configurations
+check exact parity and cross-decoding in both directions, plus historical
+field vectors; they do not certify the older inconsistent fast-one-parity mode.
+Spelling also passes.
+
+The inventory is 34 active Python files / 7,690 lines: 3,542 production/helper and
+4,148 test/fixture lines. Production Python falls by five lines relative to the
+preceding preparation review; the root-binding and single-frame regression adds
+20 Python test lines. Remaining modules retain live control, hardware, historical
+replay or integration-test callers. All 587 JSON files / 3,140,866 original bytes
+match main, including its latest integrated review. Eleven equal-byte groups
+retain their provenance and remain repository-only. No obsolete file is removed
+without a replacement or caller evidence.
+
+All five workspace members still inherit the root dependency catalog. The core
+and WASM allowlists remain 67 and six files, excluding Python, repository tools
+and archived evidence. No tag, registry upload, codec-format change or dependency
+change is part of this follow-up.
