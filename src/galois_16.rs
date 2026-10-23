@@ -128,29 +128,27 @@ fn gf16_mul_slice(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]], accumul
             &mut ac[..n],
         );
 
-        if accumulate {
-            deinterleave(
-                out[offset..offset + n].as_flattened(),
-                &mut ox[..n],
-                &mut oc[..n],
-            );
-            galois_8::mul_slice_xor(coef_a, &ax[..n], &mut ox[..n]);
-            galois_8::mul_slice_xor(coef_b, &ac[..n], &mut ox[..n]);
-            galois_8::mul_slice_xor(coef_c, &ax[..n], &mut oc[..n]);
-            galois_8::mul_slice_xor(coef_d, &ac[..n], &mut oc[..n]);
-        } else {
-            galois_8::mul_slice(coef_a, &ax[..n], &mut ox[..n]);
-            galois_8::mul_slice_xor(coef_b, &ac[..n], &mut ox[..n]);
-            galois_8::mul_slice(coef_c, &ax[..n], &mut oc[..n]);
-            galois_8::mul_slice_xor(coef_d, &ac[..n], &mut oc[..n]);
-        }
+        // Compute the product once in the same planes for both modes. The
+        // accumulator is read only while interleaving back into the caller's
+        // destination; it needs no separate deinterleave or plane copy.
+        galois_8::mul_slice(coef_a, &ax[..n], &mut ox[..n]);
+        galois_8::mul_slice_xor(coef_b, &ac[..n], &mut ox[..n]);
+        galois_8::mul_slice(coef_c, &ax[..n], &mut oc[..n]);
+        galois_8::mul_slice_xor(coef_d, &ac[..n], &mut oc[..n]);
 
-        // Re-interleave the `ox`/`oc` planes back into the output elements.
-        interleave(
-            &ox[..n],
-            &oc[..n],
-            out[offset..offset + n].as_flattened_mut(),
-        );
+        if accumulate {
+            interleave::<true>(
+                &ox[..n],
+                &oc[..n],
+                out[offset..offset + n].as_flattened_mut(),
+            );
+        } else {
+            interleave::<false>(
+                &ox[..n],
+                &oc[..n],
+                out[offset..offset + n].as_flattened_mut(),
+            );
+        }
         offset += n;
     }
 }
@@ -197,12 +195,13 @@ fn deinterleave(src: &[u8], even: &mut [u8], odd: &mut [u8]) {
 }
 
 /// Re-interleave two GF(2^8) byte planes into GF(2^16) element bytes:
-/// `dst[2*i] = even[i]`, `dst[2*i + 1] = odd[i]`. Inverse of [`deinterleave`].
+/// `dst[2*i] = even[i]`, `dst[2*i + 1] = odd[i]`, or XOR those bytes into
+/// initialized output when `ACCUMULATE` is true. Overwrite inverts [`deinterleave`].
 ///
 /// Requires `dst.len() == 2 * even.len()` and `even.len() == odd.len()`.
 #[allow(clippy::needless_return)]
 #[inline]
-fn interleave(even: &[u8], odd: &[u8], dst: &mut [u8]) {
+fn interleave<const ACCUMULATE: bool>(even: &[u8], odd: &[u8], dst: &mut [u8]) {
     debug_assert_eq!(dst.len(), even.len() * 2);
     debug_assert_eq!(even.len(), odd.len());
 
@@ -212,7 +211,7 @@ fn interleave(even: &[u8], odd: &[u8], dst: &mut [u8]) {
             // SAFETY: ssse3 confirmed at runtime, matching the callee; the
             // length contract above matches what the kernel indexes.
             unsafe {
-                interleave_ssse3(even, odd, dst);
+                interleave_ssse3::<ACCUMULATE>(even, odd, dst);
                 return;
             }
         }
@@ -222,12 +221,12 @@ fn interleave(even: &[u8], odd: &[u8], dst: &mut [u8]) {
         // SAFETY: NEON is baseline on aarch64; the length contract above matches
         // what the kernel indexes.
         unsafe {
-            interleave_neon(even, odd, dst);
+            interleave_neon::<ACCUMULATE>(even, odd, dst);
             return;
         }
     }
     #[cfg(not(target_arch = "aarch64"))]
-    interleave_scalar(even, odd, dst);
+    interleave_scalar::<ACCUMULATE>(even, odd, dst);
 }
 
 fn deinterleave_scalar(src: &[u8], even: &mut [u8], odd: &mut [u8]) {
@@ -237,10 +236,15 @@ fn deinterleave_scalar(src: &[u8], even: &mut [u8], odd: &mut [u8]) {
     }
 }
 
-fn interleave_scalar(even: &[u8], odd: &[u8], dst: &mut [u8]) {
+fn interleave_scalar<const ACCUMULATE: bool>(even: &[u8], odd: &[u8], dst: &mut [u8]) {
     for (i, (e, o)) in even.iter().zip(odd.iter()).enumerate() {
-        dst[2 * i] = *e;
-        dst[2 * i + 1] = *o;
+        if ACCUMULATE {
+            dst[2 * i] ^= *e;
+            dst[2 * i + 1] ^= *o;
+        } else {
+            dst[2 * i] = *e;
+            dst[2 * i + 1] = *o;
+        }
     }
 }
 
@@ -290,9 +294,9 @@ unsafe fn deinterleave_ssse3(src: &[u8], even: &mut [u8], odd: &mut [u8]) {
 
 #[cfg(target_arch = "x86_64")]
 #[target_feature(enable = "ssse3")]
-unsafe fn interleave_ssse3(even: &[u8], odd: &[u8], dst: &mut [u8]) {
+unsafe fn interleave_ssse3<const ACCUMULATE: bool>(even: &[u8], odd: &[u8], dst: &mut [u8]) {
     use core::arch::x86_64::{
-        _mm_loadu_si128, _mm_storeu_si128, _mm_unpackhi_epi8, _mm_unpacklo_epi8,
+        _mm_loadu_si128, _mm_storeu_si128, _mm_unpackhi_epi8, _mm_unpacklo_epi8, _mm_xor_si128,
     };
 
     let batches = even.len() / 32;
@@ -302,20 +306,33 @@ unsafe fn interleave_ssse3(even: &[u8], odd: &[u8], dst: &mut [u8]) {
         let d = &mut dst[b * 64..b * 64 + 64];
         // SAFETY: the slices above are exactly 32/32/64 bytes, so the four
         // 128-bit loads at 0/16 of `e`/`o` and the four 128-bit stores at
-        // 0/16/32/48 of `d` are all in-bounds; ssse3 confirmed by caller.
+        // 0/16/32/48 of initialized `d` are in-bounds. Accumulation reads
+        // exactly those same destination ranges; ssse3 confirmed by caller.
         unsafe {
             let lo = _mm_loadu_si128(e.as_ptr().cast());
             let hi = _mm_loadu_si128(o.as_ptr().cast());
-            _mm_storeu_si128(d.as_mut_ptr().cast(), _mm_unpacklo_epi8(lo, hi));
-            _mm_storeu_si128(d[16..].as_mut_ptr().cast(), _mm_unpackhi_epi8(lo, hi));
+            let mut low = _mm_unpacklo_epi8(lo, hi);
+            let mut high = _mm_unpackhi_epi8(lo, hi);
+            if ACCUMULATE {
+                low = _mm_xor_si128(low, _mm_loadu_si128(d.as_ptr().cast()));
+                high = _mm_xor_si128(high, _mm_loadu_si128(d[16..].as_ptr().cast()));
+            }
+            _mm_storeu_si128(d.as_mut_ptr().cast(), low);
+            _mm_storeu_si128(d[16..].as_mut_ptr().cast(), high);
             let lo2 = _mm_loadu_si128(e[16..].as_ptr().cast());
             let hi2 = _mm_loadu_si128(o[16..].as_ptr().cast());
-            _mm_storeu_si128(d[32..].as_mut_ptr().cast(), _mm_unpacklo_epi8(lo2, hi2));
-            _mm_storeu_si128(d[48..].as_mut_ptr().cast(), _mm_unpackhi_epi8(lo2, hi2));
+            let mut low = _mm_unpacklo_epi8(lo2, hi2);
+            let mut high = _mm_unpackhi_epi8(lo2, hi2);
+            if ACCUMULATE {
+                low = _mm_xor_si128(low, _mm_loadu_si128(d[32..].as_ptr().cast()));
+                high = _mm_xor_si128(high, _mm_loadu_si128(d[48..].as_ptr().cast()));
+            }
+            _mm_storeu_si128(d[32..].as_mut_ptr().cast(), low);
+            _mm_storeu_si128(d[48..].as_mut_ptr().cast(), high);
         }
     }
     let done = batches * 32;
-    interleave_scalar(&even[done..], &odd[done..], &mut dst[done * 2..]);
+    interleave_scalar::<ACCUMULATE>(&even[done..], &odd[done..], &mut dst[done * 2..]);
 }
 
 #[cfg(target_arch = "aarch64")]
@@ -349,8 +366,8 @@ unsafe fn deinterleave_neon(src: &[u8], even: &mut [u8], odd: &mut [u8]) {
 
 #[cfg(target_arch = "aarch64")]
 #[target_feature(enable = "neon")]
-unsafe fn interleave_neon(even: &[u8], odd: &[u8], dst: &mut [u8]) {
-    use core::arch::aarch64::{vld1q_u8, vst1q_u8, vzip1q_u8, vzip2q_u8};
+unsafe fn interleave_neon<const ACCUMULATE: bool>(even: &[u8], odd: &[u8], dst: &mut [u8]) {
+    use core::arch::aarch64::{veorq_u8, vld1q_u8, vst1q_u8, vzip1q_u8, vzip2q_u8};
 
     let batches = even.len() / 32;
     for b in 0..batches {
@@ -359,21 +376,34 @@ unsafe fn interleave_neon(even: &[u8], odd: &[u8], dst: &mut [u8]) {
         let d = &mut dst[b * 64..b * 64 + 64];
         // vzip1q/vzip2q interleave the low/high 16 bytes of the two planes.
         // SAFETY: the slices above are exactly 32/32/64 bytes, so the 128-bit
-        // loads at 0/16 of `e`/`o` and the stores at 0/16/32/48 of `d` are
-        // in-bounds; NEON is baseline on aarch64.
+        // loads at 0/16 of `e`/`o` and stores at 0/16/32/48 of initialized `d`
+        // are in-bounds. Accumulation reads those same destination ranges;
+        // NEON is baseline on aarch64.
         unsafe {
             let lo = vld1q_u8(e.as_ptr());
             let hi = vld1q_u8(o.as_ptr());
-            vst1q_u8(d.as_mut_ptr(), vzip1q_u8(lo, hi));
-            vst1q_u8(d[16..].as_mut_ptr(), vzip2q_u8(lo, hi));
+            let mut low = vzip1q_u8(lo, hi);
+            let mut high = vzip2q_u8(lo, hi);
+            if ACCUMULATE {
+                low = veorq_u8(low, vld1q_u8(d.as_ptr()));
+                high = veorq_u8(high, vld1q_u8(d[16..].as_ptr()));
+            }
+            vst1q_u8(d.as_mut_ptr(), low);
+            vst1q_u8(d[16..].as_mut_ptr(), high);
             let lo2 = vld1q_u8(e[16..].as_ptr());
             let hi2 = vld1q_u8(o[16..].as_ptr());
-            vst1q_u8(d[32..].as_mut_ptr(), vzip1q_u8(lo2, hi2));
-            vst1q_u8(d[48..].as_mut_ptr(), vzip2q_u8(lo2, hi2));
+            let mut low = vzip1q_u8(lo2, hi2);
+            let mut high = vzip2q_u8(lo2, hi2);
+            if ACCUMULATE {
+                low = veorq_u8(low, vld1q_u8(d[32..].as_ptr()));
+                high = veorq_u8(high, vld1q_u8(d[48..].as_ptr()));
+            }
+            vst1q_u8(d[32..].as_mut_ptr(), low);
+            vst1q_u8(d[48..].as_mut_ptr(), high);
         }
     }
     let done = batches * 32;
-    interleave_scalar(&even[done..], &odd[done..], &mut dst[done * 2..]);
+    interleave_scalar::<ACCUMULATE>(&even[done..], &odd[done..], &mut dst[done * 2..]);
 }
 
 /// Type alias of ReedSolomon over GF(2^8).
@@ -861,6 +891,63 @@ mod tests {
         gf16_mul_slice([0, 0], &[[0xa5, 0x5a]], &mut [], true);
     }
 
+    #[test]
+    fn general_tower_slices_match_scalar_for_every_coefficient() {
+        const N: usize = 33; // one SIMD batch plus its scalar tail
+        let input: [[u8; 2]; N] = core::array::from_fn(|i| match i {
+            0..8 => [1 << i, 0],
+            8..16 => [0, 1 << (i - 8)],
+            _ => [(i * 31 + 7) as u8, (i * 17 + 3) as u8],
+        });
+        for coefficient in 0..65536 {
+            let coefficient = [(coefficient >> 8) as u8, coefficient as u8];
+            for accumulate in [false, true] {
+                let mut output = [[0xa5, 0x5a]; N + 2];
+                let mut expected = output;
+                for (i, &value) in input.iter().enumerate() {
+                    let product = Field::mul(coefficient, value);
+                    expected[i + 1] = if accumulate {
+                        Field::add(expected[i + 1], product)
+                    } else {
+                        product
+                    };
+                }
+                gf16_mul_slice(coefficient, &input, &mut output[1..N + 1], accumulate);
+                assert_eq!(
+                    output, expected,
+                    "coefficient {coefficient:?}, accumulate {accumulate}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn interleave_accumulation_preserves_offsets_tails_and_sentinels() {
+        for n in (0..=97).chain([1023, 1024, 1025, 2049]) {
+            let even: Vec<_> = (0..n + 3).map(|i| (i * 29 + 13) as u8).collect();
+            let odd: Vec<_> = (0..n + 3).map(|i| (i * 37 + 41) as u8).collect();
+            for (source_start, destination_start) in [(0, 1), (1, 3), (3, 1)] {
+                let mut output: Vec<_> = (0..destination_start + 2 * n + 3)
+                    .map(|i| (i * 17 + 7) as u8)
+                    .collect();
+                let mut expected = output.clone();
+                for i in 0..n {
+                    expected[destination_start + 2 * i] ^= even[source_start + i];
+                    expected[destination_start + 2 * i + 1] ^= odd[source_start + i];
+                }
+                interleave::<true>(
+                    &even[source_start..source_start + n],
+                    &odd[source_start..source_start + n],
+                    &mut output[destination_start..destination_start + 2 * n],
+                );
+                assert_eq!(
+                    output, expected,
+                    "length {n}, offsets {source_start}/{destination_start}"
+                );
+            }
+        }
+    }
+
     // Verifies the SIMD-decomposed `mul_slice`/`mul_slice_add` overrides against
     // the element-wise scalar `Field::mul` reference across a range of lengths
     // (including CHUNK boundary and tail) and multiplier values. If the A/B/C/D
@@ -956,14 +1043,17 @@ mod tests {
             }
 
             let mut dst = vec![0u8; 2 * n];
-            interleave(&even, &odd, &mut dst);
+            interleave::<false>(&even, &odd, &mut dst);
 
             let mut dst_ref = vec![0u8; 2 * n];
-            interleave_scalar(&even, &odd, &mut dst_ref);
+            interleave_scalar::<false>(&even, &odd, &mut dst_ref);
             assert_eq!(dst, dst_ref, "interleave, n={n}");
 
             // Full round-trip must reconstruct the original interleaved bytes.
-            assert_eq!(dst, src, "interleave(deinterleave(src)) != src, n={n}");
+            assert_eq!(
+                dst, src,
+                "interleave::<false>(deinterleave(src)) != src, n={n}"
+            );
         }
     }
 }
