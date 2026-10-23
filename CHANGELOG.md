@@ -10,6 +10,10 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Validate GF8 scalar slice lengths before zero/one coefficient shortcuts,
+  preserving the Field panic contract across scalar and SIMD backends and
+  rejecting mismatched output before mutation. Valid encoding bytes are unchanged.
+
 - Skip proven zero columns in scalar Gaussian pivot normalization and
   elimination while retaining full GF8 batch rows. Keep field arithmetic, row
   ownership, inverse errors, matrix format and reconstruction publication semantics.
