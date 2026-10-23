@@ -1,4 +1,5 @@
 //! Allocation generations and typed owner spans from the disposable source observer.
+pub(crate) mod campaign;
 mod payload;
 use super::ledger::{self, Snapshot, nullable};
 use crate::{Result, sampling_contract};
@@ -12,7 +13,7 @@ pub(crate) fn catalog() -> Value {
         .iter()
         .map(|s| (s.case, (s.family, s.width, s.cache)))
         .collect();
-    json!({"profiles":["smoke","small_file","hotspot","stream"],"modes":["calibrate","sample"],"supplements":supplements})
+    json!({"profiles":sampling_contract::PROFILES,"modes":campaign::MODES,"supplements":supplements,"steps":campaign::steps()})
 }
 
 pub(crate) fn supplement(

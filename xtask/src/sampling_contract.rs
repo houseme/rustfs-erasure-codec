@@ -7,7 +7,7 @@ pub(crate) mod batch;
 pub(crate) mod calibration_profile;
 mod journal;
 pub(crate) mod preparation;
-mod protocol;
+pub(crate) mod protocol;
 pub(crate) mod replay;
 pub(crate) const PROFILES: [&str; 4] = ["smoke", "small_file", "hotspot", "stream"];
 use serde_json::{Value, json};
@@ -141,6 +141,8 @@ impl Request {
             Self::Catalog => {
                 return Ok(json!({
                     "protocol": protocol::value(),
+                    "base_environment":protocol::base_environment(),
+                    "sampling_environment":protocol::sampling_environment(),
                     "repeat_drift_limit": REPEAT_DRIFT_LIMIT,
                     "service_window": {
                         "target_wall_ns": service_window::TARGET_WALL_NS,

@@ -1,5 +1,6 @@
 //! Frozen v15 contract exported from the same constants used by analysis.
 use serde_json::{Value, json};
+const VERSION: u64 = 15;
 pub(super) const WARMUPS: usize = 3;
 pub(super) const SAMPLES: usize = 9;
 pub(super) const WIDTH: usize = WARMUPS + SAMPLES;
@@ -8,7 +9,7 @@ pub(super) const MAX_CALIBRATION_RECORDS: usize = WIDTH * MAX_CALIBRATION_BATCHE
 pub(super) fn value() -> Value {
     json!({
         "name": "shared-external-duration-sampler",
-        "version": 15,
+        "version": VERSION,
         "samples": SAMPLES,
         "warmups": WARMUPS,
         "case_isolation": "fresh-process-per-count",
@@ -73,4 +74,24 @@ fn frozen_v15_protocol_retains_the_original_canonical_digest() {
             .collect::<String>(),
         "e9dca6cbcd5d3132a6ef26582a9aef844a63e4ca101ecf14a4aed2f4e29bc21e"
     );
+}
+
+/// Fixed capture settings; diagnostic and formal controllers use the same values.
+pub(crate) fn base_environment() -> Value {
+    json!({"RUSTUP_TOOLCHAIN":"stable","RUSTFLAGS":"","RAYON_NUM_THREADS":"4",
+        "RS_PARALLEL_POLICY_MAX_JOBS":"4","RSE_BACKEND_OVERRIDE":"auto",
+        "RSE_STRICT_BACKEND_OVERRIDE":"1","RSE_SMOKE_PROFILE":"extended",
+        "RSE_SMALL_FILE_PROFILE":"fast","RSE_STREAM_PROFILE":"fast","RSE_STREAM_IO_MODE":"auto",
+        "RSE_BENCHMARK_ALLOW_MISSING_CASES":"0","CARGO_BUILD_JOBS":"4",
+        "RSE_SMOKE_ITERATIONS":"200","RSE_SMALL_FILE_ITERATIONS":"1000",
+        "RSE_STREAM_ITERATIONS":"30","RSE_TEST_BENCH_ITERATIONS":"100"})
+}
+pub(crate) fn sampling_environment() -> Value {
+    let mut environment = base_environment();
+    environment
+        .as_object_mut()
+        .expect("fixed environment object")
+        .retain(|k, _| !k.ends_with("_ITERATIONS"));
+    environment["RSE_SAMPLER_PROTOCOL"] = json!(format!("duration-v{VERSION}"));
+    environment
 }
