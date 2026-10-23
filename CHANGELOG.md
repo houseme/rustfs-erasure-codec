@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Build the shared native capture/replay helper with the release profile, reusing
+  the existing owned worker, batched requests and cached host executable. Keep
+  original validation, frame limits and source provenance; preserve the full
+  local synthetic profile comparison separately from codec timing evidence.
+
 - Prepare and execute generated native encoding views in the same owning scope,
   returning only the execution result. Read coefficient rows directly instead
   of constructing an intermediate 32-row container. Preserve complete safe-Field

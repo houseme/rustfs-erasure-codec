@@ -262,6 +262,20 @@ class NativeControllerBindingsTests(unittest.TestCase):
     def field(self, value):
         return self.native.request('provenance-field', row={'cpu_model':value}, field='cpu_model')
 
+    def test_native_controller_builds_the_optimized_host_tool(self):
+        host='aarch64-apple-darwin'
+        artifact=dict(reason='compiler-artifact',target=dict(name='xtask'),
+                      executable='/tool-target/'+host+'/release/xtask')
+        with mock.patch.object(self.native,'_run',side_effect=[
+                'rustc test\nhost: '+host+'\n',json.dumps(artifact)+'\n']) as run:
+            executable=self.native._executable.__wrapped__()
+        command=run.call_args_list[1].args[0]
+        self.assertIn('--release',command)
+        self.assertEqual(command[command.index('--target')+1],host)
+        self.assertIn('--locked',command)
+        self.assertIn('--offline',command)
+        self.assertEqual(executable,artifact['executable'])
+
     def test_view_batches_reuse_validation_summaries_and_recheck_mutated_records(self):
         import stream_view_audit as views
         from layout_fixture import view_fixture
