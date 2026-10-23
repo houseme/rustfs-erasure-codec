@@ -55,6 +55,74 @@ impl Drop for File {
     }
 }
 
+/// Prove that the owned, unreaped leader's group contains only exited members.
+#[cfg(target_os = "macos")]
+fn darwin_group_exited(leader: libc::pid_t) -> bool {
+    fn snapshot(leader: libc::pid_t) -> Option<Vec<(libc::pid_t, u64, u64)>> {
+        if leader <= 0 {
+            return None;
+        }
+        // libproc returns a PID count (not bytes). Keep one spare slot so a
+        // filled/truncated output cannot be mistaken for a complete snapshot.
+        // SAFETY: a null buffer with zero length only queries the required size.
+        let hint = unsafe { libc::proc_listpgrppids(leader, std::ptr::null_mut(), 0) };
+        let capacity = usize::try_from(hint).ok()?.checked_add(1)?;
+        let bytes: libc::c_int = capacity
+            .checked_mul(std::mem::size_of::<libc::pid_t>())?
+            .try_into()
+            .ok()?;
+        let mut members = Vec::<libc::pid_t>::new();
+        members.try_reserve_exact(capacity).ok()?;
+        members.resize(capacity, 0);
+        // SAFETY: the initialized buffer is writable for exactly `bytes` bytes.
+        let count = unsafe { libc::proc_listpgrppids(leader, members.as_mut_ptr().cast(), bytes) };
+        let count = usize::try_from(count).ok()?;
+        if count == 0 || count >= members.len() || !members[..count].contains(&leader) {
+            return None;
+        }
+        let mut exited = Vec::new();
+        exited.try_reserve_exact(count).ok()?;
+        for &pid in &members[..count] {
+            // SAFETY: all-zero fields form a valid writable C output record.
+            let mut info: libc::proc_bsdinfo = unsafe { std::mem::zeroed() };
+            let size = std::mem::size_of_val(&info);
+            // SAFETY: `info` is writable for `size` bytes. Argument 1 includes
+            // zombies; argument 0 cannot establish an exited member's state.
+            let copied = unsafe {
+                libc::proc_pidinfo(
+                    pid,
+                    libc::PROC_PIDTBSDINFO,
+                    1,
+                    (&mut info as *mut libc::proc_bsdinfo).cast(),
+                    size.try_into().ok()?,
+                )
+            };
+            if usize::try_from(copied).ok()? != size
+                || info.pbi_pid != u32::try_from(pid).ok()?
+                || info.pbi_pgid != u32::try_from(leader).ok()?
+                || info.pbi_status != libc::SZOMB
+            {
+                return None;
+            }
+            exited.push((pid, info.pbi_start_tvsec, info.pbi_start_tvusec));
+        }
+        exited.sort_unstable();
+        Some(exited)
+    }
+
+    let Some(before) = snapshot(leader) else {
+        return false;
+    };
+    let Some(after) = snapshot(leader) else {
+        return false;
+    };
+    // Already-exited members may be reaped between reads. New members or reused
+    // PIDs must never be accepted on the strength of an earlier zombie record.
+    after
+        .iter()
+        .all(|member| before.binary_search(member).is_ok())
+}
+
 /// Retain the child identity until its newly-created process group is stopped.
 struct Process {
     child: Child,
@@ -124,19 +192,10 @@ impl Process {
             let error = std::io::Error::last_os_error();
             #[cfg(target_os = "macos")]
             if error.raw_os_error() == Some(libc::EPERM) {
-                // Darwin excludes zombies from group signalling and can return
-                // EPERM for a group containing only our exited leader. Prove
-                // that exact case; a real permission failure stays an error.
-                let mut members = [0 as libc::pid_t; 2];
-                // SAFETY: the output is writable for the declared byte length.
-                let count = unsafe {
-                    libc::proc_listpgrppids(
-                        pid,
-                        members.as_mut_ptr().cast(),
-                        std::mem::size_of_val(&members) as libc::c_int,
-                    )
-                };
-                if count == 1 && members[0] == pid {
+                // Darwin can reject signals to an entirely exited group.
+                // Confirm every member, including unreaped worker zombies;
+                // a live member or an incomplete query keeps the original error.
+                if darwin_group_exited(pid) {
                     return Ok(());
                 }
             }
@@ -324,6 +383,91 @@ mod tests {
         assert!(outcome.reaped);
         assert!(!escaped, "background worker survived cancellation");
     }
+    #[cfg(target_os = "macos")]
+    fn observe_unreaped_exit(child: &Child) {
+        // SAFETY: all-zero fields form a valid writable C output record.
+        let mut info: libc::siginfo_t = unsafe { std::mem::zeroed() };
+        // SAFETY: the test owns this exact unreaped child handle. WNOWAIT
+        // observes its exit without releasing the PID used by its process group.
+        let result = unsafe {
+            libc::waitid(
+                libc::P_PID,
+                child.id(),
+                &mut info,
+                libc::WEXITED | libc::WNOWAIT,
+            )
+        };
+        assert_eq!(result, 0);
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn darwin_reaps_exited_groups_with_multiple_unwaited_members() {
+        use std::os::unix::process::CommandExt;
+
+        for member_count in [1, 2, 5, 33] {
+            let mut command = Command::new("sh");
+            command.args(["-c", "exit 0"]);
+            let mut process = Process::spawn(command).unwrap();
+            observe_unreaped_exit(&process.child);
+            let mut siblings = Vec::new();
+            for _ in 1..member_count {
+                let mut command = Command::new("sh");
+                command
+                    .args(["-c", "exit 0"])
+                    .process_group(process.child.id().try_into().unwrap());
+                let sibling = command.spawn().unwrap();
+                observe_unreaped_exit(&sibling);
+                siblings.push(sibling);
+            }
+
+            let result = process.poll();
+            let reported_reaped = process.status.is_some();
+            // Reap every test-owned child before asserting, including when the
+            // old controller falsely refuses an already-stopped process group.
+            for sibling in &mut siblings {
+                sibling.wait().unwrap();
+            }
+            process.status = Some(process.child.wait().unwrap());
+            assert!(
+                result.unwrap().unwrap().success(),
+                "group size {member_count}"
+            );
+            assert!(reported_reaped, "group size {member_count} was not reaped");
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn darwin_exited_leader_cannot_hide_a_live_group_member() {
+        use std::os::unix::process::CommandExt;
+
+        let mut command = Command::new("sh");
+        command.args(["-c", "exit 0"]);
+        let mut process = Process::spawn(command).unwrap();
+        observe_unreaped_exit(&process.child);
+        let mut command = Command::new("sh");
+        command
+            .args(["-c", "sleep 30"])
+            .process_group(process.child.id().try_into().unwrap());
+        let mut worker = command.spawn().unwrap();
+        let exited = darwin_group_exited(process.child.id().try_into().unwrap());
+        process.stop().unwrap();
+        worker.wait().unwrap();
+        assert!(
+            !exited,
+            "an exited leader did not prove its live worker stopped"
+        );
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn darwin_unknown_groups_are_not_reported_as_exited() {
+        for pid in [0, -1, libc::pid_t::MAX] {
+            assert!(!darwin_group_exited(pid), "unconfirmed group {pid}");
+        }
+    }
+
     #[cfg(unix)]
     #[test]
     fn cancelled_worker_is_reaped_without_signalling_the_callers_group() {
