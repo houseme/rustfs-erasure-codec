@@ -318,6 +318,7 @@ class NativeControllerBindingsTests(unittest.TestCase):
         command=run.call_args_list[1].args[0]
         self.assertIn('--release',command)
         self.assertEqual(command[command.index('--target')+1],host)
+        self.assertEqual(command[command.index('--target-dir')+1],str(self.native.ROOT/'target'))
         self.assertIn('--locked',command)
         self.assertIn('--offline',command)
         self.assertEqual(executable,artifact['executable'])
