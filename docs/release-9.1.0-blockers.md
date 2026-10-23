@@ -16,6 +16,16 @@ mechanism/resource improvements, not a unique cause or cure of the Linux drift.
 They require a new final candidate freeze; rejected timing campaigns remain
 rejected under their original source bindings.
 
+## Current merged implementation
+
+The [merged-candidate review](release-9.1.0-readiness-2026-10-23.md) binds main
+`14cf56e` to frozen runtime `449920e` by complete file-tree equality. Ordinary CI
+and package dry-run passed on the identical original PR tree `09597e4`; strict
+evidence validation, release preflight and registry publication were skipped.
+The prepared 64-worker encode/stream comparison has not started while another
+controlled capture owns the resource. Implementation merge does not close the
+performance or publication gates below.
+
 ## 2026-10-23 adaptive verification candidate
 
 The [complete affected-catalog review](verify-dispatch-review-2026-10-23.md) of
@@ -23,10 +33,11 @@ main `db69018` versus runtime `17432e5` retains all 28 workers / 336 observation
 and an exact independent replay. Distribution, duration and repeat checks pass,
 but one of eight regression programs rejects 4+2/64 KiB stream verification:
 A1/B1 latency increases 15.0854% against the original 15% limit. All four
-pairings are slower. Keep PR #57 in draft until this result is resolved; passing
-correctness or ordinary CI does not establish a performance gain. This subset
-is not the final 9.0.0 comparison or release acceptance, and it does not replace
-historical complete-catalog failures.
+pairings are slower. This remains an unaccepted result for the original runtime.
+The later shared GFNI-priority fix is merged, but its new complete affected-catalog
+comparison is pending. Passing correctness, ordinary CI or merging PR #57 does
+not establish a performance gain. Neither subset is the final 9.0.0 comparison
+or release acceptance, and neither replaces historical complete-catalog failures.
 
 ## Latest complete diagnostic follow-through
 
@@ -191,7 +202,7 @@ Only condition 4 is checked within its declared normal-format scope. Keep the
 | 3: 1/4 KiB layouts | Partial | The paired supplement is implemented. Obtain real passing A1/B1/B2/A2 results for all 16 source/scratch offset combinations at each size, kept separate from original Vec cases. |
 | 4: Compatibility | Complete in declared scope | Retain normal-format byte parity and ordinary/optimized, invalid-input and missing-shard behavior tests on the final candidate; do not expand the legacy compatibility promise. |
 | 5: Protocol/source/rejection | Partial | The complete private dynamic inventory binds source/lock/harness/observer/context and independently replays every original row. Rehashed warmup-backend and stale-request-generation counterexamples are refused without changing originals. Final accepted performance capture/replay and its immutable source/evidence bindings remain outstanding. |
-| 6: Full performance acceptance | Incomplete | A stable complete baseline, then full final candidate/layout ABBA and strict positive preflight. Latest qualification rejected 8/126 repeats; the subsequent forced diagnostic stopped at A1 distribution, before candidate phases or complete repeat/regression checks. |
+| 6: Full performance acceptance | Incomplete | A stable complete baseline, then full final candidate/layout ABBA and strict positive preflight. Historical qualification rejected 8/126 repeats. The later complete diagnostic collected all phases/layouts and retained its distribution, repeat and regression failures; merged runtime changes and the prepared affected catalog do not supply final acceptance. |
 
 ## Release sequence and benchmark decision
 
