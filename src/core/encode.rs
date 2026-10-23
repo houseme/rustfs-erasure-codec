@@ -525,7 +525,20 @@ impl<F: Field> ReedSolomon<F> {
             return Ok(());
         }
 
-        // Try SIMD codegen path for GF(2^8) with common configurations.
+        self.encode_classic_matrix(data, parity)
+    }
+
+    /// Encode validated Classic matrix parity through the shared checked kernel.
+    /// Callers handle family dispatch, fast parity and public layout validation.
+    #[inline]
+    pub(super) fn encode_classic_matrix<
+        T: AsRef<[F::Elem]>,
+        U: AsRef<[F::Elem]> + AsMut<[F::Elem]>,
+    >(
+        &self,
+        data: &[T],
+        parity: &mut [U],
+    ) -> Result<(), Error> {
         let shard_len = data[0].as_ref().len();
         if let Some(result) =
             self.try_native_encode(data, parity, shard_len, NativeEncodeExecution::Serial)

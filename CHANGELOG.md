@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Share the checked Classic matrix encoder with ordinary and caller-buffer
+  verification, including warm VerifyWorkspace calls. Reuse generated native
+  kernels when supported and retain generic fallback, scratch ownership,
+  complete public validation, fast-parity and Leopard behavior.
+
 - Route adaptive verification through the encoding layer's existing native and
   serial/parallel dispatch. Select policy once, preserve validation and scratch
   ownership, and retain Leopard behavior, backend overrides and encoding bytes.

@@ -89,6 +89,19 @@ fn check_native_view_fallback<const MODE: u8>(len: usize) {
         }
         assert_eq!(actual, expected);
     }
+    let mut shards = data;
+    shards.extend(expected.clone());
+    for corrupt in [false, true] {
+        if corrupt {
+            shards[13][len - 1] ^= 0x5a;
+        }
+        let mut scratch = vec![vec![0xa5; len]; 4];
+        assert_eq!(
+            codec.verify_with_buffer(&shards, &mut scratch).unwrap(),
+            !corrupt
+        );
+        assert_eq!(scratch, expected);
+    }
 }
 
 #[test]
@@ -276,6 +289,62 @@ mod native {
                 calls.set((read, write + 1));
             });
             Some(slice)
+        }
+    }
+
+    #[test]
+    fn serial_verification_uses_the_checked_native_encoder() {
+        #[cfg(rse_x86_avx2)]
+        if !std::is_x86_feature_detected!("avx2") {
+            return;
+        }
+        const CHILD: &str = "RSE_VERIFICATION_PREPARATION_CHILD";
+        if std::env::var_os(CHILD).is_none() {
+            let status = std::process::Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "native::serial_verification_uses_the_checked_native_encoder",
+                    "--nocapture",
+                    "--test-threads=1",
+                ])
+                .env(CHILD, "1")
+                .env("RSE_BACKEND_OVERRIDE", "auto")
+                .status()
+                .unwrap();
+            assert!(status.success());
+            return;
+        }
+        let codec = ReedSolomon::<CountedViews>::new(10, 4).unwrap();
+        let reference = galois_8::ReedSolomon::new(10, 4).unwrap();
+        let gfni_selected = matches!(
+            galois_8::active_backend_id(),
+            galois_8::BackendId::RustGfniAvx2 | galois_8::BackendId::RustGfniAvx512
+        );
+        // Automatic GFNI uses the shared fallback after the empty probes;
+        // eligible generated kernels prepare all data and parity views once.
+        let expected_calls = if gfni_selected { (1, 1) } else { (15, 5) };
+        for len in [65, 16 * 1024] {
+            let mut shards = data_shards(10, len);
+            shards.extend(vec![vec![0; len]; 4]);
+            reference.encode(&mut shards).unwrap();
+            let mut scratch = vec![vec![0xa5; len]; 4];
+            let mut workspace = rustfs_erasure_codec::VerifyWorkspace::new(&codec, len);
+            for corrupt in [false, true] {
+                if corrupt {
+                    shards[13][len - 1] ^= 0x5a;
+                }
+                for entry in 0..3 {
+                    VIEW_CALLS.with(|calls| calls.set((0, 0)));
+                    let valid = match entry {
+                        0 => codec.verify(&shards),
+                        1 => codec.verify_with_buffer(&shards, &mut scratch),
+                        _ => codec.verify_with_workspace(&shards, &mut workspace),
+                    }
+                    .unwrap();
+                    assert_eq!(valid, !corrupt, "entry={entry}, len={len}");
+                    assert_eq!(VIEW_CALLS.with(Cell::get), expected_calls, "entry={entry}");
+                }
+            }
         }
     }
 

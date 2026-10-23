@@ -11,42 +11,21 @@ use crate::errors::Error;
 use super::{ReedSolomon, VERIFY_INLINE_SCRATCH_ELEMS, VerifyWorkspace};
 
 impl<F: Field> ReedSolomon<F> {
-    fn check_some_slices_with_buffer<T, U>(
+    fn check_classic_parity<T, U>(
         &self,
-        matrix_rows: &[&[F::Elem]],
         inputs: &[T],
         to_check: &[T],
         buffer: &mut [U],
-    ) -> bool
+    ) -> Result<bool, Error>
     where
         T: AsRef<[F::Elem]>,
         U: AsRef<[F::Elem]> + AsMut<[F::Elem]>,
     {
-        self.code_some_slices(matrix_rows, inputs, buffer);
-
-        for (expected_parity_shard, actual_parity_shard) in buffer.iter().zip(to_check.iter()) {
-            if expected_parity_shard.as_ref() != actual_parity_shard.as_ref() {
-                return false;
-            }
-        }
-        true
-    }
-
-    fn check_some_slices_with_buffer_raw<T: AsRef<[F::Elem]>>(
-        &self,
-        matrix_rows: &[&[F::Elem]],
-        inputs: &[T],
-        to_check: &[T],
-        buffer: &mut [&mut [F::Elem]],
-    ) -> bool {
-        self.code_some_slices(matrix_rows, inputs, buffer);
-
-        for (expected_parity_shard, actual_parity_shard) in buffer.iter().zip(to_check.iter()) {
-            if *expected_parity_shard != actual_parity_shard.as_ref() {
-                return false;
-            }
-        }
-        true
+        self.encode_classic_matrix(inputs, buffer)?;
+        Ok(buffer
+            .iter()
+            .zip(to_check)
+            .all(|(expected, actual)| expected.as_ref() == actual.as_ref()))
     }
 
     fn verify_leopard_with_buffer<T, U>(
@@ -104,7 +83,6 @@ impl<F: Field> ReedSolomon<F> {
             return Ok(buffer.as_slice() == to_check[0].as_ref());
         }
 
-        let parity_rows = self.get_parity_rows();
         let scratch_len = self.parity_shard_count() * slice_len;
         let mut scratch: SmallVec<[F::Elem; VERIFY_INLINE_SCRATCH_ELEMS]> =
             SmallVec::with_capacity(scratch_len);
@@ -112,7 +90,7 @@ impl<F: Field> ReedSolomon<F> {
         let mut buffer_views: SmallVec<[&mut [F::Elem]; 32]> =
             scratch.chunks_mut(slice_len).collect();
 
-        Ok(self.check_some_slices_with_buffer_raw(&parity_rows, data, to_check, &mut buffer_views))
+        self.check_classic_parity(data, to_check, &mut buffer_views)
     }
 
     /// Verify using a pre-allocated [`VerifyWorkspace`] to avoid repeated allocation.
@@ -159,8 +137,7 @@ impl<F: Field> ReedSolomon<F> {
             return Ok(buffer[0].as_ref() == to_check[0].as_ref());
         }
 
-        let parity_rows = self.get_parity_rows();
-        Ok(self.check_some_slices_with_buffer(&parity_rows, data, to_check, buffer))
+        self.check_classic_parity(data, to_check, buffer)
     }
 
     /// Parallel version of [`verify_with_buffer`](Self::verify_with_buffer).
