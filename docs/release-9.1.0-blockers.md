@@ -27,8 +27,10 @@ evidence validation, release preflight and registry publication were skipped.
 
 New combined-source checks pass: 356 codec units, 93 integration tests, 129 native
 tests, all 273 Python controller tests, strict Clippy and no_std. The frozen
-64-worker encode/stream plan continues on its original sources after safe launch;
-complete collection and independent replay remain pending. Its result cannot
+64-worker encode/stream plan has completed and independently replays exactly. All
+64 distributions and eight regression programs pass, but three of 32 repeats fail
+(maximum 8.3833%); no sample is short. The [complete GFNI review](gfni-priority-review-2026-10-23.md)
+retains all sixteen cases and failures. This unaccepted result cannot
 be relabeled as a measurement of the later combined main. Final-source freeze,
 complete accepted evidence and strict positive preflight remain required.
 
@@ -41,7 +43,8 @@ but one of eight regression programs rejects 4+2/64 KiB stream verification:
 A1/B1 latency increases 15.0854% against the original 15% limit. All four
 pairings are slower. This remains an unaccepted result for the original runtime.
 The later shared GFNI-priority fix is merged, but its new complete affected-catalog
-comparison is pending. Passing correctness, ordinary CI or merging PR #57 does
+comparison is complete, with three repeat failures retained as described above.
+Passing correctness, ordinary CI or merging PR #57 does
 not establish a performance gain. Neither subset is the final 9.0.0 comparison
 or release acceptance, and neither replaces historical complete-catalog failures.
 

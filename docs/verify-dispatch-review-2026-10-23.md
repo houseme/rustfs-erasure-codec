@@ -4,7 +4,9 @@ Review date: 2026-10-23. This source-bound diagnostic compares main `db690184811
 with runtime change `17432e50f1fd2a790034e3de213ebf58c7d4635c` in
 [PR #57](https://github.com/houseme/rustfs-erasure-codec/pull/57).
 The complete result rejects performance acceptance: one original regression
-threshold is exceeded. Keep the PR in draft while resolving that result.
+threshold is exceeded. The subsequent GFNI-priority fix was merged in PR #57;
+its [complete new-source review](gfni-priority-review-2026-10-23.md) retains three
+repeat failures. Neither result supplies final performance acceptance.
 No percentage speedup or 9.1.0 release approval is established.
 
 The runtime removes verification's outer policy branch and delegates to the

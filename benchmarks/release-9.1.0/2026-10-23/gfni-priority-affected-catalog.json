@@ -1,0 +1,3329 @@
+{
+  "schema": "gfni-priority-affected-catalog-review-v1",
+  "scope": "all eleven original small-file encode cases and all five original stream verification cases; source-bound automatic-GFNI candidate versus integrated main; affected-catalog diagnosis, not final published-baseline release acceptance",
+  "release_approval": false,
+  "candidate_attribution": null,
+  "workers": 64,
+  "observations": 768,
+  "warmups": 192,
+  "measurements": 576,
+  "parent_events": 128,
+  "all_worker_summaries_match": true,
+  "all_raw_logs_match": true,
+  "all_fixed_counts_match": true,
+  "all_inputs_unchanged": true,
+  "all_sources_restored": true,
+  "all_resources_restored": true,
+  "observer_services_active": true,
+  "render_signatures_match": true,
+  "distribution_checks": 64,
+  "distribution_failures": 0,
+  "short_samples": 0,
+  "repeat_checks": 32,
+  "repeat_failures": 3,
+  "cross_version_comparisons": 64,
+  "regression_programs": 8,
+  "regression_program_failures": 0,
+  "regression_case_failures": 0,
+  "maximum_central_spread": 0.0417019176586,
+  "maximum_repeat_drift": 0.08383334277469101,
+  "measured_sources": {
+    "tool": "022c0a7476e3d91bee33f86bf4ade55d27122949",
+    "baseline": "340fc191890c0f6717b6dba26c2afbe68276d64f",
+    "candidate": "449920e428cee723e27f9280f62f917e08f784e0"
+  },
+  "baseline_and_candidate_lockfiles_equal": true,
+  "formal_performance_acceptance": false,
+  "scope_outcome": "not accepted: three same-version repeat checks exceed the original five-percent bound",
+  "original_affected_catalog_failure_retained": true,
+  "combined_main_performance_acceptance": false,
+  "candidate_functional_checks": [
+    {
+      "name": "gfni-priority",
+      "passed": true,
+      "tests_passed": 1
+    },
+    {
+      "name": "avx2-kernel-bytes",
+      "passed": true,
+      "tests_passed": 1
+    },
+    {
+      "name": "encoding-dispatch",
+      "passed": true,
+      "tests_passed": 6
+    }
+  ],
+  "cases": [
+    {
+      "profile": "small_file",
+      "case": "encode:10:4:16384",
+      "metric": "ns_per_iter",
+      "iterations": 262144,
+      "phases": {
+        "A1": {
+          "median": 8995.41,
+          "central_spread": 0.025060558662695784,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 8994.34859085083,
+            "main_run_central_spread": 0.024862225411431717,
+            "main_run_to_wall_range": [
+              0.9995568716796911,
+              0.9999246099432001
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.909363748078301e-07,
+              4.993298106577755e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 7089.63,
+          "central_spread": 0.01943542892929532,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 7085.851051330566,
+            "main_run_central_spread": 0.01941621804925096,
+            "main_run_to_wall_range": [
+              0.9994668104806665,
+              0.9999462231357676
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.2706431517577684e-07,
+              3.648946560656652e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 7202.47,
+          "central_spread": 0.02210352837290538,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 7200.90938949585,
+            "main_run_central_spread": 0.022317678486669268,
+            "main_run_to_wall_range": [
+              0.9994998152922819,
+              0.9999339118513911
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.0655855147390085e-07,
+              4.21431672288457e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 8952.15,
+          "central_spread": 0.01567556397066646,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 8950.641696929932,
+            "main_run_central_spread": 0.015652489256284395,
+            "main_run_to_wall_range": [
+              0.9996498439952317,
+              0.9998688114084372
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.696363166415276e-07,
+              5.719082435476846e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "repeat_checks": [
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:16384",
+          "pair": "A1/A2",
+          "drift": 0.004809119317518595
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:16384",
+          "pair": "B1/B2",
+          "drift": 0.015916204371737352
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:16384",
+          "pair": "A1/B1",
+          "latency_ratio": 0.788138617361521,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:16384",
+          "pair": "A1/B2",
+          "latency_ratio": 0.8006827926687056,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:16384",
+          "pair": "A2/B1",
+          "latency_ratio": 0.7919471858715504,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:16384",
+          "pair": "A2/B2",
+          "latency_ratio": 0.8045519791335043,
+          "candidate_attribution": null
+        }
+      ],
+      "latency_ratio_range": [
+        0.788138617361521,
+        0.8045519791335043
+      ],
+      "all_phase_measured_fault_sequences_equal": true
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:10:4:262144",
+      "metric": "ns_per_iter",
+      "iterations": 16384,
+      "phases": {
+        "A1": {
+          "median": 182485.7,
+          "central_spread": 0.020586928181221906,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 182438.4614868164,
+            "main_run_central_spread": 0.020687917557661924,
+            "main_run_to_wall_range": [
+              0.9996258872266564,
+              0.9999216523100924
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.311016194278679e-07,
+              3.7498054241865625e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 130921.74,
+          "central_spread": 0.021447774830979146,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 130872.82177734375,
+            "main_run_central_spread": 0.021179381496317064,
+            "main_run_to_wall_range": [
+              0.9995427126508147,
+              0.9999388057552838
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.3018433068852134e-07,
+              3.7948285979218375e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 133274.8,
+          "central_spread": 0.011932938560027749,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 133258.27514648438,
+            "main_run_central_spread": 0.012127685422473406,
+            "main_run_to_wall_range": [
+              0.9995854505171613,
+              0.999980224995329
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.234272385846678e-07,
+              3.1233183297898424e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 183055.73,
+          "central_spread": 0.02699134301887197,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 183039.45861816406,
+            "main_run_central_spread": 0.026922963151292584,
+            "main_run_to_wall_range": [
+              0.9996293358236513,
+              0.9999107094477652
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.9237449320367414e-07,
+              3.937734726020548e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "repeat_checks": [
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:262144",
+          "pair": "A1/A2",
+          "drift": 0.003123696815695798
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:262144",
+          "pair": "B1/B2",
+          "drift": 0.01797302724513128
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:262144",
+          "pair": "A1/B1",
+          "latency_ratio": 0.7174356127630822,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:262144",
+          "pair": "A1/B2",
+          "latency_ratio": 0.7303301025779005,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:262144",
+          "pair": "A2/B1",
+          "latency_ratio": 0.7152015399900347,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:262144",
+          "pair": "A2/B2",
+          "latency_ratio": 0.7280558767540354,
+          "candidate_attribution": null
+        }
+      ],
+      "latency_ratio_range": [
+        0.7152015399900347,
+        0.7303301025779005
+      ],
+      "all_phase_measured_fault_sequences_equal": true
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:10:4:524288",
+      "metric": "ns_per_iter",
+      "iterations": 8192,
+      "phases": {
+        "A1": {
+          "median": 370356.34,
+          "central_spread": 0.016620290609848862,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 370231.0598144531,
+            "main_run_central_spread": 0.01683029221522077,
+            "main_run_to_wall_range": [
+              0.9996346976573388,
+              0.9999390386663988
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.4664875909339627e-07,
+              3.138327780862291e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 266476.99,
+          "central_spread": 0.004590677791729777,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 266356.88024902344,
+            "main_run_central_spread": 0.004552765444830559,
+            "main_run_to_wall_range": [
+              0.9995488814171852,
+              0.9999422736864413
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.5195173082219673e-07,
+              4.265895578272904e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 267534.77,
+          "central_spread": 0.02578053686255425,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 267441.31604003906,
+            "main_run_central_spread": 0.025805776249940047,
+            "main_run_to_wall_range": [
+              0.9995611274909059,
+              0.9999404586088244
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.9851707241589146e-07,
+              6.045209660080652e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 339308.13,
+          "central_spread": 0.015444899596128032,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 339210.2159423828,
+            "main_run_central_spread": 0.015446229366270305,
+            "main_run_to_wall_range": [
+              0.9996453915750317,
+              0.999837730068987
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.5977862946187237e-07,
+              3.266520156886063e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "repeat_checks": [
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:524288",
+          "pair": "A1/A2",
+          "drift": 0.08383334277469101
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:524288",
+          "pair": "B1/B2",
+          "drift": 0.0039694984546321255
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:524288",
+          "pair": "A1/B1",
+          "latency_ratio": 0.7195151296721422,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:524288",
+          "pair": "A1/B2",
+          "latency_ratio": 0.7223712438674602,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:524288",
+          "pair": "A2/B1",
+          "latency_ratio": 0.7853539789924868,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:524288",
+          "pair": "A2/B2",
+          "latency_ratio": 0.7884714403984368,
+          "candidate_attribution": null
+        }
+      ],
+      "latency_ratio_range": [
+        0.7195151296721422,
+        0.7884714403984368
+      ],
+      "all_phase_measured_fault_sequences_equal": true
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:10:4:65536",
+      "metric": "ns_per_iter",
+      "iterations": 73728,
+      "phases": {
+        "A1": {
+          "median": 35820.94,
+          "central_spread": 0.013749499594371247,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 35816.131157769094,
+            "main_run_central_spread": 0.0138183084695609,
+            "main_run_to_wall_range": [
+              0.9996890262426223,
+              0.9999213735913363
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.058663678665124e-07,
+              5.218049908070062e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 31080.91,
+          "central_spread": 0.029163560526380992,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 31074.71728515625,
+            "main_run_central_spread": 0.02920669280274432,
+            "main_run_to_wall_range": [
+              0.9995510426039005,
+              0.999926582922154
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.1079470491100944e-07,
+              4.5130466581101087e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 31589.01,
+          "central_spread": 0.013091261802759912,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 31580.557996961805,
+            "main_run_central_spread": 0.012898298466458534,
+            "main_run_to_wall_range": [
+              0.9996475622084579,
+              0.999936110680959
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.7653556241812809e-07,
+              3.599316390317146e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 35722.18,
+          "central_spread": 0.037328348941749835,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 35709.546196831594,
+            "main_run_central_spread": 0.03737353799875903,
+            "main_run_to_wall_range": [
+              0.9995989757440152,
+              0.9999697123432701
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.734065003721321e-07,
+              3.3868372813031696e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "repeat_checks": [
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:65536",
+          "pair": "A1/A2",
+          "drift": 0.002757046576667199
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:65536",
+          "pair": "B1/B2",
+          "drift": 0.016347655200571687
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:65536",
+          "pair": "A1/B1",
+          "latency_ratio": 0.8676743268043775,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:65536",
+          "pair": "A1/B2",
+          "latency_ratio": 0.8818587675253635,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:65536",
+          "pair": "A2/B1",
+          "latency_ratio": 0.8700731590289282,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:65536",
+          "pair": "A2/B2",
+          "latency_ratio": 0.8842968150320053,
+          "candidate_attribution": null
+        }
+      ],
+      "latency_ratio_range": [
+        0.8676743268043775,
+        0.8842968150320053
+      ],
+      "all_phase_measured_fault_sequences_equal": true
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:1024",
+      "metric": "ns_per_iter",
+      "iterations": 14942208,
+      "phases": {
+        "A1": {
+          "median": 168.03,
+          "central_spread": 0.034755698387192786,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 167.96970976444712,
+            "main_run_central_spread": 0.034901740709363124,
+            "main_run_to_wall_range": [
+              0.9995941494475721,
+              0.9999430751338458
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.676797039966515e-07,
+              3.403164651037161e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 133.82,
+          "central_spread": 0.006949633836496838,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 133.7895692524157,
+            "main_run_central_spread": 0.006559104646111223,
+            "main_run_to_wall_range": [
+              0.9995490142903757,
+              0.9999676765611061
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.1530238676124196e-07,
+              4.998096606475701e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 131.93,
+          "central_spread": 0.002956113090275258,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 131.88304412574098,
+            "main_run_central_spread": 0.0032604750581737315,
+            "main_run_to_wall_range": [
+              0.9996101836946385,
+              0.9999427060438459
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.079128535688084e-07,
+              3.868213625648507e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 166.43,
+          "central_spread": 0.011416211019647763,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 166.36869711624948,
+            "main_run_central_spread": 0.01135035442314401,
+            "main_run_to_wall_range": [
+              0.9996387098441324,
+              0.999983317090681
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.690240792241249e-07,
+              2.7253173164703264e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "repeat_checks": [
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:1024",
+          "pair": "A1/A2",
+          "drift": 0.009522109147176105
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:1024",
+          "pair": "B1/B2",
+          "drift": 0.01412344940965471
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:1024",
+          "pair": "A1/B1",
+          "latency_ratio": 0.796405403796941,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:1024",
+          "pair": "A1/B2",
+          "latency_ratio": 0.7851574123668393,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:1024",
+          "pair": "A2/B1",
+          "latency_ratio": 0.8040617677101484,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:1024",
+          "pair": "A2/B2",
+          "latency_ratio": 0.7927056420116566,
+          "candidate_attribution": null
+        }
+      ],
+      "latency_ratio_range": [
+        0.7851574123668393,
+        0.8040617677101484
+      ],
+      "all_phase_measured_fault_sequences_equal": true
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:131072",
+      "metric": "ns_per_iter",
+      "iterations": 196608,
+      "phases": {
+        "A1": {
+          "median": 12999.64,
+          "central_spread": 0.012567271093660978,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 12993.785227457682,
+            "main_run_central_spread": 0.012612841602509462,
+            "main_run_to_wall_range": [
+              0.9995471873921693,
+              0.9999457967227205
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.1852233551380918e-07,
+              3.6588212012417345e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 11272.59,
+          "central_spread": 0.0041534376749264995,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 11268.056355794271,
+            "main_run_central_spread": 0.00398340829578458,
+            "main_run_to_wall_range": [
+              0.999538153171134,
+              0.9999703812899561
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.0796871397514228e-07,
+              4.025930093063965e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 11558.58,
+          "central_spread": 0.010152631205563345,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 11556.80441792806,
+            "main_run_central_spread": 0.010143447178403079,
+            "main_run_to_wall_range": [
+              0.9996639899473548,
+              0.999904675233128
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.61370316132156e-07,
+              6.637328862058343e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 13243.23,
+          "central_spread": 0.011857379204318029,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 13239.628260294596,
+            "main_run_central_spread": 0.011846951048894735,
+            "main_run_to_wall_range": [
+              0.9995950764955646,
+              0.999923957034195
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.1113221967963964e-07,
+              2.8843283381085967e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "repeat_checks": [
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:131072",
+          "pair": "A1/A2",
+          "drift": 0.018738211212002698
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:131072",
+          "pair": "B1/B2",
+          "drift": 0.025370389591034437
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:131072",
+          "pair": "A1/B1",
+          "latency_ratio": 0.8671463209750424,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:131072",
+          "pair": "A1/B2",
+          "latency_ratio": 0.8891461609706115,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:131072",
+          "pair": "A2/B1",
+          "latency_ratio": 0.8511964226249941,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:131072",
+          "pair": "A2/B2",
+          "latency_ratio": 0.872791607485485,
+          "candidate_attribution": null
+        }
+      ],
+      "latency_ratio_range": [
+        0.8511964226249941,
+        0.8891461609706115
+      ],
+      "all_phase_measured_fault_sequences_equal": true
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:16384",
+      "metric": "ns_per_iter",
+      "iterations": 1572864,
+      "phases": {
+        "A1": {
+          "median": 1740.13,
+          "central_spread": 0.0191020211133651,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 1739.8460947672527,
+            "main_run_central_spread": 0.0190323205530967,
+            "main_run_to_wall_range": [
+              0.9997603326773664,
+              0.9999490413693165
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.3868731023032678e-07,
+              2.6132306001105595e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 1417.11,
+          "central_spread": 0.00360593037943413,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 1416.558485031128,
+            "main_run_central_spread": 0.003454244167963544,
+            "main_run_to_wall_range": [
+              0.9995535127088807,
+              0.9999606498562729
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.7040773798942413e-07,
+              3.8179866350861894e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 1336.77,
+          "central_spread": 0.009919432662312882,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 1336.3275470733643,
+            "main_run_central_spread": 0.009920252637617841,
+            "main_run_to_wall_range": [
+              0.9995372850251663,
+              0.9999188273967649
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.2829403045183252e-07,
+              4.665524740884389e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 1788.13,
+          "central_spread": 0.024796854814806483,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 1787.7494449615479,
+            "main_run_central_spread": 0.025039635460168276,
+            "main_run_to_wall_range": [
+              0.999642115061756,
+              0.9999350963936174
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.386671746445868e-07,
+              2.5251666201385804e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "repeat_checks": [
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:16384",
+          "pair": "A1/A2",
+          "drift": 0.02758414601207959
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:16384",
+          "pair": "B1/B2",
+          "drift": 0.056692846709147426
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:16384",
+          "pair": "A1/B1",
+          "latency_ratio": 0.8143701907328762,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:16384",
+          "pair": "A1/B2",
+          "latency_ratio": 0.7682012263451581,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:16384",
+          "pair": "A2/B1",
+          "latency_ratio": 0.7925094931576562,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:16384",
+          "pair": "A2/B2",
+          "latency_ratio": 0.747579873946525,
+          "candidate_attribution": null
+        }
+      ],
+      "latency_ratio_range": [
+        0.747579873946525,
+        0.8143701907328762
+      ],
+      "all_phase_measured_fault_sequences_equal": true
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:262144",
+      "metric": "ns_per_iter",
+      "iterations": 98304,
+      "phases": {
+        "A1": {
+          "median": 26855.95,
+          "central_spread": 0.026472345979196503,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 26848.779774983723,
+            "main_run_central_spread": 0.026384129910520766,
+            "main_run_to_wall_range": [
+              0.9996021284894752,
+              0.9999696708362225
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.9159471367667806e-07,
+              3.1300545670824004e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 29414.1,
+          "central_spread": 0.0060906164050573645,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 29412.46420288086,
+            "main_run_central_spread": 0.006154575794320713,
+            "main_run_to_wall_range": [
+              0.9996426295245109,
+              0.9999439866476403
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.386311138635487e-07,
+              3.1505867970503295e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 29072.28,
+          "central_spread": 0.009320906375420145,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 29070.012919108074,
+            "main_run_central_spread": 0.009364127297471596,
+            "main_run_to_wall_range": [
+              0.9997028425469071,
+              0.9999762324482215
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.6101532685756142e-07,
+              2.697394529733872e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 27561.24,
+          "central_spread": 0.03575419683584629,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 27557.87139892578,
+            "main_run_central_spread": 0.035981463738682745,
+            "main_run_to_wall_range": [
+              0.9996222978152475,
+              0.9998907606771339
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.9508133257486153e-07,
+              3.887233815515186e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "repeat_checks": [
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:262144",
+          "pair": "A1/A2",
+          "drift": 0.026261964294690854
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:262144",
+          "pair": "B1/B2",
+          "drift": 0.011620957295990664
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:262144",
+          "pair": "A1/B1",
+          "latency_ratio": 1.0952544966757831,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:262144",
+          "pair": "A1/B2",
+          "latency_ratio": 1.0825265909416721,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:262144",
+          "pair": "A2/B1",
+          "latency_ratio": 1.067227018813377,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:262144",
+          "pair": "A2/B2",
+          "latency_ratio": 1.0548248192026193,
+          "candidate_attribution": null
+        }
+      ],
+      "latency_ratio_range": [
+        1.0548248192026193,
+        1.0952544966757831
+      ],
+      "all_phase_measured_fault_sequences_equal": true
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:4096",
+      "metric": "ns_per_iter",
+      "iterations": 5505024,
+      "phases": {
+        "A1": {
+          "median": 494.96,
+          "central_spread": 0.028850816227574006,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 494.7766116914295,
+            "main_run_central_spread": 0.028996270027926478,
+            "main_run_to_wall_range": [
+              0.9996353780083507,
+              0.9999762777503486
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.505398458315725e-07,
+              3.119485723605003e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 402.91,
+          "central_spread": 0.005038346032612815,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 402.74350992838544,
+            "main_run_central_spread": 0.004788117472538627,
+            "main_run_to_wall_range": [
+              0.9995788865757183,
+              0.9998670128760916
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.9908455284887522e-07,
+              3.200623655544488e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 377.16,
+          "central_spread": 0.014980379679711466,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 377.1353251139323,
+            "main_run_central_spread": 0.015180117399229092,
+            "main_run_to_wall_range": [
+              0.9996088950666568,
+              0.9999302648320131
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.669567643005544e-07,
+              4.3828611345116116e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 516.64,
+          "central_spread": 0.02285924434809539,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 516.4782840183804,
+            "main_run_central_spread": 0.022936855153931762,
+            "main_run_to_wall_range": [
+              0.9996318075469194,
+              0.9998772910833792
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.2504080707629538e-07,
+              3.162443618724059e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "repeat_checks": [
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:4096",
+          "pair": "A1/A2",
+          "drift": 0.04380151931469212
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:4096",
+          "pair": "B1/B2",
+          "drift": 0.06391005435457053
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:4096",
+          "pair": "A1/B1",
+          "latency_ratio": 0.8140253757879425,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:4096",
+          "pair": "A1/B2",
+          "latency_ratio": 0.7620009697753355,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:4096",
+          "pair": "A2/B1",
+          "latency_ratio": 0.7798660576029731,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:4096",
+          "pair": "A2/B2",
+          "latency_ratio": 0.7300247754722825,
+          "candidate_attribution": null
+        }
+      ],
+      "latency_ratio_range": [
+        0.7300247754722825,
+        0.8140253757879425
+      ],
+      "all_phase_measured_fault_sequences_equal": true
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:524288",
+      "metric": "ns_per_iter",
+      "iterations": 45056,
+      "phases": {
+        "A1": {
+          "median": 59314.5,
+          "central_spread": 0.013807416399025588,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 59298.78788618608,
+            "main_run_central_spread": 0.014136546148302499,
+            "main_run_to_wall_range": [
+              0.9996056006803135,
+              0.9999327670389762
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.7945727675697875e-07,
+              2.8411899896582307e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 59919.76,
+          "central_spread": 0.011122374321926474,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 59901.90487393466,
+            "main_run_central_spread": 0.011316308418310272,
+            "main_run_to_wall_range": [
+              0.9996429775118908,
+              0.9999062195952195
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.99349842932591e-07,
+              3.055068658587855e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 59286.77,
+          "central_spread": 0.01085891506654859,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 59272.67362837358,
+            "main_run_central_spread": 0.010964171052860726,
+            "main_run_to_wall_range": [
+              0.9996337871529934,
+              0.9999033867518793
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.5077310078645735e-07,
+              4.190307069526364e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 57997.47,
+          "central_spread": 0.019191526802807047,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 57994.077259410515,
+            "main_run_central_spread": 0.019487976825795263,
+            "main_run_to_wall_range": [
+              0.9995844393676827,
+              0.9999412510185124
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.563471885840654e-07,
+              4.0370504450227823e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "repeat_checks": [
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:524288",
+          "pair": "A1/A2",
+          "drift": 0.022204182788357008
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:524288",
+          "pair": "B1/B2",
+          "drift": 0.010563960870337397
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:524288",
+          "pair": "A1/B1",
+          "latency_ratio": 1.0102042502254929,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:524288",
+          "pair": "A1/B2",
+          "latency_ratio": 0.9995324920550623,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:524288",
+          "pair": "A2/B1",
+          "latency_ratio": 1.0331443768150577,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:524288",
+          "pair": "A2/B2",
+          "latency_ratio": 1.0222302800449743,
+          "candidate_attribution": null
+        }
+      ],
+      "latency_ratio_range": [
+        0.9995324920550623,
+        1.0331443768150577
+      ],
+      "all_phase_measured_fault_sequences_equal": true
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:65536",
+      "metric": "ns_per_iter",
+      "iterations": 524288,
+      "phases": {
+        "A1": {
+          "median": 6934.32,
+          "central_spread": 0.013922057245699646,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 6933.634315490723,
+            "main_run_central_spread": 0.013950598673709125,
+            "main_run_to_wall_range": [
+              0.9997384446811967,
+              0.9999189484663485
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.5130445893068548e-07,
+              2.8936236475132245e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 6035.66,
+          "central_spread": 0.012684611127863465,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 6034.841304779053,
+            "main_run_central_spread": 0.012695135595601934,
+            "main_run_to_wall_range": [
+              0.9996526269985739,
+              0.9999320764203531
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.0776047818624344e-07,
+              2.786374705236426e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 6043.45,
+          "central_spread": 0.024538963671412884,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 6042.207458496094,
+            "main_run_central_spread": 0.024517649418644944,
+            "main_run_to_wall_range": [
+              0.9996475562036493,
+              0.9998611836129532
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.1457516293998143e-07,
+              2.5712503709146497e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 6967.16,
+          "central_spread": 0.011677641966023411,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 6965.389112472534,
+            "main_run_central_spread": 0.011673686591302298,
+            "main_run_to_wall_range": [
+              0.9996911430865862,
+              0.9999397199326776
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.3122012995175618e-07,
+              2.3694972766163808e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "repeat_checks": [
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A1/A2",
+          "drift": 0.004735864511588694
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "B1/B2",
+          "drift": 0.001290662495899264
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A1/B1",
+          "latency_ratio": 0.8704040194280045,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A1/B2",
+          "latency_ratio": 0.8715274172521603,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A2/B1",
+          "latency_ratio": 0.8663013336854615,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A2/B2",
+          "latency_ratio": 0.8674194363269969,
+          "candidate_attribution": null
+        }
+      ],
+      "latency_ratio_range": [
+        0.8663013336854615,
+        0.8715274172521603
+      ],
+      "all_phase_measured_fault_sequences_equal": true
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:10:4:1048576:1048576",
+      "metric": "ns_per_block",
+      "iterations": 1792,
+      "phases": {
+        "A1": {
+          "median": 4469036.62,
+          "central_spread": 0.02198148691831491,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 4076912.893973214,
+            "main_run_central_spread": 0.023845773024153156,
+            "main_run_to_wall_range": [
+              0.9120884231328572,
+              0.9144656603686806
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.0600964039490417e-07,
+              2.667431488868631e-07
+            ],
+            "total_process_minor_faults": 36900864,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            2252.25,
+            2323.75
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 4641686.16,
+          "central_spread": 0.022853863088408363,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 4250880.120535715,
+            "main_run_central_spread": 0.02404767339635807,
+            "main_run_to_wall_range": [
+              0.9143984503779078,
+              0.9170225870836082
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.0423497175798154e-07,
+              2.5360702978475885e-07
+            ],
+            "total_process_minor_faults": 36900864,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            2252.25,
+            2323.75
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 4453656.17,
+          "central_spread": 0.02532071082622443,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 4061342.78515625,
+            "main_run_central_spread": 0.030755235168004,
+            "main_run_to_wall_range": [
+              0.9100121998741911,
+              0.9149600528222726
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.289778084208383e-07,
+              2.9882183482179847e-07
+            ],
+            "total_process_minor_faults": 36900864,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            2252.25,
+            2323.75
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 4455217.42,
+          "central_spread": 0.0417019176586,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 4068537.0412946427,
+            "main_run_central_spread": 0.04453358925792735,
+            "main_run_to_wall_range": [
+              0.9115998051629073,
+              0.9154015383273145
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.2395729757597207e-07,
+              2.935302321471031e-07
+            ],
+            "total_process_minor_faults": 36900864,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            2252.25,
+            2323.75
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "repeat_checks": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:1048576:1048576",
+          "pair": "A1/A2",
+          "drift": 0.003092210061147349
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:1048576:1048576",
+          "pair": "B1/B2",
+          "drift": 0.040508983916310304
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:1048576:1048576",
+          "pair": "A1/B1",
+          "latency_ratio": 1.0386323842654035,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:1048576:1048576",
+          "pair": "A1/B2",
+          "latency_ratio": 0.9965584417162372,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:1048576:1048576",
+          "pair": "A2/B1",
+          "latency_ratio": 1.0418540157351064,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:1048576:1048576",
+          "pair": "A2/B2",
+          "latency_ratio": 0.9996495681685497,
+          "candidate_attribution": null
+        }
+      ],
+      "latency_ratio_range": [
+        0.9965584417162372,
+        1.0418540157351064
+      ],
+      "all_phase_measured_fault_sequences_equal": true
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:10:4:16777216:4194304",
+      "metric": "ns_per_block",
+      "iterations": 128,
+      "phases": {
+        "A1": {
+          "median": 7608978.07,
+          "central_spread": 0.024471993254147912,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 11804771.328125,
+            "main_run_central_spread": 0.02597944423597839,
+            "main_run_to_wall_range": [
+              0.38112077596799876,
+              0.3900694021886243
+            ],
+            "wall_minus_timed_fraction_range": [
+              5.637449149200208e-07,
+              7.940967711198746e-07
+            ],
+            "total_process_minor_faults": 12353696,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            10617.25,
+            10856.75
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 7553441.51,
+          "central_spread": 0.01545737394609151,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 11708633.4921875,
+            "main_run_central_spread": 0.017243317730861882,
+            "main_run_to_wall_range": [
+              0.3856304879052247,
+              0.3892564361316953
+            ],
+            "wall_minus_timed_fraction_range": [
+              6.055729698850698e-07,
+              8.751880236838044e-07
+            ],
+            "total_process_minor_faults": 12353696,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            10617.25,
+            10856.75
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 7590198.16,
+          "central_spread": 0.018856350912450946,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 11792627.234375,
+            "main_run_central_spread": 0.02589316322870976,
+            "main_run_to_wall_range": [
+              0.3856199300527779,
+              0.3902860587427145
+            ],
+            "wall_minus_timed_fraction_range": [
+              6.032025669607974e-07,
+              7.629591592339106e-07
+            ],
+            "total_process_minor_faults": 12353696,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            10617.25,
+            10856.75
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 7642236.4,
+          "central_spread": 0.012456697884928064,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 11954365.0546875,
+            "main_run_central_spread": 0.024989153952000433,
+            "main_run_to_wall_range": [
+              0.3845237676166081,
+              0.3929865030829939
+            ],
+            "wall_minus_timed_fraction_range": [
+              6.251239468961785e-07,
+              8.251003658163862e-07
+            ],
+            "total_process_minor_faults": 12353696,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            10617.25,
+            10856.75
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "repeat_checks": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:16777216:4194304",
+          "pair": "A1/A2",
+          "drift": 0.004370932560724183
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:16777216:4194304",
+          "pair": "B1/B2",
+          "drift": 0.0048662123022118475
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:16777216:4194304",
+          "pair": "A1/B1",
+          "latency_ratio": 0.9927011801730689,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:16777216:4194304",
+          "pair": "A1/B2",
+          "latency_ratio": 0.9975318748684473,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:16777216:4194304",
+          "pair": "A2/B1",
+          "latency_ratio": 0.9883810333320754,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:16777216:4194304",
+          "pair": "A2/B2",
+          "latency_ratio": 0.9931907052757488,
+          "candidate_attribution": null
+        }
+      ],
+      "latency_ratio_range": [
+        0.9883810333320754,
+        0.9975318748684473
+      ],
+      "all_phase_measured_fault_sequences_equal": true
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:10:4:65536:65536",
+      "metric": "ns_per_block",
+      "iterations": 45056,
+      "phases": {
+        "A1": {
+          "median": 445327.97,
+          "central_spread": 0.011208615528909966,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 445271.0263006037,
+            "main_run_central_spread": 0.011174977621561487,
+            "main_run_to_wall_range": [
+              0.9998627358248401,
+              0.999906765129325
+            ],
+            "wall_minus_timed_fraction_range": [
+              3.6288799696448595e-08,
+              5.175515900813855e-08
+            ],
+            "total_process_minor_faults": 103809024,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            256.0,
+            256.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 450554.24,
+          "central_spread": 0.013120906375223531,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 450495.89222301135,
+            "main_run_central_spread": 0.013101492877641322,
+            "main_run_to_wall_range": [
+              0.9998704503145968,
+              0.9999110509043703
+            ],
+            "wall_minus_timed_fraction_range": [
+              3.2222587620136896e-08,
+              5.141450657267467e-08
+            ],
+            "total_process_minor_faults": 103809024,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            256.0,
+            256.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 440521.52,
+          "central_spread": 0.017814816402158963,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 440464.3574662642,
+            "main_run_central_spread": 0.017788921946327266,
+            "main_run_to_wall_range": [
+              0.9998701997663314,
+              0.9999217734423529
+            ],
+            "wall_minus_timed_fraction_range": [
+              3.3714886568169536e-08,
+              4.3379383163584224e-08
+            ],
+            "total_process_minor_faults": 103809024,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            256.0,
+            256.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 452519.81,
+          "central_spread": 0.019712396679385152,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 452471.5085227273,
+            "main_run_central_spread": 0.019703448406165655,
+            "main_run_to_wall_range": [
+              0.999871784812593,
+              0.9999038265457405
+            ],
+            "wall_minus_timed_fraction_range": [
+              3.6156755289743325e-08,
+              5.7178733477532264e-08
+            ],
+            "total_process_minor_faults": 103809024,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            256.0,
+            256.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "repeat_checks": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:65536:65536",
+          "pair": "A1/A2",
+          "drift": 0.016149535812897575
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:65536:65536",
+          "pair": "B1/B2",
+          "drift": 0.02226750768120611
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:65536:65536",
+          "pair": "A1/B1",
+          "latency_ratio": 1.0117357775663631,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:65536:65536",
+          "pair": "A1/B2",
+          "latency_ratio": 0.989206943368053,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:65536:65536",
+          "pair": "A2/B1",
+          "latency_ratio": 0.9956563890539952,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:65536:65536",
+          "pair": "A2/B2",
+          "latency_ratio": 0.9734856027628934,
+          "candidate_attribution": null
+        }
+      ],
+      "latency_ratio_range": [
+        0.9734856027628934,
+        1.0117357775663631
+      ],
+      "all_phase_measured_fault_sequences_equal": true
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:4:2:1048576:262144",
+      "metric": "ns_per_block",
+      "iterations": 3712,
+      "phases": {
+        "A1": {
+          "median": 167551.0,
+          "central_spread": 0.0137240601369136,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 524129.5862068966,
+            "main_run_central_spread": 0.013556635963381754,
+            "main_run_to_wall_range": [
+              0.7809021631153853,
+              0.7822312247041253
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.533162581796076e-07,
+              3.0120456510419645e-07
+            ],
+            "total_process_minor_faults": 8143300,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            243.52289870689654,
+            244.16971982758622
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 176008.46,
+          "central_spread": 0.008285113113312849,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 550599.4073275862,
+            "main_run_central_spread": 0.011425476251636018,
+            "main_run_to_wall_range": [
+              0.7779599887651555,
+              0.7846748993672225
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.2239394664781642e-07,
+              2.848079293663882e-07
+            ],
+            "total_process_minor_faults": 8143300,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            243.52289870689654,
+            244.16971982758622
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 168046.15,
+          "central_spread": 0.01642602344653547,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 521651.6702586207,
+            "main_run_central_spread": 0.018272734925280313,
+            "main_run_to_wall_range": [
+              0.7704195866677015,
+              0.7782347249083119
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.1662292967156134e-07,
+              3.129572589677959e-07
+            ],
+            "total_process_minor_faults": 8143300,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            243.52289870689654,
+            244.16971982758622
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 172102.39,
+          "central_spread": 0.014190331697311131,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 537386.4752155172,
+            "main_run_central_spread": 0.014746458107674458,
+            "main_run_to_wall_range": [
+              0.7748000209732023,
+              0.7819720100741776
+            ],
+            "wall_minus_timed_fraction_range": [
+              2.2345041046809244e-07,
+              2.8930759017289285e-07
+            ],
+            "total_process_minor_faults": 8143300,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            243.52289870689654,
+            244.16971982758622
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "repeat_checks": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:1048576:262144",
+          "pair": "A1/A2",
+          "drift": 0.02716420671914821
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:1048576:262144",
+          "pair": "B1/B2",
+          "drift": 0.04523822320813442
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:1048576:262144",
+          "pair": "A1/B1",
+          "latency_ratio": 1.0504769294125371,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:1048576:262144",
+          "pair": "A1/B2",
+          "latency_ratio": 1.002955219604777,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:1048576:262144",
+          "pair": "A2/B1",
+          "latency_ratio": 1.0226961984665057,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:1048576:262144",
+          "pair": "A2/B2",
+          "latency_ratio": 0.9764312395661674,
+          "candidate_attribution": null
+        }
+      ],
+      "latency_ratio_range": [
+        0.9764312395661674,
+        1.0504769294125371
+      ],
+      "all_phase_measured_fault_sequences_equal": true
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:4:2:65536:65536",
+      "metric": "ns_per_block",
+      "iterations": 176128,
+      "phases": {
+        "A1": {
+          "median": 14412.9,
+          "central_spread": 0.02380853263395983,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 14409.579112917878,
+            "main_run_central_spread": 0.024148756485772017,
+            "main_run_to_wall_range": [
+              0.99960995291404,
+              0.9999505920990293
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.0918293186899265e-07,
+              3.147598428642639e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 14648.72,
+          "central_spread": 0.013337001458147934,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 14645.995469204216,
+            "main_run_central_spread": 0.013237151717568004,
+            "main_run_to_wall_range": [
+              0.9996220928945623,
+              0.9999260374017305
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.4769255863810934e-07,
+              2.494135291831191e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 14155.35,
+          "central_spread": 0.02026159720529703,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 14151.71017668968,
+            "main_run_central_spread": 0.020246866092835172,
+            "main_run_to_wall_range": [
+              0.9996374753080016,
+              0.9999384499696247
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.1748336198703244e-07,
+              2.478738678759596e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 14263.58,
+          "central_spread": 0.02211366290931169,
+          "short_samples": 0,
+          "measured_service": {
+            "main_run_ns_per_iteration_median": 14257.76849791061,
+            "main_run_central_spread": 0.022408223026333395,
+            "main_run_to_wall_range": [
+              0.9995876801120055,
+              0.9998793308407062
+            ],
+            "wall_minus_timed_fraction_range": [
+              1.1295688548798602e-07,
+              1.9231538492308923e-07
+            ],
+            "total_process_minor_faults": 0,
+            "total_process_major_faults": 0,
+            "scope": "calling-thread counters bracket wall windows; not exclusive API cycles or an additive CPU-time partition"
+          },
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "repeat_checks": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A1/A2",
+          "drift": 0.010360163464673944
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "B1/B2",
+          "drift": 0.03368007580184473
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A1/B1",
+          "latency_ratio": 1.0163617315044162,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A1/B2",
+          "latency_ratio": 0.9821305913452533,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A2/B1",
+          "latency_ratio": 1.027001636335338,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A2/B2",
+          "latency_ratio": 0.9924121433749452,
+          "candidate_attribution": null
+        }
+      ],
+      "latency_ratio_range": [
+        0.9821305913452533,
+        1.027001636335338
+      ],
+      "all_phase_measured_fault_sequences_equal": true
+    }
+  ],
+  "repeat_service_checks": [
+    {
+      "profile": "small_file",
+      "case": "encode:10:4:16384",
+      "pair": "A1/A2",
+      "drift": 0.004809119317518595,
+      "failed": false,
+      "calling_thread_run_drift": -0.00485937291393812,
+      "latency_signed_drift": -0.004809119317518595
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:10:4:16384",
+      "pair": "B1/B2",
+      "drift": 0.015916204371737352,
+      "failed": false,
+      "calling_thread_run_drift": 0.016237758503783173,
+      "latency_signed_drift": 0.015916204371737352
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:10:4:262144",
+      "pair": "A1/A2",
+      "drift": 0.003123696815695798,
+      "failed": false,
+      "calling_thread_run_drift": 0.003294245777177185,
+      "latency_signed_drift": 0.003123696815695798
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:10:4:262144",
+      "pair": "B1/B2",
+      "drift": 0.01797302724513128,
+      "failed": false,
+      "calling_thread_run_drift": 0.018227263206711086,
+      "latency_signed_drift": 0.01797302724513128
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:10:4:524288",
+      "pair": "A1/A2",
+      "drift": 0.08383334277469101,
+      "failed": true,
+      "calling_thread_run_drift": -0.08378779426992666,
+      "latency_signed_drift": -0.08383334277469101
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:10:4:524288",
+      "pair": "B1/B2",
+      "drift": 0.0039694984546321255,
+      "failed": false,
+      "calling_thread_run_drift": 0.004071363915967741,
+      "latency_signed_drift": 0.0039694984546321255
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:10:4:65536",
+      "pair": "A1/A2",
+      "drift": 0.002757046576667199,
+      "failed": false,
+      "calling_thread_run_drift": -0.0029758926353044,
+      "latency_signed_drift": -0.002757046576667199
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:10:4:65536",
+      "pair": "B1/B2",
+      "drift": 0.016347655200571687,
+      "failed": false,
+      "calling_thread_run_drift": 0.01627820800954427,
+      "latency_signed_drift": 0.016347655200571687
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:1024",
+      "pair": "A1/A2",
+      "drift": 0.009522109147176105,
+      "failed": false,
+      "calling_thread_run_drift": -0.009531555721819296,
+      "latency_signed_drift": -0.009522109147176105
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:1024",
+      "pair": "B1/B2",
+      "drift": 0.01412344940965471,
+      "failed": false,
+      "calling_thread_run_drift": -0.01425017762840508,
+      "latency_signed_drift": -0.01412344940965471
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:131072",
+      "pair": "A1/A2",
+      "drift": 0.018738211212002698,
+      "failed": false,
+      "calling_thread_run_drift": 0.018920047432938514,
+      "latency_signed_drift": 0.018738211212002698
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:131072",
+      "pair": "B1/B2",
+      "drift": 0.025370389591034437,
+      "failed": false,
+      "calling_thread_run_drift": 0.02562536545935079,
+      "latency_signed_drift": 0.025370389591034437
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:16384",
+      "pair": "A1/A2",
+      "drift": 0.02758414601207959,
+      "failed": false,
+      "calling_thread_run_drift": 0.027533096368907994,
+      "latency_signed_drift": 0.02758414601207959
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:16384",
+      "pair": "B1/B2",
+      "drift": 0.056692846709147426,
+      "failed": true,
+      "calling_thread_run_drift": -0.056637928335165566,
+      "latency_signed_drift": -0.056692846709147426
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:262144",
+      "pair": "A1/A2",
+      "drift": 0.026261964294690854,
+      "failed": false,
+      "calling_thread_run_drift": 0.026410571723738174,
+      "latency_signed_drift": 0.026261964294690854
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:262144",
+      "pair": "B1/B2",
+      "drift": 0.011620957295990664,
+      "failed": false,
+      "calling_thread_run_drift": -0.01164306674240656,
+      "latency_signed_drift": -0.011620957295990664
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:4096",
+      "pair": "A1/A2",
+      "drift": 0.04380151931469212,
+      "failed": false,
+      "calling_thread_run_drift": 0.0438615565371252,
+      "latency_signed_drift": 0.04380151931469212
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:4096",
+      "pair": "B1/B2",
+      "drift": 0.06391005435457053,
+      "failed": true,
+      "calling_thread_run_drift": -0.06358435128850792,
+      "latency_signed_drift": -0.06391005435457053
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:524288",
+      "pair": "A1/A2",
+      "drift": 0.022204182788357008,
+      "failed": false,
+      "calling_thread_run_drift": -0.022002315279693985,
+      "latency_signed_drift": -0.022204182788357008
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:524288",
+      "pair": "B1/B2",
+      "drift": 0.010563960870337397,
+      "failed": false,
+      "calling_thread_run_drift": -0.010504361203292567,
+      "latency_signed_drift": -0.010563960870337397
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:65536",
+      "pair": "A1/A2",
+      "drift": 0.004735864511588694,
+      "failed": false,
+      "calling_thread_run_drift": 0.00457981998140089,
+      "latency_signed_drift": 0.004735864511588694
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:65536",
+      "pair": "B1/B2",
+      "drift": 0.001290662495899264,
+      "failed": false,
+      "calling_thread_run_drift": 0.001220604377982104,
+      "latency_signed_drift": 0.001290662495899264
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:10:4:1048576:1048576",
+      "pair": "A1/A2",
+      "drift": 0.003092210061147349,
+      "failed": false,
+      "calling_thread_run_drift": -0.002054459562026212,
+      "latency_signed_drift": -0.003092210061147349
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:10:4:1048576:1048576",
+      "pair": "B1/B2",
+      "drift": 0.040508983916310304,
+      "failed": false,
+      "calling_thread_run_drift": -0.04458778653009354,
+      "latency_signed_drift": -0.040508983916310304
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:10:4:16777216:4194304",
+      "pair": "A1/A2",
+      "drift": 0.004370932560724183,
+      "failed": false,
+      "calling_thread_run_drift": 0.012672310407749299,
+      "latency_signed_drift": 0.004370932560724183
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:10:4:16777216:4194304",
+      "pair": "B1/B2",
+      "drift": 0.0048662123022118475,
+      "failed": false,
+      "calling_thread_run_drift": 0.007173658842728692,
+      "latency_signed_drift": 0.0048662123022118475
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:10:4:65536:65536",
+      "pair": "A1/A2",
+      "drift": 0.016149535812897575,
+      "failed": false,
+      "calling_thread_run_drift": 0.016171010006976072,
+      "latency_signed_drift": 0.016149535812897575
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:10:4:65536:65536",
+      "pair": "B1/B2",
+      "drift": 0.02226750768120611,
+      "failed": false,
+      "calling_thread_run_drift": -0.02226776077190329,
+      "latency_signed_drift": -0.02226750768120611
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:4:2:1048576:262144",
+      "pair": "A1/A2",
+      "drift": 0.02716420671914821,
+      "failed": false,
+      "calling_thread_run_drift": 0.025293151460042962,
+      "latency_signed_drift": 0.02716420671914821
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:4:2:1048576:262144",
+      "pair": "B1/B2",
+      "drift": 0.04523822320813442,
+      "failed": false,
+      "calling_thread_run_drift": -0.05257495137793111,
+      "latency_signed_drift": -0.04523822320813442
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:4:2:65536:65536",
+      "pair": "A1/A2",
+      "drift": 0.010360163464673944,
+      "failed": false,
+      "calling_thread_run_drift": -0.01053539550445104,
+      "latency_signed_drift": -0.010360163464673944
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:4:2:65536:65536",
+      "pair": "B1/B2",
+      "drift": 0.03368007580184473,
+      "failed": false,
+      "calling_thread_run_drift": -0.03374883554715402,
+      "latency_signed_drift": -0.03368007580184473
+    }
+  ],
+  "regression_program_results": [
+    {
+      "profile": "small_file",
+      "pair": "A1/B1",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 11,
+      "failures": []
+    },
+    {
+      "profile": "small_file",
+      "pair": "A1/B2",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 11,
+      "failures": []
+    },
+    {
+      "profile": "small_file",
+      "pair": "A2/B1",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 11,
+      "failures": []
+    },
+    {
+      "profile": "small_file",
+      "pair": "A2/B2",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 11,
+      "failures": []
+    },
+    {
+      "profile": "stream",
+      "pair": "A1/B1",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 5,
+      "failures": []
+    },
+    {
+      "profile": "stream",
+      "pair": "A1/B2",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 5,
+      "failures": []
+    },
+    {
+      "profile": "stream",
+      "pair": "A2/B1",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 5,
+      "failures": []
+    },
+    {
+      "profile": "stream",
+      "pair": "A2/B2",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 5,
+      "failures": []
+    }
+  ],
+  "parent_window_review": {
+    "workers": 64,
+    "host_snapshots": 3514,
+    "all_phase_fault_sequences_equal": true,
+    "all_inputs_unchanged": true,
+    "maximum_measured_wait_to_wall": 0.00038262591343707076,
+    "recorded_outside_workloads_max": 0,
+    "scope": "all parent worker windows; host snapshots are not assigned to individual API samples; guest counters do not establish physical host/cache/frequency isolation"
+  },
+  "limitations": [
+    "All candidate/baseline ratios remain unqualified diagnostic comparisons; three repeat failures prevent affected-catalog performance acceptance.",
+    "The baseline is earlier integrated main, not the published 9.0.0 release.",
+    "Later combined main includes shared ordinary Classic encoding and is not source-identical to the measured candidate.",
+    "All caller fixtures and workload witnesses match, and the complete measured fault sequences match across phases; neither establishes codec-internal owners, physical pages or cache equivalence.",
+    "Calling-thread service includes the complete original operation window and is not exclusive kernel or API cycles.",
+    "Parent-window guest CPU, memory and I/O snapshots cannot identify an individual API sample or prove physical host/frequency/cache isolation.",
+    "No original failure, count, workload, threshold, observer or frozen source was modified; no unchanged campaign was rerun to select passing data."
+  ]
+}
