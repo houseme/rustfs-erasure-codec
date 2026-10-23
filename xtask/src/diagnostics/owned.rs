@@ -58,30 +58,58 @@ impl Drop for File {
 /// Prove that the owned, unreaped leader's group contains only exited members.
 #[cfg(target_os = "macos")]
 fn darwin_group_exited(leader: libc::pid_t) -> bool {
-    fn snapshot(leader: libc::pid_t) -> Option<Vec<(libc::pid_t, u64, u64)>> {
+    darwin_group_exited_observe(leader, || {})
+}
+
+#[cfg(target_os = "macos")]
+fn darwin_group_exited_observe(leader: libc::pid_t, mut listed: impl FnMut()) -> bool {
+    enum Refusal {
+        ReapedMember,
+        QueryFailed(std::io::Error),
+        Unknown(&'static str),
+    }
+    fn snapshot(
+        leader: libc::pid_t,
+        listed: &mut impl FnMut(),
+    ) -> std::result::Result<Vec<(libc::pid_t, u64, u64)>, Refusal> {
+        use Refusal::Unknown;
         if leader <= 0 {
-            return None;
+            return Err(Unknown("invalid owned leader"));
         }
         // libproc returns a PID count (not bytes). Keep one spare slot so a
         // filled/truncated output cannot be mistaken for a complete snapshot.
         // SAFETY: a null buffer with zero length only queries the required size.
         let hint = unsafe { libc::proc_listpgrppids(leader, std::ptr::null_mut(), 0) };
-        let capacity = usize::try_from(hint).ok()?.checked_add(1)?;
+        let capacity = usize::try_from(hint)
+            .ok()
+            .and_then(|n| n.checked_add(1))
+            .ok_or(Unknown("invalid group size hint"))?;
         let bytes: libc::c_int = capacity
-            .checked_mul(std::mem::size_of::<libc::pid_t>())?
-            .try_into()
-            .ok()?;
+            .checked_mul(std::mem::size_of::<libc::pid_t>())
+            .and_then(|n| n.try_into().ok())
+            .ok_or(Unknown("group size overflow"))?;
         let mut members = Vec::<libc::pid_t>::new();
-        members.try_reserve_exact(capacity).ok()?;
+        members
+            .try_reserve_exact(capacity)
+            .map_err(|_| Unknown("group allocation failed"))?;
         members.resize(capacity, 0);
         // SAFETY: the initialized buffer is writable for exactly `bytes` bytes.
         let count = unsafe { libc::proc_listpgrppids(leader, members.as_mut_ptr().cast(), bytes) };
-        let count = usize::try_from(count).ok()?;
-        if count == 0 || count >= members.len() || !members[..count].contains(&leader) {
-            return None;
+        let count = usize::try_from(count).map_err(|_| Unknown("group enumeration failed"))?;
+        if count == 0 {
+            return Err(Unknown("empty group listing"));
         }
+        if count >= members.len() {
+            return Err(Unknown("truncated group listing"));
+        }
+        if !members[..count].contains(&leader) {
+            return Err(Unknown("owned leader absent from group listing"));
+        }
+        listed();
         let mut exited = Vec::new();
-        exited.try_reserve_exact(count).ok()?;
+        exited
+            .try_reserve_exact(count)
+            .map_err(|_| Unknown("identity allocation failed"))?;
         for &pid in &members[..count] {
             // SAFETY: all-zero fields form a valid writable C output record.
             let mut info: libc::proc_bsdinfo = unsafe { std::mem::zeroed() };
@@ -94,33 +122,78 @@ fn darwin_group_exited(leader: libc::pid_t) -> bool {
                     libc::PROC_PIDTBSDINFO,
                     1,
                     (&mut info as *mut libc::proc_bsdinfo).cast(),
-                    size.try_into().ok()?,
+                    size.try_into()
+                        .map_err(|_| Unknown("invalid member record size"))?,
                 )
             };
-            if usize::try_from(copied).ok()? != size
-                || info.pbi_pid != u32::try_from(pid).ok()?
-                || info.pbi_pgid != u32::try_from(leader).ok()?
-                || info.pbi_status != libc::SZOMB
+            if copied <= 0 {
+                let error = std::io::Error::last_os_error();
+                // A parent may reap an exited worker after enumeration. Never
+                // infer its state from ESRCH: restart both complete snapshots.
+                return Err(
+                    if pid != leader && error.raw_os_error() == Some(libc::ESRCH) {
+                        Refusal::ReapedMember
+                    } else {
+                        Refusal::QueryFailed(error)
+                    },
+                );
+            }
+            if usize::try_from(copied).ok() != Some(size) {
+                return Err(Unknown("incomplete member state record"));
+            }
+            if u32::try_from(pid).ok() != Some(info.pbi_pid)
+                || u32::try_from(leader).ok() != Some(info.pbi_pgid)
             {
-                return None;
+                return Err(Unknown("member PID or group changed"));
+            }
+            if info.pbi_status != libc::SZOMB {
+                return Err(Unknown("member is not confirmed exited"));
             }
             exited.push((pid, info.pbi_start_tvsec, info.pbi_start_tvusec));
         }
         exited.sort_unstable();
-        Some(exited)
+        Ok(exited)
     }
 
-    let Some(before) = snapshot(leader) else {
-        return false;
-    };
-    let Some(after) = snapshot(leader) else {
-        return false;
-    };
-    // Already-exited members may be reaped between reads. New members or reused
-    // PIDs must never be accepted on the strength of an earlier zombie record.
-    after
-        .iter()
-        .all(|member| before.binary_search(member).is_ok())
+    let deadline = Instant::now() + Duration::from_secs(3);
+    loop {
+        let confirmation = (|| {
+            let before = snapshot(leader, &mut listed)?;
+            let after = snapshot(leader, &mut listed)?;
+            // Already-exited members may be reaped between reads. New members
+            // or reused PIDs cannot rely on an earlier zombie record.
+            if after
+                .iter()
+                .all(|member| before.binary_search(member).is_ok())
+            {
+                Ok(())
+            } else {
+                Err(Refusal::Unknown(
+                    "member identity changed between snapshots",
+                ))
+            }
+        })();
+        match confirmation {
+            Ok(()) => return true,
+            Err(Refusal::ReapedMember) if Instant::now() < deadline => {
+                std::thread::sleep(Duration::from_millis(10));
+            }
+            Err(refusal) => {
+                match refusal {
+                    Refusal::ReapedMember => eprintln!(
+                        "Darwin group exit unconfirmed: member reaping did not settle within three seconds"
+                    ),
+                    Refusal::QueryFailed(error) => eprintln!(
+                        "Darwin group exit unconfirmed: member state query failed: {error}"
+                    ),
+                    Refusal::Unknown(reason) => {
+                        eprintln!("Darwin group exit unconfirmed: {reason}")
+                    }
+                }
+                return false;
+            }
+        }
+    }
 }
 
 /// Retain the child identity until its newly-created process group is stopped.
@@ -434,6 +507,46 @@ mod tests {
                 "group size {member_count}"
             );
             assert!(reported_reaped, "group size {member_count} was not reaped");
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn darwin_confirms_exit_when_a_member_is_reaped_after_enumeration() {
+        use std::os::unix::process::CommandExt;
+
+        for reap_during in [1, 2] {
+            let mut command = Command::new("sh");
+            command.args(["-c", "exit 0"]);
+            let mut process = Process::spawn(command).unwrap();
+            observe_unreaped_exit(&process.child);
+            let leader = process.child.id().try_into().unwrap();
+            let mut command = Command::new("sh");
+            command.args(["-c", "exit 0"]).process_group(leader);
+            let sibling = command.spawn().unwrap();
+            observe_unreaped_exit(&sibling);
+            let mut sibling = Some(sibling);
+            // Use real kernel records, and reap the exited member in the exact
+            // list-to-info window instead of relying on scheduler timing.
+            let mut reads = 0;
+            let confirmed = darwin_group_exited_observe(leader, || {
+                reads += 1;
+                if reads == reap_during
+                    && let Some(mut sibling) = sibling.take()
+                {
+                    sibling.wait().unwrap();
+                }
+            });
+            let reaped_during_read = sibling.is_none();
+            if let Some(mut sibling) = sibling {
+                sibling.wait().unwrap();
+            }
+            process.status = Some(process.child.wait().unwrap());
+            assert!(reaped_during_read);
+            assert!(
+                confirmed,
+                "an already-reaped worker does not keep its group alive"
+            );
         }
     }
 

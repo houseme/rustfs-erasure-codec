@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Restart complete macOS exit snapshots when an exited non-leader is reaped
+  between group enumeration and its state query. Bound retries to three seconds,
+  retain identity/live/unknown refusals and the original permission error, and
+  report the refusal stage without process identities.
+
 - Count reconstruction-cache evictions only when inserting a new key removes
   an entry at capacity. Concurrent misses for the same pattern may replace the
   cached matrix without an eviction; preserve inversion outside the cache lock,
