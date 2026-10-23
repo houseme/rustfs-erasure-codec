@@ -10,6 +10,10 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Route adaptive verification through the encoding layer's existing native and
+  serial/parallel dispatch. Select policy once, preserve validation and scratch
+  ownership, and retain Leopard behavior, backend overrides and encoding bytes.
+
 - Consolidate source and dynamic ownership-ledger validation in the native tool,
   share geometry/counter rules, prepare payload schedules once and track only
   live allocation generations. Preserve artifact-sized framed requests and

@@ -202,11 +202,6 @@ impl crate::ReedSolomon<super::Field> {
     }
 
     #[cfg(feature = "std")]
-    fn should_parallel_data_path(&self, shard_len: usize, output_shards: usize) -> bool {
-        self.parallel_policy(shard_len, output_shards).use_parallel
-    }
-
-    #[cfg(feature = "std")]
     pub(crate) fn reconstruct_parallel_decision_with(
         &self,
         shard_len: usize,
@@ -441,12 +436,9 @@ impl crate::ReedSolomon<super::Field> {
         if self.is_leopard_gf8_family() {
             return self.verify(slices);
         }
-        let shard_len = Self::first_shard_len(slices);
-        if self.should_parallel_data_path(shard_len, self.parity_shard_count()) {
-            self.verify_par(slices)
-        } else {
-            self.verify(slices)
-        }
+        // Encoding selects the execution policy and generated kernels together.
+        // An outer serial branch would bypass that shared native dispatch.
+        self.verify_par(slices)
     }
 
     #[cfg(feature = "std")]
@@ -462,12 +454,7 @@ impl crate::ReedSolomon<super::Field> {
         if self.is_leopard_gf8_family() {
             return self.verify_with_buffer(slices, buffer);
         }
-        let shard_len = Self::first_shard_len(slices);
-        if self.should_parallel_data_path(shard_len, buffer.len()) {
-            self.verify_with_buffer_par(slices, buffer)
-        } else {
-            self.verify_with_buffer(slices, buffer)
-        }
+        self.verify_with_buffer_par(slices, buffer)
     }
 
     #[cfg(feature = "std")]
@@ -481,11 +468,7 @@ impl crate::ReedSolomon<super::Field> {
         }
         let shard_len = self.validate_opt_shards(slices)?;
         workspace.resize(self, shard_len);
-        if self.should_parallel_data_path(shard_len, self.parity_shard_count()) {
-            self.verify_with_buffer_par(slices, workspace.as_mut_shards())
-        } else {
-            self.verify_with_buffer(slices, workspace.as_mut_shards())
-        }
+        self.verify_with_buffer_par(slices, workspace.as_mut_shards())
     }
 
     #[cfg(feature = "std")]
