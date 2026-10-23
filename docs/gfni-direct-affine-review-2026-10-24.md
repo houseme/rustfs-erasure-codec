@@ -87,8 +87,11 @@ four pairings. Every statistical refusal is retained before analysis.
 
 Both sources and lockfiles are frozen independently. All 73 deterministic input /
 expected-output byte witnesses match between roles; this does not assert matching
-dynamic buffers or physical memory. Construction prepares the original eight-CPU
-budget before only the calling thread is pinned. Timing uses std + simd-accel
+dynamic buffers or physical memory. Existing-codec cases prepare the codec/pool before the calling thread is pinned.
+Constructor cases prewarm one instance before pinning, then create fresh objects
+inside the pinned measurement loop. Those new instances can resolve policy under
+the pinned affinity; constructor geometry is not equated with the formal sampler's
+construction-before-pin contract. Timing uses std + simd-accel
 with metrics disabled. Forced backend names must match. Batch wall/thread-CPU
 windows are distinct from exclusive API cycles; page faults are not measured by
 this component harness. The older frozen tool is used only for the zero-codec
@@ -153,6 +156,15 @@ outside-workload rows in the 1,591 guard observations. Source and cleanup checks
 were read independently after termination. The original controller's `failed`
 status remains retained. Resources restored and complete data recovered do not
 mean performance accepted.
+
+A second independent read checks all raw logs/JSON, both backend names, payload
+witnesses, every pilot count, all 7,346 parent events and every wall/thread-CPU
+median against the published recovery. All 3,673 workers and 3,504 warmup/measured
+observations agree; the original failed terminal status and every input remain
+unchanged. It executes no codec workload. This audit separately records one
+controller completion error and zero worker execution errors, rather than turning
+the source-clean failure into a statistical refusal.
+
 
 PR #82's Darwin cancellation fix is now integrated through main `afb9a52`.
 The rebased GFNI codec source files match the frozen candidate byte for byte;

@@ -1,0 +1,56 @@
+{
+  "artifact_kind": "gfni-direct-affine-independent-and-integration-review-v1",
+  "frozen_codec_sources": {
+    "baseline": "a773e742e344a26413b8446480044daa68abd0bd",
+    "candidate": "193399ffc961d5c5df679ecc9a9db10b13191fe3"
+  },
+  "all_raw_logs_and_json_match_published_recovery": true,
+  "all_input_counts_and_pilot_histories_checked": true,
+  "original_inputs_unchanged": true,
+  "original_failed_terminal_preserved": true,
+  "original_source_clean_check_passed": false,
+  "tracked_sources_unchanged": true,
+  "only_owned_generated_runners_untracked": true,
+  "worker_execution_errors": 0,
+  "controller_completion_errors": 1,
+  "journal_events": 7346,
+  "all_workers": 3673,
+  "functional_workers": 146,
+  "calibration_workers": 3235,
+  "measurement_workers": 292,
+  "observations": 3504,
+  "width_failures": 1,
+  "repeat_failures": 11,
+  "unqualified_regression_observations": 1,
+  "short_samples": 0,
+  "audit_codec_calls": 0,
+  "validation_executed_commit": "75aa62e2429db2e65b8b60ef2d82dbd7df1861a2",
+  "validation_complete_tree_matches_external_6ad712e": true,
+  "runtime_files_match_frozen_193399f": true,
+  "integration_checks": {
+    "native_unit": 204,
+    "native_cli": 29,
+    "native_total": 233,
+    "python_tests": 249,
+    "strict_native_tool_clippy": true,
+    "formatting": true
+  },
+  "separate_cancellation_trials": {
+    "executed_main": "afb9a52a354426d680d6cc5809ad7ec32ac23391",
+    "trials": 64,
+    "concurrency": 4,
+    "failures": 0,
+    "original_failing_source": false
+  },
+  "geometry_notes": [
+    "Existing-codec objects are prepared before the calling-thread pin.",
+    "Repeated constructor operations create new objects after pinning, not formal construction-before-pin geometry.",
+    "Payload byte witnesses are not physical/dynamic-buffer layout evidence."
+  ],
+  "accepted_component_comparison": false,
+  "candidate_attribution": null,
+  "release_approval": false,
+  "new_performance_workers": 0,
+  "warmup_observations": 876,
+  "measured_observations": 2628
+}
