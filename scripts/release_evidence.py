@@ -10,6 +10,7 @@ from contextlib import ExitStack
 
 import argparse
 import hashlib
+import io
 import json
 import os
 import pathlib
@@ -54,6 +55,7 @@ KINDS = {key: name.removesuffix(".json") for key, name in FILES.items()}
 REVISION = re.compile(r"[0-9a-f]{40}\Z")
 DIGEST = re.compile(r"[0-9a-f]{64}\Z")
 MAX_BYTES = 32 * 1024 * 1024
+_UNBOUND = object()
 BASE_ENV = {
     "RUSTUP_TOOLCHAIN": "stable", "RUSTFLAGS": "", "RAYON_NUM_THREADS": "4",
     "RS_PARALLEL_POLICY_MAX_JOBS": "4", "RSE_BACKEND_OVERRIDE": "auto",
@@ -97,10 +99,27 @@ def campaign_analysis(data, sample_spreads, diagnostic):
         data=projected, sample_spreads=sample_spreads if diagnostic else [], diagnostic=diagnostic)))
 
 
-def json_data(path):
+def member_bytes(path, expected_sha256=_UNBOUND):
+    if expected_sha256 is not _UNBOUND and (not isinstance(expected_sha256, str) or not DIGEST.fullmatch(expected_sha256)):
+        raise ValueError("original member digest mismatch")
     if path.is_symlink() or not path.is_file() or not 0 < path.stat().st_size <= MAX_BYTES:
-        raise ValueError("evidence must contain bounded regular JSON files")
-    return json.loads(path.read_text(), parse_constant=lambda x: (_ for _ in ()).throw(ValueError("nonfinite JSON")))
+        raise ValueError("evidence must contain bounded regular original files")
+    with path.open('rb') as stream: raw = stream.read(MAX_BYTES + 1)
+    if not 0 < len(raw) <= MAX_BYTES:
+        raise ValueError("evidence must contain bounded regular original files")
+    if expected_sha256 is not _UNBOUND and digest(raw) != expected_sha256:
+        raise ValueError("original member digest mismatch")
+    return raw
+
+
+def member_text(path, expected_sha256=_UNBOUND):
+    # Retain read_text's locale/default encoding and universal-newline contract.
+    with io.TextIOWrapper(io.BytesIO(member_bytes(path, expected_sha256))) as stream:
+        return stream.read()
+
+
+def json_data(path, expected_sha256=_UNBOUND):
+    return json.loads(member_text(path, expected_sha256), parse_constant=lambda x: (_ for _ in ()).throw(ValueError("nonfinite JSON")))
 
 
 def source_at(root, revision):
@@ -460,10 +479,7 @@ def evidence_member(root, entry, expected):
     if not isinstance(entry, dict) or entry.get("path") != expected or not DIGEST.fullmatch(entry.get("sha256", "")):
         raise ValueError("invalid sampling evidence declaration")
     path = safe_file(root, expected)
-    result = json_data(path)
-    if digest(path.read_bytes()) != entry["sha256"]:
-        raise ValueError("sampling evidence digest mismatch")
-    return result
+    return json_data(path, entry["sha256"])
 
 
 def verify_sampling(document, root, repository, summarized, *, diagnostic=False):
