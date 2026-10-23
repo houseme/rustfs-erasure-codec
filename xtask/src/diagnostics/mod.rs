@@ -10,6 +10,7 @@ pub(crate) mod overlays;
 mod owned;
 pub mod sampler;
 pub mod source;
+pub(crate) mod source_plan;
 pub mod stream;
 mod stream_core;
 pub mod templates;

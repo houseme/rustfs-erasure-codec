@@ -85,6 +85,9 @@ enum Request {
         #[serde(default)]
         allocation_check: bool,
     },
+    SourcePlan {
+        request: crate::diagnostics::source_plan::Request,
+    },
     DynamicSource {
         original: BTreeMap<String, String>,
         tool: PathBuf,
@@ -204,6 +207,7 @@ impl Request {
                 variant,
                 allocation_check,
             } => Response::Files(overlays::render(&root, &tool, &variant, allocation_check)?),
+            Self::SourcePlan { request } => Response::Data(request.execute()?),
             Self::DynamicSource { original, tool } => {
                 Response::Files(dynamic::patch(&original, &tool)?)
             }
