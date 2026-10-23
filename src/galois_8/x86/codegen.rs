@@ -88,6 +88,51 @@ mod tests {
         assert!(!avx2_codegen_available_for(false));
     }
 
+    #[cfg(feature = "std")]
+    #[test]
+    fn generated_avx2_bytes_are_checked_even_when_auto_prefers_gfni() {
+        if !std::is_x86_feature_detected!("avx2") {
+            return;
+        }
+        for (data_count, parity_count) in [(4, 2), (6, 3), (8, 3), (8, 4), (10, 4), (12, 4)] {
+            let kernel = select_encode_kernel_avx2(data_count, parity_count).unwrap();
+            let rows: Vec<Vec<u8>> = (0..parity_count)
+                .map(|row| {
+                    (0..data_count)
+                        .map(|input| match (row + input) % 4 {
+                            0 => 0,
+                            1 => 1,
+                            _ => (row * 17 + input * 11) as u8,
+                        })
+                        .collect()
+                })
+                .collect();
+            let row_views: Vec<&[u8]> = rows.iter().map(Vec::as_slice).collect();
+            for len in [1, 31, 32, 33, 65, 65536] {
+                let data: Vec<Vec<u8>> = (0..data_count)
+                    .map(|input| (0..len).map(|i| (input * 41 + i * 13) as u8).collect())
+                    .collect();
+                let data_views: Vec<&[u8]> = data.iter().map(Vec::as_slice).collect();
+                let mut parity = vec![vec![0xa5; len]; parity_count];
+                let mut views: Vec<&mut [u8]> = parity.iter_mut().map(Vec::as_mut_slice).collect();
+                kernel
+                    .execute(&row_views, &data_views, &mut views, len)
+                    .unwrap();
+                for (row, output) in rows.iter().zip(&parity) {
+                    for (offset, &actual) in output.iter().enumerate() {
+                        let expected = row.iter().zip(&data).fold(0, |sum, (&c, input)| {
+                            sum ^ crate::galois_8::mul(c, input[offset])
+                        });
+                        assert_eq!(
+                            actual, expected,
+                            "shape {data_count}+{parity_count}, len {len}, offset {offset}"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     #[test]
     fn no_runtime_avx2_cannot_select_a_kernel() {
         let selected = select_encode_kernel_avx2_with_avx2_available(false, 4, 2);

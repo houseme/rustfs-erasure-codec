@@ -334,9 +334,15 @@ mod native {
             } else {
                 entry_codec.encode_sep(&data, &mut parity).unwrap();
             }
-            // One empty capability probe, ten inputs, four coefficient rows;
-            // one mutable empty probe and four mutable parity views.
-            assert_eq!(VIEW_CALLS.with(Cell::get), (15, 5));
+            let gfni_selected = matches!(
+                galois_8::active_backend_id(),
+                galois_8::BackendId::RustGfniAvx2 | galois_8::BackendId::RustGfniAvx512
+            );
+            // GFNI keeps the generic route after the empty capability probes.
+            // Eligible generated kernels prepare ten inputs, four rows and four
+            // parity views once, in addition to those two empty probes.
+            let expected_calls = if gfni_selected { (1, 1) } else { (15, 5) };
+            assert_eq!(VIEW_CALLS.with(Cell::get), expected_calls);
             let mut expected = vec![vec![0; len]; 4];
             galois_8::ReedSolomon::new(10, 4)
                 .unwrap()
