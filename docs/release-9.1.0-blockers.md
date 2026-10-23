@@ -16,6 +16,18 @@ mechanism/resource improvements, not a unique cause or cure of the Linux drift.
 They require a new final candidate freeze; rejected timing campaigns remain
 rejected under their original source bindings.
 
+## 2026-10-23 adaptive verification candidate
+
+The [complete affected-catalog review](verify-dispatch-review-2026-10-23.md) of
+main `db69018` versus runtime `17432e5` retains all 28 workers / 336 observations
+and an exact independent replay. Distribution, duration and repeat checks pass,
+but one of eight regression programs rejects 4+2/64 KiB stream verification:
+A1/B1 latency increases 15.0854% against the original 15% limit. All four
+pairings are slower. Keep PR #57 in draft until this result is resolved; passing
+correctness or ordinary CI does not establish a performance gain. This subset
+is not the final 9.0.0 comparison or release acceptance, and it does not replace
+historical complete-catalog failures.
+
 ## Latest complete diagnostic follow-through
 
 The [complete Linux review](complete-linux-diagnostic-2026-10-22.md) supersedes

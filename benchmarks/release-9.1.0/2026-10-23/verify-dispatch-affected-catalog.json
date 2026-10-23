@@ -1,0 +1,972 @@
+{
+  "schema": "verify-dispatch-affected-catalog-review-v1",
+  "scope": "all five original stream verification cases plus two unchanged 64 KiB encode controls; source-bound affected-catalog diagnosis only, never full release acceptance",
+  "release_approval": false,
+  "candidate_attribution": null,
+  "workers": 28,
+  "observations": 336,
+  "warmups": 84,
+  "measurements": 252,
+  "parent_events": 56,
+  "all_worker_summaries_match": true,
+  "all_raw_logs_match": true,
+  "all_fixed_counts_match": true,
+  "all_inputs_unchanged": true,
+  "all_sources_restored": true,
+  "all_resources_restored": true,
+  "observer_services_active": true,
+  "render_signatures_match": true,
+  "distribution_checks": 28,
+  "distribution_failures": 0,
+  "short_samples": 0,
+  "repeat_checks": 14,
+  "repeat_failures": 0,
+  "cross_version_comparisons": 28,
+  "regression_programs": 8,
+  "regression_program_failures": 1,
+  "regression_case_failures": 1,
+  "maximum_central_spread": 0.03754579517396496,
+  "maximum_repeat_drift": 0.04452765272082182,
+  "measured_sources": {
+    "tool": "022c0a7476e3d91bee33f86bf4ade55d27122949",
+    "baseline": "db690184811584d96c8c3509f37a802156c5b61f",
+    "candidate": "17432e50f1fd2a790034e3de213ebf58c7d4635c"
+  },
+  "baseline_and_candidate_lockfiles_equal": true,
+  "formal_performance_acceptance": false,
+  "scope_outcome": "rejected: one original regression threshold exceeded",
+  "cases": [
+    {
+      "profile": "small_file",
+      "case": "encode:10:4:65536",
+      "metric": "ns_per_iter",
+      "iterations": 73728,
+      "repeat_checks": [
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:65536",
+          "pair": "A1/A2",
+          "drift": 0.0003685597871163626
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:65536",
+          "pair": "B1/B2",
+          "drift": 0.01411472375564915
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:65536",
+          "pair": "A1/B1",
+          "latency_ratio": 0.998783362397144,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:65536",
+          "pair": "A1/B2",
+          "latency_ratio": 1.0128809136491181,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:65536",
+          "pair": "A2/B1",
+          "latency_ratio": 0.9984153866347923,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:10:4:65536",
+          "pair": "A2/B2",
+          "latency_ratio": 1.0125077440105321,
+          "candidate_attribution": null
+        }
+      ],
+      "phases": {
+        "A1": {
+          "median": 35869.35,
+          "central_spread": 0.022765397198443848,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 35825.71,
+          "central_spread": 0.027055709433253406,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 36331.38,
+          "central_spread": 0.03467057953757874,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 35882.57,
+          "central_spread": 0.011950927706683266,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "latency_ratio_range": [
+        0.9984153866347923,
+        1.0128809136491181
+      ]
+    },
+    {
+      "profile": "small_file",
+      "case": "encode:4:2:65536",
+      "metric": "ns_per_iter",
+      "iterations": 524288,
+      "repeat_checks": [
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A1/A2",
+          "drift": 0.007856496118507916
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "B1/B2",
+          "drift": 0.01868928702346051
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A1/B1",
+          "latency_ratio": 1.03660031764409,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A1/B2",
+          "latency_ratio": 1.0172269967790295,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A2/B1",
+          "latency_ratio": 1.0285197561719168,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "small_file",
+          "case": "encode:4:2:65536",
+          "pair": "A2/B2",
+          "latency_ratio": 1.0092974552395204,
+          "candidate_attribution": null
+        }
+      ],
+      "phases": {
+        "A1": {
+          "median": 6737.1,
+          "central_spread": 0.017494174051149555,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 6983.68,
+          "central_spread": 0.013742038581378334,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 6853.16,
+          "central_spread": 0.01719060987923825,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 6790.03,
+          "central_spread": 0.026927716077837675,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "latency_ratio_range": [
+        1.0092974552395204,
+        1.03660031764409
+      ]
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:10:4:1048576:1048576",
+      "metric": "ns_per_block",
+      "iterations": 1792,
+      "repeat_checks": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:1048576:1048576",
+          "pair": "A1/A2",
+          "drift": 0.0024685813517378863
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:1048576:1048576",
+          "pair": "B1/B2",
+          "drift": 0.015799759306604377
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:1048576:1048576",
+          "pair": "A1/B1",
+          "latency_ratio": 0.997210795699218,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:1048576:1048576",
+          "pair": "A1/B2",
+          "latency_ratio": 1.012966486249213,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:1048576:1048576",
+          "pair": "A2/B1",
+          "latency_ratio": 0.9996785836084455,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:1048576:1048576",
+          "pair": "A2/B2",
+          "latency_ratio": 1.0154732646134261,
+          "candidate_attribution": null
+        }
+      ],
+      "phases": {
+        "A1": {
+          "median": 4429876.29,
+          "central_spread": 0.03242682878622776,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            2252.25,
+            2323.75
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 4417520.46,
+          "central_spread": 0.016756080853556492,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            2252.25,
+            2323.75
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 4487316.22,
+          "central_spread": 0.025158420861189062,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            2252.25,
+            2323.75
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 4418940.78,
+          "central_spread": 0.032052076968544584,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            2252.25,
+            2323.75
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "latency_ratio_range": [
+        0.997210795699218,
+        1.0154732646134261
+      ]
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:10:4:16777216:4194304",
+      "metric": "ns_per_block",
+      "iterations": 128,
+      "repeat_checks": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:16777216:4194304",
+          "pair": "A1/A2",
+          "drift": 0.004757387229439192
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:16777216:4194304",
+          "pair": "B1/B2",
+          "drift": 0.001430507468196618
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:16777216:4194304",
+          "pair": "A1/B1",
+          "latency_ratio": 0.9958302830788224,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:16777216:4194304",
+          "pair": "A1/B2",
+          "latency_ratio": 0.9972548257358229,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:16777216:4194304",
+          "pair": "A2/B1",
+          "latency_ratio": 1.000590479447645,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:16777216:4194304",
+          "pair": "A2/B2",
+          "latency_ratio": 1.0020218316011014,
+          "candidate_attribution": null
+        }
+      ],
+      "phases": {
+        "A1": {
+          "median": 7664824.88,
+          "central_spread": 0.012367758100691174,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            10617.25,
+            10856.75
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 7632864.73,
+          "central_spread": 0.009556960928875287,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            10617.25,
+            10856.75
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 7643783.6,
+          "central_spread": 0.02109192494669791,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            10617.25,
+            10856.75
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 7628360.34,
+          "central_spread": 0.01423675929813246,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            10617.25,
+            10856.75
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "latency_ratio_range": [
+        0.9958302830788224,
+        1.0020218316011014
+      ]
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:10:4:65536:65536",
+      "metric": "ns_per_block",
+      "iterations": 45056,
+      "repeat_checks": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:65536:65536",
+          "pair": "A1/A2",
+          "drift": 0.012175347091814448
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:65536:65536",
+          "pair": "B1/B2",
+          "drift": 0.020063814031622385
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:65536:65536",
+          "pair": "A1/B1",
+          "latency_ratio": 1.0038546566099587,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:65536:65536",
+          "pair": "A1/B2",
+          "latency_ratio": 0.9837135034649584,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:65536:65536",
+          "pair": "A2/B1",
+          "latency_ratio": 0.9917793981983826,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:10:4:65536:65536",
+          "pair": "A2/B2",
+          "latency_ratio": 0.971880520792536,
+          "candidate_attribution": null
+        }
+      ],
+      "phases": {
+        "A1": {
+          "median": 444651.8,
+          "central_spread": 0.018022439131023468,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            256.0,
+            256.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 446365.78,
+          "central_spread": 0.020252829417165538,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            256.0,
+            256.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 437409.98,
+          "central_spread": 0.014287511226881473,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            256.0,
+            256.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 450065.59,
+          "central_spread": 0.024319410866313857,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            256.0,
+            256.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "latency_ratio_range": [
+        0.971880520792536,
+        1.0038546566099587
+      ]
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:4:2:1048576:262144",
+      "metric": "ns_per_block",
+      "iterations": 3712,
+      "repeat_checks": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:1048576:262144",
+          "pair": "A1/A2",
+          "drift": 0.0029839170599060827
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:1048576:262144",
+          "pair": "B1/B2",
+          "drift": 0.007835854657551544
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:1048576:262144",
+          "pair": "A1/B1",
+          "latency_ratio": 1.0006733530770475,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:1048576:262144",
+          "pair": "A1/B2",
+          "latency_ratio": 0.9928322221226511,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:1048576:262144",
+          "pair": "A2/B1",
+          "latency_ratio": 1.0036682157886248,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:1048576:262144",
+          "pair": "A2/B2",
+          "latency_ratio": 0.995803617525301,
+          "candidate_attribution": null
+        }
+      ],
+      "phases": {
+        "A1": {
+          "median": 172183.07,
+          "central_spread": 0.026279238719579087,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            243.52289870689654,
+            244.16971982758622
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 172299.01,
+          "central_spread": 0.031104821786265557,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            243.52289870689654,
+            244.16971982758622
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 170948.9,
+          "central_spread": 0.01191127875055061,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            243.52289870689654,
+            244.16971982758622
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 171669.29,
+          "central_spread": 0.03754579517396496,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            243.52289870689654,
+            244.16971982758622
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "latency_ratio_range": [
+        0.9928322221226511,
+        1.0036682157886248
+      ]
+    },
+    {
+      "profile": "stream",
+      "case": "verify_stream:4:2:65536:65536",
+      "metric": "ns_per_block",
+      "iterations": 176128,
+      "repeat_checks": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A1/A2",
+          "drift": 0.04452765272082182
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "B1/B2",
+          "drift": 0.022458897878132933
+        }
+      ],
+      "comparisons": [
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A1/B1",
+          "latency_ratio": 1.1508544082065908,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A1/B2",
+          "latency_ratio": 1.1250074865800799,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A2/B1",
+          "latency_ratio": 1.1017941030175749,
+          "candidate_attribution": null
+        },
+        {
+          "profile": "stream",
+          "case": "verify_stream:4:2:65536:65536",
+          "pair": "A2/B2",
+          "latency_ratio": 1.077049021775174,
+          "candidate_attribution": null
+        }
+      ],
+      "phases": {
+        "A1": {
+          "median": 13858.13,
+          "central_spread": 0.022675498065034733,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B1": {
+          "median": 15948.69,
+          "central_spread": 0.02322385098713433,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "B2": {
+          "median": 15590.5,
+          "central_spread": 0.02931208107501373,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        },
+        "A2": {
+          "median": 14475.2,
+          "central_spread": 0.03268141372830783,
+          "short_samples": 0,
+          "caller_fixture_matches_A1": true,
+          "workload_catalog_matches_A1": true,
+          "workload_trace_matches_A1": true,
+          "minor_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ],
+          "major_faults_per_iteration_range": [
+            0.0,
+            0.0
+          ]
+        }
+      },
+      "latency_ratio_range": [
+        1.077049021775174,
+        1.1508544082065908
+      ]
+    }
+  ],
+  "regression_program_results": [
+    {
+      "profile": "small_file",
+      "pair": "A1/B1",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 2,
+      "failures": []
+    },
+    {
+      "profile": "small_file",
+      "pair": "A1/B2",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 2,
+      "failures": []
+    },
+    {
+      "profile": "small_file",
+      "pair": "A2/B1",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 2,
+      "failures": []
+    },
+    {
+      "profile": "small_file",
+      "pair": "A2/B2",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 2,
+      "failures": []
+    },
+    {
+      "profile": "stream",
+      "pair": "A1/B1",
+      "exit_code": 1,
+      "execution_error": false,
+      "comparison_count": 5,
+      "failures": [
+        {
+          "operation": "verify_stream",
+          "data_shards": "4",
+          "parity_shards": "2",
+          "shard_size": "65536",
+          "stream_block_size": "65536",
+          "metric": "ns_per_block",
+          "baseline_metric_value": 13858.13,
+          "current_metric_value": 15948.69,
+          "baseline_throughput_mb_s": 18039.9543,
+          "current_throughput_mb_s": 15675.2654,
+          "baseline_ns_per_iter": 13858.13,
+          "current_ns_per_iter": 15948.69,
+          "regression_ratio": 0.15085440820659074,
+          "threshold": 0.15
+        }
+      ]
+    },
+    {
+      "profile": "stream",
+      "pair": "A1/B2",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 5,
+      "failures": []
+    },
+    {
+      "profile": "stream",
+      "pair": "A2/B1",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 5,
+      "failures": []
+    },
+    {
+      "profile": "stream",
+      "pair": "A2/B2",
+      "exit_code": 0,
+      "execution_error": false,
+      "comparison_count": 5,
+      "failures": []
+    }
+  ],
+  "limitations": [
+    "All seven planned cases and four phase pairings are retained; the single failing threshold is not discarded.",
+    "This comparison is main db69018 versus runtime 17432e5, not published 9.0.0 versus the final 9.1.0 candidate.",
+    "The subsequent 10b2f65 and 1cbdd8e commits modify tests only; measured sources are not relabeled.",
+    "The recorded backend identifies the ordinary field backend; generated encoding can use a separate checked AVX2 kernel.",
+    "Equal recorded caller fixtures, workload witnesses and guest faults do not establish identical internal ownership, physical memory/cache state or physical-host isolation.",
+    "No new codec sampling, allocator setting or hardware counter was introduced during independent replay.",
+    "This derived report is not a release manifest or a strict positive release preflight."
+  ]
+}
