@@ -74,18 +74,15 @@ def schedule(counts):
     return native_tools.request('baseline-analysis', request=dict(operation='schedule', counts=counts))
 
 
+def worker_request(rows,raw,step,calibration,context):
+    profile=step['profile'];case=step['case'];reference,fixtures,workloads,traces=calibration
+    return dict(rows=rows,raw=raw,profile=profile,case=case,iterations=step['iterations'],revision=e.BASELINE_COMMIT,
+                calibration=dict(reference=reference.get(case),fixture=fixtures.get(case),workload=workloads.get(case),trace=traces.get(case)),
+                allowed_cpus=context['isolation']['cpu_affinity'],expected_page_size=context['runtime']['page_size'])
+
+
 def check_worker(rows,raw,step,calibration,context):
-    profile=step['profile'];case=step['case'];counts={case:step['iterations']}
-    timing=s.parse_output(raw,'RSE_TIMING ')
-    if not same(s.parse_output(raw),rows) or len(timing)!=12 or any(not same({k:t[k] for k in ('case','index','iterations','wall_ns','timed_ns','fixture','workload','placement','before','after')},{k:r[k] for k in ('case','index','iterations','wall_ns','timed_ns','fixture','workload','placement','before','after')}) for t,r in zip(timing,rows)):raise ValueError('raw original worker journal differs')
-    selection=s.select_profile(rows,profile,e.METRICS[profile],e.BASELINE_COMMIT,{case},counts,context['isolation']['cpu_affinity'],context['runtime']['page_size'])
-    selected,widths=selection['selected'],selection['spreads'];prepared=selection['preparation']
-    reference,fixtures,workloads,traces=calibration
-    e.observation_contracts(profile,rows,reference)
-    for actual,wanted,label in ((prepared['fixtures'],fixtures,'caller geometry'),(prepared['workloads'],workloads,'workload'),(prepared['traces'],traces,'input replay')):
-        if actual.get(case)!=wanted.get(case):raise ValueError(label+' differs from frozen input; no temporal attribution')
-    if [r['kind'] for r in rows]!=['warmup']*3+['sample']*9 or any(r['calibration_batch']!=0 for r in rows):raise ValueError('original warmup/sample schedule differs')
-    return {'metric':e.METRICS[profile],'value':float(selected[0][e.METRICS[profile]]),'central_spread':widths[0]['central_spread']}
+    return native_tools.sampling_request('replay-worker', request=worker_request(rows,raw,step,calibration,context))
 
 
 def replay(output,prior,repository):

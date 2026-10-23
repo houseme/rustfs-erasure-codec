@@ -7,6 +7,7 @@ pub(crate) mod batch;
 pub(crate) mod calibration_profile;
 pub(crate) mod preparation;
 mod protocol;
+pub(crate) mod replay;
 use serde_json::{Value, json};
 
 #[path = "../../scripts/release-sampling/service_window.rs"]
@@ -43,6 +44,9 @@ const COUNTERS: &[&str] = &[
 #[serde(tag = "operation", rename_all = "kebab-case", deny_unknown_fields)]
 pub(crate) enum Request {
     Catalog,
+    ReplayWorker {
+        request: replay::Request,
+    },
     Batch {
         request: batch::Request,
     },
@@ -127,6 +131,7 @@ impl Request {
                     allowed_cpus.as_deref(),
                 );
             }
+            Self::ReplayWorker { request } => return request.validate(),
             Self::Catalog => {
                 return Ok(json!({
                     "protocol": protocol::value(),

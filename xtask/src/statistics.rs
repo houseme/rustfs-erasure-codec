@@ -28,7 +28,7 @@ fn mixed(integer: u64, float: f64) -> Ordering {
         }
     })
 }
-fn compare(a: &Value, b: &Value) -> Ordering {
+pub(crate) fn compare(a: &Value, b: &Value) -> Ordering {
     match (a.as_u64(), b.as_u64()) {
         (Some(a), Some(b)) => a.cmp(&b),
         (Some(a), None) => mixed(a, b.as_f64().unwrap_or(f64::INFINITY)),
