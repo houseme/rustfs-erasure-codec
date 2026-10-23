@@ -9,6 +9,7 @@ import pathlib
 import subprocess
 import sys
 
+import native_tools
 import release_evidence as evidence
 import release_sampling as sampling
 from diagnostic_overlay import overlay as generated_overlay
@@ -22,77 +23,28 @@ def case_catalog(profile=None):
     return evidence.expected_cases(profile) if profile else set().union(*(evidence.expected_cases(p) for p in PROFILES))
 
 
-def comparable_inventory_contract(groups, profile, reference=None):
-    """Reuse formal provenance and workload contracts for every inventory mode."""
-    records=[row for group in groups.values() for row in group]
-    contracts=evidence.observation_contracts(profile,records,reference[0] if reference is not None else None)
-    workload=sampling.workload_catalog(records)
-    if reference is not None and workload!=reference[1]:raise ValueError('inventory preparation/placement differs between phases')
-    return contracts,workload
+def inventory_request(operation, **values):
+    return native_tools.request('diagnostic-layout', request={
+        'operation':'inventory', 'request':{'operation':operation, **values}})
 
 
 def analyze(phases, sources, cpus, page_size=None):
-    if set(phases) != set(evidence.PHASES):
-        raise ValueError('all four layout inventory phases are required')
-    counts = {case: 1 for case in case_catalog()}
-    layouts = {};contracts={}
-    for phase in evidence.PHASES:
-        revision = sources['baseline' if phase.startswith('A') else 'candidate']['commit']
-        if any(r.get('case') not in case_catalog() for r in phases[phase]):
-            raise ValueError('unexpected inventory case')
-        for profile in PROFILES:
-            records = [r for r in phases[phase] if r['case'] in case_catalog(profile)]
-            groups=sampling.sample_groups(records, profile, revision, case_catalog(profile), counts, cpus, page_size)
-            contracts[profile]=comparable_inventory_contract(groups,profile,contracts.get(profile))
-        layouts[phase] = sampling.fixture_catalog(phases[phase])
-    checks = []
-    for left, right in (('A1', 'A2'), ('B1', 'B2'), ('A1', 'B1'), ('A1', 'B2'), ('A2', 'B1'), ('A2', 'B2')):
-        for case in sorted(case_catalog()):
-            before, after = layouts[left][case], layouts[right][case]
-            changed = []
-            for role in ('source', 'scratch'):
-                for index, (a, b) in enumerate(zip(before[role], after[role])):
-                    fields = sorted(key for key in a if a[key] != b[key])
-                    if fields: changed.append({'role': role, 'index': index, 'fields': fields})
-            checks.append({'case': case, 'pair': left+'/'+right, 'matches': before == after,
-                           'different_buffers': changed})
-    return {'purpose': 'one-iteration structural layout inventory; no timing inference',
-            'release_approval': False, 'candidate_attribution': None,
-            'case_count': len(counts), 'phase_count': len(phases), 'dynamic_output_layouts_observed': False,
-            'layout_checks': checks, 'layout_mismatches': [c for c in checks if not c['matches']]}
+    return inventory_request('retained', phases=phases, sources=sources,
+                             cpus=None if cpus is None else list(cpus), page_size=page_size)
 
 
 def analyze_stream_views(phases, views, sources, cpus, page_size, iterations):
-    counts={case:iterations for case in case_catalog('stream')}
-    if set(phases)!=set(evidence.PHASES) or set(views)!=set(phases):raise ValueError('all four stream-view inventory phases are required')
-    signatures={};reference=None;lifecycle={}
+    if set(phases)!=set(evidence.PHASES) or set(views)!=set(phases):
+        raise ValueError('all four stream-view inventory phases are required')
+    reference=None;reports={}
     for phase in evidence.PHASES:
         revision=sources['baseline' if phase.startswith('A') else 'candidate']['commit']
-        normalized=view_audit.underlying_records(phases[phase])
-        groups=sampling.sample_groups(normalized,'stream',revision,case_catalog('stream'),counts,cpus,page_size)
-        reference=comparable_inventory_contract(groups,'stream',reference)
-        reports=view_audit.validate_samples(views[phase],phases[phase],iterations,page_size,require_counters=True,summary=True)
-        lifecycle[phase]=[{'case':sample['case'],'observation':view['observation'],'calls':report}
-                          for sample,view,report in zip(phases[phase],views[phase],reports)]
-        signatures[phase]={}
-        for sample,view in zip(phases[phase],views[phase]):
-            case=sample['case']
-            keys=signatures[phase].setdefault(case,set())
-            keys.update((e['role'],e['index'],e['len'],e['capacity'],tuple(e['offsets']) if e['offsets'] is not None else None) for e in view['events'])
-    checks=[]
-    for left,right in (('A1','A2'),('B1','B2'),('A1','B1'),('A1','B2'),('A2','B1'),('A2','B2')):
-        for case in sorted(counts):
-            a,b=signatures[left][case],signatures[right][case]
-            checks.append({'case':case,'pair':left+'/'+right,'matches':a==b,'different_view_shapes':len(a^b)})
-    return {'purpose':'instrumented real I/O view/lifecycle inventory; no timing inference',
-            'release_approval':False,'candidate_attribution':None,'case_count':len(counts),
-            'phase_count':4,'observations':sum(map(len,views.values())),
-            'coverage':{'stream_case_lifecycles':15,'caller_owned_destination_cases':10,'internal_read_views':10,'internal_parity_write_views':5,
-                        'native_virtual_page_snapshots':True,'former_encode_scratch_ranges':True,'former_writer_ranges':True,
-                        'physical_page_identity':False,'first_fault_instruction':False,'internal_verify_scratch':False,'internal_recovery_scratch':False,'non_stream_dynamic_buffers':False,
-                        'formal_performance_geometry_equivalence':False},
-            'lifecycle_windows':lifecycle,
-            'layout_checks':checks,'layout_mismatches':[c for c in checks if not c['matches']]}
+        reference=inventory_request('stream-phase', records=phases[phase], revision=revision,
+                                    cpus=list(cpus), page_size=page_size, iterations=iterations,
+                                    reference=reference)
+        reports[phase]=view_audit.validate_samples(views[phase],phases[phase],iterations,page_size,
+                                                 require_counters=True,inventory=True)
+    return inventory_request('stream-report', phases=reports)
 
 
 def capture(tool, baseline, candidate, output, group, stream_views=False, iterations=2):

@@ -30,7 +30,7 @@ def validate(view, case, iterations, page_size, observation, source_fixture=None
         observation=observation, source_fixture=source_fixture, require_counters=require_counters)]))
 
 
-def validate_samples(views, samples, iterations, page_size, *, require_counters=False, summary=False):
+def validate_samples(views, samples, iterations, page_size, *, require_counters=False, summary=False, inventory=False):
     if len(views) != len(samples): raise ValueError('missing stream-view observations')
     result=[]
     # Four bounded ledgers fit one native frame, including full u64 counters.
@@ -39,8 +39,9 @@ def validate_samples(views, samples, iterations, page_size, *, require_counters=
                            observation=row['index'], source_fixture=row['fixture']['source'],
                            require_counters=require_counters)
                       for view,row in zip(views[offset:offset+4],samples[offset:offset+4])]
-        result.extend(native_tools.request('stream-views', request=dict(operation='validate',
-                          observations=observations, summary=summary)))
+        request=dict(operation='inventory' if inventory else 'validate', observations=observations)
+        if not inventory:request['summary']=summary
+        result.extend(native_tools.request('stream-views', request=request))
     return result
 
 
