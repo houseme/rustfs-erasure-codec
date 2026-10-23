@@ -16,6 +16,17 @@ mechanism/resource improvements, not a unique cause or cure of the Linux drift.
 They require a new final candidate freeze; rejected timing campaigns remain
 rejected under their original source bindings.
 
+## GF16 tower fusion and cached execution
+
+The [tower review](gfni-tower-fusion-review-2026-10-24.md) retains the complete
+first source's twenty-case comparison: no width/short failures, ten repeat
+refusals and one scalar-control regression refusal. It is not accepted.
+Cached execution source `678ddd6` preserves the original portable body and
+separates its stack planes from fused/constant entry. Its actual new-source
+comparison must complete and replay independently; local correctness, published
+wire compatibility and ordinary CI do not qualify throughput or strict release.
+The separate portable-interleave PR #83 still needs explicit integration review.
+
 ## GFNI component follow-through and cancellation fix
 
 PR #82's identified-member exit confirmation passed 31 PR checks, with three

@@ -1,0 +1,80 @@
+{
+  "artifact_kind": "gfni-tower-dispatch-component-plan-review-v1",
+  "codec_sources": {
+    "baseline": "9ddcac9348504d1c9b6b55231ec4596a1e938984",
+    "candidate": "678ddd60c28f6a198be58397a0603a5ff1c43fad"
+  },
+  "entry_tool": {
+    "commit": "9f935eef9c1af721165b245709897f7c4b9acc37",
+    "role": "zero-codec ownership preflight only"
+  },
+  "cases": [
+    "auto|gf16:multiply_tower:0:0:1024:0",
+    "auto|gf16:multiply_tower:0:0:1025:0",
+    "auto|gf16:accumulate_tower:0:0:1024:0",
+    "auto|gf16:accumulate_tower:0:0:1025:0",
+    "rust-gfni-avx2|gf16:multiply_tower:0:0:1024:0",
+    "rust-gfni-avx2|gf16:multiply_tower:0:0:1025:0",
+    "rust-gfni-avx2|gf16:accumulate_tower:0:0:1024:0",
+    "rust-gfni-avx2|gf16:accumulate_tower:0:0:1025:0",
+    "rust-gfni-avx512|gf16:multiply_tower:0:0:1024:0",
+    "rust-gfni-avx512|gf16:multiply_tower:0:0:1025:0",
+    "rust-gfni-avx512|gf16:accumulate_tower:0:0:1024:0",
+    "rust-gfni-avx512|gf16:accumulate_tower:0:0:1025:0",
+    "auto|gf8:encode:10:4:1024:0",
+    "auto|gf16:encode:10:4:1024:0",
+    "scalar-rust|gf16:multiply_tower:0:0:1024:0",
+    "scalar-rust|gf16:accumulate_tower:0:0:1024:0",
+    "auto|gf16:custom_encode:10:2:1024:0",
+    "auto|gf16:custom_encode:10:2:1025:0",
+    "auto|gf16:custom_warm:10:2:1024:2",
+    "auto|gf16:custom_warm:10:2:1025:2"
+  ],
+  "phase_order": [
+    "A1",
+    "B1",
+    "B2",
+    "A2"
+  ],
+  "component_workers": 80,
+  "observations": 960,
+  "warmup_observations": 240,
+  "measured_observations": 720,
+  "warmups_per_worker": 3,
+  "measurements_per_worker": 9,
+  "gates": {
+    "central_width_percent": 10,
+    "same_version_repeat_percent": 5,
+    "regression_percent": 12,
+    "minimum_sample_ms": 100
+  },
+  "calibration": "each role independently doubles from one pilot to >=200ms; larger common count; no unchanged retry",
+  "features": [
+    "std",
+    "simd-accel"
+  ],
+  "benchmark_metrics": false,
+  "timing_harness_byte_identical_to_first_cohort": true,
+  "case_catalog_and_limits_identical_to_first_cohort": true,
+  "actual_runtime_source_changed": true,
+  "initial_resource_wait_produced_no_samples": true,
+  "previous_owner_cleanup_and_observer_restore_checked": true,
+  "launched_once": true,
+  "functional_requirements": [
+    "both GFNI tower execution markers",
+    "9 GFNI units",
+    "selector mapping 1",
+    "coefficient basis 1",
+    "affine matrix 1",
+    "dispatch 7",
+    "owned reuse 2",
+    "published normal 200",
+    "published custom27/162 under auto/GFNI256/GFNI512"
+  ],
+  "scope": "Same twenty cases: fused general tower, outlined constant-coordinate encode, original scalar fallback controls, unchanged GF8 encode control and custom encode/warm recovery.",
+  "formal_performance_geometry_equivalence": false,
+  "component_results": "sampling in progress; no partial comparisons used",
+  "candidate_attribution": null,
+  "release_approval": false,
+  "native_correctness_and_bootstrap_completed": true
+}
