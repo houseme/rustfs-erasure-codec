@@ -22,9 +22,10 @@ The [merged-candidate review](release-9.1.0-readiness-2026-10-23.md) binds main
 `14cf56e` to frozen runtime `449920e` by complete file-tree equality. Ordinary CI
 and package dry-run passed on the identical original PR tree `09597e4`; strict
 evidence validation, release preflight and registry publication were skipped.
-The prepared 64-worker encode/stream comparison has not started while another
-controlled capture owns the resource. Implementation merge does not close the
-performance or publication gates below.
+The frozen 64-worker encode/stream plan has been launched after the previous
+resource owner completed cleanup; complete collection and independent replay
+remain pending. Implementation merge does not close the performance or
+publication gates below.
 
 ## 2026-10-23 adaptive verification candidate
 

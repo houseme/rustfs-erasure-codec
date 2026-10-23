@@ -80,9 +80,10 @@ all eleven original small-file encode cases and all five original stream verify
 cases, complete A1/B1/B2/A2, 64 workers and 768 observations. Original common
 iteration counts and three warmups/nine samples are retained. All 32 repeats,
 64 comparisons and eight scoped regression programs are evaluated after the
-planned collection; statistical failure does not truncate it. Sampling has not
-started at this review because another controlled capture owns the resource.
-Its owner must finish and restore the resource before this plan starts.
+planned collection; statistical failure does not truncate it. The frozen plan
+has now been launched after the previous controlled capture completed and restored
+its resource and observer services. Complete collection and independent replay
+are pending; launching the guard does not establish a performance result.
 
 This affected catalog compares two unreleased sources. It cannot replace the
 complete published-9.0.0 baseline/final-candidate comparison or paired layouts.
