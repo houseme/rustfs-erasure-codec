@@ -15,6 +15,7 @@ const SNAPSHOT_LIMIT: u64 = 256 * 1024 * 1024;
 pub(crate) struct Snapshot {
     root: PathBuf,
     total: u64,
+    limit: u64,
     members: BTreeMap<String, String>,
 }
 pub(crate) fn hex(bytes: &[u8]) -> String {
@@ -54,9 +55,14 @@ pub(crate) fn text_member(path: &Path, expected: &str) -> Result<String> {
 }
 impl Snapshot {
     pub(crate) fn new(root: &Path) -> Result<Self> {
+        Self::with_budget(root, SNAPSHOT_LIMIT)
+    }
+    /// Fixed member catalogs can retain the original per-member acceptance budget.
+    pub(crate) fn with_budget(root: &Path, limit: u64) -> Result<Self> {
         Ok(Self {
             root: fs::canonicalize(root)?,
             total: 0,
+            limit,
             members: BTreeMap::new(),
         })
     }
@@ -139,7 +145,7 @@ impl Snapshot {
             .total
             .checked_add(bytes.len() as u64)
             .ok_or("snapshot byte budget overflow")?;
-        if self.total > SNAPSHOT_LIMIT {
+        if self.total > self.limit {
             return Err("original snapshot exceeds byte budget".into());
         }
         let hash = digest(&bytes);

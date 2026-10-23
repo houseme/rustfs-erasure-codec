@@ -92,8 +92,16 @@ impl<'a> Preparation<'a> {
     pub(crate) fn catalog(&self) -> Value {
         json!({"fixtures":self.fixtures,"workloads":self.workloads,"traces":self.traces})
     }
-    pub(crate) fn validate(&self, profile: &str, records: &[Value]) -> Result<()> {
-        for row in records {
+    pub(crate) fn validate_observations(
+        &self,
+        profile: &str,
+        records: &[Value],
+        completed: bool,
+    ) -> Result<()> {
+        for row in records
+            .iter()
+            .filter(|r| !completed || r["complete"] == true)
+        {
             let case = row["case"].as_str().ok_or("missing preparation case")?;
             let (source, placement) = self
                 .contracts
@@ -101,6 +109,10 @@ impl<'a> Preparation<'a> {
                 .ok_or("observation case differs from calibration")?;
             benchmark_contract::observation_matches(profile, row, source, placement)?;
         }
+        Ok(())
+    }
+    pub(crate) fn validate(&self, profile: &str, records: &[Value]) -> Result<()> {
+        self.validate_observations(profile, records, false)?;
         let actual = Preparation::new(records, false)?;
         if actual.workloads != self.workloads || actual.traces != self.traces {
             return Err(

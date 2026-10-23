@@ -186,3 +186,24 @@ fn bound_digest_refuses_changed_bytes_before_recording_or_decoding_a_member() {
         serde_json::json!({})
     );
 }
+
+#[test]
+fn fixed_catalog_budgets_preserve_inclusive_member_limits() {
+    let directory = Directory::new();
+    for name in ["a.json", "b.json"] {
+        fs::write(directory.0.join(name), b"{}").unwrap();
+    }
+    let mut snapshot = Snapshot::with_budget(&directory.0, 4).unwrap();
+    snapshot.json("a.json").unwrap();
+    snapshot.json("b.json").unwrap();
+    snapshot.finish().unwrap();
+    let mut snapshot = Snapshot::with_budget(&directory.0, 3).unwrap();
+    snapshot.json("a.json").unwrap();
+    assert!(
+        snapshot
+            .json("b.json")
+            .unwrap_err()
+            .to_string()
+            .contains("budget")
+    );
+}

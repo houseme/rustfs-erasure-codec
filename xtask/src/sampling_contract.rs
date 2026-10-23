@@ -5,6 +5,7 @@ use std::borrow::Borrow;
 
 pub(crate) mod batch;
 pub(crate) mod calibration_profile;
+mod campaign;
 mod journal;
 pub(crate) mod output;
 pub(crate) mod preparation;
@@ -47,6 +48,9 @@ const COUNTERS: &[&str] = &[
 #[serde(tag = "operation", rename_all = "kebab-case", deny_unknown_fields)]
 pub(crate) enum Request {
     Catalog,
+    Campaign {
+        request: campaign::Request,
+    },
     WorkerJournal {
         request: journal::Request,
     },
@@ -121,6 +125,7 @@ pub(crate) enum Request {
 impl Request {
     pub(crate) fn execute(self) -> Result<Value> {
         match self {
+            Self::Campaign { request } => return request.execute(),
             Self::Batch { request } => return request.execute(),
             Self::WorkerJournal { request } => return request.execute(),
             Self::CalibrationProfile {
