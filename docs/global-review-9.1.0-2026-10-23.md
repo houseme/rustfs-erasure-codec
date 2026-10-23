@@ -1310,3 +1310,69 @@ JSON stay outside the crates; the extracted-package test confirms the core's
 library tests do not require those repository-only inputs. No new dependency,
 codec-format change, release tag, registry upload or performance approval is
 introduced by this follow-up.
+
+
+## Native dynamic plans and capture envelope contracts
+
+The final implementation `af1598f` is rebased on main `6a15c5b`. It preserves
+main's scalar length validation, scalar unit-pivot optimization and interleaved
+GF16 constant-coefficient path. The cumulative follow-up changes only repository
+tooling, tests and documentation; codec sources, build inputs, manifests,
+dependencies and lockfiles match that main. Native contract implementation and
+Python controller migration remain separate functional commits.
+
+Dynamic capture and replay now consume one immutable 516-step native plan,
+derived from the shared profile/case catalogs and the original sorted supplement
+keys. Python keeps a serialized snapshot and returns fresh caller-owned values
+without another native request. The fixed base/sampling environment maps move
+into the native protocol module; its existing catalog exports them. Frozen
+digests preserve the original plan and environment values without retaining a
+second JSON fixture or a second version constant.
+
+The existing diagnostic-ledger frame validates the complete report envelope,
+frozen plan, runtime settings, portable/native memory policy and both source
+identities together. It streams all 1,032 begin/end execution boundaries, retaining
+only the current parsed event. Flat dynamic contexts reuse the shared allocator
+key and memory-policy rules while preserving portable empty libc fields. Python
+retains bounded original-file reads, Git binding and actual capture/process
+ownership. Each validated source is bound once; the duplicate tool/candidate
+binding and the later per-role source rechecks are removed.
+
+A comparison against the original Python at `2daca56` preserves every plan and
+environment value, all original plan/journal bytes, six accepted variants and
+twelve refusal variants. Accepted variants cover portable/native contexts, CRLF,
+last-key JSONL objects and recursive numeric equality, including signed zero.
+A new negative-integer regression first fails with the initial comparator and
+passes after preserving the full signed range. Integer/float identity comparison
+remains exact at the i64/u64 boundaries; explicit page/CPU and memory-policy
+integer checks remain strict. The comparison measures
+three source-identity queries before migration and two afterward at the envelope
+boundary. This is a complete synthetic envelope/plan/journal comparison with
+mocked Git identities, not a replay of all captured workers or a codec-throughput
+measurement. Permanent controller tests additionally require one native frame,
+two source lookups and fresh plan values without extra IPC.
+
+The frozen implementation passes all fifteen checks in an independent checkout:
+230 native tests (201 unit / 29 CLI), 249 Python tests, strict tooling Clippy,
+Linux tooling compilation, 536 top-level codec tests, ten doctests, codec-only
+no_std, the 200-configuration non-fast published/local compatibility probe,
+all three audits, actual core packaging/reconstruction, extracted package library
+tests, formatting and diff checks. The extracted package passes 370 library
+tests from distributable inputs. Its five existing ignores and the repository's
+43 existing codec ignores remain unchanged. Exact parity, bidirectional
+cross-decoding and historical tower-field vectors pass after integrating main's
+GF16 path. The older inconsistent fast-one-parity mode remains outside that
+compatibility probe. Spelling also passes.
+
+The current inventory is 34 active Python files / 7,658 lines: 3,484
+production/helper and 4,174 test/fixture lines. This removes 39 production Python
+lines and adds nine integration-test lines relative to the preceding journal
+review. Every remaining module has active control, hardware, historical replay
+or test callers. All 590 JSON files / 3,464,634 bytes match main, including its
+GF16 and scalar unit-pivot diagnostics. Eleven equal-byte groups retain their
+provenance; no frozen evidence is rewritten or deleted to reduce the inventory.
+
+All five workspace members still inherit the root dependency catalog. Core and
+WASM package allowlists remain 67 and six members, excluding Python, repository
+tools and archived JSON. No new CLI command, dependency, codec-format change,
+release tag, registry upload or performance approval is introduced.

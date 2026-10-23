@@ -47,6 +47,7 @@ cargo test --locked --package xtask
 | Python fixture/workload/RNG projections | Shared `sampling_contract::preparation` in existing calibration, selection and diagnostic-worker frames | Last observed per-case calibration batches, exact seeds/placement, all trace positions and unchanged persisted evidence |
 | Python original-worker and frequency-result calculations | `sampling_contract::replay`, shared `batch::select` and `diagnostics::vm::frequency`; existing sampling/VM commands | Original journal agreement, frozen preparation/provenance, exact interval types, counter enclosure and unchanged complete reports |
 | Python campaign worker-identity/event validation | Shared preparation worker starts and `sampling_contract::journal`; existing sampling command | Every rehearsal, full phase/profile order, original JSONL numeric rules, monotonic timestamps and exact invocation counts |
+| Python dynamic campaign plan/envelope and fixed capture settings | `diagnostics::dynamic_ledger::campaign` and `sampling_contract::protocol`; existing native ledger/catalog frames | Frozen 516-step order, complete runtime/source provenance, every execution boundary, unchanged environment values and diagnostic-only markers |
 
 The obsolete implementations and their Python test entry points are removed.
 Rust unit and executable tests cover the retained contracts. The migration was
@@ -319,10 +320,11 @@ The initial inventory contained **56 Python files / 13,120 lines**. Twenty-three
 original files were removed (twelve implementations/helpers and eleven test
 modules). One native-tool compatibility binding remains. The intermediate Python
 normalization library was also removed after its consumers moved to Rust.
-The remaining **34 files / 7,688 lines** consist of 15 production/helper modules
+The remaining **34 files / 7,658 lines** consist of 15 production/helper modules
 and 19 test/fixture modules: about 41% fewer Python lines overall. The current
-production/helper and test/fixture split is 3,523/4,165 lines. This count
-includes the latest merged VM observer/cleanup checks. Layout consolidation removes
+production/helper and test/fixture split is 3,484/4,174 lines. This count
+includes the latest merged VM observer/cleanup checks and native dynamic envelope
+integration. Layout consolidation removes
 349 lines from its immediate parent (`75bc034`, 8,486 lines). The
 stream-view migration removed its Python test module after all eleven original tests
 passed against Rust. Its six pure checks moved to native tests; five controller
@@ -419,7 +421,7 @@ and validation copies are outside this inventory.
 | Native tool binding | `native_tools` | Own/reap one host worker for source generation, normalization, CPU identity and memory policy; bounded immutable-value caches |
 | Campaign and machine qualification | `release_evidence`, `release_sampling`, `analyze_baseline_variability`, `diagnose_adjacent_baseline`, `diagnose_release_vm` | Protocol, complete calibration, grouping/selection, campaign/baseline/VM distributions and counter windows are native; retain process/resource ownership, hardware reads, platform adapters, trusted frozen replay and immutable evidence contracts |
 | Native probes and source overlays | `diagnostic_overlay`, `diagnose_fixture_layout`, `diagnose_verify_layout`, `diagnose_shard_slot`, `diagnose_cpu_placement` | Layout calculations, shared buffer validation, probe programs and templates are native; retain rollback/cancellation behavior and original-source digests |
-| Allocation/lifecycle audits | `dynamic_buffer_audit`, `stream_core_audit`, `stream_view_audit`, `verify_scratch_audit` | All four allocation/source/view ledger models and summaries, decoder headers/catalog, source transforms and overlay generation are native; retain capture/replay, envelope/source binding and integration orchestration |
+| Allocation/lifecycle audits | `dynamic_buffer_audit`, `stream_core_audit`, `stream_view_audit`, `verify_scratch_audit` | All four allocation/source/view ledger models, dynamic plan/envelope, decoder catalog, source transforms and overlays are native; retain original-file/Git binding, capture/process ownership and integration orchestration |
 | Tests and fixture support | `scripts/tests/*.py` | Move each behavior test with its owning subsystem; remove the old test only after exercising its replacement |
 
 This is an incremental migration, not a Python-free repository. The remaining
@@ -447,15 +449,15 @@ reports exact-byte duplicate groups without modifying files.
 The initial audit found **575 files / 2,807,430 bytes**, all valid. These archives
 and WASM inputs remain unchanged; an active tool contract and the deliberately
 retained helper-profile/complete-worker comparisons, the merged service-drift
-review, complete Linux diagnostic review and full dispatch/GFNI mechanism controls
-bring the current total to
-**585 files / 3,026,754 bytes**:
+review, complete Linux diagnostic review, full dispatch/GFNI mechanism controls
+and subsequent source-bound matrix/GF16 reviews bring the current total to
+**590 files / 3,464,634 bytes**:
 
 | Category | Files | Policy |
 | --- | ---: | --- |
 | Raw Criterion evidence | 448 | Preserve phase-local records and manifest paths |
 | Versioned evidence | 44 | Preserve schema and digest-bound contents |
-| Historical reports/evidence | 89 | Repository-only; do not reinterpret old runs as current acceptance |
+| Historical reports/evidence | 94 | Repository-only; do not reinterpret old runs as current acceptance |
 | WASM configuration/lockfiles | 3 | Preserve build and dependency reproducibility |
 | Shared tool contract | 1 | Field, alias and default-threshold definition; excluded from the codec crate |
 
@@ -502,13 +504,19 @@ added to a member manifest, and no package is uploaded.
 
 ## Current branch review and compatibility
 
-The latest integration is frozen at `cea646b` on main `8d59e77`, retaining its
-scalar-pivot prefix optimization. All 15 final checks pass: 225 native, 248 Python
-and 527 top-level codec tests, ten doctests, strict tooling Clippy, Linux tool
-compilation, no_std, published/local compatibility, all audits and actual core
-package reconstruction. The extracted package additionally passes 361 library
-tests using only distributable inputs. The worker journal now consumes identities
-from the same validated profile reads. See the [journal review](../docs/global-review-9.1.0-2026-10-23.md#native-campaign-journals-and-single-read-profile-evidence).
+The latest implementation is frozen at `af1598f` on main `6a15c5b`, retaining
+its scalar length checks, scalar unit-pivot optimization and GF16 constant
+coefficient path. All 15 final checks pass: 230 native, 249 Python and 536
+top-level codec tests, ten doctests, strict tooling Clippy, Linux tool compilation,
+no_std, published/local compatibility, all audits and actual core package
+reconstruction. The extracted package additionally passes 370 library tests
+using only distributable inputs. Dynamic capture/replay now share one frozen
+plan and streaming envelope validator; fixed environment settings come from the
+same native protocol catalog. See the [dynamic envelope review](../docs/global-review-9.1.0-2026-10-23.md#native-dynamic-plans-and-capture-envelope-contracts).
+
+The preceding journal integration is frozen at `cea646b` on main `8d59e77`.
+Its source-bound [journal review](../docs/global-review-9.1.0-2026-10-23.md#native-campaign-journals-and-single-read-profile-evidence)
+retains its original validation and logical-read scope.
 
 The preceding worker replay is represented by `d1d3402` on main `a771c04`;
 its source-bound [worker replay review](../docs/global-review-9.1.0-2026-10-23.md#shared-original-worker-and-frequency-replay)
