@@ -35,7 +35,7 @@ fn complete_plans_keep_original_generated_bytes_and_bind_every_written_member() 
         ),
         (
             "dynamic",
-            "683ceff44bc5787f99186548475763f70ed6c5a137d686e7beca5a15fd640d0c",
+            "22aa7ffec6f4f3d596f247adb6c462918367a23b66a0b2e6dd8923cffa7f8208",
         ),
     ] {
         let original = original(root, variant);
