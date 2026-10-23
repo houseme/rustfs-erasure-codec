@@ -47,9 +47,9 @@ def validate(data,case,iterations,page,native=False):
         kind='verify-scratch', data=data, case=case, iterations=iterations, page=page, native=native))
 
 
-def worker_report(rows,observed,profile,case,source,page,cpus):
+def worker_report(rows,observed,profile,case,source,page,cpus,*,journal=None,reference=None):
     return native_tools.request('diagnostic-worker', request=dict(rows=rows, profile=profile, case=case,
-        revision=source['commit'], page=page, cpus=None if cpus is None else list(cpus),
+        revision=source['commit'], page=page, cpus=None if cpus is None else list(cpus), journal=journal, reference=reference,
         data=dict(kind='verify-scratch', ledger=observed)))
 
 
@@ -82,17 +82,15 @@ def verify(output,repository):
             member=output/entry['path'];data=evidence.json_data(member,entry.get('sha256'))
             if entry.get('numeric_journal_path')!=name+'-journal.jsonl':raise ValueError('invalid numeric journal path')
             numeric=output/entry['numeric_journal_path']
-            raw=evidence.member_text(numeric,entry.get('numeric_journal_sha256'))
             log=output/(name+'.log')
             if not evidence.DIGEST.fullmatch(entry.get('raw_log_sha256','')):raise ValueError('missing original private log binding')
             if log.exists() and (log.is_symlink() or evidence.digest(log.read_bytes())!=entry['raw_log_sha256']):raise ValueError('original private log changed')
-            rows=sampling.parse_output(raw);scratch=sampling.parse_output(raw,PREFIX);journal=sampling.parse_output(raw,'RSE_TIMING ')
-            if rows!=data['samples'] or scratch!=[data['scratch']] or len(journal)!=12 or any(any(j[field]!=row[field] for field in ('case','index','iterations','wall_ns','timed_ns','fixture','workload','placement','before','after')) for j,row in zip(journal,rows)):
-                raise ValueError('diagnostic raw rows differ from original journals')
-            analysis=worker_report(rows,data['scratch'],profile,case,source,page,cpus)
+            rows=data['samples']
+            analysis=worker_report(rows,data['scratch'],profile,case,source,page,cpus,
+                journal=dict(path=str(numeric.resolve()),sha256=entry.get('numeric_journal_sha256')),reference=contracts.get(key))
             summary=analysis['summary']
             if any(entry.get(k)!=v for k,v in summary.items()):raise ValueError('diagnostic summary differs from raw rows')
-            contracts[key]=evidence.observation_contracts(profile,rows,contracts.get(key))
+            contracts[key]=analysis['contract']
             workload=analysis['preparation']['workloads']
             if key in workloads and workload!=workloads[key]:raise ValueError('diagnostic preparation differs across sources')
             workloads[key]=workload

@@ -133,6 +133,18 @@ class ReplayTests(unittest.TestCase):
         self.assertEqual(result['case_count'],14);self.assertFalse(result['release_approval'])
         self.assertEqual(before,{p.name:p.read_bytes() for p in self.root.iterdir()})
 
+    def test_complete_replay_fuses_raw_journals_and_pair_contracts_into_worker_frames(self):
+        native=audit.native_tools
+        with mock.patch.object(sampling,'parse_output',side_effect=AssertionError('Python journal parsing')):
+            with mock.patch.object(audit.evidence,'observation_contracts',side_effect=AssertionError('duplicate contract frame')):
+                with mock.patch.object(native,'_request_payload',wraps=native._request_payload) as frames:
+                    result=audit.verify(self.root,self.repository)
+        requests=[self.json.loads(call.args[0]) for call in frames.call_args_list]
+        workers=[r for r in requests if r['kind']=='diagnostic-worker']
+        self.assertEqual(len(workers),2*result['case_count'])
+        self.assertTrue(all(r['request']['journal']['sha256'] for r in workers))
+        self.assertFalse(any(r['kind']=='observation-contracts' for r in requests))
+
     def test_public_numeric_capsule_replays_without_private_build_logs(self):
         for path in self.root.glob('*.log'):path.unlink()
         report=audit.verify(self.root,self.repository)
