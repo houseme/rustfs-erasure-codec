@@ -32,7 +32,7 @@ def validate(view, case, iterations, page_size, observation, source_fixture=None
 
 def validate_samples(views, samples, iterations, page_size, *, require_counters=False, summary=False, inventory=False):
     if len(views) != len(samples): raise ValueError('missing stream-view observations')
-    result=[]
+    result=[];signatures=[]
     # Four bounded ledgers fit one native frame, including full u64 counters.
     for offset in range(0,len(views),4):
         observations=[dict(view=view, case=row['case'], iterations=iterations, page_size=page_size,
@@ -41,8 +41,11 @@ def validate_samples(views, samples, iterations, page_size, *, require_counters=
                       for view,row in zip(views[offset:offset+4],samples[offset:offset+4])]
         request=dict(operation='inventory' if inventory else 'validate', observations=observations)
         if not inventory:request['summary']=summary
-        result.extend(native_tools.request('stream-views', request=request))
-    return result
+        reply=native_tools.request('stream-views', request=request)
+        if inventory:
+            result.extend(reply['lifecycle']);signatures.extend(reply['signatures'])
+        else:result.extend(reply)
+    return dict(lifecycle=result,signatures=signatures) if inventory else result
 
 
 def summarize_windows(view):

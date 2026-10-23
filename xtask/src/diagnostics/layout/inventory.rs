@@ -247,10 +247,15 @@ fn stream_comparison(data: &BTreeMap<String, Vec<views::Signature>>) -> Result<V
                 return Err("unexpected stream-view inventory case".into());
             }
             let (count, shapes) = groups.entry(&observation.case).or_default();
-            if observation.observation != *count {
-                return Err("incomplete stream-view inventory schedule".into());
+            if observation.observations.is_empty() || observation.observations.len() > 4 {
+                return Err("bounded stream-view inventory batch is required".into());
             }
-            *count += 1;
+            for index in &observation.observations {
+                if index != count {
+                    return Err("incomplete stream-view inventory schedule".into());
+                }
+                *count += 1;
+            }
             shapes.extend(&observation.shapes);
         }
         if groups.len() != expected.len() || groups.values().any(|(count, _)| *count != 12) {
@@ -272,7 +277,7 @@ fn stream_comparison(data: &BTreeMap<String, Vec<views::Signature>>) -> Result<V
     Ok(
         json!({"purpose":"instrumented real I/O view/lifecycle inventory; no timing inference",
         "release_approval":false,"candidate_attribution":null,"case_count":expected.len(),"phase_count":4,
-        "observations":data.values().map(Vec::len).sum::<usize>(),
+        "observations":data.values().flatten().map(|s|s.observations.len()).sum::<usize>(),
         "coverage":{"stream_case_lifecycles":15,"caller_owned_destination_cases":10,"internal_read_views":10,
             "internal_parity_write_views":5,"native_virtual_page_snapshots":true,"former_encode_scratch_ranges":true,
             "former_writer_ranges":true,"physical_page_identity":false,"first_fault_instruction":false,

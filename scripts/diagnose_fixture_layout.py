@@ -45,8 +45,7 @@ def analyze_stream_views(phases, views, sources, cpus, page_size, iterations):
         reports=view_audit.validate_samples(views[phase],phases[phase],iterations,page_size,
                                            require_counters=True,inventory=True)
         # Keep validated summaries locally; the comparator only consumes shapes.
-        lifecycle[phase]=[{key:row[key] for key in ('case','observation','calls')} for row in reports]
-        signatures[phase]=[{key:row[key] for key in ('case','observation','shapes')} for row in reports]
+        lifecycle[phase]=reports['lifecycle'];signatures[phase]=reports['signatures']
     report=inventory_request('stream-comparison', phases=signatures)
     report['lifecycle_windows']=lifecycle
     return report

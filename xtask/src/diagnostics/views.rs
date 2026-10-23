@@ -178,28 +178,28 @@ impl Request {
                 Ok(Value::Array(records))
             }
             Self::Inventory { observations } => {
-                let reports = observations
-                    .iter()
-                    .map(|o| {
-                        let calls = validate(o, true).map_err(|e| {
-                            format!("{} observation {}: {e}", o.case, o.observation)
-                        })?;
-                        let shapes: BTreeSet<_> = o
-                            .view
+                if !(1..=4).contains(&observations.len()) {
+                    return Err("inventory requires one to four bounded view ledgers".into());
+                }
+                let mut lifecycle = Vec::with_capacity(observations.len());
+                let mut signatures: BTreeMap<&str, (Vec<u64>, BTreeSet<_>)> = BTreeMap::new();
+                for o in &observations {
+                    let calls = validate(o, true)
+                        .map_err(|e| format!("{} observation {}: {e}", o.case, o.observation))?;
+                    let (indices, shapes) = signatures.entry(&o.case).or_default();
+                    indices.push(o.observation);
+                    shapes.extend(
+                        o.view
                             .events
                             .iter()
-                            .map(|e| ViewShape {
-                                role: e.role,
-                                index: e.index,
-                                len: e.len,
-                                capacity: e.capacity,
-                                offsets: e.offsets,
-                            })
-                            .collect();
-                        Ok(json!({"case":o.case,"observation":o.observation,"calls":calls,"shapes":shapes}))
-                    })
-                    .collect::<Result<Vec<_>>>()?;
-                Ok(Value::Array(reports))
+                            .map(|e| ViewShape(e.role, e.index, e.len, e.capacity, e.offsets)),
+                    );
+                    lifecycle
+                        .push(json!({"case":o.case,"observation":o.observation,"calls":calls}));
+                }
+                let signatures: Vec<_> = signatures.into_iter().map(|(case,(observations,shapes))|
+                    json!({"case":case,"observations":observations,"shapes":shapes})).collect();
+                Ok(json!({"lifecycle":lifecycle,"signatures":signatures}))
             }
             Self::Validate {
                 observations,
@@ -220,23 +220,22 @@ impl Request {
     }
 }
 
-/// Compact shapes from the validated typed ledger; no second event JSON model.
+/// Private wire tuple: role, index, length, capacity and three offsets.
 #[derive(Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(deny_unknown_fields)]
-pub(crate) struct ViewShape {
-    role: Role,
-    index: u64,
-    len: u64,
-    #[serde(deserialize_with = "nullable")]
-    capacity: Option<u64>,
-    #[serde(deserialize_with = "nullable")]
-    offsets: Option<[u64; 3]>,
-}
+pub(crate) struct ViewShape(
+    Role,
+    u64,
+    u64,
+    #[serde(deserialize_with = "nullable")] Option<u64>,
+    #[serde(deserialize_with = "nullable")] Option<[u64; 3]>,
+);
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
+/// Shape union and original per-case indices from one bounded native batch.
 pub(crate) struct Signature {
     pub case: String,
-    pub observation: u64,
+    pub observations: Vec<u64>,
     pub shapes: BTreeSet<ViewShape>,
 }
 
