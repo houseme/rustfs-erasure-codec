@@ -143,11 +143,12 @@ def verify(output,repository):
                 rows=s.parse_output(raw);timing=s.parse_output(raw,'RSE_TIMING ')
             if profile!='decoder':
                 if set(data)!={'samples','dynamic'} or rows!=data['samples'] or ledgers!=[data['dynamic']] or len(timing)!=12 or any(any(t[n]!=r[n] for n in ('case','index','iterations','wall_ns','timed_ns','fixture','workload','placement','before','after')) for t,r in zip(timing,rows)):raise ValueError('dynamic original journals differ')
-                summary=worker_report(rows,data['dynamic'],profile,case,source,page,cpus,mode)
+                analysis=worker_report(rows,data['dynamic'],profile,case,source,page,cpus,mode)
+                summary=analysis['summary']
                 contract_key=profile+'/'+case
                 original=underlying_records(rows)
                 contracts[contract_key]=e.observation_contracts(profile,original,contracts.get(contract_key))
-                workload=s.workload_catalog(original);trace=[r['workload'] for r in original]
+                workload=analysis['preparation']['workloads'];trace=[r['workload'] for r in original]
                 if contract_key in workloads and (workloads[contract_key]!=workload or traces[contract_key]!=trace):raise ValueError('dynamic calibration/measurement input differs')
                 workloads[contract_key]=workload;traces[contract_key]=trace
             if any(entry.get(k)!=v for k,v in summary.items()):raise ValueError('dynamic summary differs')
@@ -243,7 +244,7 @@ def check(repository,output,baseline_ref=None):
                             summary=supplement_report(headers[0],ledgers[0],case,report['page_size'],report['cpu_affinity'],source)
                         else:
                             member.write_text(json.dumps({'samples':rows,'dynamic':ledgers[0]},indent=2)+'\n')
-                            summary=worker_report(rows,ledgers[0],profile,case,source,report['page_size'],report['cpu_affinity'],mode)
+                            summary=worker_report(rows,ledgers[0],profile,case,source,report['page_size'],report['cpu_affinity'],mode)['summary']
                         unchanged()
                         entry=dict(summary,path=member.name,sha256=e.digest(member.read_bytes()),numeric_journal_path=numeric.name,numeric_journal_sha256=e.digest(numeric.read_bytes()),raw_log_sha256=e.digest(log.read_bytes()))
                         report['cases'][role][mode+'/'+profile+'/'+case]=entry

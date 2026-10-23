@@ -398,7 +398,7 @@ def verify_worker_journal(document, root):
 def diagnostic_rows(records, profile, metric, revision, expected, counts,
                     allowed_cpus=None, expected_page_size=None):
     """Use the original nine-sample median; record short windows without trimming."""
-    return sampling.selected_row(records, profile, metric, revision, expected, counts,
+    return sampling.select_profile(records, profile, metric, revision, expected, counts,
                                  allowed_cpus, expected_page_size, diagnostic=True)
 
 
@@ -507,12 +507,13 @@ def verify_sampling(document, root, repository, summarized, *, diagnostic=False)
         for profile in FILES:
             name = f"calibration-{role}/{profile}-samples.json"
             records = evidence_member(root, document.get("calibration", {}).get(role, {}).get(profile), name)
-            pilot_counts[role][profile] = calibration_counts(records, profile, document["sources"][role]["commit"], document["contexts"]["A1"]["runtime"]["page_size"], allowed_cpus=document["contexts"]["A1"]["isolation"]["cpu_affinity"])
+            calibrated = sampling.calibration_profile(records, profile, document["sources"][role]["commit"], document["contexts"]["A1"]["runtime"]["page_size"], allowed_cpus=document["contexts"]["A1"]["isolation"]["cpu_affinity"])
+            pilot_counts[role][profile] = calibrated['counts']
             pilot_contracts[role][profile] = observation_contracts(profile, [r for r in records if r['complete']],
                 pilot_contracts['baseline'][profile] if role == 'candidate' else None)
-            pilot_layouts[role][profile] = sampling.fixture_catalog(records, calibration=True)
-            pilot_workloads[role][profile] = sampling.workload_catalog(records, calibration=True)
-            pilot_traces[role][profile] = sampling.workload_traces(records, calibration=True)
+            pilot_layouts[role][profile] = calibrated['preparation']['fixtures']
+            pilot_workloads[role][profile] = calibrated['preparation']['workloads']
+            pilot_traces[role][profile] = calibrated['preparation']['traces']
     spreads = []
     layouts = {}
     for profile in FILES:
@@ -525,12 +526,13 @@ def verify_sampling(document, root, repository, summarized, *, diagnostic=False)
             entry = document["files"][phase][profile].get("samples")
             records = evidence_member(root, entry, f"{phase}/{profile}-samples.json")
             role = "baseline" if phase.startswith("A") else "candidate"
-            select = diagnostic_rows if diagnostic else sampling.selected_row
-            selected, widths = select(records, profile, METRICS[profile], revision, expected_cases(profile), counts[profile], document["contexts"][phase]["isolation"].get("cpu_affinity"), document["contexts"][phase]["runtime"]["page_size"])
+            select = diagnostic_rows if diagnostic else sampling.select_profile
+            selection = select(records, profile, METRICS[profile], revision, expected_cases(profile), counts[profile], document["contexts"][phase]["isolation"].get("cpu_affinity"), document["contexts"][phase]["runtime"]["page_size"])
+            selected, widths = selection['selected'], selection['spreads']
             observation_contracts(profile, records, pilot_contracts[role][profile])
-            layouts[profile][phase] = sampling.fixture_catalog(records)
-            workloads[phase] = sampling.workload_catalog(records)
-            traces[phase] = sampling.workload_traces(records)
+            layouts[profile][phase] = selection['preparation']['fixtures']
+            workloads[phase] = selection['preparation']['workloads']
+            traces[phase] = selection['preparation']['traces']
             if workloads[phase] != pilot_workloads[role][profile]:
                 raise ValueError(f"{profile}/{phase}: preparation or initial input state differs from final calibration")
             for case, trace in traces[phase].items():
@@ -552,9 +554,8 @@ def verify_sampling(document, root, repository, summarized, *, diagnostic=False)
 
 
 def calibration_counts(records, profile, revision, expected_page_size=None, *, allowed_cpus=None):
-    return dict(native_tools.sampling_request('calibration-profile', records=records, profile=profile,
-                                            revision=revision, expected_page_size=expected_page_size,
-                                            allowed_cpus=None if allowed_cpus is None else list(allowed_cpus)))
+    return sampling.calibration_profile(records, profile, revision, expected_page_size,
+                                         allowed_cpus=allowed_cpus)['counts']
 
 
 def capture_environment():
@@ -608,13 +609,14 @@ def qualify_baseline(baseline, output, group):
         folder = output/"calibration"; folder.mkdir()
         for profile in FILES:
             records, entry = capture_profile(baseline, folder, profile, "calibrate", env, output, group)
-            counts[profile] = calibration_counts(records, profile, source["commit"], context["runtime"]["page_size"], allowed_cpus=context["isolation"]["cpu_affinity"])
+            preparation = sampling.calibration_profile(records, profile, source["commit"], context["runtime"]["page_size"], allowed_cpus=context["isolation"]["cpu_affinity"])
+            counts[profile] = preparation["counts"]
             final_rows = {row["case"]: row["rows"][0] for row in records}
             calibrated[profile] = indexed_rows(profile, list(final_rows.values()), source["commit"], counts[profile])
             contracts[profile] = observation_contracts(profile, [r for r in records if r["complete"]])
-            fixtures[profile] = sampling.fixture_catalog(records, calibration=True)
-            workloads[profile] = sampling.workload_catalog(records, calibration=True)
-            traces[profile] = sampling.workload_traces(records, calibration=True)
+            fixtures[profile] = preparation["preparation"]["fixtures"]
+            workloads[profile] = preparation["preparation"]["workloads"]
+            traces[profile] = preparation["preparation"]["traces"]
             report["calibration"][profile] = entry
             (output/("counts-"+profile+".tsv")).write_text("".join(f"{case}\t{count}\n" for case, count in sorted(counts[profile].items())))
             unchanged(); save("qualification.partial.json", report)
@@ -625,12 +627,13 @@ def qualify_baseline(baseline, output, group):
             report["phases"][phase] = {}; medians[phase] = {}
             for profile in FILES:
                 records, entry = capture_profile(baseline, folder, profile, "sample", env, output, group, output/("counts-"+profile+".tsv"))
-                selected, widths = sampling.selected_row(records, profile, METRICS[profile], source["commit"],
+                selection = sampling.select_profile(records, profile, METRICS[profile], source["commit"],
                     expected_cases(profile), counts[profile], context["isolation"]["cpu_affinity"], context["runtime"]["page_size"])
+                selected, widths = selection["selected"], selection["spreads"]
                 observation_contracts(profile, records, contracts[profile])
-                if (sampling.fixture_catalog(records) != fixtures[profile]
-                        or sampling.workload_catalog(records) != workloads[profile]
-                        or sampling.workload_traces(records) != traces[profile]):
+                if (selection["preparation"]["fixtures"] != fixtures[profile]
+                        or selection["preparation"]["workloads"] != workloads[profile]
+                        or selection["preparation"]["traces"] != traces[profile]):
                     raise ValueError(f"{phase}/{profile}: caller layout, preparation or input replay differs from calibration")
                 medians[phase][profile] = indexed_rows(profile, selected, source["commit"], counts[profile])
                 compatible(profile, calibrated[profile], medians[phase][profile])
@@ -742,8 +745,9 @@ def capture(baseline, candidate, output, group, *, diagnostic=False):
             phase_spreads=[]
             for profile,filename in FILES.items():
                 records,entry=capture_profile(root,folder,profile,"sample",env,output,group,count_files[profile], **capture_options)
-                select = diagnostic_rows if diagnostic else sampling.selected_row
-                selected,spreads=select(records,profile,METRICS[profile],sources[role]["commit"],expected_cases(profile),counts[profile])
+                select = diagnostic_rows if diagnostic else sampling.select_profile
+                selection=select(records,profile,METRICS[profile],sources[role]["commit"],expected_cases(profile),counts[profile])
+                selected,spreads=selection["selected"],selection["spreads"]
                 observation_contracts(profile,records,contracts[role][profile])
                 phase_spreads.extend(dict(item, profile=profile) for item in spreads)
                 result=folder/filename;result.write_text(json.dumps(selected,indent=2)+"\n")

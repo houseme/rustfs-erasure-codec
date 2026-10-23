@@ -36,7 +36,7 @@ class CaptureLifecycleTests(unittest.TestCase):
         patch('release_evidence.calibration_counts', side_effect=lambda records, profile, revision: {case: 1 for case in evidence.expected_cases(profile)})
         self.real_observation_contracts = evidence.observation_contracts
         self.contracts = patch('release_evidence.observation_contracts', return_value={})
-        self.select = patch('release_evidence.sampling.selected_row', return_value=([self.payload], []))
+        self.select = patch('release_evidence.sampling.select_profile', return_value={'selected':[self.payload],'spreads':[]})
         patch('release_evidence.time.sleep')
         self.profiles = patch('release_evidence._verify_profiles', return_value=({}, {}, {'status': 'profiles_verified'}))
         self.layouts = patch('diagnose_verify_layout.capture_paired', side_effect=self.emit_layouts)
@@ -209,7 +209,7 @@ class CaptureLifecycleTests(unittest.TestCase):
         self.assertFalse((self.output/'manifest.json').exists())
 
     def test_wide_first_phase_stops_before_formal_candidate_measurement(self):
-        self.select.return_value = ([self.payload], [{'case': 'fixture', 'central_spread': .2}])
+        self.select.return_value = {'selected':[self.payload],'spreads':[{'case': 'fixture', 'central_spread': .2}]}
         with self.assertRaises(evidence.EvidenceFailure) as raised: self.capture()
         self.assertEqual(raised.exception.details['failed_phase'], 'A1')
         self.assertIsNone(raised.exception.details['candidate_attribution'])

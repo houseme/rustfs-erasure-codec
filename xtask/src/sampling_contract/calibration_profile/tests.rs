@@ -53,7 +53,7 @@ fn all_profiles_keep_original_order_counts_and_inputs_without_normalizing_rows()
         let before = rows.clone();
         let counts = analyze(&rows, profile, &"a".repeat(40), Some(4096), None).unwrap();
         assert_eq!(rows, before);
-        let output = counts.as_array().unwrap();
+        let output = counts["counts"].as_array().unwrap();
         assert_eq!(output.len() * protocol::WIDTH, rows.len());
         assert_eq!(output[0][0], rows[0]["case"]);
         assert!(output.iter().all(|r| r[1] == 1));
@@ -131,7 +131,7 @@ fn growth_is_driven_by_the_worst_probe_and_requires_a_fresh_complete_worker() {
         group.extend(next);
         group.extend_from_slice(&rows[12..]);
         let counts = analyze(&group, "small_file", &"a".repeat(40), Some(4096), None).unwrap();
-        assert_eq!(counts[0], json!([case, proposal]));
+        assert_eq!(counts["counts"][0], json!([case, proposal]));
         group[12]["iterations"] = json!(1);
         assert!(analyze(&group, "small_file", &"a".repeat(40), Some(4096), None).is_err());
     }

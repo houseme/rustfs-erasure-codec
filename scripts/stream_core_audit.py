@@ -84,9 +84,10 @@ def verify(output,repository):
         for case,entry in report['cases'][role].items():
             name=role+'-stream-'+case.replace(':','_')
             data,rows,io=worker_data(output,name,entry)
-            summary=worker_report(rows,io,data['core'],case,source,page,cpus,current)
+            analysis=worker_report(rows,io,data['core'],case,source,page,cpus,current)
+            summary=analysis['summary']
             if any(entry.get(n)!=v for n,v in summary.items()):raise ValueError('stream source summary differs')
-            contracts[case]=e.observation_contracts('stream',rows,contracts.get(case));workload=sampling.workload_catalog(rows)
+            contracts[case]=e.observation_contracts('stream',rows,contracts.get(case));workload=analysis['preparation']['workloads']
             if case in workloads and workloads[case]!=workload:raise ValueError('prepared stream workload differs across sources')
             workloads[case]=workload;members[entry['path']]=entry['sha256'];total+=summary['events']
     return {'schema':'stream-core-replay-v1','source_count':2,'case_count':15,'events':total,'members':members,
@@ -122,7 +123,7 @@ def _check(repository,output,baseline_ref):
                     if path.exists():numeric.write_text(''.join(line for line in path.read_text().splitlines(keepends=True) if line.startswith(('RSE_TIMING ','RSE_SAMPLE ',views.PREFIX,PREFIX))))
                 proc.check_returncode();text=numeric.read_text();rows=sampling.parse_output(text);io=sampling.parse_output(text,views.PREFIX);core=sampling.parse_output(text,PREFIX)
                 if len(core)!=1:raise ValueError('missing original stream source journal')
-                summary=worker_report(rows,io,core[0],case,source,report['page_size'],report['cpu_affinity'],current)
+                summary=worker_report(rows,io,core[0],case,source,report['page_size'],report['cpu_affinity'],current)['summary']
                 member=output/(name+'.json');member.write_text(json.dumps({'samples':rows,'views':io,'core':core[0]},indent=2)+'\n')
                 report['cases'][role][case]=dict(summary,path=member.name,sha256=e.digest(member.read_bytes()),raw_log_sha256=e.digest(path.read_bytes()),numeric_journal_path=numeric.name,numeric_journal_sha256=e.digest(numeric.read_bytes()))
         if e.source_info(root)!=source:raise ValueError('original source was not restored')

@@ -104,7 +104,7 @@ class WorkerContractTests(unittest.TestCase):
 
     def validate(self):
         data,rows,views=audit.worker_data(self.root,self.name,self.entry)
-        return audit.worker_report(rows,views,data['core'],CASE,self.source,4096,list(range(8)),True)
+        return audit.worker_report(rows,views,data['core'],CASE,self.source,4096,list(range(8)),True)['summary']
 
     def test_complete_numerical_worker_replays_without_private_logs(self):
         self.assertEqual(self.validate()['calls'],24)

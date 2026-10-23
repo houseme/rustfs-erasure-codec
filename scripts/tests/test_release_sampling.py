@@ -44,9 +44,10 @@ class SamplingContractTests(unittest.TestCase):
         counts = self.doc['sampling']['common_iterations'][profile]
         revision = self.doc['sources']['baseline']['commit']
         with mock.patch.object(sampling.native_tools, '_request_payload', wraps=sampling.native_tools._request_payload) as frames:
-            selected, spreads = sampling.selected_row(records, profile, evidence.METRICS[profile],
+            selection = sampling.select_profile(records, profile, evidence.METRICS[profile],
                 revision, evidence.expected_cases(profile), counts)
             self.assertEqual(frames.call_count, 1)
+        selected, spreads = selection['selected'], selection['spreads']
         identities = {id(r['rows'][0]) for r in records}
         self.assertTrue(all(id(row) in identities for row in selected))
         self.assertEqual(len(spreads), len(counts))
@@ -58,9 +59,14 @@ class SamplingContractTests(unittest.TestCase):
         calibration=evidence.json_data(self.root/self.doc['calibration']['baseline'][profile]['path'])
         original=copy.deepcopy(calibration)
         with mock.patch.object(sampling.native_tools,'_request_payload',wraps=sampling.native_tools._request_payload) as frames:
-            counts=evidence.calibration_counts(calibration,profile,revision,4096,allowed_cpus=range(8))
+            calibrated=sampling.calibration_profile(calibration,profile,revision,4096,allowed_cpus=range(8))
         self.assertEqual(frames.call_count,1)
-        self.assertEqual(counts,self.doc['sampling']['common_iterations'][profile])
+        self.assertEqual(calibrated['counts'],self.doc['sampling']['common_iterations'][profile])
+        self.assertEqual(calibrated['preparation'],selection['preparation'])
+        self.assertEqual(selection['preparation']['traces'],{})
+        case=records[0]['case']
+        self.assertEqual(selection['preparation']['fixtures'][case],records[0]['fixture'])
+        self.assertIs(type(selection['preparation']['workloads'][case]['seed']),int)
         self.assertEqual(calibration,original)
 
     def test_every_warmup_and_nonmedian_sample_requires_comparable_provenance(self):
@@ -438,7 +444,7 @@ class SamplingContractTests(unittest.TestCase):
             if row['case']==case:
                 row['wall_ns']=120_000_000;row['timed_ns']/=20
                 row['rows'][0]['ns_per_iter']/=20
-        with self.assertRaisesRegex(ValueError,'interval is insufficient'):sampling.selected_row(rows,profile,evidence.METRICS[profile],self.sources_commit('baseline'),evidence.expected_cases(profile),counts)
+        with self.assertRaisesRegex(ValueError,'interval is insufficient'):sampling.select_profile(rows,profile,evidence.METRICS[profile],self.sources_commit('baseline'),evidence.expected_cases(profile),counts)
 
     def test_calibration_and_protocol_cannot_be_changed(self):
         original=copy.deepcopy(self.doc)
