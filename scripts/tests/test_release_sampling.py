@@ -62,6 +62,9 @@ class SamplingContractTests(unittest.TestCase):
             calibrated=sampling.calibration_profile(calibration,profile,revision,4096,allowed_cpus=range(8))
         self.assertEqual(frames.call_count,1)
         self.assertEqual(calibrated['counts'],self.doc['sampling']['common_iterations'][profile])
+        self.assertEqual(len(selection['worker_starts']),len(counts))
+        self.assertEqual(calibrated['worker_starts'][0]['calibration_batch'],1)
+        self.assertEqual(selection['worker_starts'][0]['calibration_batch'],0)
         self.assertEqual(calibrated['preparation'],selection['preparation'])
         self.assertEqual(selection['preparation']['traces'],{})
         case=records[0]['case']

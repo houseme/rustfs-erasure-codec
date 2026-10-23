@@ -216,7 +216,7 @@ def select_profile(records, profile, metric, revision, expected, counts, allowed
     result = _sample_batch(records, profile, revision, expected, counts, allowed_cpus,
                            expected_page_size, dict(kind='select', metric=metric, diagnostic=diagnostic))
     return dict(selected=[records[i]['rows'][0] for i in result['selected_indices']],
-                spreads=result['spreads'], preparation=result['preparation'])
+                spreads=result['spreads'], preparation=result['preparation'], worker_starts=result['worker_starts'])
 
 
 def describe_groups(records, profile, revision, expected, counts, fixtures, allowed_cpus=None, expected_page_size=None):
