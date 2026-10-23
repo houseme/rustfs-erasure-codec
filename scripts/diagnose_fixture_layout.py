@@ -40,7 +40,7 @@ def analyze_stream_views(phases, views, sources, cpus, page_size, iterations):
     for phase in evidence.PHASES:
         revision=sources['baseline' if phase.startswith('A') else 'candidate']['commit']
         reference=inventory_request('stream-phase', records=phases[phase], revision=revision,
-                                    cpus=list(cpus), page_size=page_size, iterations=iterations,
+                                    cpus=None if cpus is None else list(cpus), page_size=page_size, iterations=iterations,
                                     reference=reference)
         reports[phase]=view_audit.validate_samples(views[phase],phases[phase],iterations,page_size,
                                                  require_counters=True,inventory=True)

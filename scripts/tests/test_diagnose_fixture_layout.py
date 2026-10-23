@@ -172,6 +172,7 @@ class StreamViewIntegrationTests(unittest.TestCase):
         self.assertEqual(report['case_count'],15)
         self.assertFalse(report['release_approval']);self.assertFalse(report['coverage']['internal_verify_scratch'])
         self.assertFalse(report['layout_mismatches'])
+        self.assertEqual(report,inventory.analyze_stream_views(phases,views,helper.sources,None,4096,2))
         event=next(e for e in views['B1'][0]['events'] if e['role']=='read_scratch_view');event['offsets']=[32,32,32]
         for other in views['B1'][0]['events']:
             if other['call']==event['call'] and other['role']==event['role'] and other['index']==event['index']:other['offsets']=[32,32,32]
