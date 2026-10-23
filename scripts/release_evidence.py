@@ -11,6 +11,7 @@ from contextlib import ExitStack
 import argparse
 import hashlib
 import json
+import math
 import os
 import pathlib
 import platform
@@ -87,6 +88,13 @@ def command(args, root, env=None):
 
 def digest(data):
     return hashlib.sha256(data).hexdigest()
+
+
+def campaign_ratio(numerator, denominator):
+    value = numerator / denominator
+    if not math.isfinite(value):
+        raise ValueError('nonfinite campaign ratio')
+    return value
 
 
 def json_data(path):
@@ -441,7 +449,7 @@ def _verify_profiles(document, root, repository, compiler=True, *, diagnostic=Fa
         for first, second in (("A1", "A2"), ("B1", "B2")):
             for case, row in data[first][profile].items():
                 old, new = float(row[METRICS[profile]]), float(data[second][profile][case][METRICS[profile]])
-                drift = abs(new - old) / old
+                drift = campaign_ratio(abs(new - old), old)
                 drifts.append({"profile": profile, "case": case, "pair": first + second, "drift": drift})
     if not diagnostic and any(item["drift"] > sampling.REPEAT_DRIFT_LIMIT for item in drifts):
         raise EvidenceFailure("ABBA drift exceeds 5%; no candidate attribution or release approval",
@@ -459,7 +467,7 @@ def _verify_profiles(document, root, repository, compiler=True, *, diagnostic=Fa
                         old, new = row[METRICS[profile]], data[b][profile][case][METRICS[profile]]
                         comparisons.append({'profile': profile, 'pair': a+'/'+b, 'case': case,
                                             'metric': METRICS[profile], 'baseline': old, 'candidate': new,
-                                            'candidate_over_baseline': new/old})
+                                            'candidate_over_baseline': campaign_ratio(new,old)})
                 else:
                     subprocess.run(args, cwd=repository, check=True, stdout=subprocess.DEVNULL)
     if diagnostic:
