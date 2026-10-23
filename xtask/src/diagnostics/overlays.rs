@@ -357,7 +357,7 @@ mod tests {
         let original = dynamic_source_files(root);
         assert_eq!(
             digest(dynamic::patch(&original, root).unwrap(), root),
-            "c3a9d933d7bbd5c94bdd54039934f54f112b23f8bc361a55be95bc586fb8d5be"
+            "c029b229a21829425aca8786f2341994e7154cd37d98426ed57cf76ab4095e35"
         );
     }
 }

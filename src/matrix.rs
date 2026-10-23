@@ -242,13 +242,19 @@ impl<F: Field> Matrix<F> {
         debug_assert!(input[..pivot].iter().all(|&value| value == F::zero()));
         debug_assert_eq!(input[pivot], F::one());
         debug_assert_eq!(output[pivot], scale);
-        // The source prefix contributes zero; the destination prefix stays put.
-        // At the pivot, scale + scale * 1 is exactly zero in these fields.
-        let suffix = pivot + 1;
-        if suffix < width {
-            Self::add_scaled_slice(scale, &input[suffix..], &mut output[suffix..], byte_rows);
+        if byte_rows {
+            // Preserve complete byte batches: shortening a full SIMD row can
+            // turn its vector work into scalar tails in the existing backend.
+            Self::add_scaled_slice(scale, input, output, true);
+        } else {
+            // The source prefix contributes zero; preserve the destination's
+            // prefix. At the unit pivot, scale + scale * 1 is exactly zero.
+            let suffix = pivot + 1;
+            if suffix < width {
+                Self::add_scaled_slice(scale, &input[suffix..], &mut output[suffix..], false);
+            }
+            output[pivot] = F::zero();
         }
-        output[pivot] = F::zero();
     }
 
     pub fn gaussian_elim(&mut self) -> Result<(), Error> {
@@ -428,8 +434,22 @@ mod tests {
         }
 
         #[test]
-        fn byte_elimination_batches_only_the_active_pivot_tails() {
-            assert_eq!(invert_fixture::<true>(), (2, vec![3, 2]));
+        fn byte_elimination_preserves_full_vector_rows() {
+            BATCH_WIDTHS.with(|widths| widths.borrow_mut().clear());
+            let input = Matrix::<ObservedField<true>>::vandermonde(32, 32);
+            let inverse = input.invert().unwrap();
+            assert_eq!(inverse.row_count(), 32);
+            let widths = BATCH_WIDTHS.with(|widths| widths.take());
+            assert!(!widths.is_empty());
+            assert!(
+                widths.iter().all(|&width| width == 64),
+                "keep full byte rows available to the existing SIMD operators"
+            );
+        }
+
+        #[test]
+        fn byte_elimination_keeps_batches_and_skips_scalar_pivot_products() {
+            assert_eq!(invert_fixture::<true>(), (2, vec![4, 4]));
         }
     }
 
