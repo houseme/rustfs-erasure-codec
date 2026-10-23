@@ -21,11 +21,14 @@ rejected under their original source bindings.
 The [tower review](gfni-tower-fusion-review-2026-10-24.md) retains the complete
 first source's twenty-case comparison: no width/short failures, ten repeat
 refusals and one scalar-control regression refusal. It is not accepted.
-Cached execution source `678ddd6` preserves the original portable body and
-separates its stack planes from fused/constant entry. Its actual new-source
-comparison must complete and replay independently; local correctness, published
-wire compatibility and ordinary CI do not qualify throughput or strict release.
-The separate portable-interleave PR #83 still needs explicit integration review.
+Cached execution source `678ddd6` also completes and independently replays:
+no width/short failures, nine repeat and two regression-case refusals, including
+unchanged GF8 control drift. It remains unaccepted. Follow-through `2f16f8b`
+caches only optional native functions and retains static portable calls; its
+native correctness and published-version checks pass, while a fresh unchanged-
+protocol comparison is in progress. Local correctness, wire compatibility and
+ordinary CI do not qualify throughput or strict release. The separate
+portable-interleave PR #83 still needs explicit integration review.
 
 ## GFNI component follow-through and cancellation fix
 

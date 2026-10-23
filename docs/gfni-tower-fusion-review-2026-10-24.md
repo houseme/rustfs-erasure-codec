@@ -205,3 +205,41 @@ Keeping only optional native callables in the cache would allow all other
 backends to call the preserved portable executor statically, retaining its
 compiler optimization boundary. That mechanism warrants a small follow-through,
 not a claim that it explains the GF8 control drift or every scalar observation.
+
+## Optional native cache and static fallback
+
+Source `2f16f8b284badb2406e51ad762e1dc1426b86f28` makes the cache optional and
+native-only. Non-GFNI choices cache `None` and retain a statically named call to
+the original portable executor, instead of making that executor an indirect
+function target. The selection test checks all non-GFNI IDs return no native
+callable. Empty general operations retain the original no-backend-selection
+behavior; constant-coordinate empty operations keep their existing GF8 call.
+No new unsafe block or numerical/kernel change is added.
+
+Static Linux x86 compilation confirms two zero-local-stack trait shims forwarding
+to a 16-byte general wrapper with a named jump to portable; the portable frame
+remains 4,096+120 bytes. A GFNI-build-only no-inline hint prevents that large
+frame returning to its caller. Other builds retain the prior inlining policy.
+This identifies the call boundary, not a measured cure of every refusal.
+
+The source repeats all 550 local codec/integration/doc and 245 no_std tests,
+200 normal published cases, 27 custom configurations / 162 recoveries and twelve
+wide published-version cases. Strict ARM64/x86 all-target and Linux library/no_std
+Clippy, fmt and typos pass. The wide program is again executed independently on
+this source and removed afterward; it is not another implementation of PR #83.
+
+A [third source-bound plan](../benchmarks/release-9.1.0/2026-10-24/gfni-native-only-plan.json)
+uses the exact same twenty cases, harness bytes, calibration and thresholds,
+with fresh independent source copies. It has launched once after resources
+become free. Neither a favorable previous subset nor the previous source's
+native checks qualify this source. Native prechecks precede the eighty-worker
+ABBA collection; new performance results remain pending. All first and second
+cohort refusals remain unchanged, and no further source change occurs during it.
+
+
+Current source `2f16f8b` subsequently completes its own native prechecks: nine
+GFNI units with both new markers, selector, coefficient/matrix, dispatch/reuse,
+200 published normal cases and all 81 custom / 486 cross recoveries. Both full
+one-iteration input catalogs agree. The sampler is rebuilt without metrics and
+is completing its fixed post-build idle before calibration. These checks do not
+qualify performance; its complete third result remains pending.
