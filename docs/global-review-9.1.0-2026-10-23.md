@@ -1240,3 +1240,73 @@ All five workspace members still inherit the root dependency catalog. The core
 and WASM allowlists remain 67 and six files, excluding Python, repository tools
 and archived evidence. No tag, registry upload, codec-format change or dependency
 change is part of this follow-up.
+
+
+## Native campaign journals and single-read profile evidence
+
+The final integration starts from main `8d59e77`, retaining its scalar-pivot
+zero-prefix optimization and new source/evidence checks. This follow-up changes
+only repository tooling and its tests. Native identity/journal support and Python
+controller integration are separate functional commits; codec sources, build
+inputs, dependency declarations and lockfiles match that main.
+
+The previous complete diagnostic read each of its 24 sample members once to
+construct worker-journal identities, then reopened them for profile validation.
+The new preparation model collects borrowed index-zero identities during its
+existing pass. Calibration retains every rehearsal; sample selection retains
+original case order. The existing batch responses return these compact identities,
+so the journal check reuses the same bound parsed evidence that supplied the
+counts, provenance, preparation and medians.
+
+`sampling_contract::journal` matches the two calibration phases and complete ABBA
+schedule using the shared profile order. It streams one JSONL event at a time,
+checks exact fields/identity, nondecreasing integer timestamps and zero integer
+exit status, and returns the original invocation count. The Python identity,
+event-order and timestamp loops are removed. Journal verification finishes after
+profile validation and before regression programs. Invalid journals cannot
+produce a complete diagnostic or start those programs. Persisted schemas and
+acceptance thresholds remain unchanged.
+
+Compatibility tests retain CRLF, last-key JSONL behavior, the former numeric
+identity equality and exact u64 timestamps. Time and exit fields retain their
+separate integer checks. Missing/reordered events, time resets, nonzero exits,
+extra keys, boolean times and start events carrying exit status remain refused.
+The preparation model separately checks interleaved cases and all rehearsal
+starts, rather than returning only the final calibration batch.
+
+A complete comparison against the Python functions at main `ebb60f2` preserves
+every report value for 756 workers / 9,072 observations. Content reads fall from
+48 to 24 across the same 24 original sample members; the corresponding read bytes
+fall from 45,162,120 to 22,581,060. All original files remain unchanged. Three
+accepted journal variants and seven refusal variants agree with the former
+implementation. The permanent integration regression fails on the old duplicate
+read path and passes after the migration; reordered logs are rejected before any
+regression subprocess. These are fixture-specific logical-read results, not
+physical-disk or codec-throughput measurements.
+
+The frozen final integration `cea646b` passes all fifteen checks in an independent
+checkout: 225 native tests (196 unit / 29 CLI), 248 Python tests, strict tooling
+Clippy, Linux tooling compilation, 527 top-level codec tests, ten doctests,
+codec-only no_std, the 200-configuration non-fast published/local compatibility
+probe, all three audits, actual core packaging and reconstruction, extracted
+package library tests, formatting and diff checks. The package's 361 library
+tests pass from its actual distributable contents; its five existing ignores
+and the repository's 43 existing codec ignores remain unchanged. Exact parity,
+bidirectional cross-decoding and historical field vectors pass after integrating
+the new main matrix path. The older inconsistent fast-one-parity mode remains
+outside the compatibility probe. Spelling also passes.
+
+The current inventory is 34 active Python files / 7,688 lines: 3,523
+production/helper and 4,165 test/fixture lines. This removes 19 production Python
+lines relative to the preceding worker replay, while adding 17 integration-test
+lines. Remaining modules still have active control, hardware, historical-replay
+or test callers. All 588 JSON files / 3,352,750 bytes match current main, including
+its scalar-prefix diagnostic. The eleven equal-byte groups retain their original
+provenance; no frozen evidence is deleted or rewritten to reduce the count.
+
+All five workspace members still inherit the root dependency catalog. The core
+and WASM allowlists remain 67 and six files. Python, repository tools and archived
+JSON stay outside the crates; the extracted-package test confirms the core's
+library tests do not require those repository-only inputs. No new dependency,
+codec-format change, release tag, registry upload or performance approval is
+introduced by this follow-up.

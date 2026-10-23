@@ -46,6 +46,7 @@ cargo test --locked --package xtask
 | Baseline directory loading, preparation comparison, runtime validation and complete report assembly | `diagnostics::baseline::replay`, shared `artifact::snapshot`, `runtime`; `cargo xtask analyze-baseline-capture --capture DIR --tool FROZEN_SOURCE` | Legacy basic/v1/v2 qualification schemas, original encoded-byte hashes, optional historical policies, complete cases/traces, bounded original members and descriptive-only reports |
 | Python fixture/workload/RNG projections | Shared `sampling_contract::preparation` in existing calibration, selection and diagnostic-worker frames | Last observed per-case calibration batches, exact seeds/placement, all trace positions and unchanged persisted evidence |
 | Python original-worker and frequency-result calculations | `sampling_contract::replay`, shared `batch::select` and `diagnostics::vm::frequency`; existing sampling/VM commands | Original journal agreement, frozen preparation/provenance, exact interval types, counter enclosure and unchanged complete reports |
+| Python campaign worker-identity/event validation | Shared preparation worker starts and `sampling_contract::journal`; existing sampling command | Every rehearsal, full phase/profile order, original JSONL numeric rules, monotonic timestamps and exact invocation counts |
 
 The obsolete implementations and their Python test entry points are removed.
 Rust unit and executable tests cover the retained contracts. The migration was
@@ -111,6 +112,18 @@ used for parsing. Integer/float intervals, interrupted final fragments, duplicat
 journal keys and original rejection rules retain their behavior. Original file
 and live MSR ownership remain in Python. These private tooling changes preserve
 persisted schemas and do not alter codec formats or provide throughput evidence.
+
+## Campaign journals from validated profiles
+
+Calibration and selection responses include compact worker starts collected from
+already validated observations. The full diagnostic reuses them in one native
+journal request instead of reopening every sample member to infer identities.
+The shared journal model streams events in the original calibration/ABBA order;
+JSONL behavior, numeric identity equality, integer times and exit codes remain
+covered. The check completes before campaign regression programs.
+A complete old/native report comparison retains 756 workers and all 9,072
+observations while reducing sample content reads from 48 to 24 and bytes from
+45,162,120 to 22,581,060. Original artifacts and published formats are unchanged.
 
 ## Root dependency policy and shared implementation
 
@@ -306,9 +319,9 @@ The initial inventory contained **56 Python files / 13,120 lines**. Twenty-three
 original files were removed (twelve implementations/helpers and eleven test
 modules). One native-tool compatibility binding remains. The intermediate Python
 normalization library was also removed after its consumers moved to Rust.
-The remaining **34 files / 7,690 lines** consist of 15 production/helper modules
+The remaining **34 files / 7,688 lines** consist of 15 production/helper modules
 and 19 test/fixture modules: about 41% fewer Python lines overall. The current
-production/helper and test/fixture split is 3,542/4,148 lines. This count
+production/helper and test/fixture split is 3,523/4,165 lines. This count
 includes the latest merged VM observer/cleanup checks. Layout consolidation removes
 349 lines from its immediate parent (`75bc034`, 8,486 lines). The
 stream-view migration removed its Python test module after all eleven original tests
@@ -489,13 +502,17 @@ added to a member manifest, and no package is uploaded.
 
 ## Current branch review and compatibility
 
-The latest implementation is represented by `d1d3402` on merged main `a771c04`.
-Its complete 14-check frozen-tree run passes 221 native, 247 Python and 527
-top-level codec tests, ten doctests, strict tooling Clippy, Linux tooling
-compilation, no_std, published/local compatibility and actual core package
-reconstruction. It binds frequency root hashes to parsed snapshots and shares
-original-worker validation and statistics in one native frequency frame.
-See the [worker replay review](../docs/global-review-9.1.0-2026-10-23.md#shared-original-worker-and-frequency-replay).
+The latest integration is frozen at `cea646b` on main `8d59e77`, retaining its
+scalar-pivot prefix optimization. All 15 final checks pass: 225 native, 248 Python
+and 527 top-level codec tests, ten doctests, strict tooling Clippy, Linux tool
+compilation, no_std, published/local compatibility, all audits and actual core
+package reconstruction. The extracted package additionally passes 361 library
+tests using only distributable inputs. The worker journal now consumes identities
+from the same validated profile reads. See the [journal review](../docs/global-review-9.1.0-2026-10-23.md#native-campaign-journals-and-single-read-profile-evidence).
+
+The preceding worker replay is represented by `d1d3402` on main `a771c04`;
+its source-bound [worker replay review](../docs/global-review-9.1.0-2026-10-23.md#shared-original-worker-and-frequency-replay)
+retains its original validation and transport scope.
 
 The preceding preparation implementation is frozen at `b5ab95e` on main
 `0a85348`; its subsequent digest test at `ccedab1` passes 215 native tests.
