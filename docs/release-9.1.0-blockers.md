@@ -30,8 +30,12 @@ New checks on `62632e5` pass: 357 codec library tests (five existing ignored),
 237 codec-only no_std tests, 199 native tests and all 248 Python controller tests,
 strict codec/tool Clippy and Linux tool metadata compilation. Version, workspace,
 JSON and actual package allowlist preparation checks pass; these are not strict
-release preflight. The separate full Linux campaign continues on frozen
-`9f935ee`. The earlier 64-worker encode/stream plan has completed and
+release preflight. One subsequent `744f7e9` macOS cancellation job failed exit
+confirmation; the old job is retained. Tool follow-through `5882adb` passes 205
+native and 248 Python tests plus strict macOS/Linux tool Clippy and all 96 bounded
+post-fix cancellation trials. Its own new-head CI remains required; neither local
+success nor another passing workflow erases the old refusal. The separate full
+Linux campaign continues on frozen `9f935ee`. The earlier 64-worker encode/stream plan has completed and
 independently replays exactly. All
 64 distributions and eight regression programs pass, but three of 32 repeats fail
 (maximum 8.3833%); no sample is short. The [complete GFNI review](gfni-priority-review-2026-10-23.md)

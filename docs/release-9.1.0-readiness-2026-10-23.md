@@ -15,6 +15,7 @@ pass in their recorded scope; performance acceptance and publication remain inco
 | Frozen full Linux source | `9f935eef9c1af721165b245709897f7c4b9acc37` | Running complete diagnostic versus published 9.0.0 |
 | Earlier native-model main | `bfff0fcf187b99109927ec1de824b0977f2b4e6e` | Merged PR #61; historical source correspondence retained |
 | Reviewed main snapshot | `62632e5419b13b65973c51033718be00b14d2442` | Includes empty-shard alignment, native source plans and Darwin group cleanup |
+| Darwin confirmation follow-through | `5882adbd05de6c15ba37b74de36458d473c7f971` | Local tool fix for changing membership observations; new-head CI required |
 
 The first four identities have the same complete Git file tree. That historical
 relation does not extend to the later rows. Relative to frozen `9f935ee`, reviewed
@@ -71,7 +72,11 @@ preserve tool identity; they are not codec throughput measurements.
 The process owner keeps its leader unreaped while stopping the group it created.
 On Darwin's EPERM path, two complete native membership snapshots must confirm
 that all remaining members are already exited, with matching PID/start identity.
-Live, unknown or incomplete groups retain the original error. Cleanup does not
+Live or unknown groups retain the original error. In follow-through `5882adb`,
+a reaped member or truncated list invalidates the observation and requires two
+fresh complete views. Only these changing views receive bounded stabilization;
+empty/duplicate lists, mismatched identities, unconfirmed members and exhaustion
+never prove exit. The ordinary complete pair does not sleep. Cleanup does not
 reinterpret a permission error as successful cancellation. The scope remains
 owned process groups, without a claim about arbitrary detached sessions or
 Windows job trees.
@@ -103,6 +108,41 @@ check one plan per installation and explicit source-local helper build output.
 The empty-shard regression covers batch construction, cloning, slices, iterators
 and both pointer views. These checks do not establish hardware-counter fidelity,
 physical-host isolation or performance acceptance.
+
+## CI cancellation refusal and follow-through
+
+One [macOS ARM64 job on the original `744f7e9` head](https://github.com/houseme/rustfs-erasure-codec/actions/runs/39931691718/job/120341257581)
+failed the cancellation/source-restoration regression with an unconfirmed owned
+group and EPERM. Its full original log remains retained. Another same-head
+workflow passing does not replace that refusal. Local validation on `62632e5`
+above remains a local result, rather than a claim that every CI run passed.
+
+A bounded 96-trial reproduction on the unchanged implementation did not trigger
+that CI failure; this negative observation is retained. A separate deterministic
+regression enumerates a real Darwin group, reaps one owned exited member before
+per-PID inspection, and observes the resulting ESRCH. The original one-shot
+confirmation rejects that incomplete view. Both this native regression and the
+pure observation model fail before the change and pass after it. This establishes
+a concrete invalidation mechanism without claiming a unique snapshot state for
+the original CI runner.
+
+Source `5882adb` separates platform observation from shared exit confirmation.
+Known-changing observations discard their old evidence; confirmation requires a
+new complete matching pair while the leader remains unreaped. The 100 ms bound
+limits resource observation, not a benchmark or statistical acceptance rule.
+Unknown/live states and identity/group mismatches remain immediate refusals;
+exhaustion preserves the original signal error. Refusal messages add the missing
+proof stage without changing the signal's original error.
+
+The fix passes 205 native tests (177 unit / 28 CLI), all 248 Python tests and
+strict tool Clippy on macOS and Linux x86_64 all-target configurations. The
+post-fix bounded cancellation check retains all 96 trials with no failure. Pure
+counterexamples cover incomplete fresh pairs, unknown/live views, empty or
+duplicate members, changed identities and exhausted observation budgets. These
+checks are not performance evidence and do not erase the original failed CI job.
+The new head must still complete its own CI. Codec sources and manifests remain
+unchanged from reviewed main `62632e5`; its 357/237 library checks above retain
+that original source binding.
 
 Earlier independent checks remain bound to their own sources: `709c40b` passed
 194 native and 247 Python tests, 51 baseline comparisons and 116 complete
