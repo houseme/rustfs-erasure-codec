@@ -61,14 +61,64 @@ impl crate::Field for Field {
 
     #[inline]
     fn mul_slice(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]]) {
-        gf16_mul_slice::<false>(elem, input, out);
+        gf16_mul_slice(elem, input, out, false);
     }
 
     #[inline]
     fn mul_slice_add(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]]) {
-        gf16_mul_slice::<true>(elem, input, out);
+        gf16_mul_slice(elem, input, out, true);
     }
 }
+
+#[cfg(rse_x86_gfni)]
+type TowerMulFn = fn([u8; 2], &[[u8; 2]], &mut [[u8; 2]], bool);
+
+#[cfg(rse_x86_gfni)]
+static TOWER_MULTIPLY: spin::Once<TowerMulFn> = spin::Once::new();
+
+#[cfg(rse_x86_gfni)]
+fn select_tower_multiply(backend: galois_8::BackendId) -> TowerMulFn {
+    match backend {
+        galois_8::BackendId::RustGfniAvx2 => multiply_tower_gfni_avx2,
+        galois_8::BackendId::RustGfniAvx512 => multiply_tower_gfni_avx512,
+        _ => gf16_mul_slice_portable,
+    }
+}
+
+#[cfg(rse_x86_gfni)]
+fn multiply_tower_gfni_avx2(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]], xor: bool) {
+    galois_8::x86::gfni::rust_gfni_avx2_mul_tower(tower_mul_coefficients(elem), input, out, xor);
+}
+
+#[cfg(rse_x86_gfni)]
+fn multiply_tower_gfni_avx512(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]], xor: bool) {
+    galois_8::x86::gfni::rust_gfni_avx512_mul_tower(tower_mul_coefficients(elem), input, out, xor);
+}
+
+#[cfg(rse_x86_gfni)]
+fn gf16_mul_slice(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]], accumulate: bool) {
+    assert_eq!(input.len(), out.len());
+    // The constant-coordinate path needs neither a fallback frame nor general
+    // dispatch. Keep its existing flattened GF8 operation outside that frame.
+    if elem[0] == 0 {
+        if accumulate {
+            galois_8::mul_slice_xor(elem[1], input.as_flattened(), out.as_flattened_mut());
+        } else {
+            galois_8::mul_slice(elem[1], input.as_flattened(), out.as_flattened_mut());
+        }
+        return;
+    }
+    // GF8's selected backend is immutable. Resolve the same choice once and
+    // enter the original portable executor directly for every other backend.
+    // The indirect call keeps the portable stack planes out of this wrapper.
+    let multiply =
+        TOWER_MULTIPLY.call_once(|| select_tower_multiply(galois_8::active_backend_id()));
+    multiply(elem, input, out, accumulate);
+}
+
+// Architectures/builds without GFNI retain the original executor directly.
+#[cfg(not(rse_x86_gfni))]
+use gf16_mul_slice_portable as gf16_mul_slice;
 
 /// SIMD-accelerated `out[i] = elem * input[i]` (or `out[i] ^= elem * input[i]`
 /// when `accumulate`) over the `GF((2^8)^2)` tower field.
@@ -90,14 +140,18 @@ impl crate::Field for Field {
 /// On x86 with GFNI the GF(2^8) multiplies are so fast that a *scalar* byte
 /// de-/re-interleave dominates the runtime (Amdahl); SIMD-ing the layout
 /// conversion is what restores the tower decomposition's speed-up there.
-#[inline]
-fn gf16_mul_slice<const ACCUMULATE: bool>(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]]) {
+fn gf16_mul_slice_portable(
+    elem: [u8; 2],
+    input: &[[u8; 2]],
+    out: &mut [[u8; 2]],
+    accumulate: bool,
+) {
     assert_eq!(input.len(), out.len());
 
     // A constant tower element scales both byte coordinates independently.
     // Keep their interleaved representation and reuse one GF8 slice operation.
     if elem[0] == 0 {
-        if ACCUMULATE {
+        if accumulate {
             galois_8::mul_slice_xor(elem[1], input.as_flattened(), out.as_flattened_mut());
         } else {
             galois_8::mul_slice(elem[1], input.as_flattened(), out.as_flattened_mut());
@@ -105,14 +159,13 @@ fn gf16_mul_slice<const ACCUMULATE: bool>(elem: [u8; 2], input: &[[u8; 2]], out:
         return;
     }
 
-    let coefficients = tower_mul_coefficients(elem);
-    #[cfg(rse_x86_gfni)]
-    if galois_8::try_mul_tower_slice(coefficients, input, out, ACCUMULATE) {
-        return;
-    }
     // Preserve length validation even for an empty general-field operation.
     if !input.is_empty() {
-        gf16_mul_general::<ACCUMULATE>(elem, input, out);
+        if accumulate {
+            gf16_mul_general::<true>(elem, input, out);
+        } else {
+            gf16_mul_general::<false>(elem, input, out);
+        }
     }
 }
 
@@ -139,9 +192,9 @@ fn gf16_mul_general<const ACCUMULATE: bool>(elem: [u8; 2], input: &[[u8; 2]], ou
     debug_assert_eq!(input.len(), out.len());
     let cx = elem[0];
     let cc = elem[1];
-    let coef_a = cc ^ galois_8::mul(2, cx);
+    let coef_a = cc ^ galois_8::mul(EXT_POLY[1], cx);
     let coef_b = cx;
-    let coef_c = galois_8::mul(128, cx);
+    let coef_c = galois_8::mul(EXT_POLY[2], cx);
     let coef_d = cc;
 
     let mut planes = BytePlanes {
@@ -182,7 +235,8 @@ fn gf16_mul_general<const ACCUMULATE: bool>(elem: [u8; 2], input: &[[u8; 2]], ou
     }
 }
 
-// Keep the fused and portable paths tied to the same extension polynomial.
+// Keep the fused path tied to the same extension polynomial as the original executor.
+#[cfg(any(rse_x86_gfni, test))]
 pub(crate) fn tower_mul_coefficients([cx, cc]: [u8; 2]) -> [u8; 4] {
     [
         cc ^ galois_8::mul(EXT_POLY[1], cx),
@@ -963,6 +1017,33 @@ mod tests {
     #[test]
     fn zero_to_zero_is_one() {
         assert_eq!(Element::zero().exp(0), Element::constant(1))
+    }
+
+    #[cfg(rse_x86_gfni)]
+    #[test]
+    fn tower_dispatch_preserves_scalar_and_other_backend_choices() {
+        use galois_8::BackendId;
+        for backend in [
+            BackendId::ScalarRust,
+            BackendId::RustNeon,
+            BackendId::RustSsse3,
+            BackendId::RustAvx2,
+            BackendId::RustAvx512,
+            BackendId::RustVsx,
+        ] {
+            assert!(core::ptr::fn_addr_eq(
+                select_tower_multiply(backend),
+                gf16_mul_slice_portable as TowerMulFn
+            ));
+        }
+        assert!(core::ptr::fn_addr_eq(
+            select_tower_multiply(BackendId::RustGfniAvx2),
+            multiply_tower_gfni_avx2 as TowerMulFn
+        ));
+        assert!(core::ptr::fn_addr_eq(
+            select_tower_multiply(BackendId::RustGfniAvx512),
+            multiply_tower_gfni_avx512 as TowerMulFn
+        ));
     }
 
     #[test]
