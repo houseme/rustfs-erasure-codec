@@ -40,12 +40,18 @@ pub(crate) fn benchmark(args: &Args) -> Result<bool> {
     }
     let strict = args.0.contains_key("--strict-provenance");
     let baseline = model::index(
-        model::load_rows(Path::new(args.required("--baseline")?))?,
+        model::load_rows(
+            Path::new(args.required("--baseline")?),
+            args.0.get("--baseline-sha256").map(String::as_str),
+        )?,
         "baseline",
         strict,
     )?;
     let current = model::index(
-        model::load_rows(Path::new(args.required("--current")?))?,
+        model::load_rows(
+            Path::new(args.required("--current")?),
+            args.0.get("--current-sha256").map(String::as_str),
+        )?,
         "current",
         strict,
     )?;
@@ -186,11 +192,17 @@ pub(crate) fn hotspot(args: &Args) -> Result<bool> {
         true,
     )?;
     let baseline = model::hotspots(
-        model::load_rows(Path::new(args.required("--baseline")?))?,
+        model::load_rows(
+            Path::new(args.required("--baseline")?),
+            args.0.get("--baseline-sha256").map(String::as_str),
+        )?,
         metric,
     )?;
     let current = model::hotspots(
-        model::load_rows(Path::new(args.required("--current")?))?,
+        model::load_rows(
+            Path::new(args.required("--current")?),
+            args.0.get("--current-sha256").map(String::as_str),
+        )?,
         metric,
     )?;
     let overrides = scenario_values(args, "--scenario-max-regression")?;

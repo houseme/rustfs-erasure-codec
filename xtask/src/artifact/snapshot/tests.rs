@@ -77,7 +77,10 @@ fn hashes_cover_original_encoded_bytes_for_all_legacy_json_encodings() {
         let name = format!("{index}.json");
         fs::write(directory.0.join(&name), bytes).unwrap();
         let mut snapshot = Snapshot::new(&directory.0).unwrap();
-        assert_eq!(snapshot.json(&name).unwrap(), expected);
+        assert_eq!(
+            snapshot.json_bound(&name, Some(&digest(bytes))).unwrap(),
+            expected
+        );
         assert_eq!(snapshot.finish().unwrap()[&name], digest(bytes));
     }
 }
@@ -162,5 +165,24 @@ fn linked_members_and_directories_are_refused_without_following_the_link() {
             .unwrap()
             .json("linked/input.json")
             .is_err()
+    );
+}
+
+#[test]
+fn bound_digest_refuses_changed_bytes_before_recording_or_decoding_a_member() {
+    let directory = Directory::new();
+    fs::write(directory.0.join("input.json"), b"{}").unwrap();
+    let mut snapshot = Snapshot::new(&directory.0).unwrap();
+    assert!(
+        snapshot
+            .json_bound("input.json", Some(&digest(b"[]")))
+            .is_err()
+    );
+    assert!(snapshot.members.is_empty());
+    assert_eq!(
+        snapshot
+            .json_bound("input.json", Some(&digest(b"{}")))
+            .unwrap(),
+        serde_json::json!({})
     );
 }

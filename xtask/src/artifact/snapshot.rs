@@ -76,6 +76,9 @@ impl Snapshot {
         Ok(bytes)
     }
     pub(crate) fn json(&mut self, name: &str) -> Result<Value> {
+        self.json_bound(name, None)
+    }
+    pub(crate) fn json_bound(&mut self, name: &str, expected: Option<&str>) -> Result<Value> {
         if self.members.contains_key(name) {
             return Err("original member must be read once".into());
         }
@@ -87,10 +90,14 @@ impl Snapshot {
         if self.total > SNAPSHOT_LIMIT {
             return Err("original snapshot exceeds byte budget".into());
         }
+        let hash = digest(&bytes);
+        if expected.is_some_and(|expected| expected != hash) {
+            return Err("original member digest mismatch".into());
+        }
         let text = json_text(&bytes)?;
         let super::StrictJson(value) =
             serde_json::from_str(&text).map_err(|e| format!("{name}: {e}"))?;
-        self.members.insert(name.into(), digest(&bytes));
+        self.members.insert(name.into(), hash);
         Ok(value)
     }
     pub(crate) fn finish(self) -> Result<BTreeMap<String, String>> {
