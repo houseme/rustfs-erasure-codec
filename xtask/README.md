@@ -44,6 +44,7 @@ cargo test --locked --package xtask
 | Retained-layout comparisons and stream-view inventory signatures | `diagnostics::layout::inventory` and the shared typed `diagnostics::views` ledger; `cargo xtask analyze-layout --input FILE` | All four phases, six comparison pairs, 103 retained cases, 15 stream cases, exact difference fields, lifecycle ordering and explicit absence of performance attribution |
 | Complete calibration profiles and campaign comparisons/classification | `sampling_contract::calibration_profile`, `diagnostics::baseline::campaign`; existing `sampling-contract` and `analyze-baseline-data` commands | Every raw calibration row, complete bounded rehearsals, frozen counts, optional CPU policy, original case order, finite ratios, complete diagnostic failures and existing report fields |
 | Baseline directory loading, preparation comparison, runtime validation and complete report assembly | `diagnostics::baseline::replay`, shared `artifact::snapshot`, `runtime`; `cargo xtask analyze-baseline-capture --capture DIR --tool FROZEN_SOURCE` | Legacy basic/v1/v2 qualification schemas, original encoded-byte hashes, optional historical policies, complete cases/traces, bounded original members and descriptive-only reports |
+| Python fixture/workload/RNG projections | Shared `sampling_contract::preparation` in existing calibration, selection and diagnostic-worker frames | Last observed per-case calibration batches, exact seeds/placement, all trace positions and unchanged persisted evidence |
 
 The obsolete implementations and their Python test entry points are removed.
 Rust unit and executable tests cover the retained contracts. The migration was
@@ -80,6 +81,19 @@ Six per-file source-planning operations and their Python wrappers are retired:
 plans. Seven pure Python source checks and the source assertions within two
 binding tests move into four native tests with the same assertions. Python keeps
 the active sampler/observer bindings, resource owners and failure restoration.
+
+## Shared preparation model
+
+Calibration profiles and selected profiles now return fixture layouts, workload
+catalogs and input traces from their existing validation frame. Diagnostic workers
+return their unchanged summary and the same preparation model after normalizing
+observer rows. Directory replay borrows that model directly. Three Python
+projectors are removed; no standalone preparation request is added.
+Two borrowed passes replace the per-case whole-record scans. Null trace positions,
+last observed calibration batches and exact seeds remain covered by native tests;
+a frozen digest covers all 126 workload catalogs without duplicate JSON fixtures.
+The private bridge responses change together with their source-bound consumers;
+persisted report schemas and the encoding/decoding contract remain unchanged.
 
 ## Root dependency policy and shared implementation
 
@@ -276,7 +290,8 @@ original files were removed (twelve implementations/helpers and eleven test
 modules). One native-tool compatibility binding remains. The intermediate Python
 normalization library was also removed after its consumers moved to Rust.
 The remaining **34 files / 7,675 lines** consist of 15 production/helper modules
-and 19 test/fixture modules: about 41% fewer Python lines overall. This count
+and 19 test/fixture modules: about 41% fewer Python lines overall. The current
+production/helper and test/fixture split is 3,547/4,128 lines. This count
 includes the latest merged VM observer/cleanup checks. Layout consolidation removes
 349 lines from its immediate parent (`75bc034`, 8,486 lines). The
 stream-view migration removed its Python test module after all eleven original tests
@@ -339,7 +354,7 @@ Finite input metrics can overflow their quotient, so nonfinite repeat and
 candidate ratios are refused before a JSON report is constructed.
 Native baseline directory replay subsequently removes another 52 lines relative
 to `9210509`, including new CLI/cache/encoding checks and three service cases
-moved to native full-file tests. The current count is 3,553 production/helper and
+moved to native full-file tests. At that snapshot the count is 3,553 production/helper and
 4,122 test/fixture lines, including the reporter checks retained from main and
 the shared source-plan binding regression. The baseline Python entry is now a native call; its
 remaining code owns explicit trusted historical replay and the original source,
@@ -457,10 +472,17 @@ added to a member manifest, and no package is uploaded.
 
 ## Current branch review and compatibility
 
-The latest follow-up is frozen at `71d951e` on main `549b0ac`. Its 206 native,
-246 Python and 519 codec tests, ten doctests, strict tooling Clippy, Linux tool
-compilation, no_std, compatibility and actual package checks pass. It binds
-original file values and regression inputs to the same declared bytes and moves
+The latest implementation is frozen at `b5ab95e` on main `0a85348`. Its complete
+14-check run passes 214 native, 246 Python and 527 top-level codec tests, ten
+doctests, strict tooling Clippy, Linux tool compilation, no_std, compatibility
+and actual core package reconstruction. The subsequent digest-only test commit
+`ccedab1` passes all 215 native tests and strict Clippy. Preparation extraction
+now shares one Rust model across capture, selection and directory replay, with
+no extra helper frame. See the [preparation review](../docs/global-review-9.1.0-2026-10-23.md#shared-preparation-projections-in-native-batches).
+
+The preceding bound I/O review is frozen at `71d951e` on main `549b0ac`; its
+original 206 native, 246 Python and 519 codec test totals remain source-bound.
+It binds original values and regression inputs to declared bytes and moves
 obsolete per-file source checks beside the native generators. See the
 [bound I/O review](../docs/global-review-9.1.0-2026-10-23.md#bound-original-file-io-and-source-interface-review).
 
@@ -477,7 +499,7 @@ compatibility checks and documentation. The existing dependency upgrade is
 preserved in its own commit. Codec sources and `build.rs` are unchanged from
 that base.
 The duplicate median/spread implementation has been
-consolidated in `release_sampling.selected_row`: strict mode rejects short
+consolidated in `release_sampling.select_profile`: strict mode rejects short
 samples and diagnostic mode records them, while both use the same raw-record
 validation, warmup exclusion, median and central-spread computation. Diagnostic
 schemas remain unable to approve a release. This reduces policy drift without

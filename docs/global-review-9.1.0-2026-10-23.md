@@ -1114,3 +1114,63 @@ performance approval remains withheld. The running Linux source remains frozen
 at `9f935ee`, and its results cannot be relabeled as this later matrix/tool tree.
 See the [current readiness review](release-9.1.0-readiness-2026-10-23.md) and
 [complete functional record](../benchmarks/release-9.1.0/2026-10-23/integrated-main-functional-review.json).
+
+
+## Shared preparation projections in native batches
+
+This follow-up starts from main `0a85348`, retaining its matrix-row optimization,
+Darwin ownership fixes and original evidence. The codec, build inputs, dependency
+manifests and lockfile remain identical to that main. One implementation commit
+updates the native model and every bridge consumer together; a separate test
+commit freezes complete projected values before this documentation update.
+
+The three Python fixture/workload/RNG projectors are removed. Calibration, sample
+selection, ordinary verify, stream and dynamic workers return preparation in
+existing validation frames. Directory replay borrows the same Rust model.
+Instead of rescanning every record for each case, projection uses two borrowed
+passes with ordered case lookups, O(records * log(cases)). No separate preparation
+operation, additional validation frame or retained Python implementation is
+introduced. Original selected rows still refer to the caller's objects.
+
+Projection preserves the last observed calibration batch for each case, rather
+than assuming the largest batch number; it retains original trace order and null
+positions when a case has RNG witnesses. All-null traces remain absent. Index-zero
+workload selection, completed calibration layouts, sample-only measurement
+layouts, nullable placement and exact u64 seeds retain their previous semantics.
+Persisted evidence schemas are unchanged; private helper response consumers move
+with their source-bound implementation. Historical replay still requires its
+matching frozen source and fingerprints.
+
+A differential comparison against the Python functions at `0a85348` agrees on
+all 24 profile/role/phase inputs: 756 case groups / 9,072 observations, covering
+both calibration roles and every ABBA phase. A permanent Rust digest additionally
+covers all 126 workload catalogs in measurement and calibration modes, with no
+Python reference or duplicate JSON fixtures retained. Explicit cases cover
+interleaved batches, mixed null witnesses, sample/layout selection, u64 values
+and unchanged inputs. These are tooling traversal and equivalence checks; they
+provide no new codec throughput measurement or release approval.
+
+The frozen implementation `b5ab95e` passes all fourteen complete checks: 214
+native tests, 246 Python tests, strict tooling Clippy, Linux tooling compilation,
+527 top-level codec tests, ten doctests, codec-only no_std, the 200-configuration
+published/local compatibility probe, all three audits, actual extracted core
+package reconstruction, formatting and diff checks. The additional digest-only
+commit `ccedab1` passes 215 native tests and strict Clippy. The 43 existing codec
+ignores remain unchanged. Compatibility checks exact parity and cross-decoding
+in both directions, including historical tower-field vectors; the older
+inconsistent fast-one-parity mode remains outside this probe's scope.
+
+The inventory remains 34 active Python files / 7,675 lines: 3,547 production/helper
+and 4,128 test/fixture lines. Three processing algorithms move out of Python;
+remaining modules retain process, file, hardware-observation, explicit historical
+replay or integration-test callers. The original 56-file / 13,120-line inventory
+is reduced by about 41%. There is no orphaned Python file to delete in this scope.
+All 586 JSON files / 3,136,158 bytes match main, including its newly integrated
+matrix-row diagnostic. The eleven equal-byte groups retain their original
+provenance; none are deleted or silently deduplicated.
+
+All five workspace members inherit the root dependency catalog. Core/WASM
+allowlists remain 67/6 members: tools, Python, archived JSON and repository test
+harnesses remain GitHub-only. The core package is rebuilt from its actual
+extracted contents. There is no new dependency, codec change, release tag or
+registry upload in this follow-up.
