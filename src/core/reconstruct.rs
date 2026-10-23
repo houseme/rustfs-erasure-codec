@@ -629,9 +629,14 @@ impl<F: Field> ReedSolomon<F> {
             let before_len = cache.len();
             #[cfg(feature = "std")]
             let capacity = cache.capacity();
-            cache.insert(Vec::from(invalid_indices), data_decode_matrix);
+            let previous = cache.insert(Vec::from(invalid_indices), data_decode_matrix);
             #[cfg(feature = "std")]
-            if capacity > 0 && before_len >= capacity {
+            let evicted = capacity > 0 && before_len >= capacity && previous.is_none();
+            // A concurrent miss may have inserted the same pattern while we
+            // inverted the matrix. Replacing that entry does not evict an LRU.
+            drop(previous);
+            #[cfg(feature = "std")]
+            if evicted {
                 self.reconstruction_cache_metrics
                     .evictions
                     .fetch_add(1, Ordering::Relaxed);

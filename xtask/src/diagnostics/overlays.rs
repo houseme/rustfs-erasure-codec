@@ -352,12 +352,12 @@ mod tests {
                 "{variant}"
             );
         }
-        // This snapshot includes unobserved production bodies. Their adaptive
-        // dispatch changed; the observer must pass those bodies through exactly.
+        // This snapshot includes production bodies. Changes such as adaptive
+        // dispatch or cache metrics must survive the observer unchanged.
         let original = dynamic_source_files(root);
         assert_eq!(
             digest(dynamic::patch(&original, root).unwrap(), root),
-            "2dd016796e615f3530d4412aee8b03d207b7319442dc927523ef5f6f8d4b2d75"
+            "9730404ed20b11583b7e75209b8498d44f481811ce5e128047a0cf3159dc354f"
         );
     }
 }

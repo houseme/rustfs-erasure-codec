@@ -109,6 +109,7 @@ pub struct ReconstructionCacheStats {
     pub hits: usize,
     pub misses: usize,
     pub inserts: usize,
+    /// Entries removed to make room at capacity; same-key replacements do not count.
     pub evictions: usize,
 }
 
