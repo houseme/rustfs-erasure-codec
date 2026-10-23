@@ -1376,3 +1376,82 @@ All five workspace members still inherit the root dependency catalog. Core and
 WASM package allowlists remain 67 and six members, excluding Python, repository
 tools and archived JSON. No new CLI command, dependency, codec-format change,
 release tag, registry upload or performance approval is introduced.
+
+
+## Original diagnostic journals in native worker frames
+
+The final implementation `12144ea` starts from main `a773e74`. Codec sources,
+build inputs, dependency declarations and lockfiles match that main. Native
+journal integration and Python controller migration are separate functional
+commits. Shared models and existing request frames own the validation.
+
+Ordinary verify, stream-core and dynamic replay previously scanned each numeric
+journal three or four times in Python. They then resent the same observations
+for pair-contract checks; dynamic replay additionally expanded the workload
+marker again. The existing native worker now receives a journal path and its
+declared digest. It reuses the bounded original-member reader, hashes the exact
+bytes before UTF-8 decoding/newline normalization, and visits the relevant
+prefixes once. Complete samples, timing fields, observer ledgers and stream views
+retain their original count and agreement checks. Decoder supplement replay uses
+the same reader and scanner in its existing ledger frame.
+
+The shared scanner retains CRLF/CR input, last-key JSONL objects and the former
+interrupted-final-fragment rule. Unrelated prefixes are skipped before JSON
+decoding. Complete integer `-0` tokens retain Python integer-zero semantics;
+floating/exponent negative zero, escaped strings and invalid tokens are
+unchanged. The existing Python-compatible numeric comparison moves into a shared
+artifact module. Crucially, value equality does not replace
+the actual raw samples or views with their stored JSON equivalents. Typed worker
+validation still sees the original parsed log values. A regression accepts a
+stored float view index paired with an original integer index, and refuses the
+reverse pair, matching the former controller/worker path. The native contract
+check uses the original rows and returns the first pair reference and dynamic
+workload trace from that same validated model.
+
+The obsolete Python dynamic-workload expansion wrapper, its private bridge
+operation and two pure Python tests are retired. Their original tests pass before
+removal. The marker/formal-profile refusal and complete 516-step plan assertions
+now live beside the owning native modules; caller-value isolation remains a
+Python binding test. Process, overlay rollback, original private-log checks and
+capture ownership remain in the existing controllers.
+
+A complete comparison against the Python verify-scratch replay at `a773e74`
+retains every report value for 28 workers / 336 observations and leaves every
+original member unchanged. Repeated worker/contract frames fall from 56 to 28;
+serialized request bytes fall from 1,552,340 to 1,369,950. Seven accepted variants
+and five refusal variants agree, including malformed unrelated prefixes that
+retain their ignored behavior and raw float/bool indices that must not bypass
+strict worker validation. The permanent full-controller regression fails
+on the former Python parsing path and passes with one frame per worker, without
+a second observation-contract request. These are synthetic replay/transport
+results; they do not measure codec throughput or establish release performance.
+
+A separate portable synthetic encode ledger checks all 625 events and twelve
+observations for current/legacy source identities in both sample and calibration
+modes. The new bound-journal interface preserves the original interface's complete
+summary and preparation for all four combinations. This exercises the native
+model, not actual allocator capture or every dynamic workload. Native source-copy
+execution remains a Linux CI check.
+
+The final implementation passes all fifteen checks in an independent frozen
+checkout: 238 native tests (209 unit / 29 CLI), 250 Python tests, strict tooling
+Clippy, Linux tooling compilation, 536 top-level codec tests, ten doctests,
+codec-only no_std, 200 non-fast published/local compatibility configurations,
+all three audits, actual core package reconstruction, extracted-package library
+tests, formatting and diff checks. The extracted package passes 370 library
+tests with five existing ignores; the repository retains 43 existing codec
+ignores. Exact parity, bidirectional cross-decoding and historical tower-field
+vectors pass. The older inconsistent fast-one-parity mode remains outside that
+compatibility probe. Spelling also passes.
+
+The inventory is 34 active Python files / 7,653 lines: 3,471 production/helper
+and 4,182 test/fixture lines. Production falls by 13 lines; moving the two pure
+tests and adding integration regressions increases Python test lines by eight,
+so the total falls by five. All 590 JSON files / 3,464,634 bytes match main.
+The eleven equal-byte groups retain their original provenance. No historical
+member is rewritten or deleted to reduce the inventory.
+
+All five workspace members still inherit the root dependency catalog. Core and
+WASM package allowlists remain 67 and six files, excluding repository tools,
+Python and archived JSON. No dependency, codec-format change, release tag,
+registry upload or performance approval is introduced.
