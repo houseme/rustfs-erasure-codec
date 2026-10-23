@@ -234,7 +234,7 @@ The initial inventory contained **56 Python files / 13,120 lines**. Twenty-three
 original files were removed (twelve implementations/helpers and eleven test
 modules). One native-tool compatibility binding remains. The intermediate Python
 normalization library was also removed after its consumers moved to Rust.
-The remaining **34 files / 7,693 lines** consist of 15 production/helper modules
+The remaining **34 files / 7,702 lines** consist of 15 production/helper modules
 and 19 test/fixture modules: about 41% fewer Python lines overall. This count
 includes the latest merged VM observer/cleanup checks. Layout consolidation removes
 349 lines from its immediate parent (`75bc034`, 8,486 lines). The
@@ -299,7 +299,8 @@ candidate ratios are refused before a JSON report is constructed.
 Native baseline directory replay subsequently removes another 52 lines relative
 to `9210509`, including new CLI/cache/encoding checks and three service cases
 moved to native full-file tests. The current count is 3,594 production/helper and
-4,099 test/fixture lines. The baseline Python entry is now a native call; its
+4,108 test/fixture lines, including the nine reporter-test lines retained from
+the latest main during rebase. The baseline Python entry is now a native call; its
 remaining code owns explicit trusted historical replay and the original source,
 snapshot and resource checks for that adapter.
 
@@ -360,14 +361,14 @@ reports exact-byte duplicate groups without modifying files.
 The initial audit found **575 files / 2,807,430 bytes**, all valid. These archives
 and WASM inputs remain unchanged; an active tool contract and the deliberately
 retained helper-profile/complete-worker comparisons, the merged service-drift
-review, complete Linux diagnostic review and fixed-count mechanism controls
+review, complete Linux diagnostic review and full dispatch/GFNI mechanism controls
 bring the current total to
-**581 files / 2,844,236 bytes**:
+**584 files / 3,006,767 bytes**:
 
 | Category | Files | Policy |
 | --- | ---: | --- |
 | Raw Criterion evidence | 448 | Preserve phase-local records and manifest paths |
-| Versioned evidence | 40 | Preserve schema and digest-bound contents |
+| Versioned evidence | 43 | Preserve schema and digest-bound contents |
 | Historical reports/evidence | 89 | Repository-only; do not reinterpret old runs as current acceptance |
 | WASM configuration/lockfiles | 3 | Preserve build and dependency reproducibility |
 | Shared tool contract | 1 | Field, alias and default-threshold definition; excluded from the codec crate |

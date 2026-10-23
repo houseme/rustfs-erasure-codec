@@ -1,5 +1,44 @@
 # 9.1.0 global review — 2026-10-23
 
+## Integration with current main
+
+The tooling branch is rebased onto main
+`e3aca327264b2956f14690456b06e060aaad53b8`. The independently validated code
+snapshot is `1de54689a275c7e6f976fcb4b8b27f3bf47d4875`; the final documentation
+commit changes only this review and the inventory in `xtask/README.md`.
+The 26 rebased functional/review commits retain their boundaries. Production
+`src/`, build.rs, all Cargo manifests and the lockfile match this main exactly,
+including its shared Classic verification and automatic GFNI priority fixes.
+The review found no additional supported runtime defect requiring another codec
+path or tuning policy. The observer passthrough, source generators and new native
+analysis models pass together on the combined source.
+
+Python now totals 34 files / 7,702 lines (3,594 production/helper and 4,108
+test/fixture lines), compared with main's 8,495 lines and the original 13,120.
+The remaining active ownership, platform and frozen-replay adapters stay explicit.
+All 584 JSON files / 3,006,767 bytes match main; eleven identical-byte groups
+retain their evidence paths. All five workspace members inherit root dependencies.
+The core/WASM distributable allowlists contain 67/6 members. The actual core
+archive rebuilds from its extracted sources and compresses to 192.7 KiB;
+repository-only Python, tools, tests, JSON evidence and contracts are excluded.
+
+Validation on this rebased snapshot passes 194 native-tool tests, 247 Python
+tests, 356 codec unit tests, 160 top-level integration tests, ten doctests, strict
+tool Clippy, the Linux tooling cross-check, codec-only no_std, all three audits,
+actual Cargo package verification, formatting, spelling and diff checks. The
+existing 43 ignored codec tests remain ignored. The published-9.0.0/local-9.1.0
+probe passes 200 non-fast configurations with exact parity and cross-decoding in
+both directions, plus historical tower-field vectors. The probe deliberately
+does not certify the older release's inconsistent fast-one-parity mode.
+
+The dated sections below retain the original source identities and validation
+scope of each migration. Rebase does not relabel their historical measurements.
+Local functional and package checks do not approve codec throughput, Linux
+isolation, Windows execution or strict release publication. The existing release
+acceptance records and retained failures still apply.
+
+## Earlier migration review
+
 This review follows the merge of `origin/main` at
 `d88e69a895d059af1aa4179d39de91decaa20b49` into the current tooling branch
 (merge `48dbf12`). Main contains the same files as diagnostic commit `022c0a7`,
