@@ -48,7 +48,8 @@ cargo test --locked --package xtask
 | Python original-worker and frequency-result calculations | `sampling_contract::replay`, shared `batch::select` and `diagnostics::vm::frequency`; existing sampling/VM commands | Original journal agreement, frozen preparation/provenance, exact interval types, counter enclosure and unchanged complete reports |
 | Python campaign worker-identity/event validation | Shared preparation worker starts and `sampling_contract::journal`; existing sampling command | Every rehearsal, full phase/profile order, original JSONL numeric rules, monotonic timestamps and exact invocation counts |
 | Python dynamic campaign plan/envelope and fixed capture settings | `diagnostics::dynamic_ledger::campaign` and `sampling_contract::protocol`; existing native ledger/catalog frames | Frozen 516-step order, complete runtime/source provenance, every execution boundary, unchanged environment values and diagnostic-only markers |
-| Python original diagnostic journal comparison and repeated pair-contract requests | Shared `sampling_contract::output`, `artifact::{snapshot,equality}` and existing diagnostic workers | Bound original bytes, complete prefix counts, actual raw sample/view types, legacy numeric equality, paired provenance and unchanged summaries |
+| Python original diagnostic journal comparison and repeated pair-contract requests | Shared `sampling_contract::output`, `artifact::{snapshot,python_json}` and existing diagnostic workers | Bound original bytes, complete prefix counts, actual raw sample/view types, legacy numeric equality, paired provenance and unchanged summaries |
+| Python paired-layout directory, context and journal validation | Shared `diagnostics::layout::replay`, snapshot reader and paired grid model; existing `analyze-layout` command | Every ABBA member/hash, actual source tree/lock, strict runtime/CPU context, original JSON numeric rules, complete raw rows and no release approval |
 
 The obsolete implementations and their Python test entry points are removed.
 Rust unit and executable tests cover the retained contracts. The migration was
@@ -321,11 +322,11 @@ The initial inventory contained **56 Python files / 13,120 lines**. Twenty-three
 original files were removed (twelve implementations/helpers and eleven test
 modules). One native-tool compatibility binding remains. The intermediate Python
 normalization library was also removed after its consumers moved to Rust.
-The remaining **34 files / 7,653 lines** consist of 15 production/helper modules
+The remaining **34 files / 7,607 lines** consist of 15 production/helper modules
 and 19 test/fixture modules: about 41% fewer Python lines overall. The current
-production/helper and test/fixture split is 3,471/4,182 lines. This count
+production/helper and test/fixture split is 3,403/4,204 lines. This count
 includes the latest merged VM observer/cleanup checks, native dynamic envelopes
-and original-journal integration. Layout consolidation removes
+and original-journal/paired-directory integration. Layout consolidation removes
 349 lines from its immediate parent (`75bc034`, 8,486 lines). The
 stream-view migration removed its Python test module after all eleven original tests
 passed against Rust. Its six pure checks moved to native tests; five controller
@@ -505,14 +506,18 @@ added to a member manifest, and no package is uploaded.
 
 ## Current branch review and compatibility
 
-The latest implementation is frozen at `12144ea` on main `a773e74`, retaining
-its codec arithmetic and the preceding envelope integration. All 15 final checks
-pass: 238 native, 250 Python and 536 top-level codec tests, ten doctests, strict
-tooling Clippy, Linux tool compilation, no_std, published/local compatibility,
-all audits and actual core package reconstruction. The extracted package
-additionally passes 370 library tests using only distributable inputs. Original
-numeric journals and pair contracts are now checked in one worker frame. See the
-[original journal review](../docs/global-review-9.1.0-2026-10-23.md#original-diagnostic-journals-in-native-worker-frames).
+The latest paired replay implementation is frozen at `c2bde58`, following the
+journal integration `fffe679`. Codec/build inputs, dependencies and lockfiles
+continue to match main `a773e74`. All 15 final checks pass: 242 native, 252 Python
+and 536 top-level codec tests, ten doctests, strict tooling Clippy, Linux tool
+compilation, no_std, published/local compatibility, all audits and actual core
+package reconstruction. The extracted package passes 370 library tests. Paired
+replay now validates original files and computes all four phases in one small
+native frame. See the [paired directory review](../docs/global-review-9.1.0-2026-10-23.md#native-paired-layout-directory-replay).
+
+The preceding journal implementation is frozen at `12144ea` on main `a773e74`.
+Its source-bound [original journal review](../docs/global-review-9.1.0-2026-10-23.md#original-diagnostic-journals-in-native-worker-frames)
+retains its original validation and transport scope.
 
 The preceding envelope integration is frozen at `af1598f` on main `6a15c5b`.
 Its source-bound [dynamic envelope review](../docs/global-review-9.1.0-2026-10-23.md#native-dynamic-plans-and-capture-envelope-contracts)
