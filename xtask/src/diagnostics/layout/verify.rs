@@ -5,7 +5,7 @@ use serde_json::{Value, json};
 use std::collections::BTreeMap;
 const LENGTHS: [u64; 2] = [1024, 4096];
 const OFFSETS: [u64; 4] = [0, 16, 32, 48];
-const PHASES: [&str; 4] = ["A1", "B1", "B2", "A2"];
+pub(super) const PHASES: [&str; 4] = ["A1", "B1", "B2", "A2"];
 const CENTRAL_SPREAD_LIMIT: f64 = sampling_contract::CENTRAL_SPREAD_LIMIT;
 const REPEAT_DRIFT_LIMIT: f64 = sampling_contract::REPEAT_DRIFT_LIMIT;
 const REGRESSION_LIMIT: f64 = 0.12;

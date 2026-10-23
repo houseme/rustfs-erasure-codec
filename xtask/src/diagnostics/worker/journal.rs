@@ -2,7 +2,7 @@
 use super::Data;
 use crate::{
     Result,
-    artifact::{equality::python, snapshot},
+    artifact::{python_json::equivalent as python, snapshot},
     sampling_contract::output,
 };
 use serde::Deserialize;

@@ -1,6 +1,7 @@
 //! Whole-worker layout analysis with the original diagnostic-only schemas.
 mod cpu;
 mod inventory;
+mod replay;
 use crate::statistics as numeric;
 mod slots;
 mod verify;
@@ -14,6 +15,9 @@ use std::collections::BTreeMap;
 pub(crate) enum Request {
     Inventory {
         request: inventory::Request,
+    },
+    PairedReplay {
+        request: replay::Request,
     },
     Protocol,
     CpuPlan {
@@ -49,6 +53,7 @@ impl Request {
     pub(crate) fn execute(self) -> Result<Value> {
         match self {
             Self::Inventory { request } => request.execute(),
+            Self::PairedReplay { request } => request.execute(),
             Self::Protocol => Ok(verify::protocol()),
             Self::CpuPlan { cpus } => Ok(cpu::plan(cpus)),
             Self::Cpu {
