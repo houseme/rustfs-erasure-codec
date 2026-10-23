@@ -1,6 +1,6 @@
 //! One fixed dynamic plan and complete envelope/journal contract.
 use crate::{
-    Result, artifact::equality::python as equivalent, memory_policy, runtime, sampling_contract,
+    Result, artifact::python_json::equivalent, memory_policy, runtime, sampling_contract,
     statistics,
 };
 use serde::Deserialize;

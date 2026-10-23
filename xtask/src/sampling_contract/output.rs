@@ -1,52 +1,6 @@
 //! One borrowed pass over original prefixed worker output.
 use crate::Result;
 use serde_json::Value;
-use std::borrow::Cow;
-
-// Python's JSON integer parser maps the complete token -0 to integer zero.
-// Preserve float negative zero and string contents; never rewrite partial tokens.
-fn integer_zeros(text: &str) -> Cow<'_, str> {
-    if !text.contains("-0") {
-        return Cow::Borrowed(text);
-    }
-    let bytes = text.as_bytes();
-    let (mut quoted, mut escaped, mut copied) = (false, false, 0);
-    let mut output: Option<String> = None;
-    for (index, &byte) in bytes.iter().enumerate() {
-        if quoted {
-            if escaped {
-                escaped = false;
-            } else if byte == b'\\' {
-                escaped = true;
-            } else if byte == b'"' {
-                quoted = false;
-            }
-        } else if byte == b'"' {
-            quoted = true;
-        } else if byte == b'-'
-            && bytes.get(index + 1) == Some(&b'0')
-            && (index == 0
-                || matches!(
-                    bytes[index - 1],
-                    b'[' | b',' | b':' | b' ' | b'\t' | b'\r' | b'\n'
-                ))
-            && bytes
-                .get(index + 2)
-                .is_none_or(|b| matches!(b, b']' | b'}' | b',' | b' ' | b'\t' | b'\r' | b'\n'))
-        {
-            output
-                .get_or_insert_with(|| String::with_capacity(text.len()))
-                .push_str(&text[copied..index]);
-            copied = index + 1;
-        }
-    }
-    if let Some(mut output) = output {
-        output.push_str(&text[copied..]);
-        Cow::Owned(output)
-    } else {
-        Cow::Borrowed(text)
-    }
-}
 
 pub(crate) fn visit(
     text: &str,
@@ -85,7 +39,7 @@ pub(crate) fn visit(
         else {
             continue;
         };
-        match serde_json::from_str(&integer_zeros(payload)) {
+        match crate::artifact::python_json::parse(payload) {
             Ok(value) => record(index, value)?,
             Err(_) if tail.is_empty() && !line.ends_with('\n') => {}
             Err(e) => return Err(format!("raw original worker journal differs: {e}").into()),
@@ -132,27 +86,6 @@ mod tests {
                     .unwrap()
                     .is_empty()
             );
-        }
-    }
-}
-
-#[cfg(test)]
-mod integer_zero_tests {
-    use super::*;
-    #[test]
-    fn integer_negative_zero_preserves_python_types_without_rewriting_floats_or_strings() {
-        let text = r#"{"integer":-0,"float":-0.0,"exponent":-0e0,"text":"-0","escaped":"\\\"-0"}"#;
-        let value: Value = serde_json::from_str(&integer_zeros(text)).unwrap();
-        assert_eq!(value["integer"].as_u64(), Some(0));
-        assert!(value["float"].is_f64());
-        assert!(value["float"].as_f64().unwrap().is_sign_negative());
-        assert!(value["exponent"].is_f64());
-        assert!(value["exponent"].as_f64().unwrap().is_sign_negative());
-        assert_eq!(value["text"], "-0");
-        let original: Value = serde_json::from_str(text).unwrap();
-        assert_eq!(value["escaped"], original["escaped"]);
-        for invalid in ["[--0]", "[-00]", "[-0true]", "[-0-0]", "{\"k\":--0}"] {
-            assert!(serde_json::from_str::<Value>(&integer_zeros(invalid)).is_err());
         }
     }
 }

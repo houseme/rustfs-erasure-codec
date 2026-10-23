@@ -72,13 +72,16 @@ impl Snapshot {
             };
             path.push(part);
             let meta = fs::symlink_metadata(&path)?;
-            if meta.file_type().is_symlink()
-                || if index + 1 == parts.len() {
-                    !meta.is_file()
-                } else {
-                    !meta.is_dir()
-                }
-            {
+            if meta.file_type().is_symlink() {
+                return Err(
+                    "bounded regular original members required (symlinked original member)".into(),
+                );
+            }
+            if if index + 1 == parts.len() {
+                !meta.is_file()
+            } else {
+                !meta.is_dir()
+            } {
                 return Err("bounded regular original members required".into());
             }
         }
@@ -102,6 +105,32 @@ impl Snapshot {
         self.json_bound(name, None)
     }
     pub(crate) fn json_bound(&mut self, name: &str, expected: Option<&str>) -> Result<Value> {
+        self.bound(name, expected, |bytes| {
+            let text = json_text(&bytes)?;
+            let super::StrictJson(value) = serde_json::from_str(&text)?;
+            Ok(value)
+        })
+    }
+    pub(crate) fn python_json_bound(
+        &mut self,
+        name: &str,
+        expected: Option<&str>,
+    ) -> Result<Value> {
+        self.bound(name, expected, |bytes| {
+            super::python_json::parse(&universal_newlines(String::from_utf8(bytes)?))
+        })
+    }
+    pub(crate) fn text_bound(&mut self, name: &str, expected: Option<&str>) -> Result<String> {
+        self.bound(name, expected, |bytes| {
+            Ok(universal_newlines(String::from_utf8(bytes)?))
+        })
+    }
+    fn bound<T>(
+        &mut self,
+        name: &str,
+        expected: Option<&str>,
+        decode: impl FnOnce(Vec<u8>) -> Result<T>,
+    ) -> Result<T> {
         if self.members.contains_key(name) {
             return Err("original member must be read once".into());
         }
@@ -117,9 +146,7 @@ impl Snapshot {
         if expected.is_some_and(|expected| expected != hash) {
             return Err("original member digest mismatch".into());
         }
-        let text = json_text(&bytes)?;
-        let super::StrictJson(value) =
-            serde_json::from_str(&text).map_err(|e| format!("{name}: {e}"))?;
+        let value = decode(bytes).map_err(|e| format!("{name}: {e}"))?;
         self.members.insert(name.into(), hash);
         Ok(value)
     }
