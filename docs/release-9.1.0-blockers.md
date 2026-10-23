@@ -84,8 +84,12 @@ two observer services are restored. Two profile distributions, ten repeats,
 all sixteen regression programs and 26 cross-phase layout repeats still refuse
 the original limits; all 504+256 comparisons remain unqualified. These results
 do not bind later main or the new [direct GFNI affine candidate](gfni-direct-affine-review-2026-10-24.md).
-That candidate has independent byte/compatibility tests and a frozen complete
-component plan; its performance result and final release acceptance are pending.
+That candidate has independent byte/compatibility tests and a completed component
+comparison, whose refusals and original controller error remain preserved. Final
+release acceptance remains outstanding. The [owner/residency follow-through](recovery-ownership-review-2026-10-24.md)
+localizes selected historical fault increments before decoder entry and verifies
+a zero-allocation warmed caller-reuse contract without changing the production
+allocator or formal workload.
 
 ## Scalar unit-pivot follow-through
 

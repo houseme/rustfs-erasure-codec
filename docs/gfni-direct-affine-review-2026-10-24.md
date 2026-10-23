@@ -174,3 +174,15 @@ this does not relabel its old source/lock/capture binding as a new final candida
 performance remains unaccepted. No unchanged matrix is rerun, no tag or registry
 upload is performed, and final-source complete Linux/layout evidence plus actual
 strict positive preflight remain outstanding.
+
+## Caller ownership follow-through
+
+The [complete owner/residency review](recovery-ownership-review-2026-10-24.md)
+independently replays all 348 historical structural workers and retains every
+case and counterexample. In its 10+4/64 KiB data-only case, the 192-fault
+increment is bounded before decoder entry, between retained and cloned caller
+views. Other larger-shard conditions have nonzero recovery intervals on both
+versions. Those source-copy conditions cannot uniquely attribute the original
+formal timing gap or qualify this GFNI candidate. A new GF8/GF16 regression
+verifies zero warmed allocation requests for existing owned-buffer encode,
+recovery and verification workflows; it changes no production allocation policy.
