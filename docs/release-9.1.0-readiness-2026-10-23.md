@@ -11,12 +11,15 @@ performance acceptance and publication remain incomplete.
 | Original checked PR head | `09597e43aae2c5d454683f056a72e7bd295371b9` | Completed ordinary CI and package dry-run |
 | Rebased PR head | `51bdd8cd0dc4356304639d528ae554d4d152531d` | External rebase of PR #57 |
 | Prior merged main | `14cf56e0d4381451af12e3c163677d811729d13a` | PR #57 merged externally |
-| Current combined main | `9f935eef9c1af721165b245709897f7c4b9acc37` | Also includes PR #58 shared Classic verification |
+| Frozen combined Linux source | `9f935eef9c1af721165b245709897f7c4b9acc37` | Includes PR #58; current complete Linux diagnostic candidate |
+| Current main with native models | `bfff0fcf187b99109927ec1de824b0977f2b4e6e` | Also includes merged PR #61; a different complete tool/file tree |
 
 The first four historical identities have the same complete Git file tree.
-Current combined main additionally changes `src/core/encode.rs` and
-`src/core/verify.rs`, related tests and the verification observer adapter. It is
-not source-identical to frozen `449920e`. Manifests, lockfile, build script and
+Relative to `449920e`, frozen combined `9f935ee` additionally changes
+`src/core/encode.rs`, `src/core/verify.rs`, related tests and the verification
+observer adapter. Current main `bfff0fc` also includes the native model migration.
+Its codec sources match `9f935ee`, but its complete tool/file tree differs.
+Neither complete source is identical to frozen `449920e`. Manifests, lockfile, build script and
 Cargo configuration remain unchanged, but that does not establish timing or
 allocation-lifetime equivalence. Measurements retain their original commit
 labels; the final combined source requires its own freeze and accepted evidence.
