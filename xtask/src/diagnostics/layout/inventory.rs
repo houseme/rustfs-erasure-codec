@@ -48,8 +48,8 @@ pub(crate) enum Request {
         page_size: u64,
         reference: Option<BTreeMap<String, Contract>>,
     },
-    StreamReport {
-        phases: BTreeMap<String, Vec<views::Inventory>>,
+    StreamComparison {
+        phases: BTreeMap<String, Vec<views::Signature>>,
     },
 }
 impl Request {
@@ -82,7 +82,7 @@ impl Request {
                 )?;
                 Ok(serde_json::to_value(contract)?)
             }
-            Self::StreamReport { phases } => stream_report(&phases),
+            Self::StreamComparison { phases } => stream_comparison(&phases),
         }
     }
 }
@@ -236,14 +236,12 @@ fn retained(
 fn mismatches(checks: &[Value]) -> Vec<&Value> {
     checks.iter().filter(|c| c["matches"] == false).collect()
 }
-fn stream_report(data: &BTreeMap<String, Vec<views::Inventory>>) -> Result<Value> {
+fn stream_comparison(data: &BTreeMap<String, Vec<views::Signature>>) -> Result<Value> {
     phases(data)?;
     let expected = cases("stream");
     let mut signatures = BTreeMap::new();
-    let mut lifecycle = BTreeMap::new();
     for phase in PHASES {
         let mut groups: BTreeMap<&str, (u64, BTreeSet<_>)> = BTreeMap::new();
-        let mut windows = Vec::new();
         for observation in &data[phase] {
             if !expected.contains(&observation.case) {
                 return Err("unexpected stream-view inventory case".into());
@@ -254,13 +252,11 @@ fn stream_report(data: &BTreeMap<String, Vec<views::Inventory>>) -> Result<Value
             }
             *count += 1;
             shapes.extend(&observation.shapes);
-            windows.push(json!({"case":observation.case,"observation":observation.observation,"calls":observation.calls}));
         }
         if groups.len() != expected.len() || groups.values().any(|(count, _)| *count != 12) {
             return Err("complete stream-view inventory catalog is required".into());
         }
         signatures.insert(phase, groups);
-        lifecycle.insert(phase, windows);
     }
     let mut checks = Vec::new();
     for (left, right) in PAIRS {
@@ -282,7 +278,7 @@ fn stream_report(data: &BTreeMap<String, Vec<views::Inventory>>) -> Result<Value
             "former_writer_ranges":true,"physical_page_identity":false,"first_fault_instruction":false,
             "internal_verify_scratch":false,"internal_recovery_scratch":false,"non_stream_dynamic_buffers":false,
             "formal_performance_geometry_equivalence":false},
-        "lifecycle_windows":lifecycle,"layout_mismatches":mismatches(&checks),"layout_checks":checks}),
+        "layout_mismatches":mismatches(&checks),"layout_checks":checks}),
     )
 }
 

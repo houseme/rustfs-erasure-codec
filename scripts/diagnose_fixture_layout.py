@@ -36,15 +36,20 @@ def analyze(phases, sources, cpus, page_size=None):
 def analyze_stream_views(phases, views, sources, cpus, page_size, iterations):
     if set(phases)!=set(evidence.PHASES) or set(views)!=set(phases):
         raise ValueError('all four stream-view inventory phases are required')
-    reference=None;reports={}
+    reference=None;signatures={};lifecycle={}
     for phase in evidence.PHASES:
         revision=sources['baseline' if phase.startswith('A') else 'candidate']['commit']
         reference=inventory_request('stream-phase', records=phases[phase], revision=revision,
                                     cpus=None if cpus is None else list(cpus), page_size=page_size, iterations=iterations,
                                     reference=reference)
-        reports[phase]=view_audit.validate_samples(views[phase],phases[phase],iterations,page_size,
-                                                 require_counters=True,inventory=True)
-    return inventory_request('stream-report', phases=reports)
+        reports=view_audit.validate_samples(views[phase],phases[phase],iterations,page_size,
+                                           require_counters=True,inventory=True)
+        # Keep validated summaries locally; the comparator only consumes shapes.
+        lifecycle[phase]=[{key:row[key] for key in ('case','observation','calls')} for row in reports]
+        signatures[phase]=[{key:row[key] for key in ('case','observation','shapes')} for row in reports]
+    report=inventory_request('stream-comparison', phases=signatures)
+    report['lifecycle_windows']=lifecycle
+    return report
 
 
 def capture(tool, baseline, candidate, output, group, stream_views=False, iterations=2):

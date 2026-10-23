@@ -152,13 +152,13 @@ fn stream_preparation_retains_the_optional_cpu_policy_without_weakening_worker_c
             .is_err()
     );
 }
-fn view_reports() -> BTreeMap<String, Vec<views::Inventory>> {
+fn view_reports() -> BTreeMap<String, Vec<views::Signature>> {
     let mut data = BTreeMap::new();
     for phase in PHASES {
         let mut reports = Vec::new();
         for case in cases("stream") {
             for observation in 0..12 {
-                reports.push(serde_json::from_value(json!({"case":case,"observation":observation,"calls":[{"kept":observation}],
+                reports.push(serde_json::from_value(json!({"case":case,"observation":observation,
                     "shapes":[{"role":"source_read_view","index":0,"len":1024,"capacity":null,"offsets":[16,16,16]}]})).unwrap());
             }
         }
@@ -167,21 +167,18 @@ fn view_reports() -> BTreeMap<String, Vec<views::Inventory>> {
     data
 }
 #[test]
-fn stream_inventory_unions_shapes_across_observations_and_keeps_lifecycle_order() {
+fn stream_inventory_compares_only_shapes_across_observations() {
     let mut data = view_reports();
-    let value = stream_report(&data).unwrap();
+    let value = stream_comparison(&data).unwrap();
     assert_eq!(value["observations"], 720);
     assert_eq!(value["layout_mismatches"], json!([]));
-    assert_eq!(
-        value["lifecycle_windows"]["A1"][11]["calls"],
-        json!([{"kept":11}])
-    );
+    assert!(value.get("lifecycle_windows").is_none());
     data.get_mut("B1").unwrap()[0].shapes.insert(
         serde_json::from_value(json!({"role":"read_scratch_view","index":0,
         "len":u64::MAX,"capacity":null,"offsets":null}))
         .unwrap(),
     );
-    let value = stream_report(&data).unwrap();
+    let value = stream_comparison(&data).unwrap();
     assert_eq!(value["layout_mismatches"].as_array().unwrap().len(), 3);
     assert_eq!(value["layout_mismatches"][0]["different_view_shapes"], 1);
     assert_eq!(value["release_approval"], false);
@@ -190,8 +187,8 @@ fn stream_inventory_unions_shapes_across_observations_and_keeps_lifecycle_order(
 fn stream_inventory_requires_the_complete_phase_and_per_case_observation_schedule() {
     let mut data = view_reports();
     data.get_mut("A2").unwrap().pop();
-    assert!(stream_report(&data).is_err());
+    assert!(stream_comparison(&data).is_err());
     let mut data = view_reports();
     data.get_mut("B1").unwrap()[0].observation = 1;
-    assert!(stream_report(&data).is_err());
+    assert!(stream_comparison(&data).is_err());
 }
