@@ -1,6 +1,37 @@
 use super::*;
 use sha2::{Digest, Sha256};
 
+#[test]
+fn inventory_reuses_validation_and_deduplicates_iteration_shapes_without_losing_summaries() {
+    for case in crate::sampling_contract::case_catalog()["stream"].iter() {
+        let mut shapes = None;
+        for iterations in [1, 2] {
+            let view = fixture(case, iterations, 4096);
+            let summary = observe(case, view.clone(), iterations, 4096, true).unwrap();
+            let input = json!({"operation":"inventory","observations":[{"case":case,"iterations":iterations,
+                "page_size":4096,"observation":0,"view":view,"require_counters":true}]});
+            let report = serde_json::from_value::<Request>(input.clone())
+                .unwrap()
+                .execute()
+                .unwrap();
+            assert_eq!(report[0]["calls"], summary[0]);
+            assert_eq!(report[0]["case"], *case);
+            if let Some(prior) = shapes {
+                assert_eq!(report[0]["shapes"], prior);
+            }
+            shapes = Some(report[0]["shapes"].clone());
+            let mut invalid = input;
+            invalid["observations"][0]["view"]["completed"] = json!(0);
+            assert!(
+                serde_json::from_value::<Request>(invalid)
+                    .unwrap()
+                    .execute()
+                    .is_err()
+            );
+        }
+    }
+}
+
 fn event(
     events: &mut Vec<Value>,
     call: u64,
