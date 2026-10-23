@@ -158,6 +158,77 @@ fn adaptive_encoding_entries_record_one_policy_decision() {
     assert_eq!(&shards[4..], &expected);
 }
 
+#[cfg(feature = "benchmark-metrics")]
+#[test]
+fn adaptive_verification_entries_record_one_policy_decision() {
+    let codec = galois_8::ReedSolomon::with_options(
+        4,
+        4,
+        CodecOptions::builder().max_parallel_jobs(2).build(),
+    )
+    .unwrap();
+    let mut shards = data_shards(8, 512 * 1024 + 1);
+    codec.encode(&mut shards).unwrap();
+    let mut buffer = vec![vec![0; shards[0].len()]; 4];
+    let mut workspace = rustfs_erasure_codec::VerifyWorkspace::new(&codec, shards[0].len());
+
+    codec.reset_runtime_profile_stats();
+    assert!(codec.verify_opt(&shards).unwrap());
+    assert_eq!(codec.runtime_profile_stats().parallel_policy_calls, 1);
+
+    codec.reset_runtime_profile_stats();
+    assert!(codec.verify_with_buffer_opt(&shards, &mut buffer).unwrap());
+    assert_eq!(codec.runtime_profile_stats().parallel_policy_calls, 1);
+
+    codec.reset_runtime_profile_stats();
+    assert!(
+        codec
+            .verify_with_workspace_opt(&shards, &mut workspace)
+            .unwrap()
+    );
+    assert_eq!(codec.runtime_profile_stats().parallel_policy_calls, 1);
+}
+
+#[test]
+fn serial_optimized_verification_preserves_parity_and_detects_corruption() {
+    for (data, parity) in [(4, 2), (6, 3), (8, 3), (8, 4), (10, 4), (12, 4)] {
+        for len in [65, 65_536] {
+            let codec = galois_8::ReedSolomon::with_options(
+                data,
+                parity,
+                CodecOptions::builder().max_parallel_jobs(1).build(),
+            )
+            .unwrap();
+            let mut shards = data_shards(data + parity, len);
+            codec.encode(&mut shards).unwrap();
+            let expected = shards[data..].to_vec();
+            let mut buffer = vec![vec![0xa5; len]; parity];
+            let mut workspace = rustfs_erasure_codec::VerifyWorkspace::new(&codec, 1);
+
+            for corrupt in [false, true] {
+                if corrupt {
+                    shards[data + parity - 1][len - 1] ^= 0x73;
+                }
+                let reference = codec.verify(&shards).unwrap();
+                assert_eq!(reference, !corrupt);
+                assert_eq!(codec.verify_opt(&shards).unwrap(), reference);
+                assert_eq!(
+                    codec.verify_with_buffer_opt(&shards, &mut buffer).unwrap(),
+                    reference
+                );
+                assert_eq!(buffer, expected);
+                assert_eq!(
+                    codec
+                        .verify_with_workspace_opt(&shards, &mut workspace)
+                        .unwrap(),
+                    reference
+                );
+                assert_eq!(workspace.shard_len(), Some(len));
+            }
+        }
+    }
+}
+
 #[cfg(any(rse_aarch64_neon, rse_x86_avx2))]
 mod native {
     use super::*;
