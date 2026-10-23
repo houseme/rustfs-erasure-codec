@@ -21,6 +21,9 @@ All notable changes to this project are documented in this file.
   Keep the common subfield dispatcher free of the general kernel's 4 KiB
   plane frame, specialize overwrite/XOR mode at compile time, and align the
   four unchanged scratch planes to 64 bytes for the existing SIMD backends.
+  With `simd-avx2` on capable x86_64 CPUs, convert 32 elements per layout
+  step using packed byte planes and lane joins; keep SSSE3, NEON and scalar
+  fallbacks and the same bounded, initialized scratch.
 
 - Allow identified Darwin group members to finish exiting within the existing
   cleanup deadline before requiring two fresh complete exit snapshots. Retain
