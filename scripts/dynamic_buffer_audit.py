@@ -39,8 +39,8 @@ def source_overlay(root):
     return owned_source_overlay(root, NAMES, MODULE, 'dynamic')
 
 
-def render(root):
-    return native_tools.diagnostic_render(root, 'dynamic')
+def render(root, output='files'):
+    return native_tools.diagnostic_render(root, 'dynamic', output=output)
 # Shared strict capture/replay contract.
 
 
@@ -127,7 +127,7 @@ def verify(output,repository):
 
 
 def overlay_digest(root):
-    return e.digest(b''.join(n.encode()+b'\0'+t.replace(str(root),'<SOURCE>').encode() for n,t in sorted(render(root).items())))
+    return render(root,output='digest')
 
 
 def dynamic_context(root,env):

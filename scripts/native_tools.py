@@ -5,7 +5,6 @@ Native tools never invoke the Python interpreter.
 """
 import functools
 import atexit
-import hashlib
 import json
 import os
 import pathlib
@@ -23,7 +22,7 @@ CASE_FIELDS = tuple(_contract['hotspot_case_fields'])
 _provenance_keys = frozenset(PROVENANCE_FIELDS).union(
     key for aliases in _contract['provenance_aliases'].values() for key in aliases)
 _comparison_keys = _provenance_keys.union(CASE_FIELDS)
-_pure_requests = frozenset(('benchmark-rows','hotspot-rows','benchmark-provenance','provenance-field',
+_pure_requests = frozenset(('fingerprint','benchmark-rows','hotspot-rows','benchmark-provenance','provenance-field',
                             'compatible-rows','observation-contracts','cpu-identity','memory-policy-validate','runtime-validate','sampling','stream-views','diagnostic-ledger','release-rows','diagnostic-worker','diagnostic-layout','baseline-analysis','vm-analysis'))
 _worker = None
 _worker_owner = None
@@ -133,21 +132,20 @@ def request(kind, **values):
     return _request_payload(payload)
 
 
-def implementation_bytes():
-    files = [pathlib.Path(__file__).resolve(), ROOT/'Cargo.toml', ROOT/'Cargo.lock', ROOT/'xtask/Cargo.toml',
-             *sorted((ROOT/'xtask/src').rglob('*.rs')), *sorted((ROOT/'xtask/contracts').glob('*.json'))]
-    return b''.join(str(path.relative_to(ROOT)).encode()+b'\0'+path.read_bytes() for path in files)
+def fingerprint(variant, controller=None):
+    # Absolute source roots make live reads independent of the worker's cwd.
+    return request('fingerprint',root=str(ROOT),variant=variant,controller=None if controller is None else str(controller))
 
 
 def implementation_digest():
-    return hashlib.sha256(implementation_bytes()).hexdigest()
+    return fingerprint('native')
 
 
 def native_template(kind): return request('template', variant=kind, tool=str(ROOT))
 
 
-def diagnostic_render(root, variant, allocation_check=False):
-    return request('diagnostic-render', root=str(root), tool=str(ROOT), variant=variant, allocation_check=allocation_check)
+def diagnostic_render(root, variant, allocation_check=False, output='files'):
+    return request('diagnostic-render', root=str(root), tool=str(ROOT), variant=variant, allocation_check=allocation_check, output=output)
 
 
 def source_plan(variant, original, output='plan'):

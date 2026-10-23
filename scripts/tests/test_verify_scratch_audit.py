@@ -101,7 +101,7 @@ class ReplayTests(unittest.TestCase):
             original={name:audit.subprocess.check_output(['git','show',source['commit']+':'+name],cwd=self.repository).decode() for name in ('src/lib.rs','src/core/verify.rs')}
             self.report['source_overlays'][role]=audit.bindings(original)
             self.report['harness_sha256'][role]=e.harness_digest(self.repository)
-            self.report['overlay_sha256'][role]=audit.overlay_digest(self.repository,audit.render(self.repository))
+            self.report['overlay_sha256'][role]=audit.render(self.repository,output='digest')
             self.report['cases'][role]={}
             for profile in ('smoke','small_file'):
                 raw={':'.join(str(r[k]) for k in ('operation','data_shards','parity_shards','shard_size')):r for r in factory.fixture_rows('A1' if role=='baseline' else 'B1',profile)}
@@ -137,13 +137,15 @@ class ReplayTests(unittest.TestCase):
         native=audit.native_tools
         with mock.patch.object(sampling,'parse_output',side_effect=AssertionError('Python journal parsing')):
             with mock.patch.object(audit.evidence,'observation_contracts',side_effect=AssertionError('duplicate contract frame')):
-                with mock.patch.object(native,'_request_payload',wraps=native._request_payload) as frames:
+                with mock.patch.object(native,'_request_payload',wraps=native._request_payload) as frames, mock.patch.object(native,'request',wraps=native.request) as calls:
                     result=audit.verify(self.root,self.repository)
         requests=[self.json.loads(call.args[0]) for call in frames.call_args_list]
         workers=[r for r in requests if r['kind']=='diagnostic-worker']
         self.assertEqual(len(workers),2*result['case_count'])
         self.assertTrue(all(r['request']['journal']['sha256'] for r in workers))
         self.assertFalse(any(r['kind']=='observation-contracts' for r in requests))
+        renders=[call for call in calls.call_args_list if call.args[0]=='diagnostic-render']
+        self.assertEqual([call.kwargs['output'] for call in renders],['digest'])
 
     def test_public_numeric_capsule_replays_without_private_build_logs(self):
         for path in self.root.glob('*.log'):path.unlink()

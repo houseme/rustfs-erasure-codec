@@ -66,11 +66,8 @@ def capture(tool, baseline, candidate, output, group, stream_views=False, iterat
     if sources['baseline']['commit']!=evidence.BASELINE_COMMIT or sources['candidate']['commit']==sources['baseline']['commit']:
         raise ValueError('published 9.0.0 and a different candidate source are required')
     context=evidence.environment_context(candidate,env,group)
-    def overlay_digest(root):
-        return hashlib.sha256(b''.join(name.encode()+b'\0'+text.replace(str(root),'<SOURCE>').encode()
-            for name,text in sorted(renderer(root).items()))).hexdigest()
-    overlay=overlay_digest(candidate)
-    if overlay_digest(baseline)!=overlay or evidence.harness_digest(baseline)!=evidence.harness_digest(candidate):
+    overlay=renderer(candidate,output='digest')
+    if renderer(baseline,output='digest')!=overlay or evidence.harness_digest(baseline)!=evidence.harness_digest(candidate):
         raise ValueError('both sources require identical harness inputs')
     metadata={'schema_version':'stream-view-inventory-v2' if stream_views else 'fixture-layout-inventory-v2',
               'sources':sources,'tool':evidence.source_info(tool),'context':context,

@@ -23,16 +23,12 @@ def native_template():
     return native_tools.native_template('verify')
 
 
-def render(root):
-    return native_tools.diagnostic_render(root, 'verify')
+def render(root, output='files'):
+    return native_tools.diagnostic_render(root, 'verify', output=output)
 
 
 def bindings(original):
     return native_tools.source_plan('verify-scratch', original, output='bindings')
-
-
-def overlay_digest(root,files):
-    return evidence.digest(b''.join(name.encode()+b'\0'+text.replace(str(root),'<SOURCE>').encode() for name,text in sorted(files.items())))
 
 
 def source_overlay(root):
@@ -64,7 +60,7 @@ def verify(output,repository):
     page=report.get('page_size');cpus=report.get('cpu_affinity')
     if not sampling.valid_page_size(page):raise ValueError('invalid diagnostic page size')
     if cpus is not None and (not isinstance(cpus,list) or not cpus or any(type(c) is not int or c<0 for c in cpus) or cpus!=sorted(set(cpus))):raise ValueError('invalid recorded native affinity')
-    if report.get('harness_sha256')!={r:evidence.harness_digest(repository) for r in ('baseline','candidate')} or report.get('overlay_sha256')!={r:overlay_digest(repository,render(repository)) for r in ('baseline','candidate')}:raise ValueError('original harness or diagnostic worker differs')
+    if report.get('harness_sha256')!={r:evidence.harness_digest(repository) for r in ('baseline','candidate')} or report.get('overlay_sha256')!=dict.fromkeys(('baseline','candidate'),render(repository,output='digest')):raise ValueError('original harness or diagnostic worker differs')
     contracts={};workloads={};signatures={};members={}
     if set(report.get('sources',{}))!={'baseline','candidate'} or set(report.get('cases',{}))!={'baseline','candidate'}:raise ValueError('both diagnostic sources required')
     if report['sources']['baseline']['commit']!=evidence.BASELINE_COMMIT:raise ValueError('wrong published baseline')
@@ -116,9 +112,9 @@ def _check(repository,output,baseline_ref):
         root=output/role;sampling.checkout_baseline(repository,root,revision)
         source=evidence.source_info(root);report['sources'][role]=source;report['cases'][role]={}
         if role=='baseline' and source['commit']!=evidence.BASELINE_COMMIT:raise ValueError('require actual published 9.0.0')
-        files=render(root)
+        plan=render(root,output='plan');files=plan['files']
         report.setdefault('harness_sha256',{})[role]=evidence.harness_digest(root)
-        report.setdefault('overlay_sha256',{})[role]=overlay_digest(root,files)
+        report.setdefault('overlay_sha256',{})[role]=plan['sha256']
         with source_overlay(root) as patches,overlay(root,files):
             report.setdefault('source_overlays',{})[role]=patches
             with (output/(role+'-build.log')).open('x') as log:
