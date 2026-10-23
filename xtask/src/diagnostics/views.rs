@@ -22,7 +22,7 @@ const COUNTERS: [&str; 5] = [
     "calling_thread_wait_ns",
 ];
 
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "snake_case")]
 enum Role {
     RetainedSource,
@@ -157,6 +157,9 @@ pub(crate) enum Request {
     Underlying {
         records: Vec<Value>,
     },
+    Inventory {
+        observations: Vec<Observation>,
+    },
     Validate {
         observations: Vec<Observation>,
         #[serde(default)]
@@ -173,6 +176,35 @@ impl Request {
             Self::Underlying { mut records } => {
                 underlying_rows(&mut records)?;
                 Ok(Value::Array(records))
+            }
+            Self::Inventory { observations } => {
+                let reports = observations
+                    .iter()
+                    .map(|o| {
+                        let calls = validate(o, true).map_err(|e| {
+                            format!("{} observation {}: {e}", o.case, o.observation)
+                        })?;
+                        let shapes = o
+                            .view
+                            .events
+                            .iter()
+                            .map(|e| ViewShape {
+                                role: e.role,
+                                index: e.index,
+                                len: e.len,
+                                capacity: e.capacity,
+                                offsets: e.offsets,
+                            })
+                            .collect();
+                        Ok(Inventory {
+                            case: o.case.clone(),
+                            observation: o.observation,
+                            calls,
+                            shapes,
+                        })
+                    })
+                    .collect::<Result<Vec<_>>>()?;
+                Ok(serde_json::to_value(reports)?)
             }
             Self::Validate {
                 observations,
@@ -191,6 +223,27 @@ impl Request {
             Self::Summarize { view } => summarize(view.calls, &view.windows),
         }
     }
+}
+
+/// Compact shapes from the validated typed ledger; no second event JSON model.
+#[derive(Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct ViewShape {
+    role: Role,
+    index: u64,
+    len: u64,
+    #[serde(deserialize_with = "nullable")]
+    capacity: Option<u64>,
+    #[serde(deserialize_with = "nullable")]
+    offsets: Option<[u64; 3]>,
+}
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Inventory {
+    pub case: String,
+    pub observation: u64,
+    pub calls: Value,
+    pub shapes: BTreeSet<ViewShape>,
 }
 
 pub(super) fn underlying_rows(records: &mut [Value]) -> Result<()> {

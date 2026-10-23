@@ -1,5 +1,6 @@
 //! Whole-worker layout analysis with the original diagnostic-only schemas.
 mod cpu;
+mod inventory;
 use crate::statistics as numeric;
 mod slots;
 mod verify;
@@ -11,6 +12,9 @@ use std::collections::BTreeMap;
 #[derive(Deserialize)]
 #[serde(tag = "operation", rename_all = "kebab-case", deny_unknown_fields)]
 pub(crate) enum Request {
+    Inventory {
+        request: inventory::Request,
+    },
     Protocol,
     CpuPlan {
         cpus: Vec<u64>,
@@ -44,6 +48,7 @@ pub(crate) enum Request {
 impl Request {
     pub(crate) fn execute(self) -> Result<Value> {
         match self {
+            Self::Inventory { request } => request.execute(),
             Self::Protocol => Ok(verify::protocol()),
             Self::CpuPlan { cpus } => Ok(cpu::plan(cpus)),
             Self::Cpu {

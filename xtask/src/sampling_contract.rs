@@ -3,7 +3,7 @@ use crate::{Args, Result, artifact, diagnostics::catalog};
 use serde::Deserialize;
 use std::borrow::Borrow;
 
-mod batch;
+pub(crate) mod batch;
 mod protocol;
 use serde_json::{Value, json};
 
@@ -912,12 +912,12 @@ fn observation(
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
     use sha2::{Digest, Sha256};
     use std::collections::BTreeMap;
 
-    pub(super) fn record(profile: &str, case: &str, index: u64) -> Value {
+    pub(crate) fn record(profile: &str, case: &str, index: u64) -> Value {
         let mut workload = workload_contract(profile, case).unwrap();
         let mut row = json!({"seed":workload["seed"],"ns_per_iter":200_000_000.0});
         let mut timed = 200_000_000.0;

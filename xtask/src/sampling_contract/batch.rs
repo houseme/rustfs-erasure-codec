@@ -2,6 +2,7 @@
 use crate::{Result, diagnostics::baseline, statistics};
 use serde::Deserialize;
 use serde_json::{Value, json};
+use std::borrow::Borrow;
 use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Deserialize)]
@@ -33,44 +34,23 @@ impl Request {
             default_iterations: None,
             complete: false,
         };
-        let mut groups: Vec<(&str, Vec<usize>)> = Vec::new();
-        let mut positions = BTreeMap::new();
-        for (index, record) in self.records.iter().enumerate() {
-            let case = record["case"]
-                .as_str()
-                .ok_or("sampling revision or case mismatch")?;
-            if record["revision"] != contract.revision || !self.expected.contains(case) {
-                return Err("sampling revision or case mismatch".into());
-            }
-            let group = *positions.entry(case).or_insert_with(|| {
-                groups.push((case, Vec::with_capacity(12)));
-                groups.len() - 1
-            });
-            groups[group].1.push(index);
-        }
-        if positions.len() != self.expected.len() {
-            return Err("complete sampling catalog is required".into());
+        let groups = validate_groups(
+            &self.records,
+            &contract,
+            &self.expected,
+            self.allowed_cpus.as_deref(),
+            self.expected_page_size,
+        )?;
+        if matches!(self.output, Output::Groups) {
+            return Ok(
+                json!({"groups":groups,"selected_indices":[],"spreads":[],"descriptions":[]}),
+            );
         }
         let mut selected = Vec::new();
         let mut spreads = Vec::new();
         let mut descriptions = Vec::new();
         for (case, indices) in &groups {
             let rows: Vec<_> = indices.iter().map(|i| &self.records[*i]).collect();
-            let count = *contract
-                .iteration_counts
-                .as_ref()
-                .and_then(|counts| counts.get(*case))
-                .ok_or("missing frozen sample count")?;
-            super::worker(
-                &rows,
-                &contract.profile,
-                count,
-                self.allowed_cpus.as_deref(),
-                self.expected_page_size,
-            )?;
-            for row in &rows {
-                contract.validate_row(&row["rows"][0], case)?;
-            }
             match &self.output {
                 Output::Groups => {}
                 Output::Select { metric, diagnostic } => {
@@ -106,6 +86,50 @@ impl Request {
             json!({"groups":groups,"selected_indices":selected,"spreads":spreads,"descriptions":descriptions}),
         )
     }
+}
+
+/// Preserve original indices while sharing full worker validation with inventories.
+pub(crate) fn validate_groups<'a, T: Borrow<Value>>(
+    records: &'a [T],
+    contract: &crate::release_rows::Request,
+    expected: &BTreeSet<String>,
+    cpus: Option<&[u64]>,
+    page: Option<u64>,
+) -> Result<Vec<(&'a str, Vec<usize>)>> {
+    let mut groups: Vec<(&str, Vec<usize>)> = Vec::new();
+    let mut positions = BTreeMap::new();
+    for (index, record) in records.iter().enumerate() {
+        let record = record.borrow();
+        let case = record["case"]
+            .as_str()
+            .ok_or("sampling revision or case mismatch")?;
+        if record["revision"] != contract.revision || !expected.contains(case) {
+            return Err("sampling revision or case mismatch".into());
+        }
+        let group = *positions.entry(case).or_insert_with(|| {
+            groups.push((case, Vec::with_capacity(12)));
+            groups.len() - 1
+        });
+        groups[group].1.push(index);
+    }
+    if positions.len() != expected.len() {
+        return Err("complete sampling catalog is required".into());
+    }
+    for (case, indices) in &groups {
+        let rows: Vec<_> = indices.iter().map(|i| records[*i].borrow()).collect();
+        let count = contract
+            .iteration_counts
+            .as_ref()
+            .and_then(|counts| counts.get(*case))
+            .copied()
+            .or(contract.default_iterations)
+            .ok_or("missing frozen sample count")?;
+        super::worker(&rows, &contract.profile, count, cpus, page)?;
+        for row in rows {
+            contract.validate_row(&row["rows"][0], case)?;
+        }
+    }
+    Ok(groups)
 }
 
 #[cfg(test)]

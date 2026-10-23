@@ -499,7 +499,7 @@ pub(crate) fn provenance_outcomes(row: Value) -> Result<Value> {
     Ok(serde_json::json!({"values":values,"errors":errors}))
 }
 
-fn compare_row(profile: &str, left: &Value, right: &Value) -> Result<()> {
+pub(crate) fn compare_row(profile: &str, left: &Value, right: &Value) -> Result<()> {
     let left = left
         .as_object()
         .ok_or("benchmark provenance must be an object")?;
@@ -544,9 +544,9 @@ pub(crate) fn observations(
     observations_ref(profile, &records, reference, collect)
 }
 
-pub(crate) fn observations_ref(
+pub(crate) fn observations_ref<T: std::borrow::Borrow<Value>>(
     profile: &str,
-    records: &[Value],
+    records: &[T],
     reference: Option<BTreeMap<String, (Value, Value)>>,
     collect: bool,
 ) -> Result<Value> {
@@ -554,6 +554,7 @@ pub(crate) fn observations_ref(
     let mut contracts = reference.unwrap_or_default();
     let mut first = Vec::new();
     for (index, record) in records.iter().enumerate() {
+        let record = record.borrow();
         let case = record
             .get("case")
             .and_then(Value::as_str)
