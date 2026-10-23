@@ -78,6 +78,25 @@ class FrequencyTests(unittest.TestCase):
         path=self.output/'execution.jsonl';lines=path.read_text().splitlines();path.write_text('\n'.join(lines[:-1])+'\n')
         with self.assertRaisesRegex(ValueError,'incomplete'):self.replay()
 
+    def test_result_root_hashes_describe_the_snapshots_used_for_replay(self):
+        expected=self.capture();plan=json.loads((self.output/'plan.json').read_text())
+        _,_,calibration,_=d.adjacent.inputs(self.fixture.prior,self.root)
+        journal=self.output/'execution.jsonl';original_reader=d.evidence.member_bytes
+        for name in ('plan.json','execution.jsonl'):
+            target=self.output/name;original=target.read_bytes();changed=False
+            def read(path,*args,**kwargs):
+                nonlocal changed
+                raw=original_reader(path,*args,**kwargs)
+                if path==journal and not changed:
+                    target.write_bytes(original+b'\n');changed=True
+                return raw
+            try:
+                with mock.patch.object(d.evidence,'member_bytes',side_effect=read):
+                    actual=d.frequency_result(self.output,plan,calibration,self.fixture.context)
+                self.assertTrue(changed)
+                with self.subTest(name=name):self.assertEqual(actual,expected,name)
+            finally:target.write_bytes(original)
+
     def test_counter_failure_retains_original_worker_and_stops_without_retry(self):
         self.reader.return_value.snapshot.side_effect=[point(1,1,2,self.fixture.context['isolation']['cpu_affinity']),OSError('unavailable')]
         with self.assertRaises(OSError):self.capture()

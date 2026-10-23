@@ -152,8 +152,10 @@ def frequency_inputs(capture,prior,frozen):
 
 
 def frequency_result(output,plan,calibration,context):
-    journal=output/'execution.jsonl'
-    entries=[json.loads(line) for line in evidence.member_text(journal).splitlines()]
+    original,plan_sha256=evidence.json_snapshot(output/'plan.json')
+    if original!=plan:raise ValueError('frequency plan differs from original')
+    text,execution_sha256=evidence.text_snapshot(output/'execution.jsonl')
+    entries=[json.loads(line) for line in text.splitlines()]
     if len(entries)!=len(plan['cohort']['steps']):raise ValueError('incomplete frequency cohort')
     reports=[];last=0
     for step,entry in zip(plan['cohort']['steps'],entries):
@@ -175,7 +177,7 @@ def frequency_result(output,plan,calibration,context):
     return {'schema':FREQUENCY_SCHEMA,'release_approval':False,'formal_qualification':False,'candidate_attribution':None,
             'exclusive_api_cycles':False,'time_normalization':False,'scope':plan['scope'],
             'cases':len(plan['cohort']['failed_cases']),'observations':12*len(reports),'workers':reports,
-            'plan_sha256':evidence.digest((output/'plan.json').read_bytes()),'execution_sha256':evidence.digest(journal.read_bytes())}
+            'plan_sha256':plan_sha256,'execution_sha256':execution_sha256}
 
 
 def replay_frequency(repository,capture,prior,frozen,output):
