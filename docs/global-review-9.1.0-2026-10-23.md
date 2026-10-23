@@ -297,13 +297,14 @@ Darwin can return EPERM for an already-exited group; its
 excludes zombies. The earlier exception proved only a sole owned leader. Reviewed
 main `62632e5` handles multiple exited members through two complete native
 membership snapshots with PID/start identities. Live, unknown or incomplete
-groups remain errors and preserve generated inputs. Follow-through `5882adb`
-handles a member reaped between enumeration and inspection: the view is discarded
-and a fresh complete pair is required under the same anchored leader. Unknown
-or live states are not retried into success; bounded exhaustion retains the
-original signal error. Deterministic pure and real-kernel regressions fail before
-this change and pass afterward. The original macOS CI refusal remains retained;
-its exact internal snapshot state was not recorded. This owner supervises the group it created;
+groups remain errors and preserve generated inputs. Integrated follow-through
+`aa89274` retains main `549b0ac`'s three-second member-reaping stabilization and
+strict identity/live/unknown/truncated refusals. The platform reader is separate
+from shared complete-pair confirmation; duplicate identities also refuse.
+Deterministic real-kernel tests reap during either snapshot, while pure tests
+exercise fresh-pair and refusal boundaries. The original macOS CI refusal remains
+retained; its exact internal snapshot state was not recorded. This owner supervises
+the group it created;
 it does not claim to supervise arbitrary detached sessions or Windows job trees.
 
 ### Local no_std check accidentally enabled std

@@ -19,8 +19,9 @@ rejected under their original source bindings.
 ## Current merged implementation
 
 The [merged-candidate review](release-9.1.0-readiness-2026-10-23.md) now covers
-reviewed main `62632e5`, including shared ordinary Classic verification, empty
-aligned-shard storage and the newer source-plan/process-owner checks. It differs
+reviewed main `549b0ac` and integrated proof source `aa89274`, including shared
+ordinary Classic verification, empty aligned-shard storage, concurrent cache
+metrics and the newer source-plan/process-owner checks. It differs
 from both the running frozen `9f935ee` tree and earlier runtime `449920e`. The earlier `14cf56e` and
 `09597e4` file-tree equality remains a historical fact; their ordinary CI and
 package dry-run do not provide later-source performance acceptance. Strict
@@ -33,8 +34,11 @@ JSON and actual package allowlist preparation checks pass; these are not strict
 release preflight. One subsequent `744f7e9` macOS cancellation job failed exit
 confirmation; the old job is retained. Tool follow-through `5882adb` passes 205
 native and 248 Python tests plus strict macOS/Linux tool Clippy and all 96 bounded
-post-fix cancellation trials. Its own new-head CI remains required; neither local
-success nor another passing workflow erases the old refusal. The separate full
+post-fix cancellation trials. Integrated `aa89274` preserves main's newer repair
+and adds the shared proof/refusal tests; 205 native, 359 codec (five ignored),
+237 no_std, all 248 Python tests and strict codec/macOS/Linux tool Clippy pass.
+Its own new-head CI remains pending; neither local success nor another passing
+workflow erases the old refusal. The separate full
 Linux campaign continues on frozen `9f935ee`. The earlier 64-worker encode/stream plan has completed and
 independently replays exactly. All
 64 distributions and eight regression programs pass, but three of 32 repeats fail
