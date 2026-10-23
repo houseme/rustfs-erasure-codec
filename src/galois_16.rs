@@ -429,6 +429,31 @@ impl Element {
         }
     }
 
+    /// Invert through the GF8 norm of this quadratic extension.
+    /// Preserve the historical zero-inverse (and division-by-zero) behavior.
+    fn inverse(self) -> Element {
+        let [ax, ac] = self.0;
+        if ax == 0 {
+            return if ac == 0 {
+                Element::zero()
+            } else {
+                Element::constant(galois_8::div(1, ac))
+            };
+        }
+
+        // The other root of X² + 2X + 128 is X + 2. Thus the conjugate
+        // of ax*X + ac is ax*X + (ac + 2*ax), and their product is the
+        // nonzero GF8 constant ac*(ac + 2*ax) + 128*ax².
+        let conjugate_c = ac ^ galois_8::mul(EXT_POLY[1], ax);
+        let norm =
+            galois_8::mul(ac, conjugate_c) ^ galois_8::mul(EXT_POLY[2], galois_8::mul(ax, ax));
+        let norm_inverse = galois_8::div(1, norm);
+        Element([
+            galois_8::mul(ax, norm_inverse),
+            galois_8::mul(conjugate_c, norm_inverse),
+        ])
+    }
+
     // reduces from some polynomial with degree <= 2.
     #[inline]
     fn reduce_from(mut x: [u8; 3]) -> Self {
@@ -443,6 +468,7 @@ impl Element {
         Element([x[1], x[2]])
     }
 
+    #[cfg(test)]
     fn degree(&self) -> usize {
         if self.0[0] != 0 { 1 } else { 0 }
     }
@@ -511,14 +537,16 @@ impl Div for Element {
     }
 }
 
-// helpers for division.
+// Retain the former Euclidean implementation as an independent test oracle.
 
+#[cfg(test)]
 #[derive(Debug)]
 enum EgcdRhs {
     Element(Element),
     ExtPoly,
 }
 
+#[cfg(test)]
 impl Element {
     // compute extended euclidean algorithm against an element of self,
     // where the GCD is known to be constant.
@@ -619,7 +647,7 @@ impl Element {
     }
 
     /// Convert the inverse of this field element. Returns zero for zero input.
-    fn inverse(self) -> Element {
+    fn inverse_euclid(self) -> Element {
         if self.is_zero() {
             return Element::zero();
         }
@@ -737,6 +765,36 @@ mod tests {
 
         fn qc_exp_zero_is_one(a: Element) -> bool {
             a.exp(0) == Element::constant(1)
+        }
+    }
+
+    #[test]
+    fn norm_inverse_matches_euclid_for_entire_field() {
+        for bits in 0..=u16::MAX {
+            let element = Element(bits.to_be_bytes());
+            let inverse = element.inverse();
+            assert_eq!(inverse, element.inverse_euclid(), "element {bits:#06x}");
+            let expected = if bits == 0 {
+                Element::zero()
+            } else {
+                Element::constant(1)
+            };
+            assert_eq!(element * inverse, expected, "element {bits:#06x}");
+        }
+    }
+
+    #[test]
+    fn norm_division_preserves_all_denominators() {
+        for bits in 0..=u16::MAX {
+            let denominator = Element(bits.to_be_bytes());
+            for numerator in [[0, 0], [0, 1], [1, 0], [0x9a, 0x3f], [0xff, 0xff]] {
+                let numerator = Element(numerator);
+                assert_eq!(
+                    numerator / denominator,
+                    numerator * denominator.inverse_euclid(),
+                    "numerator {numerator:?}, denominator {bits:#06x}"
+                );
+            }
         }
     }
 
