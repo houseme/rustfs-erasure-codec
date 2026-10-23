@@ -10,6 +10,10 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Restrict Classic matrix normalization and elimination to active pivot suffixes,
+  setting their known unit/zero pivots directly. Preserve disjoint row borrowing,
+  existing GF8 batch and generic scalar arithmetic, storage and encoded bytes.
+
 - Multiply GF16 tower-field slices with a constant coefficient `[0, c]`
   directly through the existing GF8 byte kernel. Preserve both coordinates,
   accumulation and length validation while avoiding plane conversion and scratch
