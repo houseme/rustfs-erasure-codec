@@ -170,12 +170,20 @@ fn runtime_override_backend() -> Option<GaloisBackend> {
 }
 
 #[cfg(feature = "std")]
-fn generated_encode_allowed_for_override(backend_override: Option<BackendOverride>) -> bool {
+fn generated_encode_allowed_for_backend(
+    backend_override: Option<BackendOverride>,
+    selected_backend: BackendId,
+) -> bool {
     matches!(backend_override, None | Some(BackendOverride::Auto))
+        && !matches!(
+            selected_backend,
+            BackendId::RustGfniAvx2 | BackendId::RustGfniAvx512
+        )
 }
 
-/// Returns whether generated SIMD encode code may bypass the selected backend.
+/// Returns whether generated SIMD encode code may supplement the selected backend.
 ///
+/// Table-based generated AVX2 kernels retain the automatic GFNI preference.
 /// An explicit, recognised backend override selects the generic backend path.
 /// This makes `RSE_BACKEND_OVERRIDE=scalar` a reliable way to avoid generated
 /// SIMD encode code as well as the ordinary multiplication backend.
@@ -184,7 +192,7 @@ fn runtime_generated_encode_allowed() -> bool {
     let backend_override = std::env::var("RSE_BACKEND_OVERRIDE")
         .ok()
         .and_then(|value| parse_backend_override(value.trim()));
-    generated_encode_allowed_for_override(backend_override)
+    generated_encode_allowed_for_backend(backend_override, active_backend().id)
 }
 
 #[cfg(feature = "std")]
@@ -560,10 +568,14 @@ mod tests {
     #[cfg(feature = "std")]
     #[test]
     fn test_explicit_backend_overrides_disable_generated_encode() {
-        assert!(generated_encode_allowed_for_override(None));
-        assert!(generated_encode_allowed_for_override(Some(
-            BackendOverride::Auto
-        )));
+        assert!(generated_encode_allowed_for_backend(
+            None,
+            BackendId::RustAvx2
+        ));
+        assert!(generated_encode_allowed_for_backend(
+            Some(BackendOverride::Auto),
+            BackendId::RustAvx2
+        ));
 
         for backend_override in [
             BackendOverride::Scalar,
@@ -575,9 +587,23 @@ mod tests {
             BackendOverride::RustGfniAvx512,
             BackendOverride::RustVsx,
         ] {
-            assert!(!generated_encode_allowed_for_override(Some(
-                backend_override
-            )));
+            assert!(!generated_encode_allowed_for_backend(
+                Some(backend_override),
+                BackendId::RustAvx2
+            ));
+        }
+    }
+
+    #[cfg(feature = "std")]
+    #[test]
+    fn automatic_generated_encode_preserves_gfni_priority() {
+        for selected in [BackendId::RustGfniAvx2, BackendId::RustGfniAvx512] {
+            for backend_override in [None, Some(BackendOverride::Auto)] {
+                assert!(
+                    !generated_encode_allowed_for_backend(backend_override, selected),
+                    "table-based generated encoding must retain {selected:?}"
+                );
+            }
         }
     }
 

@@ -14,6 +14,11 @@ All notable changes to this project are documented in this file.
   serial/parallel dispatch. Select policy once, preserve validation and scratch
   ownership, and retain Leopard behavior, backend overrides and encoding bytes.
 
+- Preserve the automatically selected GFNI backend when shared encoding dispatch
+  considers table-based generated AVX2 kernels. Cache the eligibility decision,
+  retain explicit backend overrides and existing NEON/AVX2 behavior, and verify
+  generated kernel bytes directly even when automatic GFNI bypasses that path.
+
 - Consolidate source and dynamic ownership-ledger validation in the native tool,
   share geometry/counter rules, prepare payload schedules once and track only
   live allocation generations. Preserve artifact-sized framed requests and
