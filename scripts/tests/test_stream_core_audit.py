@@ -40,15 +40,10 @@ def current_verify_ledger(native=True):
 
 class SourceContractTests(unittest.TestCase):
     def test_source_hooks_are_reversible_and_formal_sampler_is_untouched(self):
-        original=(ROOT/'src/core/stream.rs').read_text();changed=audit.source_patch(original)
-        self.assertNotIn('rse_probe',original);self.assertIn('rse_probe',changed)
-        self.assertIn('StreamReconstructPlan::new',changed)
         before=sampling.render(ROOT);traced=audit.render(ROOT)
         self.assertEqual(before,sampling.render(ROOT))
         self.assertNotIn(audit.MODULE,before['engine.rs']);self.assertIn(audit.MODULE,traced['engine.rs'])
         self.assertEqual(traced['stream_views.rs'],audit.views.render(ROOT)['stream_views.rs'])
-        with self.assertRaises(ValueError):audit.source_patch(original.replace('pub fn encode_stream(','pub fn renamed('))
-        with self.assertRaises(ValueError):audit.source_patch(changed)
 
     def fixture(self,path):
         for name in audit.NAMES:

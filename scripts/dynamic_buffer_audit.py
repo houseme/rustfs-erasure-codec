@@ -26,14 +26,6 @@ def native_template():
     return native_tools.native_template('dynamic')
 
 
-def patch_matrix(text):
-    return native_tools.request('matrix-source', text=text)
-
-
-def patch_decode(text):
-    return native_tools.request('decode-source', text=text)
-
-
 def patch_inputs(original):
     return native_tools.source_plan('dynamic', original, output='files')
 

@@ -27,14 +27,6 @@ def implementation_digest():
     return hashlib.sha256(b"".join(p.name.encode() + b"\0" + p.read_bytes() for p in files)+native_tools.implementation_bytes()).hexdigest()
 
 
-def exclude_once_only_setup(text, name, loop_count):
-    return native_tools.request('exclude-setup', text=text, name=name, count=loop_count)
-
-
-def reserve_stream_outputs(text):
-    return native_tools.request('reserve-outputs', text=text)
-
-
 # The native renderer and verifier share one workload/fixture catalog.
 HOTSPOT_CASES = tuple((data, parity, name, tuple(missing), None if required is None else tuple(required))
                       for data, parity, name, missing, required in native_tools.sampling_catalog()['hotspot_cases'])
