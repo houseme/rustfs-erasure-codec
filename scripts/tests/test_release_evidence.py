@@ -16,6 +16,56 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from layout_fixture import write_campaign, kernel_policy_fixture
 
 
+class OriginalMemberReadTests(unittest.TestCase):
+    def test_changed_member_cannot_bind_old_json_to_new_bytes(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=pathlib.Path(folder);(root/'A1').mkdir();path=root/'A1/smoke-samples.json'
+            path.write_bytes(b'{"value":"unbound"}');replacement=b'{"value":"declared"}'
+            entry={'path':'A1/smoke-samples.json','sha256':evidence.digest(replacement)}
+            original_open=pathlib.Path.open;changed=False
+            class ReplacingReader:
+                def __init__(self,stream):self.stream=stream
+                def __enter__(self):return self
+                def __exit__(self,*args):self.stream.close()
+                def read(self,*args):
+                    nonlocal changed
+                    raw=self.stream.read(*args);changed=True;path.write_bytes(replacement);return raw
+            def opening(member,*args,**kwargs):
+                stream=original_open(member,*args,**kwargs)
+                return ReplacingReader(stream) if member==path and not changed else stream
+            with mock.patch.object(pathlib.Path,'open',opening):
+                with self.assertRaisesRegex(ValueError,'digest'):
+                    evidence.evidence_member(root,entry,entry['path'])
+            self.assertEqual(path.read_bytes(),replacement)
+
+    def test_digest_bound_text_keeps_newlines_and_legacy_json_values(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path=pathlib.Path(folder)/'member.json'
+            raw=b'{\r\n"name":"\\u96ea", "count":18446744073709551615, "duplicate":1,"duplicate":2\r\n}'
+            path.write_bytes(raw);wanted=json.loads(path.read_text());calls=[];opening=pathlib.Path.open
+            def opened(member,*args,**kwargs):
+                calls.append((member,args));return opening(member,*args,**kwargs)
+            with mock.patch.object(pathlib.Path,'open',opened):
+                self.assertEqual(evidence.json_data(path,evidence.digest(raw)),wanted)
+            self.assertEqual(len(calls),1)
+            self.assertEqual(evidence.member_text(path,evidence.digest(raw)),raw.decode().replace('\r\n','\n'))
+            for invalid in (None,False,'','f'*64):
+                with self.assertRaisesRegex(ValueError,'digest'):evidence.json_data(path,invalid)
+            self.assertEqual(path.read_bytes(),raw)
+
+    def test_growth_after_stat_is_still_bounded_before_json_parsing(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path=pathlib.Path(folder)/'member.json';path.write_bytes(b'{}')
+            original_open=pathlib.Path.open;changed=False
+            def opening(member,*args,**kwargs):
+                nonlocal changed
+                if member==path and not changed:
+                    changed=True;path.write_bytes(b' '*9+b'{}')
+                return original_open(member,*args,**kwargs)
+            with mock.patch.object(evidence,'MAX_BYTES',8),mock.patch.object(pathlib.Path,'open',opening):
+                with self.assertRaisesRegex(ValueError,'bounded'):evidence.json_data(path)
+
+
 class EvidenceTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
