@@ -1455,3 +1455,75 @@ All five workspace members still inherit the root dependency catalog. Core and
 WASM package allowlists remain 67 and six files, excluding repository tools,
 Python and archived JSON. No dependency, codec-format change, release tag,
 registry upload or performance approval is introduced.
+
+
+## Native paired-layout directory replay
+
+The final implementation `c2bde58` follows the native journal tree `fffe679`.
+Codec sources, build inputs, dependency declarations and lockfiles continue to
+match main `a773e74`. Native directory replay and Python controller migration
+are separate functional commits. They extend the existing layout analyzer and
+shared artifact modules without another command or dependency.
+
+The former Python replay loaded and validated every paired manifest, phase
+metadata, sample array and measurement journal, then serialized all four complete
+arrays into a second native analysis request. The native replay now receives the
+directory, declared manifest digest when supplied, expected tool contract and
+current Git source identities. It binds all thirteen original members, validates
+context/source/member agreement and invokes the same paired grid analysis on the
+owned original rows. Python retains Git and compiler-state binding and capture,
+cancellation and overlay ownership.
+
+Strict artifact JSON and historical Python JSON retain explicit decoding paths
+inside one bounded snapshot reader. Both paths hash the bytes actually decoded,
+apply the same 32 MiB member / 256 MiB snapshot budgets and reject linked members.
+Successful replay rechecks every bound original before returning. The shared
+`artifact::python_json` module now owns value equality and compatible decoding;
+original-output scanning uses the same decoder. Last-key objects, integer `-0`,
+float/exponent negative zero and escaped strings keep their prior rules. Audit
+JSON remains strict. The original regular-member error prefix is preserved while
+identifying a refused symlink, retaining historical baseline replay diagnostics.
+
+Every phase still requires complete runtime policy, canonical reserved CPUs and
+matching context, measuring CPU, source and tool provenance. Identical measured
+tree/lock values remain valid after rebase changes the commit. Explicit null,
+boolean, numeric or mismatched manifest digests remain invalid. The former
+first-phase numeric iteration comparison is preserved; later phases retain their
+strict integer check. Formal and diagnostic modes keep separate manifest names,
+quality limits, attribution fields and release-approval fences.
+
+A complete comparison against Python at `fffe679` retains every report value for
+four phases / 3,072 observations. All original files remain unchanged. Twelve
+accepted variants and nine refusal variants agree, covering rebase, diagnostic
+mode, duplicate keys, CRLF/CR, final fragments, negative integer zero, first-phase
+float iterations, changed sources, links, hashes, mode and reservation types.
+Repeated native requests fall from two to one; request bytes fall from 1,618,468
+to 1,653. The permanent controller regression fails on the old Python reader and
+passes with one request below 8 KiB, without Python member/journal parsing. The
+compiled existing `analyze-layout` command also replays the complete directory
+with an empty PATH, without Python or Cargo. Supplied Git identities remain an
+explicit caller binding. These are synthetic replay/transport checks, not a new
+performance acceptance or actual codec-throughput measurement.
+
+The final file tree passes all fifteen checks in an independent frozen checkout:
+242 native tests (213 unit / 29 CLI), 252 Python tests, strict tooling Clippy,
+Linux tooling compilation, 536 top-level codec tests, ten doctests, codec-only
+no_std, 200 non-fast published/local compatibility configurations, all three
+audits, actual core packaging/reconstruction, extracted-package library tests,
+formatting and diff checks. The extracted package passes 370 library tests with
+five existing ignores; the repository retains 43 existing codec ignores. Exact
+parity, bidirectional cross-decoding and historical tower-field vectors pass.
+The older inconsistent fast-one-parity mode remains outside that probe. Spelling
+also passes.
+
+The inventory is 34 active Python files / 7,607 lines: 3,403 production/helper
+and 4,204 test/fixture lines. Production falls by 68 lines; the two integration
+regressions add 22 test lines, so the total falls by 46. Every remaining module
+retains an active capture, platform, rollback, trusted historical-replay or test
+caller. All 590 JSON files / 3,464,634 bytes and eleven equal-byte groups retain
+their original provenance and match the integrated source baseline.
+
+All five workspace members still inherit root dependencies. Core/WASM crate
+allowlists remain 67/six files, excluding Python, repository tooling and archived
+JSON. No dependency, codec-format change, release tag, registry upload or
+performance approval is introduced.
