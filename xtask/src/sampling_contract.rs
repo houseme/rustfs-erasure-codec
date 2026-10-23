@@ -5,9 +5,11 @@ use std::borrow::Borrow;
 
 pub(crate) mod batch;
 pub(crate) mod calibration_profile;
+mod journal;
 pub(crate) mod preparation;
 mod protocol;
 pub(crate) mod replay;
+pub(crate) const PROFILES: [&str; 4] = ["smoke", "small_file", "hotspot", "stream"];
 use serde_json::{Value, json};
 
 #[path = "../../scripts/release-sampling/service_window.rs"]
@@ -44,6 +46,9 @@ const COUNTERS: &[&str] = &[
 #[serde(tag = "operation", rename_all = "kebab-case", deny_unknown_fields)]
 pub(crate) enum Request {
     Catalog,
+    WorkerJournal {
+        request: journal::Request,
+    },
     ReplayWorker {
         request: replay::Request,
     },
@@ -116,6 +121,7 @@ impl Request {
     pub(crate) fn execute(self) -> Result<Value> {
         match self {
             Self::Batch { request } => return request.execute(),
+            Self::WorkerJournal { request } => return request.execute(),
             Self::CalibrationProfile {
                 profile,
                 revision,

@@ -66,8 +66,9 @@ impl Request {
         descriptions.sort_by(|a, b| a["case"].as_str().cmp(&b["case"].as_str()));
         let mut result = json!({"groups":groups,"selected_indices":selected,"spreads":spreads,"descriptions":descriptions});
         if matches!(self.output, Output::Select { .. }) {
-            result["preparation"] =
-                super::preparation::Preparation::new(&self.records, false)?.catalog();
+            let preparation = super::preparation::Preparation::new(&self.records, false)?;
+            result["preparation"] = preparation.catalog();
+            result["worker_starts"] = json!(preparation.worker_starts);
         }
         Ok(result)
     }
