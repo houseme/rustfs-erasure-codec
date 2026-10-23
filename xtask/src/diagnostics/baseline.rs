@@ -6,6 +6,7 @@ use std::{
     borrow::Borrow,
     collections::{BTreeMap, BTreeSet},
 };
+mod campaign;
 
 const PHASES: [&str; 2] = ["A1", "A2"];
 const PROFILES: [&str; 4] = ["smoke", "small_file", "hotspot", "stream"];
@@ -15,6 +16,9 @@ const REPEAT_LIMIT: f64 = sampling_contract::REPEAT_DRIFT_LIMIT;
 #[derive(Deserialize)]
 #[serde(tag = "operation", rename_all = "kebab-case", deny_unknown_fields)]
 pub(crate) enum Request {
+    Campaign {
+        request: campaign::Request,
+    },
     ServiceTimes {
         records: Vec<Value>,
     },
@@ -429,6 +433,7 @@ fn service_times(records: &[Value]) -> Result<Value> {
 impl Request {
     pub(crate) fn execute(self) -> Result<Value> {
         match self {
+            Self::Campaign { request } => request.execute(),
             Self::ServiceTimes { records } => service_times(&records),
             Self::Gap {
                 first: (a, rows),

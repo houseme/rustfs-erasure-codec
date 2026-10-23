@@ -4,6 +4,7 @@ use serde::Deserialize;
 use std::borrow::Borrow;
 
 pub(crate) mod batch;
+mod calibration_profile;
 mod protocol;
 use serde_json::{Value, json};
 
@@ -40,6 +41,12 @@ pub(crate) enum Request {
     Catalog,
     Batch {
         request: batch::Request,
+    },
+    CalibrationProfile {
+        profile: String,
+        revision: String,
+        records: Vec<Value>,
+        expected_page_size: Option<u64>,
     },
     WorkloadContract {
         profile: String,
@@ -100,6 +107,19 @@ impl Request {
     pub(crate) fn execute(self) -> Result<Value> {
         match self {
             Self::Batch { request } => return request.execute(),
+            Self::CalibrationProfile {
+                profile,
+                revision,
+                records,
+                expected_page_size,
+            } => {
+                return calibration_profile::analyze(
+                    &records,
+                    &profile,
+                    &revision,
+                    expected_page_size,
+                );
+            }
             Self::Catalog => {
                 return Ok(json!({
                     "protocol": protocol::value(),
@@ -151,11 +171,7 @@ impl Request {
                 batch,
                 expected_page_size,
             } => {
-                workload_sequence(&records, &profile)?;
-                for record in &records {
-                    observation(record, &profile, count, None, expected_page_size)?;
-                }
-                return calibration(&records, count, batch);
+                return calibration_worker(&records, &profile, count, batch, expected_page_size);
             }
             Self::ValidateWorker {
                 profile,
@@ -759,12 +775,29 @@ fn timing(record: &Value, profile: &str, count: u64) -> Result<()> {
     }
     Ok(())
 }
-fn calibration(records: &[Value], count: u64, batch: u64) -> Result<Value> {
-    if !(1..=1_000_000_000).contains(&count) || !(1..=12).contains(&batch) || records.len() != 12 {
+fn calibration_worker<T: Borrow<Value>>(
+    records: &[T],
+    profile: &str,
+    count: u64,
+    batch: u64,
+    page: Option<u64>,
+) -> Result<Value> {
+    workload_sequence(records, profile)?;
+    for record in records {
+        observation(record.borrow(), profile, count, None, page)?;
+    }
+    calibration(records, count, batch)
+}
+fn calibration<T: Borrow<Value>>(records: &[T], count: u64, batch: u64) -> Result<Value> {
+    if !(1..=1_000_000_000).contains(&count)
+        || !(1..=protocol::MAX_CALIBRATION_BATCHES).contains(&batch)
+        || records.len() != protocol::WIDTH
+    {
         return Err("invalid bounded calibration batch".into());
     }
     for (index, record) in records.iter().enumerate() {
-        let kind = if index < 3 {
+        let record = record.borrow();
+        let kind = if index < protocol::WARMUPS {
             "calibration_warmup"
         } else {
             "calibration"
@@ -789,24 +822,25 @@ fn calibration(records: &[Value], count: u64, batch: u64) -> Result<Value> {
     }
     if records
         .iter()
-        .any(|r| r["fixture"] != records[0]["fixture"])
+        .any(|r| r.borrow()["fixture"] != records[0].borrow()["fixture"])
     {
         return Err("fixture layout changed inside a calibration worker".into());
     }
-    let complete = records[3..].iter().all(|r| r["target_met"] == true);
-    if records
+    let complete = records[protocol::WARMUPS..]
         .iter()
-        .enumerate()
-        .any(|(i, r)| r["complete"].as_bool() != Some(complete && i == 11))
-    {
+        .all(|r| r.borrow()["target_met"] == true);
+    if records.iter().enumerate().any(|(i, r)| {
+        r.borrow()["complete"].as_bool() != Some(complete && i == protocol::WIDTH - 1)
+    }) {
         return Err("calibration lacks the complete measurement rehearsal".into());
     }
     if complete {
         return Ok(Value::Null);
     }
-    let desired = records[3..]
+    let desired = records[protocol::WARMUPS..]
         .iter()
         .map(|r| {
+            let r = r.borrow();
             (service_window::TARGET_WALL_NS as f64 / r["wall_ns"].as_f64().unwrap_or(1.0))
                 .max(service_window::TARGET_TIMED_NS as f64 / r["timed_ns"].as_f64().unwrap_or(1.0))
         })
