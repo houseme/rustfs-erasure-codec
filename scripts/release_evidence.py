@@ -130,9 +130,13 @@ def json_data(path, expected_sha256=_UNBOUND):
     return _json_text(member_text(path, expected_sha256))
 
 
+def text_snapshot(path):
+    raw=member_bytes(path)
+    return _member_text(raw),digest(raw)
+
+
 def json_snapshot(path):
-    raw=member_bytes(path);sha256=digest(raw);text=_member_text(raw)
-    del raw
+    text,sha256=text_snapshot(path)
     return _json_text(text),sha256
 
 
