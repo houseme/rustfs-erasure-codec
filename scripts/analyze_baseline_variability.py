@@ -15,71 +15,9 @@ import release_sampling as sampling
 
 
 def analyze(capture):
-    members = {}
-    def load(name):
-        raw = (capture/name).read_bytes()
-        members[name] = hashlib.sha256(raw).hexdigest()
-        return json.loads(raw)
-
-    provenance = load('provenance.json')
-    schema = provenance.get('schema_version')
-    if schema not in ('baseline-basic-controls-v1', 'baseline-qualification-v1', evidence.QUALIFICATION_SCHEMA) or provenance['source']['commit'] != evidence.BASELINE_COMMIT:
-        raise ValueError('a complete published-9.0.0 baseline control is required')
-    if schema in ('baseline-qualification-v1', evidence.QUALIFICATION_SCHEMA):
-        contract = provenance.get('sampling', {})
-        if (set(contract) != set(sampling.PROTOCOL) | {'implementation_sha256', 'overlay_sha256'}
-                or not evidence.DIGEST.fullmatch(contract.get('overlay_sha256', ''))
-                or provenance.get('release_approval') is not False or provenance.get('candidate_attribution') is not None):
-            raise ValueError('invalid baseline qualification provenance')
-        protocol = {k: contract[k] for k in sampling.PROTOCOL}
-        renderer = contract['implementation_sha256']
-    else:
-        protocol, renderer = provenance['protocol'], provenance['renderer_sha256']
-    if protocol != sampling.PROTOCOL or renderer != sampling.implementation_digest():
-        raise ValueError('replay with the matching frozen protocol and renderer')
-    context = provenance['context']
-    if schema == evidence.QUALIFICATION_SCHEMA:
-        evidence.validate_runtime(context.get('runtime'))
-    cpus = context['isolation']['cpu_affinity']
-    page_size = context['runtime']['page_size']
-    phases = ('A1', 'A2') if (capture/'A2').exists() else ('A1',)
-    descriptions = []
-    for profile in evidence.FILES:
-        calibration = load(f'calibration/{profile}-samples.json')
-        counts = evidence.calibration_counts(calibration, profile, evidence.BASELINE_COMMIT, page_size, allowed_cpus=cpus)
-        layouts = sampling.fixture_catalog(calibration, calibration=True)
-        contracts = evidence.observation_contracts(profile, [r for r in calibration if r['complete']])
-        workload = sampling.workload_catalog(calibration, calibration=True)
-        inputs = sampling.workload_traces(calibration, calibration=True)
-        for phase in phases:
-            records = load(f'{phase}/{profile}-samples.json')
-            details = sampling.describe_groups(records, profile, evidence.BASELINE_COMMIT,
-                                               evidence.expected_cases(profile), counts, layouts, cpus, page_size)
-            evidence.observation_contracts(profile, records, contracts)
-            if (sampling.workload_catalog(records) != workload or
-                    sampling.workload_traces(records) != inputs):
-                raise ValueError(f'{phase}/{profile}: preparation or input replay differs from calibration')
-            descriptions.extend(dict(profile=profile, phase=phase, **detail) for detail in details)
-    summary = native_tools.request('baseline-analysis', request=dict(operation='report', phases=list(phases), groups=descriptions))
-    return {
-        'schema_version': 'baseline-variability-analysis-v1',
-        'purpose': 'descriptive replay of every baseline case; no causal or release inference',
-        'release_approval': False, 'candidate_attribution': None,
-        'baseline_commit': evidence.BASELINE_COMMIT, 'measured_tool': provenance['tool'],
-        'protocol': protocol, 'renderer_sha256': renderer, 'capture_schema': schema,
-        'kernel_memory_policy_recorded': schema == evidence.QUALIFICATION_SCHEMA,
-        'analyzer_sha256': hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest(),
-        'input_sha256': members, 'phase_order': list(phases),
-        **summary,
-        'limitations': [
-            'Equal CPU endpoints do not exclude intermediate migration or prove affinity pinning.',
-            'Main-thread counters omit Rayon worker scheduling and physical-host interference.',
-            'Counters bracket the wall timer; run/wall ratios can exceed one and are not clamped.',
-            'Matching caller offsets do not establish equal physical pages, cache placement or dynamic outputs.',
-            'This replay does not replace original provenance/isolation checks or strict release preflight.',
-        ],
-    }
-
+    return native_tools.request('baseline-replay', request=dict(
+        capture=str(capture.resolve()), renderer_sha256=sampling.implementation_digest(),
+        analyzer_sha256=evidence.digest(pathlib.Path(__file__).read_bytes())))
 
 
 SNAPSHOT_LIMIT = 256 * 1024 * 1024
