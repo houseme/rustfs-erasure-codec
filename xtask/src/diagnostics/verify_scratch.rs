@@ -1,10 +1,10 @@
 //! Ordinary verify scratch: retain all twelve observations and every lifetime boundary.
 use super::ledger::{self, Clock, Snapshot, nullable};
 use crate::{Result, sampling_contract};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
-#[derive(Clone, Copy, PartialEq, Eq, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(rename_all = "snake_case")]
 enum Phase {
     Reserved,
@@ -12,7 +12,7 @@ enum Phase {
     Verified,
     Released,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct Event {
     observation: u64,
@@ -29,7 +29,7 @@ struct Event {
     #[serde(deserialize_with = "nullable")]
     valid: Option<bool>,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Ledger {
     schema: String,

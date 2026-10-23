@@ -29,6 +29,29 @@ pub(crate) fn hex(bytes: &[u8]) -> String {
 pub(crate) fn digest(bytes: &[u8]) -> String {
     hex(Sha256::digest(bytes).as_slice())
 }
+pub(crate) fn universal_newlines(text: String) -> String {
+    if text.contains('\r') {
+        text.replace("\r\n", "\n").replace('\r', "\n")
+    } else {
+        text
+    }
+}
+/// Hash the bounded original UTF-8 bytes before applying text newline handling.
+pub(crate) fn text_member(path: &Path, expected: &str) -> Result<String> {
+    let parent = path
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
+    let name = path
+        .file_name()
+        .and_then(|p| p.to_str())
+        .ok_or("invalid original member name")?;
+    let bytes = Snapshot::new(parent)?.bytes(name)?;
+    if digest(&bytes) != expected {
+        return Err("original member digest mismatch".into());
+    }
+    Ok(universal_newlines(String::from_utf8(bytes)?))
+}
 impl Snapshot {
     pub(crate) fn new(root: &Path) -> Result<Self> {
         Ok(Self {
@@ -176,3 +199,29 @@ fn json_text(bytes: &[u8]) -> Result<std::borrow::Cow<'_, str>> {
 
 #[cfg(test)]
 pub(crate) mod tests;
+
+#[cfg(test)]
+mod text_member_tests {
+    use super::*;
+    #[test]
+    fn original_text_hashes_precede_newline_decoding_and_reject_changed_or_unbounded_members() {
+        let path = std::env::temp_dir().join(format!("rse-native-text-{}", std::process::id()));
+        let bytes = b"first\r\nsecond\rthird\n";
+        fs::write(&path, bytes).unwrap();
+        assert_eq!(
+            text_member(&path, &digest(bytes)).unwrap(),
+            "first\nsecond\nthird\n"
+        );
+        assert!(text_member(&path, &"f".repeat(64)).is_err());
+        fs::write(&path, b"changed").unwrap();
+        assert!(text_member(&path, &digest(bytes)).is_err());
+        fs::write(&path, []).unwrap();
+        assert!(text_member(&path, &digest(&[])).is_err());
+        fs::File::create(&path)
+            .unwrap()
+            .set_len(MEMBER_LIMIT + 1)
+            .unwrap();
+        assert!(text_member(&path, &"0".repeat(64)).is_err());
+        fs::remove_file(&path).unwrap();
+    }
+}

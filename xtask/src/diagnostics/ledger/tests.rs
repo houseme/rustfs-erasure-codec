@@ -294,7 +294,8 @@ fn negative_first_timestamps_and_out_of_range_counts_are_refused() {
 fn dynamic_workload_unwrapping_preserves_the_original_record_and_refuses_formal_labels() {
     let record = json!({"rows":[{"extra":1.25}],"workload":{"observer":"dynamic-source-copy-v1","contract":{"call_entry":"original","rng":null}}});
     let before = record.clone();
-    let result = validate(json!({"kind":"dynamic-records","records":[record.clone()]})).unwrap();
+    let mut result = vec![record.clone()];
+    unwrap_dynamic_records(&mut result).unwrap();
     assert_eq!(record, before);
     assert_eq!(result[0]["workload"], before["workload"]["contract"]);
     assert_eq!(result[0]["rows"], before["rows"]);
@@ -305,6 +306,34 @@ fn dynamic_workload_unwrapping_preserves_the_original_record_and_refuses_formal_
     ] {
         let mut bad = record.clone();
         bad["workload"] = wrong;
-        assert!(validate(json!({"kind":"dynamic-records","records":[bad]})).is_err());
+        assert!(unwrap_dynamic_records(&mut [bad]).is_err());
+    }
+}
+
+#[test]
+fn dynamic_markers_remain_unacceptable_to_every_formal_profile() {
+    use crate::sampling_contract::{self, Request};
+    let catalog = sampling_contract::case_catalog();
+    for profile in sampling_contract::PROFILES {
+        let mut contract = Request::WorkloadContract {
+            profile: profile.into(),
+            case: catalog[profile][0].clone(),
+        }
+        .execute()
+        .unwrap();
+        contract["rng"] = Value::Null;
+        let raw = json!({"case":catalog[profile][0],"workload":{"observer":"dynamic-source-copy-v1","contract":contract}});
+        assert!(
+            Request::ValidateWorkload {
+                profile: profile.into(),
+                record: raw.clone()
+            }
+            .execute()
+            .is_err()
+        );
+        let mut records = vec![raw.clone()];
+        unwrap_dynamic_records(&mut records).unwrap();
+        assert_eq!(records[0]["workload"], contract);
+        assert_eq!(raw["workload"]["contract"], contract);
     }
 }

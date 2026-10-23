@@ -43,20 +43,14 @@ fn same(a: &Value, b: &Value) -> bool {
 }
 fn journal(text: &str) -> Result<(Vec<Value>, Vec<Value>)> {
     let (mut samples, mut timing) = (Vec::new(), Vec::new());
-    for line in text.split_inclusive('\n') {
-        let (target, payload) = if let Some(s) = line.strip_prefix("RSE_SAMPLE ") {
-            (&mut samples, s)
-        } else if let Some(s) = line.strip_prefix("RSE_TIMING ") {
-            (&mut timing, s)
+    super::output::visit(text, &["RSE_SAMPLE ", "RSE_TIMING "], |index, value| {
+        if index == 0 {
+            samples.push(value);
         } else {
-            continue;
-        };
-        match serde_json::from_str::<Value>(payload) {
-            Ok(value) => target.push(value),
-            Err(_) if !line.ends_with('\n') => {}
-            Err(e) => return Err(format!("raw original worker journal differs: {e}").into()),
+            timing.push(value);
         }
-    }
+        Ok(())
+    })?;
     Ok((samples, timing))
 }
 impl Request {

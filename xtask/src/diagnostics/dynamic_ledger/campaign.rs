@@ -1,5 +1,8 @@
 //! One fixed dynamic plan and complete envelope/journal contract.
-use crate::{Result, memory_policy, runtime, sampling_contract, statistics};
+use crate::{
+    Result, artifact::equality::python as equivalent, memory_policy, runtime, sampling_contract,
+    statistics,
+};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use std::{collections::BTreeMap, sync::LazyLock};
@@ -38,36 +41,7 @@ fn keys(value: &Value, expected: &[&str]) -> bool {
         .as_object()
         .is_some_and(|v| v.len() == expected.len() && expected.iter().all(|k| v.contains_key(*k)))
 }
-// Preserve the previous controller's recursive Python equality, including exact
-// mixed integer/float comparisons and its bool/numeric equivalence.
-fn equivalent(a: &Value, b: &Value) -> bool {
-    match (a, b) {
-        (Value::Number(_), Value::Number(_)) => {
-            if let (Some(a), Some(b)) = (a.as_i64(), b.as_i64()) {
-                a == b
-            } else if let Some(a) = a.as_i64().filter(|a| *a < 0) {
-                statistics::compare(&json!(a.unsigned_abs()), &json!(-b.as_f64().unwrap())).is_eq()
-            } else if let Some(b) = b.as_i64().filter(|b| *b < 0) {
-                statistics::compare(&json!(-a.as_f64().unwrap()), &json!(b.unsigned_abs())).is_eq()
-            } else if a.is_f64() && b.is_f64() {
-                a.as_f64() == b.as_f64()
-            } else {
-                statistics::compare(a, b).is_eq()
-            }
-        }
-        (Value::Bool(a), Value::Number(_)) => statistics::compare(&json!(u64::from(*a)), b).is_eq(),
-        (Value::Number(_), Value::Bool(b)) => statistics::compare(a, &json!(u64::from(*b))).is_eq(),
-        (Value::Array(a), Value::Array(b)) => {
-            a.len() == b.len() && a.iter().zip(b).all(|(a, b)| equivalent(a, b))
-        }
-        (Value::Object(a), Value::Object(b)) => {
-            a.len() == b.len()
-                && a.iter()
-                    .all(|(k, a)| b.get(k).is_some_and(|b| equivalent(a, b)))
-        }
-        _ => a == b,
-    }
-}
+
 fn source(value: &Value) -> Result<()> {
     if !keys(value, &["commit", "tree", "lock_sha256"])
         || [("commit", 40), ("tree", 40), ("lock_sha256", 64)]

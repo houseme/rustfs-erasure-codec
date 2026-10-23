@@ -4,6 +4,8 @@ use crate::{Result, benchmark_contract, release_rows, sampling_contract};
 use serde::Deserialize;
 use serde_json::{Value, json};
 
+pub(crate) mod journal;
+
 #[derive(Deserialize)]
 #[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
 enum Data {
@@ -12,7 +14,7 @@ enum Data {
     },
     StreamCore {
         ledger: stream_core::Ledger,
-        views: Vec<views::View>,
+        views: Vec<Value>,
         current: bool,
     },
     Dynamic {
@@ -34,6 +36,8 @@ fn sample() -> Mode {
 pub(crate) struct Request {
     rows: Vec<Value>,
     data: Data,
+    journal: Option<journal::Journal>,
+    reference: Option<(Value, Value)>,
     profile: String,
     case: String,
     revision: String,
@@ -111,7 +115,11 @@ impl Bindings<'_> {
 }
 impl Request {
     pub(crate) fn execute(mut self) -> Result<Value> {
-        if self.mode == Mode::Calibrate && !matches!(self.data, Data::Dynamic { .. }) {
+        if let Some(journal) = &self.journal {
+            self.rows = journal.worker(&self.rows, &mut self.data)?;
+        }
+        let dynamic = matches!(self.data, Data::Dynamic { .. });
+        if self.mode == Mode::Calibrate && !dynamic {
             return Err("only dynamic diagnostics use calibration mode".into());
         }
         match &self.data {
@@ -145,12 +153,22 @@ impl Request {
             }
             contract.validate_row(&row["rows"][0], &self.case)?;
         }
-        benchmark_contract::observations_ref(&self.profile, &self.rows, None, false)?;
+        let first = self
+            .rows
+            .first()
+            .ok_or("missing original diagnostic rows")?;
+        let (row, placement) = self.reference.as_ref().map_or(
+            (&first["rows"][0], &first["placement"]),
+            |(row, placement)| (row, placement),
+        );
+        for observed in &self.rows {
+            benchmark_contract::observation_matches(&self.profile, observed, row, placement)?;
+        }
         let bindings = Bindings {
             rows: &self.rows,
             native: self.cpus.is_some(),
         };
-        let summary = match &self.data {
+        let summary = match self.data {
             Data::VerifyScratch { ledger } => {
                 if self
                     .rows
@@ -168,9 +186,12 @@ impl Request {
                 views,
                 current,
             } => {
-                views::worker(views, &bindings, &self.case, self.page)?;
-                let report =
-                    ledger.validate(&self.case, 2, self.page, *current, bindings.native)?;
+                let views: Vec<views::View> = views
+                    .into_iter()
+                    .map(serde_json::from_value)
+                    .collect::<std::result::Result<_, _>>()?;
+                views::worker(&views, &bindings, &self.case, self.page)?;
+                let report = ledger.validate(&self.case, 2, self.page, current, bindings.native)?;
                 ledger.bind(&bindings)?;
                 report
             }
@@ -180,14 +201,22 @@ impl Request {
                     &self.case,
                     self.page,
                     bindings.native,
-                    *legacy,
+                    legacy,
                 )?;
                 ledger.bind(&bindings)?;
                 report
             }
         };
-        Ok(json!({"summary":summary,
-            "preparation":sampling_contract::preparation::Preparation::new(&self.rows, self.mode == Mode::Calibrate)?.catalog()}))
+        let mut result = json!({"summary":summary,
+            "preparation":sampling_contract::preparation::Preparation::new(&self.rows, self.mode == Mode::Calibrate)?.catalog()});
+        if self.journal.is_some() {
+            result["contract"] = json!([row, placement]);
+            if dynamic {
+                result["workload_trace"] =
+                    json!(self.rows.iter().map(|r| &r["workload"]).collect::<Vec<_>>());
+            }
+        }
+        Ok(result)
     }
 }
 
