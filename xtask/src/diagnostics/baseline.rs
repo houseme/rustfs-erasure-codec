@@ -7,6 +7,7 @@ use std::{
     collections::{BTreeMap, BTreeSet},
 };
 mod campaign;
+pub(crate) mod replay;
 
 const PHASES: [&str; 2] = ["A1", "A2"];
 const PROFILES: [&str; 4] = ["smoke", "small_file", "hotspot", "stream"];

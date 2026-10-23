@@ -6,6 +6,7 @@ use std::{
     fmt,
     path::{Path, PathBuf},
 };
+pub(crate) mod snapshot;
 
 pub(crate) fn read_json<T: DeserializeOwned>(path: &Path) -> Result<T> {
     let bytes = std::fs::read(path)?;

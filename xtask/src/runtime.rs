@@ -11,6 +11,48 @@ const ARM_FIELDS: [&str; 5] = [
     "CPU revision",
 ];
 
+pub(crate) fn validate_runtime(value: &Value) -> Result<()> {
+    if !value.as_object().is_some_and(|m| {
+        m.len() == 4
+            && [
+                "libc",
+                "allocator_environment",
+                "page_size",
+                "kernel_memory_policy",
+            ]
+            .iter()
+            .all(|k| m.contains_key(*k))
+    }) {
+        return Err(
+            "libc, allocator, base page and kernel memory policy provenance is required".into(),
+        );
+    }
+    let page = value["page_size"]
+        .as_u64()
+        .filter(|p| crate::sampling_contract::valid_page_size(*p))
+        .ok_or("invalid recorded OS base page size")?;
+    crate::memory_policy::parse(value["kernel_memory_policy"].clone(), Some(page))?;
+    if !value["libc"].as_object().is_some_and(|m| {
+        m.len() == 2
+            && ["name", "version"].iter().all(|k| {
+                m.get(*k)
+                    .and_then(Value::as_str)
+                    .is_some_and(|v| !v.is_empty())
+            })
+    }) {
+        return Err("invalid libc identity".into());
+    }
+    if !value["allocator_environment"].as_object().is_some_and(|m| {
+        m.iter().all(|(k, v)| {
+            (k.starts_with("MALLOC_") || k.starts_with("LD_") || k == "GLIBC_TUNABLES")
+                && v.is_string()
+        })
+    }) {
+        return Err("invalid allocator environment".into());
+    }
+    Ok(())
+}
+
 fn ascii_json(text: &str) -> String {
     use std::fmt::Write;
     let mut result = String::with_capacity(text.len());
@@ -123,6 +165,46 @@ pub(crate) fn cpu_identity(text: &str, machine: &str, reserved: &[u64]) -> Resul
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn runtime() -> Value {
+        serde_json::json!({"libc":{"name":"fixture","version":"1"},"allocator_environment":{"MALLOC_ARENA_MAX":"2","GLIBC_TUNABLES":"fixture","LD_BIND_NOW":"1"},"page_size":4096,
+            "kernel_memory_policy":{"kernel_release":"fixture","process_thp_disable":0,"thp":{"enabled":"madvise","defrag":"madvise","shmem_enabled":null,"sizes_kib":{}}}})
+    }
+    #[test]
+    fn runtime_reuses_policy_validation_and_preserves_explicit_allocator_values() {
+        let value = runtime();
+        let original = value.clone();
+        validate_runtime(&value).unwrap();
+        assert_eq!(value, original);
+        let mut value = runtime();
+        value["allocator_environment"] = serde_json::json!({});
+        validate_runtime(&value).unwrap();
+    }
+    #[test]
+    fn incomplete_runtime_bad_scalar_types_and_unrecognized_allocator_keys_are_refused() {
+        let mut value = runtime();
+        value
+            .as_object_mut()
+            .unwrap()
+            .remove("kernel_memory_policy");
+        assert!(validate_runtime(&value).is_err());
+        for (key, bad) in [
+            ("page_size", serde_json::json!(true)),
+            ("page_size", serde_json::json!(4096.0)),
+            ("libc", serde_json::json!({"name":"fixture","version":""})),
+            (
+                "allocator_environment",
+                serde_json::json!({"PATH":"unrecorded"}),
+            ),
+            (
+                "allocator_environment",
+                serde_json::json!({"MALLOC_ARENA_MAX":2}),
+            ),
+        ] {
+            let mut value = runtime();
+            value[key] = bad;
+            assert!(validate_runtime(&value).is_err(), "{key}");
+        }
+    }
     fn record(cpu: u64, part: &str) -> String {
         format!(
             "processor: {cpu}\nCPU implementer: 0x61\nCPU architecture: 8\nCPU variant: 0x0\nCPU part: {part}\nCPU revision: 0\nFeatures: fp asimd aes\n"

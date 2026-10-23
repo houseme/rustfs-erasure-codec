@@ -1,0 +1,171 @@
+//! Bounded original members, hashed from the same bytes that are decoded.
+use crate::Result;
+use serde_json::Value;
+use sha2::{Digest, Sha256};
+use std::{
+    collections::BTreeMap,
+    fs,
+    io::Read,
+    path::{Component, Path, PathBuf},
+};
+
+pub(crate) const MEMBER_LIMIT: u64 = 32 * 1024 * 1024;
+const SNAPSHOT_LIMIT: u64 = 256 * 1024 * 1024;
+
+pub(crate) struct Snapshot {
+    root: PathBuf,
+    total: u64,
+    members: BTreeMap<String, String>,
+}
+pub(crate) fn hex(bytes: &[u8]) -> String {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut text = String::with_capacity(bytes.len() * 2);
+    for b in bytes {
+        text.push(HEX[(b >> 4) as usize] as char);
+        text.push(HEX[(b & 15) as usize] as char);
+    }
+    text
+}
+pub(crate) fn digest(bytes: &[u8]) -> String {
+    hex(Sha256::digest(bytes).as_slice())
+}
+impl Snapshot {
+    pub(crate) fn new(root: &Path) -> Result<Self> {
+        Ok(Self {
+            root: fs::canonicalize(root)?,
+            total: 0,
+            members: BTreeMap::new(),
+        })
+    }
+    fn member(&self, name: &str) -> Result<PathBuf> {
+        let mut path = self.root.clone();
+        let parts: Vec<_> = Path::new(name).components().collect();
+        if parts.is_empty() {
+            return Err("regular original member required".into());
+        }
+        for (index, part) in parts.iter().enumerate() {
+            let Component::Normal(part) = part else {
+                return Err("invalid original member path".into());
+            };
+            path.push(part);
+            let meta = fs::symlink_metadata(&path)?;
+            if meta.file_type().is_symlink()
+                || if index + 1 == parts.len() {
+                    !meta.is_file()
+                } else {
+                    !meta.is_dir()
+                }
+            {
+                return Err("bounded regular original members required".into());
+            }
+        }
+        Ok(path)
+    }
+    fn bytes(&self, name: &str) -> Result<Vec<u8>> {
+        let path = self.member(name)?;
+        let file = fs::File::open(path)?;
+        let len = file.metadata()?.len();
+        if len == 0 || len > MEMBER_LIMIT {
+            return Err("bounded regular original members required".into());
+        }
+        let mut bytes = Vec::new();
+        file.take(MEMBER_LIMIT + 1).read_to_end(&mut bytes)?;
+        if bytes.is_empty() || bytes.len() as u64 > MEMBER_LIMIT {
+            return Err("original member changed beyond byte budget".into());
+        }
+        Ok(bytes)
+    }
+    pub(crate) fn json(&mut self, name: &str) -> Result<Value> {
+        if self.members.contains_key(name) {
+            return Err("original member must be read once".into());
+        }
+        let bytes = self.bytes(name)?;
+        self.total = self
+            .total
+            .checked_add(bytes.len() as u64)
+            .ok_or("snapshot byte budget overflow")?;
+        if self.total > SNAPSHOT_LIMIT {
+            return Err("original snapshot exceeds byte budget".into());
+        }
+        let text = json_text(&bytes)?;
+        let super::StrictJson(value) =
+            serde_json::from_str(&text).map_err(|e| format!("{name}: {e}"))?;
+        self.members.insert(name.into(), digest(&bytes));
+        Ok(value)
+    }
+    pub(crate) fn finish(self) -> Result<BTreeMap<String, String>> {
+        for (name, expected) in &self.members {
+            if digest(&self.bytes(name)?) != *expected {
+                return Err("original members changed during replay".into());
+            }
+        }
+        Ok(self.members)
+    }
+}
+
+// Match the UTF-8/16/32 encoding detection used by the former json.loads(bytes).
+fn json_text(bytes: &[u8]) -> Result<std::borrow::Cow<'_, str>> {
+    use std::borrow::Cow;
+    let (width, little, skip) = if bytes.starts_with(&[0, 0, 254, 255]) {
+        (4, false, 4)
+    } else if bytes.starts_with(&[255, 254, 0, 0]) {
+        (4, true, 4)
+    } else if bytes.starts_with(&[254, 255]) {
+        (2, false, 2)
+    } else if bytes.starts_with(&[255, 254]) {
+        (2, true, 2)
+    } else if bytes.starts_with(&[239, 187, 191]) {
+        (1, false, 3)
+    } else if bytes.len() >= 4 && bytes[0] == 0 {
+        if bytes[1] == 0 {
+            (4, false, 0)
+        } else {
+            (2, false, 0)
+        }
+    } else if bytes.len() >= 4 && bytes[1] == 0 {
+        if bytes[2] == 0 && bytes[3] == 0 {
+            (4, true, 0)
+        } else {
+            (2, true, 0)
+        }
+    } else if bytes.len() == 2 && bytes[0] == 0 {
+        (2, false, 0)
+    } else if bytes.len() == 2 && bytes[1] == 0 {
+        (2, true, 0)
+    } else {
+        (1, false, 0)
+    };
+    let raw = &bytes[skip..];
+    if width == 1 {
+        return Ok(Cow::Borrowed(std::str::from_utf8(raw)?));
+    }
+    if !raw.len().is_multiple_of(width) {
+        return Err("incomplete JSON encoding unit".into());
+    }
+    let mut text = String::new();
+    if width == 2 {
+        let units = raw.as_chunks::<2>().0.iter().map(|v| {
+            if little {
+                u16::from_le_bytes(*v)
+            } else {
+                u16::from_be_bytes(*v)
+            }
+        });
+        for c in char::decode_utf16(units) {
+            text.push(c?);
+        }
+    } else {
+        for v in raw.as_chunks::<4>().0 {
+            let n = if little {
+                u32::from_le_bytes(*v)
+            } else {
+                u32::from_be_bytes(*v)
+            };
+            text.push(char::from_u32(n).ok_or("invalid JSON Unicode scalar")?);
+        }
+    }
+    Ok(Cow::Owned(text))
+}
+
+#[cfg(test)]
+mod tests;
