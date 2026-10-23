@@ -74,14 +74,14 @@ impl crate::Field for Field {
 type TowerMulFn = fn([u8; 2], &[[u8; 2]], &mut [[u8; 2]], bool);
 
 #[cfg(rse_x86_gfni)]
-static TOWER_MULTIPLY: spin::Once<TowerMulFn> = spin::Once::new();
+static GFNI_TOWER_MULTIPLY: spin::Once<Option<TowerMulFn>> = spin::Once::new();
 
 #[cfg(rse_x86_gfni)]
-fn select_tower_multiply(backend: galois_8::BackendId) -> TowerMulFn {
+fn select_native_tower_multiply(backend: galois_8::BackendId) -> Option<TowerMulFn> {
     match backend {
-        galois_8::BackendId::RustGfniAvx2 => multiply_tower_gfni_avx2,
-        galois_8::BackendId::RustGfniAvx512 => multiply_tower_gfni_avx512,
-        _ => gf16_mul_slice_portable,
+        galois_8::BackendId::RustGfniAvx2 => Some(multiply_tower_gfni_avx2),
+        galois_8::BackendId::RustGfniAvx512 => Some(multiply_tower_gfni_avx512),
+        _ => None,
     }
 }
 
@@ -108,12 +108,19 @@ fn gf16_mul_slice(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]], accumul
         }
         return;
     }
-    // GF8's selected backend is immutable. Resolve the same choice once and
-    // enter the original portable executor directly for every other backend.
-    // The indirect call keeps the portable stack planes out of this wrapper.
-    let multiply =
-        TOWER_MULTIPLY.call_once(|| select_tower_multiply(galois_8::active_backend_id()));
-    multiply(elem, input, out, accumulate);
+    // An empty general operation originally did not select a GF8 backend.
+    if input.is_empty() {
+        return;
+    }
+    // Cache only native callables. Other backends retain a static call to the
+    // original executor rather than acquiring an indirect-call boundary.
+    let native = GFNI_TOWER_MULTIPLY
+        .call_once(|| select_native_tower_multiply(galois_8::active_backend_id()));
+    if let Some(multiply) = native {
+        multiply(elem, input, out, accumulate);
+    } else {
+        gf16_mul_slice_portable(elem, input, out, accumulate);
+    }
 }
 
 // Architectures/builds without GFNI retain the original executor directly.
@@ -140,6 +147,9 @@ use gf16_mul_slice_portable as gf16_mul_slice;
 /// On x86 with GFNI the GF(2^8) multiplies are so fast that a *scalar* byte
 /// de-/re-interleave dominates the runtime (Amdahl); SIMD-ing the layout
 /// conversion is what restores the tower decomposition's speed-up there.
+// Keep plane storage out of the native wrapper even on its direct fallback
+// branch. Builds without GFNI keep their previous inlining policy.
+#[cfg_attr(rse_x86_gfni, inline(never))]
 fn gf16_mul_slice_portable(
     elem: [u8; 2],
     input: &[[u8; 2]],
@@ -1031,17 +1041,14 @@ mod tests {
             BackendId::RustAvx512,
             BackendId::RustVsx,
         ] {
-            assert!(core::ptr::fn_addr_eq(
-                select_tower_multiply(backend),
-                gf16_mul_slice_portable as TowerMulFn
-            ));
+            assert!(select_native_tower_multiply(backend).is_none());
         }
         assert!(core::ptr::fn_addr_eq(
-            select_tower_multiply(BackendId::RustGfniAvx2),
+            select_native_tower_multiply(BackendId::RustGfniAvx2).unwrap(),
             multiply_tower_gfni_avx2 as TowerMulFn
         ));
         assert!(core::ptr::fn_addr_eq(
-            select_tower_multiply(BackendId::RustGfniAvx512),
+            select_native_tower_multiply(BackendId::RustGfniAvx512).unwrap(),
             multiply_tower_gfni_avx512 as TowerMulFn
         ));
     }

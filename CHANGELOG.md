@@ -16,7 +16,9 @@ All notable changes to this project are documented in this file.
   other backends and the encoded format retain their existing paths;
   preserve the original portable executor behind one cached selection and keep
   its stack planes outside the fused/constant entry. Throughput and release
-  approval remain pending controlled validation.
+  approval remain pending controlled validation. Cache only native callables;
+  other backends retain static portable calls and empty general operations
+  preserve the original backend-selection behavior.
 
 - Invert GF16 tower elements through conjugation and a GF8 norm instead of
   recursive polynomial division. Preserve every inverse and quotient byte,
