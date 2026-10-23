@@ -19,15 +19,20 @@ rejected under their original source bindings.
 ## Current merged implementation
 
 The [merged-candidate review](release-9.1.0-readiness-2026-10-23.md) now covers
-combined main `9f935ee`, including shared ordinary Classic verification. It is
-not source-identical to frozen runtime `449920e`. The earlier `14cf56e` and
+reviewed main `62632e5`, including shared ordinary Classic verification, empty
+aligned-shard storage and the newer source-plan/process-owner checks. It differs
+from both the running frozen `9f935ee` tree and earlier runtime `449920e`. The earlier `14cf56e` and
 `09597e4` file-tree equality remains a historical fact; their ordinary CI and
 package dry-run do not provide later-source performance acceptance. Strict
 evidence validation, release preflight and registry publication were skipped.
 
-New combined-source checks pass: 356 codec units, 93 integration tests, 129 native
-tests, all 273 Python controller tests, strict Clippy and no_std. The frozen
-64-worker encode/stream plan has completed and independently replays exactly. All
+New checks on `62632e5` pass: 357 codec library tests (five existing ignored),
+237 codec-only no_std tests, 199 native tests and all 248 Python controller tests,
+strict codec/tool Clippy and Linux tool metadata compilation. Version, workspace,
+JSON and actual package allowlist preparation checks pass; these are not strict
+release preflight. The separate full Linux campaign continues on frozen
+`9f935ee`. The earlier 64-worker encode/stream plan has completed and
+independently replays exactly. All
 64 distributions and eight regression programs pass, but three of 32 repeats fail
 (maximum 8.3833%); no sample is short. The [complete GFNI review](gfni-priority-review-2026-10-23.md)
 retains all sixteen cases and failures. This unaccepted result cannot

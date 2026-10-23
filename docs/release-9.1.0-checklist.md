@@ -3,8 +3,8 @@
 Status at the 2026-10-23 review: **implementation merged, performance acceptance
 incomplete, not tagged or uploaded**. The
 [current merged-candidate review](release-9.1.0-readiness-2026-10-23.md) records
-combined main `9f935ee`, its new-source validation and its differences from frozen
-candidate `449920e`. The earlier `14cf56e` file-tree equality is preserved as a
+reviewed main `62632e5`, its alignment/source-plan/process-owner checks, and
+its differences from the running frozen source `9f935ee` and earlier `449920e`. The earlier `14cf56e` file-tree equality is preserved as a
 historical source relation; the completed affected-catalog comparison keeps its
 original source labels and does not qualify the later combined implementation.
 Its exact replay retains three failed repeats despite passing scoped regression

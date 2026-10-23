@@ -1,5 +1,11 @@
 # 9.1.0 global review — 2026-10-23
 
+Latest reviewed main snapshot: `62632e5`. The
+[canonical readiness review](release-9.1.0-readiness-2026-10-23.md) records the
+new alignment/source-plan/process-owner checks and the different frozen Linux
+source. The successive sections below preserve their original identities and
+validation scope; they are not current-source performance acceptance.
+
 ## Integration with current main
 
 The tooling branch is rebased onto main
@@ -286,11 +292,12 @@ worker, retain their original status and leave no delayed output.
 
 The implementation uses the documented
 [`waitid` / `WNOWAIT` contract](https://man7.org/linux/man-pages/man2/waitpid.2.html).
-Darwin can return EPERM for a group containing only a zombie; its
+Darwin can return EPERM for an already-exited group; its
 [group-signalling implementation](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/kern/kern_sig.c)
-excludes zombies. The exception is accepted only after a native membership query
-proves that the sole member is the owned leader. Other permission failures remain
-errors and preserve generated inputs. This owner supervises the group it created;
+excludes zombies. The earlier exception proved only a sole owned leader. Reviewed
+main `62632e5` handles multiple exited members through two complete native
+membership snapshots with PID/start identities. Live, unknown or incomplete
+groups remain errors and preserve generated inputs. This owner supervises the group it created;
 it does not claim to supervise arbitrary detached sessions or Windows job trees.
 
 ### Local no_std check accidentally enabled std
