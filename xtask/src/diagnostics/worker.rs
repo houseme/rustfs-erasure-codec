@@ -2,7 +2,7 @@
 use super::{dynamic_ledger, ledger, stream_core, verify_scratch, views};
 use crate::{Result, benchmark_contract, release_rows, sampling_contract};
 use serde::Deserialize;
-use serde_json::Value;
+use serde_json::{Value, json};
 
 #[derive(Deserialize)]
 #[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
@@ -150,7 +150,7 @@ impl Request {
             rows: &self.rows,
             native: self.cpus.is_some(),
         };
-        match &self.data {
+        let summary = match &self.data {
             Data::VerifyScratch { ledger } => {
                 if self
                     .rows
@@ -161,7 +161,7 @@ impl Request {
                 }
                 let report = ledger.validate(&self.case, 2, self.page, bindings.native)?;
                 ledger.bind(&bindings)?;
-                Ok(report)
+                report
             }
             Data::StreamCore {
                 ledger,
@@ -172,7 +172,7 @@ impl Request {
                 let report =
                     ledger.validate(&self.case, 2, self.page, *current, bindings.native)?;
                 ledger.bind(&bindings)?;
-                Ok(report)
+                report
             }
             Data::Dynamic { ledger, legacy } => {
                 let report = ledger.validate(
@@ -183,9 +183,11 @@ impl Request {
                     *legacy,
                 )?;
                 ledger.bind(&bindings)?;
-                Ok(report)
+                report
             }
-        }
+        };
+        Ok(json!({"summary":summary,
+            "preparation":sampling_contract::preparation::Preparation::new(&self.rows, self.mode == Mode::Calibrate)?.catalog()}))
     }
 }
 

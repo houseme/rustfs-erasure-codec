@@ -63,8 +63,9 @@ def inputs(prior,repository):
         name='calibration/'+profile+'-samples.json';entry=document['calibration'][profile]
         if entry.get('path')!=name:raise ValueError('prior calibration member differs')
         rows=e.json_data(member(prior,name),entry.get('sha256'));digests[name]=entry['sha256']
-        counts[profile]=e.calibration_counts(rows,profile,e.BASELINE_COMMIT,prov['context']['runtime']['page_size'],allowed_cpus=prov['context']['isolation']['cpu_affinity'])
-        records[profile]=(e.observation_contracts(profile,[r for r in rows if r['complete']]),s.fixture_catalog(rows,calibration=True),s.workload_catalog(rows,calibration=True),s.workload_traces(rows,calibration=True))
+        calibrated=s.calibration_profile(rows,profile,e.BASELINE_COMMIT,prov['context']['runtime']['page_size'],allowed_cpus=prov['context']['isolation']['cpu_affinity'])
+        counts[profile]=calibrated['counts'];prepared=calibrated['preparation']
+        records[profile]=(e.observation_contracts(profile,[r for r in rows if r['complete']]),prepared['fixtures'],prepared['workloads'],prepared['traces'])
     if document['sampling'].get('common_iterations')!=counts:raise ValueError('prior frozen counts differ')
     return prov,counts,records,digests
 
@@ -77,10 +78,11 @@ def check_worker(rows,raw,step,calibration,context):
     profile=step['profile'];case=step['case'];counts={case:step['iterations']}
     timing=s.parse_output(raw,'RSE_TIMING ')
     if not same(s.parse_output(raw),rows) or len(timing)!=12 or any(not same({k:t[k] for k in ('case','index','iterations','wall_ns','timed_ns','fixture','workload','placement','before','after')},{k:r[k] for k in ('case','index','iterations','wall_ns','timed_ns','fixture','workload','placement','before','after')}) for t,r in zip(timing,rows)):raise ValueError('raw original worker journal differs')
-    selected,widths=s.selected_row(rows,profile,e.METRICS[profile],e.BASELINE_COMMIT,{case},counts,context['isolation']['cpu_affinity'],context['runtime']['page_size'])
+    selection=s.select_profile(rows,profile,e.METRICS[profile],e.BASELINE_COMMIT,{case},counts,context['isolation']['cpu_affinity'],context['runtime']['page_size'])
+    selected,widths=selection['selected'],selection['spreads'];prepared=selection['preparation']
     reference,fixtures,workloads,traces=calibration
     e.observation_contracts(profile,rows,reference)
-    for actual,wanted,label in ((s.fixture_catalog(rows),fixtures,'caller geometry'),(s.workload_catalog(rows),workloads,'workload'),(s.workload_traces(rows),traces,'input replay')):
+    for actual,wanted,label in ((prepared['fixtures'],fixtures,'caller geometry'),(prepared['workloads'],workloads,'workload'),(prepared['traces'],traces,'input replay')):
         if actual.get(case)!=wanted.get(case):raise ValueError(label+' differs from frozen input; no temporal attribution')
     if [r['kind'] for r in rows]!=['warmup']*3+['sample']*9 or any(r['calibration_batch']!=0 for r in rows):raise ValueError('original warmup/sample schedule differs')
     return {'metric':e.METRICS[profile],'value':float(selected[0][e.METRICS[profile]]),'central_spread':widths[0]['central_spread']}

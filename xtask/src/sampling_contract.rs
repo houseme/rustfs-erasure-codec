@@ -5,6 +5,7 @@ use std::borrow::Borrow;
 
 pub(crate) mod batch;
 pub(crate) mod calibration_profile;
+pub(crate) mod preparation;
 mod protocol;
 use serde_json::{Value, json};
 

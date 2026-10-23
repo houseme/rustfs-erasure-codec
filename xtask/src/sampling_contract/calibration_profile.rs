@@ -1,7 +1,7 @@
 //! Complete calibration profiles reuse the original row and rehearsal models.
 use super::{calibration_worker, protocol, uint};
 use crate::{Result, benchmark_contract, release_rows};
-use serde_json::Value;
+use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 
 pub(super) fn analyze(
@@ -11,9 +11,9 @@ pub(super) fn analyze(
     page: Option<u64>,
     cpus: Option<&[u64]>,
 ) -> Result<Value> {
-    Ok(serde_json::to_value(counts(
-        records, profile, revision, page, cpus,
-    )?)?)
+    let counts = counts(records, profile, revision, page, cpus)?;
+    Ok(json!({"counts":counts,
+        "preparation":super::preparation::Preparation::new(records, true)?.catalog()}))
 }
 
 pub(crate) fn counts<'a>(

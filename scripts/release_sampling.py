@@ -49,20 +49,11 @@ def validate_workload_sequence(records, profile):
     native_tools.sampling_request('validate-workload-sequence', profile=profile, records=records)
 
 
-def workload_catalog(records, *, calibration=False):
-    selected = {}
-    for record in records:
-        if record['index'] == 0: selected[record['case']] = record
-    return {case:{k:v for k,v in row['workload'].items() if k != 'rng'} | {'initial_rng':row['workload']['rng']['next_before'] if row['workload']['rng'] else None, 'placement':row['placement']}
-            for case,row in selected.items()}
-
-
-def workload_traces(records, *, calibration=False):
-    if calibration:
-        last = {r['case']:r['calibration_batch'] for r in records}
-        records = [r for r in records if r['calibration_batch'] == last[r['case']]]
-    return {case:[r['workload']['rng'] for r in records if r['case'] == case]
-            for case in {r['case'] for r in records} if any(r['case'] == case and r['workload']['rng'] is not None for r in records)}
+def calibration_profile(records, profile, revision, expected_page_size=None, *, allowed_cpus=None):
+    result = native_tools.sampling_request('calibration-profile', records=records, profile=profile,
+        revision=revision, expected_page_size=expected_page_size,
+        allowed_cpus=None if allowed_cpus is None else list(allowed_cpus))
+    return dict(result, counts=dict(result['counts']))
 
 
 def fixture_contract(profile, case):
@@ -135,13 +126,6 @@ def validate_telemetry(record, allowed_cpus=None):
 def validate_fixture(record, profile, expected_page_size=None):
     native_tools.sampling_request('validate-fixture', profile=profile, record=record,
                                   expected_page_size=expected_page_size)
-
-
-def fixture_catalog(records, *, calibration=False):
-    """Extract already-validated fixed layouts, never infer them from timing."""
-    return {r["case"]: r["fixture"] for r in records
-            if r.get("fixture") is not None and
-            (r.get("complete") is True if calibration else r.get("kind") == "sample")}
 
 
 def validate_timing(record, profile, count):
@@ -228,10 +212,11 @@ def sample_groups(records, profile, revision, expected, counts, allowed_cpus=Non
     return {case: [records[i] for i in indices] for case, indices in result['groups']}
 
 
-def selected_row(records, profile, metric, revision, expected, counts, allowed_cpus=None, expected_page_size=None, *, diagnostic=False):
+def select_profile(records, profile, metric, revision, expected, counts, allowed_cpus=None, expected_page_size=None, *, diagnostic=False):
     result = _sample_batch(records, profile, revision, expected, counts, allowed_cpus,
                            expected_page_size, dict(kind='select', metric=metric, diagnostic=diagnostic))
-    return [records[i]['rows'][0] for i in result['selected_indices']], result['spreads']
+    return dict(selected=[records[i]['rows'][0] for i in result['selected_indices']],
+                spreads=result['spreads'], preparation=result['preparation'])
 
 
 def describe_groups(records, profile, revision, expected, counts, fixtures, allowed_cpus=None, expected_page_size=None):

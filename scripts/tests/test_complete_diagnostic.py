@@ -60,9 +60,9 @@ class CompleteReplayTests(unittest.TestCase):
         self.doc['files'][phase][profile]['samples'] = self.f.write_samples(phase, profile, records)
         counts = self.doc['sampling']['common_iterations'][profile]
         revision = self.doc['sources']['baseline' if phase.startswith('A') else 'candidate']['commit']
-        selected, _ = e.diagnostic_rows(records, profile, e.METRICS[profile], revision,
+        selection = e.diagnostic_rows(records, profile, e.METRICS[profile], revision,
                                          e.expected_cases(profile), counts)
-        self.f.write_rows(phase, profile, selected)
+        self.f.write_rows(phase, profile, selection['selected'])
 
     def test_execution_errors_do_not_become_complete_statistical_diagnostics(self):
         with mock.patch.object(e.subprocess,'run',return_value=subprocess.CompletedProcess([],2,'','input integrity failed')) as checks:
@@ -158,7 +158,7 @@ class CompleteCaptureTests(unittest.TestCase):
             return rows
         f.run.side_effect=emit
         widths=[{'case':'fixture','central_spread':.25,'short_samples':[{'index':3,'wall_ns':1,'timed_ns':1}]}]
-        with mock.patch.object(e,'diagnostic_rows',return_value=([f.payload],widths)), mock.patch.object(e,'verify_diagnostic',return_value=({}, {}, {'status':'diagnostic_complete','release_approval':False})) as replay, redirect_stdout(io.StringIO()):
+        with mock.patch.object(e,'diagnostic_rows',return_value={'selected':[f.payload],'spreads':widths}), mock.patch.object(e,'verify_diagnostic',return_value=({}, {}, {'status':'diagnostic_complete','release_approval':False})) as replay, redirect_stdout(io.StringIO()):
             e.capture(f.baseline,f.candidate,f.output,f.root/'group',diagnostic=True)
         self.assertEqual(f.run.call_count,24)
         self.assertTrue(all((f.output/p/'stream-samples.json').exists() for p in e.PHASES))

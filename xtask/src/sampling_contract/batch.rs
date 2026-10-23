@@ -82,9 +82,12 @@ impl Request {
             }
         }
         descriptions.sort_by(|a, b| a["case"].as_str().cmp(&b["case"].as_str()));
-        Ok(
-            json!({"groups":groups,"selected_indices":selected,"spreads":spreads,"descriptions":descriptions}),
-        )
+        let mut result = json!({"groups":groups,"selected_indices":selected,"spreads":spreads,"descriptions":descriptions});
+        if matches!(self.output, Output::Select { .. }) {
+            result["preparation"] =
+                super::preparation::Preparation::new(&self.records, false)?.catalog();
+        }
+        Ok(result)
     }
 }
 

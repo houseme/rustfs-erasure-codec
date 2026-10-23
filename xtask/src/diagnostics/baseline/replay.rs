@@ -1,16 +1,14 @@
 //! Native directory replay: one bounded snapshot and shared validation models.
 use super::{Group, PROFILES};
 use crate::{
-    Args, Result, artifact::snapshot::Snapshot, benchmark_contract, fingerprint, release_rows,
-    sampling_contract,
+    Args, Result,
+    artifact::snapshot::Snapshot,
+    fingerprint, release_rows,
+    sampling_contract::{self, preparation::Preparation},
 };
 use serde::Deserialize;
 use serde_json::{Value, json};
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    fs,
-    path::PathBuf,
-};
+use std::{collections::BTreeSet, fs, path::PathBuf};
 
 const BASELINE: &str = "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6";
 const QUALIFICATION: &str = "baseline-qualification-v2";
@@ -40,94 +38,6 @@ fn protocol_matches(actual: &Value, expected: &Value) -> bool {
                     .all(|(k, v)| a.get(k).is_some_and(|a| protocol_matches(a, v)))
         }
         _ => actual == expected,
-    }
-}
-#[derive(PartialEq)]
-struct Workload<'a> {
-    fields: BTreeMap<&'a str, &'a Value>,
-    initial_rng: &'a Value,
-    placement: &'a Value,
-}
-struct Preparation<'a> {
-    fixtures: BTreeMap<&'a str, &'a Value>,
-    workloads: BTreeMap<&'a str, Workload<'a>>,
-    traces: BTreeMap<&'a str, Vec<&'a Value>>,
-    contracts: BTreeMap<&'a str, (&'a Value, &'a Value)>,
-}
-impl<'a> Preparation<'a> {
-    fn new(records: &'a [Value], calibration: bool) -> Result<Self> {
-        let mut result = Self {
-            fixtures: BTreeMap::new(),
-            workloads: BTreeMap::new(),
-            traces: BTreeMap::new(),
-            contracts: BTreeMap::new(),
-        };
-        let mut last = BTreeMap::new();
-        for row in records {
-            let case = row["case"].as_str().ok_or("missing preparation case")?;
-            last.insert(case, &row["calibration_batch"]);
-            if !row["fixture"].is_null()
-                && if calibration {
-                    row["complete"] == true
-                } else {
-                    row["kind"] == "sample"
-                }
-            {
-                result.fixtures.insert(case, &row["fixture"]);
-            }
-            if row["index"] == 0 {
-                let fields = row["workload"]
-                    .as_object()
-                    .ok_or("missing workload preparation")?
-                    .iter()
-                    .filter(|(k, _)| k.as_str() != "rng")
-                    .map(|(k, v)| (k.as_str(), v))
-                    .collect();
-                result.workloads.insert(
-                    case,
-                    Workload {
-                        fields,
-                        initial_rng: &row["workload"]["rng"]["next_before"],
-                        placement: &row["placement"],
-                    },
-                );
-            }
-            if calibration && row["complete"] == true {
-                result
-                    .contracts
-                    .insert(case, (&row["rows"][0], &row["placement"]));
-            }
-        }
-        for row in records {
-            let case = row["case"].as_str().ok_or("missing preparation case")?;
-            if !row["workload"]["rng"].is_null()
-                && (!calibration || &row["calibration_batch"] == last[case])
-            {
-                result
-                    .traces
-                    .entry(case)
-                    .or_default()
-                    .push(&row["workload"]["rng"]);
-            }
-        }
-        Ok(result)
-    }
-    fn validate(&self, profile: &str, records: &[Value]) -> Result<()> {
-        for row in records {
-            let case = row["case"].as_str().ok_or("missing preparation case")?;
-            let (source, placement) = self
-                .contracts
-                .get(case)
-                .ok_or("observation case differs from calibration")?;
-            benchmark_contract::observation_matches(profile, row, source, placement)?;
-        }
-        let actual = Preparation::new(records, false)?;
-        if actual.workloads != self.workloads || actual.traces != self.traces {
-            return Err(
-                format!("{profile}: preparation or input replay differs from calibration").into(),
-            );
-        }
-        Ok(())
     }
 }
 fn records(value: Value) -> Result<Vec<Value>> {

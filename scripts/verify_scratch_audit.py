@@ -89,10 +89,11 @@ def verify(output,repository):
             rows=sampling.parse_output(raw);scratch=sampling.parse_output(raw,PREFIX);journal=sampling.parse_output(raw,'RSE_TIMING ')
             if rows!=data['samples'] or scratch!=[data['scratch']] or len(journal)!=12 or any(any(j[field]!=row[field] for field in ('case','index','iterations','wall_ns','timed_ns','fixture','workload','placement','before','after')) for j,row in zip(journal,rows)):
                 raise ValueError('diagnostic raw rows differ from original journals')
-            summary=worker_report(rows,data['scratch'],profile,case,source,page,cpus)
+            analysis=worker_report(rows,data['scratch'],profile,case,source,page,cpus)
+            summary=analysis['summary']
             if any(entry.get(k)!=v for k,v in summary.items()):raise ValueError('diagnostic summary differs from raw rows')
             contracts[key]=evidence.observation_contracts(profile,rows,contracts.get(key))
-            workload=sampling.workload_catalog(rows)
+            workload=analysis['preparation']['workloads']
             if key in workloads and workload!=workloads[key]:raise ValueError('diagnostic preparation differs across sources')
             workloads[key]=workload
             signatures[role][key]={(e['phase'],e['len'],e['capacity'],tuple(e['offsets']),e['inline']) for e in data['scratch']['events']}
@@ -139,7 +140,7 @@ def _check(repository,output,baseline_ref):
                     process.check_returncode()
                     text=numeric.read_text();rows=sampling.parse_output(text);observed=sampling.parse_output(text,PREFIX)
                     if len(observed)!=1:raise ValueError('missing complete native scratch journal')
-                    summary=worker_report(rows,observed[0],profile,case,source,page,report['cpu_affinity'])
+                    summary=worker_report(rows,observed[0],profile,case,source,page,report['cpu_affinity'])['summary']
                     member=output/(name+'.json')
                     member.write_text(json.dumps({'samples':rows,'scratch':observed[0]},indent=2)+'\n')
                     report['cases'][role][profile+'/'+case]=dict(summary,path=member.name,sha256=evidence.digest(member.read_bytes()),raw_log_sha256=evidence.digest(path.read_bytes()),numeric_journal_path=numeric.name,numeric_journal_sha256=evidence.digest(numeric.read_bytes()))
