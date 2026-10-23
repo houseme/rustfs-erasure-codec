@@ -110,9 +110,11 @@ cases, complete A1/B1/B2/A2, 64 workers and 768 observations. Original common
 iteration counts and three warmups/nine samples are retained. All 32 repeats,
 64 comparisons and eight scoped regression programs are evaluated after the
 planned collection; statistical failure does not truncate it. The frozen plan
-has now been launched after the previous controlled capture completed and restored
-its resource and observer services. Complete collection and independent replay
-are pending; launching the guard does not establish a performance result.
+has completed and independently replays exactly. All 64 distributions and eight
+regression programs pass, with no short sample; three of 32 repeats exceed 5%
+(maximum 8.3833%). Sources, resources and observer services are restored. The
+[complete GFNI review](gfni-priority-review-2026-10-23.md) preserves every case,
+pairing and failure. The affected catalog is not accepted performance evidence.
 
 This affected catalog compares two earlier unreleased sources. It does not
 include the later shared Classic helper and cannot be promoted to timing evidence
