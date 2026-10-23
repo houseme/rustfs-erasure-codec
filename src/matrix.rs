@@ -131,15 +131,17 @@ impl<F: Field> Matrix<F> {
             return Err(Error::IncompatibleDimensions);
         }
         let mut result = Self::new(self.row_count, rhs.col_count);
-        for r in 0..self.row_count {
-            for c in 0..rhs.col_count {
-                let mut val = F::zero();
-                for i in 0..self.col_count {
-                    let mul = F::mul(acc!(self, r, i), acc!(rhs, i, c));
-
-                    val = F::add(val, mul);
+        if rhs.col_count == 0 {
+            return Ok(result);
+        }
+        let byte_rows = F::as_gf8_slice(&[]).is_some();
+        for row in 0..self.row_count {
+            let start = row * rhs.col_count;
+            let output = &mut result.data[start..start + rhs.col_count];
+            for (inner, &coefficient) in self.get_row(row).iter().enumerate() {
+                if coefficient != F::zero() {
+                    Self::add_scaled_slice(coefficient, rhs.get_row(inner), output, byte_rows);
                 }
-                acc!(result, r, c) = val;
             }
         }
         Ok(result)
@@ -195,7 +197,53 @@ impl<F: Field> Matrix<F> {
         self.row_count == self.col_count
     }
 
+    #[inline]
+    fn add_scaled_slice(
+        scale: F::Elem,
+        input: &[F::Elem],
+        output: &mut [F::Elem],
+        byte_rows: bool,
+    ) {
+        if byte_rows {
+            F::mul_slice_add(scale, input, output);
+        } else {
+            // Block-oriented fields can need plane conversion and large scratch.
+            // Matrix rows keep their scalar arithmetic with contiguous traversal.
+            for (output, &input) in output.iter_mut().zip(input) {
+                *output = F::add(*output, F::mul(scale, input));
+            }
+        }
+    }
+
+    /// Add a scaled, disjoint source row without copying it into scratch.
+    #[inline]
+    fn add_scaled_row(
+        &mut self,
+        source: usize,
+        destination: usize,
+        scale: F::Elem,
+        byte_rows: bool,
+    ) {
+        debug_assert_ne!(source, destination);
+        let width = self.col_count;
+        let (input, output): (&[F::Elem], &mut [F::Elem]) = if source < destination {
+            let (before, after) = self.data.split_at_mut(destination * width);
+            (
+                &before[source * width..(source + 1) * width],
+                &mut after[..width],
+            )
+        } else {
+            let (before, after) = self.data.split_at_mut(source * width);
+            (
+                &after[..width],
+                &mut before[destination * width..(destination + 1) * width],
+            )
+        };
+        Self::add_scaled_slice(scale, input, output, byte_rows);
+    }
+
     pub fn gaussian_elim(&mut self) -> Result<(), Error> {
+        let byte_rows = F::as_gf8_slice(&[]).is_some();
         for r in 0..self.row_count {
             if acc!(self, r, r) == F::zero() {
                 for r_below in r + 1..self.row_count {
@@ -212,8 +260,9 @@ impl<F: Field> Matrix<F> {
             // Scale to 1.
             if acc!(self, r, r) != F::one() {
                 let scale = F::div(F::one(), acc!(self, r, r));
-                for c in 0..self.col_count {
-                    acc!(self, r, c) = F::mul(scale, acc!(self, r, c));
+                let start = r * self.col_count;
+                for value in &mut self.data[start..start + self.col_count] {
+                    *value = F::mul(scale, *value);
                 }
             }
             // Make everything below the 1 be a 0 by subtracting
@@ -222,10 +271,7 @@ impl<F: Field> Matrix<F> {
             for r_below in r + 1..self.row_count {
                 if acc!(self, r_below, r) != F::zero() {
                     let scale = acc!(self, r_below, r);
-                    for c in 0..self.col_count {
-                        acc!(self, r_below, c) =
-                            F::add(acc!(self, r_below, c), F::mul(scale, acc!(self, r, c)));
-                    }
+                    self.add_scaled_row(r, r_below, scale, byte_rows);
                 }
             }
         }
@@ -235,10 +281,7 @@ impl<F: Field> Matrix<F> {
             for r_above in 0..d {
                 if acc!(self, r_above, d) != F::zero() {
                     let scale = acc!(self, r_above, d);
-                    for c in 0..self.col_count {
-                        acc!(self, r_above, c) =
-                            F::add(acc!(self, r_above, c), F::mul(scale, acc!(self, d, c)));
-                    }
+                    self.add_scaled_row(d, r_above, scale, byte_rows);
                 }
             }
         }
@@ -279,7 +322,7 @@ impl<F: Field> Matrix<F> {
 mod tests {
     extern crate alloc;
 
-    use alloc::vec;
+    use alloc::{vec, vec::Vec};
 
     use super::{Error, Matrix};
     use crate::galois_8;
@@ -419,6 +462,95 @@ mod tests {
             matrix!([56, 23], [3, 100], [45, 201]).invert(),
             Err(Error::NonSquare)
         );
+    }
+
+    fn assert_row_algebra<F: crate::Field>() {
+        fn scalar_product<F: crate::Field>(
+            left: &Matrix<F>,
+            right: &Matrix<F>,
+        ) -> Vec<Vec<F::Elem>> {
+            (0..left.row_count())
+                .map(|row| {
+                    (0..right.col_count())
+                        .map(|column| {
+                            (0..left.col_count()).fold(F::zero(), |sum, inner| {
+                                F::add(sum, F::mul(left.get(row, inner), right.get(inner, column)))
+                            })
+                        })
+                        .collect()
+                })
+                .collect()
+        }
+        // Cover empty dimensions, rectangular rows and both sides of byte SIMD
+        // boundaries. The oracle deliberately uses only scalar field arithmetic.
+        for (rows, inner, columns) in [(0, 3, 5), (3, 0, 5), (3, 7, 0)]
+            .into_iter()
+            .chain([1, 3, 15, 16, 17, 31, 32, 33, 63, 64, 65].map(|columns| (3, 7, columns)))
+        {
+            let mut left = Matrix::<F>::new(rows, inner);
+            let mut right = Matrix::<F>::new(inner, columns);
+            for row in 0..rows {
+                for column in 0..inner {
+                    left.set(row, column, F::nth((row * 29 + column * 13) % F::ORDER));
+                }
+            }
+            for row in 0..inner {
+                for column in 0..columns {
+                    right.set(row, column, F::nth((row * 17 + column * 7 + 1) % F::ORDER));
+                }
+            }
+            let expected = scalar_product(&left, &right);
+            let actual = left.multiply(&right).unwrap();
+            assert_eq!(actual.row_count(), rows);
+            assert_eq!(actual.col_count(), columns);
+            for (row, expected) in expected.iter().enumerate() {
+                assert_eq!(actual.get_row(row), expected.as_slice());
+            }
+        }
+        for size in [1, 2, 3, 4, 7, 8, 10, 15, 16, 17, 31, 32, 33] {
+            for reverse_identity in [false, true] {
+                let mut matrix = if reverse_identity {
+                    Matrix::<F>::identity(size)
+                } else {
+                    Matrix::<F>::vandermonde(size, size)
+                };
+                if reverse_identity {
+                    for row in 0..size / 2 {
+                        matrix.swap_rows(row, size - 1 - row);
+                    }
+                }
+                let inverse = matrix.invert().unwrap();
+                for actual in [
+                    scalar_product(&matrix, &inverse),
+                    scalar_product(&inverse, &matrix),
+                ] {
+                    for (row, values) in actual.iter().enumerate() {
+                        for (column, &value) in values.iter().enumerate() {
+                            assert_eq!(value, if row == column { F::one() } else { F::zero() });
+                        }
+                    }
+                }
+            }
+        }
+        let mut singular = Matrix::<F>::identity(3);
+        for column in 0..3 {
+            singular.set(2, column, singular.get(1, column));
+        }
+        assert_eq!(singular.invert().err(), Some(Error::SingularMatrix));
+        assert_eq!(
+            Matrix::<F>::new(2, 3).invert().err(),
+            Some(Error::NonSquare)
+        );
+    }
+
+    #[test]
+    fn gf8_matrix_rows_match_independent_scalar_algebra() {
+        assert_row_algebra::<crate::galois_8::Field>();
+    }
+
+    #[test]
+    fn gf16_matrix_rows_match_independent_scalar_algebra() {
+        assert_row_algebra::<crate::galois_16::Field>();
     }
 
     #[test]
