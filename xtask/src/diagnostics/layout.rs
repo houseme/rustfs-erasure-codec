@@ -19,6 +19,9 @@ pub(crate) enum Request {
     PairedReplay {
         request: replay::Request,
     },
+    Contract {
+        code: replay::Code,
+    },
     Protocol,
     CpuPlan {
         cpus: Vec<u64>,
@@ -54,6 +57,7 @@ impl Request {
         match self {
             Self::Inventory { request } => request.execute(),
             Self::PairedReplay { request } => request.execute(),
+            Self::Contract { code } => code.contract(),
             Self::Protocol => Ok(verify::protocol()),
             Self::CpuPlan { cpus } => Ok(cpu::plan(cpus)),
             Self::Cpu {

@@ -14,12 +14,30 @@ use std::{collections::BTreeMap, path::PathBuf};
 pub(crate) struct Request {
     directory: PathBuf,
     diagnostic: bool,
-    contract: Value,
+    contract: Option<Value>,
+    code: Option<Code>,
     baseline: Value,
     candidate: Value,
     tool: Value,
     #[serde(default, deserialize_with = "declared_digest")]
     manifest_sha256: Option<String>,
+}
+/// Actual caller files; compute their expected contract within the replay frame.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Code {
+    native_root: PathBuf,
+    controller: PathBuf,
+    template: PathBuf,
+    sampler: PathBuf,
+}
+impl Code {
+    pub(super) fn contract(&self) -> Result<Value> {
+        Ok(json!({"protocol":verify::protocol(),
+            "controller_sha256":crate::fingerprint::file(&self.controller)?,
+            "template_sha256":crate::fingerprint::file(&self.template)?,
+            "sampling_implementation_sha256":crate::fingerprint::source(&self.native_root,crate::fingerprint::Kind::Sampling,Some(&self.sampler))?}))
+    }
 }
 fn declared_digest<'de, D: Deserializer<'de>>(
     d: D,
@@ -77,6 +95,11 @@ fn context(value: &Value, cpu: &Value) -> Result<()> {
 }
 impl Request {
     pub(crate) fn execute(self) -> Result<Value> {
+        let expected_contract = match (&self.contract, &self.code) {
+            (Some(contract), None) => contract.clone(),
+            (None, Some(code)) => code.contract()?,
+            _ => return Err("exactly one paired tool-contract binding is required".into()),
+        };
         let mut snapshot = Snapshot::new(&self.directory)?;
         let document = snapshot.python_json_bound(
             if self.diagnostic {
@@ -97,7 +120,7 @@ impl Request {
         }
         if document["schema_version"] != "verify-layout-paired-v2"
             || document["phase_order"] != json!(PHASES)
-            || !equivalent(&document["contract"], &self.contract)
+            || !equivalent(&document["contract"], &expected_contract)
             || document["release_approval"].as_bool() != Some(false)
         {
             return Err("a complete current paired-layout manifest is required".into());
@@ -124,8 +147,7 @@ impl Request {
         let (mut selected_context, mut cpu, mut iterations) =
             (Value::Null, Value::Null, Value::Null);
         let mut phases = BTreeMap::new();
-        let contract = self
-            .contract
+        let contract = expected_contract
             .as_object()
             .ok_or("invalid paired tool contract")?;
         for (index, phase) in PHASES.into_iter().enumerate() {

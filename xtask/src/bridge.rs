@@ -78,7 +78,14 @@ enum Request {
         value: serde_json::Value,
         base_page_size: Option<u64>,
     },
+    Fingerprint {
+        root: PathBuf,
+        variant: crate::fingerprint::Kind,
+        controller: Option<PathBuf>,
+    },
     DiagnosticRender {
+        #[serde(default)]
+        output: RenderOutput,
         root: PathBuf,
         tool: PathBuf,
         variant: String,
@@ -89,6 +96,8 @@ enum Request {
         request: crate::diagnostics::source_plan::Request,
     },
     SamplerRender {
+        #[serde(default)]
+        output: RenderOutput,
         root: PathBuf,
         tool: PathBuf,
     },
@@ -96,6 +105,29 @@ enum Request {
         variant: String,
         tool: PathBuf,
     },
+}
+#[derive(Default, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+enum RenderOutput {
+    #[default]
+    Files,
+    Digest,
+    Plan,
+}
+fn rendered(
+    files: BTreeMap<String, String>,
+    root: &std::path::Path,
+    output: RenderOutput,
+) -> Result<Response> {
+    if matches!(output, RenderOutput::Files) {
+        return Ok(Response::Files(files));
+    }
+    let sha256 = crate::fingerprint::overlay(&files, root)?;
+    Ok(match output {
+        RenderOutput::Digest => Response::Text(sha256),
+        RenderOutput::Plan => Response::Data(serde_json::json!({"files":files,"sha256":sha256})),
+        RenderOutput::Files => Response::Files(files),
+    })
 }
 #[derive(Serialize)]
 #[serde(untagged)]
@@ -174,14 +206,30 @@ impl Request {
                 crate::memory_policy::parse(value, base_page_size)?;
                 Response::Data(serde_json::Value::Null)
             }
+            Self::Fingerprint {
+                root,
+                variant,
+                controller,
+            } => Response::Text(crate::fingerprint::source(
+                &root,
+                variant,
+                controller.as_deref(),
+            )?),
             Self::DiagnosticRender {
+                output,
                 root,
                 tool,
                 variant,
                 allocation_check,
-            } => Response::Files(overlays::render(&root, &tool, &variant, allocation_check)?),
+            } => rendered(
+                overlays::render(&root, &tool, &variant, allocation_check)?,
+                &root,
+                output,
+            )?,
             Self::SourcePlan { request } => Response::Data(request.execute()?),
-            Self::SamplerRender { root, tool } => Response::Files(sampler::render(&root, &tool)?),
+            Self::SamplerRender { root, tool, output } => {
+                rendered(sampler::render(&root, &tool)?, &root, output)?
+            }
             Self::Template { variant, tool } => Response::Text(templates::native(&variant, &tool)?),
         })
     }
@@ -348,5 +396,47 @@ mod tests {
             result[0]["ns_per_iter"].as_f64().unwrap().to_bits(),
             8.344125545873929e-19f64.to_bits()
         );
+    }
+}
+
+#[cfg(test)]
+mod render_tests {
+    use super::*;
+    use serde_json::{Value, json};
+    #[test]
+    fn default_files_digest_and_plan_share_every_original_generated_byte() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap();
+        for variant in ["sampling", "views", "verify", "stream", "dynamic"] {
+            let request = if variant == "sampling" {
+                json!({"kind":"sampler-render","root":root,"tool":root})
+            } else {
+                json!({"kind":"diagnostic-render","variant":variant,"root":root,"tool":root})
+            };
+            let run = |value: &Value| {
+                serde_json::to_value(
+                    decode(&serde_json::to_vec(value).unwrap())
+                        .unwrap()
+                        .execute()
+                        .unwrap(),
+                )
+                .unwrap()
+            };
+            let files = run(&request);
+            let original: BTreeMap<String, String> = serde_json::from_value(files.clone()).unwrap();
+            let mut digest = request.clone();
+            digest["output"] = json!("digest");
+            let mut plan = request.clone();
+            plan["output"] = json!("plan");
+            let plan = run(&plan);
+            assert_eq!(plan["files"], files);
+            assert_eq!(plan["sha256"], run(&digest));
+            assert_eq!(
+                plan["sha256"],
+                crate::fingerprint::overlay(&original, root).unwrap()
+            );
+            assert_eq!(original.len(), files.as_object().unwrap().len());
+        }
     }
 }
