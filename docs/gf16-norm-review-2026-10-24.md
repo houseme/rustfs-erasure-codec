@@ -13,7 +13,7 @@ GF8 field. This replaces recursive polynomial Euclid in production. Constant
 elements `[0, b]` need only one GF8 inverse; zero still inverts to zero, preserving
 the historical division-by-zero result.
 
-The change benefits calls that calculate GF16 matrix inverses: codec construction
+The change targets calls that calculate GF16 matrix inverses: codec construction
 and cold recovery. Cached recovery and steady-state encoding use the same
 existing payload kernels. It adds no allocation, unsafe code, cache policy,
 backend override, shape threshold or public API. Field polynomial, element order,
