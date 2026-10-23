@@ -103,8 +103,8 @@ class WorkerContractTests(unittest.TestCase):
         self.entry={'path':member.name,'sha256':audit.e.digest(member.read_bytes()),'numeric_journal_path':journal.name,'numeric_journal_sha256':audit.e.digest(journal.read_bytes()),'raw_log_sha256':'a'*64}
 
     def validate(self):
-        data,rows,views=audit.worker_data(self.root,self.name,self.entry)
-        return audit.worker_report(rows,views,data['core'],CASE,self.source,4096,list(range(8)),True)['summary']
+        data,journal=audit.worker_data(self.root,self.name,self.entry)
+        return audit.worker_report(data['samples'],data['views'],data['core'],CASE,self.source,4096,list(range(8)),True,journal=journal)['summary']
 
     def test_complete_numerical_worker_replays_without_private_logs(self):
         self.assertEqual(self.validate()['calls'],24)
@@ -113,6 +113,30 @@ class WorkerContractTests(unittest.TestCase):
         with mock.patch.object(audit.native_tools,'_request_payload',wraps=audit.native_tools._request_payload) as transport:
             self.assertEqual(self.validate()['calls'],24)
         self.assertEqual(transport.call_count,1)
+
+    def test_original_journal_types_are_validated_after_equivalent_capsule_comparison(self):
+        path=self.root/self.entry['numeric_journal_path']
+        def change_view(value):
+            lines=path.read_text().splitlines()
+            index=next(i for i,line in enumerate(lines) if line.startswith(audit.views.PREFIX))
+            view=self.json.loads(lines[index][len(audit.views.PREFIX):]);view['observation']=value
+            lines[index]=audit.views.PREFIX+self.json.dumps(view)
+            path.write_text('\n'.join(lines)+'\n');self.entry['numeric_journal_sha256']=audit.e.digest(path.read_bytes())
+        self.data['views'][0]['observation']=0.0;self.write();change_view(0)
+        self.assertEqual(self.validate()['calls'],24)
+        self.data['views'][0]['observation']=0;self.write();change_view(0.0)
+        with self.assertRaises(ValueError):self.validate()
+
+    def test_pair_contract_is_checked_with_the_original_worker_in_one_frame(self):
+        data,journal=audit.worker_data(self.root,self.name,self.entry)
+        def run(reference=None):
+            return audit.worker_report(data['samples'],data['views'],data['core'],CASE,self.source,4096,list(range(8)),True,journal=journal,reference=reference)
+        first=run();reference=copy.deepcopy(first['contract'])
+        with mock.patch.object(audit.native_tools,'_request_payload',wraps=audit.native_tools._request_payload) as frames:
+            self.assertEqual(run(reference),first)
+        self.assertEqual(frames.call_count,1)
+        reference[0]['backend_id']='foreign'
+        with self.assertRaises(ValueError):run(reference)
 
     def test_release_row_cache_keeps_results_immutable_and_rechecks_context(self):
         native=audit.native_tools;native._normalized_rows.cache_clear()

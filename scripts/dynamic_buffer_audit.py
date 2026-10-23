@@ -48,20 +48,15 @@ def inventory_steps():
     return json.loads(_STEPS)
 
 
-def supplement_report(header,ledger,case,page,cpus,source):
+def supplement_report(header,ledger,case,page,cpus,source,*,journal=None):
     return native_tools.request('diagnostic-ledger', request=dict(
-        kind='dynamic-supplement', header=header, data=ledger, case=case, page=page,
+        kind='dynamic-supplement', header=header, data=ledger, case=case, page=page, journal=journal,
         cpus=cpus, legacy=source['commit']==e.BASELINE_COMMIT))
 
 
 def validate_ledger(data,profile,case,page,native=False,legacy=False):
     return native_tools.request('diagnostic-ledger', request=dict(
         kind='dynamic', data=data, profile=profile, case=case, page=page, native=native, legacy=legacy))
-
-
-def underlying_records(records):
-    """Validate a private copy; raw stored observations retain their marker."""
-    return native_tools.request('diagnostic-ledger', request=dict(kind='dynamic-records', records=records))
 
 
 def validate_envelope(report,output,repository):
@@ -71,9 +66,9 @@ def validate_envelope(report,output,repository):
         if source!=e.source_at(repository,source['commit']):raise ValueError('original dynamic source/tool differs')
 
 
-def worker_report(rows,ledger,profile,case,source,page,cpus,mode):
+def worker_report(rows,ledger,profile,case,source,page,cpus,mode,*,journal=None,reference=None):
     return native_tools.request('diagnostic-worker', request=dict(rows=rows, profile=profile, case=case,
-        revision=source['commit'], page=page, cpus=None if cpus is None else list(cpus), mode=mode,
+        revision=source['commit'], page=page, cpus=None if cpus is None else list(cpus), mode=mode, journal=journal, reference=reference,
         data=dict(kind='dynamic', ledger=ledger, legacy=source['commit']==e.BASELINE_COMMIT)))
 
 
@@ -101,25 +96,19 @@ def verify(output,repository):
             mode,profile,case=key.split('/',2);name=role+'-'+mode+'-'+profile+'-'+case.replace(':','_')
             member=output/(name+'.json');journal=output/(name+'-journal.jsonl')
             if entry.get('path')!=member.name or entry.get('numeric_journal_path')!=journal.name:raise ValueError('invalid dynamic member path')
-            data=e.json_data(member,entry.get('sha256'));raw=e.member_text(journal,entry.get('numeric_journal_sha256'))
+            data=e.json_data(member,entry.get('sha256'));bound=dict(path=str(journal.resolve()),sha256=entry.get('numeric_journal_sha256'))
             private=output/(name+'.log')
             if not e.DIGEST.fullmatch(entry.get('raw_log_sha256','')) or private.exists() and (private.is_symlink() or e.digest(private.read_bytes())!=entry['raw_log_sha256']):raise ValueError('original private dynamic log changed')
-            ledgers=s.parse_output(raw,PREFIX)
             if profile=='decoder':
-                headers=s.parse_output(raw,'RSE_DYNAMIC_SUPPLEMENT ')
-                if set(data)!={'supplement','dynamic'} or headers!=[data['supplement']] or ledgers!=[data['dynamic']]:raise ValueError('decoder supplement journal differs')
-                summary=supplement_report(data['supplement'],data['dynamic'],case,page,cpus,source)
-                rows=None
+                if set(data)!={'supplement','dynamic'}:raise ValueError('invalid decoder supplement member')
+                summary=supplement_report(data['supplement'],data['dynamic'],case,page,cpus,source,journal=bound)
             else:
-                rows=s.parse_output(raw);timing=s.parse_output(raw,'RSE_TIMING ')
-            if profile!='decoder':
-                if set(data)!={'samples','dynamic'} or rows!=data['samples'] or ledgers!=[data['dynamic']] or len(timing)!=12 or any(any(t[n]!=r[n] for n in ('case','index','iterations','wall_ns','timed_ns','fixture','workload','placement','before','after')) for t,r in zip(timing,rows)):raise ValueError('dynamic original journals differ')
-                analysis=worker_report(rows,data['dynamic'],profile,case,source,page,cpus,mode)
-                summary=analysis['summary']
+                if set(data)!={'samples','dynamic'}:raise ValueError('invalid dynamic worker member')
                 contract_key=profile+'/'+case
-                original=underlying_records(rows)
-                contracts[contract_key]=e.observation_contracts(profile,original,contracts.get(contract_key))
-                workload=analysis['preparation']['workloads'];trace=[r['workload'] for r in original]
+                analysis=worker_report(data['samples'],data['dynamic'],profile,case,source,page,cpus,mode,
+                    journal=bound,reference=contracts.get(contract_key))
+                summary=analysis['summary'];contracts[contract_key]=analysis['contract']
+                workload=analysis['preparation']['workloads'];trace=analysis['workload_trace']
                 if contract_key in workloads and (workloads[contract_key]!=workload or traces[contract_key]!=trace):raise ValueError('dynamic calibration/measurement input differs')
                 workloads[contract_key]=workload;traces[contract_key]=trace
             if any(entry.get(k)!=v for k,v in summary.items()):raise ValueError('dynamic summary differs')

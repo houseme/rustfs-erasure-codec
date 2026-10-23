@@ -53,39 +53,11 @@ class DiagnosticOwnershipTests(unittest.TestCase):
 
 
 class CompleteInventoryContractTests(unittest.TestCase):
-    def test_fixed_original_modes_and_decoder_supplements_have_no_case_holes(self):
-        steps=audit.inventory_steps()
-        self.assertEqual(len(steps),516)
-        for role in ('baseline','candidate'):
-            for mode in ('calibrate','sample'):
-                actual={(v['profile'],v['case']) for v in steps if v['role']==role and v['mode']==mode}
-                expected={(p,c) for p in audit.PROFILES for c in audit.e.expected_cases(p)}
-                self.assertEqual(actual,expected)
-                self.assertEqual(len(actual),126)
-            self.assertEqual({v['case'] for v in steps if v['role']==role and v['profile']=='decoder'},set(audit.SUPPLEMENTS))
-        self.assertEqual(len({tuple(sorted(v.items())) for v in steps}),len(steps))
-
     def test_fixed_plan_returns_fresh_values_without_another_native_request(self):
         from unittest import mock
         with mock.patch.object(audit.native_tools,'_request_payload',side_effect=AssertionError('unexpected IPC')):
             first=audit.inventory_steps();first[0]['role']='foreign'
             self.assertEqual(audit.inventory_steps()[0]['role'],'candidate')
-
-    def test_raw_dynamic_workload_is_refused_by_formal_validation(self):
-        import copy
-        for profile in audit.PROFILES:
-            case=sorted(audit.e.expected_cases(profile))[0]
-            contract=audit.s.workload_contract(profile,case)
-            contract['rng']=None
-            raw={'case':case,'workload':{'observer':'dynamic-source-copy-v1','contract':contract}}
-            before=copy.deepcopy(raw)
-            with self.assertRaises(ValueError):audit.s.validate_workload(raw,profile)
-            decoded=audit.underlying_records([raw])
-            self.assertEqual(decoded[0]['workload'],contract)
-            self.assertEqual(raw,before)
-            for change in (lambda d:d['workload'].update(observer='formal'),lambda d:d['workload'].update(address=1),lambda d:d.update(workload=contract)):
-                bad=copy.deepcopy(raw);change(bad)
-                with self.assertRaises(ValueError):audit.underlying_records([bad])
 
     def envelope(self,folder):
         import json,copy

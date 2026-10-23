@@ -44,9 +44,9 @@ def validate(data,case,iterations,page,current,native=False):
         current=current, native=native))
 
 
-def worker_report(rows,io,core,case,source,page,cpus,current):
+def worker_report(rows,io,core,case,source,page,cpus,current,*,journal=None,reference=None):
     return native_tools.request('diagnostic-worker', request=dict(rows=rows, profile='stream', case=case,
-        revision=source['commit'], page=page, cpus=None if cpus is None else list(cpus),
+        revision=source['commit'], page=page, cpus=None if cpus is None else list(cpus), journal=journal, reference=reference,
         data=dict(kind='stream-core', ledger=core, views=io, current=current)))
 
 
@@ -57,12 +57,12 @@ def _original(repository,source):
 def worker_data(output,name,entry):
     member=output/(name+'.json');numeric=output/(name+'-journal.jsonl')
     if entry.get('path')!=member.name or entry.get('numeric_journal_path')!=numeric.name:raise ValueError('invalid stream member path')
-    data=e.json_data(member,entry.get('sha256'));raw=e.member_text(numeric,entry.get('numeric_journal_sha256'))
+    data=e.json_data(member,entry.get('sha256'))
     private=output/(name+'.log')
     if not e.DIGEST.fullmatch(entry.get('raw_log_sha256','')) or private.exists() and (private.is_symlink() or e.digest(private.read_bytes())!=entry['raw_log_sha256']):raise ValueError('private original stream log differs')
-    rows=sampling.parse_output(raw);io=sampling.parse_output(raw,views.PREFIX);core=sampling.parse_output(raw,PREFIX);journal=sampling.parse_output(raw,'RSE_TIMING ')
-    if set(data)!={'samples','views','core'} or rows!=data['samples'] or io!=data['views'] or core!=[data['core']] or len(journal)!=12 or any(any(j[n]!=r[n] for n in ('case','index','iterations','wall_ns','timed_ns','fixture','workload','placement','before','after')) for j,r in zip(journal,rows)):raise ValueError('stream numerical journal differs from raw observations')
-    return data,rows,io
+    if set(data)!={'samples','views','core'}:raise ValueError('invalid stream numerical member')
+    return data,dict(path=str(numeric.resolve()),sha256=entry.get('numeric_journal_sha256'))
+
 
 
 def verify(output,repository):
@@ -83,11 +83,11 @@ def verify(output,repository):
         if set(report['cases'][role])!=e.expected_cases('stream'):raise ValueError('incomplete original stream catalog')
         for case,entry in report['cases'][role].items():
             name=role+'-stream-'+case.replace(':','_')
-            data,rows,io=worker_data(output,name,entry)
-            analysis=worker_report(rows,io,data['core'],case,source,page,cpus,current)
+            data,journal=worker_data(output,name,entry)
+            analysis=worker_report(data['samples'],data['views'],data['core'],case,source,page,cpus,current,journal=journal,reference=contracts.get(case))
             summary=analysis['summary']
             if any(entry.get(n)!=v for n,v in summary.items()):raise ValueError('stream source summary differs')
-            contracts[case]=e.observation_contracts('stream',rows,contracts.get(case));workload=analysis['preparation']['workloads']
+            contracts[case]=analysis['contract'];workload=analysis['preparation']['workloads']
             if case in workloads and workloads[case]!=workload:raise ValueError('prepared stream workload differs across sources')
             workloads[case]=workload;members[entry['path']]=entry['sha256'];total+=summary['events']
     return {'schema':'stream-core-replay-v1','source_count':2,'case_count':15,'events':total,'members':members,
