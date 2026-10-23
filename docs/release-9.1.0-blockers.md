@@ -60,6 +60,18 @@ refusals. Its integration does not approve those comparisons. The current
 functional record and original matrix-source binding are explicit in the
 [merged-candidate review](release-9.1.0-readiness-2026-10-23.md).
 
+## Scalar unit-pivot follow-through
+
+The [scalar unit-pivot candidate](scalar-unit-pivot-review-2026-10-23.md) is bound
+to executed source `9e5ee94` after integration of main `8d59e77`. It omits remaining
+known scalar pivot products while retaining field addition, GF8 normalization and
+full byte-batch widths. A fixed fixture reduces scalar products from 10 to 7;
+byte-path work is intentionally unchanged. All 530 codec / 239 no_std / 221 native /
+247 Python tests and 200 normal-format published-version comparisons pass.
+These are functional/work-count results, not accepted throughput evidence.
+The existing complete diagnostic refusals remain unchanged; native Linux CI and
+final-source performance/release acceptance still need their own actual results.
+
 ## 2026-10-23 adaptive verification candidate
 
 The [complete affected-catalog review](verify-dispatch-review-2026-10-23.md) of
