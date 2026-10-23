@@ -70,3 +70,46 @@ fn projections_require_case_names_and_index_zero_workload_objects() {
         assert!(Preparation::new(&rows, false).is_err());
     }
 }
+
+#[test]
+fn all_126_preparation_catalogs_match_the_frozen_python_projections() {
+    use sha2::{Digest, Sha256};
+    let mut catalogs = BTreeMap::new();
+    let mut cases = 0;
+    for (profile, names) in crate::sampling_contract::case_catalog() {
+        let mut rows: Vec<_> = names
+            .iter()
+            .flat_map(|case| {
+                (0..12).map(move |i| crate::sampling_contract::tests::record(profile, case, i))
+            })
+            .collect();
+        cases += names.len();
+        let measurement = Preparation::new(&rows, false).unwrap().catalog();
+        for row in &mut rows {
+            row["complete"] = json!(row["index"] == 11);
+            row["kind"] = json!(if row["index"].as_u64().unwrap() < 3 {
+                "calibration_warmup"
+            } else {
+                "calibration"
+            });
+            row["calibration_batch"] = json!(1);
+        }
+        let calibration = Preparation::new(&rows, true).unwrap().catalog();
+        catalogs.insert(
+            profile,
+            json!({"measurement":measurement,"calibration":calibration}),
+        );
+    }
+    assert_eq!(cases, 126);
+    // Sorted compact JSON from the Python projectors at main 0a85348. RNG
+    // previews use the native fixture's index witnesses; all other fields match.
+    let digest = Sha256::digest(serde_json::to_vec(&catalogs).unwrap());
+    let digest = digest
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect::<String>();
+    assert_eq!(
+        digest,
+        "d44fff1895ee2b824dea1362ee84d6ce16706da47daed844a257107d882c77da"
+    );
+}
