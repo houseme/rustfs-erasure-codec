@@ -3021,6 +3021,128 @@ fn test_reconstruction_cache_stats_track_hits_and_misses() {
     }
 }
 
+#[cfg(all(feature = "std", feature = "benchmark-metrics"))]
+mod concurrent_cache_metrics {
+    use crate::{CodecOptions, Field, ReconstructionCacheStats, ReedSolomon, galois_8};
+    use std::{
+        cell::RefCell,
+        sync::mpsc::{self, Receiver, Sender},
+        time::Duration,
+    };
+
+    thread_local! {
+        static FIRST_DIVISION: RefCell<Option<(Sender<()>, Receiver<()>)>> = const { RefCell::new(None) };
+    }
+
+    struct GatedField;
+    impl Field for GatedField {
+        const ORDER: usize = 256;
+        type Elem = u8;
+        fn add(a: u8, b: u8) -> u8 {
+            galois_8::add(a, b)
+        }
+        fn mul(a: u8, b: u8) -> u8 {
+            galois_8::mul(a, b)
+        }
+        fn div(a: u8, b: u8) -> u8 {
+            if let Some((arrived, resume)) = FIRST_DIVISION.with(|gate| gate.borrow_mut().take()) {
+                arrived.send(()).unwrap();
+                resume.recv_timeout(Duration::from_secs(10)).unwrap();
+            }
+            galois_8::div(a, b)
+        }
+        fn exp(a: u8, n: usize) -> u8 {
+            galois_8::exp(a, n)
+        }
+        fn zero() -> u8 {
+            0
+        }
+        fn one() -> u8 {
+            1
+        }
+        fn nth_internal(n: usize) -> u8 {
+            n as u8
+        }
+    }
+
+    fn recover_concurrent_misses(missing: [usize; 2]) -> ReconstructionCacheStats {
+        let codec = ReedSolomon::<GatedField>::with_options(
+            2,
+            1,
+            CodecOptions {
+                inversion_cache: true,
+                inversion_cache_capacity: 1,
+                fast_one_parity: false,
+                ..CodecOptions::default()
+            },
+        )
+        .unwrap();
+        let mut encoded: Vec<Vec<u8>> = (0..3)
+            .map(|shard| {
+                (0..127)
+                    .map(|offset| (shard * 29 + offset * 13) as u8)
+                    .collect()
+            })
+            .collect();
+        codec.encode(&mut encoded).unwrap();
+        let (arrived, arrivals) = mpsc::channel();
+        std::thread::scope(|scope| {
+            let mut resumes = Vec::new();
+            let mut workers = Vec::new();
+            for index in missing {
+                let (resume, paused) = mpsc::channel();
+                resumes.push(resume);
+                let arrived = arrived.clone();
+                let codec = &codec;
+                let expected = &encoded;
+                workers.push(scope.spawn(move || {
+                    FIRST_DIVISION.with(|gate| *gate.borrow_mut() = Some((arrived, paused)));
+                    let mut shards: Vec<_> = expected.iter().cloned().map(Some).collect();
+                    shards[index] = None;
+                    codec.reconstruct_data(&mut shards).unwrap();
+                    assert_eq!(shards[index].as_ref().unwrap(), &expected[index]);
+                }));
+            }
+            // Each worker pauses in matrix inversion, after its cache miss.
+            // Release neither until both misses are established. Timeouts keep
+            // an unexpected execution path from hanging the test process.
+            for _ in 0..2 {
+                arrivals.recv_timeout(Duration::from_secs(10)).unwrap();
+            }
+            for resume in resumes {
+                resume.send(()).unwrap();
+            }
+            for worker in workers {
+                worker.join().unwrap();
+            }
+        });
+        codec.reconstruction_cache_stats()
+    }
+
+    #[test]
+    fn duplicate_concurrent_misses_do_not_evict_the_same_cached_pattern() {
+        let stats = recover_concurrent_misses([0, 0]);
+        assert_eq!(
+            (stats.requests, stats.hits, stats.misses, stats.inserts),
+            (2, 0, 2, 2)
+        );
+        assert_eq!(
+            stats.evictions, 0,
+            "replacing the same key removed no LRU entry"
+        );
+    }
+
+    #[test]
+    fn distinct_concurrent_misses_evict_one_entry_at_capacity_one() {
+        let stats = recover_concurrent_misses([0, 1]);
+        assert_eq!(
+            (stats.requests, stats.hits, stats.misses, stats.inserts),
+            (2, 0, 2, 2)
+        );
+        assert_eq!(stats.evictions, 1);
+    }
+}
+
 #[cfg(feature = "std")]
 #[test]
 fn test_reconstruction_cache_stats_track_evictions() {

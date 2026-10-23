@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Count reconstruction-cache evictions only when inserting a new key removes
+  an entry at capacity. Concurrent misses for the same pattern may replace the
+  cached matrix without an eviction; preserve inversion outside the cache lock,
+  cache policy and decoding bytes, and cover both same-key and distinct-key races.
+
 - Confirm complete exited process groups during macOS diagnostic cancellation,
   including multiple unreaped workers, before reaping the owned leader and
   removing generated inputs. Preserve unknown/live groups, PID identity and
