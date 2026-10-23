@@ -1,9 +1,9 @@
 # 9.1.0 merged-candidate review
 
-Review date: 2026-10-23 (Asia/Shanghai). Reviewed main snapshot:
-`549b0ac5fc8bb16723d5dab20c934aea5024f5c0`; merged review source
-`aa89274850d29e1190c727b3e33fd7ba25da97d0`. Functional and preparation checks
-pass in their recorded scope; performance acceptance and publication remain incomplete.
+Review date: 2026-10-23 (Asia/Shanghai). Reviewed and executed main snapshot:
+`0a853482d19a0b903837cc8975b16793a6356375`. The integrated matrix and replay
+implementation passes the functional checks below; performance acceptance and
+publication remain incomplete. Earlier snapshots retain their own validation.
 
 ## Exact sources and evidence
 
@@ -19,11 +19,13 @@ pass in their recorded scope; performance acceptance and publication remain inco
 | Earlier Darwin follow-through | `5882adbd05de6c15ba37b74de36458d473c7f971` | Historical local proof and bounded cancellation checks |
 | Updated main | `549b0ac5fc8bb16723d5dab20c934aea5024f5c0` | Includes concurrent cache metrics and bounded Darwin member-reaping repair |
 | Integrated proof review | `aa89274850d29e1190c727b3e33fd7ba25da97d0` | Shared proof, strict main refusal rules and deterministic tests |
+| Current reviewed main | `0a853482d19a0b903837cc8975b16793a6356375` | Includes contiguous matrix rows, digest-bound original reads and consolidated native interfaces |
 
 The first four identities have the same complete Git file tree. That historical
 relation does not extend to the later rows. Relative to frozen `9f935ee`, reviewed
 main changes the empty `AlignedShard` representation, concurrent reconstruction-cache
-eviction accounting and their tests, plus repository tools and documentation. Manifests, lockfile, build script and Cargo
+eviction accounting, contiguous matrix operations and their tests, plus
+repository tools and documentation. Manifests, lockfile, build script and Cargo
 configuration remain unchanged. Similar codec paths or unchanged dependencies do
 not establish complete source-tree, timing or allocation-lifetime equivalence.
 All measurements retain their actual source identities.
@@ -32,7 +34,8 @@ The review followed ordinary/adaptive verification, validation macros, checked
 kernel preparation/execution, cached backend eligibility, aligned storage,
 observer-plan construction, source ownership and complete process-group cleanup.
 No additional supported defect requiring another runtime branch was found in
-this scope. The changes below repair contracts at shared ownership boundaries.
+this scope. The reviewed integration reuses shared arithmetic and ownership
+boundaries rather than adding another runtime policy branch.
 
 ## Shared execution and ownership
 
@@ -85,7 +88,59 @@ reinterpret a permission error as successful cancellation. The scope remains
 owned process groups, without a claim about arbitrary detached sessions or
 Windows job trees.
 
-## Validation on the reviewed snapshot
+## Current integrated main and executable checks
+
+Matrix construction and cold reconstruction use contiguous row accumulation.
+Elimination borrows disjoint source/destination rows instead of copying a pivot.
+Only fields opting into the documented GF8 byte arithmetic use the batch
+operator; other fields retain scalar row arithmetic. This keeps GF16 short rows
+away from block-plane conversion and additional scratch. Matrix storage, cache
+policy, normal encoded bytes and reconstruction publication/error semantics stay
+at their existing boundaries. No additional runtime defect was established by
+this review, so no further backend, shape or allocation policy is introduced.
+
+Replay hashes and decodes the same bounded original bytes, then reuses parsed
+rows. Declared digests follow the JSON inputs into both native regression gates;
+invalid original members and execution errors remain distinct from statistical
+refusals. Source generation stays in complete native plans. Their retired private
+Python per-file adapters are covered by native tests, with the remaining Python
+controllers retaining orchestration and ownership.
+
+All new checks execute on unchanged source `0a85348`:
+
+| Check | Actual outcome |
+| --- | --- |
+| Native tools | 211 passed: 182 unit / 29 CLI |
+| All-feature codec tests, including library | 527 passed / 43 existing ignored, across 34 programs |
+| Included codec library / remaining integration tests | 361 / 166 passed; library has five existing ignores |
+| Codec-only no_std library | 239 passed |
+| Complete Python controllers | 246 passed |
+| Published 9.0.0 comparison | 200 exact parity configurations and bidirectional cross-decoding; historical GF16 vectors pass |
+| Strict codec/tool Clippy; Linux x86_64 all-target tool Clippy | Passed; Linux compilation is not native ISA/timing execution |
+| Manifest/version, workspace, JSON and package-list audits | Passed; core/WASM remain 67/6 members |
+| Formatting | Passed |
+
+The [complete functional record](../benchmarks/release-9.1.0/2026-10-23/integrated-main-functional-review.json)
+keeps these counts separate; the 361 library tests are included in the 527 total,
+not additional to it. This is functional preparation, without strict positive
+release preflight or performance approval.
+
+The [matrix component review](matrix-row-review-2026-10-23.md) now records its
+actual merge in PR #68. An independent zero-codec replay of all 2,208 existing
+observations reproduces every median, CPU median, width, repeat, four-pair ratio
+and refusal in both cohorts. The first retains one repeat failure and two
+regression cases; the later cohort retains five widths, fourteen repeats and
+three regression cases, with no short sample. All these failures remain
+unaccepted. Neither the new functional checks nor the merge turns those local
+ARM64 diagnostics into accepted throughput or final Linux evidence.
+
+PR #67 was externally rebased and merged. Its checked head `067ece2`, original
+pushed head `9d2703c` and merge `588787d` have the same complete file tree; both
+workflow sets finished with 62 SUCCESS / 6 SKIPPED and no pending or failed job.
+The skipped evidence/preflight/publication jobs do not provide positive release
+acceptance. Current and subsequent PR heads require their own CI readback.
+
+## Earlier validation on reviewed main `62632e5`
 
 All checks below ran on `62632e5`; inputs remained unchanged during validation.
 Later documentation commits do not relabel that executed source.
@@ -151,8 +206,8 @@ Clippy, formatting and all 248 Python controller tests. The executed inputs
 remained unchanged throughout validation.
 Codec, manifest and lockfile bytes are identical to updated main `549b0ac`; the
 metrics fix is tested here through both same-pattern and distinct-pattern
-concurrent misses. Earlier `62632e5` checks retain their own source label. The new
-PR head must still complete its own CI. These checks neither erase the original
+concurrent misses. Earlier `62632e5` checks retain their own source label. The later PR #67 CI result is recorded above; earlier local
+results retain their original source binding. These checks neither erase the original
 failed job nor establish codec performance acceptance.
 
 Earlier independent checks remain bound to their own sources: `709c40b` passed

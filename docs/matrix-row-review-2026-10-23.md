@@ -94,10 +94,30 @@ observer edits themselves are identical. Native tooling passes 172 unit and 28
 CLI tests. Strict codec Clippy, formatting and diff checks pass. PR CI must
 independently validate its exact head.
 
-Keep the implementation draft while performance qualification is unresolved.
-Do not weaken bounds, select favorable cases, rewrite the original refusals or
-promote the local diagnostics into release evidence. After the currently owned
-Linux capture releases resources, a concrete controlled condition should support
-stable, complete source comparisons before integration by rebase.
+PR #68 was externally merged as `c5d8530`; reviewed main `0a85348` contains the
+same matrix source as the final recorded prototype. Integration does not qualify
+the rejected performance comparisons. Do not weaken bounds, select favorable
+cases, rewrite the original refusals or promote these diagnostics into release
+evidence. After the currently owned Linux capture releases resources, a concrete
+controlled condition and final-source binding must support any further complete
+comparison. The running frozen capture is not changed or restarted.
 The existing #2897 completion markers and final-source ABBA/layout, immutable
 evidence and actual strict positive release preflight remain unchanged.
+
+
+## Integrated-source follow-through
+
+Current main `0a85348` independently passes 361 codec library tests plus 166
+integration tests (527 total / 43 existing ignored), 239 codec-only no_std,
+211 native tools and 246 Python tests. The 200 published-9.0.0 parity and
+bidirectional cross-decoding configurations pass on this actual source, as do
+strict codec/tool Clippy, Linux tool compilation checks and package preparation.
+These new functional checks do not relabel the original prototype validations.
+
+An independent replay consumes all 2,208 numeric observations and checks every
+median, CPU median, width, repeat and all four pair ratios. Both original cohorts'
+complete failure lists match, all input bytes remain unchanged, and no codec
+workload runs during replay. The source hash of the reviewed matrix matches the
+public record. The [integrated functional record](../benchmarks/release-9.1.0/2026-10-23/integrated-main-functional-review.json)
+keeps the functional and numerical scopes separate; neither grants performance
+approval or replaces the published-baseline Linux release requirements.
