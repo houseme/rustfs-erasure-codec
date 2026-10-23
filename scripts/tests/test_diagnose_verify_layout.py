@@ -86,6 +86,28 @@ class PairedLayoutTests(unittest.TestCase):
             self.assertTrue(report['layout_gate_passed'])
             self.assertFalse(report['release_approval'])
 
+    def test_directory_replay_uses_one_small_frame_without_python_member_parsing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output=pathlib.Path(directory);write_campaign(output)
+            paths=[p for p in output.rglob('*') if p.is_file()]
+            before={p.relative_to(output).as_posix():p.read_bytes() for p in paths}
+            native=diagnostic.native_tools
+            with mock.patch.object(diagnostic.evidence,'json_data',side_effect=AssertionError('Python JSON replay')):
+                with mock.patch.object(diagnostic,'parse_output',side_effect=AssertionError('Python journal replay')):
+                    with mock.patch.object(native,'_request_payload',wraps=native._request_payload) as frames:
+                        report=self.verify(output)
+            self.assertTrue(report['layout_gate_passed']);self.assertEqual(frames.call_count,1)
+            self.assertLess(len(frames.call_args.args[0].encode()),8192)
+            self.assertEqual(before,{p.relative_to(output).as_posix():p.read_bytes() for p in paths})
+
+    def test_explicit_manifest_digest_is_required_to_be_a_matching_string(self):
+        with tempfile.TemporaryDirectory() as directory:
+            output=pathlib.Path(directory);write_campaign(output)
+            sha=diagnostic.evidence.digest((output/'manifest.json').read_bytes())
+            self.assertTrue(self.verify(output,manifest_sha256=sha)['layout_gate_passed'])
+            for value in (None,False,0,'0'*64):
+                with self.assertRaises(ValueError):self.verify(output,manifest_sha256=value)
+
     def test_rebase_accepts_identical_full_tree_and_lock_but_rejects_changed_tool(self):
         with tempfile.TemporaryDirectory() as directory:
             output = pathlib.Path(directory); write_campaign(output)

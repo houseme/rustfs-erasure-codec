@@ -137,83 +137,15 @@ def analyze_paired(phases, iterations, page_size, measuring_cpu, *, diagnostic=F
         iterations=iterations, page_size=page_size, measuring_cpu=measuring_cpu, diagnostic=diagnostic))
 
 
-def validate_context(context, measuring_cpu):
-    if (not isinstance(context, dict) or context.get('settings') != evidence.SAMPLING_ENV
-            or any(not isinstance(context.get(k), str) or not context[k] for k in ('compiler', 'cpu_model'))):
-        raise ValueError('complete paired environment provenance is required')
-    runtime, isolation = context.get('runtime'), context.get('isolation')
-    try:evidence.validate_runtime(runtime)
-    except ValueError as error:raise ValueError('complete paired runtime provenance is required: '+str(error)) from error
-    if (not isinstance(isolation, dict) or isolation.get('scope') != 'exclusive-vm-cpu-partition'
-            or isolation.get('physical_host_exclusivity_proven') is not False):
-        raise ValueError('complete paired exclusive CPU provenance is required')
-    cpus = isolation.get('cpu_affinity')
-    if (not isinstance(cpus, list) or len(cpus) < 2 or any(type(n) is not int or n < 0 for n in cpus)
-            or cpus != sorted(set(cpus)) or type(isolation.get('reserved_cpu_count')) is not int
-            or isolation['reserved_cpu_count'] != len(cpus)):
-        raise ValueError('complete paired exclusive CPU provenance is required')
-    if type(measuring_cpu) is not int or measuring_cpu != min(cpus):
-        raise ValueError('paired measuring CPU differs from its reservation')
-
-
-def matches_current_source(recorded, current):
-    # Rebase may change the commit while preserving the exact measured tree/lock.
-    return (isinstance(recorded, dict) and set(recorded) == {'commit', 'tree', 'lock_sha256'}
-            and isinstance(recorded['commit'], str) and bool(evidence.REVISION.fullmatch(recorded['commit']))
-            and all(recorded[k] == current[k] for k in ('tree', 'lock_sha256')))
-
-
 def verify_paired(directory, candidate, compiler=True, *, diagnostic=False, manifest_sha256=evidence._UNBOUND):
-    """Recompute acceptance from bounded, source-bound raw rows, never summaries."""
-    document = evidence.json_data(directory/('diagnostic-manifest.json' if diagnostic else 'manifest.json'),manifest_sha256)
-    if not isinstance(document, dict) or document.get('diagnostic_only', False) is not diagnostic:
-        raise ValueError('layout diagnostic and acceptance modes must match')
-    if not isinstance(document, dict) or document.get('schema_version') != PAIRED_SCHEMA or document.get('phase_order') != list(evidence.PHASES) or document.get('contract') != tool_contract() or document.get('release_approval') is not False:
-        raise ValueError('a complete current paired-layout manifest is required')
-    sources = document.get('sources')
-    if not isinstance(sources, dict) or set(sources) != {'baseline', 'candidate'}:
-        raise ValueError('both paired source identities are required')
-    if sources['baseline'] != evidence.source_at(candidate, evidence.BASELINE_COMMIT):
-        raise ValueError('paired baseline must be the published 9.0.0')
-    actual = evidence.source_info(candidate)
-    if (not matches_current_source(sources['candidate'], actual)
-            or sources['candidate']['commit'] == evidence.BASELINE_COMMIT
-            or sources['candidate']['tree'] == sources['baseline']['tree']):
-        raise ValueError('paired candidate does not match the current source tree/lock')
-    if not matches_current_source(document.get('tool'), evidence.source_info(TOOL)):
-        raise ValueError('paired tool source differs')
-    files = document.get('files')
-    if not isinstance(files, dict) or set(files) != set(evidence.PHASES):
-        raise ValueError('all paired phase members are required')
-    context, cpu, iterations, phases = None, None, None, {}
-    for phase in evidence.PHASES:
-        entries = files[phase]
-        if not isinstance(entries, dict) or set(entries) != {'provenance.json', 'samples.json', 'measurement.log'}:
-            raise ValueError('each phase requires its provenance, raw samples and journal')
-        members = {}
-        for name, entry in entries.items():
-            expected = phase+'/'+name
-            if not isinstance(entry, dict) or entry.get('path') != expected or not isinstance(entry.get('sha256'), str) or not evidence.DIGEST.fullmatch(entry['sha256']):
-                raise ValueError('invalid paired member declaration')
-            path = directory/expected
-            if (directory/phase).is_symlink():raise ValueError('paired evidence member is symlinked')
-            members[name] = (path,entry['sha256'])
-        metadata = evidence.json_data(*members['provenance.json'])
-        role = 'baseline' if phase.startswith('A') else 'candidate'
-        if not isinstance(metadata, dict) or metadata.get('schema_version') != PHASE_SCHEMA or metadata.get('source') != sources[role] or metadata.get('tool') != document['tool'] or any(metadata.get(k) != v for k, v in tool_contract().items()) or metadata.get('release_approval') is not False or metadata.get('candidate_attribution') is not None:
-            raise ValueError('paired phase source/tool/fixture contract differs')
-        current = metadata.get('context')
-        validate_context(current, metadata.get('measuring_cpu'))
-        if context is not None and (current != context or metadata['measuring_cpu'] != cpu or type(metadata.get('iterations')) is not int or metadata['iterations'] != iterations):
-            raise ValueError('paired phase context/CPU/iterations differ')
-        context, cpu, iterations = current, metadata['measuring_cpu'], metadata.get('iterations')
-        phases[phase] = evidence.json_data(*members['samples.json'])
-        if parse_output(evidence.member_text(*members['measurement.log'])) != phases[phase]:
-            raise ValueError('paired samples differ from the completed numeric journal')
-    if compiler and context['compiler'] != evidence.command(['rustc', '--version'], candidate, dict(os.environ, RUSTUP_TOOLCHAIN='stable')):
+    """Bind Git/compiler state around one native original-directory replay."""
+    request=dict(directory=str(directory.resolve()),diagnostic=diagnostic,contract=tool_contract(),
+                 baseline=evidence.source_at(candidate,evidence.BASELINE_COMMIT),
+                 candidate=evidence.source_info(candidate),tool=evidence.source_info(TOOL))
+    if manifest_sha256 is not evidence._UNBOUND:request['manifest_sha256']=manifest_sha256
+    result=native_tools.request('diagnostic-layout',request=dict(operation='paired-replay',request=request))
+    if compiler and result['context']['compiler'] != evidence.command(['rustc', '--version'], candidate, dict(os.environ, RUSTUP_TOOLCHAIN='stable')):
         raise ValueError('paired compiler differs from the current compiler')
-    result = dict(analyze_paired(phases, iterations, context['runtime']['page_size'], cpu, diagnostic=diagnostic),
-                  sources=sources, tool=document['tool'], context=context, iterations=iterations, measuring_cpu=cpu)
     return result
 
 
