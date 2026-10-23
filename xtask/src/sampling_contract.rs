@@ -6,6 +6,7 @@ use std::borrow::Borrow;
 pub(crate) mod batch;
 pub(crate) mod calibration_profile;
 mod journal;
+pub(crate) mod output;
 pub(crate) mod preparation;
 pub(crate) mod protocol;
 pub(crate) mod replay;

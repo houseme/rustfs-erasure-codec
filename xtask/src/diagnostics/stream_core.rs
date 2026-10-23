@@ -1,11 +1,11 @@
 //! Streaming owner validation: replay expected boundaries directly against events.
 use super::ledger::{self, Clock, Snapshot, nullable};
 use crate::{Result, sampling_contract};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
 
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
 enum Api {
     EncodeStream,
@@ -13,7 +13,7 @@ enum Api {
     ReconstructStream,
     VerifyPar,
 }
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "kebab-case")]
 enum Variant {
     RetainedPrefix,
@@ -24,7 +24,7 @@ enum Variant {
     OptionTransfer,
     SmallvecPerBlock,
 }
-#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
 enum Phase {
     Enter,
@@ -38,7 +38,7 @@ enum Phase {
     Released,
     Exit,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct Event {
     observation: u64,
@@ -65,7 +65,7 @@ struct Event {
     #[serde(deserialize_with = "nullable")]
     valid: Option<bool>,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Ledger {
     schema: String,

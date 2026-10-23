@@ -6,6 +6,7 @@ use std::{
     fmt,
     path::{Path, PathBuf},
 };
+pub(crate) mod equality;
 pub(crate) mod snapshot;
 
 pub(crate) fn read_json<T: DeserializeOwned>(path: &Path) -> Result<T> {

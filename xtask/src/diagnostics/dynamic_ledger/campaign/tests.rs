@@ -177,3 +177,40 @@ fn native_memory_policy_and_legacy_execution_numeric_equality_are_retained() {
     value["report"]["context"]["kernel_memory_policy"]["process_thp_disable"] = json!(true);
     assert!(run(value).is_err());
 }
+
+#[test]
+fn fixed_plan_covers_both_sources_every_case_and_all_decoder_supplements_once() {
+    use std::collections::BTreeSet;
+    let catalog = sampling_contract::case_catalog();
+    let expected: BTreeSet<_> = sampling_contract::PROFILES
+        .into_iter()
+        .flat_map(|profile| {
+            catalog[profile]
+                .iter()
+                .map(move |case| (profile, case.as_str()))
+        })
+        .collect();
+    let supplements: BTreeSet<_> = super::super::payload::SUPPLEMENTS
+        .iter()
+        .map(|s| s.case)
+        .collect();
+    for role in ROLES {
+        for mode in MODES {
+            let cases: BTreeSet<_> = steps()
+                .iter()
+                .filter(|s| s["role"] == role && s["mode"] == mode)
+                .map(|s| (s["profile"].as_str().unwrap(), s["case"].as_str().unwrap()))
+                .collect();
+            assert_eq!(cases, expected);
+            assert_eq!(cases.len(), 126);
+        }
+        let decoder: BTreeSet<_> = steps()
+            .iter()
+            .filter(|s| s["role"] == role && s["profile"] == "decoder")
+            .map(|s| s["case"].as_str().unwrap())
+            .collect();
+        assert_eq!(decoder, supplements);
+    }
+    let unique: BTreeSet<_> = steps().iter().map(Value::to_string).collect();
+    assert_eq!(unique.len(), steps().len());
+}

@@ -1,6 +1,6 @@
 //! Shared numeric, availability and residency rules for native diagnostic ledgers.
 use crate::Result;
-use serde::{Deserialize, Deserializer};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 
 // Nullable artifact fields are required, so omission cannot masquerade as null.
@@ -10,7 +10,7 @@ pub(super) fn nullable<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
     Option::deserialize(d)
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct Snapshot {
     pub status: String,
@@ -156,6 +156,7 @@ pub(crate) enum Request {
         request: super::dynamic_ledger::campaign::Request,
     },
     DynamicSupplement {
+        journal: Option<super::worker::journal::Journal>,
         header: Value,
         data: super::dynamic_ledger::Ledger,
         case: String,
@@ -163,9 +164,6 @@ pub(crate) enum Request {
         cpus: Option<Vec<u64>>,
         #[serde(default)]
         legacy: bool,
-    },
-    DynamicRecords {
-        records: Vec<Value>,
     },
     Dynamic {
         data: super::dynamic_ledger::Ledger,
@@ -201,23 +199,25 @@ impl Request {
             Self::DynamicCatalog => Ok(super::dynamic_ledger::catalog()),
             Self::DynamicEnvelope { request } => request.execute(),
             Self::DynamicSupplement {
+                journal,
                 header,
                 data,
                 case,
                 page,
                 cpus,
                 legacy,
-            } => super::dynamic_ledger::supplement(
-                &header,
-                &data,
-                &case,
-                page,
-                cpus.as_deref(),
-                legacy,
-            ),
-            Self::DynamicRecords { mut records } => {
-                unwrap_dynamic_records(&mut records)?;
-                Ok(Value::Array(records))
+            } => {
+                if let Some(journal) = journal {
+                    journal.supplement(&header, &data)?;
+                }
+                super::dynamic_ledger::supplement(
+                    &header,
+                    &data,
+                    &case,
+                    page,
+                    cpus.as_deref(),
+                    legacy,
+                )
             }
             Self::Dynamic {
                 data,

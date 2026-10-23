@@ -4,7 +4,7 @@ mod payload;
 use super::ledger::{self, Snapshot, nullable};
 use crate::{Result, sampling_contract};
 use payload::Contract;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
 
@@ -50,7 +50,7 @@ fn supplement_header(header: &Value, case: &str, cpus: Option<&[u64]>) -> Result
     Ok(())
 }
 
-#[derive(Clone, Copy, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Deserialize, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
 enum Kind {
     Alloc,
@@ -64,7 +64,7 @@ enum Kind {
     End,
     Finish,
 }
-#[derive(Clone, Copy, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Deserialize, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
 enum Region {
     Setup,
@@ -72,7 +72,7 @@ enum Region {
     Between,
     Decode,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 struct Event {
     kind: Kind,
@@ -225,7 +225,7 @@ impl Event {
         contract.internal(self)
     }
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub(crate) struct Ledger {
     schema: String,
