@@ -14,6 +14,11 @@ All notable changes to this project are documented in this file.
   recursive polynomial division. Preserve every inverse and quotient byte,
   including historical division by zero; retain Euclid as an exhaustive test oracle.
 
+- Fuse general tower-field accumulation into the final byte interleave. Reuse
+  the overwrite product planes and XOR directly into initialized destinations,
+  avoiding a destination deinterleave pass without changing field arithmetic,
+  scratch ownership, byte format or reconstruction publication.
+
 - Allow identified Darwin group members to finish exiting within the existing
   cleanup deadline before requiring two fresh complete exit snapshots. Retain
   immediate identity/query refusals and preserve owned inputs on timeout;
