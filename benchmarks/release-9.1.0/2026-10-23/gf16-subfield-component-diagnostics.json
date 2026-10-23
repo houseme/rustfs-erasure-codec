@@ -1,6 +1,6 @@
 {
   "artifact_kind": "gf16-subfield-local-component-diagnostic",
-  "baseline_commit": "ebb60f286b639c266eb3c46ae556cdd7519de188",
+  "baseline_commit": "8d59e774dd4b3f75eebbd48afdcc2e05d6614d07",
   "candidate_gf16_source_sha256": "da4bb320829759b7bc0623de9470458c8b81018f53d6cacd7b4dc23161b135ef",
   "candidate_source_patch_sha256": "ac9bbd4cad423065d67cdda21d560afbd9437f2932afb8055e2cc454503a30ca",
   "scope": "native ARM64 local component; compared with unreleased main, not published 9.0.0 or Linux release acceptance",
@@ -4429,5 +4429,17 @@
       "multiply_tower",
       "accumulate_tower"
     ]
-  }
+  },
+  "provenance_correction": {
+    "initially_recorded_baseline_commit": "ebb60f286b639c266eb3c46ae556cdd7519de188",
+    "original_artifact_commit": "ff107f6cb10a04787d861af66e219b92948fe3fc",
+    "reason": "The temporary plan inherited an earlier baseline label; the retained baseline reproduces byte-for-byte from the actual candidate parent.",
+    "retained_baseline_reproduced_byte_for_byte": true,
+    "incorrect_source_chain_refused": true,
+    "correct_complete_codec_source_chain_verified": true,
+    "new_performance_observations": 0,
+    "statistical_outcome_changed": false
+  },
+  "timed_candidate_commit": "ff107f6cb10a04787d861af66e219b92948fe3fc",
+  "timed_candidate_parent_commit": "8d59e774dd4b3f75eebbd48afdcc2e05d6614d07"
 }
