@@ -94,8 +94,71 @@ windows are distinct from exclusive API cycles; page faults are not measured by
 this component harness. The older frozen tool is used only for the zero-codec
 resource/process-ownership preflight, not as the timed sampler or candidate.
 
-The complete result is still pending. Frozen source, driver, guard, cases and
-counts are not changed after launch. This distinct component schema has
-`formal_performance_geometry_equivalence=false` and `release_approval=false`;
-it cannot replace complete accepted final-source Linux evidence or strict positive
-release preflight. No tag or registry upload is performed.
+## Completed capture, retained source-check failure
+
+All 292 ABBA workers / 3,504 observations finished. The original controller then
+failed its final source-clean assertion: it had compiled its own executable into
+each source checkout, where that file was untracked. The original failure,
+controller, samples and raw journals remain unchanged. A later read-only audit
+finds matching commit/tree/lock identities, no tracked changes and only those
+owned executables untracked; this is a post-capture observation, not a retroactive
+passing source check. Future controller output belongs in the already ignored
+build directory, retaining the original strict source check. No new timing run
+is launched for that output-path correction.
+
+An independent saved-data reader validates every original worker exit, backend,
+payload witness, count, pilot history and numeric summary against its raw output.
+It reads all 3,673 journalled workers: 146 functional, 3,235 calibration and 292
+ABBA workers, with zero worker exit failures. Its statistics exactly reproduce
+the frozen controller's original pure-analysis block. No observation, count,
+warmup or threshold is changed. The [complete numerical review](../benchmarks/release-9.1.0/2026-10-24/gfni-direct-affine-component-review.json)
+contains all 73 cases and every warmup/measured wall and thread-CPU value, including
+all four cross-version comparisons. Host details, full addresses, executable
+fingerprints and absolute clock endpoints remain private.
+
+The result still fails the existing component limits: **one distribution,
+11 same-version repeats and one cross-version regression observation**, with zero
+short measured samples. That last observation is not an accepted regression
+attribution because the complete comparison is unqualified.
+
+Distribution failure: `auto|gf8:cold:32:16:4096:1`, B1, **11.820607%**.
+Complete repeat failures:
+
+| Case | Pair | Drift |
+| --- | --- | ---: |
+| `auto\|gf8:encode:10:4:1024:0` | A1/A2 | 7.817765% |
+| `auto\|gf16:warm:10:4:1024:1` | A1/A2 | 5.652419% |
+| `auto\|gf16:multiply_tower:0:0:1024:0` | B1/B2 | 5.101128% |
+| `auto\|gf16:accumulate_tower:0:0:1024:0` | B1/B2 | 7.193051% |
+| `rust-gfni-avx2\|gf8:accumulate:0:0:63:0` | A1/A2 | 13.569879% |
+| `rust-gfni-avx2\|gf8:accumulate:0:0:65536:0` | B1/B2 | 6.249915% |
+| `rust-gfni-avx512\|gf8:multiply:0:0:33:0` | B1/B2 | 5.936964% |
+| `rust-gfni-avx512\|gf8:multiply:0:0:1024:0` | B1/B2 | 5.202534% |
+| `rust-gfni-avx512\|gf8:accumulate:0:0:1024:0` | A1/A2 | 18.809208% |
+| `rust-gfni-avx512\|gf8:accumulate:0:0:1024:0` | B1/B2 | 8.203080% |
+| `rust-gfni-avx512\|gf8:accumulate:0:0:65536:0` | A1/A2 | 5.786212% |
+
+The threshold observation is `auto|gf16:warm:10:4:1024:1`: all four candidate /
+baseline wall ratios span **1.075739–1.139110**. Its baseline repeat also fails
+at 5.652419%. Unchanged scalar multiplication at 1 KiB instead spans
+0.811488–0.821498. Those source-level unchanged controls caution against
+assigning a favorable movement to GFNI; code placement, compilation context and
+execution-service differences remain possible explanations. These data do not
+uniquely attribute the residual to the VM, and the harness does not measure faults
+or exclusive codec CPU. No PMU or fixed-frequency release condition is added.
+
+The two owned partitions are gone, the original controllers and all 11 parent
+masks match the before snapshot, and there were no background-load holders or
+outside-workload rows in the 1,591 guard observations. Source and cleanup checks
+were read independently after termination. The original controller's `failed`
+status remains retained. Resources restored and complete data recovered do not
+mean performance accepted.
+
+PR #82's Darwin cancellation fix is now integrated through main `afb9a52`.
+The rebased GFNI codec source files match the frozen candidate byte for byte;
+this does not relabel its old source/lock/capture binding as a new final candidate.
+`accepted_component_comparison=false`, `candidate_attribution=null` and
+`release_approval=false` remain explicit. Keep the candidate draft while its
+performance remains unaccepted. No unchanged matrix is rerun, no tag or registry
+upload is performed, and final-source complete Linux/layout evidence plus actual
+strict positive preflight remain outstanding.
