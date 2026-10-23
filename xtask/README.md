@@ -416,6 +416,13 @@ added to a member manifest, and no package is uploaded.
 
 ## Current branch review and compatibility
 
+The latest integrated review is bound to `709c40b` after main `e3aca32`.
+Its 194 native and 247 Python tests, strict tooling Clippy, Linux metadata
+compilation and 167 old/native comparisons pass within their stated scope.
+The codec/build inputs match main. The source-bound historical reviews below
+retain their own totals; see the [current complete review](../docs/global-review-9.1.0-2026-10-23.md#current-main-integration-and-complete-native-diagnostic-boundary).
+
+
 The cleanup starts from `022c0a7` and is grouped into functional commits for
 dependency upgrades, crate contents, native tools, controller migration,
 compatibility checks and documentation. The existing dependency upgrade is

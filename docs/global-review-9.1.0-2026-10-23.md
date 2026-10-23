@@ -37,6 +37,14 @@ Local functional and package checks do not approve codec throughput, Linux
 isolation, Windows execution or strict release publication. The existing release
 acceptance records and retained failures still apply.
 
+An independent follow-through at local merge `709c40b` tests the same
+implementation as published review head `c176ac2`: their complete Git file
+difference contains only `CHANGELOG.md`, this review and `xtask/README.md`.
+All codec/tool sources, tests, workflows, manifests and existing data match.
+The additional complete comparison report retains the executed source identity;
+this correspondence does not relabel frozen Linux measurements. See the final
+integration section for the independent checks and request witnesses.
+
 ## Earlier migration review
 
 This review follows the merge of `origin/main` at
@@ -889,3 +897,68 @@ exact-parity and bidirectional-decode configurations. The 579 JSON files /
 unchanged. All five workspace members inherit root dependencies. Core/WASM
 allowlists remain 67/6 members; the extracted core package compiles offline.
 No production codec, build input or dependency delta exists in this round.
+
+
+## Current main integration and complete native diagnostic boundary
+
+Merge `709c40b` integrates main `e3aca32`, including the shared ordinary Classic
+encoder, adaptive verification, cached automatic GFNI priority, native reporter
+framing and the retained complete Linux reviews. Conflicts retain all functional
+entries and source-bound historical records. No codec, manifest, lockfile, build
+configuration or WASM delta remains against main. The primary working checkout
+and its subsequent edits are preserved separately.
+
+One native model owns each validation rule: profile/calibration grouping and
+stable median selection, finite campaign arithmetic, CPU/Slot/paired layouts,
+VM thread and counter windows, runtime metadata and complete baseline replay.
+Whole-worker requests borrow the original values and return original indices.
+The Python controllers retain process/resource ownership, source restoration,
+trusted historical-controller execution, device reads and retained journals.
+The file adapter reads bounded original members directly rather than transporting
+complete input trees through Python. No new collector or retry policy is added.
+
+The successful-only metadata cache is keyed by each current serialized value,
+with 128 entries below 64 KiB each. Larger values bypass retention. Live policy
+capture remains uncached. Source review follows all callers through mutation,
+error and restoration paths; no further supported runtime defect was found.
+The retained nonfinite product/ratio and individual-thread reset regressions
+remain active. The final source preserves validation before aggregation and
+refuses malformed original files without rewriting them.
+
+The merged tree passed all 194 optimized native tests (166 unit / 28 CLI),
+247 complete Python controller tests, strict tooling Clippy, formatting, spelling
+and diff checks. Linux x86_64 all-target metadata compilation passed; this is not
+positive hardware-counter capability or Linux ISA execution evidence. Actual
+core/WASM package inventories remain 67/6 members and exclude the repository tools.
+The code under test is bound to merge `709c40b`; later documentation does not
+change the tested Rust/Python implementation.
+
+A new independent old/native comparison retains every result: 51 baseline cases
+against Python `9210509`, including two declared stronger refusals for linked
+members and duplicate JSON keys, and 116 complete calibration/campaign cases
+against post-fix Python `9d30044`. All other complete values and refusal outcomes
+match exactly, with unchanged fixture input bytes. The comparisons include
+optional policy, UTF-8/16/32, interleaved cases, nonmedian changes, reset counters,
+original limits, simultaneous failure classes and nonfinite ratios.
+
+On a fixed primed-helper complete baseline fixture, two-phase replay changes
+from 68 requests / 15,257,891 request bytes to one request / 289 bytes; one-phase
+replay changes from 39 / 9,399,810 to one / 289. The adapter reads and rechecks
+the source-bound files directly. These are IPC and transfer-volume witnesses,
+not elapsed-time, codec throughput, memory or release-acceptance measurements.
+The [complete derived comparison](../benchmarks/tooling/2026-10-23/native-diagnostic-consolidation.json)
+retains all 167 comparison outcomes and both request witnesses.
+
+The source inventory is 34 Python files / 7,702 lines: 3,594 production/helper
+and 4,108 test/fixture lines. Before this new derived report, the merged source
+retained all 584 JSON files / 3,006,767 bytes without parse errors. All historical
+evidence members remain unchanged. These inventories do not introduce a release
+condition or justify removing source-bound historical copies.
+
+The live complete Linux diagnostic stays frozen at `9f935ee` against published
+9.0.0. This tool integration is not deployed into that owned capture. All original
+calibration, ABBA and paired-layout phases continue after statistical failures;
+only their complete terminal result and independent frozen replay can inform the
+next performance decision. Previously failed repeats and regressions remain
+unaccepted. Final source freezing, accepted complete evidence and actual strict
+positive release preflight remain outstanding. No tag or registry upload occurs.
