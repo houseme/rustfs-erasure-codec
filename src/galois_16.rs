@@ -91,6 +91,17 @@ impl crate::Field for Field {
 fn gf16_mul_slice(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]], accumulate: bool) {
     assert_eq!(input.len(), out.len());
 
+    // A constant tower element scales both byte coordinates independently.
+    // Keep their interleaved representation and reuse one GF8 slice operation.
+    if elem[0] == 0 {
+        if accumulate {
+            galois_8::mul_slice_xor(elem[1], input.as_flattened(), out.as_flattened_mut());
+        } else {
+            galois_8::mul_slice(elem[1], input.as_flattened(), out.as_flattened_mut());
+        }
+        return;
+    }
+
     let cx = elem[0];
     let cc = elem[1];
     let coef_a = cc ^ galois_8::mul(2, cx);
@@ -737,6 +748,59 @@ mod tests {
     #[test]
     fn zero_to_zero_is_one() {
         assert_eq!(Element::zero().exp(0), Element::constant(1))
+    }
+
+    #[test]
+    fn constant_tower_slices_match_scalar_for_every_subfield_coefficient() {
+        let input: Vec<_> = (0..2104usize)
+            .map(|i| [(i * 197 + 31) as u8, (i * 73 + 11) as u8])
+            .collect();
+        for coefficient in 0..=u8::MAX {
+            let scalar = [0, coefficient];
+            for start in [0, 1, 3] {
+                for length in [
+                    0, 1, 15, 16, 17, 31, 32, 33, 63, 64, 65, 1023, 1024, 1025, 2100,
+                ] {
+                    let mut output = vec![[0xa5, 0x5a]; length + 2];
+                    for accumulate in [false, true] {
+                        output.fill([0xa5, 0x5a]);
+                        gf16_mul_slice(
+                            scalar,
+                            &input[start..start + length],
+                            &mut output[1..length + 1],
+                            accumulate,
+                        );
+                        assert_eq!(output[0], [0xa5, 0x5a]);
+                        assert_eq!(output[length + 1], [0xa5, 0x5a]);
+                        for i in 0..length {
+                            let product = Field::mul(scalar, input[start + i]);
+                            let expected = if accumulate {
+                                Field::add([0xa5, 0x5a], product)
+                            } else {
+                                product
+                            };
+                            assert_eq!(
+                                output[i + 1],
+                                expected,
+                                "coefficient {coefficient}, start {start}, length {length}, index {i}, accumulate {accumulate}"
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    #[should_panic]
+    fn constant_tower_multiply_rejects_mismatched_lengths() {
+        gf16_mul_slice([0, 0], &[], &mut [[0xa5, 0x5a]], false);
+    }
+
+    #[test]
+    #[should_panic]
+    fn constant_tower_accumulate_rejects_mismatched_lengths() {
+        gf16_mul_slice([0, 0], &[[0xa5, 0x5a]], &mut [], true);
     }
 
     // Verifies the SIMD-decomposed `mul_slice`/`mul_slice_add` overrides against
