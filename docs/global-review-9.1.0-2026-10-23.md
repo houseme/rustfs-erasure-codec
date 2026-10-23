@@ -1017,3 +1017,59 @@ contracts match the final integration exactly. Its subsequent main delta is
 limited to the existing alignment fix, its codec regression and documentation.
 The final review update changes documentation only. All 585 JSON members match
 main, and core build inputs/codec sources match `dc38db9` without a tooling delta.
+
+## Bound original-file I/O and source-interface review
+
+This follow-up starts from main `549b0ac`; it retains the concurrent cache-metric
+and Darwin worker-group fixes. The five functional commits separate the original
+reader correction, digest-bound Rust gates, replay integration, retirement of
+per-file source interfaces and independent memory-policy test directories.
+Production codec sources, build inputs and dependencies are unchanged.
+
+Two deterministic regressions fail on the former reader: replacing a member
+after its first read binds the parsed old JSON to different new hash bytes, and
+growing a file after its size check bypasses the stated byte limit. Shared reads
+now hash and decode the same bounded bytes. Root reports retain their original
+parsed snapshot hashes. All 585 archived JSON values match the former reader,
+and their original 3,026,754 bytes remain unchanged.
+
+Profile summaries reuse their parsed original rows, reducing three full content
+reads to one. JSON/numeric replay journals share the same bound reader, including
+calibration, ordinary verify, stream, dynamic, paired and frequency inputs.
+Supplement manifests are checked before profile programs and bound again when
+consumed afterward. Both native regression programs accept optional declared
+JSON digests through the existing bounded snapshot model, closing the later
+file-reopen gap without duplicating normalization or threshold models. Valid
+reports and unbound JSON/CSV behavior remain unchanged. Exit 1 still represents
+a complete statistical refusal; input/launch errors do not become a successful
+complete diagnostic. These are tooling I/O and correctness improvements, not
+codec throughput or release acceptance measurements.
+
+The source migration removes six private per-file operations and the unused
+Python row-file adapter. Seven pure Python tests, plus source assertions in two
+binding tests, transfer to four native tests after their original checks pass.
+Generated source, API scope, preparation boundaries, deferred metadata and
+bounded procfs helper contracts remain covered alongside the Rust owners.
+The remaining Python total is 34 files / 7,675 lines: 3,553 production/helper and
+4,122 test/fixture lines, including the newly added reader/gate regressions.
+
+A parallel run additionally exposes colliding timestamp-only memory-policy test
+directories. A process-local sequence, as used by the other test owners, gives
+each fixture its own tree even when clock readings coincide. This is test
+infrastructure only and does not change live policy capture.
+
+The corrected frozen code `71d951e` passes all fourteen final checks: 206 native
+tests (177 unit / 29 CLI), all 246 Python tests, strict tooling Clippy, Linux
+tooling compilation, 519 top-level codec tests, ten doctests, codec-only no_std,
+the 200-configuration non-fast compatibility probe, all three audits, actual
+extracted-package reconstruction, formatting and diff checks. The 43 existing
+codec ignores remain unchanged. The published/local probe verifies exact parity
+and cross-decoding in both directions, plus historical field vectors; it does
+not certify the older inconsistent fast-one-parity mode. Spelling also passes.
+The final documentation commit changes no tested code.
+
+All five workspace members still inherit root dependency declarations, with no
+manifest or lockfile delta. Core/WASM allowlists remain 67/6 members and exclude
+repository-only tools, Python, tests and archived JSON. All 585 original JSON
+members match main. There is no new codec timing result, release approval, tag
+or registry upload in this review.
