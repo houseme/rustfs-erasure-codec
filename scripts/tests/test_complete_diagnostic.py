@@ -64,6 +64,18 @@ class CompleteReplayTests(unittest.TestCase):
                                          e.expected_cases(profile), counts)
         self.f.write_rows(phase, profile, selection['selected'])
 
+    def test_worker_journal_reuses_each_bound_profile_read(self):
+        from collections import Counter
+        reads=Counter();reader=e.member_bytes
+        def read(path,*args,**kwargs):
+            if path.name.endswith('-samples.json'):reads[path]+=1
+            return reader(path,*args,**kwargs)
+        with mock.patch.object(e,'member_bytes',side_effect=read), mock.patch.object(e.subprocess,'run',return_value=subprocess.CompletedProcess([],0,'','')):
+            report=self.replay()
+        self.assertEqual(report['worker_invocations'],756)
+        self.assertEqual(len(reads),24)
+        self.assertEqual(set(reads.values()),{1})
+
     def test_execution_errors_do_not_become_complete_statistical_diagnostics(self):
         with mock.patch.object(e.subprocess,'run',return_value=subprocess.CompletedProcess([],2,'','input integrity failed')) as checks:
             with self.assertRaisesRegex(ValueError,'regression validation failed'):self.replay()
@@ -139,8 +151,10 @@ class CompleteReplayTests(unittest.TestCase):
         with mock.patch.object(e.subprocess,'run',return_value=subprocess.CompletedProcess([],0,'','')):self.replay()
         path=self.root/'worker-journal.jsonl';rows=path.read_text().splitlines();rows[0],rows[2]=rows[2],rows[0]
         path.write_text('\n'.join(rows)+'\n');self.doc['worker_journal']['sha256']=e.digest(path.read_bytes())
-        with self.assertRaisesRegex(ValueError,'journal order'):
-            e.verify_worker_journal(self.doc,self.root)
+        self.manifest.write_text(json.dumps(self.doc))
+        with mock.patch.object(e.subprocess,'run') as gate, self.assertRaisesRegex(ValueError,'journal order'):
+            e.verify_diagnostic(self.manifest,self.root)
+        gate.assert_not_called()
 
 
 class CompleteCaptureTests(unittest.TestCase):

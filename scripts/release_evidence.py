@@ -354,7 +354,6 @@ def verify_diagnostic(manifest, repository, compiler=True):
             or document.get('release_approval') is not False):
         raise ValueError('a complete diagnostic manifest is required')
     layout_path = layout_member(document, manifest.parent, diagnostic=True)
-    invocations = verify_worker_journal(document, manifest.parent)
     paths, data, report = _verify_profiles(document, manifest.parent, repository, compiler, diagnostic=True)
     from diagnose_verify_layout import verify_paired
     layout = verify_paired(layout_path.parent, repository, compiler, diagnostic=True, manifest_sha256=document['layout_supplement']['sha256'])
@@ -362,41 +361,17 @@ def verify_diagnostic(manifest, repository, compiler=True):
     report.update(status='diagnostic_complete', diagnostic_only=True, release_approval=False,
                   candidate_attribution=None, all_checks_executed=True,
                   manifest_sha256=manifest_sha256, layout=layout,
-                  worker_invocations=invocations,
                   all_original_limits_passed=report['all_original_limits_passed'] and layout['layout_gate_passed'])
     return document, paths, report
 
 
-def verify_worker_journal(document, root):
+def verify_worker_journal(document, root, workers):
     entry = document.get('worker_journal', {})
     path = root/'worker-journal.jsonl'
     if not isinstance(entry, dict) or entry.get('path') != path.name:
         raise ValueError('complete digest-bound worker journal is required')
     raw=member_text(path,entry.get('sha256'))
-    expected = []
-    for phase in ('calibration-baseline', 'calibration-candidate', *PHASES):
-        calibration = phase.startswith('calibration-')
-        for profile in FILES:
-            member = (document['calibration'][phase.removeprefix('calibration-')][profile] if calibration
-                      else document['files'][phase][profile]['samples'])
-            records = evidence_member(root, member, phase+'/'+profile+'-samples.json')
-            expected.extend({'phase': phase, 'profile': profile, 'mode': 'calibrate' if calibration else 'sample',
-                             'case': r['case'], 'iterations': r['iterations'], 'calibration_batch': r['calibration_batch']}
-                            for r in records if r['index'] == 0)
-    rows = [json.loads(line) for line in raw.splitlines()]
-    if len(rows) != 2*len(expected):
-        raise ValueError('complete start/end worker journal is required')
-    previous = 0
-    for index, identity in enumerate(expected):
-        for position, event in enumerate(('start', 'end')):
-            row = rows[2*index+position]
-            keys = set(identity) | {'event', 'monotonic_ns', 'utc_ns'} | ({'exit_code'} if position else set())
-            if (not isinstance(row, dict) or set(row) != keys or row['event'] != event or any(row.get(k) != v for k,v in identity.items())
-                    or any(type(row[k]) is not int or row[k] < 0 for k in ('monotonic_ns', 'utc_ns'))
-                    or row['monotonic_ns'] < previous or position and (type(row['exit_code']) is not int or row['exit_code'] != 0)):
-                raise ValueError('worker journal order, identity or outcome differs from original records')
-            previous = row['monotonic_ns']
-    return len(expected)
+    return native_tools.sampling_request('worker-journal', request=dict(raw=raw, workers=workers))
 
 
 def diagnostic_rows(records, profile, metric, revision, expected, counts,
@@ -462,7 +437,8 @@ def _verify_profiles(document, root, repository, compiler=True, *, diagnostic=Fa
             paths[phase][profile] = path
             counts = document.get("sampling", {}).get("common_iterations", {}).get(profile)
             data[phase][profile] = indexed_rows(profile, original, sources[role]["commit"], counts)
-    sample_spreads = verify_sampling(document, root, repository, data, diagnostic=diagnostic)
+    sample_spreads, workers = verify_sampling(document, root, repository, data, diagnostic=diagnostic)
+    invocations = verify_worker_journal(document, root, workers) if diagnostic else None
     analysis = campaign_analysis(data, sample_spreads, diagnostic)
     drifts = analysis['repeat_checks']
     if not diagnostic and any(item["drift"] > sampling.REPEAT_DRIFT_LIMIT for item in drifts):
@@ -482,6 +458,7 @@ def _verify_profiles(document, root, repository, compiler=True, *, diagnostic=Fa
                 else:
                     subprocess.run(args, cwd=repository, check=True, stdout=subprocess.DEVNULL)
     if diagnostic:
+        analysis['worker_invocations']=invocations
         analysis['regression_checks']=checks
         analysis['all_original_limits_passed'] &= not any(r['exit_code'] for r in checks)
         return paths, data, analysis
@@ -502,17 +479,20 @@ def verify_sampling(document, root, repository, summarized, *, diagnostic=False)
         raise ValueError("sampling protocol/implementation mismatch")
     counts = contract.get("common_iterations", {})
     if set(counts) != set(FILES): raise ValueError("complete common iteration counts are required")
+    workers = {}
     pilot_counts = {role: {} for role in ("baseline", "candidate")}
     pilot_layouts = {role: {} for role in pilot_counts}
     pilot_workloads = {role: {} for role in pilot_counts}
     pilot_traces = {role: {} for role in pilot_counts}
     pilot_contracts = {role: {} for role in pilot_counts}
     for role in pilot_counts:
+        workers["calibration-"+role] = {}
         for profile in FILES:
             name = f"calibration-{role}/{profile}-samples.json"
             records = evidence_member(root, document.get("calibration", {}).get(role, {}).get(profile), name)
             calibrated = sampling.calibration_profile(records, profile, document["sources"][role]["commit"], document["contexts"]["A1"]["runtime"]["page_size"], allowed_cpus=document["contexts"]["A1"]["isolation"]["cpu_affinity"])
             pilot_counts[role][profile] = calibrated['counts']
+            workers['calibration-'+role][profile] = calibrated['worker_starts']
             pilot_contracts[role][profile] = observation_contracts(profile, [r for r in records if r['complete']],
                 pilot_contracts['baseline'][profile] if role == 'candidate' else None)
             pilot_layouts[role][profile] = calibrated['preparation']['fixtures']
@@ -533,6 +513,7 @@ def verify_sampling(document, root, repository, summarized, *, diagnostic=False)
             select = diagnostic_rows if diagnostic else sampling.select_profile
             selection = select(records, profile, METRICS[profile], revision, expected_cases(profile), counts[profile], document["contexts"][phase]["isolation"].get("cpu_affinity"), document["contexts"][phase]["runtime"]["page_size"])
             selected, widths = selection['selected'], selection['spreads']
+            workers.setdefault(phase,{})[profile] = selection['worker_starts']
             observation_contracts(profile, records, pilot_contracts[role][profile])
             layouts[profile][phase] = selection['preparation']['fixtures']
             workloads[phase] = selection['preparation']['workloads']
@@ -554,7 +535,7 @@ def verify_sampling(document, root, repository, summarized, *, diagnostic=False)
     unstable = [r for r in spreads if r["central_spread"] > sampling.PROTOCOL["central_spread_limit"]]
     if unstable and not diagnostic:
         raise EvidenceFailure("sample distributions are unstable; no candidate attribution", {"sample_spreads": spreads, "candidate_attribution": None})
-    return spreads
+    return spreads, workers
 
 
 def calibration_counts(records, profile, revision, expected_page_size=None, *, allowed_cpus=None):
