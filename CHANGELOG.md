@@ -10,6 +10,10 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Preserve the documented 64-byte pointer alignment for empty `AlignedShard`
+  values, including empty slices, iterators, clones and batch allocation. Keep
+  the empty representation allocation-free and nonempty encoding unchanged.
+
 - Share the checked Classic matrix encoder with ordinary and caller-buffer
   verification, including warm VerifyWorkspace calls. Reuse generated native
   kernels when supported and retain generic fallback, scratch ownership,

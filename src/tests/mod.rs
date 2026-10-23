@@ -1271,6 +1271,34 @@ fn test_alloc_aligned_shards_zeroed_and_aligned() {
 }
 
 #[test]
+fn test_empty_aligned_shard_constructors_preserve_alignment() {
+    let original = galois_8::AlignedShard::new_zeroed(0);
+    let mut shards = galois_8::alloc_aligned_shards(3, 0);
+    shards.extend([
+        original.clone(),
+        galois_8::AlignedShard::from_slice(&[]),
+        iter::empty::<u8>().collect(),
+        original,
+    ]);
+
+    for (index, shard) in shards.iter_mut().enumerate() {
+        assert!(shard.is_empty(), "empty constructor {index}");
+        assert_eq!(shard.as_ref(), &[]);
+        assert_eq!(shard.as_mut(), &mut []);
+        assert_eq!(
+            (shard.as_ptr() as usize) % galois_8::SHARD_ALIGNMENT,
+            0,
+            "immutable pointer from empty constructor {index}",
+        );
+        assert_eq!(
+            (shard.as_mut_ptr() as usize) % galois_8::SHARD_ALIGNMENT,
+            0,
+            "mutable pointer from empty constructor {index}",
+        );
+    }
+}
+
+#[test]
 fn test_aligned_shard_from_iter_preserves_alignment() {
     let shard: galois_8::AlignedShard = iter::repeat_n(0xAB, 257).collect();
 

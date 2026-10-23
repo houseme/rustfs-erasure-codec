@@ -35,6 +35,12 @@ use crate::ShardSlot;
 /// [`leopard_aligned_shard_len`](crate::galois_8::leopard_aligned_shard_len).
 pub const SHARD_ALIGNMENT: usize = 64;
 
+// Preserve the same alignment for empty shards without allocating storage.
+#[repr(align(64))]
+struct EmptyShardAlignment;
+
+const _: () = assert!(core::mem::align_of::<EmptyShardAlignment>() == SHARD_ALIGNMENT);
+
 /// A shard whose backing allocation is aligned to [`SHARD_ALIGNMENT`].
 ///
 /// The allocation is exactly `len` bytes (see [`AlignedShard::new_zeroed`]) —
@@ -59,7 +65,7 @@ impl AlignedShard {
     pub fn new_zeroed(len: usize) -> Self {
         if len == 0 {
             return Self {
-                ptr: NonNull::dangling(),
+                ptr: NonNull::<EmptyShardAlignment>::dangling().cast(),
                 len: 0,
             };
         }
@@ -147,7 +153,7 @@ impl DerefMut for AlignedShard {
 impl AsRef<[u8]> for AlignedShard {
     fn as_ref(&self) -> &[u8] {
         // SAFETY: `self.ptr` points to `self.len` bytes allocated via `alloc_zeroed`
-        // with SHARD_ALIGNMENT, or is `NonNull::dangling()` when `self.len == 0`
+        // with SHARD_ALIGNMENT, or is an aligned dangling pointer when `self.len == 0`
         // (which produces a valid empty slice). The allocation is uniquely owned
         // by this value and outlives the returned reference.
         unsafe { slice::from_raw_parts(self.ptr.as_ptr(), self.len) }
