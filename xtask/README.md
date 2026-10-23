@@ -56,6 +56,31 @@ before appending either artifact. Invalid ABBA inputs still replace stale PASS
 reports with failed JSON/Markdown and a nonzero exit. Schema field names remain
 compatible; diagnostic text and numeric formatting are not a byte-level format.
 
+## Bound original-file reads
+
+Release and diagnostic replay share one bounded original-byte reader. It checks
+regular members, reads at most 32 MiB plus one byte, enforces the limit on that
+actual read, and validates a declared SHA before decoding those same bytes.
+The Python boundary preserves the previous default text encoding, universal
+newlines and JSON values. Root report hashes come from their parsed snapshots;
+JSON and numeric journals no longer use a later read to establish provenance.
+Profile normalization reuses the parsed bound rows instead of reopening them.
+
+Both regression gates accept optional `--baseline-sha256` and
+`--current-sha256` declarations for JSON inputs. With these flags the existing
+Rust snapshot reader binds the exact decoded bytes and applies its 32 MiB limit.
+Ordinary unbound JSON/CSV commands retain their behavior. The release controller
+passes its declared hashes into every gate, and paired replay rechecks the bound
+supplement after profile checks. Diagnostic mode retains complete statistical
+refusals (exit 1); invalid-input or execution errors remain fatal.
+
+Six per-file source-planning operations and their Python wrappers are retired:
+`matrix-source`, `decode-source`, `stream-source`, `verify-source`,
+`exclude-setup` and `reserve-outputs`. Production generation uses complete Rust
+plans. Seven pure Python source checks and the source assertions within two
+binding tests move into four native tests with the same assertions. Python keeps
+the active sampler/observer bindings, resource owners and failure restoration.
+
 ## Root dependency policy and shared implementation
 
 Every workspace member inherits dependencies from the root
@@ -250,7 +275,7 @@ The initial inventory contained **56 Python files / 13,120 lines**. Twenty-three
 original files were removed (twelve implementations/helpers and eleven test
 modules). One native-tool compatibility binding remains. The intermediate Python
 normalization library was also removed after its consumers moved to Rust.
-The remaining **34 files / 7,683 lines** consist of 15 production/helper modules
+The remaining **34 files / 7,675 lines** consist of 15 production/helper modules
 and 19 test/fixture modules: about 41% fewer Python lines overall. This count
 includes the latest merged VM observer/cleanup checks. Layout consolidation removes
 349 lines from its immediate parent (`75bc034`, 8,486 lines). The
@@ -314,8 +339,8 @@ Finite input metrics can overflow their quotient, so nonfinite repeat and
 candidate ratios are refused before a JSON report is constructed.
 Native baseline directory replay subsequently removes another 52 lines relative
 to `9210509`, including new CLI/cache/encoding checks and three service cases
-moved to native full-file tests. The current count is 3,557 production/helper and
-4,126 test/fixture lines, including the reporter checks retained from main and
+moved to native full-file tests. The current count is 3,553 production/helper and
+4,122 test/fixture lines, including the reporter checks retained from main and
 the shared source-plan binding regression. The baseline Python entry is now a native call; its
 remaining code owns explicit trusted historical replay and the original source,
 snapshot and resource checks for that adapter.
@@ -432,7 +457,14 @@ added to a member manifest, and no package is uploaded.
 
 ## Current branch review and compatibility
 
-The latest integrated review is bound to `709c40b` after main `e3aca32`.
+The latest follow-up is frozen at `71d951e` on main `549b0ac`. Its 206 native,
+246 Python and 519 codec tests, ten doctests, strict tooling Clippy, Linux tool
+compilation, no_std, compatibility and actual package checks pass. It binds
+original file values and regression inputs to the same declared bytes and moves
+obsolete per-file source checks beside the native generators. See the
+[bound I/O review](../docs/global-review-9.1.0-2026-10-23.md#bound-original-file-io-and-source-interface-review).
+
+The earlier integrated review is bound to `709c40b` after main `e3aca32`.
 Its 194 native and 247 Python tests, strict tooling Clippy, Linux metadata
 compilation and 167 old/native comparisons pass within their stated scope.
 The codec/build inputs match main. The source-bound historical reviews below
