@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Confirm complete exited process groups during macOS diagnostic cancellation,
+  including multiple unreaped workers, before reaping the owned leader and
+  removing generated inputs. Preserve unknown/live groups, PID identity and
+  original permission errors; retain controller stderr in cancellation failures.
+
 - Preserve the documented 64-byte pointer alignment for empty `AlignedShard`
   values, including empty slices, iterators, clones and batch allocation. Keep
   the empty representation allocation-free and nonempty encoding unchanged.

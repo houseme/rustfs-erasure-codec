@@ -1332,9 +1332,10 @@ fn telemetry_controller_cancellation_stops_its_worker_and_restores_owned_source(
     };
     let f = Fixture::new();
     telemetry_fixture(&f, "printf ready > started\nsleep 30");
+    let stderr_path = f.0.join("controller.stderr");
     let mut child = telemetry_command(&f)
         .stdout(Stdio::null())
-        .stderr(Stdio::null())
+        .stderr(fs::File::create(&stderr_path).unwrap())
         .spawn()
         .unwrap();
     let deadline = Instant::now() + Duration::from_secs(10);
@@ -1361,13 +1362,18 @@ fn telemetry_controller_cancellation_stops_its_worker_and_restores_owned_source(
         child.kill().unwrap();
     }
     let final_status = child.wait().unwrap();
-    assert!(ready, "diagnostic worker did not start");
+    let stderr = fs::read_to_string(stderr_path).unwrap();
+    assert!(ready, "diagnostic worker did not start: {stderr}");
     assert_eq!(signalled, 0);
-    assert!(status.is_some(), "owned diagnostic did not terminate");
+    assert!(
+        status.is_some(),
+        "owned diagnostic did not terminate: {stderr}"
+    );
     assert!(!final_status.success());
     assert!(
         !f.0.join("tests/rse_sampler_telemetry_allocations.rs")
-            .exists()
+            .exists(),
+        "owned source was not restored ({final_status}): {stderr}",
     );
 }
 
