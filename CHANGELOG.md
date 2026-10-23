@@ -10,9 +10,9 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
-- Restrict Classic matrix normalization and scalar elimination to active pivot
-  suffixes, setting known unit/zero pivots directly. Preserve full GF8 batch
-  widths, disjoint row borrowing, storage and encoded bytes.
+- Omit known scalar pivot products during Classic matrix normalization and
+  elimination while retaining field addition. Preserve existing GF8 normalization
+  and full batch spans, storage, field bytes and recovery publication.
 
 - Multiply GF16 tower-field slices with a constant coefficient `[0, c]`
   directly through the existing GF8 byte kernel. Preserve both coordinates,
