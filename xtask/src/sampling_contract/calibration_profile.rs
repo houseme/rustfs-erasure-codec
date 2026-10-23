@@ -12,8 +12,10 @@ pub(super) fn analyze(
     cpus: Option<&[u64]>,
 ) -> Result<Value> {
     let counts = counts(records, profile, revision, page, cpus)?;
-    Ok(json!({"counts":counts,
-        "preparation":super::preparation::Preparation::new(records, true)?.catalog()}))
+    let preparation = super::preparation::Preparation::new(records, true)?;
+    Ok(
+        json!({"counts":counts,"preparation":preparation.catalog(),"worker_starts":preparation.worker_starts}),
+    )
 }
 
 pub(crate) fn counts<'a>(

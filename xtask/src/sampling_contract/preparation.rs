@@ -11,7 +11,14 @@ struct Workload<'a> {
     initial_rng: &'a Value,
     placement: &'a Value,
 }
+#[derive(Serialize)]
+pub(crate) struct WorkerStart<'a> {
+    case: &'a str,
+    iterations: &'a Value,
+    calibration_batch: &'a Value,
+}
 pub(crate) struct Preparation<'a> {
+    pub(crate) worker_starts: Vec<WorkerStart<'a>>,
     pub(crate) fixtures: BTreeMap<&'a str, &'a Value>,
     workloads: BTreeMap<&'a str, Workload<'a>>,
     traces: BTreeMap<&'a str, Vec<&'a Value>>,
@@ -20,6 +27,7 @@ pub(crate) struct Preparation<'a> {
 impl<'a> Preparation<'a> {
     pub(crate) fn new(records: &'a [Value], calibration: bool) -> Result<Self> {
         let mut result = Self {
+            worker_starts: Vec::new(),
             fixtures: BTreeMap::new(),
             workloads: BTreeMap::new(),
             traces: BTreeMap::new(),
@@ -39,6 +47,11 @@ impl<'a> Preparation<'a> {
                 result.fixtures.insert(case, &row["fixture"]);
             }
             if row["index"] == 0 {
+                result.worker_starts.push(WorkerStart {
+                    case,
+                    iterations: &row["iterations"],
+                    calibration_batch: &row["calibration_batch"],
+                });
                 let fields = row["workload"]
                     .as_object()
                     .ok_or("missing workload preparation")?

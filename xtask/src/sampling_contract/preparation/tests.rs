@@ -113,3 +113,26 @@ fn all_126_preparation_catalogs_match_the_frozen_python_projections() {
         "d44fff1895ee2b824dea1362ee84d6ce16706da47daed844a257107d882c77da"
     );
 }
+
+#[test]
+fn worker_starts_keep_all_rehearsals_in_original_order() {
+    let mut rows = vec![
+        row("a", 1, 0, Value::Null),
+        row("b", 1, 0, Value::Null),
+        row("a", 1, 1, Value::Null),
+        row("a", 2, 0, Value::Null),
+    ];
+    for (r, count) in rows.iter_mut().zip([1, 1, 1, 64]) {
+        r["iterations"] = json!(count);
+    }
+    let original = rows.clone();
+    let prepared = Preparation::new(&rows, true).unwrap();
+    assert_eq!(
+        json!(prepared.worker_starts),
+        json!([
+        {"case":"a","iterations":1,"calibration_batch":1},
+        {"case":"b","iterations":1,"calibration_batch":1},
+        {"case":"a","iterations":64,"calibration_batch":2}])
+    );
+    assert_eq!(rows, original);
+}

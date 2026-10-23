@@ -10,7 +10,7 @@ mod campaign;
 pub(crate) mod replay;
 
 const PHASES: [&str; 2] = ["A1", "A2"];
-const PROFILES: [&str; 4] = ["smoke", "small_file", "hotspot", "stream"];
+use crate::sampling_contract::PROFILES;
 const SPREAD_LIMIT: f64 = sampling_contract::CENTRAL_SPREAD_LIMIT;
 const REPEAT_LIMIT: f64 = sampling_contract::REPEAT_DRIFT_LIMIT;
 
