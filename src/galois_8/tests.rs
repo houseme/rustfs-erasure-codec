@@ -833,3 +833,23 @@ fn byte_field_slice_lengths_are_checked_before_output_mutation() {
         }
     }
 }
+
+#[cfg(feature = "simd-gfni")]
+#[test]
+fn gfni_linear_matrices_match_every_field_product() {
+    for coefficient in 0..=u8::MAX {
+        let matrix = GFNI_MULTIPLY_MATRICES[coefficient as usize] as u64;
+        for input in 0..=u8::MAX {
+            let mut actual = 0u8;
+            for bit in 0..8 {
+                let row = (matrix >> ((7 - bit) * 8)) as u8;
+                actual |= (((row & input).count_ones() & 1) as u8) << bit;
+            }
+            assert_eq!(
+                actual,
+                mul(coefficient, input),
+                "coefficient={coefficient}, input={input}"
+            );
+        }
+    }
+}

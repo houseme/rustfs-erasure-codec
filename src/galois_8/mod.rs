@@ -2,6 +2,36 @@
 
 include!(concat!(env!("OUT_DIR"), "/table.rs"));
 
+// Fixed-coefficient multiplication is an 8x8 linear map over GF(2).
+// Derive its GFNI rows from the existing field table, so the polynomial and
+// byte representation have a single source of truth. GFNI numbers matrix
+// rows from the most-significant byte of each 64-bit word.
+#[cfg(any(rse_x86_gfni, all(test, feature = "simd-gfni")))]
+const fn gfni_multiply_matrices() -> [i64; 256] {
+    let mut matrices = [0i64; 256];
+    let mut coefficient = 0;
+    while coefficient < 256 {
+        let mut matrix = 0u64;
+        let mut input_bit = 0;
+        while input_bit < 8 {
+            let product = MUL_TABLE[coefficient][1 << input_bit];
+            let mut output_bit = 0;
+            while output_bit < 8 {
+                matrix |=
+                    (((product >> output_bit) & 1) as u64) << ((7 - output_bit) * 8 + input_bit);
+                output_bit += 1;
+            }
+            input_bit += 1;
+        }
+        matrices[coefficient] = matrix as i64;
+        coefficient += 1;
+    }
+    matrices
+}
+
+#[cfg(any(rse_x86_gfni, all(test, feature = "simd-gfni")))]
+static GFNI_MULTIPLY_MATRICES: [i64; 256] = gfni_multiply_matrices();
+
 pub(crate) mod aarch64;
 mod aligned;
 mod backend;
