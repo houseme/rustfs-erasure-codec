@@ -962,3 +962,58 @@ only their complete terminal result and independent frozen replay can inform the
 next performance decision. Previously failed repeats and regressions remain
 unaccepted. Final source freezing, accepted complete evidence and actual strict
 positive release preflight remain outstanding. No tag or registry upload occurs.
+
+## Observer source-plan consolidation
+
+The follow-up starts from merged main `bfff0fc`. Functional commits `3d89e31`
+and `0205bc3` move verify, stream-core and dynamic observer source maps and their
+byte bindings into one native plan and share the controller's installation and
+restoration owner. The old per-file planning wrappers and unused private bridge
+operations are retired. Existing transforms and templates remain the source of
+truth; replay requests bindings alone instead of returning complete patch maps.
+No production codec, Cargo dependency, encoded format or JSON evidence changes.
+
+Eighteen old/native comparisons cover full plans and both projections for all
+three observers on current and published-9.0.0 source. Every generated map and
+nullable original/diagnostic SHA binding agrees. Permanent native golden tests
+protect the maps, and controller tests exercise the shared owner, including
+failure restoration and preservation of foreign edits. With tools already built,
+installing verify, stream-core and dynamic observers uses 1/1/1 native requests
+instead of 4/6/2. This reduces repeated generation, subprocess startup and IPC;
+it is not a codec timing or throughput claim.
+
+The experiment also reproduced a build-ownership defect: a shared caller
+`CARGO_TARGET_DIR` allowed an older checkout to replace the cached helper path,
+causing a new source-plan request to reach an incompatible old protocol. Commit
+`8dd9ffe` explicitly keeps helper artifacts in their source checkout, matching
+the sampler's existing build policy. A real older-checkout rebuild under the
+shared caller cache no longer changes the new plan or its byte bindings. The
+updated 29 controller lifecycle tests pass on this fix.
+
+The independently frozen `0205bc3` matrix passes 196 native-tool tests, all 248
+Python tests, strict tool Clippy, Linux tool compilation, 356 codec unit and 160
+top-level integration tests, ten doctests, codec-only no_std, all audits, actual
+package reconstruction, formatting and diff checks. The later build-directory
+fix changes only the helper's Cargo command and its regression assertion; its
+focused lifecycle and real cross-checkout regressions pass. The 200 non-fast
+published/local parity configurations and bidirectional cross-decoding still
+pass, as do the historical field vectors. The original 43 ignored codec tests
+remain ignored. Windows/platform coverage retains its CI boundary.
+
+The inventory is 34 Python files / 7,683 lines: 3,557 production/helper and 4,126
+test/fixture lines. It removes 37 production lines while adding 18 binding and
+build-isolation regression lines. After rebasing onto main `892e075`, all 585 JSON files retain their original bytes
+and eleven duplicate evidence groups. All five members inherit root dependencies;
+core/WASM allowlists remain 67/6, and the actual extracted core archive rebuilds.
+Historical release-evidence refusals and acceptance gates remain unchanged.
+
+Final integration is rebased onto main `dc38db9`, preserving its empty-shard
+alignment correction. The combined `b743f82` snapshot passes all 196 native
+checks, strict tool Clippy, Linux tool compilation, 517 top-level codec tests
+(43 existing ignored), ten doctests, no_std, the 200-configuration compatibility
+probe, JSON/workspace/package audits and actual extracted-package compilation.
+The 248-test final Python run passes on `ce10134`; all Python/tool source and
+contracts match the final integration exactly. Its subsequent main delta is
+limited to the existing alignment fix, its codec regression and documentation.
+The final review update changes documentation only. All 585 JSON members match
+main, and core build inputs/codec sources match `dc38db9` without a tooling delta.
