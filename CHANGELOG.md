@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Separate Darwin membership reading from the shared exit-confirmation proof.
+  Require fresh complete observations after a reaped member, reject duplicate
+  identities, and exercise partial, unknown, live and exhausted observations
+  without changing the existing retry budget or benchmark/release gates.
+
 - Restart complete macOS exit snapshots when an exited non-leader is reaped
   between group enumeration and its state query. Bound retries to three seconds,
   retain identity/live/unknown refusals and the original permission error, and
