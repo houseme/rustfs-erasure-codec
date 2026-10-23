@@ -176,3 +176,12 @@ or readiness to publish a new version. Tag preflight additionally requires the
 exact core version with an optional `v` prefix, consistent package/workspace/
 lock versions, and all real baseline files. See the [current readiness report](../docs/erasure-codec-release-readiness-2026-10-17.md)
 for the uncompleted acceptance and version decisions.
+
+## Synchronous VM service counters
+
+[`diagnose_release_vm.py --native-service-clock`](../docs/native-service-clock-diagnostic.md)
+adds read-only, worker-synchronous guest counters to an independent diagnostic
+source copy. `--probe-only` checks capability with zero codec calls and never
+starts calibration. Keep it separate from a currently running controlled
+capture; missing capabilities are not new release gates. Ordinary sampling and
+production code are unchanged.

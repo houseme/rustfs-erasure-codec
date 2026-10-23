@@ -628,8 +628,8 @@ def capture_environment():
     return dict(env, **SAMPLING_ENV)
 
 
-def prepare_capture_source(overlays, root, env, log_path):
-    overlays.enter_context(overlay(root, sampling.render(root)))
+def prepare_capture_source(overlays, root, env, log_path, *, render=None):
+    overlays.enter_context(overlay(root, (render or sampling.render)(root)))
     args = ["cargo", "test", "--locked", "--release", "--features", "std simd-accel",
             "--test", "rse_release_sampling", "--no-run"]
     with log_path.open("x") as log:

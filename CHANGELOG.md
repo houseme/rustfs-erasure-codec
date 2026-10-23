@@ -15,11 +15,30 @@ All notable changes to this project are documented in this file.
   original validation, frame limits and source provenance; preserve the full
   local synthetic profile comparison separately from codec timing evidence.
 
+- Prepare and execute generated native encoding views in the same owning scope,
+  returning only the execution result. Read coefficient rows directly instead
+  of constructing an intermediate 32-row container. Preserve complete safe-Field
+  validation, generic fallback, ISA selection and encoding bytes.
+
+- Frame synchronous native-counter probe records on their own complete line,
+  even when serial libtest writes the test-name prefix first. Exercise the actual
+  reporter under libtest without hardware access; keep strict record parsing,
+  original failure records and all performance limits unchanged.
+
+- Remove unused MinGW provisioning from the Windows GNU metadata-check matrix.
+  Retain all default, no_std and SIMD checks plus native Windows execution jobs.
+
 - Keep native diagnostic process-group ownership until cleanup completes, even
   when a wrapper exits before its background workers. Reap the leader only after
   stopping the owned group; retain failure/cancellation and source-preservation
   behavior. Scope local no_std release tests to the codec package so WASM/fuzz
   defaults cannot silently re-enable std through workspace feature unification.
+
+- Restore VM-diagnostic source copies after success, build or sampling failure,
+  and interruption; preserve unexpected edits and publish completion only after
+  cleanup. Add optional synchronous service-counter windows with a zero-codec
+  capability probe, conservative bounds and explicit unavailable readings.
+  Keep formal timers, codec algorithms and release acceptance unchanged.
 
 - Add explicit complete diagnostic capture/replay: collect all four 126-case
   phases and paired layouts despite statistical failures, then report every

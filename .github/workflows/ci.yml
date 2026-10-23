@@ -306,11 +306,8 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           target: ${{ matrix.target }}
 
-      - name: Install MinGW cross toolchain
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-mingw-w64 g++-mingw-w64
-
+      # These checks emit metadata and exclude the C++ fuzz package, so they
+      # need no target linker. Native Windows jobs build and run executables.
       - name: Cache Rust artifacts
         uses: Swatinem/rust-cache@v2.9.1 # v2.9.1
 
