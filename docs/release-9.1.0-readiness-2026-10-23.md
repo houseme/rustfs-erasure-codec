@@ -13,7 +13,7 @@ publication remain incomplete. Earlier snapshots retain their own validation.
 | Original checked PR head | `09597e43aae2c5d454683f056a72e7bd295371b9` | Earlier ordinary CI and package dry-run |
 | Rebased PR head | `51bdd8cd0dc4356304639d528ae554d4d152531d` | External rebase of PR #57 |
 | Earlier merged main | `14cf56e0d4381451af12e3c163677d811729d13a` | PR #57 merged externally |
-| Frozen full Linux source | `9f935eef9c1af721165b245709897f7c4b9acc37` | Running complete diagnostic versus published 9.0.0 |
+| Frozen full Linux source | `9f935eef9c1af721165b245709897f7c4b9acc37` | Complete diagnostic, independently replayed; unaccepted versus published 9.0.0 |
 | Earlier native-model main | `bfff0fcf187b99109927ec1de824b0977f2b4e6e` | Merged PR #61; historical source correspondence retained |
 | Reviewed main snapshot | `62632e5419b13b65973c51033718be00b14d2442` | Includes empty-shard alignment, native source plans and Darwin group cleanup |
 | Earlier Darwin follow-through | `5882adbd05de6c15ba37b74de36458d473c7f971` | Historical local proof and bounded cancellation checks |
@@ -220,7 +220,7 @@ The fixed baseline fixture's 68 requests / 15,257,891 bytes versus one / 289
 measures IPC and request volume only. Those results are not new codec timing,
 RSS or Linux-drift evidence for `62632e5`.
 
-## Retained timing results and running complete capture
+## Retained timing results and completed capture
 
 The [earlier verification review](verify-dispatch-review-2026-10-23.md) retains
 all 28 workers and the +15.0854% stream-verification refusal on `17432e5`.
@@ -233,21 +233,23 @@ The [complete GFNI review](gfni-priority-review-2026-10-23.md) retains candidate
 Distributions and scoped regression programs pass, but three repeats exceed 5%
 (maximum 8.3833%). The complete affected catalog is not accepted evidence.
 
-The running full Linux campaign remains frozen at `9f935ee` versus published
-9.0.0. Both calibrations have completed; original A1/B1/B2/A2 profiles and all
-paired layouts continue before final analysis. Statistical failures do not
-truncate collection. New main code, source plans and cleanup changes are not
-deployed into that reservation. Full collection, source/resource restoration and
-independent replay with its own frozen tool remain pending. Partial successful
-workers and ordinary CI do not qualify the campaign or later main snapshots.
+The full Linux campaign on frozen `9f935ee` versus published 9.0.0 has
+completed. All 20,724 observations and 2,942 calibration/profile parent events
+are retained; frozen numerical replay exactly reproduces the complete report,
+with all 1,499 inputs unchanged. Source/resource restoration and both observer
+services are independently checked. The complete result still refuses two profile
+distributions, ten profile repeats, all sixteen regression programs and 26
+cross-phase layout repeats. All 504+256 comparisons remain unqualified. See the
+[completed combined-source review](complete-linux-diagnostic-2026-10-24.md).
+Later main/candidate trees are not substituted for this frozen source.
 The [earlier complete diagnostic](complete-linux-diagnostic-2026-10-22.md) and
 all its refusals retain their original source and acceptance status.
 
 ## Concrete remaining release work
 
-1. Finish the current complete diagnostic, independently replay every original
-   record and analyze all failures and counterexamples. Preserve its diagnostic-only
-   schema and original limits; do not turn it into formal evidence by relabeling.
+1. Retain the completed diagnostic and full failure/counterexample analysis as
+   diagnosis. Follow up supported mechanisms without unchanged reruns or promotion
+   of its diagnostic-only schema into formal evidence.
 2. Freeze the final candidate tree, lockfile and harness after the intended
    changes are integrated. Store evidence on its separate immutable evidence
    commit. Later candidate-tree changes require their own binding; documentation
