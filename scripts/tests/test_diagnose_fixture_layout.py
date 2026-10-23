@@ -57,7 +57,11 @@ class FixtureInventoryTests(unittest.TestCase):
                 self.assertFalse((source/'tests/rse_release_sampling.rs').exists())
 
     def test_complete_inventory_is_never_release_approval(self):
-        report=inventory.analyze(self.phases,self.sources,range(8))
+        original=copy.deepcopy(self.phases)
+        with mock.patch.object(inventory.native_tools,'request',wraps=inventory.native_tools.request) as calls:
+            report=inventory.analyze(self.phases,self.sources,range(8))
+        self.assertEqual(calls.call_count,1)
+        self.assertEqual(self.phases,original)
         self.assertEqual(report['case_count'],103)
         self.assertEqual(len(report['layout_checks']),618)
         self.assertEqual(report['layout_mismatches'],[])
@@ -156,7 +160,14 @@ class StreamViewIntegrationTests(unittest.TestCase):
 
     def test_four_phase_inventory_reports_differences_without_performance_approval(self):
         helper,phases,views=self.inventory_fixture()
-        report=inventory.analyze_stream_views(phases,views,helper.sources,list(range(8)),4096,2)
+        original=copy.deepcopy(views)
+        with mock.patch.object(inventory.native_tools,'request',wraps=inventory.native_tools.request) as calls:
+            report=inventory.analyze_stream_views(phases,views,helper.sources,list(range(8)),4096,2)
+        batches=[call.kwargs['request'] for call in calls.call_args_list if call.args[0]=='stream-views']
+        self.assertEqual(len(batches),180)
+        self.assertTrue(all(batch['operation']=='inventory' and len(batch['observations'])<=4 for batch in batches))
+        self.assertEqual(len(report['lifecycle_windows']['A1']),180)
+        self.assertEqual(views,original)
         self.assertEqual(report['observations'],720)
         self.assertEqual(report['case_count'],15)
         self.assertFalse(report['release_approval']);self.assertFalse(report['coverage']['internal_verify_scratch'])
