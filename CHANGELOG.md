@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Compute Classic matrix products and elimination through contiguous rows with
+  safe disjoint borrows. Reuse GF8 batch operations while retaining scalar row
+  arithmetic for other fields; preserve matrix bytes, inversion errors, cache
+  policy and recovery publication semantics.
+
 - Separate Darwin membership reading from the shared exit-confirmation proof.
   Require fresh complete observations after a reaped member, reject duplicate
   identities, and exercise partial, unknown, live and exhausted observations
