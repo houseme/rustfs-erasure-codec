@@ -1423,3 +1423,50 @@ fn diagnostic_cli_preserves_input_and_refuses_missing_nullable_fields() {
     assert!(!output.status.success());
     assert!(output.stdout.is_empty());
 }
+
+#[test]
+fn regression_gates_bind_both_original_json_inputs_without_changing_valid_reports() {
+    use sha2::{Digest, Sha256};
+    use std::fmt::Write;
+    for (command, row) in [
+        ("check-benchmark", benchmark_row()),
+        (
+            "check-hotspot",
+            json!({"scenario":"recover","candidate_mb_s":100,"baseline_mb_s":80,"speedup":1.25}),
+        ),
+    ] {
+        let f = Fixture::new();
+        let rows = json!([row]);
+        let mut expected = String::with_capacity(64);
+        for byte in Sha256::digest(rows.to_string().as_bytes()) {
+            write!(&mut expected, "{byte:02x}").unwrap();
+        }
+        let plain = run_gate(&f, command, rows.clone(), rows.clone(), &[]);
+        let bound = run_gate(
+            &f,
+            command,
+            rows.clone(),
+            rows.clone(),
+            &[
+                "--baseline-sha256",
+                &expected,
+                "--current-sha256",
+                &expected,
+            ],
+        );
+        assert!(plain.status.success() && bound.status.success());
+        assert_eq!(bound.stdout, plain.stdout);
+        for side in ["--baseline-sha256", "--current-sha256"] {
+            let changed = run_gate(
+                &f,
+                command,
+                rows.clone(),
+                rows.clone(),
+                &[side, &"f".repeat(64)],
+            );
+            assert!(!changed.status.success());
+            assert!(String::from_utf8_lossy(&changed.stderr).contains("digest mismatch"));
+            assert!(changed.stdout.is_empty());
+        }
+    }
+}

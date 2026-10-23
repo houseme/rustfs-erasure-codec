@@ -119,6 +119,8 @@ const COMMANDS: &[(&str, &[&str])] = &[
         &[
             "--baseline",
             "--current",
+            "--baseline-sha256",
+            "--current-sha256",
             "--threshold",
             "--metric",
             "--require-case",
@@ -132,6 +134,8 @@ const COMMANDS: &[(&str, &[&str])] = &[
         &[
             "--baseline",
             "--current",
+            "--baseline-sha256",
+            "--current-sha256",
             "--require-scenario",
             "--metric",
             "--max-regression",

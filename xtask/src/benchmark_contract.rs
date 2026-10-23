@@ -197,10 +197,25 @@ pub(crate) struct Record {
     pub provenance: BTreeMap<String, Option<String>>,
 }
 
-pub(crate) fn load_rows(path: &Path) -> Result<Vec<Value>> {
+pub(crate) fn load_rows(path: &Path, expected: Option<&str>) -> Result<Vec<Value>> {
+    if expected.is_some() && path.extension().and_then(|s| s.to_str()) != Some("json") {
+        return Err("digest binding requires a JSON benchmark artifact".into());
+    }
     let rows = match path.extension().and_then(|s| s.to_str()) {
         Some("json") => {
-            let value: Value = artifact::read_json(path)?;
+            let value: Value = if let Some(expected) = expected {
+                let root = path
+                    .parent()
+                    .filter(|p| !p.as_os_str().is_empty())
+                    .unwrap_or(Path::new("."));
+                let name = path
+                    .file_name()
+                    .and_then(|s| s.to_str())
+                    .ok_or("invalid JSON member name")?;
+                artifact::snapshot::Snapshot::new(root)?.json_bound(name, Some(expected))?
+            } else {
+                artifact::read_json(path)?
+            };
             let Value::Array(rows) = value else {
                 return Err("expected a nonempty list of benchmark rows".into());
             };
