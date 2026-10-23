@@ -7,6 +7,7 @@ use std::{
     collections::{BTreeMap, BTreeSet},
 };
 mod campaign;
+pub(crate) use campaign::{CampaignRows, analyze as analyze_campaign};
 pub(crate) mod replay;
 
 const PHASES: [&str; 2] = ["A1", "A2"];

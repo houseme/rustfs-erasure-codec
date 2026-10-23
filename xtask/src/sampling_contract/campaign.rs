@@ -21,7 +21,7 @@ use std::{
 pub(crate) struct Request {
     capture: PathBuf,
     document: Value,
-    summarized: Value,
+    summarized: Option<Value>,
     diagnostic: bool,
 }
 fn member(snapshot: &mut Snapshot, entry: &Value, expected: &str) -> Result<Vec<Value>> {
@@ -49,12 +49,14 @@ impl Request {
         }) {
             return Err("complete common iteration counts are required".into());
         }
-        // 24 raw members plus the optional journal: preserve the old per-file
-        // acceptance limit while bounding the complete fixed catalog.
+        // Supplied summaries retain the 24-member raw stage; directory replay
+        // additionally binds 16 summaries, preserving each original file limit.
         let mut snapshot = Snapshot::with_budget(
             &self.capture,
-            (6 * PROFILES.len() + 1) as u64 * MEMBER_LIMIT,
+            ((if self.summarized.is_some() { 6 } else { 10 }) * PROFILES.len() + 1) as u64
+                * MEMBER_LIMIT,
         )?;
+        let summaries = summaries::Summaries::new(&mut snapshot, &self.document, self.summarized)?;
         let context = &self.document["contexts"]["A1"];
         let page: Option<u64> = serde_json::from_value(
             context["runtime"]
@@ -196,7 +198,7 @@ impl Request {
                     serde_json::from_value::<Vec<(String, Value)>>(recomputed)?
                         .into_iter()
                         .collect();
-                if !equivalent(&json!(recomputed), &self.summarized[phase][profile]) {
+                if !summaries.matches(phase, profile, &recomputed) {
                     return Err("summary is not the median of all fixed samples".into());
                 }
                 if let Some(first) = &first {
@@ -235,10 +237,15 @@ impl Request {
                 .as_f64()
                 .is_some_and(|n| n > super::CENTRAL_SPREAD_LIMIT)
         });
+        let mut result =
+            json!({"sample_spreads":spreads,"worker_invocations":invocations,"unstable":unstable});
+        summaries.report(&mut result, &spreads, self.diagnostic, unstable)?;
         snapshot.finish()?;
-        Ok(json!({"sample_spreads":spreads,"worker_invocations":invocations,"unstable":unstable}))
+        Ok(result)
     }
 }
+
+mod summaries;
 
 #[cfg(test)]
 mod tests;

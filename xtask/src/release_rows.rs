@@ -27,6 +27,16 @@ pub(crate) fn metric(profile: &str) -> Result<&'static str> {
         _ => Err("unknown release profile".into()),
     }
 }
+/// Persisted artifact names also determine the original summary filenames.
+pub(crate) fn artifact_kind(profile: &str) -> Result<&'static str> {
+    match profile {
+        "smoke" => Ok("smoke-results"),
+        "small_file" => Ok("small-file-results"),
+        "stream" => Ok("stream-path-results"),
+        "hotspot" => Ok("reconstruction-hotspot-results"),
+        _ => Err("unknown release profile".into()),
+    }
+}
 impl Request {
     fn raw(
         &self,
@@ -40,13 +50,7 @@ impl Request {
         if row["schema_version"].as_u64() != Some(1) || row["benchmark_metrics_enabled"] != false {
             return Err("release artifacts require schema 1 and disabled instrumentation".into());
         }
-        let kind = match self.profile.as_str() {
-            "smoke" => "smoke-results",
-            "small_file" => "small-file-results",
-            "stream" => "stream-path-results",
-            "hotspot" => "reconstruction-hotspot-results",
-            _ => return Err("unknown release profile".into()),
-        };
+        let kind = artifact_kind(&self.profile)?;
         if row["artifact_kind"] != kind {
             return Err("wrong benchmark artifact kind".into());
         }
