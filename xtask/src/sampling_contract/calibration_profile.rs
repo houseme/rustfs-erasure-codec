@@ -9,6 +9,7 @@ pub(super) fn analyze(
     profile: &str,
     revision: &str,
     page: Option<u64>,
+    cpus: Option<&[u64]>,
 ) -> Result<Value> {
     let catalog = super::case_catalog();
     let expected = catalog.get(profile).ok_or("unknown calibration profile")?;
@@ -66,7 +67,7 @@ pub(super) fn analyze(
             .iter()
             .enumerate()
         {
-            let following = calibration_worker(rows, profile, count, batch as u64 + 1, page)?;
+            let following = calibration_worker(rows, profile, count, batch as u64 + 1, page, cpus)?;
             if following.is_null() {
                 if (batch + 1) * protocol::WIDTH != group.len() {
                     return Err("extra calibration records after a complete rehearsal".into());

@@ -92,8 +92,17 @@ class CompleteReplayTests(unittest.TestCase):
         self.assertFalse((self.root/'manifest.json').exists())
 
     def test_passing_diagnostic_cannot_be_used_by_formal_verify_or_materialize(self):
-        with mock.patch.object(e.subprocess,'run',return_value=subprocess.CompletedProcess([],0,'','')):
+        original=e.campaign_analysis
+        def analyze(data,spreads,diagnostic):
+            before=copy.deepcopy(data)
+            with mock.patch.object(e.native_tools,'_request_payload',wraps=e.native_tools._request_payload) as frames:
+                result=original(data,spreads,diagnostic)
+            self.assertEqual(frames.call_count,1)
+            self.assertEqual(data,before)
+            return result
+        with mock.patch.object(e.subprocess,'run',return_value=subprocess.CompletedProcess([],0,'','')),mock.patch.object(e,'campaign_analysis',side_effect=analyze) as analysis:
             report=self.replay()
+        analysis.assert_called_once()
         self.assertTrue(report['all_original_limits_passed']); self.assertFalse(report['release_approval'])
         self.assertIsNone(report['layout']['candidate_attribution'])
         with self.assertRaisesRegex(ValueError,'schema 4'): e.verify(self.manifest,self.root)

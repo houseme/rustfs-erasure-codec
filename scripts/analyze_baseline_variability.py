@@ -46,10 +46,7 @@ def analyze(capture):
     descriptions = []
     for profile in evidence.FILES:
         calibration = load(f'calibration/{profile}-samples.json')
-        counts = evidence.calibration_counts(calibration, profile, evidence.BASELINE_COMMIT, page_size)
-        for record in calibration:
-            sampling.validate_telemetry(record, cpus)
-            sampling.validate_placement(record, cpus)
+        counts = evidence.calibration_counts(calibration, profile, evidence.BASELINE_COMMIT, page_size, allowed_cpus=cpus)
         layouts = sampling.fixture_catalog(calibration, calibration=True)
         contracts = evidence.observation_contracts(profile, [r for r in calibration if r['complete']])
         workload = sampling.workload_catalog(calibration, calibration=True)

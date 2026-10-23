@@ -64,8 +64,7 @@ def inputs(prior,repository):
         if entry.get('path')!=name:raise ValueError('prior calibration member differs')
         path=member(prior,name);rows=e.json_data(path)
         if e.digest(path.read_bytes())!=entry.get('sha256'):raise ValueError('prior calibration member differs')
-        counts[profile]=e.calibration_counts(rows,profile,e.BASELINE_COMMIT,prov['context']['runtime']['page_size'])
-        for row in rows:s.validate_placement(row,prov['context']['isolation']['cpu_affinity'])
+        counts[profile]=e.calibration_counts(rows,profile,e.BASELINE_COMMIT,prov['context']['runtime']['page_size'],allowed_cpus=prov['context']['isolation']['cpu_affinity'])
         records[profile]=(e.observation_contracts(profile,[r for r in rows if r['complete']]),s.fixture_catalog(rows,calibration=True),s.workload_catalog(rows,calibration=True),s.workload_traces(rows,calibration=True));names.append(name)
     if document['sampling'].get('common_iterations')!=counts:raise ValueError('prior frozen counts differ')
     return prov,counts,records,{n:e.digest((prior/n).read_bytes()) for n in names}

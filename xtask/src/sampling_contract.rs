@@ -47,6 +47,7 @@ pub(crate) enum Request {
         revision: String,
         records: Vec<Value>,
         expected_page_size: Option<u64>,
+        allowed_cpus: Option<Vec<u64>>,
     },
     WorkloadContract {
         profile: String,
@@ -112,12 +113,14 @@ impl Request {
                 revision,
                 records,
                 expected_page_size,
+                allowed_cpus,
             } => {
                 return calibration_profile::analyze(
                     &records,
                     &profile,
                     &revision,
                     expected_page_size,
+                    allowed_cpus.as_deref(),
                 );
             }
             Self::Catalog => {
@@ -171,7 +174,14 @@ impl Request {
                 batch,
                 expected_page_size,
             } => {
-                return calibration_worker(&records, &profile, count, batch, expected_page_size);
+                return calibration_worker(
+                    &records,
+                    &profile,
+                    count,
+                    batch,
+                    expected_page_size,
+                    None,
+                );
             }
             Self::ValidateWorker {
                 profile,
@@ -781,10 +791,11 @@ fn calibration_worker<T: Borrow<Value>>(
     count: u64,
     batch: u64,
     page: Option<u64>,
+    cpus: Option<&[u64]>,
 ) -> Result<Value> {
     workload_sequence(records, profile)?;
     for record in records {
-        observation(record.borrow(), profile, count, None, page)?;
+        observation(record.borrow(), profile, count, cpus, page)?;
     }
     calibration(records, count, batch)
 }
