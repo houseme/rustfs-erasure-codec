@@ -57,11 +57,10 @@ def _original(repository,source):
 def worker_data(output,name,entry):
     member=output/(name+'.json');numeric=output/(name+'-journal.jsonl')
     if entry.get('path')!=member.name or entry.get('numeric_journal_path')!=numeric.name:raise ValueError('invalid stream member path')
-    for path,digest in ((member,entry.get('sha256')),(numeric,entry.get('numeric_journal_sha256'))):
-        if path.is_symlink() or not path.is_file() or not 0<path.stat().st_size<=e.MAX_BYTES or e.digest(path.read_bytes())!=digest:raise ValueError('stream diagnostic member digest differs')
+    data=e.json_data(member,entry.get('sha256'));raw=e.member_text(numeric,entry.get('numeric_journal_sha256'))
     private=output/(name+'.log')
     if not e.DIGEST.fullmatch(entry.get('raw_log_sha256','')) or private.exists() and (private.is_symlink() or e.digest(private.read_bytes())!=entry['raw_log_sha256']):raise ValueError('private original stream log differs')
-    data=e.json_data(member);raw=numeric.read_text();rows=sampling.parse_output(raw);io=sampling.parse_output(raw,views.PREFIX);core=sampling.parse_output(raw,PREFIX);journal=sampling.parse_output(raw,'RSE_TIMING ')
+    rows=sampling.parse_output(raw);io=sampling.parse_output(raw,views.PREFIX);core=sampling.parse_output(raw,PREFIX);journal=sampling.parse_output(raw,'RSE_TIMING ')
     if set(data)!={'samples','views','core'} or rows!=data['samples'] or io!=data['views'] or core!=[data['core']] or len(journal)!=12 or any(any(j[n]!=r[n] for n in ('case','index','iterations','wall_ns','timed_ns','fixture','workload','placement','before','after')) for j,r in zip(journal,rows)):raise ValueError('stream numerical journal differs from raw observations')
     return data,rows,io
 

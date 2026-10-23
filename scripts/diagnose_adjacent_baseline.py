@@ -50,24 +50,23 @@ def member(root,name):
 
 def inputs(prior,repository):
     """Old calibration is only a frozen workload budget, not new calibration."""
-    prov=e.json_data(prior/'provenance.json')
-    document=e.json_data(prior/'qualification.partial.json')
+    prov,provenance_sha=e.json_snapshot(prior/'provenance.json')
+    document,qualification_sha=e.json_snapshot(prior/'qualification.partial.json')
     if prov.get('schema_version') not in ('baseline-qualification-v1',e.QUALIFICATION_SCHEMA) or prov.get('release_approval') is not False or prov.get('candidate_attribution') is not None:raise ValueError('require original diagnostic baseline provenance')
     if prov['schema_version']==e.QUALIFICATION_SCHEMA:e.validate_runtime(prov['context']['runtime'])
     if prov.get('source')!=e.source_at(repository,e.BASELINE_COMMIT) or prov.get('tool')!=e.source_at(repository,prov['tool']['commit']):raise ValueError('original baseline/tool identity differs')
     if document.get('source')!=prov['source'] or document.get('context')!=prov['context'] or document.get('tool')!=prov['tool']:raise ValueError('prior control metadata differs')
     contract=prov['sampling']
     if any(contract.get(k)!=v for k,v in s.PROTOCOL.items()) or contract.get('implementation_sha256')!=s.implementation_digest() or contract.get('overlay_sha256')!=s.overlay_digest(repository) or prov.get('harness_sha256')!=e.harness_digest(repository):raise ValueError('frozen worker protocol/harness differs')
-    names=['provenance.json','qualification.partial.json'];counts={};records={}
+    digests={'provenance.json':provenance_sha,'qualification.partial.json':qualification_sha};counts={};records={}
     for profile in e.FILES:
         name='calibration/'+profile+'-samples.json';entry=document['calibration'][profile]
         if entry.get('path')!=name:raise ValueError('prior calibration member differs')
-        path=member(prior,name);rows=e.json_data(path)
-        if e.digest(path.read_bytes())!=entry.get('sha256'):raise ValueError('prior calibration member differs')
+        rows=e.json_data(member(prior,name),entry.get('sha256'));digests[name]=entry['sha256']
         counts[profile]=e.calibration_counts(rows,profile,e.BASELINE_COMMIT,prov['context']['runtime']['page_size'],allowed_cpus=prov['context']['isolation']['cpu_affinity'])
-        records[profile]=(e.observation_contracts(profile,[r for r in rows if r['complete']]),s.fixture_catalog(rows,calibration=True),s.workload_catalog(rows,calibration=True),s.workload_traces(rows,calibration=True));names.append(name)
+        records[profile]=(e.observation_contracts(profile,[r for r in rows if r['complete']]),s.fixture_catalog(rows,calibration=True),s.workload_catalog(rows,calibration=True),s.workload_traces(rows,calibration=True))
     if document['sampling'].get('common_iterations')!=counts:raise ValueError('prior frozen counts differ')
-    return prov,counts,records,{n:e.digest((prior/n).read_bytes()) for n in names}
+    return prov,counts,records,digests
 
 
 def schedule(counts):
@@ -89,13 +88,14 @@ def check_worker(rows,raw,step,calibration,context):
 
 def replay(output,prior,repository):
     if (output/'failure.json').exists():raise ValueError('failed diagnostic is retained, not accepted')
-    prov,counts,calibration,digests=inputs(prior,repository);plan=e.json_data(output/'plan.json');result=e.json_data(output/'result.json')
+    prov,counts,calibration,digests=inputs(prior,repository);result=e.json_data(output/'result.json')
+    if not isinstance(result,dict):raise ValueError('invalid adjacent result')
+    plan=e.json_data(output/'plan.json',result.get('plan_sha256'))
     if plan.get('schema')!=SCHEMA or plan.get('release_approval') is not False or plan.get('candidate_attribution') is not None or not same(plan.get('steps'),schedule(counts)) or plan.get('prior_inputs')!=digests or plan.get('baseline')!=prov['source'] or plan.get('max_pair_gap_ns')!=MAX_PAIR_GAP_NS:raise ValueError('predeclared adjacent plan differs')
     if plan.get('controller_sha256')!=e.digest(pathlib.Path(__file__).read_bytes()) or not isinstance(plan.get('tool'),dict) or e.source_at(repository,plan['tool']['commit'])!=plan['tool'] or any(plan['tool'][k]!=e.source_info(repository)[k] for k in ('tree','lock_sha256')):raise ValueError('use the exact frozen diagnostic tool source')
     context=plan['context'];compare_context(context,prov['context'])
     journal=output/'execution.jsonl'
-    if journal.is_symlink() or not journal.is_file() or not 0<journal.stat().st_size<=e.MAX_BYTES:raise ValueError('invalid bounded execution journal')
-    entries=[json.loads(line) for line in journal.read_text().splitlines()]
+    entries=[json.loads(line) for line in e.member_text(journal,result.get('execution_sha256')).splitlines()]
     if len(entries)!=252:raise ValueError('incomplete original adjacent case catalog')
     summaries={};last_end=0;gaps=[]
     for step,entry in zip(plan['steps'],entries):
@@ -108,10 +108,9 @@ def replay(output,prior,repository):
             gaps.append(gap)
         last_end=end
         stem=f"{step['ordinal']:03}";path=member(output,'workers/'+stem+'.json');log=member(output,'workers/'+stem+'.log')
-        rows=e.json_data(path)
-        if log.is_symlink() or not log.is_file() or not 0<log.stat().st_size<=e.MAX_BYTES or e.digest(path.read_bytes())!=entry['samples_sha256'] or e.digest(log.read_bytes())!=entry['log_sha256']:raise ValueError('original worker members differ')
+        rows=e.json_data(path,entry['samples_sha256']);raw=e.member_text(log,entry['log_sha256'])
         if end-start<sum(r['wall_ns'] for r in rows):raise ValueError('worker interval cannot contain its original observations')
-        summary=check_worker(rows,log.read_text(),step,calibration[step['profile']],context)
+        summary=check_worker(rows,raw,step,calibration[step['profile']],context)
         summaries.setdefault(step['profile']+'/'+step['case'],{})[step['phase']]=summary
     expected=summarize(output,prov,summaries,gaps)
     if not same(result,expected):raise ValueError('diagnostic summary differs from original workers')
@@ -153,7 +152,7 @@ def _capture(repository,baseline,prior,output,group):
                 entry={'step':step,'before':before,'after':after,'start_ns':start,'end_ns':end,'samples_sha256':e.digest(member.read_bytes()),'log_sha256':e.digest(log.read_bytes())}
                 ledger.write(json.dumps(entry)+'\n');ledger.flush()
                 if after!=context:raise ValueError('runtime context changed; original worker retained')
-                summary=check_worker(rows,log.read_text(),step,calibration[step['profile']],context)
+                summary=check_worker(rows,e.member_text(log,entry['log_sha256']),step,calibration[step['profile']],context)
                 summaries.setdefault(step['profile']+'/'+step['case'],{})[step['phase']]=summary
                 if step['phase']=='A2':gaps.append(start-last_end)
                 last_end=end

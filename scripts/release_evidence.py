@@ -102,7 +102,8 @@ def campaign_analysis(data, sample_spreads, diagnostic):
 def member_bytes(path, expected_sha256=_UNBOUND):
     if expected_sha256 is not _UNBOUND and (not isinstance(expected_sha256, str) or not DIGEST.fullmatch(expected_sha256)):
         raise ValueError("original member digest mismatch")
-    if path.is_symlink() or not path.is_file() or not 0 < path.stat().st_size <= MAX_BYTES:
+    if path.is_symlink():raise ValueError("symlinked original evidence member")
+    if not path.is_file() or not 0 < path.stat().st_size <= MAX_BYTES:
         raise ValueError("evidence must contain bounded regular original files")
     with path.open('rb') as stream: raw = stream.read(MAX_BYTES + 1)
     if not 0 < len(raw) <= MAX_BYTES:
@@ -112,14 +113,27 @@ def member_bytes(path, expected_sha256=_UNBOUND):
     return raw
 
 
-def member_text(path, expected_sha256=_UNBOUND):
+def _member_text(raw):
     # Retain read_text's locale/default encoding and universal-newline contract.
-    with io.TextIOWrapper(io.BytesIO(member_bytes(path, expected_sha256))) as stream:
-        return stream.read()
+    with io.TextIOWrapper(io.BytesIO(raw)) as stream: return stream.read()
+
+
+def member_text(path, expected_sha256=_UNBOUND):
+    return _member_text(member_bytes(path, expected_sha256))
+
+
+def _json_text(text):
+    return json.loads(text, parse_constant=lambda x: (_ for _ in ()).throw(ValueError("nonfinite JSON")))
 
 
 def json_data(path, expected_sha256=_UNBOUND):
-    return json.loads(member_text(path, expected_sha256), parse_constant=lambda x: (_ for _ in ()).throw(ValueError("nonfinite JSON")))
+    return _json_text(member_text(path, expected_sha256))
+
+
+def json_snapshot(path):
+    raw=member_bytes(path);sha256=digest(raw);text=_member_text(raw)
+    del raw
+    return _json_text(text),sha256
 
 
 def source_at(root, revision):
@@ -246,16 +260,17 @@ def safe_file(root, name):
     return current
 
 
-def checker_args(profile, baseline, current):
+def checker_args(profile, baseline, current, digests=None):
     # Offline evidence directories need not contain Cargo aliases or a workspace.
     # Select the controller's tool explicitly, as the former Python paths did.
     manifest = pathlib.Path(__file__).resolve().parents[1] / 'xtask/Cargo.toml'
     command = ['cargo', 'run', '--quiet', '--locked', '--offline', '--manifest-path', str(manifest), '--package', 'xtask', '--']
+    bound=[] if digests is None else ['--baseline-sha256',digests[0],'--current-sha256',digests[1]]
     if profile == "hotspot":
-        args = command + ["check-hotspot", "--baseline", str(baseline), "--current", str(current)]
+        args = command + ["check-hotspot", "--baseline", str(baseline), "--current", str(current)] + bound
         for case in REQUIRED[profile]: args += ["--require-scenario", case]
         return args
-    args = command + ["check-benchmark", "--baseline", str(baseline), "--current", str(current)]
+    args = command + ["check-benchmark", "--baseline", str(baseline), "--current", str(current)] + bound
     if profile != "smoke": args += ["--metric", METRICS[profile]]
     thresholds = {"small_file": ("encode=0.12", "verify=0.12", "verify_with_buffer=0.12", "reconstruct=0.18", "reconstruct_data=0.18"), "stream": ("encode_stream=0.15", "verify_stream=0.15", "reconstruct_stream=0.18")}
     for threshold in thresholds.get(profile, ()): args += ["--threshold", threshold]
@@ -282,9 +297,7 @@ def layout_member(document, root, *, diagnostic=False):
     if (root/LAYOUT_DIRECTORY).is_symlink():
         raise ValueError('paired-layout supplement must not be symlinked')
     path = root/expected
-    json_data(path)
-    if digest(path.read_bytes()) != entry['sha256']:
-        raise ValueError('paired-layout supplement digest mismatch')
+    json_data(path, entry['sha256'])
     return path
 
 
@@ -297,17 +310,17 @@ def layout_iterations(sampling_contract):
 
 
 def verify(manifest, repository, compiler=True):
-    document = json_data(manifest)
+    document,manifest_sha256 = json_snapshot(manifest)
     validate_envelope(document)
     # Refuse a missing/broken supplement before running any regression programs.
     layout_path = layout_member(document, manifest.parent)
     paths, data, report = _verify_profiles(document, manifest.parent, repository, compiler)
     from diagnose_verify_layout import verify_paired
-    layout = verify_paired(layout_path.parent, repository, compiler)
+    layout = verify_paired(layout_path.parent, repository, compiler, manifest_sha256=document['layout_supplement']['sha256'])
     verify_layout_binding(document, data, layout)
     if not layout['layout_gate_passed']:
         raise EvidenceFailure('paired layouts failed; no release approval', {'layout': layout, 'candidate_attribution': None})
-    report.update(status='passed', manifest_sha256=digest(manifest.read_bytes()),
+    report.update(status='passed', manifest_sha256=manifest_sha256,
                   layout_manifest_sha256=document['layout_supplement']['sha256'],
                   layout_distribution_checks=sum(r['case_count'] for r in layout['phase_reports'].values()),
                   layout_repeat_checks=len(layout['repeat_checks'])+sum(len(r['repeat_checks']) for r in layout['phase_reports'].values()),
@@ -334,7 +347,7 @@ def verify_layout_binding(document, data, layout):
 
 def verify_diagnostic(manifest, repository, compiler=True):
     """Recompute every check after complete collection; never release evidence."""
-    document = json_data(manifest)
+    document,manifest_sha256 = json_snapshot(manifest)
     if (not isinstance(document, dict) or document.get('schema_version') != DIAGNOSTIC_SCHEMA
             or document.get('phase_order') != list(PHASES)
             or document.get('diagnostic_only') is not True
@@ -344,11 +357,11 @@ def verify_diagnostic(manifest, repository, compiler=True):
     invocations = verify_worker_journal(document, manifest.parent)
     paths, data, report = _verify_profiles(document, manifest.parent, repository, compiler, diagnostic=True)
     from diagnose_verify_layout import verify_paired
-    layout = verify_paired(layout_path.parent, repository, compiler, diagnostic=True)
+    layout = verify_paired(layout_path.parent, repository, compiler, diagnostic=True, manifest_sha256=document['layout_supplement']['sha256'])
     verify_layout_binding(document, data, layout)
     report.update(status='diagnostic_complete', diagnostic_only=True, release_approval=False,
                   candidate_attribution=None, all_checks_executed=True,
-                  manifest_sha256=digest(manifest.read_bytes()), layout=layout,
+                  manifest_sha256=manifest_sha256, layout=layout,
                   worker_invocations=invocations,
                   all_original_limits_passed=report['all_original_limits_passed'] and layout['layout_gate_passed'])
     return document, paths, report
@@ -357,10 +370,9 @@ def verify_diagnostic(manifest, repository, compiler=True):
 def verify_worker_journal(document, root):
     entry = document.get('worker_journal', {})
     path = root/'worker-journal.jsonl'
-    if (not isinstance(entry, dict) or entry.get('path') != path.name or path.is_symlink() or not path.is_file()
-            or not 0 < path.stat().st_size <= MAX_BYTES
-            or digest(path.read_bytes()) != entry.get('sha256')):
+    if not isinstance(entry, dict) or entry.get('path') != path.name:
         raise ValueError('complete digest-bound worker journal is required')
+    raw=member_text(path,entry.get('sha256'))
     expected = []
     for phase in ('calibration-baseline', 'calibration-candidate', *PHASES):
         calibration = phase.startswith('calibration-')
@@ -371,7 +383,7 @@ def verify_worker_journal(document, root):
             expected.extend({'phase': phase, 'profile': profile, 'mode': 'calibrate' if calibration else 'sample',
                              'case': r['case'], 'iterations': r['iterations'], 'calibration_batch': r['calibration_batch']}
                             for r in records if r['index'] == 0)
-    rows = [json.loads(line) for line in path.read_text().splitlines()]
+    rows = [json.loads(line) for line in raw.splitlines()]
     if len(rows) != 2*len(expected):
         raise ValueError('complete start/end worker journal is required')
     previous = 0
@@ -446,11 +458,10 @@ def _verify_profiles(document, root, repository, compiler=True, *, diagnostic=Fa
             if entry.get("path") != expected or not DIGEST.fullmatch(entry.get("sha256", "")):
                 raise ValueError("invalid evidence member declaration")
             path = safe_file(root, expected)
-            json_data(path)
-            if digest(path.read_bytes()) != entry["sha256"]: raise ValueError("evidence digest mismatch")
+            original=json_data(path,entry["sha256"])
             paths[phase][profile] = path
             counts = document.get("sampling", {}).get("common_iterations", {}).get(profile)
-            data[phase][profile] = rows(profile, path, sources[role]["commit"], counts)
+            data[phase][profile] = indexed_rows(profile, original, sources[role]["commit"], counts)
     sample_spreads = verify_sampling(document, root, repository, data, diagnostic=diagnostic)
     analysis = campaign_analysis(data, sample_spreads, diagnostic)
     drifts = analysis['repeat_checks']
@@ -461,9 +472,11 @@ def _verify_profiles(document, root, repository, compiler=True, *, diagnostic=Fa
     for profile in FILES:
         for a in ("A1", "A2"):
             for b in ("B1", "B2"):
-                args = checker_args(profile, paths[a][profile], paths[b][profile])
+                args = checker_args(profile, paths[a][profile], paths[b][profile],
+                        (document['files'][a][profile]['sha256'],document['files'][b][profile]['sha256']))
                 if diagnostic:
                     result = subprocess.run(args, cwd=repository, check=False, capture_output=True, text=True)
+                    if result.returncode not in (0,1):raise ValueError('regression validation failed: '+result.stderr.strip())
                     checks.append({'profile': profile, 'pair': a+'/'+b, 'exit_code': result.returncode,
                                    'stdout': result.stdout, 'stderr': result.stderr})
                 else:

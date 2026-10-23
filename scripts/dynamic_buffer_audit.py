@@ -100,8 +100,7 @@ def validate_envelope(report,output,repository):
     steps=inventory_steps()
     if set(plan)!=fields|{'steps'} or plan['steps']!=steps or plan['cases']!={'candidate':{},'baseline':{}} or any(plan[k]!=report[k] for k in fields-{'cases'}):raise ValueError('frozen complete dynamic plan differs')
     path=output/'execution.jsonl'
-    if path.is_symlink() or not path.is_file() or not 0<path.stat().st_size<=e.MAX_BYTES:raise ValueError('bounded original execution journal required')
-    entries=[json.loads(line) for line in path.read_text().splitlines()]
+    entries=[json.loads(line) for line in e.member_text(path).splitlines()]
     if len(entries)!=2*len(steps):raise ValueError('incomplete original execution journal')
     for i,step in enumerate(steps):
         begin,end=entries[2*i:2*i+2]
@@ -139,11 +138,10 @@ def verify(output,repository):
             mode,profile,case=key.split('/',2);name=role+'-'+mode+'-'+profile+'-'+case.replace(':','_')
             member=output/(name+'.json');journal=output/(name+'-journal.jsonl')
             if entry.get('path')!=member.name or entry.get('numeric_journal_path')!=journal.name:raise ValueError('invalid dynamic member path')
-            for p,h in ((member,entry.get('sha256')),(journal,entry.get('numeric_journal_sha256'))):
-                if p.is_symlink() or not p.is_file() or not 0<p.stat().st_size<=e.MAX_BYTES or e.digest(p.read_bytes())!=h:raise ValueError('dynamic member changed')
+            data=e.json_data(member,entry.get('sha256'));raw=e.member_text(journal,entry.get('numeric_journal_sha256'))
             private=output/(name+'.log')
             if not e.DIGEST.fullmatch(entry.get('raw_log_sha256','')) or private.exists() and (private.is_symlink() or e.digest(private.read_bytes())!=entry['raw_log_sha256']):raise ValueError('original private dynamic log changed')
-            data=e.json_data(member);raw=journal.read_text();ledgers=s.parse_output(raw,PREFIX)
+            ledgers=s.parse_output(raw,PREFIX)
             if profile=='decoder':
                 headers=s.parse_output(raw,'RSE_DYNAMIC_SUPPLEMENT ')
                 if set(data)!={'supplement','dynamic'} or headers!=[data['supplement']] or ledgers!=[data['dynamic']]:raise ValueError('decoder supplement journal differs')

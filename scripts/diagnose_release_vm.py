@@ -140,7 +140,7 @@ def frequency_inputs(capture,prior,frozen):
     import analyze_baseline_variability as analysis
     report=analysis.analyze_adjacent(capture,prior,frozen)
     prov,counts,calibration,digests=adjacent.inputs(prior,frozen)
-    raw=(capture/'adjacent/plan.json').read_bytes()
+    raw=evidence.member_bytes(capture/'adjacent/plan.json')
     if any(report['input_sha256'].get('prior/'+n)!=h for n,h in digests.items()) or evidence.digest(raw)!=report['input_sha256'].get('adjacent/plan.json'):raise ValueError('full input changed after replay')
     context=analysis.json_bytes(raw)['context']
     failed=sorted((v['profile'],v['case']) for v in report['cases'] if v['repeat']['exceeds_repeat_limit'])
@@ -153,22 +153,20 @@ def frequency_inputs(capture,prior,frozen):
 
 def frequency_result(output,plan,calibration,context):
     journal=output/'execution.jsonl'
-    if journal.is_symlink() or not journal.is_file() or not 0<journal.stat().st_size<=evidence.MAX_BYTES:raise ValueError('bounded frequency journal required')
-    entries=[json.loads(line) for line in journal.read_text().splitlines()]
+    entries=[json.loads(line) for line in evidence.member_text(journal).splitlines()]
     if len(entries)!=len(plan['cohort']['steps']):raise ValueError('incomplete frequency cohort')
     reports=[];last=0
     for step,entry in zip(plan['cohort']['steps'],entries):
         if set(entry)!={'step','before','after','start_ns','end_ns','counters_before','counters_after','samples_sha256','log_sha256'} or entry['step']!=step or entry['before']!=context or entry['after']!=context:raise ValueError('frequency order/context differs')
         stem=f"{step['ordinal']:03}";rows_path=adjacent.member(output,'workers/'+stem+'.json');log=adjacent.member(output,'workers/'+stem+'.log')
-        rows=evidence.json_data(rows_path)
-        if not log.is_file() or not 0<log.stat().st_size<=evidence.MAX_BYTES or evidence.digest(rows_path.read_bytes())!=entry['samples_sha256'] or evidence.digest(log.read_bytes())!=entry['log_sha256']:raise ValueError('frequency original members differ')
+        rows=evidence.json_data(rows_path,entry['samples_sha256']);raw=evidence.member_text(log,entry['log_sha256'])
         begin=evidence.json_data(adjacent.member(output,'workers/'+stem+'.start.json'))
         if begin!={k:entry[k] for k in ('step','before','start_ns','counters_before')}:raise ValueError('frequency start journal differs')
         start,end=entry['start_ns'],entry['end_ns']
         if type(start) is not int or start<last:raise ValueError('frequency workers overlap')
         counters=frequency_deltas(entry['counters_before'],entry['counters_after'],context['isolation']['cpu_affinity'],start,end);last=end
         if end-start<sum(r['wall_ns'] for r in rows):raise ValueError('frequency worker cannot contain original windows')
-        summary=adjacent.check_worker(rows,log.read_text(),step,calibration[step['profile']],context)
+        summary=adjacent.check_worker(rows,raw,step,calibration[step['profile']],context)
         cpu=str(rows[0]['placement']['cpu'])
         if counters[cpu]['mperf_delta']<=0:raise ValueError('no measuring-CPU counter activity')
         reports.append({'step':step,'original_metric':summary,'worker_elapsed_ns':end-start,

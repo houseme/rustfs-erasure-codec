@@ -37,6 +37,11 @@ class OriginalMemberReadTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError,'digest'):
                     evidence.evidence_member(root,entry,entry['path'])
             self.assertEqual(path.read_bytes(),replacement)
+            original=b'{"value":"unbound"}';path.write_bytes(original);changed=False
+            with mock.patch.object(pathlib.Path,'open',opening):
+                document,sha256=evidence.json_snapshot(path)
+            self.assertEqual(document,{'value':'unbound'})
+            self.assertEqual(sha256,evidence.digest(original))
 
     def test_digest_bound_text_keeps_newlines_and_legacy_json_values(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -308,7 +313,7 @@ class EvidenceTests(unittest.TestCase):
         self.write_layout()
         path = self.root/evidence.LAYOUT_DIRECTORY/'A1/samples.json'
         path.write_text('[]')
-        with self.assertRaisesRegex(ValueError, 'changed'): self.verify()
+        with self.assertRaisesRegex(ValueError, 'digest mismatch'): self.verify()
 
     def test_materialize_never_stages_inputs_when_layout_quality_fails(self):
         def short(rows):
@@ -374,6 +379,17 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(json.loads(report.read_text())['status'], 'failed')
         self.assertFalse((self.root/'inputs.env').exists())
         self.assertFalse((self.root/'target/release-preflight/inputs').exists())
+
+    def test_layout_binding_survives_changes_after_profile_preflight(self):
+        path=self.root/self.doc['layout_supplement']['path']
+        def checker(args,**kwargs):
+            for side in ('baseline','current'):
+                member=pathlib.Path(args[args.index('--'+side)+1])
+                self.assertEqual(args[args.index('--'+side+'-sha256')+1],evidence.digest(member.read_bytes()))
+            changed=json.loads(path.read_text());changed['extra']='changed after preflight';path.write_text(json.dumps(changed))
+            return subprocess.CompletedProcess(args,0,'','')
+        with mock.patch.object(evidence.subprocess,'run',side_effect=checker):
+            with self.assertRaisesRegex(ValueError,'digest mismatch'):self.verify()
 
     def test_wrong_source_lock_harness_baseline_and_self_comparison(self):
         original = copy.deepcopy(self.doc)
