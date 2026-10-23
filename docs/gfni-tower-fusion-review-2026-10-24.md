@@ -179,3 +179,29 @@ and all 81 custom configurations / 486 cross recoveries under the three backend
 settings. Both twenty-case one-iteration payload catalogs agree. The fresh
 sampler is rebuilt without metrics before its fixed eighty-worker comparison;
 that comparison is still in progress and is not yet accepted.
+
+## Complete cached-dispatch comparison
+
+The [second complete result](../benchmarks/release-9.1.0/2026-10-24/gfni-tower-dispatch-component-review.json)
+retains all twenty cases / eighty comparisons and exact independent replay of
+all 960 observations. All eighty distributions pass, but nine of forty repeats
+and two regression cases refuse the limits; short samples remain zero. The
+unchanged GF8 encode control has candidate B1/B2 drift of 17.6002400% and ratios
+0.995581–1.210021. Scalar GF16 accumulation has ratios 1.045500–1.147319;
+its same-version repeats remain below five percent. Both are real refusals.
+The previous scalar overwrite refusal is absent in this cohort, but that is not
+proof that one code change uniquely explains the earlier result. All favorable
+and unfavorable pairs remain recorded; this cohort is not accepted either.
+
+The second audit binds the externally retained predeclared plan and original
+preheat digest, checks all 2,938 input files unchanged, and covers forty functional,
+859 calibration and eighty measurement workers / 1,958 parent events. All sources
+and four owned cleanup conditions restore; both original observers are active.
+A later unrelated controlled owner already holds the shared reservation when
+post-run checks occur; its resources are not taken over or reset.
+
+The remaining scalar path still crosses an indirect general-executor pointer.
+Keeping only optional native callables in the cache would allow all other
+backends to call the preserved portable executor statically, retaining its
+compiler optimization boundary. That mechanism warrants a small follow-through,
+not a claim that it explains the GF8 control drift or every scalar observation.
