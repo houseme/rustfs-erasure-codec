@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Allow identified Darwin group members to finish exiting within the existing
+  cleanup deadline before requiring two fresh complete exit snapshots. Retain
+  immediate identity/query refusals and preserve owned inputs on timeout;
+  cancellation no longer mistakes a transient live-state read for permanent failure.
+
 - Omit known scalar pivot products during Classic matrix normalization and
   elimination while retaining field addition. Preserve existing GF8 normalization
   and full batch spans, storage, field bytes and recovery publication.
