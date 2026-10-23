@@ -713,3 +713,66 @@ desktop has no proven exclusive resource partition. No candidate timing
 conclusion or release approval follows from these measurements. The source-bound
 drivers, original timings, frame counts, pre-projection trials and fifty-case
 semantic comparison remain in the ignored local review artifacts.
+
+## Calibration and campaign validation consolidation
+
+Review reproduced a report defect with finite inputs: a baseline metric of
+`1e-308` and a candidate metric of `1e308` produce an infinite quotient. The
+previous complete diagnostic accepted the inputs and could serialize `Infinity`.
+Repeat drift has the same boundary. Commit `9d30044` refuses both nonfinite ratios;
+the complete-replay regression fails before the fix and passes afterward. Original
+records remain available when this mathematical boundary is refused.
+
+Commits `d8e964c` and `b05b15f` consolidate the remaining calibration rehearsal and
+campaign models in Rust. Complete calibration profiles borrow every original row
+through the existing raw-row, workload, telemetry and rehearsal checks. Shared
+protocol constants retain the v15 digest, twelve observations per worker, twelve
+maximum batches, bounded growth and the complete final rehearsal. Optional CPU
+policies remain optional; bound policies validate the original placement and
+counters in the same pass. The baseline analyzer, adjacent controls and release
+verifier remove their repeated per-record placement/telemetry requests.
+
+Campaign comparison validates complete unique phase/profile/case sets and
+comparable provenance before producing all 252 repeat checks and 504 diagnostic
+comparisons. Original case order crosses the bridge as ordered pairs. Both
+repeat and candidate quotients must remain finite. Short windows, wide
+measurements, repeat failures, regression-program outcomes and all original
+report fields remain explicit. The controller owns source/file/digest checks and
+external regression programs. The intermediate Python ratio helper and duplicate
+classification loops are removed. Encoding kernels, field/matrix formats, build
+inputs and dependencies remain unchanged.
+
+The 116 original/native comparisons agree on complete values and refusal
+decisions. Their reference is the committed post-fix Python at `9d30044`.
+Coverage includes all four calibration profiles, interleaved cases, missing and
+extra observations, original row types, changed provenance, counter resets,
+optional and mismatched CPU policies, formal/diagnostic campaigns, original case
+order, exact repeat limits, simultaneous failures, failed regression programs
+and both finite-input overflow paths. All 44 original sampling tests pass before
+two pure checks move to native coverage. Retained integrations verify one frame,
+unchanged inputs, source ownership, journals, frozen replay and release refusal.
+
+On the fixed primed-cache fixture, all 126 calibration cases including CPU and
+telemetry validation use four frames instead of 3,175. Complete diagnostic
+profile verification uses 135 frames instead of 3,464, with request bytes reduced
+from 37,867,709 to 27,983,082. That witness mocks external regression processes
+and verifies their existing controller boundary; it measures internal validation
+requests, not codec latency, throughput or release acceptance. Complete outputs
+and original input hashes agree. Source-bound drivers, counts, comparisons and
+the failing overflow witness are retained in ignored local review output.
+
+The independent clean checkout at `b05b15f` passes all fourteen verification steps:
+183 optimized native tests (155 unit / 28 executable), 246 Python tests, strict
+Clippy, x86_64 Linux compilation, 517 core tests (43 existing ignored cases), ten
+doctests, no_std and all 200 published-9.0.0/local-9.1.0 non-fast parity and
+bidirectional decode configurations. The extracted 67-file core crate builds
+offline. Core/WASM package allowlists remain 67/6 members, and all five workspace
+members inherit the root dependency catalog. No upload or push is performed.
+
+The current inventory is **34 Python files / 7,745 lines**, comprising 3,657
+production/helper and 4,088 test/fixture lines. This round removes 44 net Python
+lines, including the finite-ratio fix and binding regressions; the cumulative
+reduction from 13,120 lines is about 41%. Retained files have active callers.
+The 579 JSON files / 2,833,273 bytes and eleven historical identical-byte groups
+remain valid and unchanged. Repository tools and evidence remain excluded from
+both published crates.
