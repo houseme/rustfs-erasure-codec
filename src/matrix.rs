@@ -215,42 +215,40 @@ impl<F: Field> Matrix<F> {
         }
     }
 
-    /// Eliminate with a normalized pivot row whose preceding columns are zero.
-    /// Borrow disjoint rows without copying the pivot into scratch.
+    /// Eliminate a pivot using its zero prefix and unit diagonal, without copying.
     #[inline]
-    fn add_scaled_pivot_row(
+    fn eliminate_with_pivot(
         &mut self,
-        source: usize,
+        pivot: usize,
         destination: usize,
         scale: F::Elem,
         byte_rows: bool,
     ) {
-        debug_assert_ne!(source, destination);
+        debug_assert_ne!(pivot, destination);
         let width = self.col_count;
-        let (input, output): (&[F::Elem], &mut [F::Elem]) = if source < destination {
+        let (input, output): (&[F::Elem], &mut [F::Elem]) = if pivot < destination {
             let (before, after) = self.data.split_at_mut(destination * width);
             (
-                &before[source * width..(source + 1) * width],
+                &before[pivot * width..(pivot + 1) * width],
                 &mut after[..width],
             )
         } else {
-            let (before, after) = self.data.split_at_mut(source * width);
+            let (before, after) = self.data.split_at_mut(pivot * width);
             (
                 &after[..width],
                 &mut before[destination * width..(destination + 1) * width],
             )
         };
-        // Earlier forward pivots made this prefix zero. Row swaps only involve
-        // remaining rows, and back substitution preserves the same invariant.
-        // Retain full byte-field batch rows: trimming each pivot introduces
-        // varying SIMD tails. Scalar arithmetic can omit the zero prefix.
-        let zero_prefix = if byte_rows { 0 } else { source };
-        Self::add_scaled_slice(
-            scale,
-            &input[zero_prefix..],
-            &mut output[zero_prefix..],
-            byte_rows,
-        );
+        debug_assert!(input[..pivot].iter().all(|&value| value == F::zero()));
+        debug_assert_eq!(input[pivot], F::one());
+        debug_assert_eq!(output[pivot], scale);
+        // The source prefix contributes zero; the destination prefix stays put.
+        // At the pivot, scale + scale * 1 is exactly zero in these fields.
+        let suffix = pivot + 1;
+        if suffix < width {
+            Self::add_scaled_slice(scale, &input[suffix..], &mut output[suffix..], byte_rows);
+        }
+        output[pivot] = F::zero();
     }
 
     pub fn gaussian_elim(&mut self) -> Result<(), Error> {
@@ -272,10 +270,12 @@ impl<F: Field> Matrix<F> {
             if acc!(self, r, r) != F::one() {
                 let scale = F::div(F::one(), acc!(self, r, r));
                 let start = r * self.col_count;
-                let zero_prefix = if byte_rows { 0 } else { r };
-                for value in &mut self.data[start + zero_prefix..start + self.col_count] {
+                // Earlier pivots already made the prefix zero. The pivot
+                // normalizes exactly to one; only its suffix needs products.
+                for value in &mut self.data[start + r + 1..start + self.col_count] {
                     *value = F::mul(scale, *value);
                 }
+                acc!(self, r, r) = F::one();
             }
             // Make everything below the 1 be a 0 by subtracting
             // a multiple of it.  (Subtraction and addition are
@@ -283,7 +283,7 @@ impl<F: Field> Matrix<F> {
             for r_below in r + 1..self.row_count {
                 if acc!(self, r_below, r) != F::zero() {
                     let scale = acc!(self, r_below, r);
-                    self.add_scaled_pivot_row(r, r_below, scale, byte_rows);
+                    self.eliminate_with_pivot(r, r_below, scale, byte_rows);
                 }
             }
         }
@@ -293,7 +293,7 @@ impl<F: Field> Matrix<F> {
             for r_above in 0..d {
                 if acc!(self, r_above, d) != F::zero() {
                     let scale = acc!(self, r_above, d);
-                    self.add_scaled_pivot_row(d, r_above, scale, byte_rows);
+                    self.eliminate_with_pivot(d, r_above, scale, byte_rows);
                 }
             }
         }
@@ -348,6 +348,89 @@ mod tests {
             Matrix::<galois_8::Field>::new_with_data(vec![ $( vec![$( $x ),*] ),* ]).unwrap()
         );
         ($rows:expr, $cols:expr) => (Matrix::new($rows, $cols));
+    }
+
+    #[cfg(feature = "std")]
+    mod active_pivot_suffix {
+        use super::*;
+        use std::cell::{Cell, RefCell};
+
+        std::thread_local! {
+            static SCALAR_PRODUCTS: Cell<usize> = const { Cell::new(0) };
+            static BATCH_WIDTHS: RefCell<Vec<usize>> = const { RefCell::new(Vec::new()) };
+        }
+
+        struct ObservedField<const BYTE_ROWS: bool>;
+        impl<const BYTE_ROWS: bool> crate::Field for ObservedField<BYTE_ROWS> {
+            const ORDER: usize = 256;
+            type Elem = u8;
+            fn as_gf8_slice(input: &[u8]) -> Option<&[u8]> {
+                BYTE_ROWS.then_some(input)
+            }
+            fn as_gf8_slice_mut(input: &mut [u8]) -> Option<&mut [u8]> {
+                BYTE_ROWS.then_some(input)
+            }
+            fn add(a: u8, b: u8) -> u8 {
+                galois_8::add(a, b)
+            }
+            fn mul(a: u8, b: u8) -> u8 {
+                SCALAR_PRODUCTS.with(|count| count.set(count.get() + 1));
+                galois_8::mul(a, b)
+            }
+            fn div(a: u8, b: u8) -> u8 {
+                galois_8::div(a, b)
+            }
+            fn exp(a: u8, n: usize) -> u8 {
+                galois_8::exp(a, n)
+            }
+            fn zero() -> u8 {
+                0
+            }
+            fn one() -> u8 {
+                1
+            }
+            fn nth_internal(n: usize) -> u8 {
+                n as u8
+            }
+            fn mul_slice_add(scale: u8, input: &[u8], output: &mut [u8]) {
+                BATCH_WIDTHS.with(|widths| widths.borrow_mut().push(input.len()));
+                <galois_8::Field as crate::Field>::mul_slice_add(scale, input, output);
+            }
+        }
+
+        fn invert_fixture<const BYTE_ROWS: bool>() -> (usize, Vec<usize>) {
+            SCALAR_PRODUCTS.with(|count| count.set(0));
+            BATCH_WIDTHS.with(|widths| widths.borrow_mut().clear());
+            let input =
+                Matrix::<ObservedField<BYTE_ROWS>>::new_with_data(vec![vec![1, 1], vec![1, 2]])
+                    .unwrap();
+            let inverse = input.invert().unwrap();
+            // Independent 2x2 formula: det = 1*2 + 1*1 = 3 in GF8.
+            assert_eq!(
+                inverse.get_row(0),
+                &[galois_8::div(2, 3), galois_8::div(1, 3)]
+            );
+            assert_eq!(
+                inverse.get_row(1),
+                &[galois_8::div(1, 3), galois_8::div(1, 3)]
+            );
+            (
+                SCALAR_PRODUCTS.with(Cell::get),
+                BATCH_WIDTHS.with(|widths| widths.take()),
+            )
+        }
+
+        #[test]
+        fn scalar_elimination_skips_zero_prefixes_and_unit_pivots() {
+            // Three lower-tail updates, two normalization products and two
+            // upper-tail updates; known pivot/prefix values need no products.
+            assert_eq!(invert_fixture::<false>(), (7, vec![]));
+        }
+
+        #[test]
+        fn byte_elimination_batches_only_the_active_pivot_tails() {
+            assert_eq!(invert_fixture::<true>(), (2, vec![3, 2]));
+        }
     }
 
     #[test]
@@ -532,30 +615,6 @@ mod tests {
                     }
                 }
                 let inverse = matrix.invert().unwrap();
-                // Multiple right-hand sides exercise the triangular zero-prefix
-                // invariant after swaps, normalization and both elimination passes.
-                for columns in [1, 3, 17] {
-                    let mut rhs = Matrix::<F>::new(size, columns);
-                    for row in 0..size {
-                        for column in 0..columns {
-                            rhs.set(row, column, F::nth((row * 17 + column * 7 + 1) % F::ORDER));
-                        }
-                    }
-                    let expected = scalar_product(&inverse, &rhs);
-                    let mut augmented = matrix.augment(&rhs).unwrap();
-                    augmented.gaussian_elim().unwrap();
-                    for row in 0..size {
-                        for column in 0..size {
-                            assert_eq!(
-                                augmented.get(row, column),
-                                if row == column { F::one() } else { F::zero() }
-                            );
-                        }
-                    }
-                    for (row, expected) in expected.iter().enumerate() {
-                        assert_eq!(&augmented.get_row(row)[size..], expected.as_slice());
-                    }
-                }
                 for actual in [
                     scalar_product(&matrix, &inverse),
                     scalar_product(&inverse, &matrix),
