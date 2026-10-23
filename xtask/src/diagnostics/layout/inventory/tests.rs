@@ -113,6 +113,45 @@ fn cross_phase_backend_and_constructor_changes_cannot_be_reported_as_geometry() 
         assert!(analyze(&changed, &sources).is_err(), "{field}");
     }
 }
+
+#[test]
+fn stream_preparation_retains_the_optional_cpu_policy_without_weakening_worker_checks() {
+    let (mut data, sources) = fixture();
+    let entries = views::Request::Entries.execute().unwrap();
+    let mut records: Vec<_> = data
+        .remove("A1")
+        .unwrap()
+        .into_iter()
+        .filter(|r| cases("stream").contains(r["case"].as_str().unwrap()))
+        .collect();
+    for record in &mut records {
+        let operation = record["case"]
+            .as_str()
+            .unwrap()
+            .split(':')
+            .next()
+            .unwrap()
+            .to_owned();
+        for field in ["fixture", "workload"] {
+            record[field]["call_entry"] = entries[&operation].clone();
+        }
+    }
+    let request = json!({"operation":"stream-phase","records":records,"revision":sources.baseline.commit,
+        "iterations":1,"cpus":null,"page_size":4096,"reference":null});
+    let result = serde_json::from_value::<Request>(request.clone())
+        .unwrap()
+        .execute()
+        .unwrap();
+    assert_eq!(result.as_object().unwrap().len(), 15);
+    let mut invalid = request;
+    invalid["records"][4]["after"]["run_ns"] = json!(0);
+    assert!(
+        serde_json::from_value::<Request>(invalid)
+            .unwrap()
+            .execute()
+            .is_err()
+    );
+}
 fn view_reports() -> BTreeMap<String, Vec<views::Inventory>> {
     let mut data = BTreeMap::new();
     for phase in PHASES {

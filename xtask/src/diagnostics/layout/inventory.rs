@@ -44,7 +44,7 @@ pub(crate) enum Request {
         records: Vec<Value>,
         revision: String,
         iterations: u64,
-        cpus: Vec<u64>,
+        cpus: Option<Vec<u64>>,
         page_size: u64,
         reference: Option<BTreeMap<String, Contract>>,
     },
@@ -76,7 +76,7 @@ impl Request {
                     "stream",
                     &revision,
                     iterations,
-                    Some(&cpus),
+                    cpus.as_deref(),
                     Some(page_size),
                     reference.as_ref(),
                 )?;
