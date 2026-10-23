@@ -26,6 +26,8 @@ All notable changes to this project are documented in this file.
 - Compose fixed-coefficient GFNI multiplication into one affine map derived at
   compile time from the existing GF8 table. Preserve both SIMD widths, XOR,
   scalar tails, backend overrides, encoded bytes and output ownership.
+  Throughput approval remains withheld; the complete component comparison
+  retains its original source-check and statistical refusals.
 
 - Omit known scalar pivot products during Classic matrix normalization and
   elimination while retaining field addition. Preserve existing GF8 normalization

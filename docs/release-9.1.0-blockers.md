@@ -16,6 +16,21 @@ mechanism/resource improvements, not a unique cause or cure of the Linux drift.
 They require a new final candidate freeze; rejected timing campaigns remain
 rejected under their original source bindings.
 
+## GFNI component follow-through and cancellation fix
+
+PR #82's identified-member exit confirmation passed 31 PR checks, with three
+intentional release steps skipped, and was rebase-merged as `afb9a52`. Its full
+tree equals the tested source. Encoding bytes and recovery publication are
+unchanged; those skips are not strict positive release preflight.
+
+The separate [GFNI component review](gfni-direct-affine-review-2026-10-24.md)
+retains all 292 workers / 3,504 observations and the original final source-clean
+failure caused by its own generated executables. Read-only replay exactly
+recovers the original statistics without running new samples: one distribution,
+11 repeats and one unqualified regression observation fail, with no short
+samples. All 73 cases and four comparisons remain recorded. Post-run source and
+resource audits do not rewrite the original failure or approve throughput.
+
 ## Current merged implementation
 
 The [merged-candidate review](release-9.1.0-readiness-2026-10-23.md) now covers
