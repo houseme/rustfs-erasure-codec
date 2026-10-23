@@ -11,6 +11,9 @@ const ARM_FIELDS: [&str; 5] = [
     "CPU revision",
 ];
 
+pub(crate) fn allocator_key(key: &str) -> bool {
+    key.starts_with("MALLOC_") || key.starts_with("LD_") || key == "GLIBC_TUNABLES"
+}
 pub(crate) fn validate_runtime(value: &Value) -> Result<()> {
     if !value.as_object().is_some_and(|m| {
         m.len() == 4
@@ -42,12 +45,10 @@ pub(crate) fn validate_runtime(value: &Value) -> Result<()> {
     }) {
         return Err("invalid libc identity".into());
     }
-    if !value["allocator_environment"].as_object().is_some_and(|m| {
-        m.iter().all(|(k, v)| {
-            (k.starts_with("MALLOC_") || k.starts_with("LD_") || k == "GLIBC_TUNABLES")
-                && v.is_string()
-        })
-    }) {
+    if !value["allocator_environment"]
+        .as_object()
+        .is_some_and(|m| m.iter().all(|(k, v)| allocator_key(k) && v.is_string()))
+    {
         return Err("invalid allocator environment".into());
     }
     Ok(())

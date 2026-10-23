@@ -152,6 +152,9 @@ impl Clock {
 #[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
 pub(crate) enum Request {
     DynamicCatalog,
+    DynamicEnvelope {
+        request: super::dynamic_ledger::campaign::Request,
+    },
     DynamicSupplement {
         header: Value,
         data: super::dynamic_ledger::Ledger,
@@ -196,6 +199,7 @@ impl Request {
     pub(crate) fn execute(self) -> Result<Value> {
         match self {
             Self::DynamicCatalog => Ok(super::dynamic_ledger::catalog()),
+            Self::DynamicEnvelope { request } => request.execute(),
             Self::DynamicSupplement {
                 header,
                 data,
