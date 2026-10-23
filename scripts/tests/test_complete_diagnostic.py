@@ -102,6 +102,20 @@ class CompleteReplayTests(unittest.TestCase):
         formal=self.layout_manifest.with_name('manifest.json');formal.write_bytes(self.layout_manifest.read_bytes())
         with self.assertRaisesRegex(ValueError,'modes must match'): layout.verify_paired(formal.parent,self.root)
 
+    def test_finite_metrics_cannot_produce_nonfinite_campaign_ratios(self):
+        for repeat_overflow in (False,True):
+            for phase in e.PHASES:
+                value=1e-308 if phase.startswith('A') and not (repeat_overflow and phase=='A2') else 1e308
+                def change(records, value=value):
+                    for row in records:
+                        if row['case']=='encode:4:2:1024':
+                            row['rows'][0]['ns_per_iter']=value
+                            row['timed_ns']=value*row['iterations']
+                self.mutate(phase,'small_file',change)
+            with mock.patch.object(e.subprocess,'run',return_value=subprocess.CompletedProcess([],0,'','')):
+                with self.assertRaisesRegex(ValueError,'nonfinite campaign'):
+                    self.replay()
+
     def test_missing_or_corrupt_raw_records_are_not_silently_accepted(self):
         entry=self.doc['files']['B2']['small_file']['samples']
         (self.root/entry['path']).write_text('[]')
