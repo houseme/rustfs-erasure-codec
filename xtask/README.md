@@ -43,6 +43,7 @@ cargo test --locked --package xtask
 | VM process/thread analysis, synchronous counters and frequency deltas | `diagnostics::vm::{process,clock}`; `cargo xtask analyze-vm-data --input FILE` | Independent validation copies, shared/retired thread sets, per-thread reset checks, explicit unavailable/idle readings, ordered MSRs, enclosing windows and unchanged diagnostic schemas |
 | Retained-layout comparisons and stream-view inventory signatures | `diagnostics::layout::inventory` and the shared typed `diagnostics::views` ledger; `cargo xtask analyze-layout --input FILE` | All four phases, six comparison pairs, 103 retained cases, 15 stream cases, exact difference fields, lifecycle ordering and explicit absence of performance attribution |
 | Complete calibration profiles and campaign comparisons/classification | `sampling_contract::calibration_profile`, `diagnostics::baseline::campaign`; existing `sampling-contract` and `analyze-baseline-data` commands | Every raw calibration row, complete bounded rehearsals, frozen counts, optional CPU policy, original case order, finite ratios, complete diagnostic failures and existing report fields |
+| Baseline directory loading, preparation comparison, runtime validation and complete report assembly | `diagnostics::baseline::replay`, shared `artifact::snapshot`, `runtime`; `cargo xtask analyze-baseline-capture --capture DIR --tool FROZEN_SOURCE` | Legacy basic/v1/v2 qualification schemas, original encoded-byte hashes, optional historical policies, complete cases/traces, bounded original members and descriptive-only reports |
 
 The obsolete implementations and their Python test entry points are removed.
 Rust unit and executable tests cover the retained contracts. The migration was
@@ -233,7 +234,7 @@ The initial inventory contained **56 Python files / 13,120 lines**. Twenty-three
 original files were removed (twelve implementations/helpers and eleven test
 modules). One native-tool compatibility binding remains. The intermediate Python
 normalization library was also removed after its consumers moved to Rust.
-The remaining **34 files / 7,745 lines** consist of 15 production/helper modules
+The remaining **34 files / 7,693 lines** consist of 15 production/helper modules
 and 19 test/fixture modules: about 41% fewer Python lines overall. This count
 includes the latest merged VM observer/cleanup checks. Layout consolidation removes
 349 lines from its immediate parent (`75bc034`, 8,486 lines). The
@@ -286,8 +287,7 @@ lines, including added binding checks. All fifty old/native comparisons retain
 the original complete reports and refusal decisions.
 Complete calibration and campaign analysis subsequently remove another 44 lines
 relative to `c9ad921`, including a separately committed finite-ratio fix and new
-binding coverage. The current count is 3,657 production/helper and 4,088
-test/fixture lines. All 44 original sampling tests passed before two pure
+binding coverage. All 44 original sampling tests passed before two pure
 rehearsal checks moved to Rust; 42 sampling integration tests remain. Complete
 calibration validation borrows the original rows and checks the CPU reservation
 in the same pass. Baseline replay, adjacent controls and release verification
@@ -296,6 +296,29 @@ keeps all 252 repeats, 504 comparisons and simultaneous diagnostic failure
 classes; the controller still owns source/file checks and regression programs.
 Finite input metrics can overflow their quotient, so nonfinite repeat and
 candidate ratios are refused before a JSON report is constructed.
+Native baseline directory replay subsequently removes another 52 lines relative
+to `9210509`, including new CLI/cache/encoding checks and three service cases
+moved to native full-file tests. The current count is 3,594 production/helper and
+4,099 test/fixture lines. The baseline Python entry is now a native call; its
+remaining code owns explicit trusted historical replay and the original source,
+snapshot and resource checks for that adapter.
+
+`analyze-baseline-capture` executes without Python or Cargo on `PATH` after the
+tool is built. It reads 32 MiB-bounded regular members with a 256 MiB total byte
+budget, hashes the original encoded bytes used for decoding, and checks member hashes and
+the optional phase set again before returning. The shared reader retains legacy
+UTF-8/16/32 JSON encoding detection. Duplicate object keys, nonfinite numbers and
+linked members are refused. Both the standalone command and old Python binding
+retain complete report fields and the existing source-fingerprint contract; the
+tool reads the matching source tree to calculate those fingerprints. Captured
+source bytes are never rewritten. The historical frozen-controller adapter
+continues to require an explicit trusted source and isolated Python invocation.
+
+Runtime validation shares the native libc/allocator/page/kernel-policy checks.
+Its binding and memory-policy validation share a successful-result cache keyed by
+each serialized current input. At most 128 payloads smaller than 64 KiB are
+retained, keeping cached serialized text below 8 MiB. Larger inputs bypass the
+cache. Live policy capture continues to use a fresh uncached process.
 The unreferenced Python-2-style `sage/galois_ext_test.sage` worksheet was also
 removed. Its four fixed tower-field addition/multiplication/division/inverse
 vectors now execute against both codec versions in the compatibility probe.
