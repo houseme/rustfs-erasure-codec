@@ -14,12 +14,12 @@ fn inventory_reuses_validation_and_deduplicates_iteration_shapes_without_losing_
                 .unwrap()
                 .execute()
                 .unwrap();
-            assert_eq!(report[0]["calls"], summary[0]);
-            assert_eq!(report[0]["case"], *case);
+            assert_eq!(report["lifecycle"][0]["calls"], summary[0]);
+            assert_eq!(report["lifecycle"][0]["case"], *case);
             if let Some(prior) = shapes {
-                assert_eq!(report[0]["shapes"], prior);
+                assert_eq!(report["signatures"][0]["shapes"], prior);
             }
-            shapes = Some(report[0]["shapes"].clone());
+            shapes = Some(report["signatures"][0]["shapes"].clone());
             let mut invalid = input;
             invalid["observations"][0]["view"]["completed"] = json!(0);
             assert!(
@@ -30,6 +30,71 @@ fn inventory_reuses_validation_and_deduplicates_iteration_shapes_without_losing_
             );
         }
     }
+}
+
+#[test]
+fn inventory_batches_union_each_case_without_losing_observations_or_distinct_shapes() {
+    let cases = [
+        "verify_stream:4:2:65536:65536",
+        "verify_stream:10:4:65536:65536",
+    ];
+    let mut observations = Vec::new();
+    for (index, case) in [cases[0], cases[1], cases[0], cases[0]].iter().enumerate() {
+        let mut view = fixture(case, 2, 4096);
+        view["observation"] = json!(index);
+        if index == 3 {
+            for event in view["events"].as_array_mut().unwrap() {
+                if event["role"] == "read_scratch_view" {
+                    event["offsets"] = json!([32, 32, 32]);
+                }
+            }
+            for r in view["residency"].as_array_mut().unwrap() {
+                if r["role"] == "read_scratch_view" {
+                    r["offset_page"] = json!(32);
+                }
+            }
+        }
+        observations.push(json!({"case":case,"iterations":2,"page_size":4096,"observation":index,"view":view,"require_counters":true}));
+    }
+    let input = json!({"operation":"inventory","observations":observations});
+    let report = serde_json::from_value::<Request>(input.clone())
+        .unwrap()
+        .execute()
+        .unwrap();
+    assert_eq!(
+        report["lifecycle"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|r| r["case"].as_str().unwrap())
+            .collect::<Vec<_>>(),
+        vec![cases[0], cases[1], cases[0], cases[0]]
+    );
+    let signatures = report["signatures"].as_array().unwrap();
+    assert_eq!(signatures.len(), 2);
+    let a = signatures.iter().find(|r| r["case"] == cases[0]).unwrap();
+    assert_eq!(a["observations"], json!([0, 2, 3]));
+    for offset in [16, 32] {
+        assert!(a["shapes"].as_array().unwrap().contains(&json!([
+            "read_scratch_view",
+            0,
+            65536,
+            null,
+            [offset, offset, offset]
+        ])));
+    }
+    let mut oversized = input;
+    let extra = oversized["observations"][0].clone();
+    oversized["observations"]
+        .as_array_mut()
+        .unwrap()
+        .push(extra);
+    assert!(
+        serde_json::from_value::<Request>(oversized)
+            .unwrap()
+            .execute()
+            .is_err()
+    );
 }
 
 fn event(
