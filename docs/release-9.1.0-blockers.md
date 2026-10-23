@@ -18,14 +18,19 @@ rejected under their original source bindings.
 
 ## Current merged implementation
 
-The [merged-candidate review](release-9.1.0-readiness-2026-10-23.md) binds main
-`14cf56e` to frozen runtime `449920e` by complete file-tree equality. Ordinary CI
-and package dry-run passed on the identical original PR tree `09597e4`; strict
+The [merged-candidate review](release-9.1.0-readiness-2026-10-23.md) now covers
+combined main `9f935ee`, including shared ordinary Classic verification. It is
+not source-identical to frozen runtime `449920e`. The earlier `14cf56e` and
+`09597e4` file-tree equality remains a historical fact; their ordinary CI and
+package dry-run do not provide later-source performance acceptance. Strict
 evidence validation, release preflight and registry publication were skipped.
-The frozen 64-worker encode/stream plan has been launched after the previous
-resource owner completed cleanup; complete collection and independent replay
-remain pending. Implementation merge does not close the performance or
-publication gates below.
+
+New combined-source checks pass: 356 codec units, 93 integration tests, 129 native
+tests, all 273 Python controller tests, strict Clippy and no_std. The frozen
+64-worker encode/stream plan continues on its original sources after safe launch;
+complete collection and independent replay remain pending. Its result cannot
+be relabeled as a measurement of the later combined main. Final-source freeze,
+complete accepted evidence and strict positive preflight remain required.
 
 ## 2026-10-23 adaptive verification candidate
 
