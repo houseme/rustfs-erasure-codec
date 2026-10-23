@@ -64,6 +64,11 @@ class CompleteReplayTests(unittest.TestCase):
                                          e.expected_cases(profile), counts)
         self.f.write_rows(phase, profile, selected)
 
+    def test_execution_errors_do_not_become_complete_statistical_diagnostics(self):
+        with mock.patch.object(e.subprocess,'run',return_value=subprocess.CompletedProcess([],2,'','input integrity failed')) as checks:
+            with self.assertRaisesRegex(ValueError,'regression validation failed'):self.replay()
+        self.assertEqual(checks.call_count,1)
+
     def test_wide_short_repeat_and_all_regression_failures_are_reported_together(self):
         def wide(records):
             for r in records:

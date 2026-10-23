@@ -63,7 +63,7 @@ class AdjacentTests(unittest.TestCase):
         with self.assertRaises(FileExistsError):self.capture()
         self.assertEqual(list(self.output.iterdir()),[sentinel])
         member=self.prior/'calibration/smoke-samples.json';member.write_text('[]')
-        with self.assertRaisesRegex(ValueError,'prior calibration'):a.inputs(self.prior,self.root)
+        with self.assertRaisesRegex(ValueError,'digest mismatch'):a.inputs(self.prior,self.root)
 
     def test_rehashed_reordered_or_nonadjacent_execution_is_refused(self):
         result=self.capture();path=self.output/'execution.jsonl';original=[json.loads(r) for r in path.read_text().splitlines()]
@@ -110,6 +110,7 @@ class AdjacentTests(unittest.TestCase):
         plan=self.output/'plan.json';changed=a.e.json_data(plan)
         changed['context']['runtime']['kernel_memory_policy']['process_thp_disable']=1
         plan.write_text(json.dumps(changed))
+        result['plan_sha256']=a.e.digest(plan.read_bytes());(self.output/'result.json').write_text(json.dumps(result))
         with self.assertRaisesRegex(ValueError,'kernel policy differs'):a.replay(self.output,self.prior,self.root)
 
     def test_known_prior_policy_change_stops_before_first_worker(self):

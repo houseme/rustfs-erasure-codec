@@ -83,15 +83,14 @@ def verify(output,repository):
         for key,entry in report['cases'][role].items():
             profile,case=key.split('/',1);name=role+'-'+profile+'-'+case.replace(':','_')
             if entry.get('path')!=name+'.json':raise ValueError('invalid diagnostic member path')
-            member=output/entry['path'];data=evidence.json_data(member)
-            if evidence.digest(member.read_bytes())!=entry.get('sha256'):raise ValueError('diagnostic member digest differs')
+            member=output/entry['path'];data=evidence.json_data(member,entry.get('sha256'))
             if entry.get('numeric_journal_path')!=name+'-journal.jsonl':raise ValueError('invalid numeric journal path')
             numeric=output/entry['numeric_journal_path']
-            if numeric.is_symlink() or not numeric.is_file() or not 0<numeric.stat().st_size<=evidence.MAX_BYTES or evidence.digest(numeric.read_bytes())!=entry.get('numeric_journal_sha256'):raise ValueError('numeric journal digest differs')
+            raw=evidence.member_text(numeric,entry.get('numeric_journal_sha256'))
             log=output/(name+'.log')
             if not evidence.DIGEST.fullmatch(entry.get('raw_log_sha256','')):raise ValueError('missing original private log binding')
             if log.exists() and (log.is_symlink() or evidence.digest(log.read_bytes())!=entry['raw_log_sha256']):raise ValueError('original private log changed')
-            raw=numeric.read_text();rows=sampling.parse_output(raw);scratch=sampling.parse_output(raw,PREFIX);journal=sampling.parse_output(raw,'RSE_TIMING ')
+            rows=sampling.parse_output(raw);scratch=sampling.parse_output(raw,PREFIX);journal=sampling.parse_output(raw,'RSE_TIMING ')
             if rows!=data['samples'] or scratch!=[data['scratch']] or len(journal)!=12 or any(any(j[field]!=row[field] for field in ('case','index','iterations','wall_ns','timed_ns','fixture','workload','placement','before','after')) for j,row in zip(journal,rows)):
                 raise ValueError('diagnostic raw rows differ from original journals')
             summary=worker_report(rows,data['scratch'],profile,case,source,page,cpus)

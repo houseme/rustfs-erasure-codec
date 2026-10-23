@@ -163,9 +163,9 @@ def matches_current_source(recorded, current):
             and all(recorded[k] == current[k] for k in ('tree', 'lock_sha256')))
 
 
-def verify_paired(directory, candidate, compiler=True, *, diagnostic=False):
+def verify_paired(directory, candidate, compiler=True, *, diagnostic=False, manifest_sha256=evidence._UNBOUND):
     """Recompute acceptance from bounded, source-bound raw rows, never summaries."""
-    document = evidence.json_data(directory/('diagnostic-manifest.json' if diagnostic else 'manifest.json'))
+    document = evidence.json_data(directory/('diagnostic-manifest.json' if diagnostic else 'manifest.json'),manifest_sha256)
     if not isinstance(document, dict) or document.get('diagnostic_only', False) is not diagnostic:
         raise ValueError('layout diagnostic and acceptance modes must match')
     if not isinstance(document, dict) or document.get('schema_version') != PAIRED_SCHEMA or document.get('phase_order') != list(evidence.PHASES) or document.get('contract') != tool_contract() or document.get('release_approval') is not False:
@@ -196,10 +196,9 @@ def verify_paired(directory, candidate, compiler=True, *, diagnostic=False):
             if not isinstance(entry, dict) or entry.get('path') != expected or not isinstance(entry.get('sha256'), str) or not evidence.DIGEST.fullmatch(entry['sha256']):
                 raise ValueError('invalid paired member declaration')
             path = directory/expected
-            if (directory/phase).is_symlink() or path.is_symlink() or not path.is_file() or not 0 < path.stat().st_size <= evidence.MAX_BYTES or evidence.digest(path.read_bytes()) != entry['sha256']:
-                raise ValueError('paired evidence member is missing, oversized, symlinked or changed')
-            members[name] = path
-        metadata = evidence.json_data(members['provenance.json'])
+            if (directory/phase).is_symlink():raise ValueError('paired evidence member is symlinked')
+            members[name] = (path,entry['sha256'])
+        metadata = evidence.json_data(*members['provenance.json'])
         role = 'baseline' if phase.startswith('A') else 'candidate'
         if not isinstance(metadata, dict) or metadata.get('schema_version') != PHASE_SCHEMA or metadata.get('source') != sources[role] or metadata.get('tool') != document['tool'] or any(metadata.get(k) != v for k, v in tool_contract().items()) or metadata.get('release_approval') is not False or metadata.get('candidate_attribution') is not None:
             raise ValueError('paired phase source/tool/fixture contract differs')
@@ -208,8 +207,8 @@ def verify_paired(directory, candidate, compiler=True, *, diagnostic=False):
         if context is not None and (current != context or metadata['measuring_cpu'] != cpu or type(metadata.get('iterations')) is not int or metadata['iterations'] != iterations):
             raise ValueError('paired phase context/CPU/iterations differ')
         context, cpu, iterations = current, metadata['measuring_cpu'], metadata.get('iterations')
-        phases[phase] = evidence.json_data(members['samples.json'])
-        if parse_output(members['measurement.log'].read_text()) != phases[phase]:
+        phases[phase] = evidence.json_data(*members['samples.json'])
+        if parse_output(evidence.member_text(*members['measurement.log'])) != phases[phase]:
             raise ValueError('paired samples differ from the completed numeric journal')
     if compiler and context['compiler'] != evidence.command(['rustc', '--version'], candidate, dict(os.environ, RUSTUP_TOOLCHAIN='stable')):
         raise ValueError('paired compiler differs from the current compiler')
