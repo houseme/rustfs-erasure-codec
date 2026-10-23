@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Multiply GF16 tower-field slices with a constant coefficient `[0, c]`
+  directly through the existing GF8 byte kernel. Preserve both coordinates,
+  accumulation and length validation while avoiding plane conversion and scratch
+  initialization for subfield coefficients; general tower arithmetic is unchanged.
+
 - Validate GF8 scalar slice lengths before zero/one coefficient shortcuts,
   preserving the Field panic contract across scalar and SIMD backends and
   rejecting mismatched output before mutation. Valid encoding bytes are unchanged.
