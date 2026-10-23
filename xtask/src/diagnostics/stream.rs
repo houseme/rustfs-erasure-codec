@@ -232,13 +232,30 @@ pub fn verify(text: &str) -> Result<String> {
     source::method(
         text,
         "    pub fn verify<T: AsRef<[F::Elem]>>(&self, slices: &[T]) -> Result<bool, Error> {",
-        |_, edit| {
+        |body, edit| {
             let marker =
                 "        let mut scratch: SmallVec<[F::Elem; VERIFY_INLINE_SCRATCH_ELEMS]> =";
             edit.replace(marker,&("        let mut rse_probe = crate::__rse_verify_scratch::Guard::new(scratch_len);\n".to_owned()+marker),1)?;
             let marker = "        scratch.resize(scratch_len, F::zero());";
             edit.replace(marker,&("        rse_probe.reserved(scratch.as_ptr(), scratch.capacity(), !scratch.spilled());\n".to_owned()+marker+"\n        rse_probe.initialized(scratch.as_ptr(), scratch.len(), scratch.capacity());"),1)?;
-            edit.replace("        Ok(self.check_some_slices_with_buffer_raw(&parity_rows, data, to_check, &mut buffer_views))","        let valid = self.check_some_slices_with_buffer_raw(&parity_rows, data, to_check, &mut buffer_views);\n        rse_probe.verified(valid);\n        Ok(valid)",1)
+            let (returned, computation) = if body
+                .contains("        self.check_classic_parity(data, to_check, &mut buffer_views)")
+            {
+                (
+                    "        self.check_classic_parity(data, to_check, &mut buffer_views)",
+                    "self.check_classic_parity(data, to_check, &mut buffer_views)?",
+                )
+            } else {
+                (
+                    "        Ok(self.check_some_slices_with_buffer_raw(&parity_rows, data, to_check, &mut buffer_views))",
+                    "self.check_some_slices_with_buffer_raw(&parity_rows, data, to_check, &mut buffer_views)",
+                )
+            };
+            edit.replace(
+                returned,
+                &format!("        let valid = {computation};\n        rse_probe.verified(valid);\n        Ok(valid)"),
+                1,
+            )
         },
     )
 }
