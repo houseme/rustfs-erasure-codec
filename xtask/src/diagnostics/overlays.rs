@@ -265,6 +265,47 @@ mod tests {
         assert!(native_service_clock(&mut files, root).is_err());
     }
 
+    fn dynamic_source_files(root: &Path) -> Files {
+        [
+            "src/lib.rs",
+            "src/matrix.rs",
+            "src/core/reconstruct.rs",
+            "src/galois_8/policy.rs",
+        ]
+        .into_iter()
+        .chain(super::super::leopard::FILES)
+        .map(|name| (name.into(), source::read(root.join(name)).unwrap()))
+        .collect()
+    }
+
+    #[test]
+    fn dynamic_observation_preserves_adaptive_verification_bodies() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
+        let original = dynamic_source_files(root);
+        let observed = dynamic::patch(&original, root).unwrap();
+        let name = "src/galois_8/policy.rs";
+        let body = |text: &str, entry: &str| {
+            let mut selected = String::new();
+            source::method(text, entry, |original, _| {
+                selected = original.to_owned();
+                Ok(())
+            })
+            .unwrap();
+            selected
+        };
+        for entry in [
+            "    pub fn verify_opt<T>",
+            "    pub fn verify_with_buffer_opt<T, U>",
+            "    pub fn verify_with_workspace_opt(",
+        ] {
+            assert_eq!(
+                body(&observed[name], entry),
+                body(&original[name], entry),
+                "{entry} must remain production source"
+            );
+        }
+    }
+
     #[test]
     fn all_diagnostic_generators_retain_the_original_python_bytes() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
@@ -311,19 +352,12 @@ mod tests {
                 "{variant}"
             );
         }
-        let original: Files = [
-            "src/lib.rs",
-            "src/matrix.rs",
-            "src/core/reconstruct.rs",
-            "src/galois_8/policy.rs",
-        ]
-        .into_iter()
-        .chain(super::super::leopard::FILES)
-        .map(|name| (name.into(), source::read(root.join(name)).unwrap()))
-        .collect();
+        // This snapshot includes unobserved production bodies. Their adaptive
+        // dispatch changed; the observer must pass those bodies through exactly.
+        let original = dynamic_source_files(root);
         assert_eq!(
             digest(dynamic::patch(&original, root).unwrap(), root),
-            "c3c11c7899d31135cbf208f2e5842325138fe0bc0fca71c38ee2bf41bdcc5617"
+            "2dd016796e615f3530d4412aee8b03d207b7319442dc927523ef5f6f8d4b2d75"
         );
     }
 }
