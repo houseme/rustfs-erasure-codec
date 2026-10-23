@@ -1,7 +1,8 @@
 # 9.1.0 merged-candidate review
 
 Review date: 2026-10-23 (Asia/Shanghai). Reviewed main snapshot:
-`62632e5419b13b65973c51033718be00b14d2442`. Functional and preparation checks
+`549b0ac5fc8bb16723d5dab20c934aea5024f5c0`; merged review source
+`aa89274850d29e1190c727b3e33fd7ba25da97d0`. Functional and preparation checks
 pass in their recorded scope; performance acceptance and publication remain incomplete.
 
 ## Exact sources and evidence
@@ -15,12 +16,14 @@ pass in their recorded scope; performance acceptance and publication remain inco
 | Frozen full Linux source | `9f935eef9c1af721165b245709897f7c4b9acc37` | Running complete diagnostic versus published 9.0.0 |
 | Earlier native-model main | `bfff0fcf187b99109927ec1de824b0977f2b4e6e` | Merged PR #61; historical source correspondence retained |
 | Reviewed main snapshot | `62632e5419b13b65973c51033718be00b14d2442` | Includes empty-shard alignment, native source plans and Darwin group cleanup |
-| Darwin confirmation follow-through | `5882adbd05de6c15ba37b74de36458d473c7f971` | Local tool fix for changing membership observations; new-head CI required |
+| Earlier Darwin follow-through | `5882adbd05de6c15ba37b74de36458d473c7f971` | Historical local proof and bounded cancellation checks |
+| Updated main | `549b0ac5fc8bb16723d5dab20c934aea5024f5c0` | Includes concurrent cache metrics and bounded Darwin member-reaping repair |
+| Integrated proof review | `aa89274850d29e1190c727b3e33fd7ba25da97d0` | Shared proof, strict main refusal rules and deterministic tests |
 
 The first four identities have the same complete Git file tree. That historical
 relation does not extend to the later rows. Relative to frozen `9f935ee`, reviewed
-main changes the empty `AlignedShard` representation and related tests, plus
-repository tools and documentation. Manifests, lockfile, build script and Cargo
+main changes the empty `AlignedShard` representation, concurrent reconstruction-cache
+eviction accounting and their tests, plus repository tools and documentation. Manifests, lockfile, build script and Cargo
 configuration remain unchanged. Similar codec paths or unchanged dependencies do
 not establish complete source-tree, timing or allocation-lifetime equivalence.
 All measurements retain their actual source identities.
@@ -72,11 +75,12 @@ preserve tool identity; they are not codec throughput measurements.
 The process owner keeps its leader unreaped while stopping the group it created.
 On Darwin's EPERM path, two complete native membership snapshots must confirm
 that all remaining members are already exited, with matching PID/start identity.
-Live or unknown groups retain the original error. In follow-through `5882adb`,
-a reaped member or truncated list invalidates the observation and requires two
-fresh complete views. Only these changing views receive bounded stabilization;
-empty/duplicate lists, mismatched identities, unconfirmed members and exhaustion
-never prove exit. The ordinary complete pair does not sleep. Cleanup does not
+Live or unknown groups retain the original error. Integrated source `aa89274`
+keeps updated main's three-second bound and ten-millisecond pause only for an
+exited non-leader reaped during inspection. That incomplete observation is
+discarded and requires two fresh complete views. Truncation, empty/duplicate
+lists, mismatched identities, unconfirmed members and exhaustion remain refusals.
+The ordinary complete pair does not sleep. Cleanup does not
 reinterpret a permission error as successful cancellation. The scope remains
 owned process groups, without a claim about arbitrary detached sessions or
 Windows job trees.
@@ -126,23 +130,30 @@ pure observation model fail before the change and pass after it. This establishe
 a concrete invalidation mechanism without claiming a unique snapshot state for
 the original CI runner.
 
-Source `5882adb` separates platform observation from shared exit confirmation.
-Known-changing observations discard their old evidence; confirmation requires a
-new complete matching pair while the leader remains unreaped. The 100 ms bound
-limits resource observation, not a benchmark or statistical acceptance rule.
-Unknown/live states and identity/group mismatches remain immediate refusals;
-exhaustion preserves the original signal error. Refusal messages add the missing
-proof stage without changing the signal's original error.
+The earlier local source `5882adb` passed 205 native tests, all 248 Python tests,
+strict macOS/Linux tool Clippy and 96 bounded cancellation trials. Those remain
+bound to that source; its local observation budget is superseded below.
 
-The fix passes 205 native tests (177 unit / 28 CLI), all 248 Python tests and
-strict tool Clippy on macOS and Linux x86_64 all-target configurations. The
-post-fix bounded cancellation check retains all 96 trials with no failure. Pure
-counterexamples cover incomplete fresh pairs, unknown/live views, empty or
-duplicate members, changed identities and exhausted observation budgets. These
-checks are not performance evidence and do not erase the original failed CI job.
-The new head must still complete its own CI. Codec sources and manifests remain
-unchanged from reviewed main `62632e5`; its 357/237 library checks above retain
-that original source binding.
+Remote main subsequently integrated its own member-reaping repair and the
+concurrent reconstruction-cache metrics fix. Integrated source `aa89274` preserves
+main's three-second observation budget, immediate identity/live/unknown/truncated
+refusals and original signal error. Platform queries are separate from the shared
+proof. Only an ESRCH from a missing non-leader restarts evidence; positive short
+records cannot use stale errno to become a reaping witness. Duplicate complete
+identities are rejected. The real-kernel test reaps a member during either the
+first or second snapshot. Pure tests check fresh-pair, unknown/live, empty,
+duplicate, changed-identity and budget-exhaustion counterexamples.
+
+New validation on unchanged integrated source `aa89274` passes 205 native tests
+(177 unit / 28 CLI), 359 all-feature codec library tests (five existing ignored),
+237 codec-only no_std tests, strict codec/tool Clippy, Linux x86_64 all-target tool
+Clippy, formatting and all 248 Python controller tests. The executed inputs
+remained unchanged throughout validation.
+Codec, manifest and lockfile bytes are identical to updated main `549b0ac`; the
+metrics fix is tested here through both same-pattern and distinct-pattern
+concurrent misses. Earlier `62632e5` checks retain their own source label. The new
+PR head must still complete its own CI. These checks neither erase the original
+failed job nor establish codec performance acceptance.
 
 Earlier independent checks remain bound to their own sources: `709c40b` passed
 194 native and 247 Python tests, 51 baseline comparisons and 116 complete
