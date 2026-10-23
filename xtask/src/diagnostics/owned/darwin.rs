@@ -6,6 +6,7 @@ type Identity = (libc::pid_t, u64, u64);
 pub(super) enum Member {
     Exited(Identity),
     Changed,
+    PendingExit,
     Unconfirmed(&'static str),
 }
 
@@ -45,7 +46,7 @@ pub(super) fn member(pid: libc::pid_t, leader: libc::pid_t) -> Member {
         return Member::Unconfirmed("member identity differs from the owned group");
     }
     if info.pbi_status != libc::SZOMB {
-        return Member::Unconfirmed("a member is not confirmed exited");
+        return Member::PendingExit;
     }
     Member::Exited((pid, info.pbi_start_tvsec, info.pbi_start_tvusec))
 }
@@ -93,6 +94,7 @@ pub(super) fn snapshot_with(
         match inspect(pid, leader) {
             Member::Exited(identity) => exited.push(identity),
             Member::Changed => return ExitObservation::Changed,
+            Member::PendingExit => return ExitObservation::PendingExit,
             Member::Unconfirmed(reason) => return ExitObservation::Unconfirmed(reason),
         }
     }
@@ -101,8 +103,10 @@ pub(super) fn snapshot_with(
 
 pub(super) fn group_exited(leader: libc::pid_t) -> bool {
     // Membership enumeration and per-PID inspection are not atomic. Stabilize
-    // only known-changing views while the owned leader still anchors its group.
-    // The usual complete pair incurs no sleep. A deadline never grants success.
+    // known-changing views and identified members still finishing exit while
+    // the unreaped leader anchors its group. Unknown identities/query failures
+    // are refused immediately. The usual complete pair incurs no sleep, and
+    // reaching the unchanged deadline never grants success.
     let deadline = Instant::now() + Duration::from_secs(3);
     let confirmation = confirm_exited_group(
         || snapshot_with(leader, member),

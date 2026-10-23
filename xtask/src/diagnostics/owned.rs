@@ -65,6 +65,7 @@ use darwin::group_exited as darwin_group_exited;
 enum ExitObservation<T> {
     Exited(Vec<T>),
     Changed,
+    PendingExit,
     Unconfirmed(&'static str),
 }
 
@@ -94,9 +95,10 @@ fn confirm_exited_group<T: Ord>(
                 previous = Some(current);
                 false
             }
-            ExitObservation::Changed => {
-                // A reaped member is not exit evidence.
-                // Discard the partial view and require two new complete reads.
+            ExitObservation::Changed | ExitObservation::PendingExit => {
+                // Neither a partial read nor an identified live member proves
+                // exit. Wait within the same budget, discarding any earlier
+                // complete view before requiring two fresh exited snapshots.
                 previous = None;
                 true
             }
@@ -411,7 +413,7 @@ mod tests {
     }
 
     #[test]
-    fn exit_confirmation_does_not_retry_an_unconfirmed_or_live_view() {
+    fn exit_confirmation_does_not_retry_an_unconfirmed_view() {
         let mut calls = 0;
         assert!(
             confirm_exited_group::<u64>(
@@ -424,6 +426,49 @@ mod tests {
             .is_err()
         );
         assert_eq!(calls, 1);
+    }
+
+    #[test]
+    fn exit_confirmation_requires_two_fresh_views_after_an_identified_live_member() {
+        let mut readings = [
+            ExitObservation::Exited(vec![1_u64, 2]),
+            ExitObservation::PendingExit,
+            ExitObservation::Exited(vec![1_u64]),
+            ExitObservation::Exited(vec![1_u64]),
+        ]
+        .into_iter();
+        let mut transitions = Vec::new();
+        let mut remaining = 4;
+        let result = confirm_exited_group(
+            || readings.next().unwrap(),
+            |pending| {
+                transitions.push(pending);
+                remaining -= 1;
+                remaining > 0
+            },
+        );
+        assert!(result.is_ok());
+        assert_eq!(transitions, [false, true, false]);
+        assert!(readings.next().is_none());
+    }
+
+    #[test]
+    fn exit_confirmation_never_accepts_a_live_member_when_the_budget_expires() {
+        let mut reads = 0;
+        let mut remaining = 3;
+        let result = confirm_exited_group::<u64>(
+            || {
+                reads += 1;
+                ExitObservation::PendingExit
+            },
+            |pending| {
+                assert!(pending);
+                remaining -= 1;
+                remaining > 0
+            },
+        );
+        assert!(result.is_err());
+        assert_eq!(reads, 3);
     }
 
     #[test]
@@ -512,6 +557,40 @@ mod tests {
                 "fresh complete snapshots must replace the incomplete view"
             );
         }
+    }
+
+    #[cfg(target_os = "macos")]
+    #[test]
+    fn darwin_exit_confirmation_observes_a_member_finishing_after_the_first_read() {
+        let mut command = Command::new("sleep");
+        command.arg("30");
+        let mut process = Process::spawn(command).unwrap();
+        let leader = process.child.id().try_into().unwrap();
+        let mut reads = 0;
+        let mut remaining = 3;
+        let confirmation = confirm_exited_group(
+            || {
+                reads += 1;
+                let snapshot = darwin::snapshot_with(leader, darwin::member);
+                if reads == 1 {
+                    // SAFETY: this unreaped child anchors the newly owned group.
+                    // Finish it only after the first native live-state snapshot.
+                    assert_eq!(unsafe { libc::kill(-leader, libc::SIGKILL) }, 0);
+                    observe_unreaped_exit(&process.child);
+                }
+                snapshot
+            },
+            |_| {
+                remaining -= 1;
+                remaining > 0
+            },
+        );
+        process.status = Some(process.child.wait().unwrap());
+        assert!(
+            confirmation.is_ok(),
+            "the member exits within budget, then needs two fresh complete views: {confirmation:?}",
+        );
+        assert_eq!(reads, 3);
     }
 
     #[cfg(target_os = "macos")]
