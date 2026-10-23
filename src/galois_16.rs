@@ -105,6 +105,11 @@ fn gf16_mul_slice<const ACCUMULATE: bool>(elem: [u8; 2], input: &[[u8; 2]], out:
         return;
     }
 
+    let coefficients = tower_mul_coefficients(elem);
+    #[cfg(rse_x86_gfni)]
+    if galois_8::try_mul_tower_slice(coefficients, input, out, ACCUMULATE) {
+        return;
+    }
     // Preserve length validation even for an empty general-field operation.
     if !input.is_empty() {
         gf16_mul_general::<ACCUMULATE>(elem, input, out);
@@ -175,6 +180,16 @@ fn gf16_mul_general<const ACCUMULATE: bool>(elem: [u8; 2], input: &[[u8; 2]], ou
         );
         offset += n;
     }
+}
+
+// Keep the fused and portable paths tied to the same extension polynomial.
+pub(crate) fn tower_mul_coefficients([cx, cc]: [u8; 2]) -> [u8; 4] {
+    [
+        cc ^ galois_8::mul(EXT_POLY[1], cx),
+        cx,
+        galois_8::mul(EXT_POLY[2], cx),
+        cc,
+    ]
 }
 
 /// De-interleave interleaved GF(2^16) element bytes into two contiguous GF(2^8)
@@ -948,6 +963,26 @@ mod tests {
     #[test]
     fn zero_to_zero_is_one() {
         assert_eq!(Element::zero().exp(0), Element::constant(1))
+    }
+
+    #[test]
+    fn tower_coefficients_match_scalar_for_every_coefficient_and_basis_bit() {
+        for coefficient in 0..65536 {
+            let scalar = Field::nth_internal(coefficient);
+            let [a, b, c, d] = tower_mul_coefficients(scalar);
+            for bit in 0..16 {
+                let input = if bit < 8 {
+                    [0, 1 << bit]
+                } else {
+                    [1 << (bit - 8), 0]
+                };
+                let product = [
+                    galois_8::mul(a, input[0]) ^ galois_8::mul(b, input[1]),
+                    galois_8::mul(c, input[0]) ^ galois_8::mul(d, input[1]),
+                ];
+                assert_eq!(product, Field::mul(scalar, input));
+            }
+        }
     }
 
     #[test]

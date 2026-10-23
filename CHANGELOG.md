@@ -10,6 +10,12 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Fuse general GF16 tower multiplication inside the selected GFNI backend.
+  Keep byte planes in registers and reuse the existing field-derived affine
+  maps, with checked vector bounds and scalar tails. Constant coefficients,
+  other backends and the encoded format retain their existing paths;
+  throughput and release approval remain pending controlled validation.
+
 - Invert GF16 tower elements through conjugation and a GF8 norm instead of
   recursive polynomial division. Preserve every inverse and quotient byte,
   including historical division by zero; retain Euclid as an exhaustive test oracle.
