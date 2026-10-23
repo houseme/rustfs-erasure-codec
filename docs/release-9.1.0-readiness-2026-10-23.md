@@ -1,55 +1,53 @@
 # 9.1.0 merged-candidate review
 
-Review date: 2026-10-23 (Asia/Shanghai). The combined implementation is on main `bfff0fc`;
-performance acceptance and publication remain incomplete.
+Review date: 2026-10-23 (Asia/Shanghai). Reviewed main snapshot:
+`62632e5419b13b65973c51033718be00b14d2442`. Functional and preparation checks
+pass in their recorded scope; performance acceptance and publication remain incomplete.
 
-## Exact source and review scope
+## Exact sources and evidence
 
-| Source | Identity | Meaning |
+| Source | Identity | Recorded scope |
 | --- | --- | --- |
-| Frozen runtime candidate | `449920e428cee723e27f9280f62f917e08f784e0` | Candidate used by the prepared Linux comparison |
-| Original checked PR head | `09597e43aae2c5d454683f056a72e7bd295371b9` | Completed ordinary CI and package dry-run |
+| Earlier runtime candidate | `449920e428cee723e27f9280f62f917e08f784e0` | Completed 64-worker affected catalog |
+| Original checked PR head | `09597e43aae2c5d454683f056a72e7bd295371b9` | Earlier ordinary CI and package dry-run |
 | Rebased PR head | `51bdd8cd0dc4356304639d528ae554d4d152531d` | External rebase of PR #57 |
-| Prior merged main | `14cf56e0d4381451af12e3c163677d811729d13a` | PR #57 merged externally |
-| Frozen combined Linux source | `9f935eef9c1af721165b245709897f7c4b9acc37` | Includes PR #58; current complete Linux diagnostic candidate |
-| Current main with native models | `bfff0fcf187b99109927ec1de824b0977f2b4e6e` | Also includes merged PR #61; a different complete tool/file tree |
+| Earlier merged main | `14cf56e0d4381451af12e3c163677d811729d13a` | PR #57 merged externally |
+| Frozen full Linux source | `9f935eef9c1af721165b245709897f7c4b9acc37` | Running complete diagnostic versus published 9.0.0 |
+| Earlier native-model main | `bfff0fcf187b99109927ec1de824b0977f2b4e6e` | Merged PR #61; historical source correspondence retained |
+| Reviewed main snapshot | `62632e5419b13b65973c51033718be00b14d2442` | Includes empty-shard alignment, native source plans and Darwin group cleanup |
 
-The first four historical identities have the same complete Git file tree.
-Relative to `449920e`, frozen combined `9f935ee` additionally changes
-`src/core/encode.rs`, `src/core/verify.rs`, related tests and the verification
-observer adapter. Current main `bfff0fc` also includes the native model migration.
-Its codec sources match `9f935ee`, but its complete tool/file tree differs.
-Neither complete source is identical to frozen `449920e`. Manifests, lockfile, build script and
-Cargo configuration remain unchanged, but that does not establish timing or
-allocation-lifetime equivalence. Measurements retain their original commit
-labels; the final combined source requires its own freeze and accepted evidence.
+The first four identities have the same complete Git file tree. That historical
+relation does not extend to the later rows. Relative to frozen `9f935ee`, reviewed
+main changes the empty `AlignedShard` representation and related tests, plus
+repository tools and documentation. Manifests, lockfile, build script and Cargo
+configuration remain unchanged. Similar codec paths or unchanged dependencies do
+not establish complete source-tree, timing or allocation-lifetime equivalence.
+All measurements retain their actual source identities.
 
-The review followed ordinary and adaptive verification through their callers,
-public count/length validation, shared matrix encoding, backend initialization
-and eligibility, checked kernel execution, and regression tests. Every current
-caller validates nonempty Classic inputs before entering the private serial
-helper. Family and fast-parity dispatch remain at the public boundary. No
-additional supported runtime defect was found in this scope.
+The review followed ordinary/adaptive verification, validation macros, checked
+kernel preparation/execution, cached backend eligibility, aligned storage,
+observer-plan construction, source ownership and complete process-group cleanup.
+No additional supported defect requiring another runtime branch was found in
+this scope. The changes below repair contracts at shared ownership boundaries.
 
-## Shared execution design
+## Shared execution and ownership
 
 Ordinary verification, caller-buffer verification and workspace verification
-share `check_classic_parity` and the serial `encode_classic_matrix` implementation
-with ordinary encoding. The two duplicate parity-check implementations are
-removed. Serial APIs retain their existing generic bounds; this refactor does
-not require their callers to become `Send` or `Sync`.
-
-Adaptive verification reaches the existing encoding policy once. Both execution
-routes use the shared checked encoding boundary. Backend eligibility is cached: an automatically selected GFNI backend keeps its priority
-over generated table-based AVX2 encoding. Explicit overrides, other backends,
-Leopard handling, scratch ownership and encoded bytes retain their contracts.
-The change adds no shape-specific exception, size threshold or allocator tuning.
+share `check_classic_parity` and serial `encode_classic_matrix` with ordinary
+encoding. Serial APIs retain their original generic bounds. Adaptive verification
+reaches the existing encoding policy once. Both routes use the checked encoding
+boundary; cached eligibility preserves automatic GFNI priority over generated
+table-based AVX2 encoding. Explicit overrides, other backends, Leopard and fast
+parity dispatch, public count/length checks and scratch ownership retain their
+contracts. Preparation completes before writes; execution errors propagate.
+Generic reconstruction keeps decode-before-publication, late failure and
+selective-output behavior.
 
 ```mermaid
 flowchart LR
-    A[Ordinary verification APIs] --> B[Validate and prepare scratch]
+    A[Ordinary verification] --> B[Validate and prepare scratch]
     B --> S[Shared serial matrix encoding]
-    C[Adaptive verification APIs] --> D[Validate and prepare scratch]
+    C[Adaptive verification] --> D[Validate and prepare scratch]
     D --> P[Shared encoding policy once]
     S --> K[Checked encoding or generic arithmetic]
     P --> K
@@ -57,95 +55,110 @@ flowchart LR
     K --> F[Compare parity]
 ```
 
-Generated kernels still validate every coefficient row and shard before writing.
-Preparation failures use the existing generic path; execution errors propagate
-without selecting another algorithm after parity has been modified. Generic
-reconstruction's publication, late-failure and selective-output behavior remains
-outside this patch's changes.
+Empty aligned storage now uses a private 64-byte-aligned zero-sized type for its
+dangling pointer. A compile-time assertion binds that representation to
+`SHARD_ALIGNMENT`. Empty construction remains allocation-free; nonempty allocation,
+deallocation, the public struct and encoded bytes are unchanged. This corrects
+the documented pointer-alignment contract, without explaining service-time drift.
 
-## Completed functional checks
+Observer installation prepares generated files and their bindings in one native
+plan. Verify, stream-core and dynamic observers use the same source-overlay
+owner; independent committed-source checks retain their separate provenance
+purpose. The helper's build output stays under its own source root even when
+`CARGO_TARGET_DIR` is inherited. These changes reduce duplicate preparation and
+preserve tool identity; they are not codec throughput measurements.
 
-The frozen candidate passed 356 codec unit tests (five existing ignored tests),
-92 tests across eleven integration programs, 129 native-tool tests and all 273
-Python controller tests. Strict codec/tool Clippy, codec-only no_std, formatting,
-spelling and diff checks passed. The GFNI-priority behavior regression failed with
-the previous eligibility rule and passed with the fix.
+The process owner keeps its leader unreaped while stopping the group it created.
+On Darwin's EPERM path, two complete native membership snapshots must confirm
+that all remaining members are already exited, with matching PID/start identity.
+Live, unknown or incomplete groups retain the original error. Cleanup does not
+reinterpret a permission error as successful cancellation. The scope remains
+owned process groups, without a claim about arbitrary detached sessions or
+Windows job trees.
 
-Ordinary CI on `09597e4` completed 31 successful checks. The
-[release-tooling job](https://github.com/houseme/rustfs-erasure-codec/actions/runs/39887761249/job/120200102869)
-passed the native/controller checks and the actual distributable dry-run. Its
-archive contains 67 core package files; upload was aborted because this was a
-dry-run. This is completed validation on the recorded source, not a claim that
-every later main commit or CI run has independently passed.
+## Validation on the reviewed snapshot
 
-The same source's `Validate controlled release evidence`, `Release preflight`
-and `Publish to crates.io` checks were skipped. None supplies positive release
-acceptance or publication. A merged PR and green ordinary CI do not check those
-boxes.
+All checks below ran on `62632e5`; inputs remained unchanged during validation.
+Later documentation commits do not relabel that executed source.
 
-## Validation of the combined implementation
+| Check | Actual outcome |
+| --- | --- |
+| Optimized native tools | 199 passed: 171 unit and 28 CLI |
+| Codec all-feature library | 357 passed; five existing ignored |
+| Codec-only no_std library | 237 passed |
+| Complete Python controllers | 248 passed |
+| Strict codec/tool Clippy, all targets | Passed |
+| Linux x86_64 tool all-target metadata compilation | Passed; compilation evidence only |
+| Formatting | Passed |
+| Core 9.1.0 manifest/tag consistency | Passed; metadata check only |
+| Workspace dependency inheritance | All five members pass |
+| JSON audit | Passed; historical evidence retained |
+| Actual core/WASM package lists | 67/6 members; tooling and evidence excluded |
 
-The merged `9f935ee` implementation passed 356 codec unit tests (five existing
-ignored tests), 93 tests across the same eleven integration programs, 129
-native-tool tests and all 273 Python controller tests. Strict codec/tool Clippy,
-codec-only no_std, formatting and diff checks passed. These are new-source checks;
-they do not relabel the frozen candidate's results above. New main CI remains
-bound to its own actual run status.
+Native regressions positively exercise Darwin groups with 1, 2, 5 and 33 exited
+members, reject an exited leader hiding a live member, and refuse unknown groups.
+Source-plan regressions retain complete generated bytes and hashes, refuse
+changed anchors and unknown variants, and restore owned inputs. Python bindings
+check one plan per installation and explicit source-local helper build output.
+The empty-shard regression covers batch construction, cloning, slices, iterators
+and both pointer views. These checks do not establish hardware-counter fidelity,
+physical-host isolation or performance acceptance.
 
-The expanded dispatch tests exercise all three ordinary verification entries,
-corruption detection, caller scratch contents, safe-Field view fallback and the
-single preparation contract. The observer adapter recognizes both old and new
-verification return forms; it does not rewrite the frozen sampler or approve
-instrumented geometry as formal performance evidence.
+Earlier independent checks remain bound to their own sources: `709c40b` passed
+194 native and 247 Python tests, 51 baseline comparisons and 116 complete
+calibration/campaign comparisons. Its implementation correspondence with
+published `c176ac2` and main `bfff0fc` remains explicit. The
+[complete tooling report](../benchmarks/tooling/2026-10-23/native-diagnostic-consolidation.json)
+retains all outcomes and the two declared stronger original-file refusals.
+The fixed baseline fixture's 68 requests / 15,257,891 bytes versus one / 289
+measures IPC and request volume only. Those results are not new codec timing,
+RSS or Linux-drift evidence for `62632e5`.
 
-## Repository-tool integration
+## Retained timing results and running complete capture
 
-Source `709c40b` additionally integrates the native diagnostic consolidation with
-main `e3aca32`. Its implementation corresponds to published review head
-`c176ac2`; their full Git file difference contains only three documentation files.
-Executed validation labels remain `709c40b`. Main `bfff0fc` has the same complete
-Git file tree as `c176ac2`; no measurement label is changed. Codec sources, manifests, lockfile, build configuration and WASM
-match main; the tool implementation changes. The new tree passes 194 native tests,
-247 Python controller tests, strict tooling Clippy and Linux x86_64 metadata
-compilation. All 167 legacy/native comparisons and both complete baseline request
-witnesses are recorded in the [current global review](global-review-9.1.0-2026-10-23.md#current-main-integration-and-complete-native-diagnostic-boundary).
-These results describe repository tools and do not rebind codec measurements.
+The [earlier verification review](verify-dispatch-review-2026-10-23.md) retains
+all 28 workers and the +15.0854% stream-verification refusal on `17432e5`.
+The later backend control keeps all results and its differing cross-condition
+stream fixtures; it does not prove an ISA-only cause or erase the first failure.
 
-The complete combined-source Linux diagnosis is running separately at frozen
-`9f935ee` versus published 9.0.0, including both calibrations, all 126 original
-ABBA cases and all paired layouts. Its Linux functional/input checks passed;
-full collection and frozen independent replay remain pending. New tool code is
-not deployed into that owned campaign, and its diagnostic-only schema cannot
-supply automatic release approval.
+The [complete GFNI review](gfni-priority-review-2026-10-23.md) retains candidate
+`449920e` versus `340fc19`: all 64 workers / 768 observations, sixteen cases,
+32 repeats, 64 comparisons and eight programs independently replay exactly.
+Distributions and scoped regression programs pass, but three repeats exceed 5%
+(maximum 8.3833%). The complete affected catalog is not accepted evidence.
 
-## Retained performance results and next execution
+The running full Linux campaign remains frozen at `9f935ee` versus published
+9.0.0. Both calibrations have completed; original A1/B1/B2/A2 profiles and all
+paired layouts continue before final analysis. Statistical failures do not
+truncate collection. New main code, source plans and cleanup changes are not
+deployed into that reservation. Full collection, source/resource restoration and
+independent replay with its own frozen tool remain pending. Partial successful
+workers and ordinary CI do not qualify the campaign or later main snapshots.
+The [earlier complete diagnostic](complete-linux-diagnostic-2026-10-22.md) and
+all its refusals retain their original source and acceptance status.
 
-The [complete verification review](verify-dispatch-review-2026-10-23.md) preserves
-the original 28-worker comparison, its +15.0854% stream-verification threshold
-failure, and the later complete backend control. Within each backend condition,
-caller fixtures match; between conditions, stream fixtures differ. The control
-supports the shared-backend candidate without proving a unique ISA cause or
-explaining all historical Linux drift.
+## Concrete remaining release work
 
-The new comparison is frozen at candidate `449920e` versus main `340fc19`:
-all eleven original small-file encode cases and all five original stream verify
-cases, complete A1/B1/B2/A2, 64 workers and 768 observations. Original common
-iteration counts and three warmups/nine samples are retained. All 32 repeats,
-64 comparisons and eight scoped regression programs are evaluated after the
-planned collection; statistical failure does not truncate it. The frozen plan
-has completed and independently replays exactly. All 64 distributions and eight
-regression programs pass, with no short sample; three of 32 repeats exceed 5%
-(maximum 8.3833%). Sources, resources and observer services are restored. The
-[complete GFNI review](gfni-priority-review-2026-10-23.md) preserves every case,
-pairing and failure. The affected catalog is not accepted performance evidence.
+1. Finish the current complete diagnostic, independently replay every original
+   record and analyze all failures and counterexamples. Preserve its diagnostic-only
+   schema and original limits; do not turn it into formal evidence by relabeling.
+2. Freeze the final candidate tree, lockfile and harness after the intended
+   changes are integrated. Store evidence on its separate immutable evidence
+   commit. Later candidate-tree changes require their own binding; documentation
+   or tool changes do not silently inherit a prior complete-tree acceptance.
+3. Obtain accepted complete published-baseline, ABBA and paired-layout evidence
+   with the original duration, 5% repeat, 10% distribution and regression checks.
+   A recorded source/condition change must justify another campaign; do not
+   repeat unchanged failures until a favorable result appears.
+4. Configure the accepted full evidence commit and run the actual strict positive
+   release preflight on its bound candidate. At this review,
+   `RSE_RELEASE_EVIDENCE_REF` is not configured. Ordinary CI's skipped evidence,
+   preflight and publication jobs do not supply positive acceptance.
 
-This affected catalog compares two earlier unreleased sources. It does not
-include the later shared Classic helper and cannot be promoted to timing evidence
-for combined main `9f935ee`, even if every scoped check passes. It also cannot
-replace the complete published-9.0.0 baseline/final-candidate comparison or paired
-layouts.
-The [publication blockers](release-9.1.0-blockers.md) and
-[release checklist](release-9.1.0-checklist.md) remain authoritative: freeze the
-final source/lock/harness, obtain accepted complete baseline/ABBA/layout evidence,
-bind its immutable evidence commit and run the actual strict positive preflight.
-No tag or registry upload is authorized by this review.
+The core manifests already declare 9.1.0 and the changelog remains unreleased.
+Manifest/tag consistency does not create a tag or publish a package. Fixed
+frequency, PMU access and a unique cause for every historical refusal are
+investigation options, not added release gates. The
+[publication blockers](release-9.1.0-blockers.md) and
+[release checklist](release-9.1.0-checklist.md) retain the complete acceptance
+requirements. No tag or registry upload was performed.
