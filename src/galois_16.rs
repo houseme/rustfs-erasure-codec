@@ -84,7 +84,7 @@ impl crate::Field for Field {
 /// SIMD-accelerated [`galois_8::mul_slice`]/[`galois_8::mul_slice_xor`] backends
 /// (ssse3/avx2/gfni/avx512/neon/vsx with runtime dispatch). Byte planes are
 /// de-/re-interleaved in fixed stack chunks via [`deinterleave`]/[`interleave`]
-/// (SIMD ssse3/neon, scalar fallback) to stay `no_std` and allocation free; the
+/// (SIMD avx2/ssse3/neon, scalar fallback) to stay `no_std` and allocation free; the
 /// whole path is byte-wise GF(2^8), so it is endian-agnostic.
 ///
 /// On x86 with GFNI the GF(2^8) multiplies are so fast that a *scalar* byte
@@ -182,7 +182,7 @@ fn gf16_mul_general<const ACCUMULATE: bool>(elem: [u8; 2], input: &[[u8; 2]], ou
 ///
 /// Requires `src.len() == 2 * even.len()` and `even.len() == odd.len()`. This is
 /// a pure byte permutation, so it is endian-agnostic. SIMD-accelerated on
-/// ssse3 (x86_64) and neon (aarch64), with a scalar fallback that also handles
+/// avx2/ssse3 (x86_64) and neon (aarch64), with a scalar fallback that also handles
 /// the sub-32-element tail of the SIMD paths.
 #[allow(clippy::needless_return)]
 #[inline]
@@ -192,8 +192,13 @@ fn deinterleave(src: &[u8], even: &mut [u8], odd: &mut [u8]) {
 
     #[cfg(all(feature = "std", target_arch = "x86_64"))]
     {
-        // 128-bit ssse3 kernel — covers every AVX2/GFNI CPU too, so the fast
-        // GF(2^8) backends no longer stall on a scalar layout conversion.
+        #[cfg(feature = "simd-avx2")]
+        if even.len() >= 32 && is_x86_feature_detected!("avx2") {
+            // SAFETY: AVX2 is detected and the checked slice lengths match the
+            // 64-byte source / 32-byte plane spans used by this kernel.
+            unsafe { deinterleave_avx2(src, even, odd) };
+            return;
+        }
         if is_x86_feature_detected!("ssse3") {
             // SAFETY: ssse3 confirmed at runtime, matching the callee's
             // `#[target_feature(enable = "ssse3")]`; the length contract above
@@ -231,6 +236,13 @@ fn interleave<const ACCUMULATE: bool>(even: &[u8], odd: &[u8], dst: &mut [u8]) {
 
     #[cfg(all(feature = "std", target_arch = "x86_64"))]
     {
+        #[cfg(feature = "simd-avx2")]
+        if even.len() >= 32 && is_x86_feature_detected!("avx2") {
+            // SAFETY: AVX2 is detected; both 32-byte planes and the initialized
+            // 64-byte destination satisfy the kernel's slice contract.
+            unsafe { interleave_avx2::<ACCUMULATE>(even, odd, dst) };
+            return;
+        }
         if is_x86_feature_detected!("ssse3") {
             // SAFETY: ssse3 confirmed at runtime, matching the callee; the
             // length contract above matches what the kernel indexes.
@@ -270,6 +282,82 @@ fn interleave_scalar<const ACCUMULATE: bool>(even: &[u8], odd: &[u8], dst: &mut 
             dst[2 * i + 1] = *o;
         }
     }
+}
+
+#[cfg(all(feature = "std", feature = "simd-avx2", target_arch = "x86_64"))]
+#[target_feature(enable = "avx2")]
+unsafe fn deinterleave_avx2(src: &[u8], even: &mut [u8], odd: &mut [u8]) {
+    use core::arch::x86_64::{
+        _mm256_and_si256, _mm256_loadu_si256, _mm256_packus_epi16, _mm256_permute4x64_epi64,
+        _mm256_set1_epi16, _mm256_srli_epi16, _mm256_storeu_si256,
+    };
+
+    let mask = _mm256_set1_epi16(0xff);
+    let batches = even.len() / 32;
+    for b in 0..batches {
+        let s = &src[b * 64..b * 64 + 64];
+        let e = &mut even[b * 32..b * 32 + 32];
+        let o = &mut odd[b * 32..b * 32 + 32];
+        // SAFETY: the two unaligned loads cover exactly s's 64 bytes, and each
+        // store covers one 32-byte plane. Masking / logical shifts yield words
+        // in 0..=255, so unsigned saturation preserves every extracted byte.
+        // Packing works within 128-bit lanes; qword order 0,2,1,3 restores the
+        // original element order. The caller has checked AVX2 support.
+        unsafe {
+            let lo = _mm256_loadu_si256(s.as_ptr().cast());
+            let hi = _mm256_loadu_si256(s[32..].as_ptr().cast());
+            let e_bytes =
+                _mm256_packus_epi16(_mm256_and_si256(lo, mask), _mm256_and_si256(hi, mask));
+            let o_bytes =
+                _mm256_packus_epi16(_mm256_srli_epi16::<8>(lo), _mm256_srli_epi16::<8>(hi));
+            _mm256_storeu_si256(
+                e.as_mut_ptr().cast(),
+                _mm256_permute4x64_epi64::<0xd8>(e_bytes),
+            );
+            _mm256_storeu_si256(
+                o.as_mut_ptr().cast(),
+                _mm256_permute4x64_epi64::<0xd8>(o_bytes),
+            );
+        }
+    }
+    let done = batches * 32;
+    deinterleave_scalar(&src[done * 2..], &mut even[done..], &mut odd[done..]);
+}
+
+#[cfg(all(feature = "std", feature = "simd-avx2", target_arch = "x86_64"))]
+#[target_feature(enable = "avx2")]
+unsafe fn interleave_avx2<const ACCUMULATE: bool>(even: &[u8], odd: &[u8], dst: &mut [u8]) {
+    use core::arch::x86_64::{
+        _mm256_loadu_si256, _mm256_permute2x128_si256, _mm256_storeu_si256, _mm256_unpackhi_epi8,
+        _mm256_unpacklo_epi8, _mm256_xor_si256,
+    };
+
+    let batches = even.len() / 32;
+    for b in 0..batches {
+        let e = &even[b * 32..b * 32 + 32];
+        let o = &odd[b * 32..b * 32 + 32];
+        let d = &mut dst[b * 64..b * 64 + 64];
+        // SAFETY: each plane load covers exactly 32 bytes. The two destination
+        // stores (and accumulation loads) cover exactly the initialized 64-byte
+        // span at offsets 0 and 32. Lane joins produce elements 0..15 / 16..31;
+        // the caller has checked AVX2 support.
+        unsafe {
+            let e_bytes = _mm256_loadu_si256(e.as_ptr().cast());
+            let o_bytes = _mm256_loadu_si256(o.as_ptr().cast());
+            let lo = _mm256_unpacklo_epi8(e_bytes, o_bytes);
+            let hi = _mm256_unpackhi_epi8(e_bytes, o_bytes);
+            let mut first = _mm256_permute2x128_si256::<0x20>(lo, hi);
+            let mut second = _mm256_permute2x128_si256::<0x31>(lo, hi);
+            if ACCUMULATE {
+                first = _mm256_xor_si256(first, _mm256_loadu_si256(d.as_ptr().cast()));
+                second = _mm256_xor_si256(second, _mm256_loadu_si256(d[32..].as_ptr().cast()));
+            }
+            _mm256_storeu_si256(d.as_mut_ptr().cast(), first);
+            _mm256_storeu_si256(d[32..].as_mut_ptr().cast(), second);
+        }
+    }
+    let done = batches * 32;
+    interleave_scalar::<ACCUMULATE>(&even[done..], &odd[done..], &mut dst[done * 2..]);
 }
 
 #[cfg(target_arch = "x86_64")]
@@ -954,6 +1042,76 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[cfg(all(feature = "std", feature = "simd-avx2", target_arch = "x86_64"))]
+    #[test]
+    fn avx2_layout_matches_scalar_at_offsets_and_tails() {
+        if !is_x86_feature_detected!("avx2") {
+            return;
+        }
+        for n in (0..=97).chain([1023, 1024, 1025, 2049]) {
+            let source: Vec<_> = (0..2 * n + 9).map(|i| (i * 197 + 31) as u8).collect();
+            for (src_start, dst_start) in [(0, 1), (1, 3), (3, 1)] {
+                let input = &source[src_start..src_start + 2 * n];
+                let mut even = vec![0xa5; dst_start + n + 3];
+                let mut odd = even.clone();
+                let mut expected_even = even.clone();
+                let mut expected_odd = odd.clone();
+                deinterleave_scalar(
+                    input,
+                    &mut expected_even[dst_start..dst_start + n],
+                    &mut expected_odd[dst_start..dst_start + n],
+                );
+                // SAFETY: AVX2 checked above; initialized plane spans each have
+                // n bytes, and input has exactly 2*n bytes, with valid offsets.
+                unsafe {
+                    deinterleave_avx2(
+                        input,
+                        &mut even[dst_start..dst_start + n],
+                        &mut odd[dst_start..dst_start + n],
+                    )
+                };
+                assert_eq!(even, expected_even, "even length {n}, offset {src_start}");
+                assert_eq!(odd, expected_odd, "odd length {n}, offset {src_start}");
+                let e = &even[dst_start..dst_start + n];
+                let o = &odd[dst_start..dst_start + n];
+                for accumulate in [false, true] {
+                    let mut output: Vec<_> = (0..src_start + 2 * n + 3)
+                        .map(|i| (i * 41 + 13) as u8)
+                        .collect();
+                    let mut expected = output.clone();
+                    if accumulate {
+                        interleave_scalar::<true>(
+                            e,
+                            o,
+                            &mut expected[src_start..src_start + 2 * n],
+                        );
+                        // SAFETY: AVX2 checked; the two n-byte planes and
+                        // initialized 2*n-byte destination satisfy the contract.
+                        unsafe {
+                            interleave_avx2::<true>(e, o, &mut output[src_start..src_start + 2 * n])
+                        };
+                    } else {
+                        interleave_scalar::<false>(
+                            e,
+                            o,
+                            &mut expected[src_start..src_start + 2 * n],
+                        );
+                        // SAFETY: AVX2 checked; the same valid spans as above.
+                        unsafe {
+                            interleave_avx2::<false>(
+                                e,
+                                o,
+                                &mut output[src_start..src_start + 2 * n],
+                            )
+                        };
+                    }
+                    assert_eq!(output, expected, "length {n}, accumulate {accumulate}");
+                }
+            }
+        }
+        eprintln!("AVX2 GF16 byte layout scalar oracle executed");
     }
 
     #[test]
