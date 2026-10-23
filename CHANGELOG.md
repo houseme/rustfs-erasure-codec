@@ -10,10 +10,6 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
-- Compose fixed-coefficient GFNI multiplication into one affine map derived at
-  compile time from the existing GF8 table. Preserve both SIMD widths, XOR,
-  scalar tails, backend overrides, encoded bytes and output ownership.
-
 - Invert GF16 tower elements through conjugation and a GF8 norm instead of
   recursive polynomial division. Preserve every inverse and quotient byte,
   including historical division by zero; retain Euclid as an exhaustive test oracle.
