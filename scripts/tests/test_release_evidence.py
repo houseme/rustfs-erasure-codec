@@ -35,7 +35,7 @@ class OriginalMemberReadTests(unittest.TestCase):
                 return ReplacingReader(stream) if member==path and not changed else stream
             with mock.patch.object(pathlib.Path,'open',opening):
                 with self.assertRaisesRegex(ValueError,'digest'):
-                    evidence.evidence_member(root,entry,entry['path'])
+                    evidence.json_data(path,entry['sha256'])
             self.assertEqual(path.read_bytes(),replacement)
             original=b'{"value":"unbound"}';path.write_bytes(original);changed=False
             with mock.patch.object(pathlib.Path,'open',opening):
