@@ -7,6 +7,7 @@ mod benchmark_contract;
 mod bridge;
 mod criterion;
 mod diagnostics;
+mod fingerprint;
 mod manifest;
 mod memory_policy;
 mod metadata;
@@ -101,6 +102,7 @@ const COMMANDS: &[(&str, &[&str])] = &[
     ("validate-diagnostic-ledger", &["--input"]),
     ("analyze-layout", &["--input"]),
     ("analyze-baseline-data", &["--input"]),
+    ("analyze-baseline-capture", &["--capture", "--tool"]),
     ("analyze-vm-data", &["--input"]),
     ("validate-stream-views", &["--input"]),
     ("summarize-smoke", &["--input"]),
@@ -247,6 +249,7 @@ fn run() -> Result<bool> {
         "validate-diagnostic-ledger" => diagnostics::ledger::run(&args)?,
         "analyze-vm-data" => diagnostics::vm::run(&args)?,
         "analyze-baseline-data" => diagnostics::baseline::run(&args)?,
+        "analyze-baseline-capture" => diagnostics::baseline::replay::run(&args)?,
         "analyze-layout" => diagnostics::layout::run(&args)?,
         "memory-policy" => memory_policy::run(&args)?,
         "check-sampler-telemetry" => diagnostics::check_telemetry(&args)?,

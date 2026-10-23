@@ -568,29 +568,7 @@ pub(crate) fn observations_ref<T: std::borrow::Borrow<Value>>(
             .get("placement")
             .ok_or("observation placement is required")?;
         if let Some((expected_row, expected_placement)) = contracts.get(case) {
-            let scalar = |key, default| {
-                record
-                    .get(key)
-                    .map(|value| {
-                        value
-                            .as_str()
-                            .map_or_else(|| value.to_string(), str::to_owned)
-                    })
-                    .unwrap_or_else(|| String::from(default))
-            };
-            let label = format!(
-                "{case} {}[{}] batch={}",
-                scalar("kind", "observation"),
-                scalar("index", "?"),
-                scalar("calibration_batch", "0")
-            );
-            compare_row(profile, expected_row, row).map_err(|error| format!("{label}: {error}"))?;
-            if placement != expected_placement {
-                return Err(format!(
-                    "{profile}/{label}: observation placement differs from calibration/worker"
-                )
-                .into());
-            }
+            observation_matches(profile, record, expected_row, expected_placement)?;
         } else {
             if supplied {
                 return Err(format!("{profile}: observation case differs from calibration").into());
@@ -600,6 +578,44 @@ pub(crate) fn observations_ref<T: std::borrow::Borrow<Value>>(
         }
     }
     Ok(serde_json::to_value(first)?)
+}
+
+pub(crate) fn observation_matches(
+    profile: &str,
+    record: &Value,
+    expected_row: &Value,
+    expected_placement: &Value,
+) -> Result<()> {
+    let case = record["case"]
+        .as_str()
+        .ok_or("observation case must be a string")?;
+    let row = record["rows"]
+        .as_array()
+        .and_then(|r| r.first())
+        .ok_or("observation row is required")?;
+    let placement = record
+        .get("placement")
+        .ok_or("observation placement is required")?;
+    let scalar = |key, default| {
+        record
+            .get(key)
+            .map(|v| v.as_str().map_or_else(|| v.to_string(), str::to_owned))
+            .unwrap_or_else(|| String::from(default))
+    };
+    let label = format!(
+        "{case} {}[{}] batch={}",
+        scalar("kind", "observation"),
+        scalar("index", "?"),
+        scalar("calibration_batch", "0")
+    );
+    compare_row(profile, expected_row, row).map_err(|e| format!("{label}: {e}"))?;
+    if placement != expected_placement {
+        return Err(format!(
+            "{profile}/{label}: observation placement differs from calibration/worker"
+        )
+        .into());
+    }
+    Ok(())
 }
 
 #[cfg(test)]

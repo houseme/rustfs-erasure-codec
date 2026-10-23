@@ -11,6 +11,18 @@ pub(super) fn analyze(
     page: Option<u64>,
     cpus: Option<&[u64]>,
 ) -> Result<Value> {
+    Ok(serde_json::to_value(counts(
+        records, profile, revision, page, cpus,
+    )?)?)
+}
+
+pub(crate) fn counts<'a>(
+    records: &'a [Value],
+    profile: &str,
+    revision: &str,
+    page: Option<u64>,
+    cpus: Option<&[u64]>,
+) -> Result<Vec<(&'a str, u64)>> {
     let catalog = super::case_catalog();
     let expected = catalog.get(profile).ok_or("unknown calibration profile")?;
     let expected: BTreeSet<_> = expected.iter().map(String::as_str).collect();
@@ -83,7 +95,7 @@ pub(super) fn analyze(
         }
     }
     benchmark_contract::observations_ref(profile, records, None, false)?;
-    Ok(serde_json::to_value(counts)?)
+    Ok(counts)
 }
 
 #[cfg(test)]

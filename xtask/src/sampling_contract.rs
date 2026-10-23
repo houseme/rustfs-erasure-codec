@@ -4,7 +4,7 @@ use serde::Deserialize;
 use std::borrow::Borrow;
 
 pub(crate) mod batch;
-mod calibration_profile;
+pub(crate) mod calibration_profile;
 mod protocol;
 use serde_json::{Value, json};
 
@@ -14,6 +14,9 @@ pub(crate) const CENTRAL_SPREAD_LIMIT: f64 = 0.10;
 pub(crate) const REPEAT_DRIFT_LIMIT: f64 = 0.05;
 pub(crate) const MINIMUM_WALL_NS: u64 = service_window::MINIMUM_WALL_NS;
 pub(crate) const MINIMUM_TIMED_NS: u64 = service_window::MINIMUM_TIMED_NS;
+pub(crate) fn protocol_value() -> Value {
+    protocol::value()
+}
 
 const _: () = {
     use service_window::*;
