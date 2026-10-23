@@ -1,0 +1,84 @@
+{
+  "artifact_kind": "gfni-tower-fusion-component-plan-review-v1",
+  "codec_sources": {
+    "baseline": "9ddcac9348504d1c9b6b55231ec4596a1e938984",
+    "candidate": "07b08c8c9b65127b30e8340358955b68e121b941"
+  },
+  "entry_tool": {
+    "commit": "9f935eef9c1af721165b245709897f7c4b9acc37",
+    "role": "zero-codec ownership preflight only; not timed sampler"
+  },
+  "cases": [
+    "auto|gf16:multiply_tower:0:0:1024:0",
+    "auto|gf16:multiply_tower:0:0:1025:0",
+    "auto|gf16:accumulate_tower:0:0:1024:0",
+    "auto|gf16:accumulate_tower:0:0:1025:0",
+    "rust-gfni-avx2|gf16:multiply_tower:0:0:1024:0",
+    "rust-gfni-avx2|gf16:multiply_tower:0:0:1025:0",
+    "rust-gfni-avx2|gf16:accumulate_tower:0:0:1024:0",
+    "rust-gfni-avx2|gf16:accumulate_tower:0:0:1025:0",
+    "rust-gfni-avx512|gf16:multiply_tower:0:0:1024:0",
+    "rust-gfni-avx512|gf16:multiply_tower:0:0:1025:0",
+    "rust-gfni-avx512|gf16:accumulate_tower:0:0:1024:0",
+    "rust-gfni-avx512|gf16:accumulate_tower:0:0:1025:0",
+    "auto|gf8:encode:10:4:1024:0",
+    "auto|gf16:encode:10:4:1024:0",
+    "scalar-rust|gf16:multiply_tower:0:0:1024:0",
+    "scalar-rust|gf16:accumulate_tower:0:0:1024:0",
+    "auto|gf16:custom_encode:10:2:1024:0",
+    "auto|gf16:custom_encode:10:2:1025:0",
+    "auto|gf16:custom_warm:10:2:1024:2",
+    "auto|gf16:custom_warm:10:2:1025:2"
+  ],
+  "phase_order": [
+    "A1",
+    "B1",
+    "B2",
+    "A2"
+  ],
+  "component_workers": 80,
+  "observations": 960,
+  "warmups_per_worker": 3,
+  "measurements_per_worker": 9,
+  "warmup_observations": 240,
+  "measured_observations": 720,
+  "calibration": "each role independently doubles from one pilot to >=200ms; larger common count; no unchanged retry",
+  "gates": {
+    "central_width_percent": 10,
+    "same_version_repeat_percent": 5,
+    "regression_percent": 12,
+    "minimum_sample_ms": 100
+  },
+  "features": [
+    "std",
+    "simd-accel"
+  ],
+  "benchmark_metrics": false,
+  "formal_performance_geometry_equivalence": false,
+  "native_correctness": {
+    "both_new_tower_execution_markers": true,
+    "gfni_tests": 9,
+    "coefficient_basis_test": 1,
+    "gf8_affine_matrix_test": 1,
+    "encoding_dispatch_tests": 7,
+    "owned_reuse_tests": 2,
+    "published_normal_configurations": 200,
+    "published_custom_configurations_per_backend": 27,
+    "published_custom_cross_recoveries_per_backend": 162,
+    "custom_backends": [
+      "auto",
+      "rust-gfni-avx2",
+      "rust-gfni-avx512"
+    ]
+  },
+  "payload_checks_per_role": 20,
+  "all_payload_witnesses_equal": true,
+  "all_statistical_refusals_continue": true,
+  "faults_measured": false,
+  "generated_executables_outside_source_checkouts": true,
+  "source_ownership_and_cleanup_rules_preserved": true,
+  "release_approval": false,
+  "candidate_attribution": null,
+  "component_results": "complete; exact independent replay; 0 width/10 repeat/1 unqualified regression-case refusals; no acceptance",
+  "scope": "general GF16 coefficient fusion; existing controls, actual custom encoding and two-data recovery; not the complete formal release catalog"
+}
