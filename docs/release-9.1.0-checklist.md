@@ -4,7 +4,7 @@ Status at the 2026-10-23 review: **implementation merged, performance acceptance
 incomplete, not tagged or uploaded**. The
 [current merged-candidate review](release-9.1.0-readiness-2026-10-23.md) records
 reviewed main `0a85348`, its matrix/compatibility and bound-original replay
-checks, and its differences from the running frozen source `9f935ee` and earlier `449920e`. The earlier `14cf56e` file-tree equality is preserved as a
+checks, and its differences from the completed frozen source `9f935ee` and earlier `449920e`. The earlier `14cf56e` file-tree equality is preserved as a
 historical source relation; the completed affected-catalog comparison keeps its
 original source labels and does not qualify the later combined implementation.
 Its exact replay retains three failed repeats despite passing scoped regression
@@ -26,6 +26,12 @@ now retains all calibration, profile and layout observations and independently
 replays exactly. Its failed distributions/repeats/regression checks remain
 unaccepted. Its source identity and diagnostic-only manifest do not satisfy the
 final-candidate publication boxes below.
+
+The [later complete combined-source diagnostic](complete-linux-diagnostic-2026-10-24.md)
+also finishes all 20,724 observations and an exact frozen replay. Its full retained
+refusals still withhold approval. The [new GFNI shared-kernel candidate](gfni-direct-affine-review-2026-10-24.md)
+requires its own complete component result and final-source evidence; the boxes
+below are not checked by old-source diagnostics or ordinary CI.
 
 ## Compatibility and functional review
 

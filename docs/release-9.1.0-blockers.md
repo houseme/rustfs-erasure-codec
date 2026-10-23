@@ -26,7 +26,7 @@ record passes 211 native, 527 all-feature codec (43 existing ignored), 239 no_st
 246 Python and the 200-case published-9.0.0 parity/cross-decoding comparison.
 Strict codec/tool Clippy, Linux tool Clippy and preparation audits also pass.
 These checks are not throughput measurements or strict positive preflight. It differs
-from both the running frozen `9f935ee` tree and earlier runtime `449920e`. The earlier `14cf56e` and
+from both the completed frozen `9f935ee` tree and earlier runtime `449920e`. The earlier `14cf56e` and
 `09597e4` file-tree equality remains a historical fact; their ordinary CI and
 package dry-run do not provide later-source performance acceptance. Strict
 evidence validation, release preflight and registry publication were skipped.
@@ -44,7 +44,7 @@ and adds the shared proof/refusal tests; 205 native, 359 codec (five ignored),
 PR #67 subsequently completed both workflow sets with 62 SUCCESS / 6 SKIPPED;
 the original failure remains retained. Those skips are not accepted evidence or
 strict positive preflight. The separate full
-Linux campaign continues on frozen `9f935ee`. The earlier 64-worker encode/stream plan has completed and
+Linux campaign on frozen `9f935ee` has completed; see the new full review below. The earlier 64-worker encode/stream plan has completed and
 independently replays exactly. All
 64 distributions and eight regression programs pass, but three of 32 repeats fail
 (maximum 8.3833%); no sample is short. The [complete GFNI review](gfni-priority-review-2026-10-23.md)
@@ -59,6 +59,18 @@ The later cohort still has five width, fourteen repeat and three regression-case
 refusals. Its integration does not approve those comparisons. The current
 functional record and original matrix-source binding are explicit in the
 [merged-candidate review](release-9.1.0-readiness-2026-10-23.md).
+
+## Completed combined-source diagnostic and GFNI candidate
+
+The [complete combined-source review](complete-linux-diagnostic-2026-10-24.md)
+retains all 20,724 observations for frozen `9f935ee` versus published 9.0.0 and
+an exactly matching independent frozen replay. Sources, four cleanup items and
+two observer services are restored. Two profile distributions, ten repeats,
+all sixteen regression programs and 26 cross-phase layout repeats still refuse
+the original limits; all 504+256 comparisons remain unqualified. These results
+do not bind later main or the new [direct GFNI affine candidate](gfni-direct-affine-review-2026-10-24.md).
+That candidate has independent byte/compatibility tests and a frozen complete
+component plan; its performance result and final release acceptance are pending.
 
 ## Scalar unit-pivot follow-through
 
