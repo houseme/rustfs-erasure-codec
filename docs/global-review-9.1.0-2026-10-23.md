@@ -1593,3 +1593,84 @@ retain their original provenance. The core/WASM allowlists remain 67/six files,
 excluding Python, repository tooling and archived JSON; all five members inherit
 root dependencies. No dependency, codec-format change, tag, registry upload or
 performance approval is introduced.
+
+
+## Native complete sampling campaign replay
+
+The final implementation `b3f7341` follows source fingerprint integration
+`2e67ea7`. Codec sources, build inputs, dependency declarations and lockfiles
+continue to match main `a773e74`. Native replay and Python integration remain
+separate functional commits, using the existing sampling command and helper.
+
+The complete sampling controller previously decoded 24 original calibration and
+phase members in Python, submitted each full profile to Rust, projected paired
+contracts in chunks and compared preparation catalogs after receiving them back.
+The diagnostic journal required a separate transfer of its text and all worker
+starts. One native directory request now owns this validation sequence. It reuses
+calibration counts, borrowed preparation contracts, fixed-worker grouping, median
+selection, release-row normalization and the original journal validator. There is
+no second implementation of those models. The source/protocol preflight, Git and
+compiler binding, regression programs and statistical refusal wrapper remain in
+the controller.
+
+Each original member is decoded once in Rust from the bytes bound to its declared
+hash. Legacy Python JSON duplicate keys, integer negative zero and text newlines
+retain their behavior. The native reader rejects unsafe paths, wrong hashes and
+incomplete raw profiles before comparisons. Before returning, it rereads the
+bound originals to verify that they are unchanged; those final hash reads are
+additional native I/O, rather than another JSON decode. The fixed 24-member
+catalog plus optional journal sets a total budget of 25 times the existing
+32 MiB per-member limit. Other snapshot users retain their existing 256 MiB
+budget. This avoids narrowing the former complete campaign's per-member limits.
+Only two calibration arrays and the current phase array are retained at a time,
+plus compact preparation and report catalogs.
+
+Conditional RNG replay checks still compare a pilot trace only when that pilot
+used the final common count. All phase workloads, traces and layouts must also
+agree. Selected raw medians must normalize to the originally declared summary;
+claimed summaries cannot replace fixed observations. The complete diagnostic
+returns the original worker invocation count without sending worker arrays back
+to Python. Release distribution failures still raise the same EvidenceFailure
+details; complete diagnostic refusals retain their report fields.
+
+A source-bound original-Python comparison at `2e67ea7` covers 756 workers / 9,072
+observations. Two accepted variants (ordinary and legacy JSON) preserve every
+complete diagnostic report field. Five refused variants cover declared hashes,
+unsafe declarations, incomplete raw rows, changed preparation and changed
+medians. Every original file remains unchanged. With the same fixture source and
+compiler bindings, regression subprocess results and cleared pure row/provenance
+caches, persistent helper frames fall from 147 to 13 and request bytes from
+28,536,879 to 1,002,306. Python sampling-member reads fall from 24 / 22,581,060
+bytes to zero. The sampling/journal stage itself is one native request; the other
+frames belong to the retained controller stages. These are synthetic transport
+and report-equivalence checks, not codec throughput or release-performance proof.
+The existing compiled `sampling-contract` command also replays the complete
+sampling/journal request with an empty PATH and matches the report fields,
+without Python or Cargo.
+
+Native tests cover the complete campaign, all 504 spread rows, 756 journal
+invocations, original JSON behavior, unchanged members, forged declarations,
+changed medians/counts and journal hashes. A reader test covers inclusive fixed
+catalog budgets. The existing Python integration guard refuses any Python raw
+sampling-member read and requires one sampling campaign frame smaller than one
+tenth of the original sample bytes.
+
+All fifteen final checks pass in an independent frozen checkout: 248 native
+(219 unit / 29 CLI), 252 Python and 536 top-level codec tests, ten doctests, strict
+tooling Clippy, Linux tool compilation, codec-only no_std, compatibility, all
+three audits, actual core packaging/reconstruction, extracted-package tests,
+formatting and diff checks. The extracted package passes 370 library tests with
+five existing ignores; the repository retains 43 existing codec ignores. All 200
+non-fast published-9.0.0/local-9.1.0 configurations pass exact parity and
+bidirectional cross-decoding, plus historical tower-field vectors. The older
+inconsistent fast-one-parity mode remains outside that probe. Spelling passes.
+
+The inventory is 34 active Python files / 7,527 lines: 3,320 production/helper
+and 4,207 test/fixture lines. This round removes 70 production Python lines and
+adds one integration-test line, for a net reduction of 69 lines. Three obsolete
+Python validation/member adapters are removed; remaining modules retain active
+callers. All 590 JSON files / 3,464,634 bytes and eleven equal-byte groups retain
+their provenance. The core/WASM allowlists remain 67/six files; repository tools,
+Python and archived JSON remain GitHub-only. All five members inherit root
+dependencies. No dependency, codec format, tag, registry upload or performance
+approval is introduced.
