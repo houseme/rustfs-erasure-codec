@@ -157,25 +157,24 @@ def capture_memory_policy():
 
 
 @functools.lru_cache(maxsize=128)
-def _validate_memory_policy(payload):
+def _validated_metadata(payload):
     _request_payload(payload)
+
+
+def _validate_metadata(values):
+    # Cache successful pure checks only; cap retained payloads below 8 MiB.
+    payload=_payload(values)
+    if len(payload)<65536:_validated_metadata(payload)
+    else:_request_payload(payload)
 
 
 def validate_memory_policy(value, base_page_size=None):
-    # Cache successful, pure validation only. Re-serialize each current value so
-    # later mutations cannot reuse a previous result; never cache live capture.
-    payload = _payload(dict(kind='memory-policy-validate', value=value, base_page_size=base_page_size))
-    _validate_memory_policy(payload)
-
-
-@functools.lru_cache(maxsize=128)
-def _validate_runtime(payload):
-    _request_payload(payload)
+    _validate_metadata(dict(kind='memory-policy-validate',value=value,base_page_size=base_page_size))
 
 
 def validate_runtime(value):
     # Pure validation is keyed by each current serialized value, never live reads.
-    _validate_runtime(_payload(dict(kind='runtime-validate', value=value)))
+    _validate_metadata(dict(kind='runtime-validate',value=value))
 
 
 @functools.lru_cache(maxsize=512)

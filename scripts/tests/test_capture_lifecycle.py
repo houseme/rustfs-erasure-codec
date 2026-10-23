@@ -267,7 +267,7 @@ class NativeControllerBindingsTests(unittest.TestCase):
         value={'libc':{'name':'cache-fixture','version':'1'},'allocator_environment':{},
                'page_size':4096,'kernel_memory_policy':kernel_policy_fixture()}
         original=json.loads(json.dumps(value))
-        self.native._validate_runtime.cache_clear()
+        self.native._validated_metadata.cache_clear()
         with mock.patch.object(self.native,'_request_payload',wraps=self.native._request_payload) as frames:
             self.native.validate_runtime(value);self.native.validate_runtime(value)
             self.assertEqual(frames.call_count,1)
@@ -276,6 +276,12 @@ class NativeControllerBindingsTests(unittest.TestCase):
             self.assertEqual(frames.call_count,2)
         value['allocator_environment'].clear()
         self.assertEqual(value,original)
+        self.native._validated_metadata.cache_clear()
+        value['allocator_environment']['LD_FIXTURE']='x'*65536
+        with mock.patch.object(self.native,'_request_payload',wraps=self.native._request_payload) as frames:
+            self.native.validate_runtime(value);self.native.validate_runtime(value)
+        self.assertEqual(frames.call_count,2)
+        self.assertEqual(self.native._validated_metadata.cache_info().currsize,0)
 
     def test_artifact_sized_requests_preserve_the_next_worker_frame(self):
         self.native.close_worker()
