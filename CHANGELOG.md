@@ -10,6 +10,10 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Invert GF16 tower elements through conjugation and a GF8 norm instead of
+  recursive polynomial division. Preserve every inverse and quotient byte,
+  including historical division by zero; retain Euclid as an exhaustive test oracle.
+
 - Allow identified Darwin group members to finish exiting within the existing
   cleanup deadline before requiring two fresh complete exit snapshots. Retain
   immediate identity/query refusals and preserve owned inputs on timeout;
