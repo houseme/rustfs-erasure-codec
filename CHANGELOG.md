@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Borrow Classic parity rows directly from the encoding matrix in serial,
+  parallel and incremental coding. Preserve decode views and checked kernels
+  through static row access, removing repeated wide reference-table allocations
+  without changing arithmetic, policy decisions or encoded bytes.
+
 - Construct Classic inverse work directly as `[matrix | identity]`, avoiding a
   separate identity matrix and its square allocation/copy in wide construction
   and cold recovery. Preserve elimination order, SIMD row widths, inverse bytes,

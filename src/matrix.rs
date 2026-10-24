@@ -44,6 +44,56 @@ pub struct Matrix<F: Field> {
     data: SmallVec<[F::Elem; 1024]>,
 }
 
+/// Static row access for either borrowed matrix ranges or existing decode views.
+/// No trait objects or owned reference tables are needed by the coding loops.
+pub(crate) trait MatrixRows<E> {
+    fn len(&self) -> usize;
+    fn row(&self, index: usize) -> &[E];
+}
+
+impl<E> MatrixRows<E> for [&[E]] {
+    fn len(&self) -> usize {
+        <[&[E]]>::len(self)
+    }
+
+    fn row(&self, index: usize) -> &[E] {
+        self[index]
+    }
+}
+
+impl<E, const N: usize> MatrixRows<E> for [&[E]; N] {
+    fn len(&self) -> usize {
+        N
+    }
+
+    fn row(&self, index: usize) -> &[E] {
+        self[index]
+    }
+}
+
+pub(crate) struct MatrixRowRange<'a, F: Field> {
+    matrix: &'a Matrix<F>,
+    start: usize,
+    len: usize,
+}
+
+impl<F: Field> MatrixRowRange<'_, F> {
+    pub(crate) fn get_row(&self, index: usize) -> &[F::Elem] {
+        assert!(index < self.len);
+        self.matrix.get_row(self.start + index)
+    }
+}
+
+impl<F: Field> MatrixRows<F::Elem> for MatrixRowRange<'_, F> {
+    fn len(&self) -> usize {
+        self.len
+    }
+
+    fn row(&self, index: usize) -> &[F::Elem] {
+        self.get_row(index)
+    }
+}
+
 fn calc_matrix_row_start_end(col_count: usize, row: usize) -> (usize, usize) {
     let start = row * col_count;
     let end = start + col_count;
@@ -173,6 +223,15 @@ impl<F: Field> Matrix<F> {
             }
         }
         result
+    }
+
+    pub(crate) fn row_range(&self, start: usize, end: usize) -> MatrixRowRange<'_, F> {
+        assert!(start <= end && end <= self.row_count);
+        MatrixRowRange {
+            matrix: self,
+            start,
+            len: end - start,
+        }
     }
 
     pub fn get_row(&self, row: usize) -> &[F::Elem] {
@@ -358,6 +417,42 @@ mod tests {
 
     use super::{Error, Matrix};
     use crate::galois_8;
+
+    #[test]
+    fn borrowed_row_ranges_preserve_length_coefficients_and_row_identity() {
+        use super::MatrixRows;
+        fn check<F: crate::Field>() {
+            for (rows, columns) in [(0, 0), (1, 0), (4, 3), (65, 40)] {
+                let mut matrix = Matrix::<F>::new(rows, columns);
+                for row in 0..rows {
+                    for column in 0..columns {
+                        matrix.set(row, column, F::nth((row * columns + column) % F::ORDER));
+                    }
+                }
+                for start in 0..=rows {
+                    for end in start..=rows {
+                        let range = matrix.row_range(start, end);
+                        assert_eq!(range.len(), end - start);
+                        for index in 0..range.len() {
+                            assert!(core::ptr::eq(
+                                range.row(index),
+                                matrix.get_row(start + index)
+                            ));
+                        }
+                    }
+                }
+            }
+        }
+        check::<galois_8::Field>();
+        check::<crate::galois_16::Field>();
+    }
+
+    #[test]
+    #[should_panic]
+    fn borrowed_row_range_rejects_access_beyond_its_own_end() {
+        let matrix = Matrix::<galois_8::Field>::new(4, 3);
+        matrix.row_range(1, 2).get_row(1);
+    }
 
     macro_rules! matrix {
         (

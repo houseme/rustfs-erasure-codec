@@ -7,6 +7,7 @@ use crate::galois_8::codegen::SelectedEncodeKernel;
 
 use crate::Field;
 use crate::errors::Error;
+use crate::matrix::MatrixRows;
 
 use super::{
     CODE_SLICE_DEFAULT_CHUNK_BYTES, CODE_SLICE_LARGE_CHUNK_BYTES, CODE_SLICE_MIN_CHUNK_BYTES,
@@ -191,7 +192,7 @@ fn split_neon_encode_jobs<'a>(
 impl<F: Field> ReedSolomon<F> {
     pub(crate) fn code_some_slices<T: AsRef<[F::Elem]>, U: AsMut<[F::Elem]>>(
         &self,
-        matrix_rows: &[&[F::Elem]],
+        matrix_rows: &(impl MatrixRows<F::Elem> + ?Sized),
         inputs: &[T],
         outputs: &mut [U],
     ) {
@@ -204,15 +205,15 @@ impl<F: Field> ReedSolomon<F> {
     #[inline(never)]
     fn try_gfni_rows<T: AsRef<[F::Elem]>, U: AsMut<[F::Elem]>>(
         kernel: crate::galois_8::x86::gfni_rows::SelectedRowKernel,
-        matrix_rows: &[&[F::Elem]],
+        matrix_rows: &(impl MatrixRows<F::Elem> + ?Sized),
         inputs: &[T],
         outputs: &mut [U],
         shard_len: usize,
         chunk_len: usize,
     ) -> bool {
         let mut rows: SmallVec<[&[u8]; 4]> = SmallVec::new();
-        for row in matrix_rows {
-            let Some(bytes) = F::as_gf8_slice(row) else {
+        for index in 0..matrix_rows.len() {
+            let Some(bytes) = F::as_gf8_slice(matrix_rows.row(index)) else {
                 return false;
             };
             if bytes.len() != inputs.len() {
@@ -232,7 +233,7 @@ impl<F: Field> ReedSolomon<F> {
 
     pub(crate) fn code_some_slices_chunked<T: AsRef<[F::Elem]>, U: AsMut<[F::Elem]>>(
         &self,
-        matrix_rows: &[&[F::Elem]],
+        matrix_rows: &(impl MatrixRows<F::Elem> + ?Sized),
         inputs: &[T],
         outputs: &mut [U],
     ) {
@@ -305,7 +306,7 @@ impl<F: Field> ReedSolomon<F> {
     #[cfg(feature = "std")]
     pub(crate) fn code_some_slices_par_chunked_with_jobs<T, U>(
         &self,
-        matrix_rows: &[&[F::Elem]],
+        matrix_rows: &(impl MatrixRows<F::Elem> + Sync + ?Sized),
         inputs: &[T],
         outputs: &mut [U],
         chunk_len: usize,
@@ -341,7 +342,7 @@ impl<F: Field> ReedSolomon<F> {
             chunk_len,
             jobs,
             |row, start, output_chunk| {
-                let matrix_row = matrix_rows[row];
+                let matrix_row = matrix_rows.row(row);
                 let end = start + output_chunk.len();
                 F::mul_slice(matrix_row[0], &inputs[0].as_ref()[start..end], output_chunk);
                 for i_input in 1..data_shard_count {
@@ -358,7 +359,7 @@ impl<F: Field> ReedSolomon<F> {
     #[cfg(feature = "std")]
     fn code_single_slice_par_chunked<U: AsMut<[F::Elem]> + Send>(
         &self,
-        matrix_rows: &[&[F::Elem]],
+        matrix_rows: &(impl MatrixRows<F::Elem> + Sync + ?Sized),
         i_input: usize,
         input: &[F::Elem],
         outputs: &mut [U],
@@ -379,7 +380,7 @@ impl<F: Field> ReedSolomon<F> {
             chunk_len,
             jobs,
             |row, start, output_chunk| {
-                let coefficient = matrix_rows[row][i_input];
+                let coefficient = matrix_rows.row(row)[i_input];
                 let input_chunk = &input[start..start + output_chunk.len()];
                 if i_input == 0 {
                     F::mul_slice(coefficient, input_chunk, output_chunk);
@@ -392,7 +393,7 @@ impl<F: Field> ReedSolomon<F> {
 
     pub(crate) fn code_single_slice_range<U: AsMut<[F::Elem]>>(
         &self,
-        matrix_rows: &[&[F::Elem]],
+        matrix_rows: &(impl MatrixRows<F::Elem> + ?Sized),
         i_input: usize,
         input: &[F::Elem],
         outputs: &mut [U],
@@ -401,7 +402,7 @@ impl<F: Field> ReedSolomon<F> {
     ) {
         let input = &input[start..end];
         outputs.iter_mut().enumerate().for_each(|(i_row, output)| {
-            let matrix_row_to_use = matrix_rows[i_row][i_input];
+            let matrix_row_to_use = matrix_rows.row(i_row)[i_input];
             let output = &mut output.as_mut()[start..end];
 
             if i_input == 0 {
@@ -414,7 +415,7 @@ impl<F: Field> ReedSolomon<F> {
 
     pub(crate) fn code_single_slice<U: AsMut<[F::Elem]>>(
         &self,
-        matrix_rows: &[&[F::Elem]],
+        matrix_rows: &(impl MatrixRows<F::Elem> + ?Sized),
         i_input: usize,
         input: &[F::Elem],
         outputs: &mut [U],
@@ -1010,5 +1011,82 @@ mod parallel_codegen_tests {
                 assert!(parity.iter().flatten().all(|&value| value == 1));
             }
         }
+    }
+}
+
+#[cfg(all(test, feature = "std"))]
+mod borrowed_row_tests {
+    use super::*;
+    use crate::{CodecOptions, MatrixMode};
+
+    #[test]
+    fn borrowed_ranges_and_decode_views_match_scalar_bytes_in_serial_and_parallel() {
+        fn check<F: Field>()
+        where
+            F::Elem: Send + Sync,
+        {
+            for mode in [
+                MatrixMode::Vandermonde,
+                MatrixMode::Cauchy,
+                MatrixMode::JerasureLike,
+            ] {
+                let codec = ReedSolomon::<F>::with_options(
+                    4,
+                    33,
+                    CodecOptions::builder().matrix_mode(mode).build(),
+                )
+                .unwrap();
+                let data: Vec<Vec<F::Elem>> = (0..4)
+                    .map(|row| {
+                        (0..65)
+                            .map(|at| F::nth((row * 71 + at * 19) % F::ORDER))
+                            .collect()
+                    })
+                    .collect();
+                let matrix = codec.encoding_format().matrix();
+                let reference_rows: Vec<_> = (4..37).map(|row| matrix.get_row(row)).collect();
+                let mut expected = vec![vec![F::zero(); 65]; 33];
+                for (row, output) in expected.iter_mut().enumerate() {
+                    for (at, value) in output.iter_mut().enumerate() {
+                        for (column, input) in data.iter().enumerate() {
+                            *value = F::add(*value, F::mul(reference_rows[row][column], input[at]));
+                        }
+                    }
+                }
+                for parallel in [false, true] {
+                    let mut from_range = vec![vec![F::zero(); 65]; 33];
+                    let mut from_views = from_range.clone();
+                    if parallel {
+                        codec.code_some_slices_par_chunked_with_jobs(
+                            &codec.get_parity_rows(),
+                            &data,
+                            &mut from_range,
+                            17,
+                            2,
+                        );
+                        codec.code_some_slices_par_chunked_with_jobs(
+                            reference_rows.as_slice(),
+                            &data,
+                            &mut from_views,
+                            17,
+                            2,
+                        );
+                    } else {
+                        codec.code_some_slices(&codec.get_parity_rows(), &data, &mut from_range);
+                        codec.code_some_slices(reference_rows.as_slice(), &data, &mut from_views);
+                    }
+                    assert_eq!(from_range, expected);
+                    assert_eq!(from_views, expected);
+                }
+            }
+        }
+        rayon::ThreadPoolBuilder::new()
+            .num_threads(2)
+            .build()
+            .unwrap()
+            .install(|| {
+                check::<crate::galois_8::Field>();
+                check::<crate::galois_16::Field>();
+            });
     }
 }
