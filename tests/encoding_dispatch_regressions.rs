@@ -300,6 +300,70 @@ mod native {
         }
     }
 
+    #[cfg(rse_x86_gfni)]
+    #[test]
+    fn single_output_gfni_entries_keep_coefficient_streaming() {
+        if !std::is_x86_feature_detected!("gfni") || !std::is_x86_feature_detected!("avx2") {
+            return;
+        }
+        const CHILD: &str = "RSE_SINGLE_OUTPUT_STREAMING_CHILD";
+        if std::env::var_os(CHILD).is_none() {
+            let status = std::process::Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "native::single_output_gfni_entries_keep_coefficient_streaming",
+                    "--nocapture",
+                    "--test-threads=1",
+                ])
+                .env(CHILD, "1")
+                .env("RSE_BACKEND_OVERRIDE", "auto")
+                .status()
+                .unwrap();
+            assert!(status.success());
+            return;
+        }
+        assert!(matches!(
+            galois_8::active_backend_id(),
+            galois_8::BackendId::RustGfniAvx2 | galois_8::BackendId::RustGfniAvx512
+        ));
+        for len in [1024, 4096] {
+            for data_count in [4, 10, 32] {
+                let data = data_shards(data_count, len);
+                let one = ReedSolomon::<CountedViews>::new(data_count, 1).unwrap();
+                let mut parity = vec![vec![0; len]];
+                VIEW_CALLS.with(|calls| calls.set((0, 0)));
+                one.encode_sep(&data, &mut parity).unwrap();
+                assert_eq!(VIEW_CALLS.with(Cell::get), (1, 1));
+                let mut expected = vec![vec![0; len]];
+                galois_8::ReedSolomon::new(data_count, 1)
+                    .unwrap()
+                    .encode_sep(&data, &mut expected)
+                    .unwrap();
+                assert_eq!(parity, expected);
+
+                let codec = ReedSolomon::<CountedViews>::new(data_count, 4).unwrap();
+                let mut original = data;
+                original.extend(vec![vec![0; len]; 4]);
+                galois_8::ReedSolomon::new(data_count, 4)
+                    .unwrap()
+                    .encode(&mut original)
+                    .unwrap();
+                let mut slots: Vec<_> = original.iter().cloned().map(Some).collect();
+                slots[0] = None;
+                VIEW_CALLS.with(|calls| calls.set((0, 0)));
+                codec.reconstruct(&mut slots).unwrap();
+                assert_eq!(VIEW_CALLS.with(Cell::get), (0, 0));
+                assert!(
+                    slots
+                        .iter()
+                        .zip(&original)
+                        .all(|(a, b)| a.as_ref() == Some(b))
+                );
+            }
+        }
+        eprintln!("GFNI single-output encoding and reconstruction retained coefficient streaming");
+    }
+
     #[test]
     fn serial_verification_uses_the_checked_native_encoder() {
         #[cfg(rse_x86_avx2)]
