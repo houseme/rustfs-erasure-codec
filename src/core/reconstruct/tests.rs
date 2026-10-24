@@ -344,6 +344,7 @@ fn cache_by_selected_survivors<F: Field>() {
         }
         assert_eq!(patterns, 163);
         assert!(!by_inputs.is_empty());
+        #[cfg(feature = "std")]
         eprintln!(
             "INVERSE_CACHE_SELECTED_INPUT_ORACLE field_order={} matrix={mode:?} patterns={patterns}",
             F::ORDER
