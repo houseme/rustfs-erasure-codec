@@ -64,13 +64,9 @@ fn fixture() -> (Directory, Value) {
                     default_iterations: None,
                     complete: true,
                 }
-                .execute()
+                .indexed()
                 .unwrap();
-                let map: BTreeMap<String, Value> =
-                    serde_json::from_value::<Vec<(String, Value)>>(pairs)
-                        .unwrap()
-                        .into_iter()
-                        .collect();
+                let map: BTreeMap<String, Value> = pairs.into_iter().collect();
                 summarized[phase][profile] = json!(map);
             }
             jobs.insert(

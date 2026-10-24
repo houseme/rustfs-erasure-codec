@@ -48,14 +48,14 @@ impl Summaries {
                 )?;
                 let normalized = release_rows::Request {
                     profile: profile.into(),
-                    rows: json!(rows),
+                    rows: Value::Array(rows),
                     revision: revision.into(),
                     iteration_counts: Some(counts),
                     default_iterations: None,
                     complete: true,
                 }
-                .execute()?;
-                profiles.insert(profile.to_owned(), serde_json::from_value(normalized)?);
+                .indexed()?;
+                profiles.insert(profile.to_owned(), normalized);
             }
             output.insert(phase.to_owned(), profiles);
         }
