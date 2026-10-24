@@ -96,7 +96,7 @@ adds artifact-level checks without relabeling the native or timing records.
   extracted-package codec-only no_std passes 266. These are package library tests,
   separate from repository integration tests.
 - Locked WASM generation uses release `wasm32-unknown-unknown`, wasm-bindgen
-  0.2.129 and TypeScript 7.0.2. Build/typecheck and all 14 Node tests pass (13 real-module cases and one
+  0.2.129 and TypeScript 7.0.2. Build/typecheck and all 14 Node tests pass (12 real-module cases, one result-code contract and one
   facade unit test), with no skipped tests and unchanged tracked inputs. They cover complete parity,
   roundtrip recovery, subarray boundaries, malformed inputs, stable result codes,
   explicit/allocator-driven memory growth and independent initialization.
