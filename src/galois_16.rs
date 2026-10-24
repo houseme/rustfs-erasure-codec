@@ -225,8 +225,8 @@ pub(crate) fn tower_mul_coefficients([cx, cc]: [u8; 2]) -> [u8; 4] {
     ]
 }
 
-// Keep the layout width consistent with the immutable arithmetic selection.
-// A wide CPU alone does not make widening a narrow arithmetic path profitable.
+// Keep legacy SSSE3 arithmetic on narrow layouts. Scalar table products retain
+// wide memory permutation when available; arithmetic labels are not ISA profiles.
 #[cfg(any(
     test,
     all(feature = "std", feature = "simd-avx2", target_arch = "x86_64")
@@ -235,7 +235,8 @@ fn avx2_layout_allowed(backend: galois_8::BackendId, cpu_has_avx2: bool) -> bool
     cpu_has_avx2
         && matches!(
             backend,
-            galois_8::BackendId::RustAvx2
+            galois_8::BackendId::ScalarRust
+                | galois_8::BackendId::RustAvx2
                 | galois_8::BackendId::RustAvx512
                 | galois_8::BackendId::RustGfniAvx2
                 | galois_8::BackendId::RustGfniAvx512
@@ -1052,10 +1053,9 @@ mod tests {
     }
 
     #[test]
-    fn avx2_layout_requires_wide_selected_arithmetic() {
+    fn avx2_layout_preserves_scalar_permutation_and_avoids_ssse3() {
         use galois_8::BackendId;
         for backend in [
-            BackendId::ScalarRust,
             BackendId::RustSsse3,
             BackendId::RustNeon,
             BackendId::RustVsx,
@@ -1064,6 +1064,7 @@ mod tests {
             assert!(!avx2_layout_allowed(backend, false), "{backend:?}");
         }
         for backend in [
+            BackendId::ScalarRust,
             BackendId::RustAvx2,
             BackendId::RustAvx512,
             BackendId::RustGfniAvx2,

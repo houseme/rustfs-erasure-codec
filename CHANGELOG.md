@@ -12,8 +12,8 @@ All notable changes to this project are documented in this file.
 
 - Coordinate GF16 AVX2 byte-layout eligibility with the immutable selected
   arithmetic backend. Cache the combined backend/capability choice once;
-  scalar and SSSE3 arithmetic keep the narrow layout path while wide backends
-  retain AVX2 layouts. Keep all kernels, field bytes, tails and public options
+  SSSE3 arithmetic keeps the narrow layout path; scalar table arithmetic
+  retains wide memory permutation, alongside the wide SIMD backends. Keep all kernels, field bytes, tails and public options
   unchanged. Performance follow-through requires its own source-bound evidence.
 
 - Fuse general GF16 tower multiplication inside the selected GFNI backend.
