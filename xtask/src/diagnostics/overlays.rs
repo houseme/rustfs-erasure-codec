@@ -307,7 +307,7 @@ mod tests {
     }
 
     #[test]
-    fn generators_retain_original_python_bytes_and_bind_current_source() {
+    fn generators_bind_current_source_and_retain_reviewed_diagnostic_bytes() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
         for (variant, allocations, expected) in [
             (
@@ -338,12 +338,12 @@ mod tests {
             (
                 "cpu-placement",
                 false,
-                "e4bf6d0bffebb3cd313feb8f44bcbd2dbe3c579ca7747b55861802faf94f4f3a",
+                "557ef5d47a4ec39c31ad3ba0b2248b0dbbbacfc4d30485192781f14110c80f4f",
             ),
             (
                 "cpu-placement",
                 true,
-                "981ec130d82e5e893cd156e4e0a638247ab893f85e58302443036651109d11f3",
+                "1e4ecb537f17e1a9a08292d728f6b135cf4bcf7c5d0878aefe858bd56c5e7fda",
             ),
         ] {
             assert_eq!(

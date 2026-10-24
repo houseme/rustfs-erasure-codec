@@ -20,7 +20,7 @@ fn finite_ratio(text: &str, flag: &str, unit: bool) -> Result<f64> {
     Ok(value)
 }
 
-pub(crate) fn benchmark(args: &Args) -> Result<bool> {
+pub(crate) fn benchmark_report(args: &Args) -> Result<Report> {
     let metric = args.get("--metric", "throughput_mb_s");
     if !["throughput_mb_s", "ns_per_iter", "ns_per_block"].contains(&metric) {
         return Err(format!("unsupported metric: {metric}").into());
@@ -151,14 +151,16 @@ pub(crate) fn benchmark(args: &Args) -> Result<bool> {
     if comparisons.is_empty() {
         failures.push(json!({"error":"no comparable benchmark cases"}));
     }
-    println!(
-        "{}",
-        serde_json::to_string_pretty(
-            &json!({"baseline":args.required("--baseline")?,"current":args.required("--current")?,"metric":metric,"strict_provenance":strict,
-        "thresholds":thresholds,"comparisons":comparisons,"failures":failures,"unchecked_provenance":unchecked,"missing_cases":missing})
-        )?
-    );
-    Ok(failures.is_empty())
+    Ok(Report {
+        passed: failures.is_empty(),
+        stdout: format!(
+            "{}\n",
+            serde_json::to_string_pretty(
+                &json!({"baseline":args.required("--baseline")?,"current":args.required("--current")?,"metric":metric,"strict_provenance":strict,"thresholds":thresholds,"comparisons":comparisons,"failures":failures,"unchecked_provenance":unchecked,"missing_cases":missing})
+            )?
+        ),
+        stderr: String::new(),
+    })
 }
 
 fn scenario_values(args: &Args, flag: &str) -> Result<BTreeMap<String, f64>> {
@@ -181,7 +183,7 @@ fn scenario_values(args: &Args, flag: &str) -> Result<BTreeMap<String, f64>> {
     Ok(values)
 }
 
-pub(crate) fn hotspot(args: &Args) -> Result<bool> {
+pub(crate) fn hotspot_report(args: &Args) -> Result<Report> {
     let metric = args.get("--metric", "candidate_mb_s");
     if !["candidate_mb_s", "baseline_mb_s", "speedup"].contains(&metric) {
         return Err(format!("unsupported metric: {metric}").into());
@@ -258,15 +260,38 @@ pub(crate) fn hotspot(args: &Args) -> Result<bool> {
         }
     }
     if !failures.is_empty() {
-        eprintln!(
-            "reconstruction hotspot gate failed:\n{}",
-            failures.join("\n")
-        );
-        return Ok(false);
+        return Ok(Report {
+            passed: false,
+            stdout: String::new(),
+            stderr: format!(
+                "reconstruction hotspot gate failed:\n{}\n",
+                failures.join("\n")
+            ),
+        });
     }
-    println!(
-        "reconstruction hotspot gate passed for {}",
-        required.into_iter().collect::<Vec<_>>().join(", ")
-    );
-    Ok(true)
+    Ok(Report {
+        passed: true,
+        stdout: format!(
+            "reconstruction hotspot gate passed for {}\n",
+            required.into_iter().collect::<Vec<_>>().join(", ")
+        ),
+        stderr: String::new(),
+    })
+}
+
+pub(crate) struct Report {
+    pub passed: bool,
+    pub stdout: String,
+    pub stderr: String,
+}
+fn display(report: Report) -> bool {
+    print!("{}", report.stdout);
+    eprint!("{}", report.stderr);
+    report.passed
+}
+pub(crate) fn benchmark(args: &Args) -> Result<bool> {
+    Ok(display(benchmark_report(args)?))
+}
+pub(crate) fn hotspot(args: &Args) -> Result<bool> {
+    Ok(display(hotspot_report(args)?))
 }

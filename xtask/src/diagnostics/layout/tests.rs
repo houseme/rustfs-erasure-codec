@@ -1,7 +1,7 @@
 use super::*;
 use serde_json::json;
 
-pub(super) fn grid(page: Option<u64>) -> Vec<Value> {
+pub(crate) fn grid(page: Option<u64>) -> Vec<Value> {
     let mut rows = Vec::new();
     for len in [1024, 4096] {
         for pass in 0..2 {

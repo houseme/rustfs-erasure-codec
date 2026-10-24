@@ -5,6 +5,7 @@ mod artifact;
 mod audit;
 mod benchmark_contract;
 mod bridge;
+mod control;
 mod criterion;
 mod diagnostics;
 mod fingerprint;
@@ -167,6 +168,7 @@ const COMMANDS: &[(&str, &[&str])] = &[
         ],
     ),
     ("audit-json", &["--root"]),
+    ("audit-no-python", &["--root"]),
     ("audit-package", &["--root"]),
     ("audit-workspace", &["--root"]),
     (
@@ -231,10 +233,14 @@ fn run() -> Result<bool> {
             COMMANDS
                 .iter()
                 .map(|(name, _)| *name)
+                .chain(control::COMMANDS.iter().map(|spec| spec.name))
                 .collect::<Vec<_>>()
                 .join(", ")
         );
         return Ok(true);
+    }
+    if control::known(command.as_str()) {
+        return control::run(&command, arguments.collect());
     }
     let options = COMMANDS
         .iter()
@@ -268,6 +274,7 @@ fn run() -> Result<bool> {
         "extract-criterion" => criterion::extract(&args)?,
         "analyze-abba" => return abba::run(&args),
         "audit-json" => return audit::json(&args.root()),
+        "audit-no-python" => return audit::no_python(&args.root()),
         "audit-package" => audit::package(&args.root())?,
         "audit-workspace" => workspace::audit(&args.root())?,
         "summarize-simd" => summary::run(&args)?,

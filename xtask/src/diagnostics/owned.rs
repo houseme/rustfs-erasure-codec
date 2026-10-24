@@ -111,12 +111,12 @@ fn confirm_exited_group<T: Ord>(
 }
 
 /// Retain the child identity until its newly-created process group is stopped.
-struct Process {
-    child: Child,
+pub(crate) struct Process {
+    pub(crate) child: Child,
     status: Option<ExitStatus>,
 }
 impl Process {
-    fn spawn(mut command: Command) -> Result<Self> {
+    pub(crate) fn spawn(mut command: Command) -> Result<Self> {
         #[cfg(unix)]
         {
             use std::os::unix::process::CommandExt;
@@ -127,7 +127,7 @@ impl Process {
             status: None,
         })
     }
-    fn poll(&mut self) -> Result<Option<ExitStatus>> {
+    pub(crate) fn poll(&mut self) -> Result<Option<ExitStatus>> {
         if self.status.is_none() {
             #[cfg(unix)]
             {
@@ -208,7 +208,7 @@ impl Process {
         }
         Ok(())
     }
-    fn stop(&mut self) -> Result<()> {
+    pub(crate) fn stop(&mut self) -> Result<()> {
         self.signal(false)?;
         let deadline = Instant::now() + Duration::from_secs(3);
         while self.poll()?.is_none() && Instant::now() < deadline {

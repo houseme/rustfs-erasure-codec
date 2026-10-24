@@ -7,7 +7,7 @@ pub(crate) mod layout;
 pub(crate) mod ledger;
 pub mod leopard;
 pub(crate) mod overlays;
-mod owned;
+pub(crate) mod owned;
 pub mod sampler;
 pub mod source;
 pub(crate) mod source_plan;

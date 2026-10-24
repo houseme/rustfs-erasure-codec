@@ -1,4 +1,4 @@
-// Baseline-only placement diagnosis; the controller pins after codec construction.
+// Baseline-only placement diagnosis; the measuring thread pins itself after construction.
 #[derive(Clone, Copy)]
 pub(super) struct PlacementFaults {
     minor: u64,
@@ -28,6 +28,29 @@ impl std::fmt::Display for PlacementFaults {
             "{{\"minor\":{},\"major\":{},\"cpu\":{}}}",
             self.minor, self.major, self.cpu
         )
+    }
+}
+
+fn pin_measuring_thread(cpu: usize) {
+    #[cfg(target_os = "linux")]
+    {
+        unsafe extern "C" {
+            fn sched_setaffinity(pid: i32, bytes: usize, mask: *const usize) -> i32;
+        }
+        let mut mask = [0usize; 1024 / usize::BITS as usize];
+        assert!(cpu < 1024);
+        mask[cpu / usize::BITS as usize] |= 1usize << (cpu % usize::BITS as usize);
+        // SAFETY: PID zero changes only this calling thread. The initialized,
+        // aligned mask remains live for the exact byte length passed to libc.
+        assert_eq!(
+            unsafe { sched_setaffinity(0, std::mem::size_of_val(&mask), mask.as_ptr()) },
+            0
+        );
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        let _ = cpu;
+        panic!("placement capture requires Linux");
     }
 }
 
@@ -86,6 +109,7 @@ pub(super) fn cpu_placement_diagnostic() {
         let mut command = [0u8; 1];
         std::io::stdin().read_exact(&mut command).unwrap();
         assert_eq!(command, [b'G']);
+        pin_measuring_thread(cpu);
         assert_eq!(std::thread::available_parallelism().unwrap().get(), 1);
         assert_eq!(
             prepared
@@ -144,4 +168,37 @@ fn placement_real_counters_are_monotonic() {
     let first = placement_faults();
     let second = placement_faults();
     assert!(second.minor >= first.minor && second.major >= first.major);
+}
+
+#[test]
+#[cfg(target_os = "linux")]
+fn placement_self_pin_keeps_the_parent_affinity_unchanged() {
+    let before = std::fs::read_to_string("/proc/thread-self/status").unwrap();
+    let affinity = |text: &str| {
+        text.lines()
+            .find(|line| line.starts_with("Cpus_allowed_list:"))
+            .unwrap()
+            .to_owned()
+    };
+    let original = affinity(&before);
+    let cpu = original
+        .split_once(':')
+        .unwrap()
+        .1
+        .trim()
+        .split(['-', ','])
+        .next()
+        .unwrap()
+        .parse()
+        .unwrap();
+    std::thread::spawn(move || {
+        pin_measuring_thread(cpu);
+        assert_eq!(std::thread::available_parallelism().unwrap().get(), 1);
+    })
+    .join()
+    .unwrap();
+    assert_eq!(
+        affinity(&std::fs::read_to_string("/proc/thread-self/status").unwrap()),
+        original
+    );
 }

@@ -2,7 +2,7 @@ use super::*;
 use crate::artifact::snapshot::{digest, tests::Directory};
 use std::fs;
 
-fn fixture() -> (Directory, Value) {
+pub(crate) fn fixture() -> (Directory, Value) {
     let directory = Directory::new();
     let revision = "a".repeat(40);
     let contexts: BTreeMap<_, _> = STAGES.into_iter().map(|phase| (phase,
@@ -163,7 +163,7 @@ fn declared_members_and_raw_samples_cannot_be_replaced_by_claimed_counts_or_summ
     assert!(replay(invalid).unwrap_err().to_string().contains("digest"));
 }
 
-fn originals(directory: &Directory, request: &mut Value) {
+pub(crate) fn originals(directory: &Directory, request: &mut Value) {
     for phase in STAGES {
         for profile in PROFILES {
             let filename = match profile {
