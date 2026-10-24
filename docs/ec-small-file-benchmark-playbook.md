@@ -171,7 +171,7 @@ kernel.
 Throughput-oriented comparison:
 
 ```bash
-python3 scripts/check_benchmark_regression.py \
+cargo xtask check-benchmark \
   --baseline /abs/path/to/old-small-file-results.json \
   --current target/benchmark-smoke/small-file-results.json \
   --require-case encode:4:2:1024 \
@@ -181,7 +181,7 @@ python3 scripts/check_benchmark_regression.py \
 Latency-oriented small-file comparison:
 
 ```bash
-python3 scripts/check_benchmark_regression.py \
+cargo xtask check-benchmark \
   --baseline /abs/path/to/old-small-file-results.json \
   --current target/benchmark-smoke/small-file-results.json \
   --metric ns_per_iter \

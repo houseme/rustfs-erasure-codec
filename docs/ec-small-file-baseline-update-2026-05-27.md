@@ -51,7 +51,7 @@ have compared mismatched artifact shapes.
 Verified locally:
 
 - `cargo test --release --features "std simd-accel" --test benchmark_small_files benchmark_small_file_matrix_runs_and_exports_results -- --nocapture`
-- `python3 scripts/check_benchmark_regression.py --baseline benchmarks/small-file/2026-05-27-x86_64-linux-extended.json --current target/benchmark-smoke/small-file-results.json --metric ns_per_iter ...`
+- `cargo xtask check-benchmark --baseline benchmarks/small-file/2026-05-27-x86_64-linux-extended.json --current target/benchmark-smoke/small-file-results.json --metric ns_per_iter ...`
 
 The small-file regression checker passed with zero failures on the refreshed
 baseline.

@@ -21,7 +21,7 @@ build concurrently with an existing controlled capture. No command loads kernel
 modules, changes MSR permissions, changes frequency or writes MSRs.
 
 ```sh
-python3 scripts/diagnose_release_vm.py \
+cargo xtask diagnose-release-vm \
   --baseline /path/to/clean-9.0.0 \
   --isolation-cgroup /sys/fs/cgroup/owned-test \
   --output /path/to/new-private-probe \
@@ -53,7 +53,7 @@ descendant; the refusal happens before hardware capability measurement.
 When handing an already reserved process to the CLI, replace that process:
 
 ```sh
-exec python3 scripts/diagnose_release_vm.py \
+exec cargo xtask diagnose-release-vm \
   --baseline /path/to/clean-9.0.0 \
   --isolation-cgroup /sys/fs/cgroup/owned-test \
   --output /path/to/new-private-probe \

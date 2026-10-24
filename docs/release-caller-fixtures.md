@@ -136,9 +136,9 @@ checks run the real APIs from each source/lockfile, compare normal/wrapped parit
 short tails and corrupted parity, and count observer I/O heap requests separately.
 
 ```sh
-python3 scripts/diagnose_fixture_layout.py --check-stream-views \
+cargo xtask diagnose-fixture-layout --check-stream-views \
   --baseline-ref 9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6
-python3 scripts/diagnose_fixture_layout.py --stream-views --iterations 2 \
+cargo xtask diagnose-fixture-layout --stream-views --iterations 2 \
   --tool /path/to/frozen/tool --baseline /path/to/9.0.0 --candidate /path/to/candidate \
   --output /path/to/new-inventory --isolation-cgroup /sys/fs/cgroup/owned-partition
 ```
@@ -185,8 +185,8 @@ source/lock bindings and every declared lifecycle boundary. No new raw stream
 artifact is uploaded by this step.
 
 ```sh
-python3 scripts/stream_core_audit.py --check --output /path/to/new-source-owner-check
-python3 scripts/stream_core_audit.py --replay /path/to/completed-source-owner-check
+cargo xtask stream-core-audit --check --output /path/to/new-source-owner-check
+cargo xtask stream-core-audit --replay /path/to/completed-source-owner-check
 ```
 
 The unified remaining-storage inventory below observes codec-internal decode
@@ -255,8 +255,8 @@ private logs. Non-Linux runs explicitly lack native residency/counters and canno
 substitute for native Linux observations.
 
 ```sh
-python3 scripts/verify_scratch_audit.py --check --output /path/to/new-check
-python3 scripts/verify_scratch_audit.py --replay /path/to/completed-check
+cargo xtask verify-scratch-audit --check --output /path/to/new-check
+cargo xtask verify-scratch-audit --replay /path/to/completed-check
 ```
 
 This covers only the declared ordinary-verify diagnostic visibility gap. The
@@ -277,9 +277,9 @@ The existing fixture inventory now has one source-copy mode for the remaining
 decoder scratch, non-stream output and smoke/hotspot source scope:
 
 ```sh
-python3 scripts/diagnose_fixture_layout.py --check-dynamic \
+cargo xtask diagnose-fixture-layout --check-dynamic \
   --output /path/to/new-private-dynamic-inventory
-python3 scripts/diagnose_fixture_layout.py \
+cargo xtask diagnose-fixture-layout \
   --replay-dynamic /path/to/completed-private-dynamic-inventory
 ```
 

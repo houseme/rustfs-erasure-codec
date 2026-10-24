@@ -1,11 +1,10 @@
 # 9.1.0 global review — 2026-10-23
 
-Latest tooling review: `0705f21` on main `e3a1c1c`; see the
-[native paired/full-campaign association](#native-paired-and-full-campaign-association)
-for the current inventory and validation. The
-[canonical readiness review](release-9.1.0-readiness-2026-10-23.md) retains the
-separate release acceptance boundaries. Earlier sections below preserve their
-original identities and validation scope.
+Latest scope: complete native controllers and Python retirement; see the
+[current native review](#complete-native-controllers-and-python-retirement).
+Earlier sections preserve their original identities, counts and validation scope.
+The canonical release readiness review retains the independent performance
+acceptance boundary.
 
 ## Integration with current main
 
@@ -1932,3 +1931,52 @@ The Rust core/WASM package allowlists retain 68/6 members and exclude repository
 Python, tools and JSON archives. All five workspace members inherit root Cargo
 dependencies. No dependency, registry publication, codec format or release
 performance approval is introduced.
+
+
+## Complete native controllers and Python retirement
+
+This revision removes all 34 remaining Python files, including their old test and
+fixture entry points. The 252 behavior tests passed against the Rust models before
+removal. Current capture, source-copy observation, validation, original-byte replay,
+CPU handshakes, VM/MSR collection, CI JSON and tests are Rust. The source inventory
+and CI/Shell guard enforce the interpreter-free boundary. Historical JSON remains
+byte-identical; controller filenames recorded in archived data remain evidence.
+
+The implementation shares file/process owners and typed models. Current
+controllers call validators in-process. Complete release verification uses the
+same regression report functions as the public Rust gates, eliminating sixteen
+Cargo subprocesses. Request construction transfers Value ownership, and original
+arrays serialize directly without an intermediate JSON clone. These are tooling
+structure changes, with no codec throughput claim.
+
+Generated and patched inputs form a whole restoration transaction. Unknown
+changes, extra files, symlinks or an unreaped worker preserve the private inputs.
+Both ordinary completion and cancellation share this rule. Original CRLF bytes
+are restored exactly. CPU measurement threads pin only themselves after the
+construction-budget handshake; the parent validates the owned thread and complete
+epoch without changing an external TID. MSR reads preserve the original ordered
+TSC bracketing and reject short reads.
+
+A build/runtime source stamp prevents stale executables from claiming current
+controller or template bytes. Source changes also invalidate a requested passing
+release report. Explicit matching source roots support relocation. Adjacent
+analysis reuses one bounded original snapshot; explicitly trusted frozen Rust
+models build from a private immutable Git checkout. The coordinator records its
+own identity separately. No legacy interpreter is executed.
+
+Formal and diagnostic schemas remain separate. A complete diagnostic retains
+statistical failures and never grants release approval. Missing supplements are
+refused before source observation, all medians remain derived from original
+samples, candidate tree/lock rebases retain their rules, and source/compiler
+observations are checked again before returning success. CI failure journals
+remain available even when the native tool cannot be built: the fallback contains
+only fixed negative data and returns failure.
+
+Native tests reuse full campaign/layout factories and cover hashes, source
+mutation, numeric equality, schema/approval refusal, interrupted ownership,
+modified inputs, frozen transport, ordered/short MSR reads, CLI grammar, strict
+release shell gates and stale-code rejection. Final source identities, local/CI
+results and package inventories are recorded with the delivery commit below.
+Codec source and formats are outside this migration. New/old data compatibility
+continues to use exact parity and bidirectional cross-decoding against published
+9.0.0; the older inconsistent fast-one-parity mode stays outside that probe.

@@ -175,7 +175,7 @@ OLD=benchmarks/x86_64-linux/2026-06-17-x86_64-linux-extended.csv
 NEW=benchmarks/x86_64-linux/2026-06-18-x86_64-linux-extended.csv
 
 # 使用 check_benchmark_regression.py
-python3 scripts/check_benchmark_regression.py \
+cargo xtask check-benchmark \
   --baseline "$OLD" \
   --current "$NEW" \
   --metric ns_per_iter \
