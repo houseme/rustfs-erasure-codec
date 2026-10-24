@@ -3,8 +3,9 @@ use crate::{Result, artifact};
 use serde::Deserialize;
 use serde_json::Value;
 use std::{
-    borrow::Cow,
+    borrow::{Borrow, Cow},
     collections::{BTreeMap, BTreeSet},
+    ops::Deref,
     path::Path,
     sync::LazyLock,
 };
@@ -75,7 +76,7 @@ pub(crate) fn positive_integer(value: &Value, name: &str) -> Result<String> {
     integer(value, name, false)
 }
 
-fn normalize_provenance(value: &Value, field: &str) -> Result<Option<String>> {
+fn normalize_provenance<'a>(value: &'a Value, field: &str) -> Result<Option<Cow<'a, str>>> {
     if value.is_null() {
         return Ok(None);
     }
@@ -88,10 +89,12 @@ fn normalize_provenance(value: &Value, field: &str) -> Result<Option<String>> {
         if !["true", "false"].contains(&raw.as_str()) {
             return Err(format!("{field} must be true or false").into());
         }
-        return Ok(Some(raw));
+        return Ok(Some(raw.into()));
     }
     if CONTRACT.thread_fields.iter().any(|v| v == field) {
-        return Ok(Some(integer(value, field, field == "max_parallel_jobs")?));
+        return Ok(Some(
+            integer(value, field, field == "max_parallel_jobs")?.into(),
+        ));
     }
     if field == "features" {
         let raw = value
@@ -104,10 +107,11 @@ fn normalize_provenance(value: &Value, field: &str) -> Result<Option<String>> {
                 .collect::<BTreeSet<_>>()
                 .into_iter()
                 .collect::<Vec<_>>()
-                .join("|"),
+                .join("|")
+                .into(),
         ));
     }
-    // Borrow string scalars until their final normalized value is retained.
+    // Borrow unchanged strings; the projection chooses their retained ownership.
     let mut text: Cow<'_, str> = if field == "schema_version" {
         match value {
             Value::String(s) => s.trim().into(),
@@ -138,24 +142,40 @@ fn normalize_provenance(value: &Value, field: &str) -> Result<Option<String>> {
     {
         Ok(None)
     } else {
-        Ok(Some(text.into_owned()))
+        Ok(Some(text))
     }
 }
 
-pub(crate) fn provenance(
-    record: &serde_json::Map<String, Value>,
-) -> Result<BTreeMap<String, Option<String>>> {
+/// Metadata field names borrow the static schema; values borrow original rows
+/// unless normalization actually produces a different string.
+pub(crate) type Provenance<'a> = ProvenanceMap<&'static str, Cow<'a, str>>;
+
+type ProvenanceMap<K, V> = BTreeMap<K, Option<V>>;
+type OwnedProvenance = ProvenanceMap<String, String>;
+
+/// Choose borrowed validation or retained ownership before collecting metadata.
+/// Both projections use the same scalar and alias normalization rules.
+fn provenance<'a, K, V>(record: &'a serde_json::Map<String, Value>) -> Result<ProvenanceMap<K, V>>
+where
+    K: From<&'static str> + Ord,
+    V: From<Cow<'a, str>>,
+{
     CONTRACT
         .provenance_fields
         .iter()
-        .map(|field| Ok((field.clone(), provenance_value(record, field)?)))
+        .map(|field| {
+            Ok((
+                field.as_str().into(),
+                provenance_value(record, field)?.map(V::from),
+            ))
+        })
         .collect()
 }
 
-pub(crate) fn provenance_value(
-    record: &serde_json::Map<String, Value>,
+pub(crate) fn provenance_value<'a>(
+    record: &'a serde_json::Map<String, Value>,
     field: &str,
-) -> Result<Option<String>> {
+) -> Result<Option<Cow<'a, str>>> {
     let aliases = CONTRACT.provenance_aliases.get(field);
     let names = aliases
         .into_iter()
@@ -199,10 +219,10 @@ impl Key {
         self.0.join(":").trim_end_matches(':').to_owned()
     }
 }
-pub(crate) struct Record {
+pub(crate) struct Record<P = OwnedProvenance> {
     pub key: Key,
     pub metrics: BTreeMap<String, f64>,
-    pub provenance: BTreeMap<String, Option<String>>,
+    pub provenance: P,
 }
 
 pub(crate) fn load_rows(path: &Path, expected: Option<&str>) -> Result<Vec<Value>> {
@@ -248,10 +268,18 @@ pub(crate) fn load_rows(path: &Path, expected: Option<&str>) -> Result<Vec<Value
 }
 
 fn normalize(row: Value, strict: bool) -> Result<Record> {
-    normalize_ref(&row, strict)
+    normalize_for::<String, String>(&row, strict)
 }
 
-pub(crate) fn normalize_ref(row: &Value, strict: bool) -> Result<Record> {
+pub(crate) fn normalize_ref(row: &Value, strict: bool) -> Result<Record<Provenance<'_>>> {
+    normalize_for(row, strict)
+}
+
+fn normalize_for<'a, K, V>(row: &'a Value, strict: bool) -> Result<Record<ProvenanceMap<K, V>>>
+where
+    K: From<&'static str> + Borrow<str> + Ord,
+    V: From<Cow<'a, str>> + Deref<Target = str>,
+{
     let row = row
         .as_object()
         .ok_or("each benchmark row must be an object")?;
@@ -291,7 +319,7 @@ pub(crate) fn normalize_ref(row: &Value, strict: bool) -> Result<Record> {
             positive_metric(row.get(field).unwrap_or(&Value::Null), field)?,
         );
     }
-    let provenance = provenance(row)?;
+    let provenance = provenance::<K, V>(row)?;
     if strict {
         let mut required: Vec<_> = CONTRACT.strict_provenance_fields.iter().collect();
         if key[0].ends_with("_stream")
@@ -303,7 +331,7 @@ pub(crate) fn normalize_ref(row: &Value, strict: bool) -> Result<Record> {
         let missing: Vec<_> = required
             .into_iter()
             .filter(|name| {
-                provenance[*name].as_ref().is_none_or(|v| {
+                provenance[name.as_str()].as_ref().is_none_or(|v| {
                     v.is_empty()
                         || CONTRACT
                             .unknown_provenance
@@ -341,11 +369,12 @@ pub(crate) fn index(rows: Vec<Value>, source: &str, strict: bool) -> Result<BTre
     Ok(indexed)
 }
 
-pub(crate) struct Hotspot {
+pub(crate) struct Hotspot<P = OwnedProvenance> {
     pub case_fields: BTreeMap<String, Value>,
     pub metrics: BTreeMap<String, f64>,
-    pub provenance: BTreeMap<String, Option<String>>,
+    pub provenance: P,
 }
+
 pub(crate) fn hotspots(rows: Vec<Value>, metric: &str) -> Result<BTreeMap<String, Hotspot>> {
     let mut indexed = BTreeMap::new();
     for row in rows {
@@ -358,6 +387,24 @@ pub(crate) fn hotspots(rows: Vec<Value>, metric: &str) -> Result<BTreeMap<String
 }
 
 pub(crate) fn hotspot(row: &Value, metric: &str) -> Result<(String, Hotspot)> {
+    hotspot_for::<String, String>(row, metric)
+}
+
+pub(crate) fn hotspot_ref<'a>(
+    row: &'a Value,
+    metric: &str,
+) -> Result<(String, Hotspot<Provenance<'a>>)> {
+    hotspot_for(row, metric)
+}
+
+fn hotspot_for<'a, K, V>(
+    row: &'a Value,
+    metric: &str,
+) -> Result<(String, Hotspot<ProvenanceMap<K, V>>)>
+where
+    K: From<&'static str> + Ord,
+    V: From<Cow<'a, str>>,
+{
     let row = row
         .as_object()
         .ok_or("each hotspot result must be an object")?;
@@ -367,7 +414,7 @@ pub(crate) fn hotspot(row: &Value, metric: &str) -> Result<(String, Hotspot)> {
         .filter(|v| !v.trim().is_empty())
         .ok_or("scenario must be a nonempty string")?
         .to_owned();
-    let provenance = provenance(row)?;
+    let provenance = provenance::<K, V>(row)?;
     let mut metrics = BTreeMap::new();
     for field in ["candidate_mb_s", "baseline_mb_s", "speedup"] {
         if field == metric || row.contains_key(field) {
@@ -433,7 +480,7 @@ pub(crate) fn library_rows_checked(
     let mut keys = BTreeSet::new();
     let mut output = Vec::with_capacity(rows.len());
     for (index, mut row) in rows.into_iter().enumerate() {
-        let record = normalize_ref(&row, strict)
+        let record = normalize_for::<String, String>(&row, strict)
             .map_err(|error| format!("{source}: row {}: {error}", index + 1))?;
         inspect(&row, &record)?;
         if !keys.insert(record.key.clone()) {
@@ -469,7 +516,7 @@ pub(crate) fn library_hotspots(rows: Value, metric: &str) -> Result<Value> {
 pub(crate) fn library_hotspots_checked(
     rows: Value,
     metric: &str,
-    inspect: impl Fn(&Value, &str, &Hotspot) -> Result<()>,
+    inspect: impl Fn(&Value, &str, &Hotspot<Provenance<'_>>) -> Result<()>,
 ) -> Result<Value> {
     let Value::Array(rows) = rows else {
         return Err("expected a nonempty list of hotspot results".into());
@@ -480,18 +527,25 @@ pub(crate) fn library_hotspots_checked(
     let mut keys = BTreeSet::new();
     let mut output = Vec::with_capacity(rows.len());
     for mut row in rows {
-        let (scenario, normalized) = hotspot(&row, metric)?;
+        let (scenario, normalized) = hotspot_ref(&row, metric)?;
         inspect(&row, &scenario, &normalized)?;
         if !keys.insert(scenario.clone()) {
             return Err(format!("duplicate hotspot scenario: {scenario}").into());
         }
+        let Hotspot {
+            metrics,
+            case_fields,
+            provenance,
+        } = normalized;
+        // Hotspot exports intentionally retain original provenance fields.
+        drop(provenance);
         let row_map = row
             .as_object_mut()
             .ok_or("each hotspot result must be an object")?;
-        for (field, value) in normalized.metrics {
+        for (field, value) in metrics {
             row_map.insert(field, value.into());
         }
-        for (field, value) in normalized.case_fields {
+        for (field, value) in case_fields {
             if row_map.contains_key(&field) {
                 row_map.insert(field, value);
             }
@@ -768,6 +822,42 @@ mod tests {
         conflict["cpu"] = "another CPU".into();
         assert!(normalize(conflict, true).is_err());
     }
+    #[test]
+    fn retained_rows_own_metadata_while_validation_borrows_source_scalars() {
+        let source = strict();
+        let view = normalize_ref(&source, true).unwrap();
+        let backend = view.provenance["backend"].as_deref().unwrap();
+        assert!(std::ptr::eq(backend, source["backend"].as_str().unwrap()));
+        let expected = serde_json::json!({"key":view.key.label(),"metrics":view.metrics,"provenance":view.provenance});
+        drop(view);
+        // The source is consumed and dropped inside normalize. Retained rows
+        // must remain independent, including values that required formatting.
+        let retained = normalize(source, true).unwrap();
+        assert_eq!(
+            serde_json::json!({"key":retained.key.label(),"metrics":retained.metrics,"provenance":retained.provenance}),
+            expected
+        );
+    }
+
+    #[test]
+    fn hotspot_validation_and_retention_share_normalized_metadata() {
+        let source = json!({"scenario":"case","candidate_mb_s":10.5,"backend":" rust-avx2 ","data_shards":4,"cpu_model":" A\u{2003}B ","extra":{"keep":true}});
+        let (case, view) = hotspot_ref(&source, "candidate_mb_s").unwrap();
+        let backend = view.provenance["backend"].as_deref().unwrap();
+        assert!(std::ptr::eq(
+            backend,
+            source["backend"].as_str().unwrap().trim()
+        ));
+        let expected = serde_json::json!({"fields":view.case_fields,"metrics":view.metrics,"provenance":view.provenance});
+        drop(view);
+        let mut retained = hotspots(vec![source], "candidate_mb_s").unwrap();
+        let retained = retained.remove(&case).unwrap();
+        assert_eq!(
+            serde_json::json!({"fields":retained.case_fields,"metrics":retained.metrics,"provenance":retained.provenance}),
+            expected
+        );
+    }
+
     #[test]
     fn provenance_scalars_preserve_legacy_whitespace_unknown_and_schema_rules() {
         for (field, value, expected) in [

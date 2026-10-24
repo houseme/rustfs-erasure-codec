@@ -38,12 +38,11 @@ pub(crate) fn artifact_kind(profile: &str) -> Result<&'static str> {
     }
 }
 impl Request {
-    fn raw(
-        &self,
-        row: &Value,
-        case: &str,
-        provenance: &BTreeMap<String, Option<String>>,
-    ) -> Result<()> {
+    fn raw<K, V>(&self, row: &Value, case: &str, provenance: &BTreeMap<K, Option<V>>) -> Result<()>
+    where
+        K: std::borrow::Borrow<str> + Ord,
+        V: std::ops::Deref<Target = str>,
+    {
         if !sampling_contract::known_case(&self.profile, case) {
             return Err("incomplete or unexpected release case catalog".into());
         }
@@ -122,7 +121,7 @@ impl Request {
     /// Validate a borrowed worker row without constructing normalized JSON output.
     pub(crate) fn validate_row(&self, row: &Value, expected: &str) -> Result<()> {
         if self.profile == "hotspot" {
-            let (case, normalized) = model::hotspot(row, metric(&self.profile)?)?;
+            let (case, normalized) = model::hotspot_ref(row, metric(&self.profile)?)?;
             self.raw(row, &case, &normalized.provenance)?;
             if case != expected {
                 return Err("raw diagnostic workload mismatch".into());
