@@ -218,10 +218,8 @@ pub(super) fn inputs(
             ),
         )?;
         digests[&name] = entry["sha256"].clone();
-        let prepared=models.model("sampling",json!({"operation":"calibration-profile","profile":profile,"records":rows,"revision":BASELINE,"expected_page_size":provenance["context"]["runtime"]["page_size"],"allowed_cpus":provenance["context"]["isolation"]["cpu_affinity"]}))?;
-        let profile_counts: BTreeMap<String, u64> =
-            serde_json::from_value(prepared["counts"].clone())?;
-        counts[profile] = serde_json::to_value(profile_counts)?;
+        let mut prepared = sampling::calibrated_profile(models.model("sampling",json!({"operation":"calibration-profile","profile":profile,"records":rows,"revision":BASELINE,"expected_page_size":provenance["context"]["runtime"]["page_size"],"allowed_cpus":provenance["context"]["isolation"]["cpu_affinity"]}))?)?;
+        counts[profile] = prepared["counts"].take();
         let rows = rows.as_array().ok_or("missing calibration rows")?;
         let completed: Vec<_> = rows
             .iter()
