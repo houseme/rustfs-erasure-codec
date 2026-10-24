@@ -1813,3 +1813,68 @@ merged on main; this PR changes no JSON artifacts. Core/WASM allowlists remain
 67/six files and exclude repository tools, Python and archived evidence. All five
 workspace members inherit root dependencies. No dependency, codec-format change,
 tag, registry upload or release-performance approval is introduced by this PR.
+
+
+## Native campaign source and environment bindings
+
+The final runtime `51194e9` is based on main `801f499`, retaining the merged
+GF16/GFNI changes and their archived observations. Codec sources, build inputs,
+dependency declarations and lockfiles match main. PR #85 is already merged; only the new native binding and Python controller
+commits follow this main. These remain separate functional commits.
+
+The complete profile controller previously compared source identities, harness,
+resource settings and every environment copy in Python, with a separate native
+runtime-validation request. The existing campaign replay now performs those
+checks against fresh caller-owned Git/compiler observations in its own frame.
+Live source inspection, tracked-cleanliness checks, compiler execution and harness
+collection stay in the controller; the Rust model compares those observations to
+the recorded metadata before opening original members. The published baseline
+anchor and runtime validator are shared with existing replay models.
+
+Full source identifiers, lock digests, published-baseline equality, refusal of
+self comparisons, candidate tree/lock binding and harness agreement retain their
+rules. A rebased candidate may keep the same tree and lock while changing commit.
+The reference context retains strict integer/reserved-CPU and false-flag checks;
+JSON truthiness and equality keep the former Python behavior for copied contexts.
+All ABBA phases and the final environment snapshot must still match. Compiler
+checking remains optional for the same callers. Existing requests without live
+bindings retain their previous partial-replay behavior and response fields; no
+standalone request can approve a release.
+
+An original-Python comparison at `d0c9265` covers 756 workers / 9,072 observations.
+Six accepted variants preserve all report fields, including legacy JSON, original
+summary order changes, same-tree rebases and copied-context numeric equality.
+Fourteen invalid variants retain refusal outcomes for source/version/harness,
+compiler/environment changes, strict reference flags and original-member
+integrity. All original files remain unchanged. The synthetic replay requires
+three persistent frames instead of four. Carrying the live binding observations
+increases total request bytes from 19,390 to 19,537 in that fixture; Python
+campaign member reads remain zero. Evidence establishes fewer round trips and
+retained contracts, with no codec-throughput or release-performance conclusion.
+The compiled directory CLI also replays the bound request with an empty PATH,
+without Python or Cargo. The original harness digest still agrees with Python.
+
+Native tests cover rebased commit handling, compiler inclusion/omission, source
+and harness refusal, strict flags, runtime data, final-context changes and
+unchanged recorded inputs. The existing integration guard now requires bindings
+on the single campaign frame and refuses a Python runtime-validation prequery.
+Diagnostic approval and manifest-immutability checks remain in the suite.
+
+All fifteen checks pass in an independent frozen checkout: 257 native,
+252 Python and 547 top-level codec tests, ten doctests, strict tooling Clippy,
+Linux tool compilation, codec-only no_std, compatibility, all three audits,
+core packaging/reconstruction, extracted-package tests, formatting and diff checks.
+The extracted package passes 379 library tests. Existing ignore counts are
+retained. All 200 non-fast published-9.0.0/local-9.1.0 configurations pass exact
+parity and bidirectional cross-decoding, plus historical tower-field vectors.
+The older inconsistent fast-one-parity mode remains outside that probe. Spelling
+passes.
+
+The inventory is 34 active Python files / 7,461 lines: 3,247 production/helper
+and 4,214 test/fixture lines. This round removes 29 production lines and adds two
+integration assertions, reducing total Python by 27 lines. All remaining modules
+retain callers. The 614 JSON files / 6,382,419 bytes include the additional
+observations merged on main; this change leaves those artifacts intact. Published
+packages still exclude Python, repository tools and archived evidence. Every
+workspace member inherits root dependencies. No dependency, codec format, tag,
+registry upload or release-performance approval is introduced.
