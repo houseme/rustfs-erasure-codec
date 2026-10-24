@@ -22,7 +22,7 @@ fn original(root: &Path, variant: &str) -> BTreeMap<String, String> {
 }
 
 #[test]
-fn complete_plans_keep_original_generated_bytes_and_bind_every_written_member() {
+fn complete_plans_bind_generated_bytes_and_every_written_member() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
     for (variant, expected) in [
         (
@@ -34,8 +34,9 @@ fn complete_plans_keep_original_generated_bytes_and_bind_every_written_member() 
             "3f3d3ce8443cf418f327a0b8385b41063a726ff52ae9a76dff93ca9aaec330e8",
         ),
         (
+            // Current production source, including the single-data builder.
             "dynamic",
-            "32727514d77d6781990fdd50095336d58516429434c91f90f0ce2acc5a3642a3",
+            "0915c72168b5b57d9a243acf25d10a895d021cefab5a3413e5c48d7b7ba9551e",
         ),
     ] {
         let original = original(root, variant);
@@ -177,6 +178,17 @@ fn observer_source_adapters_leave_other_apis_initialization_and_publication_unch
     }
     assert!(changed.contains("Region::new(\"decode\")"));
     assert!(!original.contains(dynamic::MODULE));
+    assert!(changed.contains("selected.__rse_buffer_view(\"decode_submatrix\")"));
+    assert!(!changed.contains("sub_matrix.__rse_buffer_view"));
+    let restored = changed
+        .split_inclusive('\n')
+        .filter(|line| !line.contains("__rse_buffer_view") && !line.contains(dynamic::MODULE))
+        .collect::<String>();
+    assert_eq!(
+        restored, original,
+        "observer must preserve every production statement"
+    );
+    assert!(dynamic::decode(&original.replace("selected.invert()", "selected.other()")).is_err());
 }
 
 #[test]

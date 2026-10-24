@@ -63,16 +63,31 @@ pub fn decode(text: &str) -> Result<String> {
     ] {
         text = region(&text, declaration)?;
     }
+    let builder = "    fn build_data_decode_matrix(";
+    let has_builder = text.contains(builder);
+    if has_builder {
+        // The direct single-data branch creates the final decode matrix; it
+        // has no selected submatrix or inversion scratch to observe. Record
+        // the full-inverse submatrix only in the unchanged fallback branch.
+        text = source::method(&text, builder, |_, edit| {
+            edit.before(
+                "        selected.invert()",
+                "        selected.__rse_buffer_view(\"decode_submatrix\");\n",
+            )
+        })?;
+    }
     let declaration = "    pub(crate) fn get_data_decode_matrix(";
     text = source::method(&text, declaration, |_, edit| {
         edit.after(
             "            if let Some(entry) = cache.get(invalid_indices) {",
             "\n                entry.__rse_buffer_view(\"decode_cached\");",
         )?;
-        edit.before(
-            "        let data_decode_matrix = Arc::new(",
-            "        sub_matrix.__rse_buffer_view(\"decode_submatrix\");\n",
-        )?;
+        if !has_builder {
+            edit.before(
+                "        let data_decode_matrix = Arc::new(",
+                "        sub_matrix.__rse_buffer_view(\"decode_submatrix\");\n",
+            )?;
+        }
         edit.before(
             "        Ok(data_decode_matrix)",
             "        data_decode_matrix.__rse_buffer_view(\"decode_ready\");\n",
