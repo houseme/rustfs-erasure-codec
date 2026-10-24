@@ -488,8 +488,9 @@ Source-level unit tests remain alongside their implementation. Both crate audits
 also reject non-Rust files within `src/`, preventing future Python/JSON additions
 there from silently entering a release.
 
-The initial package list had **97 members**; the allowlist has **67**. CI audits
-the actual Cargo package list and rejects unexpected repository files or missing
+The initial package list had **97 members**; the initial allowlist had **67**.
+The current list has **68**, including the single-data recovery unit-test module
+under `src/`. CI audits the actual Cargo package list and rejects unexpected repository files or missing
 build inputs. `cargo package --allow-dirty --locked --offline --package
 rustfs-erasure-codec` verifies the extracted distributable without publication.
 The codec's dependency graph does not include `xtask` or its parsers.

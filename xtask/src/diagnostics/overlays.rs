@@ -307,7 +307,7 @@ mod tests {
     }
 
     #[test]
-    fn all_diagnostic_generators_retain_the_original_python_bytes() {
+    fn generators_retain_original_python_bytes_and_bind_current_source() {
         let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
         for (variant, allocations, expected) in [
             (
@@ -352,12 +352,13 @@ mod tests {
                 "{variant}"
             );
         }
-        // This snapshot includes production bodies. Changes such as adaptive
-        // dispatch or cache metrics must survive the observer unchanged.
+        // Unlike the frozen sampler snapshots above, this binds current production
+        // bodies, including the direct single-data builder and full-inverse
+        // fallback. The observer must preserve both branches unchanged.
         let original = dynamic_source_files(root);
         assert_eq!(
             digest(dynamic::patch(&original, root).unwrap(), root),
-            "32727514d77d6781990fdd50095336d58516429434c91f90f0ce2acc5a3642a3"
+            "0915c72168b5b57d9a243acf25d10a895d021cefab5a3413e5c48d7b7ba9551e"
         );
     }
 }
