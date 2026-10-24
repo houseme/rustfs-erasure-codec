@@ -505,3 +505,38 @@ wording; source refs, affected scope, harness and counts correctly bind the new
 comparison. This review records that passive metadata correction separately,
 without editing the running plan or reinterpreting any sample. Formal-release
 geometry and acceptance remain outstanding; automation stays paused.
+
+
+## Complete width-coordination comparison
+
+The [complete result](../benchmarks/release-9.1.0/2026-10-24/gf16-layout-width-component-review.json)
+retains all 42 cases, 168 comparisons and 84 CPU/wall repeat summaries. All 168
+workers / 2,016 observations, 84 payload checks and 1,722 pilots complete without
+execution errors. Independent replay covers 5,867 unchanged inputs and 3,948
+parent events, runs no codec and reproduces every report/refusal. Sources,
+owned cleanup and original observers restore. The frozen plan's two inherited
+passive descriptions are documented separately; it was never edited in flight.
+
+The complete cohort remains **not accepted**: one width, seventeen repeat and
+six regression-case refusals, with zero short samples. All groups are retained:
+
+| Complete group | Cases | Unqualified candidate/baseline ratio range | Width / repeat / regression refusals |
+| --- | ---: | --- | --- |
+| native direct controls | 12 | 0.768616–1.205871 | 0 / 12 / 5 |
+| gf8 ordinary encode control | 1 | 0.952985–0.962082 | 0 / 0 / 0 |
+| gf16 ordinary encode control | 1 | 0.938294–0.984470 | 0 / 0 / 0 |
+| portable direct products | 12 | 0.873639–1.166869 | 0 / 4 / 1 |
+| native custom codec controls | 4 | 0.945220–1.040329 | 0 / 1 / 0 |
+| portable custom codecs | 12 | 0.890176–1.074055 | 1 / 0 / 0 |
+
+The former SSSE3 1,025-element overwrite counterexample has four ratios
+0.875150–0.921599 versus `7914ac4`, with its own widths/repeats passing. That is
+useful bounded evidence for the narrower SSSE3 choice, not whole-cohort or
+published-9.0.0 approval. Other controls still drift, and scalar arithmetic is a
+counterexample to applying the same choice universally: all eight scalar cases
+have every pairing slower (1.008190–1.093431), while all their own widths/repeats
+pass. Scalar table arithmetic can retain wide memory permutation independently
+of arithmetic width. Restoring that predecessor choice while keeping SSSE3
+narrow is a source-level follow-through worth validating; no shape cutoff,
+allocator change or explanation of all native-control drift follows from it.
+Both complete 42-case cohorts and all original refusals remain immutable.

@@ -48,7 +48,10 @@ Width-coordination runtime `0a35491` (final test source `986c1fe`) now caches
 layout eligibility with the selected arithmetic backend. All twenty native
 functional commands, explicit width markers and published compatibility pass
 in a new capture; the original split-marker capture remains failed and retained.
-Its new complete 42-case comparison uses the same limits and has no result yet.
+Its complete 42-case comparison now independently reproduces 1 width / 17 repeat /
+6 regression refusals, with zero short/execution failures. The former SSSE3
+case is lower in all pairs, but all eight scalar cases are stably slower. Both
+the benefit and cost remain recorded; the entire cohort is not accepted.
 No earlier refusal or release approval is reassigned to this new source.
 
 ## GFNI component follow-through and cancellation fix
