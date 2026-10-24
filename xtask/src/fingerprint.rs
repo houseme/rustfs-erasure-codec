@@ -1,4 +1,5 @@
 //! Source fingerprints shared by native replay and the legacy capture bindings.
+mod harness;
 use crate::{Result, artifact};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
@@ -86,21 +87,26 @@ pub(crate) enum Kind {
     Native,
     Sampling,
     Views,
+    Harness,
 }
 /// Read the current source bytes on every call; source identities are never cached.
 pub(crate) fn source(root: &Path, kind: Kind, controller: Option<&Path>) -> Result<String> {
-    if matches!(kind, Kind::Sampling) {
-        return if let Some(controller) = controller {
-            sampling_with(root, controller)
-        } else {
-            sampling(root)
-        };
-    }
     let mut hash = Sha256::new();
-    if matches!(kind, Kind::Views) {
-        let default = root.join("scripts/stream_view_audit.py");
-        hash.update(fs::read(controller.unwrap_or(&default))?);
-        hash.update(crate::diagnostics::templates::native("views", root)?.as_bytes());
+    match kind {
+        Kind::Native => {}
+        Kind::Sampling => {
+            return if let Some(controller) = controller {
+                sampling_with(root, controller)
+            } else {
+                sampling(root)
+            };
+        }
+        Kind::Views => {
+            let default = root.join("scripts/stream_view_audit.py");
+            hash.update(fs::read(controller.unwrap_or(&default))?);
+            hash.update(crate::diagnostics::templates::native("views", root)?.as_bytes());
+        }
+        Kind::Harness => return harness::digest(root),
     }
     native_bytes(root, &mut hash)?;
     Ok(artifact::snapshot::hex(hash.finalize().as_slice()))

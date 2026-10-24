@@ -135,14 +135,7 @@ def source_info(root):
 
 
 def harness_digest(root):
-    paths = ["tests/benchmark_smoke.rs", "tests/benchmark_small_files.rs", "tests/benchmark_stream_paths.rs", "tests/common/mod.rs", "benches/common/mod.rs"]
-    data = b"".join(p.encode() + b"\0" + (root / p).read_bytes() + b"\0" for p in paths)
-    unit = (root / "src/tests/mod.rs").read_text()
-    for name in ("struct ReconstructionHotspotBenchResult", "fn benchmark_test_iterations", "macro_rules! make_random_shards", "pub fn fill_random", "fn option_shards_with_missing", "fn shard_index_pattern", "fn assert_required_reconstruction_matches", "fn bench_reconstruct_data_hotspot", "fn bench_reconstruct_some_hotspot", "fn write_reconstruction_hotspot_bench_results", "fn benchmark_reconstruction_hotspots"):
-        start = unit.index(name)
-        end = unit.index("\n}", start) + 2
-        data += unit[start:end].encode() + b"\0"
-    return digest(data)
+    return native_tools.request('fingerprint', root=str(root.resolve()), variant='harness')
 
 
 def cpu_set(value):
