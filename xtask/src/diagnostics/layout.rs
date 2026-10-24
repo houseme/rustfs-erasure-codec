@@ -1,4 +1,5 @@
 //! Whole-worker layout analysis with the original diagnostic-only schemas.
+mod campaign;
 mod cpu;
 mod inventory;
 mod replay;
@@ -21,6 +22,9 @@ pub(crate) enum Request {
     },
     Contract {
         code: replay::Code,
+    },
+    CampaignIterations {
+        sampling: Value,
     },
     Protocol,
     CpuPlan {
@@ -58,6 +62,9 @@ impl Request {
             Self::Inventory { request } => request.execute(),
             Self::PairedReplay { request } => request.execute(),
             Self::Contract { code } => code.contract(),
+            Self::CampaignIterations { sampling } => {
+                Ok(campaign::iterations(&sampling["common_iterations"]["small_file"])?.into())
+            }
             Self::Protocol => Ok(verify::protocol()),
             Self::CpuPlan { cpus } => Ok(cpu::plan(cpus)),
             Self::Cpu {

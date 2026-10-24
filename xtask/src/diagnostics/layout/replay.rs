@@ -19,6 +19,7 @@ pub(crate) struct Request {
     baseline: Value,
     candidate: Value,
     tool: Value,
+    campaign: Option<Box<super::campaign::Binding>>,
     #[serde(default, deserialize_with = "declared_digest")]
     manifest_sha256: Option<String>,
 }
@@ -234,6 +235,9 @@ impl Request {
             return Err("invalid paired provenance".into());
         };
         fields.extend(metadata);
+        if let Some(campaign) = &self.campaign {
+            campaign.validate(&result)?;
+        }
         Ok(result)
     }
 }
