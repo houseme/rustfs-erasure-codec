@@ -1,10 +1,11 @@
 # 9.1.0 global review — 2026-10-23
 
-Latest reviewed main snapshot: `62632e5`. The
-[canonical readiness review](release-9.1.0-readiness-2026-10-23.md) records the
-new alignment/source-plan/process-owner checks and the different frozen Linux
-source. The successive sections below preserve their original identities and
-validation scope; they are not current-source performance acceptance.
+Latest tooling review: `0705f21` on main `e3a1c1c`; see the
+[native paired/full-campaign association](#native-paired-and-full-campaign-association)
+for the current inventory and validation. The
+[canonical readiness review](release-9.1.0-readiness-2026-10-23.md) retains the
+separate release acceptance boundaries. Earlier sections below preserve their
+original identities and validation scope.
 
 ## Integration with current main
 
@@ -1878,3 +1879,56 @@ observations merged on main; this change leaves those artifacts intact. Publishe
 packages still exclude Python, repository tools and archived evidence. Every
 workspace member inherits root dependencies. No dependency, codec format, tag,
 registry upload or release-performance approval is introduced.
+
+
+## Native paired and full campaign association
+
+Runtime `0705f21` is based on main `e3a1c1c` after PR #87 merged. The three
+functional commits separate the native model from its Python callers. Codec
+sources, build inputs, dependency declarations and lockfiles match main,
+including the integrated recovery/GF16 work. No additional runtime defect or
+supported codec tuning change was found in this tooling diff.
+
+The paired original-directory replay now compares the supplement with the full
+campaign in its existing frame. The same model checks frozen source identities,
+context, tool tree/lock, both calibrated buffered-verify counts, and the original
+backend/features/target through the shared benchmark alias parser. Capture uses
+the same bounded-count function. Python no longer implements this association
+or requests per-row provenance normalization. Three unused row/provenance adapters
+and their unused cache are removed; the active shared transport cache remains
+covered by binding tests. The controller passes only the two relevant
+original rows and their counts. Optional binding preserves independent layout
+replay and all prior report fields. Neither request can approve a release alone.
+Live Git/compiler execution, early supplement/path/hash checks, process ownership
+and final approval remain with the controller.
+
+An old/new comparison against `2b80d73` covers all 756 synthetic workers and
+9,072 observations. Six accepted variants preserve every report field; 21 invalid
+variants retain refusal outcomes. These include legacy JSON and numeric context
+equality, same-tree rebases, corrupt original members, and independently valid
+layouts with different source, context, calibration, backend or target. Original
+files remain unchanged. Requests fall from 3 to 2; adding compact association
+metadata changes request bytes from 19,537 to 22,023. Python reads no
+campaign members in either implementation. This is request/contract evidence,
+with no codec throughput claim. The compiled directory CLI also replays the
+bound campaign without Python or Cargo on PATH.
+
+All 15 final checks pass in an independent frozen checkout: 260 native and
+252 Python tests, 552 top-level codec tests, ten doctests, strict tooling
+Clippy, Linux tool compilation, codec-only no_std, all three audits, actual Cargo
+package/reconstruction, 384 extracted-package library tests, formatting and
+diff checks. The 200 published-9.0.0/local-9.1.0 non-fast configurations retain
+exact parity and cross-decoding in both directions, plus historical tower-field
+vectors. The older inconsistent fast-one-parity mode remains outside that probe.
+
+The inventory is 34 active Python files / 7,416 lines, split into
+3,198 production/helper and 4,218 test/fixture lines. This round removes
+49 production lines and adds four integration test lines, reducing total
+Python by 45 lines. All remaining production modules have importers; live capture
+and resource cleanup remain active. No additional Python file is obsolete.
+All 616 JSON files / 6,395,402 bytes remain byte-identical to main.
+The eleven identical-byte groups retain phase/digest-bound evidence paths.
+The Rust core/WASM package allowlists retain 68/6 members and exclude repository
+Python, tools and JSON archives. All five workspace members inherit root Cargo
+dependencies. No dependency, registry publication, codec format or release
+performance approval is introduced.
