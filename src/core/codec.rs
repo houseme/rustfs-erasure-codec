@@ -7,13 +7,12 @@ use alloc::vec::Vec;
 use hashlink::LruCache;
 #[cfg(feature = "std")]
 use parking_lot::Mutex;
-use smallvec::SmallVec;
 #[cfg(not(feature = "std"))]
 use spin::Mutex;
 
 use crate::Field;
 use crate::errors::Error;
-use crate::matrix::Matrix;
+use crate::matrix::{Matrix, MatrixRowRange};
 
 use super::{
     CodecFamily, CodecOptions, DATA_DECODE_MATRIX_CACHE_MAX_CAPACITY,
@@ -56,14 +55,10 @@ impl<F: Field> ReedSolomon<F> {
         )
     }
 
-    pub(crate) fn get_parity_rows(&self) -> SmallVec<[&[F::Elem]; 32]> {
-        let mut parity_rows = SmallVec::with_capacity(self.parity_shard_count());
-        let matrix = self.encoding_format().matrix();
-        for i in self.data_shard_count()..self.total_shard_count() {
-            parity_rows.push(matrix.get_row(i));
-        }
-
-        parity_rows
+    pub(crate) fn get_parity_rows(&self) -> MatrixRowRange<'_, F> {
+        self.encoding_format()
+            .matrix()
+            .row_range(self.data_shard_count(), self.total_shard_count())
     }
 
     pub(crate) fn build_matrix(
