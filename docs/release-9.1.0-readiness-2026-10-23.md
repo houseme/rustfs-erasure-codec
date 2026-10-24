@@ -1,19 +1,22 @@
 # 9.1.0 merged-candidate review
 
-Rebased recovery-cache integration (2026-10-24): source `5a60ae3` includes
-main `a6317fc` and its reduced systematic decode equations. The
-[current rebase record](recovery-cache-selected-survivors-2026-10-24.md#rebase-integration-2026-10-24)
-records fresh correctness, zero-allocation, published-format and tool checks.
-Earlier Linux plans/proofs remain bound to their original sources; new-head
-native CI and performance/release qualification remain separate.
+Combined native integration (2026-10-24): source `8ec2dde` merges main
+`76897f6` and passes all 31 Linux functional commands: 582 parent tests,
+six isolated child executions, 265 no_std, six-backend published-version recovery,
+978 cache-layout checks and 18 warmed zero-allocation cases. The
+[current native record](recovery-cache-selected-survivors-2026-10-24.md#combined-native-validation-2026-10-24)
+includes the complete independent replay of 74 unchanged inputs and verified
+resource/lease closure. Current local Rust tooling passes 312 tests. There are
+zero performance observations; accepted complete ABBA/layout evidence and actual
+strict positive preflight remain outstanding.
 
 Prior recovery-cache candidate (2026-10-24): runtime `b0bd342`, integrated
 source `d138103`, keys inverse reuse by the selected-survivor erasure prefix.
 The [cache review](recovery-cache-selected-survivors-2026-10-24.md) records real
 before/after allocation regressions, 978 independent layout checks, 565 local
 parent codec tests / 264 no_std, published-format compatibility and 310 native
-Rust tool tests. Its separate 31-command Linux plan is resource-waiting and has
-not launched. No new latency or release acceptance is claimed; earlier proofs
+Rust tool tests. Its separate 31-command Linux plan was superseded before any
+launch; the combined-source result above retains its own binding. No new latency or release acceptance is claimed; earlier proofs
 and refusals below keep their own source bindings.
 
 Current native proof (2026-10-24): main `544bb06`, including `727690f` GFNI
