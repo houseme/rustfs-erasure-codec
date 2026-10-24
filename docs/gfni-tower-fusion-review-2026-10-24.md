@@ -1,6 +1,8 @@
 # GF16 GFNI tower-plane fusion
 
-Current integrated implementation: `7914ac450856305f40f0c24eea424af2a153905f`.
+Current width-coordination runtime: `0a354911c4ece2166f24589bdfad7270881dc40c`;
+validated final test source: `986c1fedcfc9e75151b34392f43e41a50ff7ed9f`.
+The earlier combined implementation is `7914ac450856305f40f0c24eea424af2a153905f`.
 The final section records its separate correctness review; the three historical
 timing cohorts below remain bound to their original sources.
 
@@ -454,3 +456,52 @@ testing, without shape thresholds or allocator changes; it does not explain
 unchanged GF8/native-control drift. Any follow-through needs a new source freeze,
 compatibility proof and its own complete comparison. The frozen `7914ac4` run
 and all earlier refusals remain intact. Strict release acceptance is withheld.
+
+
+## Cached arithmetic/layout width coordination
+
+The stable SSSE3 overwrite counterexample motivates runtime `0a35491`: AVX2
+layout eligibility requires both CPU capability and a wide immutable arithmetic
+backend (AVX2, AVX-512 or GFNI). Scalar/SSSE3 selections keep the existing narrow
+layout; SSSE3 may still perform byte conversion with scalar arithmetic, so the
+label is not a whole-program ISA profile. The new eligibility choice is resolved once; hot chunks do not query the
+backend/environment again. Constant/empty handling, numerical
+kernels, tails, initialized planes, public options, core recovery and format
+bytes are unchanged. No shape threshold, allocator change or unsafe block is
+added. The capability-only policy first fails the new mapping constraint; the
+coordinated policy then passes. This tests the policy contract, not an old byte
+correctness failure or a proven unique explanation of every timing refusal.
+
+The [complete final-source functional proof](../benchmarks/release-9.1.0/2026-10-24/gf16-layout-width-functional-review.json)
+binds `986c1fe`, whose only difference from the runtime source is test-marker
+framing. The first source's twenty test commands all exit successfully, but
+expected-panic hooks split two dynamic stderr markers and strict admission fails.
+That failed capture, source and four successful cleanup checks remain retained.
+Preformatting one short record before a single write fixes framing; no numerical
+assertion or marker requirement is relaxed. A new independent directory repeats
+all twenty commands and raw review, with all 35 inputs unchanged and zero codec
+calls during replay. Explicit scalar/SSSE3 selections record narrow layout;
+AVX2/GFNI selections record wide layout, alongside positive native kernel markers.
+
+The final Linux source passes 390 library / 165 integration / ten doc tests,
+with 43 existing ignored, and 250 no_std tests. ARM64 runtime-source validation
+passes 377 / 168 / ten and 250 no_std; strict ARM64/x86 all-target and Linux
+library/no_std Clippy pass. The test-only framing follow-through additionally
+passes x86 all-target Clippy. Published 9.0.0 compatibility retains the 200 normal
+configurations, six-backend custom 162 configurations / 972 cross recoveries,
+and 72 wide Vandermonde/Cauchy configurations. These are correctness results,
+not performance acceptance.
+
+The [new source-bound plan](../benchmarks/release-9.1.0/2026-10-24/gf16-layout-width-component-plan.json)
+compares integrated `7914ac4` against final source `986c1fe` (runtime `0a35491`).
+It retains exactly the same 42 cases, harness bytes, 168 ABBA workers, 2,016
+observations, conservative calibration and all original limits. The twenty-command
+exact-source correctness proof is bound and reused; both fresh binaries must
+pass all 84 payload checks without metrics. It has launched once after cleanup;
+no frozen source/controller/guard/count is changed and there is no new timing
+conclusion yet. The earlier 1/11/5 refusal remains unchanged. Two descriptive
+strings in the frozen private plan inherited predecessor backend/comparison
+wording; source refs, affected scope, harness and counts correctly bind the new
+comparison. This review records that passive metadata correction separately,
+without editing the running plan or reinterpreting any sample. Formal-release
+geometry and acceptance remain outstanding; automation stays paused.

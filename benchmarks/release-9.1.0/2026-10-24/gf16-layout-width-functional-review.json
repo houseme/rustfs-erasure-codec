@@ -1,0 +1,411 @@
+{
+  "artifact_kind": "gf16-layout-width-functional-review-v1",
+  "runtime_implementation": "0a354911c4ece2166f24589bdfad7270881dc40c",
+  "validated_source": "986c1fedcfc9e75151b34392f43e41a50ff7ed9f",
+  "test_framing_only_after_runtime": true,
+  "production_prefix_build_and_gf8_core_equal": true,
+  "strategy": "Cache AVX2 layout eligibility from immutable selected GF8 arithmetic backend plus CPU capability; narrow paths for scalar/SSSE3, wide layouts retained for AVX2/AVX-512/GFNI. No size/shape special case, allocator tuning, API change or new unsafe block.",
+  "policy_constraint_old_rule_red_new_rule_green": true,
+  "local_validation": {
+    "library": 377,
+    "integration": 168,
+    "documentation": 10,
+    "existing_ignored": 43,
+    "no_std": 250,
+    "strict_arm_x86_all_target_and_linux_lib_clippy": true,
+    "published200_custom27_wide12_passed": true
+  },
+  "native_linux_validation": {
+    "checks": [
+      {
+        "name": "full-codec",
+        "passed": true,
+        "test_summaries": [
+          [
+            390,
+            5
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            35
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            17,
+            0
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            9,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            9,
+            0
+          ],
+          [
+            13,
+            0
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            8,
+            0
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            9,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            6,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            13,
+            0
+          ],
+          [
+            14,
+            0
+          ],
+          [
+            10,
+            0
+          ]
+        ],
+        "required_markers_verified": 6
+      },
+      {
+        "name": "no-std",
+        "passed": true,
+        "test_summaries": [
+          [
+            250,
+            0
+          ]
+        ],
+        "required_markers_verified": 0
+      },
+      {
+        "name": "ssse3-fallback",
+        "passed": true,
+        "test_summaries": [
+          [
+            39,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "avx2-fallback",
+        "passed": true,
+        "test_summaries": [
+          [
+            38,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "scalar-general",
+        "passed": true,
+        "test_summaries": [
+          [
+            39,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "gfni256-general",
+        "passed": true,
+        "test_summaries": [
+          [
+            39,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "gfni512-general",
+        "passed": true,
+        "test_summaries": [
+          [
+            39,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-200",
+        "passed": true,
+        "test_summaries": [],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-custom-auto",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 3
+      },
+      {
+        "name": "published-wide-auto",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-custom-scalar-rust",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 3
+      },
+      {
+        "name": "published-wide-scalar-rust",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-custom-rust-ssse3",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 3
+      },
+      {
+        "name": "published-wide-rust-ssse3",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-custom-rust-avx2",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 3
+      },
+      {
+        "name": "published-wide-rust-avx2",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-custom-rust-gfni-avx2",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 3
+      },
+      {
+        "name": "published-wide-rust-gfni-avx2",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-custom-rust-gfni-avx512",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 3
+      },
+      {
+        "name": "published-wide-rust-gfni-avx512",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      }
+    ],
+    "all20_passed": true,
+    "library": 390,
+    "integration": 165,
+    "documentation": 10,
+    "existing_ignored": 43,
+    "no_std": 250,
+    "positive_both_gfni_widths_and_avx2_layout": true,
+    "cached_width_marker_scalar_ssse3_false_avx2_gfni_true": true,
+    "published_normal_configs": 200,
+    "published_custom_across6_backends": {
+      "configurations": 162,
+      "cross_recoveries": 972
+    },
+    "published_wide_across6_backends": 72
+  },
+  "independent_review": {
+    "inputs": 35,
+    "all_inputs_unchanged": true,
+    "raw_outputs_and_markers_reproduced": true,
+    "replay_codec_calls": 0
+  },
+  "previous_failed_functional_capture_retained": {
+    "source": "0a354911c4ece2166f24589bdfad7270881dc40c",
+    "all20_actual_test_commands_exit0": true,
+    "strict_marker_failures": [
+      "avx2-fallback",
+      "gfni256-general"
+    ],
+    "cause": "Dynamic marker fields were split by expected-panic hook output during parallel tests; write one preformatted short record.",
+    "cleanup4_restored": true,
+    "performance_observations": 0,
+    "not_a_statistical_refusal_or_numerical_failure": true
+  },
+  "sources_restored": true,
+  "owned_cleanup4_restored": true,
+  "performance_observations": 0,
+  "performance_accepted": false,
+  "release_approval": false,
+  "candidate_attribution": null
+}

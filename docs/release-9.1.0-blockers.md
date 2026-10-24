@@ -44,6 +44,12 @@ width, eleven repeats and five regression cases refuse the original limits,
 with zero short/execution failures. It remains unaccepted. The SSSE3 1,025-element
 overwrite case is slower in all four pairs despite passing its own width/repeat
 checks; unchanged GF8/native controls also drift, so no universal cause is claimed.
+Width-coordination runtime `0a35491` (final test source `986c1fe`) now caches
+layout eligibility with the selected arithmetic backend. All twenty native
+functional commands, explicit width markers and published compatibility pass
+in a new capture; the original split-marker capture remains failed and retained.
+Its new complete 42-case comparison uses the same limits and has no result yet.
+No earlier refusal or release approval is reassigned to this new source.
 
 ## GFNI component follow-through and cancellation fix
 
