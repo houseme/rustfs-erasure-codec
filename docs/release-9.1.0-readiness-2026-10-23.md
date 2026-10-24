@@ -1,5 +1,16 @@
 # 9.1.0 merged-candidate review
 
+Direct inverse work (2026-10-25): source `4aa4ee0` removes a temporary identity
+matrix while preserving Gaussian arithmetic and row widths. The
+[source-bound review](inverse-work-review-2026-10-25.md) records six cold-recovery
+allocation controls (10 to 9 requests), 569 local codec parent tests / 266 no_std,
+317 tool tests, published-version compatibility and 585 native parent tests.
+The native pipeline has eight completed commands, then a preserved strict
+ownership refusal caused by a foreign cargo task; its restored lease is closed.
+The remaining 26-command continuation is prepared with zero launches while
+resources are busy. No complete native, performance or release acceptance is
+claimed for this new source.
+
 Combined native integration (2026-10-24): source `8ec2dde` merges main
 `76897f6` and passes all 31 Linux functional commands: 582 parent tests,
 six isolated child executions, 265 no_std, six-backend published-version recovery,
