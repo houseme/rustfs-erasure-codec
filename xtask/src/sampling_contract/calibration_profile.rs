@@ -4,7 +4,7 @@ use crate::{Result, benchmark_contract, release_rows};
 use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 
-pub(super) fn analyze(
+pub(crate) fn analyze(
     records: &[Value],
     profile: &str,
     revision: &str,

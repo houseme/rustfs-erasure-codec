@@ -249,19 +249,41 @@ pub(super) fn select(
         json!({"selected":indices.into_iter().map(|i|records[i]["rows"][0].clone()).collect::<Vec<_>>(),"spreads":selected["spreads"],"preparation":selected["preparation"],"worker_starts":selected["worker_starts"]}),
     )
 }
+/// Adapt the ordered wire counts once for both current and frozen Rust models.
+pub(super) fn calibrated_profile(mut report: Value) -> Result<Value> {
+    let pairs: Vec<(String, u64)> = serde_json::from_value(
+        report
+            .get_mut("counts")
+            .ok_or("missing calibrated case counts")?
+            .take(),
+    )?;
+    let mut counts = BTreeMap::new();
+    for (case, count) in pairs {
+        if !(1..=1_000_000_000).contains(&count) || counts.insert(case, count).is_some() {
+            return Err("require unique bounded calibrated case counts".into());
+        }
+    }
+    if counts.is_empty() {
+        return Err("require nonempty calibrated case counts".into());
+    }
+    report["counts"] = serde_json::to_value(counts)?;
+    Ok(report)
+}
 pub(super) fn calibration(
-    records: Vec<Value>,
+    records: &[Value],
     profile: &str,
     revision: &str,
     context: &Value,
 ) -> Result<Value> {
-    let mut result = sampling_model(
-        "calibration-profile",
-        json!({"profile":profile,"records":records,"revision":revision,"allowed_cpus":context["isolation"]["cpu_affinity"],"expected_page_size":context["runtime"]["page_size"]}),
-    )?;
-    let counts: BTreeMap<String, u64> = serde_json::from_value(result["counts"].take())?;
-    result["counts"] = serde_json::to_value(counts)?;
-    Ok(result)
+    let cpus: Option<Vec<u64>> =
+        serde_json::from_value(context["isolation"]["cpu_affinity"].clone())?;
+    calibrated_profile(sampling_contract::calibration_profile::analyze(
+        records,
+        profile,
+        revision,
+        serde_json::from_value(context["runtime"]["page_size"].clone())?,
+        cpus.as_deref(),
+    )?)
 }
 pub(super) fn check(context: &Context<'_>, root: &Path, workers: bool) -> Result<Value> {
     let overlay = Overlay::generated(context, root, render(root, None, false)?)?;
@@ -388,3 +410,6 @@ pub(super) fn cli(context: &Context<'_>, args: Vec<String>) -> Result<()> {
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod tests;

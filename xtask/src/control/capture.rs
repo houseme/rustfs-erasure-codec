@@ -258,7 +258,7 @@ pub(super) fn campaign(
                 )?;
                 metadata["calibration"][role][profile] = entry;
                 pilots[role][profile] = sampling::calibration(
-                    records.clone(),
+                    &records,
                     profile,
                     sources[role]["commit"].as_str().ok_or("missing source")?,
                     &env::context(root, &collector.environment, group)?,
@@ -438,7 +438,7 @@ pub(super) fn qualify(
         for (profile, _) in release::FILES {
             let (records, entry) =
                 collector.profile(baseline, &folder, profile, "calibrate", None, None)?;
-            let analysis = sampling::calibration(records.clone(), profile, BASELINE, &resource)?;
+            let analysis = sampling::calibration(&records, profile, BASELINE, &resource)?;
             counts[profile] = analysis["counts"].clone();
             prepared[profile] = analysis["preparation"].clone();
             let final_rows: BTreeMap<_, _> = records

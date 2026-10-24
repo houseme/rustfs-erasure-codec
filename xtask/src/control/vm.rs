@@ -121,7 +121,7 @@ pub(super) fn capture(
                         true,
                     )?;
                     let calibrated = sampling::calibration(
-                        basic(rows, native)?,
+                        &basic(rows, native)?,
                         profile,
                         BASELINE,
                         &json!({"runtime":{"page_size":null},"isolation":{"cpu_affinity":null}}),
