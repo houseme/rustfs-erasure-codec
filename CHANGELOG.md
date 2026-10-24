@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Compose selective Classic parity recovery from the known systematic terms and
+  missing-data inverse rows, avoiding identity-row multiplications. Preserve
+  requested-output publication, singular-matrix errors, cached inverses and
+  encoded bytes; measured end-to-end throughput remains separately qualified.
+
 - Build Classic single-data recovery coefficients directly from one parity
   equation, retaining survivor order, singular-matrix errors and the decode cache.
   Other erasure shapes retain the existing full-matrix elimination and SIMD widths.

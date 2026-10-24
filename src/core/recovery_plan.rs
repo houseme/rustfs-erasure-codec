@@ -351,12 +351,20 @@ impl<F: Field> ReedSolomon<F> {
                 let parity = self.encoding_format().matrix().get_row(index);
                 let row = (0..self.data_shard_count())
                     .map(|column| {
-                        parity.iter().copied().enumerate().fold(
-                            F::zero(),
-                            |sum, (data, coefficient)| {
-                                F::add(sum, F::mul(coefficient, inverse.get(data, column)))
-                            },
-                        )
+                        // Every surviving systematic data row of the inverse
+                        // is a unit row at its selected-input column. Substitute
+                        // that known term directly, then compose only missing
+                        // data rows. Unrequested missing data still contributes
+                        // algebraically without initializing its destination.
+                        let survivor = shape.valid_indices[column];
+                        let known = if survivor < self.data_shard_count() {
+                            parity[survivor]
+                        } else {
+                            F::zero()
+                        };
+                        missing_data.iter().fold(known, |sum, &data| {
+                            F::add(sum, F::mul(parity[data], inverse.get(data, column)))
+                        })
                     })
                     .collect();
                 plan.parity_decode_rows.push(row);
@@ -365,3 +373,6 @@ impl<F: Field> ReedSolomon<F> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests;
