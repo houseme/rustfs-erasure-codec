@@ -194,7 +194,9 @@ impl Request {
             }
             Self::ProvenanceField { row, field } => Response::Data(
                 crate::benchmark_contract::provenance_value(&row, &field)?
-                    .map_or(serde_json::Value::Null, serde_json::Value::String),
+                    .map_or(serde_json::Value::Null, |value| {
+                        serde_json::Value::String(value.into_owned())
+                    }),
             ),
             Self::MemoryPolicyCapture => {
                 Response::Data(serde_json::to_value(crate::memory_policy::capture()?)?)

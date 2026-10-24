@@ -366,7 +366,10 @@ fn local_smoke_report(folder: &Path) -> Result<String> {
                     .ok_or("smoke-results.json must contain result objects")?;
                 backend = Some(
                     ["backend", "backend_id", "target_triple"]
-                        .map(|key| crate::benchmark_contract::provenance_value(first, key))
+                        .map(|key| {
+                            crate::benchmark_contract::provenance_value(first, key)
+                                .map(|value| value.map(std::borrow::Cow::into_owned))
+                        })
                         .into_iter()
                         .collect::<Result<Vec<_>>>()?,
                 );
