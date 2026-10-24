@@ -118,3 +118,41 @@ fn symlinked_generated_inputs_and_parent_directories_are_never_followed() {
     .unwrap();
     assert!(Overlay::generated(&context, &d.0, files()).is_err());
 }
+
+#[test]
+fn unexpected_overlay_inputs_survive_the_enclosing_private_source_owner() {
+    for explicit in [false, true] {
+        let flag = AtomicBool::new(false);
+        let context = Context::new(&flag);
+        let private = io::Temporary::new(&context, "overlay-retention-test").unwrap();
+        let cleanup = Directory(private.path.clone());
+        fs::create_dir(private.path.join("tests")).unwrap();
+        let owned = Overlay::generated(&context, &private.path, files()).unwrap();
+        let edited = private.path.join("tests/rse_release_sampling/worker.rs");
+        fs::write(&edited, b"unexpected original bytes").unwrap();
+        if explicit {
+            assert!(owned.finish().is_err());
+        } else {
+            drop(owned);
+        }
+        drop(private);
+        assert_eq!(fs::read(&edited).unwrap(), b"unexpected original bytes");
+        assert!(cleanup.0.join("tests/rse_release_sampling.rs").is_file());
+    }
+}
+
+#[test]
+fn a_restored_overlay_allows_the_enclosing_private_source_to_be_removed() {
+    let flag = AtomicBool::new(false);
+    let context = Context::new(&flag);
+    let private = io::Temporary::new(&context, "overlay-cleanup-test").unwrap();
+    let path = private.path.clone();
+    fs::create_dir(path.join("tests")).unwrap();
+    Overlay::generated(&context, &path, files())
+        .unwrap()
+        .finish()
+        .unwrap();
+    assert!(!context.preserve_inputs.get());
+    drop(private);
+    assert!(!path.exists());
+}
