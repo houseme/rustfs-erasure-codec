@@ -79,3 +79,41 @@ faults. Final source/tool/lock freezing, accepted complete published-9.0.0 ABBA 
 paired-layout data, and actual strict positive release preflight remain required.
 All previous timing refusals remain intact. No release approval, tag or registry
 upload is produced.
+
+
+## Distribution and consumer compatibility
+
+PR #104 has merged externally into main `4353935`. Its complete Git file tree
+is identical to executed delivery source `bfac8fc`; runtime remains bound to
+`4aa4ee0`. The [distribution result](../benchmarks/release-9.1.0/2026-10-25/matrix-distribution-compatibility.json)
+adds artifact-level checks without relabeling the native or timing records.
+
+- The actual verified core crate contains 71 members. All 64 Rust source files,
+  build script, README, license and original manifest match the immutable source
+  exactly (68 original-byte members); Cargo generates the other three metadata
+  members. The packaged VCS source is exact and tools/private evidence are absent.
+  Extracted-package release library tests pass 395 with five existing ignored;
+  extracted-package codec-only no_std passes 266. These are package library tests,
+  separate from repository integration tests.
+- Locked WASM generation uses release `wasm32-unknown-unknown`, wasm-bindgen
+  0.2.129 and TypeScript 7.0.2. Build/typecheck and all 14 Node tests pass (13 real-module cases and one
+  facade unit test), with no skipped tests and unchanged tracked inputs. They cover complete parity,
+  roundtrip recovery, subarray boundaries, malformed inputs, stable result codes,
+  explicit/allocator-driven memory growth and independent initialization.
+- The real NPM tar has nine members, each byte-exact to the built package input,
+  including the facade, declarations, generated bindings, WASM and license. It
+  excludes repository tools and source/test fixtures. The original Node test
+  fixtures are copied separately beside extracted package files: all 14 pass
+  again. Offline installation into a fresh consumer also passes named-export
+  import, exact golden parity/recovery and consumer TypeScript resolution.
+- The source-bound CI job [WASM generated bindings (Node and Chromium)](https://github.com/houseme/rustfs-erasure-codec/actions/runs/40121425670/job/120953600347)
+  succeeds on `bfac8fc`. Build, TypeScript, Node and Chromium steps each report
+  success. That job result does not assert that every workflow or release
+  preflight is complete.
+
+An independent reader reopens 16 original reports, archives and logs, validates
+archive/source bytes and exact test totals, and confirms the inputs unchanged.
+It invokes no codec. No package is uploaded and no tag is created. These checks
+add no performance observations or approval. The separate 26-command Linux native
+continuation remains unlaunched while shared resources are occupied, so its
+remaining compatibility scope and the complete performance/release gates stay open.

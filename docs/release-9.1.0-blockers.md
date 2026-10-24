@@ -1,5 +1,15 @@
 # 9.1.0 publication blockers and completion criteria
 
+Distribution compatibility (2026-10-25): merged main `4353935` has the same
+complete Git tree as executed `bfac8fc` / runtime `4aa4ee0`. The
+[artifact-level record](inverse-work-review-2026-10-25.md#distribution-and-consumer-compatibility)
+verifies the 71-member core crate, extracted 395 library / 266 no_std tests,
+real WASM generation/typecheck, 14 Node tests in both built and extracted NPM
+packages, offline consumer exports/recovery/types and the successful Node/Chromium
+CI job. Sixteen original inputs are independently replayed unchanged without
+codec calls. No registry upload or performance approval is produced; the separate
+26-command native continuation and final release gates remain outstanding.
+
 Direct inverse work (2026-10-25): source `4aa4ee0` removes a temporary identity
 matrix while preserving Gaussian arithmetic and row widths. The
 [source-bound review](inverse-work-review-2026-10-25.md) records six cold-recovery
