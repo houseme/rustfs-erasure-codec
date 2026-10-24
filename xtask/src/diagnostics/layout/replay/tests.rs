@@ -102,3 +102,22 @@ fn context_checks_remain_strict_and_keep_the_original_first_phase_iteration_rule
     fs::write(manifest, document.to_string()).unwrap();
     assert_eq!(execute(request).unwrap()["iterations"], 1000000);
 }
+
+#[test]
+fn full_campaign_binding_is_checked_in_the_same_original_directory_replay() {
+    let (_directory, mut request) = campaign();
+    let standalone = execute(request.clone()).unwrap();
+    let mut row = standalone["phase_reports"]["A1"]["provenance"].clone();
+    row["target_triple"] = json!("fixture-linux-gnu");
+    request["campaign"] = json!({"sources":standalone["sources"],"context":standalone["context"],
+        "counts":{"verify_with_buffer:4:2:1024":3,"verify_with_buffer:4:2:4096":1000000},
+        "rows":{"verify_with_buffer:4:2:1024":row,"verify_with_buffer:4:2:4096":row}});
+    assert_eq!(execute(request.clone()).unwrap(), standalone);
+    request["campaign"]["sources"]["candidate"]["commit"] = json!("c".repeat(40));
+    assert!(
+        execute(request)
+            .unwrap_err()
+            .to_string()
+            .contains("source or resource context")
+    );
+}
