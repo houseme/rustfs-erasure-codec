@@ -29,8 +29,12 @@ complete independent replay now has zero width/regression/short refusals, but
 five repeats still fail, so the complete component comparison remains rejected.
 Both scalar controls pass their repeat/regression limits in this cohort. Local
 correctness, wire compatibility and ordinary CI do not qualify throughput or
-strict release. All three cohorts remain source-bound; the separate
-portable-interleave PR #83 still needs explicit integration review.
+strict release. All three cohorts remain source-bound. Combined runtime `7914ac4` explicitly
+integrates PR #83 portable accumulation/AVX2 layout with the optional native
+cache, with twenty positive Linux functional commands and exact published-9.0.0
+compatibility across six backend settings. It has no timing observations of its
+own; older refusals are not relabeled. Final accepted source-bound performance
+and strict positive preflight remain outstanding.
 
 ## GFNI component follow-through and cancellation fix
 

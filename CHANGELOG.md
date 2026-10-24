@@ -12,12 +12,12 @@ All notable changes to this project are documented in this file.
 
 - Fuse general GF16 tower multiplication inside the selected GFNI backend.
   Keep byte planes in registers and reuse the existing field-derived affine
-  maps, with checked vector bounds and scalar tails. Constant coefficients,
-  other backends and the encoded format retain their existing paths;
-  preserve the original portable executor behind one cached selection and keep
+  maps, with checked vector bounds and scalar tails. Constant coefficients
+  and the encoded format retain their existing paths;
+  cache optional native execution and keep
   its stack planes outside the fused/constant entry. Throughput and release
   approval remain pending controlled validation. Cache only native callables;
-  other backends retain static portable calls and empty general operations
+  other backends retain static specialized calls and empty general operations
   preserve the original backend-selection behavior.
 
 - Invert GF16 tower elements through conjugation and a GF8 norm instead of

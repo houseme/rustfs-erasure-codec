@@ -1,0 +1,461 @@
+{
+  "schema": "gf16-integrated-execution-functional-review-v1",
+  "implementation_source": "7914ac450856305f40f0c24eea424af2a153905f",
+  "native_reference": "2f16f8b284badb2406e51ad762e1dc1426b86f28",
+  "portable_reference": "287c9b5ee0c835ca99ed701c5b8a423dfeb26061",
+  "integration_preserves_both_histories": true,
+  "source_review": {
+    "layout_functions_exact": {
+      "deinterleave": true,
+      "interleave": true,
+      "deinterleave_scalar": true,
+      "interleave_scalar": true,
+      "deinterleave_avx2": true,
+      "interleave_avx2": true,
+      "deinterleave_ssse3": true,
+      "interleave_ssse3": true,
+      "deinterleave_neon": true,
+      "interleave_neon": true
+    },
+    "general_executor_exact_except_polynomial_names": true,
+    "native_kernels_and_build_manifests_exact": true,
+    "public_API_core_and_recovery_unchanged": true
+  },
+  "local_validation": {
+    "architecture": "ARM64",
+    "library_passed": 376,
+    "integration_passed": 168,
+    "documentation_passed": 10,
+    "existing_ignored": 43,
+    "no_std_library_passed": 249,
+    "strict_codec_clippy": [
+      "ARM64 all targets and features",
+      "x86-64 all targets and features",
+      "Linux x86-64 library all features",
+      "Linux x86-64 no_std GFNI library"
+    ],
+    "strict_published_compatibility_clippy": true,
+    "format_and_typos": true
+  },
+  "native_linux_validation": {
+    "checks": [
+      {
+        "name": "full-codec",
+        "passed": true,
+        "test_summaries": [
+          [
+            388,
+            5
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            35
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            17,
+            0
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            9,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            9,
+            0
+          ],
+          [
+            13,
+            0
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            8,
+            0
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            9,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            6,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            13,
+            0
+          ],
+          [
+            14,
+            0
+          ],
+          [
+            10,
+            0
+          ]
+        ],
+        "required_markers_verified": 5
+      },
+      {
+        "name": "no-std",
+        "passed": true,
+        "test_summaries": [
+          [
+            249,
+            0
+          ]
+        ],
+        "required_markers_verified": 0
+      },
+      {
+        "name": "ssse3-fallback",
+        "passed": true,
+        "test_summaries": [
+          [
+            35,
+            0
+          ]
+        ],
+        "required_markers_verified": 0
+      },
+      {
+        "name": "avx2-fallback",
+        "passed": true,
+        "test_summaries": [
+          [
+            36,
+            0
+          ]
+        ],
+        "required_markers_verified": 0
+      },
+      {
+        "name": "scalar-general",
+        "passed": true,
+        "test_summaries": [
+          [
+            37,
+            0
+          ]
+        ],
+        "required_markers_verified": 0
+      },
+      {
+        "name": "gfni256-general",
+        "passed": true,
+        "test_summaries": [
+          [
+            37,
+            0
+          ]
+        ],
+        "required_markers_verified": 0
+      },
+      {
+        "name": "gfni512-general",
+        "passed": true,
+        "test_summaries": [
+          [
+            37,
+            0
+          ]
+        ],
+        "required_markers_verified": 0
+      },
+      {
+        "name": "published-200",
+        "passed": true,
+        "test_summaries": [],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-custom-auto",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 3
+      },
+      {
+        "name": "published-wide-auto",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-custom-scalar-rust",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 3
+      },
+      {
+        "name": "published-wide-scalar-rust",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-custom-rust-ssse3",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 3
+      },
+      {
+        "name": "published-wide-rust-ssse3",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-custom-rust-avx2",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 3
+      },
+      {
+        "name": "published-wide-rust-avx2",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-custom-rust-gfni-avx2",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 3
+      },
+      {
+        "name": "published-wide-rust-gfni-avx2",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-custom-rust-gfni-avx512",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 3
+      },
+      {
+        "name": "published-wide-rust-gfni-avx512",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      }
+    ],
+    "check_count": 20,
+    "all_passed": true,
+    "full_suite": {
+      "library_passed": 388,
+      "integration_passed": 165,
+      "documentation_passed": 10,
+      "existing_ignored": 43
+    },
+    "no_std_library_passed": 249,
+    "gfni_256_512_and_avx2_layout_positive_markers": true,
+    "explicit_arithmetic_backends": [
+      "scalar-rust",
+      "rust-ssse3",
+      "rust-avx2",
+      "rust-gfni-avx2",
+      "rust-gfni-avx512"
+    ],
+    "published_compatibility": {
+      "normal_configurations": 200,
+      "backend_settings": 6,
+      "custom_configurations_per_setting": 27,
+      "custom_cross_recoveries_per_setting": 162,
+      "custom_configurations_total": 162,
+      "custom_cross_recoveries_total": 972,
+      "wide_configurations_per_setting": 12,
+      "wide_configurations_total": 72,
+      "wide_parity_data_only_and_full_bidirectional_recovery": true
+    }
+  },
+  "independent_raw_review": {
+    "input_files": 35,
+    "inputs_unchanged": true,
+    "all_20_outputs_reproduced": true,
+    "codec_calls": 0,
+    "first_reader_tuple_vs_json_list_error_retained": true
+  },
+  "static_linux_client_compilation": {
+    "inline_public_entries_instantiated": true,
+    "entry_explicit_stack_subtraction_bytes": 24,
+    "general_scratch_planes_bytes": 4096,
+    "fallback_explicit_stack_subtractions": [
+      4032,
+      256
+    ],
+    "fallback_stack_alignment_bytes": 64,
+    "fallback_is_statically_named": true,
+    "native_entry_excludes_general_plane_frame": true,
+    "hardware_timing_or_RSS_measurement": false
+  },
+  "sources_restored": true,
+  "owned_cleanup_conditions_restored": 4,
+  "original_observer_services_active_at_post_run_review": 2,
+  "package_members": {
+    "core": 67,
+    "wasm": 6
+  },
+  "performance_observations": 0,
+  "performance_accepted": false,
+  "release_approval": false,
+  "candidate_attribution": null,
+  "limitations": [
+    "Correctness and static assembly do not qualify throughput.",
+    "All three prior source-bound component refusals remain unchanged; none is relabeled as this integration source.",
+    "The arithmetic override does not disable feature-selected portable byte-layout conversion.",
+    "The GF16 norm candidate remains separate.",
+    "Final-source accepted full ABBA/layout evidence and strict positive release preflight remain outstanding."
+  ]
+}
