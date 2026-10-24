@@ -23,6 +23,7 @@ pub(crate) struct Request {
     document: Value,
     summarized: Option<Value>,
     diagnostic: bool,
+    bindings: Option<bindings::Bindings>,
 }
 fn member(snapshot: &mut Snapshot, entry: &Value, expected: &str) -> Result<Vec<Value>> {
     let sha = entry["sha256"]
@@ -43,6 +44,9 @@ fn member(snapshot: &mut Snapshot, entry: &Value, expected: &str) -> Result<Vec<
 }
 impl Request {
     pub(crate) fn execute(self) -> Result<Value> {
+        if let Some(bindings) = &self.bindings {
+            bindings.validate(&self.document)?;
+        }
         let counts = &self.document["sampling"]["common_iterations"];
         if !counts.as_object().is_some_and(|v| {
             v.len() == PROFILES.len() && PROFILES.iter().all(|p| v.contains_key(*p))
@@ -242,6 +246,7 @@ impl Request {
     }
 }
 
+mod bindings;
 mod summaries;
 
 #[cfg(test)]

@@ -10,7 +10,7 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use std::{collections::BTreeSet, fs, path::PathBuf};
 
-const BASELINE: &str = "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6";
+pub(crate) const BASELINE: &str = "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6";
 const QUALIFICATION: &str = "baseline-qualification-v2";
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
