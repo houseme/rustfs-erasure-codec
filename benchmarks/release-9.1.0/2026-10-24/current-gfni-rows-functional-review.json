@@ -657,5 +657,24 @@
   "guard_entry_tool": "9f935eef9c1af721165b245709897f7c4b9acc37",
   "guard_tool_scope": "Strict existing zero-codec ownership entry only.",
   "older_api_comparison_applies_to_this_runtime": false,
-  "performance_limit": "The completed72-case e3a1c1c/b1a10e4 comparison does not include c558ef8 and cannot qualify this later main. This is a29-command correctness proof with zero performance observations; final accepted complete evidence and strict positive preflight remain missing."
+  "performance_limit": "The completed72-case e3a1c1c/b1a10e4 comparison does not include c558ef8 and cannot qualify this later main. This is a29-command correctness proof with zero performance observations; final accepted complete evidence and strict positive preflight remain missing.",
+  "subsequent_main_integration": {
+    "main": "727690f11b36839fc0aef91ff617e4cee77bcdca",
+    "executed_local_merge": "941489ccaa36b77da895a7737d4a78b0fd03288f",
+    "runtime_change": "Reuse each GFNI row matrix broadcast across four adjacent vectors; short entries retain the preceding path below four vector widths.",
+    "native_snapshot_above_covers_this_later_runtime": false,
+    "codec_test_build_tool_and_workflow_files_equal_later_main": true,
+    "source_review": "Four disjoint output vectors accumulate complete coding rows before stores. Bounds remain under the existing checked chunk; single-vector remainders and scalar tails remain distinct. No additional confirmed reportable defect.",
+    "local_arm_focused_parent_passed": 35,
+    "local_arm_filtered_child_executions_separate": 2,
+    "local_arm_no_std_passed": 261,
+    "strict_codec_clippy_passed": true,
+    "x86_all_target_clippy_compile_only_passed": true,
+    "fmt_passed": true,
+    "test_source_inputs_unchanged": true,
+    "new_native_isa_execution_claimed": false,
+    "new_performance_observations": 0,
+    "performance_approval": false,
+    "release_approval": false
+  }
 }
