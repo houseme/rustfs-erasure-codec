@@ -1,6 +1,13 @@
 # 9.1.0 publication blockers and completion criteria
 
-Proposed recovery-cache candidate (2026-10-24): runtime `b0bd342`, integrated
+Rebased recovery-cache integration (2026-10-24): source `5a60ae3` includes
+main `a6317fc` and its reduced systematic decode equations. The
+[current rebase record](recovery-cache-selected-survivors-2026-10-24.md#rebase-integration-2026-10-24)
+records fresh correctness, zero-allocation, published-format and tool checks.
+Earlier Linux plans/proofs remain bound to their original sources; new-head
+native CI and performance/release qualification remain separate.
+
+Prior recovery-cache candidate (2026-10-24): runtime `b0bd342`, integrated
 source `d138103`, keys inverse reuse by the selected-survivor erasure prefix.
 The [cache review](recovery-cache-selected-survivors-2026-10-24.md) records real
 before/after allocation regressions, 978 independent layout checks, 565 local

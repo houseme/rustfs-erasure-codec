@@ -1,5 +1,43 @@
 # Recovery inverse reuse across unselected parity erasures
 
+## Rebase integration (2026-10-24)
+
+PR #100 is rebased from `10fdb1764405245ec0ca94387c1b31baa5ce3a6f` onto
+main `a6317fc7a989eae39b111e51351dc2b258f1750b`. Rebased validation source
+`5a60ae3` combines the selected-survivor cache key with main's reduced
+missing-data equation solver (`4b97a1c`) and its diagnostic preservation checks.
+The cache method is byte-identical to the original PR; the inverse builder is
+byte-identical to main. Both sets of oracle tests and the 18-case allocation
+regression are retained. The current-source observer snapshots now bind this
+combined source; every archived benchmark artifact remains unchanged.
+
+Fresh stable 1.99.1 validation on ARM64 passes:
+
+- 394 library, 163 integration and 10 documentation parent tests (567 total,
+  43 existing ignored), including cache identity/singularity oracles and main's
+  reduced-equation work/compatibility checks.
+- All 18 warmed, preallocated cache-equivalence cases still request zero
+  allocations and preserve unrequested missing parity buffers and flags.
+- Codec-only no_std: 265 library tests.
+- Published 9.0.0: 200 normal-format configurations; 27 custom tower
+  configurations / 162 cross recoveries; 12 wide GF16 configurations; 270
+  selective configurations / 2,640 cross recoveries.
+- All 310 native-tool tests (271 unit, 39 CLI), including both current-source
+  snapshots, inverse-builder preservation and legacy/prefix-key observer checks.
+- Strict all-target/all-feature codec, compatibility and tool Clippy;
+  x86_64 Darwin all-target and x86_64 Linux library Clippy; fmt, typos and diff
+  checks. Both x86 targets are compile-only on this ARM64 host.
+- Release/workspace/package audits (71 core / 6 WASM members) and the JSON audit
+  (622 files, zero errors).
+
+The frozen 31-command Linux plan below retains its `d138103` source binding;
+new-head Linux runtime CI is a separate result. Draft status and outstanding
+native/performance/release requirements are retained. No shared-resource owner
+or controlled performance campaign is changed by this rebase. Historical
+measurements, refusals and local validation records below keep their own sources.
+
+## Prior source-bound review
+
 Runtime `b0bd342` fixes duplicate Classic inverse construction, based on
 `cdc4a05`. Integrated candidate `d138103` includes main `1be185d` and its native
 Rust controllers. The [source-bound review](../benchmarks/release-9.1.0/2026-10-24/recovery-cache-selected-survivors-review.json)
