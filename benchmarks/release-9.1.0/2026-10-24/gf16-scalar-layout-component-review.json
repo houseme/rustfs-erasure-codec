@@ -1,0 +1,3977 @@
+{
+  "artifact_kind": "gf16-scalar-layout-component-review-v1",
+  "baseline_commit": "986c1fedcfc9e75151b34392f43e41a50ff7ed9f",
+  "candidate_commit": "7fa4fddeea73ef74ee0b52f600f80fd6bc89c066",
+  "release_approval": false,
+  "formal_performance_geometry_equivalence": false,
+  "published_9_0_throughput_claim": false,
+  "accepted_component_comparison": false,
+  "candidate_attribution": null,
+  "phase_order": [
+    "A1",
+    "B1",
+    "B2",
+    "A2"
+  ],
+  "case_count": 42,
+  "measurement_workers": 168,
+  "observations": 2016,
+  "warmups": 504,
+  "measurements": 1512,
+  "distribution_checks": 168,
+  "repeat_checks": 84,
+  "cross_version_comparisons": 168,
+  "gates": {
+    "central_width_percent": 10,
+    "same_version_repeat_percent": 5,
+    "regression_percent": 12,
+    "minimum_sample_ms": 100
+  },
+  "features": [
+    "std",
+    "simd-accel"
+  ],
+  "benchmark_metrics": false,
+  "all_raw_reports_reproduced": true,
+  "all_original_inputs_unchanged": true,
+  "replay_codec_calls": 0,
+  "input_files_checked": 5881,
+  "parent_journal_events": 3958,
+  "calibration_workers": 1727,
+  "functional_workers": 84,
+  "width_failures": [],
+  "repeat_failures": [
+    {
+      "case": "auto|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 18.497899056899787
+    },
+    {
+      "case": "auto|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 5.032992746281849
+    },
+    {
+      "case": "auto|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 17.39436164628811
+    },
+    {
+      "case": "auto|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 13.00344269416805
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 9.241164777940137
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 12.829853241403674
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 19.668904626614104
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 5.360425757898433
+    },
+    {
+      "case": "auto|gf8:encode:10:4:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 8.94936672767386
+    },
+    {
+      "case": "rust-avx2|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 8.234157831029057
+    },
+    {
+      "case": "rust-avx2|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 24.82406758103554
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_encode:10:2:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 7.35445111850258
+    }
+  ],
+  "unqualified_regression_cases": [
+    "auto|gf16:multiply_tower:0:0:1025:0",
+    "rust-ssse3|gf16:multiply_tower:0:0:1024:0",
+    "rust-ssse3|gf16:multiply_tower:0:0:1025:0",
+    "rust-ssse3|gf16:accumulate_tower:0:0:1024:0",
+    "rust-ssse3|gf16:accumulate_tower:0:0:1025:0",
+    "rust-avx2|gf16:accumulate_tower:0:0:1025:0",
+    "rust-ssse3|gf16:custom_encode:10:2:1024:0",
+    "rust-ssse3|gf16:custom_encode:10:2:1025:0",
+    "rust-ssse3|gf16:custom_warm:10:2:1024:2",
+    "rust-ssse3|gf16:custom_warm:10:2:1025:2"
+  ],
+  "short_samples": 0,
+  "all_repeats": [
+    {
+      "case": "auto|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 18.497899056899787
+    },
+    {
+      "case": "auto|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 5.032992746281849
+    },
+    {
+      "case": "auto|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 0.4498470382492963
+    },
+    {
+      "case": "auto|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 17.39436164628811
+    },
+    {
+      "case": "auto|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 1.346686371426592
+    },
+    {
+      "case": "auto|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 2.3845600148369925
+    },
+    {
+      "case": "auto|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 13.00344269416805
+    },
+    {
+      "case": "auto|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 3.5832118873763545
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 0.0657866408479552
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 1.2331447500597696
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 1.404210532099603
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 0.3069785435977326
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 9.241164777940137
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 3.6743670013833016
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 2.5613880566727065
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 1.6021478742715194
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 12.829853241403674
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 19.668904626614104
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 4.661648011101698
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 0.24791740857863262
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 0.7898367187154753
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 1.21272615656074
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 5.360425757898433
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 3.3206533901912185
+    },
+    {
+      "case": "auto|gf8:encode:10:4:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 8.94936672767386
+    },
+    {
+      "case": "auto|gf8:encode:10:4:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 1.6990019199459991
+    },
+    {
+      "case": "auto|gf16:encode:10:4:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 0.5755880205851356
+    },
+    {
+      "case": "auto|gf16:encode:10:4:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 0.6124909583585622
+    },
+    {
+      "case": "scalar-rust|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 0.6479510288219594
+    },
+    {
+      "case": "scalar-rust|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 3.0079554920255003
+    },
+    {
+      "case": "scalar-rust|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 0.16067962205550088
+    },
+    {
+      "case": "scalar-rust|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 1.2094054496726518
+    },
+    {
+      "case": "auto|gf16:custom_encode:10:2:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 0.9561778166306053
+    },
+    {
+      "case": "auto|gf16:custom_encode:10:2:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 0.10461383773780845
+    },
+    {
+      "case": "auto|gf16:custom_encode:10:2:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 2.074489070630957
+    },
+    {
+      "case": "auto|gf16:custom_encode:10:2:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 0.37497648918754334
+    },
+    {
+      "case": "auto|gf16:custom_warm:10:2:1024:2",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 2.865668671067346
+    },
+    {
+      "case": "auto|gf16:custom_warm:10:2:1024:2",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 1.3397483953022977
+    },
+    {
+      "case": "auto|gf16:custom_warm:10:2:1025:2",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 2.984871042169459
+    },
+    {
+      "case": "auto|gf16:custom_warm:10:2:1025:2",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 2.7151524727620555
+    },
+    {
+      "case": "scalar-rust|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 0.9355615813886073
+    },
+    {
+      "case": "scalar-rust|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 1.0421505643738904
+    },
+    {
+      "case": "scalar-rust|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 1.95924558301
+    },
+    {
+      "case": "scalar-rust|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 2.6255003183884353
+    },
+    {
+      "case": "rust-ssse3|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 2.098085435081576
+    },
+    {
+      "case": "rust-ssse3|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 2.122030486243379
+    },
+    {
+      "case": "rust-ssse3|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 1.9362934708938984
+    },
+    {
+      "case": "rust-ssse3|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 0.8061287084033057
+    },
+    {
+      "case": "rust-ssse3|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 2.490743089429831
+    },
+    {
+      "case": "rust-ssse3|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 2.3004458156528735
+    },
+    {
+      "case": "rust-ssse3|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 1.4026999949751633
+    },
+    {
+      "case": "rust-ssse3|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 0.4773097235451588
+    },
+    {
+      "case": "rust-avx2|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 3.446735817181273
+    },
+    {
+      "case": "rust-avx2|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 4.304364634984502
+    },
+    {
+      "case": "rust-avx2|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 3.9846265255863824
+    },
+    {
+      "case": "rust-avx2|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 2.0473743636797304
+    },
+    {
+      "case": "rust-avx2|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 8.234157831029057
+    },
+    {
+      "case": "rust-avx2|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 2.9598343616539657
+    },
+    {
+      "case": "rust-avx2|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 0.7318672361545161
+    },
+    {
+      "case": "rust-avx2|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 24.82406758103554
+    },
+    {
+      "case": "scalar-rust|gf16:custom_encode:10:2:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 1.4166150234759844
+    },
+    {
+      "case": "scalar-rust|gf16:custom_encode:10:2:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 0.8321405941744772
+    },
+    {
+      "case": "scalar-rust|gf16:custom_encode:10:2:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 4.796831303201885
+    },
+    {
+      "case": "scalar-rust|gf16:custom_encode:10:2:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 0.312354474490013
+    },
+    {
+      "case": "scalar-rust|gf16:custom_warm:10:2:1024:2",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 1.3323244147983593
+    },
+    {
+      "case": "scalar-rust|gf16:custom_warm:10:2:1024:2",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 0.2551381129200444
+    },
+    {
+      "case": "scalar-rust|gf16:custom_warm:10:2:1025:2",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 0.3799310342871153
+    },
+    {
+      "case": "scalar-rust|gf16:custom_warm:10:2:1025:2",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 2.089380894124652
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_encode:10:2:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 1.004565225293239
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_encode:10:2:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 3.0034243194274106
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_encode:10:2:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 3.5941843534755824
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_encode:10:2:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 7.35445111850258
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_warm:10:2:1024:2",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 1.0736225467450844
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_warm:10:2:1024:2",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 0.6773416441895108
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_warm:10:2:1025:2",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 2.803749650170649
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_warm:10:2:1025:2",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 0.3805979774137372
+    },
+    {
+      "case": "rust-avx2|gf16:custom_encode:10:2:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 4.223120083190817
+    },
+    {
+      "case": "rust-avx2|gf16:custom_encode:10:2:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 0.34128278902503184
+    },
+    {
+      "case": "rust-avx2|gf16:custom_encode:10:2:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 1.9683775467175104
+    },
+    {
+      "case": "rust-avx2|gf16:custom_encode:10:2:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 2.0471890947613818
+    },
+    {
+      "case": "rust-avx2|gf16:custom_warm:10:2:1024:2",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 2.9384317263273747
+    },
+    {
+      "case": "rust-avx2|gf16:custom_warm:10:2:1024:2",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 0.5984149153497947
+    },
+    {
+      "case": "rust-avx2|gf16:custom_warm:10:2:1025:2",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "drift_percent": 0.13451443234040172
+    },
+    {
+      "case": "rust-avx2|gf16:custom_warm:10:2:1025:2",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "drift_percent": 0.28909109614332
+    }
+  ],
+  "all_repeat_service_summaries": [
+    {
+      "case": "auto|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 18.497899056899787,
+      "signed_calling_thread_cpu_median_drift_percent": 18.49758974972757,
+      "first_cpu_to_wall_median_ratio": 0.9999257837363166,
+      "second_cpu_to_wall_median_ratio": 0.999923173696653
+    },
+    {
+      "case": "auto|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 5.032992746281849,
+      "signed_calling_thread_cpu_median_drift_percent": 5.0304833468761565,
+      "first_cpu_to_wall_median_ratio": 0.9999464542914668,
+      "second_cpu_to_wall_median_ratio": 0.9999225640359146
+    },
+    {
+      "case": "auto|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 0.4498470382492963,
+      "signed_calling_thread_cpu_median_drift_percent": 0.4479266648389456,
+      "first_cpu_to_wall_median_ratio": 0.999955262713328,
+      "second_cpu_to_wall_median_ratio": 0.9999361458350582
+    },
+    {
+      "case": "auto|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 17.39436164628811,
+      "signed_calling_thread_cpu_median_drift_percent": 17.40000406470768,
+      "first_cpu_to_wall_median_ratio": 0.9998843103756329,
+      "second_cpu_to_wall_median_ratio": 0.9999323686091901
+    },
+    {
+      "case": "auto|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": -1.346686371426592,
+      "signed_calling_thread_cpu_median_drift_percent": -1.341709473315051,
+      "first_cpu_to_wall_median_ratio": 0.9998739353651536,
+      "second_cpu_to_wall_median_ratio": 0.9999243773677349
+    },
+    {
+      "case": "auto|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 2.3845600148369925,
+      "signed_calling_thread_cpu_median_drift_percent": 2.389380531412234,
+      "first_cpu_to_wall_median_ratio": 0.9999162672541811,
+      "second_cpu_to_wall_median_ratio": 0.9999633457681626
+    },
+    {
+      "case": "auto|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 13.00344269416805,
+      "signed_calling_thread_cpu_median_drift_percent": 13.010582877149103,
+      "first_cpu_to_wall_median_ratio": 0.9998942353307582,
+      "second_cpu_to_wall_median_ratio": 0.9999574141829395
+    },
+    {
+      "case": "auto|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -3.5832118873763545,
+      "signed_calling_thread_cpu_median_drift_percent": -3.5831155620341733,
+      "first_cpu_to_wall_median_ratio": 0.9999840832797097,
+      "second_cpu_to_wall_median_ratio": 0.999985082315364
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": -0.0657866408479552,
+      "signed_calling_thread_cpu_median_drift_percent": -0.06764313003554125,
+      "first_cpu_to_wall_median_ratio": 0.9999374758113071,
+      "second_cpu_to_wall_median_ratio": 0.9999188998596915
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -1.2331447500597696,
+      "signed_calling_thread_cpu_median_drift_percent": -1.2362654231625798,
+      "first_cpu_to_wall_median_ratio": 0.9999842947479765,
+      "second_cpu_to_wall_median_ratio": 0.9999526988843241
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 1.404210532099603,
+      "signed_calling_thread_cpu_median_drift_percent": 1.404837029473746,
+      "first_cpu_to_wall_median_ratio": 0.9999148267892605,
+      "second_cpu_to_wall_median_ratio": 0.9999210044815877
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -0.3069785435977326,
+      "signed_calling_thread_cpu_median_drift_percent": -0.30723285585319765,
+      "first_cpu_to_wall_median_ratio": 0.9999467921907272,
+      "second_cpu_to_wall_median_ratio": 0.9999442413730235
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": -9.241164777940137,
+      "signed_calling_thread_cpu_median_drift_percent": -9.229256743253814,
+      "first_cpu_to_wall_median_ratio": 0.9998010082424311,
+      "second_cpu_to_wall_median_ratio": 0.9999321873728865
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -3.6743670013833016,
+      "signed_calling_thread_cpu_median_drift_percent": -3.6779676234631546,
+      "first_cpu_to_wall_median_ratio": 0.999984398489645,
+      "second_cpu_to_wall_median_ratio": 0.9999470193851157
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": -2.5613880566727065,
+      "signed_calling_thread_cpu_median_drift_percent": -2.569060101176897,
+      "first_cpu_to_wall_median_ratio": 0.9999836715824987,
+      "second_cpu_to_wall_median_ratio": 0.9999049356576037
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 1.6021478742715194,
+      "signed_calling_thread_cpu_median_drift_percent": 1.6086469480813546,
+      "first_cpu_to_wall_median_ratio": 0.9998518821479695,
+      "second_cpu_to_wall_median_ratio": 0.9999158385831132
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 12.829853241403674,
+      "signed_calling_thread_cpu_median_drift_percent": 12.829897325807398,
+      "first_cpu_to_wall_median_ratio": 0.9999597414068986,
+      "second_cpu_to_wall_median_ratio": 0.9999601321069455
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 19.668904626614104,
+      "signed_calling_thread_cpu_median_drift_percent": 19.66960213581131,
+      "first_cpu_to_wall_median_ratio": 0.999946929781885,
+      "second_cpu_to_wall_median_ratio": 0.9999527581312162
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 4.661648011101698,
+      "signed_calling_thread_cpu_median_drift_percent": 4.668322161080421,
+      "first_cpu_to_wall_median_ratio": 0.9998584757982618,
+      "second_cpu_to_wall_median_ratio": 0.9999222355952054
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -0.24791740857863262,
+      "signed_calling_thread_cpu_median_drift_percent": -0.25125287505143273,
+      "first_cpu_to_wall_median_ratio": 0.9999394861215203,
+      "second_cpu_to_wall_median_ratio": 0.999906050582691
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": -0.7898367187154753,
+      "signed_calling_thread_cpu_median_drift_percent": -0.7923135289644043,
+      "first_cpu_to_wall_median_ratio": 0.9999530217606847,
+      "second_cpu_to_wall_median_ratio": 0.9999280576460131
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -1.21272615656074,
+      "signed_calling_thread_cpu_median_drift_percent": -1.216818713942669,
+      "first_cpu_to_wall_median_ratio": 0.9999388885741272,
+      "second_cpu_to_wall_median_ratio": 0.9998974631240596
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 5.360425757898433,
+      "signed_calling_thread_cpu_median_drift_percent": 5.367558341076572,
+      "first_cpu_to_wall_median_ratio": 0.9998665194751083,
+      "second_cpu_to_wall_median_ratio": 0.9999342074240312
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -3.3206533901912185,
+      "signed_calling_thread_cpu_median_drift_percent": -3.3172461612403588,
+      "first_cpu_to_wall_median_ratio": 0.9999118944440583,
+      "second_cpu_to_wall_median_ratio": 0.9999471339122025
+    },
+    {
+      "case": "auto|gf8:encode:10:4:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": -8.94936672767386,
+      "signed_calling_thread_cpu_median_drift_percent": -8.953501284302806,
+      "first_cpu_to_wall_median_ratio": 0.9999380055559531,
+      "second_cpu_to_wall_median_ratio": 0.9998925989490925
+    },
+    {
+      "case": "auto|gf8:encode:10:4:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 1.6990019199459991,
+      "signed_calling_thread_cpu_median_drift_percent": 1.6860749223687064,
+      "first_cpu_to_wall_median_ratio": 0.9999529700137415,
+      "second_cpu_to_wall_median_ratio": 0.9998258656235632
+    },
+    {
+      "case": "auto|gf16:encode:10:4:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": -0.5755880205851356,
+      "signed_calling_thread_cpu_median_drift_percent": -0.4886301755476586,
+      "first_cpu_to_wall_median_ratio": 0.9989350629421692,
+      "second_cpu_to_wall_median_ratio": 0.9998087441506013
+    },
+    {
+      "case": "auto|gf16:encode:10:4:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 0.6124909583585622,
+      "signed_calling_thread_cpu_median_drift_percent": 0.614300987947182,
+      "first_cpu_to_wall_median_ratio": 0.999950000504572,
+      "second_cpu_to_wall_median_ratio": 0.9999679897131764
+    },
+    {
+      "case": "scalar-rust|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 0.6479510288219594,
+      "signed_calling_thread_cpu_median_drift_percent": 0.6516642443964736,
+      "first_cpu_to_wall_median_ratio": 0.9999060067147625,
+      "second_cpu_to_wall_median_ratio": 0.9999428963535404
+    },
+    {
+      "case": "scalar-rust|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -3.0079554920255003,
+      "signed_calling_thread_cpu_median_drift_percent": -3.0034163213614384,
+      "first_cpu_to_wall_median_ratio": 0.9998422506093756,
+      "second_cpu_to_wall_median_ratio": 0.9998890426389249
+    },
+    {
+      "case": "scalar-rust|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 0.16067962205550088,
+      "signed_calling_thread_cpu_median_drift_percent": 0.15596093713198847,
+      "first_cpu_to_wall_median_ratio": 0.9999551520745894,
+      "second_cpu_to_wall_median_ratio": 0.9999080430362114
+    },
+    {
+      "case": "scalar-rust|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -1.2094054496726518,
+      "signed_calling_thread_cpu_median_drift_percent": -1.2151680048375948,
+      "first_cpu_to_wall_median_ratio": 0.9999609127433823,
+      "second_cpu_to_wall_median_ratio": 0.9999025840133176
+    },
+    {
+      "case": "auto|gf16:custom_encode:10:2:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 0.9561778166306053,
+      "signed_calling_thread_cpu_median_drift_percent": 0.9552817719041475,
+      "first_cpu_to_wall_median_ratio": 0.9999281232399116,
+      "second_cpu_to_wall_median_ratio": 0.999919248296931
+    },
+    {
+      "case": "auto|gf16:custom_encode:10:2:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -0.10461383773780845,
+      "signed_calling_thread_cpu_median_drift_percent": -0.10338013221688734,
+      "first_cpu_to_wall_median_ratio": 0.9999238672823116,
+      "second_cpu_to_wall_median_ratio": 0.9999362163170665
+    },
+    {
+      "case": "auto|gf16:custom_encode:10:2:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 2.074489070630957,
+      "signed_calling_thread_cpu_median_drift_percent": 2.075408940839976,
+      "first_cpu_to_wall_median_ratio": 0.9999398462528388,
+      "second_cpu_to_wall_median_ratio": 0.9999488574649815
+    },
+    {
+      "case": "auto|gf16:custom_encode:10:2:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 0.37497648918754334,
+      "signed_calling_thread_cpu_median_drift_percent": 0.37411388190242545,
+      "first_cpu_to_wall_median_ratio": 0.9999556736542987,
+      "second_cpu_to_wall_median_ratio": 0.9999470801872907
+    },
+    {
+      "case": "auto|gf16:custom_warm:10:2:1024:2",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": -2.865668671067346,
+      "signed_calling_thread_cpu_median_drift_percent": -2.854471814178679,
+      "first_cpu_to_wall_median_ratio": 0.9998135155200132,
+      "second_cpu_to_wall_median_ratio": 0.9999287659026067
+    },
+    {
+      "case": "auto|gf16:custom_warm:10:2:1024:2",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 1.3397483953022977,
+      "signed_calling_thread_cpu_median_drift_percent": 1.3282719172140884,
+      "first_cpu_to_wall_median_ratio": 0.9999359302033868,
+      "second_cpu_to_wall_median_ratio": 0.9998226899104681
+    },
+    {
+      "case": "auto|gf16:custom_warm:10:2:1025:2",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 2.984871042169459,
+      "signed_calling_thread_cpu_median_drift_percent": 2.9760317089242063,
+      "first_cpu_to_wall_median_ratio": 0.9999615336838955,
+      "second_cpu_to_wall_median_ratio": 0.9998757056089635
+    },
+    {
+      "case": "auto|gf16:custom_warm:10:2:1025:2",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 2.7151524727620555,
+      "signed_calling_thread_cpu_median_drift_percent": 2.7143200878437255,
+      "first_cpu_to_wall_median_ratio": 0.9999550985206557,
+      "second_cpu_to_wall_median_ratio": 0.999946995066365
+    },
+    {
+      "case": "scalar-rust|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 0.9355615813886073,
+      "signed_calling_thread_cpu_median_drift_percent": 0.9312582046245557,
+      "first_cpu_to_wall_median_ratio": 0.9999535551414093,
+      "second_cpu_to_wall_median_ratio": 0.9999109222296098
+    },
+    {
+      "case": "scalar-rust|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 1.0421505643738904,
+      "signed_calling_thread_cpu_median_drift_percent": 1.0432123742477,
+      "first_cpu_to_wall_median_ratio": 0.9999236115321212,
+      "second_cpu_to_wall_median_ratio": 0.9999341193128627
+    },
+    {
+      "case": "scalar-rust|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 1.95924558301,
+      "signed_calling_thread_cpu_median_drift_percent": 1.9631665354675958,
+      "first_cpu_to_wall_median_ratio": 0.9999467668473073,
+      "second_cpu_to_wall_median_ratio": 0.9999852208757822
+    },
+    {
+      "case": "scalar-rust|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -2.6255003183884353,
+      "signed_calling_thread_cpu_median_drift_percent": -2.6228025236951735,
+      "first_cpu_to_wall_median_ratio": 0.9999317593774977,
+      "second_cpu_to_wall_median_ratio": 0.999959462837879
+    },
+    {
+      "case": "rust-ssse3|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 2.098085435081576,
+      "signed_calling_thread_cpu_median_drift_percent": 2.0954305726517304,
+      "first_cpu_to_wall_median_ratio": 0.9999328490679203,
+      "second_cpu_to_wall_median_ratio": 0.9999068477561225
+    },
+    {
+      "case": "rust-ssse3|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 2.122030486243379,
+      "signed_calling_thread_cpu_median_drift_percent": 2.1138346051995676,
+      "first_cpu_to_wall_median_ratio": 0.9999589545197003,
+      "second_cpu_to_wall_median_ratio": 0.9998787020550665
+    },
+    {
+      "case": "rust-ssse3|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 1.9362934708938984,
+      "signed_calling_thread_cpu_median_drift_percent": 1.920667265255263,
+      "first_cpu_to_wall_median_ratio": 0.9999270347810727,
+      "second_cpu_to_wall_median_ratio": 0.9997737521283777
+    },
+    {
+      "case": "rust-ssse3|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -0.8061287084033057,
+      "signed_calling_thread_cpu_median_drift_percent": -0.8103199726950323,
+      "first_cpu_to_wall_median_ratio": 0.9999542954298675,
+      "second_cpu_to_wall_median_ratio": 0.9999120441024697
+    },
+    {
+      "case": "rust-ssse3|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 2.490743089429831,
+      "signed_calling_thread_cpu_median_drift_percent": 2.475252721394538,
+      "first_cpu_to_wall_median_ratio": 0.9999835980875003,
+      "second_cpu_to_wall_median_ratio": 0.9998324613750841
+    },
+    {
+      "case": "rust-ssse3|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 2.3004458156528735,
+      "signed_calling_thread_cpu_median_drift_percent": 2.3064346530106317,
+      "first_cpu_to_wall_median_ratio": 0.9998799759197127,
+      "second_cpu_to_wall_median_ratio": 0.9999385105478398
+    },
+    {
+      "case": "rust-ssse3|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 1.4026999949751633,
+      "signed_calling_thread_cpu_median_drift_percent": 1.4155154604808013,
+      "first_cpu_to_wall_median_ratio": 0.9998621731330789,
+      "second_cpu_to_wall_median_ratio": 0.9999885376104628
+    },
+    {
+      "case": "rust-ssse3|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -0.4773097235451588,
+      "signed_calling_thread_cpu_median_drift_percent": -0.4747152737482679,
+      "first_cpu_to_wall_median_ratio": 0.9999275839581601,
+      "second_cpu_to_wall_median_ratio": 0.9999536509978462
+    },
+    {
+      "case": "rust-avx2|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": -3.446735817181273,
+      "signed_calling_thread_cpu_median_drift_percent": -3.4473742386688184,
+      "first_cpu_to_wall_median_ratio": 0.9999173251527749,
+      "second_cpu_to_wall_median_ratio": 0.9999107135823474
+    },
+    {
+      "case": "rust-avx2|gf16:multiply_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 4.304364634984502,
+      "signed_calling_thread_cpu_median_drift_percent": 4.307803010890006,
+      "first_cpu_to_wall_median_ratio": 0.9999193326632233,
+      "second_cpu_to_wall_median_ratio": 0.9999522948365025
+    },
+    {
+      "case": "rust-avx2|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 3.9846265255863824,
+      "signed_calling_thread_cpu_median_drift_percent": 3.991517970017049,
+      "first_cpu_to_wall_median_ratio": 0.9998683385323788,
+      "second_cpu_to_wall_median_ratio": 0.9999346034921446
+    },
+    {
+      "case": "rust-avx2|gf16:multiply_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 2.0473743636797304,
+      "signed_calling_thread_cpu_median_drift_percent": 2.043732011089245,
+      "first_cpu_to_wall_median_ratio": 0.9999671884793134,
+      "second_cpu_to_wall_median_ratio": 0.9999314968889902
+    },
+    {
+      "case": "rust-avx2|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 8.234157831029057,
+      "signed_calling_thread_cpu_median_drift_percent": 8.216071811659392,
+      "first_cpu_to_wall_median_ratio": 0.999983223900374,
+      "second_cpu_to_wall_median_ratio": 0.9998161258573972
+    },
+    {
+      "case": "rust-avx2|gf16:accumulate_tower:0:0:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -2.9598343616539657,
+      "signed_calling_thread_cpu_median_drift_percent": -2.9446528747007914,
+      "first_cpu_to_wall_median_ratio": 0.9997925436405887,
+      "second_cpu_to_wall_median_ratio": 0.9999489565790591
+    },
+    {
+      "case": "rust-avx2|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 0.7318672361545161,
+      "signed_calling_thread_cpu_median_drift_percent": 0.7259806098902384,
+      "first_cpu_to_wall_median_ratio": 0.9999833000441019,
+      "second_cpu_to_wall_median_ratio": 0.9999248624501269
+    },
+    {
+      "case": "rust-avx2|gf16:accumulate_tower:0:0:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 24.82406758103554,
+      "signed_calling_thread_cpu_median_drift_percent": 24.830023449614227,
+      "first_cpu_to_wall_median_ratio": 0.9998783242650447,
+      "second_cpu_to_wall_median_ratio": 0.9999260325636878
+    },
+    {
+      "case": "scalar-rust|gf16:custom_encode:10:2:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 1.4166150234759844,
+      "signed_calling_thread_cpu_median_drift_percent": 1.4161077636387214,
+      "first_cpu_to_wall_median_ratio": 0.9999332361469563,
+      "second_cpu_to_wall_median_ratio": 0.9999282347379611
+    },
+    {
+      "case": "scalar-rust|gf16:custom_encode:10:2:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 0.8321405941744772,
+      "signed_calling_thread_cpu_median_drift_percent": 0.8313574788264797,
+      "first_cpu_to_wall_median_ratio": 0.9999482808603721,
+      "second_cpu_to_wall_median_ratio": 0.9999405147369781
+    },
+    {
+      "case": "scalar-rust|gf16:custom_encode:10:2:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": -4.796831303201885,
+      "signed_calling_thread_cpu_median_drift_percent": -4.796126683403414,
+      "first_cpu_to_wall_median_ratio": 0.9999167618383634,
+      "second_cpu_to_wall_median_ratio": 0.9999241624444236
+    },
+    {
+      "case": "scalar-rust|gf16:custom_encode:10:2:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 0.312354474490013,
+      "signed_calling_thread_cpu_median_drift_percent": 0.3146349206182421,
+      "first_cpu_to_wall_median_ratio": 0.9999123696749155,
+      "second_cpu_to_wall_median_ratio": 0.9999351011351024
+    },
+    {
+      "case": "scalar-rust|gf16:custom_warm:10:2:1024:2",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": -1.3323244147983593,
+      "signed_calling_thread_cpu_median_drift_percent": -1.3123102727549258,
+      "first_cpu_to_wall_median_ratio": 0.9996973501523745,
+      "second_cpu_to_wall_median_ratio": 0.9999001327217187
+    },
+    {
+      "case": "scalar-rust|gf16:custom_warm:10:2:1024:2",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 0.2551381129200444,
+      "signed_calling_thread_cpu_median_drift_percent": 0.25371939591306186,
+      "first_cpu_to_wall_median_ratio": 0.999952328642418,
+      "second_cpu_to_wall_median_ratio": 0.9999381782517097
+    },
+    {
+      "case": "scalar-rust|gf16:custom_warm:10:2:1025:2",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": -0.3799310342871153,
+      "signed_calling_thread_cpu_median_drift_percent": -0.380425311612157,
+      "first_cpu_to_wall_median_ratio": 0.9999569345617353,
+      "second_cpu_to_wall_median_ratio": 0.9999519731514099
+    },
+    {
+      "case": "scalar-rust|gf16:custom_warm:10:2:1025:2",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 2.089380894124652,
+      "signed_calling_thread_cpu_median_drift_percent": 2.0916729669631002,
+      "first_cpu_to_wall_median_ratio": 0.9998954689549152,
+      "second_cpu_to_wall_median_ratio": 0.9999179182363743
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_encode:10:2:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": -1.004565225293239,
+      "signed_calling_thread_cpu_median_drift_percent": -1.003872315288765,
+      "first_cpu_to_wall_median_ratio": 0.9999219925484288,
+      "second_cpu_to_wall_median_ratio": 0.9999289914161433
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_encode:10:2:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -3.0034243194274106,
+      "signed_calling_thread_cpu_median_drift_percent": -3.011582644903016,
+      "first_cpu_to_wall_median_ratio": 0.999966242141982,
+      "second_cpu_to_wall_median_ratio": 0.999882135563881
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_encode:10:2:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": -3.5941843534755824,
+      "signed_calling_thread_cpu_median_drift_percent": -3.5988172135913903,
+      "first_cpu_to_wall_median_ratio": 0.9999642011192694,
+      "second_cpu_to_wall_median_ratio": 0.9999161470238445
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_encode:10:2:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": 7.35445111850258,
+      "signed_calling_thread_cpu_median_drift_percent": 7.352533000281463,
+      "first_cpu_to_wall_median_ratio": 0.999941514938739,
+      "second_cpu_to_wall_median_ratio": 0.999923648832398
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_warm:10:2:1024:2",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 1.0736225467450844,
+      "signed_calling_thread_cpu_median_drift_percent": 1.0614520166229577,
+      "first_cpu_to_wall_median_ratio": 0.9999465450172963,
+      "second_cpu_to_wall_median_ratio": 0.9998261389287442
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_warm:10:2:1024:2",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -0.6773416441895108,
+      "signed_calling_thread_cpu_median_drift_percent": -0.6737632170948721,
+      "first_cpu_to_wall_median_ratio": 0.9999123901358464,
+      "second_cpu_to_wall_median_ratio": 0.9999484152850758
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_warm:10:2:1025:2",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": -2.803749650170649,
+      "signed_calling_thread_cpu_median_drift_percent": -2.809331291174122,
+      "first_cpu_to_wall_median_ratio": 0.9999489692785639,
+      "second_cpu_to_wall_median_ratio": 0.9998915457035986
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_warm:10:2:1025:2",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -0.3805979774137372,
+      "signed_calling_thread_cpu_median_drift_percent": -0.3839674089707477,
+      "first_cpu_to_wall_median_ratio": 0.9999135394418871,
+      "second_cpu_to_wall_median_ratio": 0.9998797193208496
+    },
+    {
+      "case": "rust-avx2|gf16:custom_encode:10:2:1024:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": -4.223120083190817,
+      "signed_calling_thread_cpu_median_drift_percent": -4.224657373307344,
+      "first_cpu_to_wall_median_ratio": 0.9999364112522904,
+      "second_cpu_to_wall_median_ratio": 0.9999203615296066
+    },
+    {
+      "case": "rust-avx2|gf16:custom_encode:10:2:1024:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -0.34128278902503184,
+      "signed_calling_thread_cpu_median_drift_percent": -0.33840922260301615,
+      "first_cpu_to_wall_median_ratio": 0.9999129248366778,
+      "second_cpu_to_wall_median_ratio": 0.9999417563958847
+    },
+    {
+      "case": "rust-avx2|gf16:custom_encode:10:2:1025:0",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 1.9683775467175104,
+      "signed_calling_thread_cpu_median_drift_percent": 1.9683770317934615,
+      "first_cpu_to_wall_median_ratio": 0.9999487999399637,
+      "second_cpu_to_wall_median_ratio": 0.9999487948903817
+    },
+    {
+      "case": "rust-avx2|gf16:custom_encode:10:2:1025:0",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -2.0471890947613818,
+      "signed_calling_thread_cpu_median_drift_percent": -2.05195674378026,
+      "first_cpu_to_wall_median_ratio": 0.9999467617560457,
+      "second_cpu_to_wall_median_ratio": 0.9998980914304719
+    },
+    {
+      "case": "rust-avx2|gf16:custom_warm:10:2:1024:2",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": 2.9384317263273747,
+      "signed_calling_thread_cpu_median_drift_percent": 2.9383009686251618,
+      "first_cpu_to_wall_median_ratio": 0.9999482293549871,
+      "second_cpu_to_wall_median_ratio": 0.9999469591692011
+    },
+    {
+      "case": "rust-avx2|gf16:custom_warm:10:2:1024:2",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -0.5984149153497947,
+      "signed_calling_thread_cpu_median_drift_percent": -0.5976402021958785,
+      "first_cpu_to_wall_median_ratio": 0.9998888225666498,
+      "second_cpu_to_wall_median_ratio": 0.9998966154707833
+    },
+    {
+      "case": "rust-avx2|gf16:custom_warm:10:2:1025:2",
+      "pair": [
+        "A1",
+        "A2"
+      ],
+      "signed_wall_median_drift_percent": -0.13451443234040172,
+      "signed_calling_thread_cpu_median_drift_percent": -0.13357692433583745,
+      "first_cpu_to_wall_median_ratio": 0.9999432181970528,
+      "second_cpu_to_wall_median_ratio": 0.9999526053718694
+    },
+    {
+      "case": "rust-avx2|gf16:custom_warm:10:2:1025:2",
+      "pair": [
+        "B1",
+        "B2"
+      ],
+      "signed_wall_median_drift_percent": -0.28909109614332,
+      "signed_calling_thread_cpu_median_drift_percent": -0.2932872910031565,
+      "first_cpu_to_wall_median_ratio": 0.9999575299192627,
+      "second_cpu_to_wall_median_ratio": 0.9999154480979933
+    }
+  ],
+  "cases": [
+    {
+      "case": "auto|gf16:multiply_tower:0:0:1024:0",
+      "common_count": 16777216,
+      "selected_backend": "rust-gfni-avx512",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 21.71398425102234,
+          "cpu_median_ns": 21.712372720241547,
+          "width_percent": 3.3069737177528453
+        },
+        "B1": {
+          "median_ns": 20.969603896141052,
+          "cpu_median_ns": 20.968481063842773,
+          "width_percent": 2.2542336824882288
+        },
+        "B2": {
+          "median_ns": 22.025002539157867,
+          "cpu_median_ns": 22.023297011852264,
+          "width_percent": 4.6358787851397585
+        },
+        "A2": {
+          "median_ns": 25.73061513900757,
+          "cpu_median_ns": 25.728638350963593,
+          "width_percent": 1.3233042927976275
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.965718849830784
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.014323409492244
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.8149670648313094
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.8559842980888553
+        }
+      ]
+    },
+    {
+      "case": "auto|gf16:multiply_tower:0:0:1025:0",
+      "common_count": 16777216,
+      "selected_backend": "rust-gfni-avx512",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 20.457863867282867,
+          "cpu_median_ns": 20.45694863796234,
+          "width_percent": 2.4631164233970724
+        },
+        "B1": {
+          "median_ns": 21.452898800373077,
+          "cpu_median_ns": 21.450416922569275,
+          "width_percent": 1.9643164120867476
+        },
+        "B2": {
+          "median_ns": 25.184493601322174,
+          "cpu_median_ns": 25.182790338993073,
+          "width_percent": 2.4850761204249525
+        },
+        "A2": {
+          "median_ns": 20.549892961978912,
+          "cpu_median_ns": 20.548580765724182,
+          "width_percent": 0.9365391610516406
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.048638261528444
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.2310421931000501
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 1.0439421188258688
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 1.2255291863523634
+        }
+      ]
+    },
+    {
+      "case": "auto|gf16:accumulate_tower:0:0:1024:0",
+      "common_count": 16777216,
+      "selected_backend": "rust-gfni-avx512",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 22.769120633602142,
+          "cpu_median_ns": 22.766250252723694,
+          "width_percent": 2.1741407394881795
+        },
+        "B1": {
+          "median_ns": 24.044663429260254,
+          "cpu_median_ns": 24.04265010356903,
+          "width_percent": 2.996121650328246
+        },
+        "B2": {
+          "median_ns": 24.618022859096527,
+          "cpu_median_ns": 24.617120504379272,
+          "width_percent": 0.8278798551903377
+        },
+        "A2": {
+          "median_ns": 22.462491989135742,
+          "cpu_median_ns": 22.46079331636429,
+          "width_percent": 3.232374638219247
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.056020731594513
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.0812021797085047
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 1.070436149332396
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 1.095961341733737
+        }
+      ]
+    },
+    {
+      "case": "auto|gf16:accumulate_tower:0:0:1025:0",
+      "common_count": 8388608,
+      "selected_backend": "rust-gfni-avx512",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 24.310813665390015,
+          "cpu_median_ns": 24.308242440223694,
+          "width_percent": 5.411427309338871
+        },
+        "B1": {
+          "median_ns": 25.030121684074402,
+          "cpu_median_ns": 25.029723286628723,
+          "width_percent": 0.9141155347861565
+        },
+        "B2": {
+          "median_ns": 24.13323938846588,
+          "cpu_median_ns": 24.132879376411438,
+          "width_percent": 2.6247784668260703
+        },
+        "A2": {
+          "median_ns": 27.47205638885498,
+          "cpu_median_ns": 27.47088646888733,
+          "width_percent": 1.4933440980188561
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.0295879861770496
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.9926956670653547
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.9111120525447365
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.8784649771706348
+        }
+      ]
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:multiply_tower:0:0:1024:0",
+      "common_count": 8388608,
+      "selected_backend": "rust-gfni-avx2",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 37.18653583526611,
+          "cpu_median_ns": 37.184210777282715,
+          "width_percent": 2.7827360867074575
+        },
+        "B1": {
+          "median_ns": 36.54782032966614,
+          "cpu_median_ns": 36.54724633693695,
+          "width_percent": 5.834492972393872
+        },
+        "B2": {
+          "median_ns": 36.09713280200958,
+          "cpu_median_ns": 36.09542536735535,
+          "width_percent": 1.8270436538175627
+        },
+        "A2": {
+          "median_ns": 37.16207206249237,
+          "cpu_median_ns": 37.15905821323395,
+          "width_percent": 1.7379302632782514
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.982824011668378
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.9707043689661625
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.9834710042057586
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.9713433831490351
+        }
+      ]
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:multiply_tower:0:0:1025:0",
+      "common_count": 8388608,
+      "selected_backend": "rust-gfni-avx2",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 36.36187148094177,
+          "cpu_median_ns": 36.35877442359924,
+          "width_percent": 2.701667361657773
+        },
+        "B1": {
+          "median_ns": 36.36918008327484,
+          "cpu_median_ns": 36.36724495887756,
+          "width_percent": 2.255860336400335
+        },
+        "B2": {
+          "median_ns": 36.25753450393677,
+          "cpu_median_ns": 36.255512833595276,
+          "width_percent": 2.509126377685891
+        },
+        "A2": {
+          "median_ns": 36.87246870994568,
+          "cpu_median_ns": 36.869555950164795,
+          "width_percent": 1.2547371527743
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.0002009963193699
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.9971305938678187
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.9863505579018883
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.983322673324473
+        }
+      ]
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:accumulate_tower:0:0:1024:0",
+      "common_count": 8388608,
+      "selected_backend": "rust-gfni-avx2",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 40.81080412864685,
+          "cpu_median_ns": 40.80268311500549,
+          "width_percent": 3.1057062244758473
+        },
+        "B1": {
+          "median_ns": 38.13563883304596,
+          "cpu_median_ns": 38.13504385948181,
+          "width_percent": 3.183137927620214
+        },
+        "B2": {
+          "median_ns": 36.7343955039978,
+          "cpu_median_ns": 36.7324492931366,
+          "width_percent": 2.588607336226976
+        },
+        "A2": {
+          "median_ns": 37.0394104719162,
+          "cpu_median_ns": 37.036898732185364,
+          "width_percent": 2.112371380696146
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.9344495813616405
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.900114474299524
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 1.029596269140432
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.9917651235796622
+        }
+      ]
+    },
+    {
+      "case": "rust-gfni-avx2|gf16:accumulate_tower:0:0:1025:0",
+      "common_count": 8388608,
+      "selected_backend": "rust-gfni-avx2",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 38.299604535102844,
+          "cpu_median_ns": 38.29897916316986,
+          "width_percent": 2.9926475215172577
+        },
+        "B1": {
+          "median_ns": 38.555251359939575,
+          "cpu_median_ns": 38.549540638923645,
+          "width_percent": 4.2415764599935395
+        },
+        "B2": {
+          "median_ns": 39.17296350002289,
+          "cpu_median_ns": 39.16966664791107,
+          "width_percent": 3.140895496525808
+        },
+        "A2": {
+          "median_ns": 37.31860303878784,
+          "cpu_median_ns": 37.31505537033081,
+          "width_percent": 0.502581156614377
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.006674920745002
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.0228033415885425
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 1.0331375834156065
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 1.0496899752465996
+        }
+      ]
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:multiply_tower:0:0:1024:0",
+      "common_count": 16777216,
+      "selected_backend": "rust-gfni-avx512",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 21.889852702617645,
+          "cpu_median_ns": 21.88897144794464,
+          "width_percent": 4.638951257032977
+        },
+        "B1": {
+          "median_ns": 19.11900693178177,
+          "cpu_median_ns": 19.117992281913757,
+          "width_percent": 3.991415375484388
+        },
+        "B2": {
+          "median_ns": 22.879506170749664,
+          "cpu_median_ns": 22.878425300121307,
+          "width_percent": 1.7312045154869222
+        },
+        "A2": {
+          "median_ns": 24.698288679122925,
+          "cpu_median_ns": 24.697304010391235,
+          "width_percent": 1.2120377656870482
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.8734187110128644
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.045210604272987
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.7741024967427304
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.9263599785392966
+        }
+      ]
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:multiply_tower:0:0:1025:0",
+      "common_count": 16777216,
+      "selected_backend": "rust-gfni-avx512",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 19.918866455554962,
+          "cpu_median_ns": 19.91604745388031,
+          "width_percent": 2.883020499613797
+        },
+        "B1": {
+          "median_ns": 21.6408811211586,
+          "cpu_median_ns": 21.63957154750824,
+          "width_percent": 3.552406766342342
+        },
+        "B2": {
+          "median_ns": 21.58722960948944,
+          "cpu_median_ns": 21.585201501846313,
+          "width_percent": 2.523292323553974
+        },
+        "A2": {
+          "median_ns": 20.847413897514343,
+          "cpu_median_ns": 20.845792710781097,
+          "width_percent": 3.374891682638452
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.0864514388630486
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.083757936610354
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 1.0380607027588618
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 1.035487169565109
+        }
+      ]
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:accumulate_tower:0:0:1024:0",
+      "common_count": 16777216,
+      "selected_backend": "rust-gfni-avx512",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 23.335242927074432,
+          "cpu_median_ns": 23.334146678447723,
+          "width_percent": 3.0100617186836107
+        },
+        "B1": {
+          "median_ns": 23.671591818332672,
+          "cpu_median_ns": 23.670145213603973,
+          "width_percent": 2.3794626288258507
+        },
+        "B2": {
+          "median_ns": 23.38452023267746,
+          "cpu_median_ns": 23.382122457027435,
+          "width_percent": 2.0853219214014778
+        },
+        "A2": {
+          "median_ns": 23.150932610034943,
+          "cpu_median_ns": 23.149267077445984,
+          "width_percent": 2.3168869940198507
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.0144137728631912
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.0021117117039247
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 1.0224897725317574
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 1.0100897716121062
+        }
+      ]
+    },
+    {
+      "case": "rust-gfni-avx512|gf16:accumulate_tower:0:0:1025:0",
+      "common_count": 8388608,
+      "selected_backend": "rust-gfni-avx512",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 24.54372799396515,
+          "cpu_median_ns": 24.540451884269714,
+          "width_percent": 4.7028357636863936
+        },
+        "B1": {
+          "median_ns": 24.947131395339966,
+          "cpu_median_ns": 24.94493341445923,
+          "width_percent": 4.2080590674785245
+        },
+        "B2": {
+          "median_ns": 24.11872363090515,
+          "cpu_median_ns": 24.117448568344116,
+          "width_percent": 2.1170688474725288
+        },
+        "A2": {
+          "median_ns": 25.859376311302185,
+          "cpu_median_ns": 25.857674956321716,
+          "width_percent": 2.9917182442522736
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.016436109521504
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.9826837893915505
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.9647228570024131
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.9326877547454129
+        }
+      ]
+    },
+    {
+      "case": "auto|gf8:encode:10:4:1024:0",
+      "common_count": 524288,
+      "selected_backend": "rust-gfni-avx512",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 518.4145927429199,
+          "cpu_median_ns": 518.382453918457,
+          "width_percent": 4.86205095648965
+        },
+        "B1": {
+          "median_ns": 470.6525058746338,
+          "cpu_median_ns": 470.63037109375,
+          "width_percent": 0.8979615007466786
+        },
+        "B2": {
+          "median_ns": 478.6489009857178,
+          "cpu_median_ns": 478.5655517578125,
+          "width_percent": 4.003389123027059
+        },
+        "A2": {
+          "median_ns": 472.0197696685791,
+          "cpu_median_ns": 471.9690742492676,
+          "width_percent": 3.1681750259797683
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.9078689382264916
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.9232936489175531
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.9971033759986254
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 1.0140441815006884
+        }
+      ]
+    },
+    {
+      "case": "auto|gf16:encode:10:4:1024:0",
+      "common_count": 262144,
+      "selected_backend": "rust-gfni-avx512",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 884.0877456665039,
+          "cpu_median_ns": 883.1462478637695,
+          "width_percent": 4.491311892530381
+        },
+        "B1": {
+          "median_ns": 866.7842597961426,
+          "cpu_median_ns": 866.7409210205078,
+          "width_percent": 3.748092182134611
+        },
+        "B2": {
+          "median_ns": 872.0932350158691,
+          "cpu_median_ns": 872.0653190612793,
+          "width_percent": 4.0217364807245914
+        },
+        "A2": {
+          "median_ns": 878.9990425109863,
+          "cpu_median_ns": 878.8309288024902,
+          "width_percent": 3.677947629878052
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.9804278636875389
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.986432895705853
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.986103758793695
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.9921435551563403
+        }
+      ]
+    },
+    {
+      "case": "scalar-rust|gf16:multiply_tower:0:0:1024:0",
+      "common_count": 262144,
+      "selected_backend": "scalar-rust",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 992.5415000915527,
+          "cpu_median_ns": 992.4482078552246,
+          "width_percent": 1.969496004322615
+        },
+        "B1": {
+          "median_ns": 959.8081398010254,
+          "cpu_median_ns": 959.6567306518555,
+          "width_percent": 3.5713136959963645
+        },
+        "B2": {
+          "median_ns": 930.9375381469727,
+          "cpu_median_ns": 930.8342437744141,
+          "width_percent": 3.6288986434952446
+        },
+        "A2": {
+          "median_ns": 998.9726829528809,
+          "cpu_median_ns": 998.9156379699707,
+          "width_percent": 4.5577462152270956
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.9670206633299383
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.937933112178284
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.9607951810693278
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.9318948896532366
+        }
+      ]
+    },
+    {
+      "case": "scalar-rust|gf16:accumulate_tower:0:0:1024:0",
+      "common_count": 262144,
+      "selected_backend": "scalar-rust",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 994.5039825439453,
+          "cpu_median_ns": 994.4593811035156,
+          "width_percent": 2.4051245820286122
+        },
+        "B1": {
+          "median_ns": 967.6484527587891,
+          "cpu_median_ns": 967.6106300354004,
+          "width_percent": 3.0615780680177083
+        },
+        "B2": {
+          "median_ns": 955.9456596374512,
+          "cpu_median_ns": 955.8525352478027,
+          "width_percent": 5.935127648921627
+        },
+        "A2": {
+          "median_ns": 996.1019477844238,
+          "cpu_median_ns": 996.0103492736816,
+          "width_percent": 2.7166063955761945
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.972996056067609
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.9612285887404274
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.971435157727658
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.9596865679900636
+        }
+      ]
+    },
+    {
+      "case": "auto|gf16:custom_encode:10:2:1024:0",
+      "common_count": 524288,
+      "selected_backend": "rust-gfni-avx512",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 628.7263240814209,
+          "cpu_median_ns": 628.6811332702637,
+          "width_percent": 1.9724553802934213
+        },
+        "B1": {
+          "median_ns": 647.3680458068848,
+          "cpu_median_ns": 647.3187599182129,
+          "width_percent": 3.2282346503934045
+        },
+        "B2": {
+          "median_ns": 646.6908092498779,
+          "cpu_median_ns": 646.6495609283447,
+          "width_percent": 2.1654050110055167
+        },
+        "A2": {
+          "median_ns": 634.7380657196045,
+          "cpu_median_ns": 634.6868095397949,
+          "width_percent": 2.9614449817263853
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.029649978077027
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.028572821719694
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 1.0198979402203674
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 1.018830985844094
+        }
+      ]
+    },
+    {
+      "case": "auto|gf16:custom_encode:10:2:1025:0",
+      "common_count": 524288,
+      "selected_backend": "rust-gfni-avx512",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 642.7190093994141,
+          "cpu_median_ns": 642.680347442627,
+          "width_percent": 2.859511496256532
+        },
+        "B1": {
+          "median_ns": 639.5501880645752,
+          "cpu_median_ns": 639.5218391418457,
+          "width_percent": 1.6669577965859372
+        },
+        "B2": {
+          "median_ns": 641.9483509063721,
+          "cpu_median_ns": 641.914379119873,
+          "width_percent": 0.9210418418695205
+        },
+        "A2": {
+          "median_ns": 656.0521450042725,
+          "cpu_median_ns": 656.0185928344727,
+          "width_percent": 2.3140478025038864
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.9950696629654692
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.9988009402526274
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.9748465772646931
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.9785020227350852
+        }
+      ]
+    },
+    {
+      "case": "auto|gf16:custom_warm:10:2:1024:2",
+      "common_count": 524288,
+      "selected_backend": "rust-gfni-avx512",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 693.7190074920654,
+          "cpu_median_ns": 693.5896396636963,
+          "width_percent": 3.03406724138306
+        },
+        "B1": {
+          "median_ns": 671.7865753173828,
+          "cpu_median_ns": 671.7435340881348,
+          "width_percent": 2.323006831953833
+        },
+        "B2": {
+          "median_ns": 680.7868251800537,
+          "cpu_median_ns": 680.6661148071289,
+          "width_percent": 7.594065030914901
+        },
+        "A2": {
+          "median_ns": 673.839319229126,
+          "cpu_median_ns": 673.7913188934326,
+          "width_percent": 2.382036118178279
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.9683842709543554
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.9813581836848263
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.996953659643828
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 1.0103103303008136
+        }
+      ]
+    },
+    {
+      "case": "auto|gf16:custom_warm:10:2:1025:2",
+      "common_count": 524288,
+      "selected_backend": "rust-gfni-avx512",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 704.3535766601562,
+          "cpu_median_ns": 704.3264827728271,
+          "width_percent": 3.8503092664735377
+        },
+        "B1": {
+          "median_ns": 700.7682342529297,
+          "cpu_median_ns": 700.7367687225342,
+          "width_percent": 2.3369552898302985
+        },
+        "B2": {
+          "median_ns": 719.7951602935791,
+          "cpu_median_ns": 719.757007598877,
+          "width_percent": 2.9285863122065847
+        },
+        "A2": {
+          "median_ns": 725.3776226043701,
+          "cpu_median_ns": 725.2874622344971,
+          "width_percent": 0.9973463975792407
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.994909740610352
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.0219230570342845
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.9660736868845171
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.9923040604826656
+        }
+      ]
+    },
+    {
+      "case": "scalar-rust|gf16:multiply_tower:0:0:1025:0",
+      "common_count": 262144,
+      "selected_backend": "scalar-rust",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 1025.852382659912,
+          "cpu_median_ns": 1025.8047370910645,
+          "width_percent": 3.815348078724385
+        },
+        "B1": {
+          "median_ns": 963.6561012268066,
+          "cpu_median_ns": 963.5824890136719,
+          "width_percent": 3.9954414725568483
+        },
+        "B2": {
+          "median_ns": 973.6988487243652,
+          "cpu_median_ns": 973.6347007751465,
+          "width_percent": 5.9804020391655435
+        },
+        "A2": {
+          "median_ns": 1035.449863433838,
+          "cpu_median_ns": 1035.3576278686523,
+          "width_percent": 1.840354693910541
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.9393711195836598
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.9491607810079663
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.9306641830354361
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.9403631050713656
+        }
+      ]
+    },
+    {
+      "case": "scalar-rust|gf16:accumulate_tower:0:0:1025:0",
+      "common_count": 262144,
+      "selected_backend": "scalar-rust",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 1014.1348571777344,
+          "cpu_median_ns": 1014.0808715820312,
+          "width_percent": 0.8686862855359506
+        },
+        "B1": {
+          "median_ns": 984.5786933898926,
+          "cpu_median_ns": 984.5115051269531,
+          "width_percent": 2.8667039721602126
+        },
+        "B2": {
+          "median_ns": 958.7285766601562,
+          "cpu_median_ns": 958.6897125244141,
+          "width_percent": 3.0798530686233834
+        },
+        "A2": {
+          "median_ns": 1034.004249572754,
+          "cpu_median_ns": 1033.9889678955078,
+          "width_percent": 4.080145058247863
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.9708557855213709
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.9453659637814148
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.9521998519800245
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.9271998418345947
+        }
+      ]
+    },
+    {
+      "case": "rust-ssse3|gf16:multiply_tower:0:0:1024:0",
+      "common_count": 1048576,
+      "selected_backend": "rust-ssse3",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 196.76804542541504,
+          "cpu_median_ns": 196.75483226776123,
+          "width_percent": 2.165544132169319
+        },
+        "B1": {
+          "median_ns": 242.47603130340576,
+          "cpu_median_ns": 242.46607875823975,
+          "width_percent": 1.3665348529637111
+        },
+        "B2": {
+          "median_ns": 247.62144660949707,
+          "cpu_median_ns": 247.59141063690186,
+          "width_percent": 3.0113117006096664
+        },
+        "A2": {
+          "median_ns": 200.89640712738037,
+          "cpu_median_ns": 200.87769317626953,
+          "width_percent": 3.859567146307284
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.232293743525121
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.2584433924427938
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 1.2069704718495111
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 1.2325827532221132
+        }
+      ]
+    },
+    {
+      "case": "rust-ssse3|gf16:multiply_tower:0:0:1025:0",
+      "common_count": 1048576,
+      "selected_backend": "rust-ssse3",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 228.48119926452637,
+          "cpu_median_ns": 228.46452808380127,
+          "width_percent": 5.252950641911524
+        },
+        "B1": {
+          "median_ns": 272.42728328704834,
+          "cpu_median_ns": 272.41483211517334,
+          "width_percent": 2.661020121874583
+        },
+        "B2": {
+          "median_ns": 270.23116874694824,
+          "cpu_median_ns": 270.20740032196045,
+          "width_percent": 3.267486599756849
+        },
+        "A2": {
+          "median_ns": 232.90526580810547,
+          "cpu_median_ns": 232.85257148742676,
+          "width_percent": 2.674500109885038
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.1923400444499723
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.1827282490498723
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 1.1696913865034968
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 1.1602621684371714
+        }
+      ]
+    },
+    {
+      "case": "rust-ssse3|gf16:accumulate_tower:0:0:1024:0",
+      "common_count": 1048576,
+      "selected_backend": "rust-ssse3",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 212.86552238464355,
+          "cpu_median_ns": 212.8620309829712,
+          "width_percent": 3.9094372859099042
+        },
+        "B1": {
+          "median_ns": 254.74681568145752,
+          "cpu_median_ns": 254.71623992919922,
+          "width_percent": 2.6433573196684055
+        },
+        "B2": {
+          "median_ns": 260.60712814331055,
+          "cpu_median_ns": 260.591103553772,
+          "width_percent": 3.582585973437347
+        },
+        "A2": {
+          "median_ns": 218.16745567321777,
+          "cpu_median_ns": 218.13090419769287,
+          "width_percent": 3.5855481978597457
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.1967500083040001
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.224280593793855
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 1.1676664372115617
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 1.194527970907178
+        }
+      ]
+    },
+    {
+      "case": "rust-ssse3|gf16:accumulate_tower:0:0:1025:0",
+      "common_count": 1048576,
+      "selected_backend": "rust-ssse3",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 235.6458740234375,
+          "cpu_median_ns": 235.61339569091797,
+          "width_percent": 4.354305491809775
+        },
+        "B1": {
+          "median_ns": 284.2347116470337,
+          "cpu_median_ns": 284.2141284942627,
+          "width_percent": 3.1635667407973456
+        },
+        "B2": {
+          "median_ns": 282.87803173065186,
+          "cpu_median_ns": 282.8649206161499,
+          "width_percent": 3.6208920655703527
+        },
+        "A2": {
+          "median_ns": 238.95127868652344,
+          "cpu_median_ns": 238.94853973388672,
+          "width_percent": 2.5659221498768416
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.2061943067111096
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.2004370240003295
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 1.1895090631421852
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 1.1838314207213565
+        }
+      ]
+    },
+    {
+      "case": "rust-avx2|gf16:multiply_tower:0:0:1024:0",
+      "common_count": 2097152,
+      "selected_backend": "rust-avx2",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 115.22552585601807,
+          "cpu_median_ns": 115.21599960327148,
+          "width_percent": 1.4160072590982287
+        },
+        "B1": {
+          "median_ns": 108.97805976867676,
+          "cpu_median_ns": 108.96926879882812,
+          "width_percent": 2.8105132835160753
+        },
+        "B2": {
+          "median_ns": 113.66887283325195,
+          "cpu_median_ns": 113.66345024108887,
+          "width_percent": 3.932460965916968
+        },
+        "A2": {
+          "median_ns": 111.25400638580322,
+          "cpu_median_ns": 111.24407291412354,
+          "width_percent": 4.366980171771947
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.9457805374206065
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.9864903803979055
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.9795427895941652
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 1.0217058830139971
+        }
+      ]
+    },
+    {
+      "case": "rust-avx2|gf16:multiply_tower:0:0:1025:0",
+      "common_count": 2097152,
+      "selected_backend": "rust-avx2",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 133.28547382354736,
+          "cpu_median_ns": 133.26792526245117,
+          "width_percent": 2.0662718616189535
+        },
+        "B1": {
+          "median_ns": 132.27585077285767,
+          "cpu_median_ns": 132.2715106010437,
+          "width_percent": 1.027714001130451
+        },
+        "B2": {
+          "median_ns": 134.9840326309204,
+          "cpu_median_ns": 134.97478580474854,
+          "width_percent": 3.354459435599505
+        },
+        "A2": {
+          "median_ns": 138.59640216827393,
+          "cpu_median_ns": 138.5873384475708,
+          "width_percent": 6.462382582080513
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.9924251081402441
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.0127437653830282
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.9543959922730008
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.9739360511467849
+        }
+      ]
+    },
+    {
+      "case": "rust-avx2|gf16:accumulate_tower:0:0:1024:0",
+      "common_count": 2097152,
+      "selected_backend": "rust-avx2",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 111.19312620162964,
+          "cpu_median_ns": 111.19126081466675,
+          "width_percent": 1.274717263863436
+        },
+        "B1": {
+          "median_ns": 120.71919345855713,
+          "cpu_median_ns": 120.69414949417114,
+          "width_percent": 3.331430527589002
+        },
+        "B2": {
+          "median_ns": 117.14610528945923,
+          "cpu_median_ns": 117.14012575149536,
+          "width_percent": 3.5582918248356354
+        },
+        "A2": {
+          "median_ns": 120.34894371032715,
+          "cpu_median_ns": 120.32681465148926,
+          "width_percent": 0.811344654234913
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.0856713682071821
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.0535372939963472
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 1.0030764686154716
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.9733870666237258
+        }
+      ]
+    },
+    {
+      "case": "rust-avx2|gf16:accumulate_tower:0:0:1025:0",
+      "common_count": 2097152,
+      "selected_backend": "rust-avx2",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 138.7970986366272,
+          "cpu_median_ns": 138.79478073120117,
+          "width_percent": 2.4133920137925076
+        },
+        "B1": {
+          "median_ns": 143.84778308868408,
+          "cpu_median_ns": 143.83028030395508,
+          "width_percent": 4.236745709972345
+        },
+        "B2": {
+          "median_ns": 179.55665397644043,
+          "cpu_median_ns": 179.543372631073,
+          "width_percent": 2.5033522361875287
+        },
+        "A2": {
+          "median_ns": 139.81290912628174,
+          "cpu_median_ns": 139.80240392684937,
+          "width_percent": 4.050153698938261
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.0363889771592392
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.2936628772516516
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 1.0288590945401042
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 1.28426377148237
+        }
+      ]
+    },
+    {
+      "case": "scalar-rust|gf16:custom_encode:10:2:1024:0",
+      "common_count": 32768,
+      "selected_backend": "scalar-rust",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 9122.748260498047,
+          "cpu_median_ns": 9122.139190673828,
+          "width_percent": 4.524849723207495
+        },
+        "B1": {
+          "median_ns": 8407.815246582031,
+          "cpu_median_ns": 8407.380401611328,
+          "width_percent": 2.4058887879155577
+        },
+        "B2": {
+          "median_ns": 8477.780090332031,
+          "cpu_median_ns": 8477.275787353516,
+          "width_percent": 5.450507400834251
+        },
+        "A2": {
+          "median_ns": 9251.982482910156,
+          "cpu_median_ns": 9251.31851196289,
+          "width_percent": 0.9766834244727203
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.9216318379614057
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.9293011106139188
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.9087582323153516
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.91632037846935
+        }
+      ]
+    },
+    {
+      "case": "scalar-rust|gf16:custom_encode:10:2:1025:0",
+      "common_count": 32768,
+      "selected_backend": "scalar-rust",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 9457.945098876953,
+          "cpu_median_ns": 9457.157836914062,
+          "width_percent": 6.1973684679665775
+        },
+        "B1": {
+          "median_ns": 8597.685424804688,
+          "cpu_median_ns": 8596.932006835938,
+          "width_percent": 2.2807321942441727
+        },
+        "B2": {
+          "median_ns": 8624.54067993164,
+          "cpu_median_ns": 8623.98095703125,
+          "width_percent": 2.8756527451648393
+        },
+        "A2": {
+          "median_ns": 9004.263427734375,
+          "cpu_median_ns": 9003.58056640625,
+          "width_percent": 2.8166283696500867
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.9090437018740557
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.911883140551929
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.9548460564050835
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.9578285607867562
+        }
+      ]
+    },
+    {
+      "case": "scalar-rust|gf16:custom_warm:10:2:1024:2",
+      "common_count": 16384,
+      "selected_backend": "scalar-rust",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 19464.50732421875,
+          "cpu_median_ns": 19458.61639404297,
+          "width_percent": 3.664992228066555
+        },
+        "B1": {
+          "median_ns": 18180.7119140625,
+          "cpu_median_ns": 18179.84521484375,
+          "width_percent": 2.0752500167991177
+        },
+        "B2": {
+          "median_ns": 18227.09783935547,
+          "cpu_median_ns": 18225.97100830078,
+          "width_percent": 4.8826955431492145
+        },
+        "A2": {
+          "median_ns": 19205.17694091797,
+          "cpu_median_ns": 19203.25897216797,
+          "width_percent": 3.23814692057401
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.934044289497177
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.9364273924712375
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.9466568295617848
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.9490721119325574
+        }
+      ]
+    },
+    {
+      "case": "scalar-rust|gf16:custom_warm:10:2:1025:2",
+      "common_count": 16384,
+      "selected_backend": "scalar-rust",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 19987.69415283203,
+          "cpu_median_ns": 19986.833374023438,
+          "width_percent": 2.4962969998315705
+        },
+        "B1": {
+          "median_ns": 18389.18963623047,
+          "cpu_median_ns": 18387.26739501953,
+          "width_percent": 8.7475716753501
+        },
+        "B2": {
+          "median_ns": 18773.40985107422,
+          "cpu_median_ns": 18771.868896484375,
+          "width_percent": 3.8824872515043856
+        },
+        "A2": {
+          "median_ns": 19911.75469970703,
+          "cpu_median_ns": 19910.798400878906,
+          "width_percent": 2.201659802124541
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.9200255665121295
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.939248404919896
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.9235343601586773
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.942830510630509
+        }
+      ]
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_encode:10:2:1024:0",
+      "common_count": 131072,
+      "selected_backend": "rust-ssse3",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 2283.2205352783203,
+          "cpu_median_ns": 2283.0424270629883,
+          "width_percent": 1.9270390106961666
+        },
+        "B1": {
+          "median_ns": 2702.550018310547,
+          "cpu_median_ns": 2702.458786010742,
+          "width_percent": 5.709676729805661
+        },
+        "B2": {
+          "median_ns": 2621.380973815918,
+          "cpu_median_ns": 2621.072006225586,
+          "width_percent": 1.7214753272236982
+        },
+        "A2": {
+          "median_ns": 2260.28409576416,
+          "cpu_median_ns": 2260.1235961914062,
+          "width_percent": 1.841294063240548
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.1836570215417719
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.1481067786981762
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 1.1956682893868105
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 1.1597572972036851
+        }
+      ]
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_encode:10:2:1025:0",
+      "common_count": 131072,
+      "selected_backend": "rust-ssse3",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 2491.5653686523438,
+          "cpu_median_ns": 2491.476173400879,
+          "width_percent": 2.0579466264195507
+        },
+        "B1": {
+          "median_ns": 2709.452995300293,
+          "cpu_median_ns": 2709.294532775879,
+          "width_percent": 2.7355051287301673
+        },
+        "B2": {
+          "median_ns": 2908.718391418457,
+          "cpu_median_ns": 2908.496307373047,
+          "width_percent": 3.0700214593495527
+        },
+        "A2": {
+          "median_ns": 2402.013916015625,
+          "cpu_median_ns": 2401.8125,
+          "width_percent": 1.7818887659271105
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.0874500943821521
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.1674260800115976
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 1.127992214047884
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 1.2109498500505507
+        }
+      ]
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_warm:10:2:1024:2",
+      "common_count": 65536,
+      "selected_backend": "rust-ssse3",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 4244.088470458984,
+          "cpu_median_ns": 4243.861602783203,
+          "width_percent": 1.083376607013787
+        },
+        "B1": {
+          "median_ns": 5093.876220703125,
+          "cpu_median_ns": 5093.429946899414,
+          "width_percent": 3.8217802981013174
+        },
+        "B2": {
+          "median_ns": 5059.373275756836,
+          "cpu_median_ns": 5059.112289428711,
+          "width_percent": 3.459442469421346
+        },
+        "A2": {
+          "median_ns": 4289.653961181641,
+          "cpu_median_ns": 4288.908157348633,
+          "width_percent": 2.794516233214396
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.2002285664304824
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.1920989185245898
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 1.1874795185810165
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 1.1794362252854462
+        }
+      ]
+    },
+    {
+      "case": "rust-ssse3|gf16:custom_warm:10:2:1025:2",
+      "common_count": 65536,
+      "selected_backend": "rust-ssse3",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 4925.32275390625,
+          "cpu_median_ns": 4925.0714111328125,
+          "width_percent": 4.874688288788974
+        },
+        "B1": {
+          "median_ns": 5604.559753417969,
+          "cpu_median_ns": 5604.075180053711,
+          "width_percent": 1.974256071381436
+        },
+        "B2": {
+          "median_ns": 5583.228912353516,
+          "cpu_median_ns": 5582.557357788086,
+          "width_percent": 2.2696486706062045
+        },
+        "A2": {
+          "median_ns": 4787.229034423828,
+          "cpu_median_ns": 4786.7098388671875,
+          "width_percent": 1.8390063319574435
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.1379071044578792
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.1335762530334654
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 1.170731484354918
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 1.1662757040045173
+        }
+      ]
+    },
+    {
+      "case": "rust-avx2|gf16:custom_encode:10:2:1024:0",
+      "common_count": 262144,
+      "selected_backend": "rust-avx2",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 1489.0150260925293,
+          "cpu_median_ns": 1488.9203414916992,
+          "width_percent": 4.364893451956326
+        },
+        "B1": {
+          "median_ns": 1444.9165573120117,
+          "cpu_median_ns": 1444.7907409667969,
+          "width_percent": 3.4840300924287733
+        },
+        "B2": {
+          "median_ns": 1439.9853057861328,
+          "cpu_median_ns": 1439.9014358520508,
+          "width_percent": 2.1414596475563115
+        },
+        "A2": {
+          "median_ns": 1426.1321334838867,
+          "cpu_median_ns": 1426.0185585021973,
+          "width_percent": 2.3898177434298047
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.970384134472947
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.9670723804345613
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 1.0131715872513416
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 1.009713807000761
+        }
+      ]
+    },
+    {
+      "case": "rust-avx2|gf16:custom_encode:10:2:1025:0",
+      "common_count": 131072,
+      "selected_backend": "rust-avx2",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 1589.2069778442383,
+          "cpu_median_ns": 1589.1256103515625,
+          "width_percent": 3.3718996125295635
+        },
+        "B1": {
+          "median_ns": 1586.8345642089844,
+          "cpu_median_ns": 1586.7500839233398,
+          "width_percent": 3.6530503114627186
+        },
+        "B2": {
+          "median_ns": 1554.3490600585938,
+          "cpu_median_ns": 1554.190658569336,
+          "width_percent": 2.7750755847250823
+        },
+        "A2": {
+          "median_ns": 1620.4885711669922,
+          "cpu_median_ns": 1620.4055938720703,
+          "width_percent": 0.9907727319024848
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.9985071713953383
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.9780658414721226
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.9792321849368107
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.9591854504343909
+        }
+      ]
+    },
+    {
+      "case": "rust-avx2|gf16:custom_warm:10:2:1024:2",
+      "common_count": 131072,
+      "selected_backend": "rust-avx2",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 2405.800926208496,
+          "cpu_median_ns": 2405.6763763427734,
+          "width_percent": 4.423427250378527
+        },
+        "B1": {
+          "median_ns": 2467.9787673950195,
+          "cpu_median_ns": 2467.7043838500977,
+          "width_percent": 3.371008038375121
+        },
+        "B2": {
+          "median_ns": 2453.2100143432617,
+          "cpu_median_ns": 2452.9563903808594,
+          "width_percent": 2.7744332967063556
+        },
+        "A2": {
+          "median_ns": 2476.4937438964844,
+          "cpu_median_ns": 2476.36238861084,
+          "width_percent": 1.18950771343748
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 1.0258449651877535
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 1.019706155907705
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.9965616805927935
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.9905981068554656
+        }
+      ]
+    },
+    {
+      "case": "rust-avx2|gf16:custom_warm:10:2:1025:2",
+      "common_count": 131072,
+      "selected_backend": "rust-avx2",
+      "payload_witnesses_equal": true,
+      "phases": {
+        "A1": {
+          "median_ns": 2902.1144790649414,
+          "cpu_median_ns": 2901.949691772461,
+          "width_percent": 1.4734306077115378
+        },
+        "B1": {
+          "median_ns": 2869.9546813964844,
+          "cpu_median_ns": 2869.832794189453,
+          "width_percent": 2.2199629051385448
+        },
+        "B2": {
+          "median_ns": 2861.6578979492188,
+          "cpu_median_ns": 2861.4159393310547,
+          "width_percent": 1.5652219625796968
+        },
+        "A2": {
+          "median_ns": 2898.2107162475586,
+          "cpu_median_ns": 2898.073356628418,
+          "width_percent": 1.7203420789681008
+        }
+      },
+      "comparisons": [
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B1",
+          "ratio": 0.9889184944631064
+        },
+        {
+          "baseline_phase": "A1",
+          "candidate_phase": "B2",
+          "ratio": 0.9860596191474991
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B1",
+          "ratio": 0.9902505243346631
+        },
+        {
+          "baseline_phase": "A2",
+          "candidate_phase": "B2",
+          "ratio": 0.987387798239299
+        }
+      ]
+    }
+  ],
+  "scope": {
+    "payload_witness": "deterministic bytes only; dynamic/physical layouts untracked",
+    "warm_recovery": "missing output reset/drop and reconstruction allocation included; fixed custom matrix prepared before pin",
+    "wall_cpu": "calling-thread batch windows, not exclusive API cycles",
+    "faults": "unmeasured by this component harness",
+    "arithmetic_override": "does not disable feature-selected layout conversion; not an ISA profiler",
+    "tool": "old tool only for zero-codec ownership preflight; not the timed sampler"
+  },
+  "source3_restored": true,
+  "owned_cleanup4_restored": true,
+  "original_observers2_active_at_post_audit": true,
+  "runtime_implementation": "e38a8ad591ca183a6c914b6e939963928575b8a5",
+  "final_source_test_only_followthrough": "7fa4fdd isolates backend test environments without production changes",
+  "complete_group_summary": [
+    {
+      "group": "native direct controls",
+      "cases": 12,
+      "unqualified_ratio_range": [
+        0.7741024967427304,
+        1.2310421931000501
+      ],
+      "width_refusals": 0,
+      "repeat_refusals": 8,
+      "regression_cases": 1
+    },
+    {
+      "group": "gf8 ordinary encode control",
+      "cases": 1,
+      "unqualified_ratio_range": [
+        0.9078689382264916,
+        1.0140441815006884
+      ],
+      "width_refusals": 0,
+      "repeat_refusals": 1,
+      "regression_cases": 0
+    },
+    {
+      "group": "gf16 ordinary encode control",
+      "cases": 1,
+      "unqualified_ratio_range": [
+        0.9804278636875389,
+        0.9921435551563403
+      ],
+      "width_refusals": 0,
+      "repeat_refusals": 0,
+      "regression_cases": 0
+    },
+    {
+      "group": "portable direct products",
+      "cases": 12,
+      "unqualified_ratio_range": [
+        0.9271998418345947,
+        1.2936628772516516
+      ],
+      "width_refusals": 0,
+      "repeat_refusals": 2,
+      "regression_cases": 5
+    },
+    {
+      "group": "native custom codec controls",
+      "cases": 4,
+      "unqualified_ratio_range": [
+        0.9660736868845171,
+        1.029649978077027
+      ],
+      "width_refusals": 0,
+      "repeat_refusals": 0,
+      "regression_cases": 0
+    },
+    {
+      "group": "portable custom codecs",
+      "cases": 12,
+      "unqualified_ratio_range": [
+        0.9087582323153516,
+        1.2109498500505507
+      ],
+      "width_refusals": 0,
+      "repeat_refusals": 1,
+      "regression_cases": 4
+    }
+  ],
+  "all_eight_scalar_observations": {
+    "every_pair_lower": true,
+    "unqualified_ratio_range": [
+      0.9087582323153516,
+      0.972996056067609
+    ],
+    "own_width_repeat_checks_pass": true,
+    "whole_cohort_still_refused": true
+  },
+  "unchanged_ssse3_strategy_counterexample": {
+    "case_count": 8,
+    "all_flagged_by_original_regression_limit": true,
+    "logical_layout_selection_narrow_in_both_sources": true,
+    "numerical_kernel_source_unchanged": true,
+    "unique_code_or_hardware_cause_proven": false,
+    "fixture_equivalence_not_inferred_from_payload_witness": true
+  },
+  "retained_static_review": {
+    "artifact_kind": "retained-gf16-static-code-review-v1",
+    "source_comparison": {
+      "baseline": "986c1fedcfc9e75151b34392f43e41a50ff7ed9f",
+      "candidate": "7fa4fddeea73ef74ee0b52f600f80fd6bc89c066"
+    },
+    "read_only_after_capture": true,
+    "codec_reexecution": false,
+    "selected_functions": 7,
+    "same_symbol_set": true,
+    "same_function_sizes": true,
+    "same_opcode_sequences": true,
+    "same_relative_text_placement": false,
+    "ssse3_numerical_source_identical": true,
+    "ssse3_layout_policy_narrow_on_both_sources": true,
+    "role_argv0_lengths_differ": true,
+    "argv0_materialized_before_fixture_allocation": true,
+    "dynamic_and_physical_fixture_addresses_untracked": true,
+    "retained_inputs_unchanged_during_review": true,
+    "not_a_prelaunch_binary_attestation": true,
+    "exclusive_cost_or_unique_cause_proven": false,
+    "interpretation": "Same opcode sequences do not prove identical instruction/data placement, caller geometry or execution cost. Role-dependent launch arguments precede fixture allocation; this is an audit boundary and diagnostic priority, not an attributed cause or a new release gate."
+  }
+}
