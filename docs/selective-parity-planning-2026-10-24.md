@@ -104,3 +104,48 @@ no unchanged-source performance rerun is used. Final source/tool/lock binding,
 accepted complete published-baseline ABBA/paired-layout evidence and actual
 strict positive release preflight remain required. No tag, registry upload or
 automatic PR merge is performed; automation remains paused.
+
+
+## Main integration and complete API diagnostic
+
+Integration `5787367` merges reviewed main `9c426f7` into the open candidate PR.
+Codec/test/benchmark/build/lock/WASM and compatibility sources remain byte-equal
+to executed `b1a10e4`; newer native paired-campaign tooling has a separate full
+validation: 260 native tests (231 unit / 29 CLI), all 252 Python tests, strict
+tool Clippy, fmt/typos/diff, with its inputs unchanged. This source relation does
+not relabel the exact-source functional or performance records.
+
+The [fixed diagnostic plan](../benchmarks/release-9.1.0/2026-10-24/selective-recovery-paths-abba-plan.json)
+compares frozen baseline `e3a1c1c` and runtime `b1a10e4` using their byte-identical,
+unmodified `recovery_paths` program. All 72 cases run in each A1/B1/B2/A2 phase:
+288 rows / 864 samples, with every original case retained. The affected Classic
+GF8 selective-parity case is accompanied by all 71 encoding/recovery/verification/
+constructor controls. Leopard GF16 controls are not Classic GF16 selective-parity
+time measurements.
+
+This separate program preserves its original twenty warmup calls, one all-thread
+allocation-count invocation, and three independently time-targeted 1,000 ms
+samples in eight-operation batches. It is not the formal three-warmup/nine-sample
+collector; its adaptive counts are not shared between sources. No formal sampler,
+case, threshold or timing loop is edited. The existing 5% bookends and allocation
+bookend repeatability apply to the entire catalogue; all raw medians and four-way
+comparisons are retained, and any global refusal withholds all qualified ratios.
+No selected-case or unchanged-source timing retry is planned.
+
+Before launch, source/program path lengths and argv0 are equalized. The stock
+program does not parse argv, but reads Git metadata before constructing fixtures.
+Its two short source strings had different lengths, so benchmark children report
+full forty-character revisions through a process-local Git option; repository
+and system Git configuration remain untouched. This removes a concrete metadata
+length difference without claiming it explains old drift or observes dynamic/
+physical fixture addresses. Constructors retain the original eight visible guest
+CPUs and four Rayon workers; no new main-thread pin hook changes their budget.
+Guest reservation does not prove physical host isolation or fixed frequency.
+
+The plan has launched once after strict resource admission. No result is assigned
+before all four full-program workers, embedded content oracles, raw input replay
+and cleanup have been checked. Statistical refusals never truncate later phases.
+Execution errors retain partial outputs and allow later planned phases to run;
+they are not renamed as statistical refusals. Results and release approval remain
+pending; the earlier 28-command correctness proof and every historical failure
+retain their original source/scope.
