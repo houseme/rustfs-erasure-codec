@@ -316,13 +316,9 @@ mod native {
         }
         let codec = ReedSolomon::<CountedViews>::new(10, 4).unwrap();
         let reference = galois_8::ReedSolomon::new(10, 4).unwrap();
-        let gfni_selected = matches!(
-            galois_8::active_backend_id(),
-            galois_8::BackendId::RustGfniAvx2 | galois_8::BackendId::RustGfniAvx512
-        );
-        // Automatic GFNI uses the shared fallback after the empty probes;
-        // eligible generated kernels prepare all data and parity views once.
-        let expected_calls = if gfni_selected { (1, 1) } else { (15, 5) };
+        // Both generated and GFNI rows prepare ten inputs, four coefficient
+        // rows and four output views once, after the two empty native probes.
+        let expected_calls = (15, 5);
         for len in [65, 16 * 1024] {
             let mut shards = data_shards(10, len);
             shards.extend(vec![vec![0; len]; 4]);
@@ -403,14 +399,9 @@ mod native {
             } else {
                 entry_codec.encode_sep(&data, &mut parity).unwrap();
             }
-            let gfni_selected = matches!(
-                galois_8::active_backend_id(),
-                galois_8::BackendId::RustGfniAvx2 | galois_8::BackendId::RustGfniAvx512
-            );
-            // GFNI keeps the generic route after the empty capability probes.
-            // Eligible generated kernels prepare ten inputs, four rows and four
-            // parity views once, in addition to those two empty probes.
-            let expected_calls = if gfni_selected { (1, 1) } else { (15, 5) };
+            // Generated and GFNI row kernels prepare the same complete views
+            // once; chunking must not repeat conversion of the shard views.
+            let expected_calls = (15, 5);
             assert_eq!(VIEW_CALLS.with(Cell::get), expected_calls);
             let mut expected = vec![vec![0; len]; 4];
             galois_8::ReedSolomon::new(10, 4)

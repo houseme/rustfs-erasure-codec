@@ -184,7 +184,7 @@ fn generated_encode_allowed_for_backend(
 /// Returns whether generated SIMD encode code may supplement the selected backend.
 ///
 /// Table-based generated AVX2 kernels retain the automatic GFNI preference.
-/// An explicit, recognised backend override selects the generic backend path.
+/// An explicit, recognised backend override disables these generated table kernels.
 /// This makes `RSE_BACKEND_OVERRIDE=scalar` a reliable way to avoid generated
 /// SIMD encode code as well as the ordinary multiplication backend.
 #[cfg(feature = "std")]
