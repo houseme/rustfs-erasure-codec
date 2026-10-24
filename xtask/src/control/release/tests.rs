@@ -335,3 +335,78 @@ fn missing_layout_is_refused_before_source_observation() {
             .contains("paired-layout supplement")
     );
 }
+
+#[test]
+fn changed_originals_after_verification_cannot_be_exported_with_a_passing_report() {
+    let fixture = Fixture::new(false);
+    let report = fixture.replay(false).unwrap();
+    let repository = Directory::new();
+    let env_file = repository.0.join("release.env");
+    let original = fixture.directory.0.join(
+        fixture.document["files"]["B2"]["stream"]["path"]
+            .as_str()
+            .unwrap(),
+    );
+    fs::write(original, b"changed after verification").unwrap();
+    assert!(
+        materialize_verified(
+            &fixture.manifest(),
+            &repository.0,
+            &env_file,
+            &fixture.document,
+            &report
+        )
+        .is_err()
+    );
+    assert!(!env_file.exists());
+    assert!(
+        !repository
+            .0
+            .join("target/release-preflight/inputs")
+            .exists()
+    );
+}
+
+#[test]
+fn materialized_inputs_preserve_all_verified_bytes_and_release_variable_paths() {
+    let fixture = Fixture::new(false);
+    let report = fixture.replay(false).unwrap();
+    let repository = Directory::new();
+    let env_file = repository.0.join("release.env");
+    materialize_verified(
+        &fixture.manifest(),
+        &repository.0,
+        &env_file,
+        &fixture.document,
+        &report,
+    )
+    .unwrap();
+    let mut expected_env = String::new();
+    for (index, (profile, name)) in FILES.into_iter().enumerate() {
+        let baseline = repository
+            .0
+            .join("target/release-preflight/inputs")
+            .join(name);
+        let candidate = repository.0.join("target/benchmark-smoke").join(name);
+        for (phase, actual) in [("A1", &baseline), ("B2", &candidate)] {
+            let original = fixture.directory.0.join(
+                fixture.document["files"][phase][profile]["path"]
+                    .as_str()
+                    .unwrap(),
+            );
+            assert_eq!(fs::read(actual).unwrap(), fs::read(original).unwrap());
+        }
+        expected_env.push_str(&format!("{}={}\n", VARIABLES[index], baseline.display()));
+    }
+    assert_eq!(fs::read_to_string(env_file).unwrap(), expected_env);
+    assert_eq!(
+        io::json(
+            &repository
+                .0
+                .join("target/release-preflight/evidence-validation.json"),
+            None
+        )
+        .unwrap(),
+        report
+    );
+}

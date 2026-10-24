@@ -412,40 +412,51 @@ fn verify_observed(
 }
 pub(super) fn materialize(manifest: &Path, repository: &Path, env_file: &Path) -> Result<()> {
     let (document, report) = verify(manifest, repository, true, false)?;
+    materialize_verified(manifest, repository, env_file, &document, &report)
+}
+fn materialize_verified(
+    manifest: &Path,
+    repository: &Path,
+    env_file: &Path,
+    document: &Value,
+    report: &Value,
+) -> Result<()> {
     let inputs = repository.join("target/release-preflight/inputs");
     let current = repository.join("target/benchmark-smoke");
-    fs::create_dir_all(&inputs)?;
-    fs::create_dir_all(&current)?;
+    let root = manifest.parent().ok_or("missing manifest parent")?;
+    let mut members = Vec::with_capacity(FILES.len());
     let mut values = String::new();
+    // Bind every exported byte before publishing any preflight input or success journal.
     for (index, (profile, name)) in FILES.into_iter().enumerate() {
-        let root = manifest.parent().ok_or("missing manifest parent")?;
-        let baseline = io::member(
-            root,
-            document["files"]["A1"][profile]["path"]
-                .as_str()
-                .ok_or("missing baseline path")?,
-        )?;
-        let candidate = io::member(
-            root,
-            document["files"]["B2"][profile]["path"]
-                .as_str()
-                .ok_or("missing candidate path")?,
-        )?;
-        fs::copy(baseline, inputs.join(name))?;
-        fs::copy(candidate, current.join(name))?;
+        let read = |phase: &str| -> Result<Vec<u8>> {
+            let entry = &document["files"][phase][profile];
+            let path = io::member(root, entry["path"].as_str().ok_or("missing input path")?)?;
+            io::bytes(
+                &path,
+                Some(entry["sha256"].as_str().ok_or("missing input digest")?),
+            )
+        };
+        members.push((name, read("A1")?, read("B2")?));
         let path = inputs.join(name).display().to_string();
         if path.contains(['\n', '\r']) {
             return Err("invalid output path".into());
         }
         values.push_str(&format!("{}={path}\n", VARIABLES[index]));
     }
+    fs::create_dir_all(&inputs)?;
+    fs::create_dir_all(&current)?;
+    for (name, baseline, candidate) in members {
+        fs::write(inputs.join(name), baseline)?;
+        fs::write(current.join(name), candidate)?;
+    }
     fs::write(env_file, values)?;
     io::write_json(
         &repository.join("target/release-preflight/evidence-validation.json"),
-        &report,
+        report,
         false,
     )
 }
+
 pub(super) fn cli(context: &Context<'_>, args: Vec<String>) -> Result<()> {
     let options = Options::command("release-evidence", args)?;
     let repository = options
