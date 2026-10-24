@@ -61,7 +61,8 @@ benchmark inputs, observation rules and acceptance thresholds are untouched.
 
 ## Native and release boundary
 
-This runtime has not executed on Linux. Earlier source `4aa4ee0` retains its own
+Dedicated controlled Linux validation was outstanding when this record was
+created. Subsequent changes are recorded in the [mixed-view review](mixed-recovery-view-review-2026-10-25.md). Earlier source `4aa4ee0` retains its own
 eight completed native commands, real foreign-process refusal and safely restored
 closed lease. Its unlaunched 26-command continuation remains separate. Those
 results do not qualify this changed source. Source-bound native validation and
