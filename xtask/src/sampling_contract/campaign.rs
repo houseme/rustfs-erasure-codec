@@ -190,14 +190,11 @@ impl Request {
                     .into());
                 }
                 let recomputed = release_rows::Request {
-                    rows: json!(selected),
+                    rows: Value::Array(selected),
                     ..contract
                 }
-                .execute()?;
-                let recomputed: BTreeMap<String, Value> =
-                    serde_json::from_value::<Vec<(String, Value)>>(recomputed)?
-                        .into_iter()
-                        .collect();
+                .indexed()?;
+                let recomputed: BTreeMap<String, Value> = recomputed.into_iter().collect();
                 if !summaries.matches(phase, profile, &recomputed) {
                     return Err("summary is not the median of all fixed samples".into());
                 }

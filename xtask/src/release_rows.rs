@@ -138,21 +138,12 @@ impl Request {
         Ok(())
     }
     pub(crate) fn records(self) -> Result<Value> {
-        let Value::Array(pairs) = self.execute()? else {
-            return Err("invalid indexed rows".into());
-        };
-        let rows = pairs
-            .into_iter()
-            .map(|pair| match pair {
-                Value::Array(mut fields) => {
-                    fields.pop().ok_or_else(|| "missing indexed row".into())
-                }
-                _ => Err("invalid indexed row".into()),
-            })
-            .collect::<Result<Vec<_>>>()?;
-        Ok(Value::Array(rows))
+        Ok(Value::Array(
+            self.indexed()?.into_iter().map(|(_, row)| row).collect(),
+        ))
     }
-    pub(crate) fn execute(mut self) -> Result<Value> {
+    /// Keep validated rows owned until an external JSON response is required.
+    pub(crate) fn indexed(mut self) -> Result<Vec<(String, Value)>> {
         metric(&self.profile)?;
         let rows = std::mem::take(&mut self.rows);
         let mut keys = Vec::new();
@@ -203,7 +194,7 @@ impl Request {
         {
             return Err("incomplete or unexpected release case catalog".into());
         }
-        Ok(serde_json::to_value(keys)?)
+        Ok(keys)
     }
 }
 
@@ -227,8 +218,44 @@ mod tests {
         }
     }
     #[test]
+    fn typed_views_keep_original_order_and_json_contracts_without_copying_payloads() {
+        for profile in sampling_contract::PROFILES {
+            let samples = sampling_contract::calibration_profile::tests::records(profile);
+            let rows = samples
+                .iter()
+                .step_by(12)
+                .map(|r| r["rows"][0].clone())
+                .collect::<Vec<_>>();
+            let make = || Request {
+                profile: profile.into(),
+                rows: Value::Array(rows.clone()),
+                revision: "a".repeat(40),
+                iteration_counts: None,
+                default_iterations: Some(1),
+                complete: true,
+            };
+            let indexed = make().indexed().unwrap();
+            assert_eq!(
+                indexed.len(),
+                sampling_contract::case_catalog()[profile].len()
+            );
+            assert_eq!(
+                make().records().unwrap(),
+                Value::Array(indexed.into_iter().map(|(_, row)| row).collect())
+            );
+        }
+        let mut raw = row();
+        raw["retained_payload"] = json!("original payload 雪".repeat(1024));
+        let pointer = raw["retained_payload"].as_str().unwrap().as_ptr();
+        let result = request(vec![raw]).records().unwrap();
+        assert_eq!(
+            result[0]["retained_payload"].as_str().unwrap().as_ptr(),
+            pointer
+        );
+    }
+    #[test]
     fn original_types_are_checked_before_normalization() {
-        request(vec![row()]).execute().unwrap();
+        request(vec![row()]).indexed().unwrap();
         for (key, value) in [
             ("schema_version", json!("1")),
             ("schema_version", json!(true)),
@@ -240,7 +267,7 @@ mod tests {
         ] {
             let mut bad = row();
             bad[key] = value;
-            assert!(request(vec![bad]).execute().is_err(), "{key}");
+            assert!(request(vec![bad]).indexed().is_err(), "{key}");
         }
     }
     #[test]
@@ -249,22 +276,22 @@ mod tests {
         first["operation"] = json!("verify");
         first["extra"] = json!({"retained":[true,null,1.25]});
         let second = row();
-        let result = request(vec![first.clone(), second]).execute().unwrap();
-        assert_eq!(result[0][0], "verify:4:2:1024");
-        assert_eq!(result[1][0], "encode:4:2:1024");
-        assert_eq!(result[0][1]["extra"], first["extra"]);
+        let result = request(vec![first.clone(), second]).indexed().unwrap();
+        assert_eq!(result[0].0, "verify:4:2:1024");
+        assert_eq!(result[1].0, "encode:4:2:1024");
+        assert_eq!(result[0].1["extra"], first["extra"]);
         let mut selected = request(vec![row()]);
         selected.iteration_counts = Some(BTreeMap::from([("encode:4:2:1024".into(), 3)]));
-        assert!(selected.execute().is_err());
+        assert!(selected.indexed().is_err());
     }
     #[test]
     fn partial_rows_cannot_certify_the_complete_catalog_or_hide_duplicates() {
         let mut complete = request(vec![row()]);
         complete.complete = true;
-        assert!(complete.execute().is_err());
-        assert!(request(vec![row(), row()]).execute().is_err());
+        assert!(complete.indexed().is_err());
+        assert!(request(vec![row(), row()]).indexed().is_err());
         let mut foreign = row();
         foreign["shard_size"] = json!(12345);
-        assert!(request(vec![foreign]).execute().is_err());
+        assert!(request(vec![foreign]).indexed().is_err());
     }
 }
