@@ -21,9 +21,10 @@ All notable changes to this project are documented in this file.
   Preserve coefficient zero/one shortcuts and existing chunk boundaries, and
   validate all views before any write.
 
-- Build Classic single-data recovery coefficients directly from one parity
-  equation, retaining survivor order, singular-matrix errors and the decode cache.
-  Other erasure shapes retain the existing full-matrix elimination and SIMD widths.
+- Solve Classic cold-recovery coefficients using only missing-data equations
+  after substituting surviving systematic data. Retain the direct single-equation
+  reciprocal and the dense all-data-missing fallback, survivor order, singular
+  errors, decode cache, encoded bytes and output-publication semantics.
 
 - Coordinate GF16 AVX2 byte-layout eligibility with the immutable selected
   arithmetic backend. Cache the combined backend/capability choice once;
