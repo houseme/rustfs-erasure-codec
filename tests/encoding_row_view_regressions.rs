@@ -134,10 +134,27 @@ fn encoding_and_buffered_verification_borrow_parity_rows_without_allocating() {
                     shards[data_count..]
                         .iter_mut()
                         .for_each(|shard| shard.fill(F::zero()));
+                    let policy_decisions = match entry {
+                        "encode-sep-par" | "encode-par" | "verify-buffer-par" => 1,
+                        "single-par-cycle" => data_count,
+                        _ => 0,
+                    };
+                    // Debug policy queries read a diagnostic environment key;
+                    // Windows converts that key through an allocated UTF-16
+                    // buffer. Measure the unchanged policy independently so it
+                    // cannot be mistaken for a coding-row allocation. Release
+                    // still requires absolute zero for both control and entry.
+                    let policy_calls = allocations(|| {
+                        for _ in 0..policy_decisions {
+                            std::hint::black_box(codec.parallel_policy(65, parity_count));
+                        }
+                    });
                     let calls = allocations(|| execute(&mut parity, &mut shards));
-                    budget_met &= calls == 0;
+                    let coding_calls = calls.checked_sub(policy_calls);
+                    budget_met &=
+                        (cfg!(debug_assertions) || policy_calls == 0) && coding_calls == Some(0);
                     println!(
-                        "PARITY_ROW_ALLOCATION field_order={} matrix={mode:?} data={data_count} parity={parity_count} entry={entry} calls={calls}",
+                        "PARITY_ROW_ALLOCATION field_order={} matrix={mode:?} data={data_count} parity={parity_count} entry={entry} calls={calls} policy_decisions={policy_decisions} policy_calls={policy_calls} coding_calls={coding_calls:?}",
                         F::ORDER
                     );
                     if entry == "encode" || entry == "encode-par" {
@@ -150,11 +167,16 @@ fn encoding_and_buffered_verification_borrow_parity_rows_without_allocating() {
         }
         budget_met
     }
+    #[cfg(debug_assertions)]
+    assert!(
+        std::env::var_os("RS_PARALLEL_POLICY_DEBUG").is_none(),
+        "allocation controls require policy logging to be disabled"
+    );
     let gf8 = check::<rustfs_erasure_codec::galois_8::Field>();
     let gf16 = check::<rustfs_erasure_codec::galois_16::Field>();
     assert!(
         gf8 && gf16,
         "parity matrix row references must be borrowed without temporary allocation"
     );
-    eprintln!("PARITY_ROW_BORROW_ALLOCATION cases=270 calls_per_case=0");
+    eprintln!("PARITY_ROW_BORROW_ALLOCATION cases=270 coding_calls_per_case=0");
 }
