@@ -278,3 +278,125 @@ mod reduced_work {
         check::<true>();
     }
 }
+
+fn cache_by_selected_survivors<F: Field>() {
+    use alloc::collections::BTreeMap;
+    for mode in [
+        MatrixMode::Vandermonde,
+        MatrixMode::Cauchy,
+        MatrixMode::JerasureLike,
+    ] {
+        let codec = crate::ReedSolomon::<F>::with_options(
+            4,
+            4,
+            CodecOptions::builder()
+                .matrix_mode(mode)
+                .inversion_cache_capacity(256)
+                .build(),
+        )
+        .unwrap();
+        let mut by_inputs = BTreeMap::<Vec<usize>, Arc<crate::matrix::Matrix<F>>>::new();
+        let mut patterns = 0;
+        for mask in 0u16..256 {
+            if mask.count_ones() < 4 {
+                continue;
+            }
+            patterns += 1;
+            let valid: Vec<_> = (0..8).filter(|&i| mask & (1 << i) != 0).take(4).collect();
+            let invalid: Vec<_> = (0..8).filter(|&i| mask & (1 << i) == 0).collect();
+            let mut selected = crate::matrix::Matrix::<F>::new(4, 4);
+            for (row, &input) in valid.iter().enumerate() {
+                for column in 0..4 {
+                    selected.set(
+                        row,
+                        column,
+                        codec.encoding_format().matrix().get(input, column),
+                    );
+                }
+            }
+            // Full elimination and complete selected-input keys are independent
+            // oracles for the production cache's shortened erasure-prefix key.
+            match (
+                codec.get_data_decode_matrix(&valid, &invalid),
+                selected.invert(),
+            ) {
+                (Ok(actual), Ok(expected)) => {
+                    for row in 0..4 {
+                        assert_eq!(actual.get_row(row), expected.get_row(row));
+                    }
+                    if let Some(previous) = by_inputs.get(&valid) {
+                        assert!(
+                            Arc::ptr_eq(previous, &actual),
+                            "same inputs rebuilt: {valid:?}"
+                        );
+                    } else {
+                        assert!(
+                            by_inputs
+                                .values()
+                                .all(|previous| !Arc::ptr_eq(previous, &actual))
+                        );
+                        by_inputs.insert(valid, actual);
+                    }
+                }
+                (Err(actual), Err(_)) => assert_eq!(actual, Error::InvalidCustomMatrix),
+                _ => panic!("cache changed singularity for {mode:?}, {valid:?}, {invalid:?}"),
+            }
+        }
+        assert_eq!(patterns, 163);
+        assert!(!by_inputs.is_empty());
+        eprintln!(
+            "INVERSE_CACHE_SELECTED_INPUT_ORACLE field_order={} matrix={mode:?} patterns={patterns}",
+            F::ORDER
+        );
+    }
+}
+
+#[test]
+fn gf8_inverse_cache_ignores_only_unselected_trailing_erasures() {
+    cache_by_selected_survivors::<galois_8::Field>();
+}
+
+#[test]
+fn gf16_inverse_cache_ignores_only_unselected_trailing_erasures() {
+    cache_by_selected_survivors::<galois_16::Field>();
+}
+
+#[test]
+fn cached_survivors_do_not_hide_a_singular_custom_replacement() {
+    let codec = galois_8::ReedSolomon::with_custom_matrix(
+        4,
+        4,
+        &[
+            vec![1, 1, 3, 5],
+            vec![0, 1, 7, 9],
+            vec![1, 0, 7, 9],
+            vec![0, 0, 0, 0],
+        ],
+        CodecOptions::default(),
+    )
+    .unwrap();
+    let warm = codec.get_data_decode_matrix(&[1, 2, 3, 4], &[0]).unwrap();
+    for missing in [&[0, 4][..], &[0, 4, 6], &[0, 4, 6, 7]] {
+        assert!(matches!(
+            codec.get_data_decode_matrix(&[1, 2, 3, 5], missing),
+            Err(Error::InvalidCustomMatrix)
+        ));
+    }
+    let repeated = codec
+        .get_data_decode_matrix(&[1, 2, 3, 4], &[0, 5, 6, 7])
+        .unwrap();
+    assert!(Arc::ptr_eq(&warm, &repeated));
+    let uncached = galois_8::ReedSolomon::with_options(
+        4,
+        4,
+        CodecOptions::builder().inversion_cache(false).build(),
+    )
+    .unwrap();
+    let first = uncached
+        .get_data_decode_matrix(&[1, 2, 3, 4], &[0])
+        .unwrap();
+    let second = uncached
+        .get_data_decode_matrix(&[1, 2, 3, 4], &[0, 5])
+        .unwrap();
+    assert!(!Arc::ptr_eq(&first, &second));
+}
