@@ -1,6 +1,41 @@
 # GF16 GFNI tower-plane fusion
 
-Current scalar-preserving runtime: `e38a8ad591ca183a6c914b6e939963928575b8a5`;
+## Rebase integration (2026-10-24)
+
+PR #84 is rebased from `aeef5483e7d2ebddf8f32aff3cedf43a940c1444` onto
+main `0b10e7a8e4bf2a184b59080f50bb970b6aecd543`. This base already includes
+PR #79 GF16 norm inversion, PR #81 direct GFNI maps and PR #83 portable
+accumulation/AVX2 layout conversion. Duplicate inherited commits are omitted;
+the original merge-specific native/portable integration and empty-input tests
+are retained as a linear commit.
+
+The rebased validation source is `f3b7145`. Relative to the original PR head,
+all codec runtime/test files are byte-identical except `src/galois_16.rs`, which also
+retains main's norm inversion and its exhaustive Euclidean-oracle tests.
+GFNI kernels, cached layout dispatch and isolated backend tests are unchanged.
+Every existing benchmark artifact from both source histories remains byte-identical,
+and main's native/Python tooling changes are retained unchanged.
+
+Fresh stable 1.99.1 checks on ARM64 pass:
+
+- All features: 379 library, 162 integration and 10 documentation tests; 43
+  existing ignored tests remain ignored.
+- Codec-only no_std: 252 library tests; no_std + SIMD: 254 library tests.
+- Default-feature GF8/backend tests: 24 pass with normal parallel execution.
+- Actual published 9.0.0: the 200 normal-format parity/bidirectional recovery
+  cases pass, alongside 27 custom tower configurations / 162 cross recoveries
+  and 12 wide GF16 configurations.
+- Strict all-target/all-feature codec and compatibility Clippy, x86_64 Linux
+  library Clippy, x86_64 Darwin test compilation, fmt, typos and diff checks pass.
+
+The x86 checks compile code only; this ARM64 run does not execute GFNI hardware.
+New-head Linux runtime CI is separate. No performance campaign is rerun, no
+historical source/capture is relabeled, and every prior statistical refusal,
+`accepted_component_comparison=false` and `release_approval=false` remains intact.
+
+## Historical source-bound review
+
+Historical scalar-preserving runtime: `e38a8ad591ca183a6c914b6e939963928575b8a5`;
 validated final test source: `7fa4fddeea73ef74ee0b52f600f80fd6bc89c066`.
 The earlier width prototype is `0a35491` / `986c1fe`.
 The earlier combined implementation is `7914ac450856305f40f0c24eea424af2a153905f`.

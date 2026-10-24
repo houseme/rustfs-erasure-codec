@@ -1,6 +1,14 @@
 # 9.1.0 publication blockers and completion criteria
 
-Current source review (2026-10-24): runtime `e38a8ad`, final validated test source
+Current rebase review (2026-10-24): PR #84 now integrates main `0b10e7a`,
+including the GF16 norm, direct GFNI and portable accumulation/layout changes.
+The [rebase validation record](gfni-tower-fusion-review-2026-10-24.md#rebase-integration-2026-10-24)
+binds fresh ARM64 correctness/compatibility and x86 compile-only checks to
+source `f3b7145`. Earlier source identities and rejected measurements below
+remain historical; functional integration grants no performance or publication
+approval. New-head Linux CI remains a separate result.
+
+Historical source review (2026-10-24): runtime `e38a8ad`, final validated test source
 `7fa4fdd`, in draft PR #84 stacked on #81. These candidates are not merged into
 reviewed main `afb9a52`. The [complete tower review](gfni-tower-fusion-review-2026-10-24.md)
 retains all six rejected component cohorts; the final same-42-case comparison
