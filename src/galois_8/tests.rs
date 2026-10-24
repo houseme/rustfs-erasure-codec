@@ -8,18 +8,58 @@ use super::*;
 use crate::tests::fill_random;
 use rand;
 
-#[cfg(feature = "std")]
-fn with_env_var<R>(key: &str, value: &str, f: impl FnOnce() -> R) -> R {
-    // SAFETY: test-only scoped env var override, restored immediately after use.
-    unsafe {
-        std::env::set_var(key, value);
-    }
-    let result = f();
-    // SAFETY: paired cleanup for the scoped env var override above.
-    unsafe {
-        std::env::remove_var(key);
-    }
-    result
+#[cfg(all(
+    feature = "std",
+    any(target_arch = "x86_64", target_arch = "aarch64"),
+    not(target_env = "msvc"),
+    not(any(target_os = "android", target_os = "ios"))
+))]
+fn backend_test_child(name: &str) -> std::process::Command {
+    let mut child = std::process::Command::new(std::env::current_exe().unwrap());
+    child
+        .env_remove("RSE_BACKEND_OVERRIDE")
+        .env_remove("RSE_STRICT_BACKEND_OVERRIDE")
+        .arg("--exact")
+        .arg(name)
+        .arg("--nocapture");
+    child
+}
+
+#[cfg(all(
+    feature = "std",
+    any(target_arch = "x86_64", target_arch = "aarch64"),
+    not(target_env = "msvc"),
+    not(any(target_os = "android", target_os = "ios")),
+    any(
+        feature = "simd-neon",
+        feature = "simd-ssse3",
+        feature = "simd-avx2",
+        feature = "simd-avx512",
+        feature = "simd-gfni"
+    )
+))]
+fn assert_backend_override_in_child(
+    value: &str,
+    expected_name: Option<&str>,
+    expected_id: Option<BackendId>,
+) {
+    let parent_override = std::env::var_os("RSE_BACKEND_OVERRIDE");
+    let output =
+        backend_test_child("galois_8::tests::test_backend_override_affects_active_backend")
+            .env("RSE_GALOIS8_OVERRIDE_CHILD", "1")
+            .env("RSE_BACKEND_OVERRIDE", value)
+            .env("RSE_GALOIS8_EXPECTED_NAME", expected_name.unwrap_or("none"))
+            .env("RSE_GALOIS8_EXPECTED_ID", format!("{expected_id:?}"))
+            .output()
+            .unwrap();
+    assert!(
+        output.status.success()
+            && String::from_utf8_lossy(&output.stdout).contains("1 passed; 0 failed"),
+        "override {value:?} child failed: stdout={} stderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(std::env::var_os("RSE_BACKEND_OVERRIDE"), parent_override);
 }
 
 static BACKBLAZE_LOG_TABLE: [u8; 256] = [
@@ -437,6 +477,28 @@ fn test_rust_neon_xor_schedule_env_constant() {
 
 #[test]
 fn test_active_backend_metadata() {
+    // The production selection is immutable. A fresh process supplies an auto
+    // environment without racing other tests or inheriting a cached override.
+    #[cfg(all(
+        feature = "std",
+        any(target_arch = "x86_64", target_arch = "aarch64"),
+        not(target_env = "msvc"),
+        not(any(target_os = "android", target_os = "ios"))
+    ))]
+    if std::env::var("RSE_GALOIS8_METADATA_CHILD").as_deref() != Ok("1") {
+        let output = backend_test_child("galois_8::tests::test_active_backend_metadata")
+            .env("RSE_GALOIS8_METADATA_CHILD", "1")
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success()
+                && String::from_utf8_lossy(&output.stdout).contains("1 passed; 0 failed"),
+            "auto metadata child failed: stdout={} stderr={}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        return;
+    }
     #[cfg(all(
         any(
             feature = "simd-neon",
@@ -458,40 +520,36 @@ fn test_active_backend_metadata() {
             let has_avx2 = std::is_x86_feature_detected!("avx2");
 
             // GFNI backends are auto-selected with higher priority when available.
-            if has_gfni && has_avx512 {
+            if cfg!(rse_x86_gfni) && has_gfni && has_avx512 {
                 assert_eq!(active_backend_name(), "rust-gfni-avx512");
                 assert_eq!(active_backend_kind(), BackendKind::RustSimd);
-            } else if has_gfni && has_avx2 {
+            } else if cfg!(rse_x86_gfni) && has_gfni && has_avx2 {
                 assert_eq!(active_backend_name(), "rust-gfni-avx2");
                 assert_eq!(active_backend_kind(), BackendKind::RustSimd);
-            } else if has_avx2 {
+            } else if cfg!(rse_x86_avx2) && has_avx2 {
                 assert_eq!(active_backend_name(), "rust-avx2");
                 assert_eq!(active_backend_kind(), BackendKind::RustSimd);
-            } else if has_avx512 {
+            } else if cfg!(rse_x86_avx512) && has_avx512 {
                 assert_eq!(active_backend_name(), "rust-avx512");
                 assert_eq!(active_backend_kind(), BackendKind::RustSimd);
-            } else if std::is_x86_feature_detected!("ssse3") {
+            } else if cfg!(rse_x86_ssse3) && std::is_x86_feature_detected!("ssse3") {
                 assert_eq!(active_backend_name(), "rust-ssse3");
                 assert_eq!(active_backend_kind(), BackendKind::RustSimd);
             } else {
                 assert_eq!(active_backend_name(), "scalar-rust");
                 assert_eq!(active_backend_kind(), BackendKind::Scalar);
             }
-
-            if has_gfni && has_avx512 {
-                with_env_var("RSE_BACKEND_OVERRIDE", "rust-gfni-avx512", || {
-                    assert_eq!(
-                        super::backend::runtime_override_backend_name_for_test(),
-                        Some("rust-gfni-avx512")
-                    );
-                });
-            }
         }
 
         #[cfg(all(feature = "std", target_arch = "aarch64"))]
         {
-            assert_eq!(active_backend_name(), "rust-neon");
-            assert_eq!(active_backend_kind(), BackendKind::RustSimd);
+            if cfg!(rse_aarch64_neon) {
+                assert_eq!(active_backend_name(), "rust-neon");
+                assert_eq!(active_backend_kind(), BackendKind::RustSimd);
+            } else {
+                assert_eq!(active_backend_name(), "scalar-rust");
+                assert_eq!(active_backend_kind(), BackendKind::Scalar);
+            }
         }
 
         #[cfg(not(feature = "std"))]
@@ -534,96 +592,78 @@ fn test_active_backend_metadata() {
 ))]
 #[test]
 fn test_backend_override_affects_active_backend() {
-    #[cfg(target_arch = "aarch64")]
-    {
-        with_env_var("RSE_BACKEND_OVERRIDE", "scalar", || {
-            assert_eq!(
-                super::backend::runtime_override_backend_name_for_test(),
-                Some("scalar-rust")
-            );
-            assert_eq!(
-                super::backend::runtime_override_backend_id_for_test(),
-                Some(BackendId::ScalarRust)
-            );
-        });
-
-        with_env_var("RSE_BACKEND_OVERRIDE", "rust-neon", || {
-            assert_eq!(
-                super::backend::runtime_override_backend_name_for_test(),
-                Some("rust-neon")
-            );
-            assert_eq!(
-                super::backend::runtime_override_backend_id_for_test(),
-                Some(BackendId::RustNeon)
-            );
-        });
+    if std::env::var("RSE_GALOIS8_OVERRIDE_CHILD").as_deref() == Ok("1") {
+        let expected = std::env::var("RSE_GALOIS8_EXPECTED_NAME").unwrap();
+        let expected = (expected != "none").then_some(expected.as_str());
+        let name = super::backend::runtime_override_backend_name_for_test();
+        let id = super::backend::runtime_override_backend_id_for_test();
+        assert_eq!(name, expected);
+        assert_eq!(
+            format!("{id:?}"),
+            std::env::var("RSE_GALOIS8_EXPECTED_ID").unwrap()
+        );
+        // This process has not initialized the cached backend before its
+        // environment was installed. Check the real selection as well.
+        if let Some(name) = name {
+            assert_eq!(active_backend_name(), name);
+            assert_eq!(Some(active_backend_id()), id);
+        }
+        return;
     }
 
+    assert_backend_override_in_child("scalar", Some("scalar-rust"), Some(BackendId::ScalarRust));
+    assert_backend_override_in_child(
+        "scalar-rust",
+        Some("scalar-rust"),
+        Some(BackendId::ScalarRust),
+    );
+    assert_backend_override_in_child("auto", None, None);
+    assert_backend_override_in_child("unknown-backend", None, None);
+
+    #[cfg(target_arch = "aarch64")]
+    {
+        let supported = cfg!(rse_aarch64_neon);
+        assert_backend_override_in_child(
+            "rust-neon",
+            supported.then_some("rust-neon"),
+            supported.then_some(BackendId::RustNeon),
+        );
+    }
     #[cfg(target_arch = "x86_64")]
     {
-        with_env_var("RSE_BACKEND_OVERRIDE", "rust-gfni-avx2", || {
-            let gfni_name = super::backend::runtime_override_backend_name_for_test();
-            let gfni_id = super::backend::runtime_override_backend_id_for_test();
-            if std::is_x86_feature_detected!("gfni") && std::is_x86_feature_detected!("avx2") {
-                assert_eq!(gfni_name, Some("rust-gfni-avx2"));
-                assert_eq!(gfni_id, Some(BackendId::RustGfniAvx2));
-            } else {
-                assert_eq!(gfni_name, None);
-                assert_eq!(gfni_id, None);
-            }
-        });
-
-        with_env_var("RSE_BACKEND_OVERRIDE", "rust-gfni-avx512", || {
-            let gfni512_name = super::backend::runtime_override_backend_name_for_test();
-            let gfni512_id = super::backend::runtime_override_backend_id_for_test();
-            if std::is_x86_feature_detected!("gfni")
-                && std::is_x86_feature_detected!("avx512f")
-                && std::is_x86_feature_detected!("avx512bw")
-            {
-                assert_eq!(gfni512_name, Some("rust-gfni-avx512"));
-                assert_eq!(gfni512_id, Some(BackendId::RustGfniAvx512));
-            } else {
-                assert_eq!(gfni512_name, None);
-                assert_eq!(gfni512_id, None);
-            }
-        });
-
-        with_env_var("RSE_BACKEND_OVERRIDE", "rust-avx512", || {
-            let avx512_name = super::backend::runtime_override_backend_name_for_test();
-            let avx512_id = super::backend::runtime_override_backend_id_for_test();
-            if std::is_x86_feature_detected!("avx512f") && std::is_x86_feature_detected!("avx512bw")
-            {
-                assert_eq!(avx512_name, Some("rust-avx512"));
-                assert_eq!(avx512_id, Some(BackendId::RustAvx512));
-            } else {
-                assert_eq!(avx512_name, None);
-                assert_eq!(avx512_id, None);
-            }
-        });
-
-        with_env_var("RSE_BACKEND_OVERRIDE", "rust-ssse3", || {
-            let ssse3_name = super::backend::runtime_override_backend_name_for_test();
-            let ssse3_id = super::backend::runtime_override_backend_id_for_test();
-            if std::is_x86_feature_detected!("ssse3") {
-                assert_eq!(ssse3_name, Some("rust-ssse3"));
-                assert_eq!(ssse3_id, Some(BackendId::RustSsse3));
-            } else {
-                assert_eq!(ssse3_name, None);
-                assert_eq!(ssse3_id, None);
-            }
-        });
-
-        with_env_var("RSE_BACKEND_OVERRIDE", "rust-avx2", || {
-            let avx2_name = super::backend::runtime_override_backend_name_for_test();
-            let avx2_id = super::backend::runtime_override_backend_id_for_test();
-            if std::is_x86_feature_detected!("avx2") {
-                assert_eq!(avx2_name, Some("rust-avx2"));
-                assert_eq!(avx2_id, Some(BackendId::RustAvx2));
-            } else {
-                assert_eq!(avx2_name, None);
-                assert_eq!(avx2_id, None);
-            }
-        });
+        let avx2 = std::is_x86_feature_detected!("avx2");
+        let avx512 =
+            std::is_x86_feature_detected!("avx512f") && std::is_x86_feature_detected!("avx512bw");
+        let gfni = std::is_x86_feature_detected!("gfni");
+        for (name, id, supported) in [
+            (
+                "rust-gfni-avx2",
+                BackendId::RustGfniAvx2,
+                cfg!(rse_x86_gfni) && gfni && avx2,
+            ),
+            (
+                "rust-gfni-avx512",
+                BackendId::RustGfniAvx512,
+                cfg!(rse_x86_gfni) && gfni && avx512,
+            ),
+            (
+                "rust-avx512",
+                BackendId::RustAvx512,
+                cfg!(rse_x86_avx512) && avx512,
+            ),
+            ("rust-avx2", BackendId::RustAvx2, cfg!(rse_x86_avx2) && avx2),
+            (
+                "rust-ssse3",
+                BackendId::RustSsse3,
+                cfg!(rse_x86_ssse3) && std::is_x86_feature_detected!("ssse3"),
+            ),
+        ] {
+            assert_backend_override_in_child(
+                name,
+                supported.then_some(name),
+                supported.then_some(id),
+            );
+        }
     }
 }
 
@@ -676,27 +716,8 @@ fn test_active_backend_metadata_fresh_process() {
 ))]
 #[test]
 fn test_aarch64_backend_override_metadata_matches_expected_ids() {
-    with_env_var("RSE_BACKEND_OVERRIDE", "scalar", || {
-        assert_eq!(
-            super::backend::runtime_override_backend_name_for_test(),
-            Some("scalar-rust")
-        );
-        assert_eq!(
-            super::backend::runtime_override_backend_id_for_test(),
-            Some(BackendId::ScalarRust)
-        );
-    });
-
-    with_env_var("RSE_BACKEND_OVERRIDE", "rust-neon", || {
-        assert_eq!(
-            super::backend::runtime_override_backend_name_for_test(),
-            Some("rust-neon")
-        );
-        assert_eq!(
-            super::backend::runtime_override_backend_id_for_test(),
-            Some(BackendId::RustNeon)
-        );
-    });
+    assert_backend_override_in_child("scalar", Some("scalar-rust"), Some(BackendId::ScalarRust));
+    assert_backend_override_in_child("rust-neon", Some("rust-neon"), Some(BackendId::RustNeon));
 }
 
 #[cfg(all(
