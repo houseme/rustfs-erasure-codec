@@ -599,8 +599,8 @@ impl<'codec> StreamReconstructPlan<'codec> {
         data_rows: &[&[u8]],
         parity_rows: &[&[u8]],
     ) {
-        let missing_data = self.plan.data_targets.len();
-        let missing_parity = self.plan.parity_targets.len();
+        let missing_data = self.plan.data_targets().len();
+        let missing_parity = self.plan.parity_targets().len();
         self.codec.record_reconstruct_runtime(
             false,
             missing_data,
@@ -613,7 +613,7 @@ impl<'codec> StreamReconstructPlan<'codec> {
                 SmallVec::with_capacity(self.plan.shape.valid_indices.len());
             let mut outputs: SmallVec<[&mut [u8]; 32]> = SmallVec::with_capacity(missing_data);
             let mut survivors = self.plan.shape.valid_indices.iter().copied().peekable();
-            let mut missing = self.plan.data_targets.iter().copied().peekable();
+            let mut missing = self.plan.data_targets().iter().copied().peekable();
 
             // Each buffer is borrowed once. Sorted, disjoint index lists select
             // the original survivors and missing data outputs without aliasing.
@@ -636,7 +636,7 @@ impl<'codec> StreamReconstructPlan<'codec> {
             // The data phase's views have ended; restored data can now be read
             // while only the disjoint parity buffers are mutated.
             let (data, parity) = buffers.split_at_mut(self.codec.data_shard_count());
-            let mut missing = self.plan.parity_targets.iter().copied().peekable();
+            let mut missing = self.plan.parity_targets().iter().copied().peekable();
             let mut outputs: SmallVec<[&mut [u8]; 32]> = SmallVec::with_capacity(missing_parity);
             for (offset, buffer) in parity.iter_mut().enumerate() {
                 if missing.peek() == Some(&(self.codec.data_shard_count() + offset)) {

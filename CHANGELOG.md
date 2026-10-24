@@ -15,6 +15,15 @@ All notable changes to this project are documented in this file.
   through static row access, removing repeated wide reference-table allocations
   without changing arithmetic, policy decisions or encoded bytes.
 
+- Reuse the selected-input view buffer after ordinary mixed data recovery. Merge
+  restored data references in place before parity encoding, removing a redundant
+  wide reference table while preserving byte order and late-error publication.
+
+- Reuse the validated missing-index storage for ordinary Classic data and parity
+  recovery. Keep selective targets in one ordered, in-place list with equivalent
+  inline capacity; preserve request ownership, validation/error priority, inverse
+  selection and publication while avoiding duplicate wide target allocations.
+
 - Construct Classic inverse work directly as `[matrix | identity]`, avoiding a
   separate identity matrix and its square allocation/copy in wide construction
   and cold recovery. Preserve elimination order, SIMD row widths, inverse bytes,

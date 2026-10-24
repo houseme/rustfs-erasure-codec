@@ -66,7 +66,7 @@ fn compare_composed_rows<F: Field>(codec: &ReedSolomon<F>, present: &[usize]) {
                         .collect();
                     let rows: Vec<_> = plan.parity_rows(codec).collect();
                     assert_eq!(rows, [expected.as_slice()], "present={present:?}");
-                    for (&index, row) in plan.data_targets.iter().zip(plan.data_rows()) {
+                    for (&index, row) in plan.data_targets().iter().zip(plan.data_rows()) {
                         assert_eq!(row, inverse.get_row(index));
                     }
                     inverse
@@ -226,8 +226,86 @@ fn selective_parity_composition_multiplies_only_missing_data_rows() {
             .prepare_classic_reconstruct_plan(layout, ReconstructionGoal::Required(&required))
             .unwrap();
         let products = PRODUCTS.with(Cell::get);
-        assert!(plan.data_targets.is_empty());
-        assert_eq!(plan.parity_targets.as_slice(), &[target]);
+        assert!(plan.data_targets().is_empty());
+        assert_eq!(plan.parity_targets(), &[target]);
         assert_eq!(products, data * losses, "k={data}, missing={losses}");
     }
+}
+
+#[test]
+fn ordinary_targets_borrow_missing_indices_and_selected_targets_stay_exact() {
+    fn check<F: Field>() {
+        let codec = ReedSolomon::<F>::new(4, 4).unwrap();
+        for goal in [ReconstructionGoal::All, ReconstructionGoal::Data] {
+            let plan = codec
+                .prepare_classic_reconstruct_plan(shape(4, 8, &[1, 3, 4, 6]), goal)
+                .unwrap();
+            assert!(plan.selected_targets.is_none());
+            assert_eq!(plan.data_targets(), &[0, 2]);
+            assert!(::core::ptr::eq(
+                plan.data_targets(),
+                &plan.shape.invalid_indices[..2]
+            ));
+            if matches!(goal, ReconstructionGoal::All) {
+                assert_eq!(plan.parity_targets(), &[5, 7]);
+                assert!(::core::ptr::eq(
+                    plan.parity_targets(),
+                    &plan.shape.invalid_indices[2..]
+                ));
+            } else {
+                assert!(plan.parity_targets().is_empty());
+            }
+        }
+        for selected in [vec![], vec![2], vec![7], vec![2, 7], vec![0, 2, 5, 7]] {
+            let mut required = [false; 8];
+            for &index in &selected {
+                required[index] = true;
+            }
+            let plan = codec
+                .prepare_classic_reconstruct_plan(
+                    shape(4, 8, &[1, 3, 4, 6]),
+                    ReconstructionGoal::Required(&required),
+                )
+                .unwrap();
+            // A workspace must not retain the caller's mutable request flags.
+            required.fill(false);
+            assert_eq!(
+                plan.data_targets()
+                    .iter()
+                    .chain(plan.parity_targets())
+                    .copied()
+                    .collect::<Vec<_>>(),
+                selected
+            );
+            assert_eq!(
+                plan.data_targets(),
+                selected
+                    .iter()
+                    .copied()
+                    .filter(|&i| i < 4)
+                    .collect::<Vec<_>>()
+            );
+            assert_eq!(
+                plan.parity_targets(),
+                selected
+                    .iter()
+                    .copied()
+                    .filter(|&i| i >= 4)
+                    .collect::<Vec<_>>()
+            );
+        }
+    }
+    check::<galois_8::Field>();
+    check::<galois_16::Field>();
+}
+
+#[test]
+fn target_storage_preserves_inline_capacity_without_growing_index_metadata() {
+    use ::core::mem::size_of;
+    assert!(
+        size_of::<Option<SmallVec<[usize; 64]>>>() + size_of::<usize>()
+            <= 2 * size_of::<SmallVec<[usize; 32]>>()
+    );
+    let selected: SmallVec<[usize; 64]> = (0..64).collect();
+    assert!(!selected.spilled());
 }

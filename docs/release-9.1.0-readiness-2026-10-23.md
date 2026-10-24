@@ -1,5 +1,8 @@
 # 9.1.0 merged-candidate review
 
+Parent-source records below retain their independent validation bindings. This
+review-branch combination has no performance or release approval.
+
 Windows parity-row validation (2026-10-25): test/workflow fix `ad00e79` keeps
 runtime `31ccf7e` unchanged. All three Windows toolchains now pass the complete std
 suite and explicit 270-case debug/release contracts. The [Windows context review](borrowed-parity-rows-review-2026-10-25.md#windows-debug-allocation-context)
@@ -18,6 +21,25 @@ tests, published-9.0.0 and WASM compatibility pass; package inventories remain 7
 Separate recovery PR #106 is not included. Allocation evidence is not end-to-end
 throughput or release approval; final combined source, accepted full performance
 evidence and strict positive preflight remain outstanding.
+
+Mixed recovery survivor views (2026-10-25): runtime `7c94573` extends `873ce47`
+with a shared in-place reference merge after successful data recovery. The
+[complete review](mixed-recovery-view-review-2026-10-25.md) retains all 135 red/green
+comparisons (two wide view allocations to one), all 2,044 small-mask reference
+checks, 574 local parent tests / 269 no_std, 317 tool tests and fresh published-9.0.0 /
+WASM compatibility. Allocation requests decrease by one in every case; this is
+not measured end-to-end throughput or release approval. Dedicated Linux and the
+accepted full performance / strict positive preflight gates remain outstanding.
+
+Borrowed recovery targets (2026-10-25): runtime `7bf62d5` on main `e758f11`
+reuses validated missing-index storage for ordinary recovery and keeps selective
+requests independent. The [source-bound review](borrowed-recovery-targets-review-2026-10-25.md)
+records all 54 warmed generic recovery controls (five to four allocation requests),
+572 local parent tests / 268 no_std, 317 Rust tool tests, published-version and
+fresh WASM compatibility. Positive x86 checks are compile-only; Linux all-target
+cross compilation lacks its benchmark C compiler. Dedicated controlled Linux validation was outstanding
+when this earlier source record was created. Old native/timing sources remain unchanged; complete accepted
+performance evidence and strict positive preflight remain required.
 
 Distribution compatibility (2026-10-25): merged main `4353935` has the same
 complete Git tree as executed `bfac8fc` / runtime `4aa4ee0`. The

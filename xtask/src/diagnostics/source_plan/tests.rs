@@ -32,12 +32,12 @@ fn complete_plans_bind_generated_bytes_and_every_written_member() {
         ),
         (
             "stream-core",
-            "3f3d3ce8443cf418f327a0b8385b41063a726ff52ae9a76dff93ca9aaec330e8",
+            "e14832227ceb638ca1bf6d24a45fde94d902889549da5690ddbc3c5b3907114a",
         ),
         (
             // Current production source, including every systematic decode branch.
             "dynamic",
-            "cfb5b13d8ff2ba2e625ffcb025da38ec32e36cf945bcce7f233f0d5698833a92",
+            "7c14481cbc7a9c4df6d27b2af760e6145e9d0ae3aee6efe68862e5429f371e58",
         ),
     ] {
         let original = original(root, variant);
