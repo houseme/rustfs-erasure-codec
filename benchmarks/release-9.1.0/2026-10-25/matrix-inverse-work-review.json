@@ -1,0 +1,258 @@
+{
+  "artifact_kind": "direct-inverse-work-review-v1",
+  "source": "4aa4ee0a21f108d9311da33282b71a9f24fc19bd",
+  "production_parent": "0814bbde2492e7af44c1ffff7c4577c6ab91eb67",
+  "runtime_scope": "Construct [matrix | identity] directly without a temporary square identity matrix. Gaussian arithmetic, pivot order, complete row widths and returned representation are unchanged.",
+  "local_allocation_controls": [
+    {
+      "field_order": 256,
+      "data_shards": 33,
+      "parity_shards": 33,
+      "shard_elements": 65,
+      "matrix": "custom reversed identity parity",
+      "cache": false,
+      "before_square_allocation_calls": 3,
+      "after_square_allocation_calls": 2,
+      "before_total_allocation_calls": 10,
+      "after_total_allocation_calls": 9,
+      "removed_temporary_element_count": 1089
+    },
+    {
+      "field_order": 256,
+      "data_shards": 40,
+      "parity_shards": 40,
+      "shard_elements": 65,
+      "matrix": "custom reversed identity parity",
+      "cache": false,
+      "before_square_allocation_calls": 3,
+      "after_square_allocation_calls": 2,
+      "before_total_allocation_calls": 10,
+      "after_total_allocation_calls": 9,
+      "removed_temporary_element_count": 1600
+    },
+    {
+      "field_order": 256,
+      "data_shards": 64,
+      "parity_shards": 64,
+      "shard_elements": 65,
+      "matrix": "custom reversed identity parity",
+      "cache": false,
+      "before_square_allocation_calls": 3,
+      "after_square_allocation_calls": 2,
+      "before_total_allocation_calls": 10,
+      "after_total_allocation_calls": 9,
+      "removed_temporary_element_count": 4096
+    },
+    {
+      "field_order": 65536,
+      "data_shards": 33,
+      "parity_shards": 33,
+      "shard_elements": 65,
+      "matrix": "custom reversed identity parity",
+      "cache": false,
+      "before_square_allocation_calls": 3,
+      "after_square_allocation_calls": 2,
+      "before_total_allocation_calls": 10,
+      "after_total_allocation_calls": 9,
+      "removed_temporary_element_count": 1089
+    },
+    {
+      "field_order": 65536,
+      "data_shards": 40,
+      "parity_shards": 40,
+      "shard_elements": 65,
+      "matrix": "custom reversed identity parity",
+      "cache": false,
+      "before_square_allocation_calls": 3,
+      "after_square_allocation_calls": 2,
+      "before_total_allocation_calls": 10,
+      "after_total_allocation_calls": 9,
+      "removed_temporary_element_count": 1600
+    },
+    {
+      "field_order": 65536,
+      "data_shards": 64,
+      "parity_shards": 64,
+      "shard_elements": 65,
+      "matrix": "custom reversed identity parity",
+      "cache": false,
+      "before_square_allocation_calls": 3,
+      "after_square_allocation_calls": 2,
+      "before_total_allocation_calls": 10,
+      "after_total_allocation_calls": 9,
+      "removed_temporary_element_count": 4096
+    }
+  ],
+  "allocation_scope": "Warmed backend and preallocated caller buffers; cold uncached dense inverse with all systematic inputs absent. Caller-thread allocation requests, not wall clock, RSS or codec-only hardware cycles.",
+  "local_validation": {
+    "source_files_bound_to_commit": true,
+    "codec": {
+      "library": 395,
+      "integration": 164,
+      "doc": 10,
+      "parent_passed": 569,
+      "filtered_child_executions_separate": 6,
+      "ignored": 43,
+      "no_std": 266
+    },
+    "tool": {
+      "unit": 278,
+      "cli": 39,
+      "total": 317
+    },
+    "published_normal_configurations": 200,
+    "published_custom_configurations": 27,
+    "published_custom_cross_recoveries": 162,
+    "published_wide_configurations": 12,
+    "published_selective_configurations": 270,
+    "published_selective_cross_recoveries": 2640,
+    "published_backend_scope": "local default backend only",
+    "strict_codec_tool_clippy": true,
+    "fmt_typos_diff": true
+  },
+  "matrix_reference": {
+    "field_orders": [
+      256,
+      65536
+    ],
+    "sizes": [
+      0,
+      1,
+      2,
+      7,
+      31,
+      32,
+      33,
+      40,
+      64
+    ],
+    "normal_and_reversed_rows": true,
+    "general_tower_coefficients": true,
+    "exact_legacy_augmented_elimination_output": true,
+    "input_unchanged": true,
+    "singular_and_nonsquare_errors_preserved": true
+  },
+  "observer_compatibility": {
+    "generated_files": 9,
+    "only_changed_file": "src/matrix.rs",
+    "legacy_outputs_byte_exact": true,
+    "reverse_only_new_initializer_and_test_restores_complete_old_output": true,
+    "one_known_initializer_required": true,
+    "unknown_and_ambiguous_initializers_refused": true,
+    "full_inverse_method_preserved_except_two_observation_calls": true,
+    "formal_templates_and_benchmark_loops_unchanged": true
+  },
+  "native_validation": {
+    "source": "4aa4ee0a21f108d9311da33282b71a9f24fc19bd",
+    "completed_commands": 8,
+    "planned_commands": 34,
+    "all8_completed_commands_passed": true,
+    "all34_commands_passed": false,
+    "linux_codec": {
+      "library": 412,
+      "integration": 163,
+      "doc": 10,
+      "parent_passed": 585,
+      "filtered_child_executions_separate": 6,
+      "existing_ignored": 43,
+      "no_std": null
+    },
+    "allocation_controls": [
+      {
+        "field_order": 256,
+        "data": 33,
+        "square_allocation_calls": 2,
+        "total_allocation_calls": 9
+      },
+      {
+        "field_order": 256,
+        "data": 40,
+        "square_allocation_calls": 2,
+        "total_allocation_calls": 9
+      },
+      {
+        "field_order": 256,
+        "data": 64,
+        "square_allocation_calls": 2,
+        "total_allocation_calls": 9
+      },
+      {
+        "field_order": 65536,
+        "data": 33,
+        "square_allocation_calls": 2,
+        "total_allocation_calls": 9
+      },
+      {
+        "field_order": 65536,
+        "data": 40,
+        "square_allocation_calls": 2,
+        "total_allocation_calls": 9
+      },
+      {
+        "field_order": 65536,
+        "data": 64,
+        "square_allocation_calls": 2,
+        "total_allocation_calls": 9
+      }
+    ],
+    "both_gfni_row_widths_actually_executed": true,
+    "gfni_scalar_entry_contract_actually_executed": true,
+    "cache_layouts": 978,
+    "warmed_zero_allocation_cases": 18,
+    "independent_original_inputs": 52,
+    "all_completed_raw_summaries_exact": true,
+    "replay_codec_calls": 0,
+    "pipeline_terminal": "failed-preserved",
+    "reason": "Another task started a foreign heavy cargo process; the strict ownership observer refused and stopped only this task.",
+    "not_a_codec_test_or_statistical_failure": true,
+    "original_refusal_and_outputs_preserved": true,
+    "source_cpuset_and_original_observers_unchanged": true,
+    "archive_verified_and_independently_downloaded": true,
+    "atomic_ack_then_lease_restored_closed_and_owner_absent": true,
+    "remaining_command_names": [
+      "no-std",
+      "ssse3-fallback",
+      "avx2-fallback",
+      "scalar-general",
+      "gfni256-general",
+      "gfni512-general",
+      "published-200",
+      "published-custom-auto",
+      "published-wide-auto",
+      "published-custom-scalar-rust",
+      "published-wide-scalar-rust",
+      "published-custom-rust-ssse3",
+      "published-wide-rust-ssse3",
+      "published-custom-rust-avx2",
+      "published-wide-rust-avx2",
+      "published-custom-rust-gfni-avx2",
+      "published-wide-rust-gfni-avx2",
+      "published-custom-rust-gfni-avx512",
+      "published-wide-rust-gfni-avx512",
+      "backend-env-stress",
+      "published-selective-auto",
+      "published-selective-scalar-rust",
+      "published-selective-rust-ssse3",
+      "published-selective-rust-avx2",
+      "published-selective-rust-gfni-avx2",
+      "published-selective-rust-gfni-avx512"
+    ],
+    "continuation_prepared_commands": 26,
+    "continuation_actual_launches": 0,
+    "continuation_state": "waiting-for-free-resources",
+    "completed8_not_selected_for_reexecution": true
+  },
+  "retained_local_failure_records": [
+    "Initial allocation budget omitted the separate selected matrix; corrected before changing production code, then all six pre-fix cases failed with three square allocations.",
+    "The legacy-only observer refused the new initializer.",
+    "A legacy negative test mutated an obsolete string and changed no input; the corrected negative test asserts the input changes before requiring refusal."
+  ],
+  "performance_observations": 0,
+  "performance_approval": false,
+  "release_approval": false,
+  "candidate_attribution": null,
+  "historical_failed_campaigns_preserved": true,
+  "accepted_complete_published_9_0_abba_and_layout_evidence_still_required": true,
+  "strict_positive_release_preflight_still_required": true,
+  "tag_or_registry_upload": false
+}
