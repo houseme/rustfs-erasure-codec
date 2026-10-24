@@ -1,5 +1,13 @@
 # 9.1.0 release preparation
 
+Latest synchronized main (2026-10-24): `727690f` adds four-vector GFNI matrix
+reuse after the `3a62879` native snapshot. The [subsequent integration review](selective-parity-planning-2026-10-24.md#subsequent-main-synchronization-four-vector-matrix-reuse)
+records fresh local dispatch/recovery/identity/buffer, no_std and cross-target
+compile checks on merge `941489c`. It does not transfer the earlier native
+execution or rejected timing results to the batching revision. Final native
+source binding, accepted complete performance evidence and strict positive
+release preflight remain outstanding.
+
 Reviewed native snapshot (2026-10-24): `3a62879` includes the independently added
 GFNI row-fusion runtime `c558ef8`, so it differs from frozen timing candidate
 `b1a10e4`. The [later-main review](selective-parity-planning-2026-10-24.md#later-main-independent-gfni-row-fusion)

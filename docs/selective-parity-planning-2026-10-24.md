@@ -251,3 +251,25 @@ refusal and the new runtime's own missing performance acceptance both remain
 visible. A later intended candidate/tool/lock freeze still needs its own
 accepted complete published-version data and actual strict positive preflight;
 no performance result is inferred from an external PR merge or ordinary CI.
+
+
+## Subsequent main synchronization: four-vector matrix reuse
+
+After the native snapshot above completed, main `727690f` incorporated the
+separate GFNI batching revision. Merge `941489c` brings it into this results
+branch without changing the frozen diagnostic or reassigning source labels.
+Each matrix broadcast serves four adjacent vectors; selection retains the
+preceding route below four vector widths. Review follows the four disjoint
+output ranges, complete row accumulation, unaligned access bounds, remaining
+full vectors and scalar tails. The checked chunk and Field conversion contracts
+remain intact; no additional reportable correctness defect was confirmed.
+
+Fresh local checks on this exact merge pass 35 parent tests across dispatch,
+recovery-plan, identity and owned-buffer suites, plus two separate filtered
+child executions, 261 no_std tests, strict codec Clippy, x86 all-target/all-feature
+compile-only Clippy and formatting. Production/test/build/tool/workflow files
+match that main; validation inputs are unchanged. The earlier 575-case native
+proof belongs to `3a62879`, not this later batching implementation. No new native
+ISA execution or performance acceptance is claimed for the batching revision.
+Its own source-bound native checks and final accepted full release evidence
+remain separate outstanding work.
