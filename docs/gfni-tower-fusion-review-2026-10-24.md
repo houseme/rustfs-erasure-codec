@@ -674,3 +674,72 @@ constant-frequency release conditions. Functional compatibility remains proved
 on the final source, while accepted final published-version full ABBA/layout
 and actual strict positive preflight remain missing. No tag, registry upload or
 automatic PR merge is performed, and automation remains paused.
+
+
+## Integrated main: native compatibility and static attribution review
+
+PR #84 was externally merged while this independent integration was being
+validated. Executed source `43d678b` merges main `0b10e7a` with the complete
+GFNI tower/width/isolated-test branch. Against the preceding branch source,
+its production difference is the mainline GF16 norm inverse; the retained
+Euclidean implementation and two exhaustive tests remain test-only. GFNI
+kernels, scalar/SSSE3 layout eligibility, backend caching, core publication,
+normal bytes, manifests and lockfile retain the reviewed implementations.
+Norm inversion targets matrix inversion during construction/cold recovery;
+fused slice products target general tower coefficients. Neither mechanism
+implies the same improvement in ordinary encoding or cached recovery.
+
+Reviewed main `801f499` has exactly the same codec source, codec/compatibility
+tests, build/lock/configuration, WASM and workflows as executed `43d678b`.
+Its later native owned-row/harness-identity tool updates make the complete tool
+and file tree different. The tests and earlier measurements keep their actual
+executed source labels; this file equality is not a new complete-tree release
+acceptance. PR #84's merged state is not a claim that all its CI runs completed.
+
+The [new source-bound functional record](../benchmarks/release-9.1.0/2026-10-24/gf16-main-integrated-functional-review.json)
+contains all 21 positive native Linux commands, with 392 library / 160 integration /
+ten doc tests (562 parent cases passed, 43 existing ignored) and 252 no_std tests. Both GFNI
+widths execute their exhaustive byte/tower tests; AVX2 layout executes its scalar
+oracle. Twelve fixed parallel backend rounds each pass all fifteen parent tests.
+All six override settings retain the published-format custom/wide compatibility
+checks: 200 normal configurations, 162 custom configurations / 972 cross
+recoveries, and 72 wide configurations. Independent raw replay checks all 35
+inputs unchanged, reproduces every original summary/marker, and executes no
+codec. Sources, four owned cleanup conditions and both original observers restore.
+This is a new-source correctness run with zero performance observations.
+
+ARM64 separately passes 379 library / 162 integration / ten doc tests (551 parent cases,
+43 existing ignored), 252 no_std, 253 native tool tests and all 252 Python tests.
+Strict codec/tool Clippy, x86 all-target compile-only Clippy, fmt/typos/diff pass.
+The new totals count unfiltered parent harness summaries. Five native Linux
+and six ARM64 filtered child-test executions are reported separately, rather
+than counted again as distinct parent cases; all raw summaries remain retained.
+Historical artifacts keep their original summary-count convention.
+A newly linked executable compares the actual published 9.0.0 crate with the
+executed merged library: all 65,536 inverses and 327,680 quotients match exactly,
+including historical zero division. Fresh package lists retain 67 core / six
+WASM members. These local/tool results bind `43d678b`; newer tool files do not
+inherit those exact-source test counts. The newer `801f499` tool source separately
+passes all 255 native tests (226 unit / 29 CLI), strict tool Clippy and ninety
+release/complete-diagnostic Python contract tests, with its inputs unchanged.
+
+The [zero-codec retained-constant review](../benchmarks/release-9.1.0/2026-10-24/gf16-retained-constants-review.json)
+extends the old `986c1fe` / `7fa4fdd` static audit. All five selected direct vector
+constant reads and five named arithmetic tables (74,494 bytes total) match the
+retained executable bytes, including the SSSE3 nibble masks. The initial static
+reader's ambiguous non-allocated-section mapping refusal remains retained;
+corrected bounded mapping and the successful review have separate provenance.
+This excludes changed selected mask/table values in those binaries, without
+proving equal runtime binding, code/data placement, page residency or cost.
+The harness materializes role-dependent argv before allocating fixtures and
+reparses process arguments for mode before entering the timed loop. It did not
+record dynamic input/output addresses or physical pages. Neither source
+inspection nor those argument differences prove a unique regression cause.
+
+No codec variant or unchanged-source performance retry was introduced for this
+review. A future calling-context control would need a predeclared change and
+its own complete results; it must preserve all earlier failures and distinguish
+observed dynamic layout from equal payload bytes. Accepted final-source full
+published-baseline ABBA/layout evidence and actual strict positive preflight
+remain required. No tag, registry upload or automatic PR merge is performed;
+automation remains paused.
