@@ -5,7 +5,7 @@ use std::borrow::Borrow;
 
 pub(crate) mod batch;
 pub(crate) mod calibration_profile;
-mod campaign;
+pub(crate) mod campaign;
 mod journal;
 pub(crate) mod output;
 pub(crate) mod preparation;

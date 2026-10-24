@@ -235,6 +235,20 @@ impl Request {
     }
 }
 
+/// Execute the shared typed models in-process; native controllers need no IPC.
+pub(crate) fn evaluate(value: serde_json::Value) -> Result<serde_json::Value> {
+    match serde_json::from_value::<Request>(value)?.execute()? {
+        Response::Data(value) => Ok(value),
+        Response::Text(value) => Ok(value.into()),
+        Response::Files(files) => Ok(serde_json::Value::Object(
+            files
+                .into_iter()
+                .map(|(name, text)| (name, text.into()))
+                .collect(),
+        )),
+    }
+}
+
 // A complete 32 MiB artifact plus the small typed request envelope/newline.
 const REQUEST_LIMIT: usize = 32 * 1024 * 1024 + 64 * 1024;
 const RESPONSE_LIMIT: usize = 32 * 1024 * 1024;

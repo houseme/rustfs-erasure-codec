@@ -30,14 +30,18 @@ fn files(root: &Path, recursive: bool, extension: &str) -> Result<Vec<PathBuf>> 
     Ok(result)
 }
 fn native_bytes(root: &Path, hasher: &mut Sha256) -> Result<()> {
-    let mut paths = [
-        "scripts/native_tools.py",
-        "Cargo.toml",
-        "Cargo.lock",
-        "xtask/Cargo.toml",
-    ]
-    .map(|n| root.join(n))
-    .to_vec();
+    let mut paths = Vec::new();
+    let legacy = root.join("scripts/native_tools.py");
+    if legacy.is_file() {
+        paths.push(legacy);
+    }
+    paths.extend(["Cargo.toml", "Cargo.lock", "xtask/Cargo.toml"].map(|name| root.join(name)));
+    for name in ["xtask/build.rs", "xtask/source_stamp.rs"] {
+        let path = root.join(name);
+        if path.is_file() {
+            paths.push(path);
+        }
+    }
     paths.extend(files(&root.join("xtask/src"), true, "rs")?);
     paths.extend(files(&root.join("xtask/contracts"), false, "json")?);
     for path in paths {
@@ -51,19 +55,28 @@ fn native_bytes(root: &Path, hasher: &mut Sha256) -> Result<()> {
     Ok(())
 }
 pub(crate) fn sampling(root: &Path) -> Result<String> {
-    sampling_with(root, &root.join("scripts/release_sampling.py"))
+    let native = root.join("xtask/src/control/sampling.rs");
+    sampling_with(
+        root,
+        &if native.is_file() {
+            native
+        } else {
+            root.join("scripts/release_sampling.py")
+        },
+    )
 }
 fn sampling_with(root: &Path, controller: &Path) -> Result<String> {
     let mut hash = Sha256::new();
     let mut paths = vec![controller.to_owned()];
-    paths.extend(files(
-        &controller
+    let templates = if controller.extension().is_some_and(|e| e == "rs") {
+        root.join("scripts/release-sampling")
+    } else {
+        controller
             .parent()
             .ok_or("missing sampler controller parent")?
-            .join("release-sampling"),
-        false,
-        "rs",
-    )?);
+            .join("release-sampling")
+    };
+    paths.extend(files(&templates, false, "rs")?);
     for path in paths {
         hash.update(
             path.file_name()
@@ -102,7 +115,12 @@ pub(crate) fn source(root: &Path, kind: Kind, controller: Option<&Path>) -> Resu
             };
         }
         Kind::Views => {
-            let default = root.join("scripts/stream_view_audit.py");
+            let native = root.join("xtask/src/control/inventory.rs");
+            let default = if native.is_file() {
+                native
+            } else {
+                root.join("scripts/stream_view_audit.py")
+            };
             hash.update(fs::read(controller.unwrap_or(&default))?);
             hash.update(crate::diagnostics::templates::native("views", root)?.as_bytes());
         }

@@ -224,7 +224,13 @@ pub(crate) fn run(args: &Args) -> Result<()> {
     let request = Request {
         capture: PathBuf::from(args.required("--capture")?),
         renderer_sha256: fingerprint::sampling(tool)?,
-        analyzer_sha256: fingerprint::file(&tool.join("scripts/analyze_baseline_variability.py"))?,
+        analyzer_sha256: fingerprint::file(&tool.join(
+            if tool.join("xtask/src/control/baseline.rs").is_file() {
+                "xtask/src/control/baseline.rs"
+            } else {
+                "scripts/analyze_baseline_variability.py"
+            },
+        ))?,
     };
     println!("{}", serde_json::to_string(&request.execute()?)?);
     Ok(())

@@ -81,6 +81,63 @@ pub(crate) fn json(root: &Path) -> Result<bool> {
     Ok(errors.is_empty())
 }
 
+/// Guard every tracked/non-ignored executable surface after retiring the interpreter.
+pub(crate) fn no_python(root: &Path) -> Result<bool> {
+    let output = Command::new("git")
+        .args([
+            "ls-files",
+            "-z",
+            "--cached",
+            "--others",
+            "--exclude-standard",
+        ])
+        .current_dir(root)
+        .output()?;
+    if !output.status.success() {
+        return Err("git source inventory failed".into());
+    }
+    let interpreter = regex::Regex::new(
+        r#"(?i)(?:^|[\s\"'=;/|&(])(?:python[0-9]*(?:\.[0-9]+)?|pypy[0-9]*)(?:$|[\s\"'();|&])|actions/setup-python@"#,
+    )?;
+    let mut errors = Vec::new();
+    let mut python_files = 0;
+    for name in output.stdout.split(|b| *b == 0).filter(|p| !p.is_empty()) {
+        let name = std::str::from_utf8(name)?;
+        let path = root.join(name);
+        if !path.is_file() {
+            continue;
+        }
+        let extension = path.extension().and_then(|e| e.to_str()).unwrap_or("");
+        if [
+            "py", "pyw", "pyx", "pyi", "pyc", "pyo", "pyd", "ipynb", "sage",
+        ]
+        .contains(&extension)
+        {
+            errors.push(name.to_owned());
+            python_files += 1;
+            continue;
+        }
+        if ["sh", "yml", "yaml"].contains(&extension) {
+            let text = std::fs::read_to_string(path)?;
+            for (index, line) in text.lines().enumerate() {
+                if line.trim_start().starts_with('#') && !line.trim_start().starts_with("#!") {
+                    continue;
+                }
+                if interpreter.is_match(line) {
+                    errors.push(format!("{name}:{}: interpreter dependency", index + 1));
+                }
+            }
+        }
+    }
+    println!(
+        "{}",
+        serde_json::to_string_pretty(
+            &json!({"python_files":python_files,"errors":errors,"scope":"tracked and non-ignored sources, CI and shell entry points"})
+        )?
+    );
+    Ok(errors.is_empty())
+}
+
 #[derive(Clone, Copy)]
 enum Crate {
     Codec,

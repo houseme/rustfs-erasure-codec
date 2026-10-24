@@ -111,4 +111,4 @@ pub(crate) fn run(args: &Args) -> Result<()> {
     Ok(())
 }
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;
