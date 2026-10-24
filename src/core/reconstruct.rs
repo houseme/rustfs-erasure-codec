@@ -577,10 +577,10 @@ impl<F: Field> ReedSolomon<F> {
         )
     }
 
-    /// A single missing data value is one parity equation after substituting
-    /// surviving systematic data. All Classic constructors, including custom
-    /// matrices, put the identity in their data rows. Keep full elimination for
-    /// other erasure shapes, including its existing SIMD row widths.
+    /// Substitute surviving systematic data before solving parity equations.
+    /// All Classic constructors, including custom matrices, have identity data
+    /// rows. Only the missing-data coefficients need pivot elimination; survivor
+    /// order and the complete inverse representation remain unchanged.
     fn build_data_decode_matrix(
         &self,
         valid_indices: &[usize],
@@ -615,6 +615,53 @@ impl<F: Field> ReedSolomon<F> {
             return Ok(decode);
         }
 
+        let missing_count = data_count - present_count;
+        if present_count != 0 && missing_count > 1 {
+            let mut missing: SmallVec<[usize; 32]> = SmallVec::new();
+            let mut known = valid_indices[..present_count].iter().copied().peekable();
+            for index in 0..data_count {
+                if known.peek() == Some(&index) {
+                    known.next();
+                } else {
+                    missing.push(index);
+                }
+            }
+
+            // Selected survivor equations are [I 0; B C] after ordering
+            // columns as known/unknown data. Eliminate only C in [C | B | I]
+            // to obtain [I | C^-1 B | C^-1]. In characteristic two the known
+            // terms use addition. The right-hand side keeps original input
+            // order: known systematic shards, then selected parity shards.
+            let mut equations = Matrix::<F>::new(missing_count, missing_count + data_count);
+            for (row, &index) in valid_indices[present_count..].iter().enumerate() {
+                let coefficients = matrix.get_row(index);
+                for (column, &index) in missing.iter().enumerate() {
+                    equations.set(row, column, coefficients[index]);
+                }
+                for (column, &index) in valid_indices[..present_count].iter().enumerate() {
+                    equations.set(row, missing_count + column, coefficients[index]);
+                }
+                equations.set(row, missing_count + present_count + row, F::one());
+            }
+            equations
+                .gaussian_elim()
+                .map_err(|_| Error::InvalidCustomMatrix)?;
+
+            let mut decode = Matrix::new(data_count, data_count);
+            for (column, &index) in valid_indices[..present_count].iter().enumerate() {
+                decode.set(index, column, F::one());
+            }
+            for (row, &index) in missing.iter().enumerate() {
+                for (column, &value) in equations.get_row(row)[missing_count..].iter().enumerate() {
+                    decode.set(index, column, value);
+                }
+            }
+            return Ok(decode);
+        }
+
+        // With no surviving systematic data, every equation is unknown: keep
+        // the existing dense inverse and its full SIMD row widths. The single
+        // equation above retains its direct reciprocal without a work matrix.
         let mut selected = Matrix::new(data_count, data_count);
         for (row, &index) in valid_indices.iter().enumerate() {
             for column in 0..data_count {
