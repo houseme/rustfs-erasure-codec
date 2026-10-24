@@ -93,3 +93,29 @@ Codec source and observer templates are unchanged. Tool source identities remain
 subject to existing provenance binding; historical captures are not relabeled.
 Existing release acceptance requirements and historical refusal records continue
 to apply.
+
+
+## Integration with current main
+
+The implementation was rebased onto main
+`089339b67027781a746835d39c4c4badd71e8b75`. The verified implementation commit is
+`e9a73aba93032440ab317f58f626c521573513dc`. This includes main's selected-survivor cache key and
+its matching diagnostic observers. The three implementation files in this patch
+are unchanged by the rebase. Relative to current main, codec source, observer
+templates, manifests, dependencies, lockfiles and historical evidence still
+match exactly.
+
+All applicable gates above pass again on this combined source: 314 native-tool
+tests (275 unit / 29 CLI / 10 controller CLI), 555 codec tests and ten doctests,
+strict tooling Clippy, codec-only no_std, all four repository audits, formatting
+and diff checks. The 43 existing ignored codec tests remain ignored. The JSON
+inventory is now 623 files / 6,587,511 bytes because main added its two cache
+review records; those original bytes remain unchanged. Package allowlists remain
+71/6 members, all five members inherit root dependencies, and no Python source
+is present in the audited scope.
+
+The resource and old/new output observations above retain their original
+pre-rebase source scope. Rebase does not assign new identities to those probes
+or turn them into codec throughput, native x86, Linux capture or release proof.
+The following validation commit changes this document only; CI belongs to the
+PR head and is reported separately.
