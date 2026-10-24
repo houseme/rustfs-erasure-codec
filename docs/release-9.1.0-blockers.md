@@ -24,10 +24,12 @@ refusals and one scalar-control regression refusal. It is not accepted.
 Cached execution source `678ddd6` also completes and independently replays:
 no width/short failures, nine repeat and two regression-case refusals, including
 unchanged GF8 control drift. It remains unaccepted. Follow-through `2f16f8b`
-caches only optional native functions and retains static portable calls; its
-native correctness and published-version checks pass, while a fresh unchanged-
-protocol comparison is in progress. Local correctness, wire compatibility and
-ordinary CI do not qualify throughput or strict release. The separate
+caches only optional native functions and retains static portable calls. Its
+complete independent replay now has zero width/regression/short refusals, but
+five repeats still fail, so the complete component comparison remains rejected.
+Both scalar controls pass their repeat/regression limits in this cohort. Local
+correctness, wire compatibility and ordinary CI do not qualify throughput or
+strict release. All three cohorts remain source-bound; the separate
 portable-interleave PR #83 still needs explicit integration review.
 
 ## GFNI component follow-through and cancellation fix

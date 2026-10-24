@@ -243,3 +243,48 @@ GFNI units with both new markers, selector, coefficient/matrix, dispatch/reuse,
 one-iteration input catalogs agree. The sampler is rebuilt without metrics and
 is completing its fixed post-build idle before calibration. These checks do not
 qualify performance; its complete third result remains pending.
+
+## Final complete native-only comparison
+
+The [complete native-only result](../benchmarks/release-9.1.0/2026-10-24/gfni-native-only-component-review.json)
+retains all twenty cases, eighty comparisons and forty repeats. Independent
+replay exactly reproduces all 960 observations, eighty distributions and every
+refusal. It binds the externally retained plan and original preheat state and
+checks all 2,945 input files unchanged: forty functional, 862 calibration and
+eighty measurement workers / 1,964 parent events, all exiting successfully.
+Three sources and four cleanup conditions restore, the two original observers
+are active, and no owned partition remains at the post-run audit. Replay runs
+zero codec calls.
+
+| Implementation source | Width refusals / 80 | Repeat refusals / 40 | Regression cases / 20 | Short samples |
+| --- | ---: | ---: | ---: | ---: |
+| `07b08c8` | 0 | 10 | 1 | 0 |
+| `678ddd6` | 0 | 9 | 2 | 0 |
+| `2f16f8b` | 0 | 5 | 0 | 0 |
+
+The latest scalar overwrite four-pair ratio range is 0.998285–1.018329;
+accumulation is 0.992322–1.030358. Both control repeats pass. The prior scalar
+refusals are absent in these conditions; this does not uniquely attribute the
+older observations or prove that every remaining drift is a codec defect.
+All eighty regression comparisons now remain within the declared 12% limit.
+
+The five retained repeat refusals are:
+
+| Case | Pair | Drift percent |
+| --- | --- | ---: |
+| auto GF16 multiply, 1024 | A1/A2 | 11.5060171 |
+| auto GF16 multiply, 1025 | B1/B2 | 7.5252478 |
+| auto GF16 accumulate, 1024 | A1/A2 | 7.1616461 |
+| explicit GFNI AVX2 multiply, 1025 | A1/A2 | 5.1382041 |
+| explicit GFNI AVX-512 multiply, 1025 | B1/B2 | 11.2434309 |
+
+The entire latest cohort therefore remains **not accepted**. Favorable direct
+kernel/custom encode/recovery ratios remain in the complete JSON alongside all
+controls; they are not promoted to an approved speedup. No unchanged-source
+retry, extra variant or threshold change follows from these results. All three
+source-bound comparisons and original failures remain intact.
+
+The implementation/compatibility work is reviewable in PR #84. A combined final
+candidate still needs integration review with the separate candidates, source/
+lock/tool freeze, accepted full ABBA/layout evidence and actual strict positive
+release preflight. No release tag, registry upload or automatic merge is recorded.
