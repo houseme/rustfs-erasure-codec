@@ -401,3 +401,34 @@ fn cached_survivors_do_not_hide_a_singular_custom_replacement() {
         .unwrap();
     assert!(!Arc::ptr_eq(&first, &second));
 }
+
+#[test]
+fn recovered_input_merge_matches_systematic_order_for_every_small_erasure_mask() {
+    fn check<F: Field>() {
+        for data in 1..=9 {
+            let shards: Vec<_> = (0..data * 2).map(|i| [F::nth(i)]).collect();
+            for mask in 0usize..1 << data {
+                let targets: Vec<_> = (0..data).filter(|i| mask & (1 << i) != 0).collect();
+                let recovered: Vec<_> = targets.iter().map(|&i| shards[i].as_slice()).collect();
+                let mut inputs: Vec<_> = (0..data)
+                    .filter(|i| mask & (1 << i) == 0)
+                    .chain(data..data + targets.len())
+                    .map(|i| shards[i].as_slice())
+                    .collect();
+                let pointer = inputs.as_ptr();
+                let capacity = inputs.capacity();
+                ReedSolomon::<F>::use_recovered_data(&mut inputs, &targets, &recovered);
+                assert_eq!(inputs.as_ptr(), pointer);
+                assert_eq!(inputs.capacity(), capacity);
+                for (input, original) in inputs.iter().zip(&shards[..data]) {
+                    assert!(
+                        core::ptr::eq(*input, original.as_slice()),
+                        "data={data} mask={mask}"
+                    );
+                }
+            }
+        }
+    }
+    check::<galois_8::Field>();
+    check::<galois_16::Field>();
+}

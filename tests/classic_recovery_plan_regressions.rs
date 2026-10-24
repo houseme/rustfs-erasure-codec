@@ -449,6 +449,113 @@ mod allocation_regressions {
     }
 
     #[test]
+    fn mixed_recovery_reuses_survivor_view_storage_for_parity() {
+        type BulkRecovery<F> = fn(
+            &rustfs_erasure_codec::ReedSolomon<F>,
+            &mut [Option<Vec<<F as rustfs_erasure_codec::Field>::Elem>>],
+        );
+        fn check<F: rustfs_erasure_codec::Field>(bulk: Option<BulkRecovery<F>>) -> bool {
+            let mut budget_met = true;
+            for mode in [
+                MatrixMode::Vandermonde,
+                MatrixMode::Cauchy,
+                MatrixMode::JerasureLike,
+            ] {
+                for data in [33, 40, 64] {
+                    let codec = rustfs_erasure_codec::ReedSolomon::<F>::with_options(
+                        data,
+                        data,
+                        CodecOptions::builder().matrix_mode(mode).build(),
+                    )
+                    .unwrap();
+                    let mut original: Vec<Vec<F::Elem>> = (0..data * 2)
+                        .map(|index| {
+                            (0..65)
+                                .map(|offset| F::nth((index * 263 + offset * 17 + 1) % F::ORDER))
+                                .collect()
+                        })
+                        .collect();
+                    codec.encode(&mut original).unwrap();
+                    let patterns = [
+                        vec![0],
+                        vec![data / 2],
+                        vec![data - 1],
+                        vec![0, data / 2, data - 1],
+                        (0..data / 2).collect(),
+                    ];
+                    for (pattern, missing) in patterns.iter().enumerate() {
+                        let mut slots: Vec<_> = original
+                            .iter()
+                            .cloned()
+                            .map(ShardSlot::new_present)
+                            .collect();
+                        let erase = |slots: &mut Vec<ShardSlot<Vec<F::Elem>>>| {
+                            for &index in missing.iter().chain(core::iter::once(&(data * 2 - 1))) {
+                                slots[index].mark_missing();
+                                slots[index].as_inner_mut().fill(F::zero());
+                            }
+                        };
+                        erase(&mut slots);
+                        codec.reconstruct(&mut slots).unwrap();
+                        erase(&mut slots);
+                        // Both the old survivor list and an unnecessary merged
+                        // list grow from 32 to 64 slice references. Only the
+                        // existing survivor storage is needed after decoding.
+                        let view_bytes = 64 * core::mem::size_of::<&[F::Elem]>();
+                        SIZED_CALLS.with(|sized| sized.set((view_bytes, 0)));
+                        let calls = allocation_calls(|| codec.reconstruct(&mut slots).unwrap());
+                        let view_calls = SIZED_CALLS.with(|sized| sized.replace((0, 0)).1);
+                        budget_met &= view_calls == 1;
+                        println!(
+                            "MIXED_VIEW_ALLOCATION field_order={} matrix={mode:?} data={data} pattern={pattern} entry=generic view_calls={view_calls} total_calls={calls}",
+                            F::ORDER
+                        );
+                        for (slot, expected) in slots.iter().zip(&original) {
+                            assert!(slot.is_present());
+                            assert_eq!(slot.as_inner(), expected);
+                        }
+                        if let Some(recover) = bulk {
+                            let mut shards: Vec<_> = original.iter().cloned().map(Some).collect();
+                            let erase = |shards: &mut Vec<Option<Vec<F::Elem>>>| {
+                                for &index in
+                                    missing.iter().chain(core::iter::once(&(data * 2 - 1)))
+                                {
+                                    shards[index] = None;
+                                }
+                            };
+                            erase(&mut shards);
+                            recover(&codec, &mut shards);
+                            erase(&mut shards);
+                            SIZED_CALLS.with(|sized| sized.set((view_bytes, 0)));
+                            let calls = allocation_calls(|| recover(&codec, &mut shards));
+                            let view_calls = SIZED_CALLS.with(|sized| sized.replace((0, 0)).1);
+                            budget_met &= view_calls == 1;
+                            println!(
+                                "MIXED_VIEW_ALLOCATION field_order={} matrix={mode:?} data={data} pattern={pattern} entry=bulk view_calls={view_calls} total_calls={calls}",
+                                F::ORDER
+                            );
+                            assert_eq!(
+                                shards,
+                                original.iter().cloned().map(Some).collect::<Vec<_>>()
+                            );
+                        }
+                    }
+                }
+            }
+            budget_met
+        }
+        let gf8 = check::<rustfs_erasure_codec::galois_8::Field>(Some(|codec, shards| {
+            codec.reconstruct_opt(shards).unwrap()
+        }));
+        let gf16 = check::<rustfs_erasure_codec::galois_16::Field>(None);
+        assert!(
+            gf8 && gf16,
+            "mixed recovery must reuse the selected-input view buffer"
+        );
+        eprintln!("MIXED_VIEW_REUSE_ALLOCATION cases=135 view_calls_per_case=1");
+    }
+
+    #[test]
     fn cold_dense_inverse_allocates_only_selected_and_result_squares() {
         fn check<F: rustfs_erasure_codec::Field>() -> bool {
             let mut square_budget_met = true;

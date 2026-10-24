@@ -142,6 +142,28 @@ impl<F: Field> ReedSolomon<F> {
         })
     }
 
+    /// After all data outputs succeed, replace parity survivor views with the
+    /// complete systematic input order. Surviving data is the sorted prefix of
+    /// the selected inputs; merge backwards so unread prefix views stay intact.
+    fn use_recovered_data<'a, T: AsRef<[F::Elem]>>(
+        inputs: &mut [&'a [F::Elem]],
+        data_targets: &[usize],
+        recovered_data: &'a [T],
+    ) {
+        debug_assert_eq!(data_targets.len(), recovered_data.len());
+        let mut existing = inputs.len() - data_targets.len();
+        let mut recovered = data_targets.len();
+        for index in (0..inputs.len()).rev() {
+            inputs[index] = if recovered != 0 && data_targets[recovered - 1] == index {
+                recovered -= 1;
+                recovered_data[recovered].as_ref()
+            } else {
+                existing -= 1;
+                inputs[existing]
+            };
+        }
+    }
+
     fn reconstruct_classic_output<'a, T: ReconstructShard<F>>(
         &self,
         destination: &'a mut T,
@@ -176,9 +198,11 @@ impl<F: Field> ReedSolomon<F> {
             return Ok(());
         }
         let data_rows = plan.data_rows();
-        let mut inputs: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
         let mut data_destinations: SmallVec<[&mut T; 32]> = SmallVec::new();
         let mut parity_destinations: SmallVec<[&mut T; 32]> = SmallVec::new();
+        let mut recovered_data: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
+        // Drop the merged input views before the output owners they borrow.
+        let mut inputs: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
         let mut survivors = plan.shape.valid_indices.iter().copied().peekable();
         let mut data_targets = plan.data_targets().iter().copied().peekable();
         let mut parity_targets = plan.parity_targets().iter().copied().peekable();
@@ -201,7 +225,6 @@ impl<F: Field> ReedSolomon<F> {
         // Generic destinations may reject their backing-buffer length. Finish
         // each initialized output before touching the next, so a later error
         // never leaves an earlier destination marked present with stale bytes.
-        let mut recovered_data: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
         #[cfg(feature = "std")]
         if !data_destinations.is_empty() {
             self.runtime_profile_metrics
@@ -235,28 +258,14 @@ impl<F: Field> ReedSolomon<F> {
         #[cfg(feature = "std")]
         self.runtime_profile_metrics
             .record_reconstruct_parity_stage(plan.shape.shard_len, parity_destinations.len());
-        let mut all_data: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
-        let parity_inputs = if plan.direct_parity || recovered_data.is_empty() {
-            inputs.as_slice()
-        } else {
-            let mut existing = 0;
-            let mut recovered = 0;
-            for index in 0..self.data_shard_count() {
-                if plan.data_targets().get(recovered) == Some(&index) {
-                    all_data.push(recovered_data[recovered]);
-                    recovered += 1;
-                } else {
-                    all_data.push(inputs[existing]);
-                    existing += 1;
-                }
-            }
-            all_data.as_slice()
-        };
+        if !plan.direct_parity && !recovered_data.is_empty() {
+            Self::use_recovered_data(&mut inputs, plan.data_targets(), &recovered_data);
+        }
         for (destination, row) in parity_destinations.iter_mut().zip(plan.parity_rows(self)) {
             self.reconstruct_classic_output(
                 &mut **destination,
                 row,
-                parity_inputs,
+                &inputs,
                 plan.shape.shard_len,
             )?;
         }
@@ -282,9 +291,9 @@ impl<F: Field> ReedSolomon<F> {
         }
         let data_rows: SmallVec<[&[F::Elem]; 32]> = plan.data_rows().collect();
         let parity_rows: SmallVec<[&[F::Elem]; 32]> = plan.parity_rows(self).collect();
-        let mut inputs: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
         let mut data_outputs: SmallVec<[&mut [F::Elem]; 32]> = SmallVec::new();
         let mut parity_outputs: SmallVec<[&mut [F::Elem]; 32]> = SmallVec::new();
+        let mut inputs: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
         let mut survivors = plan.shape.valid_indices.iter().copied().peekable();
         let mut data_targets = plan.data_targets().iter().copied().peekable();
         let mut parity_targets = plan.parity_targets().iter().copied().peekable();
@@ -344,26 +353,12 @@ impl<F: Field> ReedSolomon<F> {
         #[cfg(feature = "std")]
         self.runtime_profile_metrics
             .record_reconstruct_parity_stage(plan.shape.shard_len, parity_outputs.len());
-        if data_outputs.is_empty() {
-            compute(false, &parity_rows, &inputs, &mut parity_outputs);
-        } else {
-            // Full recovery first restores missing data, then encodes parity.
-            // Selective parity uses composed rows instead, so no unrequested
-            // missing data is initialized solely as a dependency.
-            let mut all_data: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
-            let mut existing = 0;
-            let mut recovered = 0;
-            for index in 0..self.data_shard_count() {
-                if plan.data_targets().get(recovered) == Some(&index) {
-                    all_data.push(data_outputs[recovered]);
-                    recovered += 1;
-                } else {
-                    all_data.push(inputs[existing]);
-                    existing += 1;
-                }
-            }
-            compute(false, &parity_rows, &all_data, &mut parity_outputs);
+        if !data_outputs.is_empty() {
+            // Composed selective parity already returned above. Ordinary mixed
+            // recovery can reuse the finished data outputs and survivor views.
+            Self::use_recovered_data(&mut inputs, plan.data_targets(), &data_outputs);
         }
+        compute(false, &parity_rows, &inputs, &mut parity_outputs);
         Ok(())
     }
 
