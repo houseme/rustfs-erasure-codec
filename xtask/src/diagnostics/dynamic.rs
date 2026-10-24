@@ -77,9 +77,19 @@ pub fn decode(text: &str) -> Result<String> {
         })?;
     }
     let declaration = "    pub(crate) fn get_data_decode_matrix(";
-    text = source::method(&text, declaration, |_, edit| {
+    text = source::method(&text, declaration, |original, edit| {
+        let legacy = "            if let Some(entry) = cache.get(invalid_indices) {";
+        let selected = "            if let Some(entry) = cache.get(cache_erasures) {";
+        let marker = match (
+            original.matches(legacy).count(),
+            original.matches(selected).count(),
+        ) {
+            (1, 0) => legacy,
+            (0, 1) => selected,
+            _ => return Err("decode cache lookup boundary changed or is ambiguous".into()),
+        };
         edit.after(
-            "            if let Some(entry) = cache.get(invalid_indices) {",
+            marker,
             "\n                entry.__rse_buffer_view(\"decode_cached\");",
         )?;
         if !has_builder {
