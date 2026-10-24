@@ -79,6 +79,11 @@ class CompleteReplayTests(unittest.TestCase):
         self.assertNotIn('summarized',json.loads(requests[0])['request']['request'])
         self.assertIsInstance(json.loads(requests[0])['request']['request']['bindings'],dict)
         self.assertEqual(json.loads(requests[0])['request']['request']['bindings']['compiler'],'rustc fixture')
+        layouts=[json.loads(c.args[0])['request']['request'] for c in frames.call_args_list
+                 if json.loads(c.args[0]).get('kind')=='diagnostic-layout' and json.loads(c.args[0]).get('request',{}).get('operation')=='paired-replay']
+        self.assertEqual(len(layouts),1)
+        self.assertEqual(set(layouts[0]['campaign']['rows']),set(e.LAYOUT_CASES))
+        self.assertEqual(set(layouts[0]['campaign']['counts']),set(e.LAYOUT_CASES))
 
     def test_execution_errors_do_not_become_complete_statistical_diagnostics(self):
         with mock.patch.object(e.subprocess,'run',return_value=subprocess.CompletedProcess([],2,'','input integrity failed')) as checks:
