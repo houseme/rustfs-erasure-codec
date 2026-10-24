@@ -577,6 +577,53 @@ impl<F: Field> ReedSolomon<F> {
         )
     }
 
+    /// A single missing data value is one parity equation after substituting
+    /// surviving systematic data. All Classic constructors, including custom
+    /// matrices, put the identity in their data rows. Keep full elimination for
+    /// other erasure shapes, including its existing SIMD row widths.
+    fn build_data_decode_matrix(
+        &self,
+        valid_indices: &[usize],
+    ) -> Result<crate::matrix::Matrix<F>, Error> {
+        use crate::matrix::Matrix;
+
+        let data_count = self.data_shard_count();
+        debug_assert_eq!(valid_indices.len(), data_count);
+        debug_assert!(valid_indices.windows(2).all(|pair| pair[0] < pair[1]));
+        let matrix = self.encoding_format().matrix();
+        let present_count = valid_indices.partition_point(|&index| index < data_count);
+        if present_count + 1 == data_count {
+            let missing = valid_indices[..present_count]
+                .iter()
+                .enumerate()
+                .find_map(|(index, &valid)| (index != valid).then_some(index))
+                .unwrap_or(present_count);
+            let parity_row = matrix.get_row(valid_indices[present_count]);
+            let pivot = parity_row[missing];
+            if pivot == F::zero() {
+                return Err(Error::InvalidCustomMatrix);
+            }
+            let reciprocal = F::div(F::one(), pivot);
+            let mut decode = Matrix::new(data_count, data_count);
+            for (column, &index) in valid_indices[..present_count].iter().enumerate() {
+                decode.set(index, column, F::one());
+                // In characteristic two, subtracting the known data terms
+                // from the parity equation uses the field's addition.
+                decode.set(missing, column, F::mul(reciprocal, parity_row[index]));
+            }
+            decode.set(missing, present_count, reciprocal);
+            return Ok(decode);
+        }
+
+        let mut selected = Matrix::new(data_count, data_count);
+        for (row, &index) in valid_indices.iter().enumerate() {
+            for column in 0..data_count {
+                selected.set(row, column, matrix.get(index, column));
+            }
+        }
+        selected.invert().map_err(|_| Error::InvalidCustomMatrix)
+    }
+
     pub(crate) fn get_data_decode_matrix(
         &self,
         valid_indices: &[usize],
@@ -606,22 +653,7 @@ impl<F: Field> ReedSolomon<F> {
                 .misses
                 .fetch_add(1, Ordering::Relaxed);
         }
-        let mut sub_matrix =
-            crate::matrix::Matrix::new(self.data_shard_count(), self.data_shard_count());
-        for (sub_matrix_row, &valid_index) in valid_indices.iter().enumerate() {
-            for c in 0..self.data_shard_count() {
-                sub_matrix.set(
-                    sub_matrix_row,
-                    c,
-                    self.encoding_format().matrix().get(valid_index, c),
-                );
-            }
-        }
-        let data_decode_matrix = Arc::new(
-            sub_matrix
-                .invert()
-                .map_err(|_| Error::InvalidCustomMatrix)?,
-        );
+        let data_decode_matrix = Arc::new(self.build_data_decode_matrix(valid_indices)?);
         if self.options.inversion_cache {
             let data_decode_matrix = data_decode_matrix.clone();
             let mut cache = self.data_decode_matrix_cache.lock();
@@ -664,3 +696,6 @@ impl<F: Field> ReedSolomon<F> {
         })
     }
 }
+
+#[cfg(test)]
+mod tests;

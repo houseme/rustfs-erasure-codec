@@ -10,6 +10,10 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Build Classic single-data recovery coefficients directly from one parity
+  equation, retaining survivor order, singular-matrix errors and the decode cache.
+  Other erasure shapes retain the existing full-matrix elimination and SIMD widths.
+
 - Coordinate GF16 AVX2 byte-layout eligibility with the immutable selected
   arithmetic backend. Cache the combined backend/capability choice once;
   SSSE3 arithmetic keeps the narrow layout path; scalar table arithmetic
