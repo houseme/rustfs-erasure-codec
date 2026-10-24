@@ -1,0 +1,802 @@
+{
+  "schema": "selective-recovery-paths-abba-v1",
+  "codec_sources": {
+    "baseline": "e3a1c1cffbbe3bcfbeecddce1de24e2b42888d1c",
+    "candidate": "b1a10e4e6a164cb5f8fdc212a455f7130e2e5e39"
+  },
+  "cases": [
+    {
+      "operation": "verify.ordinary",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "shard_size": 16384,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "verify.ordinary/4x2/16384/missing0+0/block0"
+    },
+    {
+      "operation": "verify.caller_buffer",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "shard_size": 16384,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "verify.caller_buffer/4x2/16384/missing0+0/block0"
+    },
+    {
+      "operation": "verify.workspace",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "shard_size": 16384,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "verify.workspace/4x2/16384/missing0+0/block0"
+    },
+    {
+      "operation": "verify.ordinary",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 32768,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "verify.ordinary/10x4/32768/missing0+0/block0"
+    },
+    {
+      "operation": "verify.caller_buffer",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 32768,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "verify.caller_buffer/10x4/32768/missing0+0/block0"
+    },
+    {
+      "operation": "verify.workspace",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 32768,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "verify.workspace/10x4/32768/missing0+0/block0"
+    },
+    {
+      "operation": "gf8.reconstruct",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 1024,
+      "missing_data_shards": 1,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "gf8.reconstruct/10x4/1024/missing1+0/block0"
+    },
+    {
+      "operation": "gf8.reconstruct",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 32768,
+      "missing_data_shards": 1,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "gf8.reconstruct/10x4/32768/missing1+0/block0"
+    },
+    {
+      "operation": "gf8.reconstruct",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 32768,
+      "missing_data_shards": 2,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "gf8.reconstruct/10x4/32768/missing2+0/block0"
+    },
+    {
+      "operation": "gf8.reconstruct",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 131136,
+      "missing_data_shards": 1,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "gf8.reconstruct/10x4/131136/missing1+0/block0"
+    },
+    {
+      "operation": "gf8.reconstruct",
+      "data_shards": 32,
+      "parity_shards": 16,
+      "shard_size": 32768,
+      "missing_data_shards": 2,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "gf8.reconstruct/32x16/32768/missing2+0/block0"
+    },
+    {
+      "operation": "gf16.reconstruct",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 1024,
+      "missing_data_shards": 1,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "gf16.reconstruct/10x4/1024/missing1+0/block0"
+    },
+    {
+      "operation": "gf16.reconstruct",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 32768,
+      "missing_data_shards": 1,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "gf16.reconstruct/10x4/32768/missing1+0/block0"
+    },
+    {
+      "operation": "gf16.reconstruct",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 32768,
+      "missing_data_shards": 2,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "gf16.reconstruct/10x4/32768/missing2+0/block0"
+    },
+    {
+      "operation": "gf16.reconstruct",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 131136,
+      "missing_data_shards": 1,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "gf16.reconstruct/10x4/131136/missing1+0/block0"
+    },
+    {
+      "operation": "gf16.reconstruct",
+      "data_shards": 32,
+      "parity_shards": 16,
+      "shard_size": 32768,
+      "missing_data_shards": 2,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "gf16.reconstruct/32x16/32768/missing2+0/block0"
+    },
+    {
+      "operation": "stream.reconstruct",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 1048576,
+      "missing_data_shards": 1,
+      "missing_parity_shards": 1,
+      "stream_block_size": 4096,
+      "case_id": "stream.reconstruct/10x4/1048576/missing1+1/block4096"
+    },
+    {
+      "operation": "stream.reconstruct",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 1048576,
+      "missing_data_shards": 1,
+      "missing_parity_shards": 1,
+      "stream_block_size": 65536,
+      "case_id": "stream.reconstruct/10x4/1048576/missing1+1/block65536"
+    },
+    {
+      "operation": "stream.reconstruct",
+      "data_shards": 32,
+      "parity_shards": 16,
+      "shard_size": 1048576,
+      "missing_data_shards": 1,
+      "missing_parity_shards": 1,
+      "stream_block_size": 4096,
+      "case_id": "stream.reconstruct/32x16/1048576/missing1+1/block4096"
+    },
+    {
+      "operation": "encode.parallel",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "shard_size": 262144,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.parallel/4x2/262144/missing0+0/block0"
+    },
+    {
+      "operation": "encode.parallel",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 262144,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.parallel/10x4/262144/missing0+0/block0"
+    },
+    {
+      "operation": "encode.parallel",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 1048576,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.parallel/10x4/1048576/missing0+0/block0"
+    },
+    {
+      "operation": "classic.construct",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 0,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.construct/10x4/0/missing0+0/block0"
+    },
+    {
+      "operation": "classic.construct",
+      "data_shards": 32,
+      "parity_shards": 16,
+      "shard_size": 0,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.construct/32x16/0/missing0+0/block0"
+    },
+    {
+      "operation": "classic.construct",
+      "data_shards": 128,
+      "parity_shards": 64,
+      "shard_size": 0,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.construct/128x64/0/missing0+0/block0"
+    },
+    {
+      "operation": "gf8.construct",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 0,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "gf8.construct/10x4/0/missing0+0/block0"
+    },
+    {
+      "operation": "gf8.construct",
+      "data_shards": 32,
+      "parity_shards": 16,
+      "shard_size": 0,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "gf8.construct/32x16/0/missing0+0/block0"
+    },
+    {
+      "operation": "gf8.construct",
+      "data_shards": 128,
+      "parity_shards": 64,
+      "shard_size": 0,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "gf8.construct/128x64/0/missing0+0/block0"
+    },
+    {
+      "operation": "gf16.construct",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 0,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "gf16.construct/10x4/0/missing0+0/block0"
+    },
+    {
+      "operation": "gf16.construct",
+      "data_shards": 32,
+      "parity_shards": 16,
+      "shard_size": 0,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "gf16.construct/32x16/0/missing0+0/block0"
+    },
+    {
+      "operation": "gf16.construct",
+      "data_shards": 128,
+      "parity_shards": 64,
+      "shard_size": 0,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "gf16.construct/128x64/0/missing0+0/block0"
+    },
+    {
+      "operation": "classic.reconstruct_parity.cached",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 1024,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 1,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_parity.cached/10x4/1024/missing0+1/block0"
+    },
+    {
+      "operation": "classic.reconstruct_parity.cached",
+      "data_shards": 32,
+      "parity_shards": 16,
+      "shard_size": 4096,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 1,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_parity.cached/32x16/4096/missing0+1/block0"
+    },
+    {
+      "operation": "classic.reconstruct_parity.uncached",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 1024,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 1,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_parity.uncached/10x4/1024/missing0+1/block0"
+    },
+    {
+      "operation": "classic.reconstruct_parity.uncached",
+      "data_shards": 32,
+      "parity_shards": 16,
+      "shard_size": 4096,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 1,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_parity.uncached/32x16/4096/missing0+1/block0"
+    },
+    {
+      "operation": "classic.reconstruct_some_parity",
+      "data_shards": 32,
+      "parity_shards": 16,
+      "shard_size": 65536,
+      "missing_data_shards": 1,
+      "missing_parity_shards": 1,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_some_parity/32x16/65536/missing1+1/block0"
+    },
+    {
+      "operation": "classic.reconstruct_data_vec",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "shard_size": 16384,
+      "missing_data_shards": 1,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_data_vec/4x2/16384/missing1+0/block0"
+    },
+    {
+      "operation": "classic.reconstruct_data_slots",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "shard_size": 16384,
+      "missing_data_shards": 1,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_data_slots/4x2/16384/missing1+0/block0"
+    },
+    {
+      "operation": "classic.reconstruct_data_vec",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "shard_size": 16384,
+      "missing_data_shards": 2,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_data_vec/4x2/16384/missing2+0/block0"
+    },
+    {
+      "operation": "classic.reconstruct_data_slots",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "shard_size": 16384,
+      "missing_data_shards": 2,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_data_slots/4x2/16384/missing2+0/block0"
+    },
+    {
+      "operation": "classic.reconstruct_data_vec",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 32768,
+      "missing_data_shards": 1,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_data_vec/10x4/32768/missing1+0/block0"
+    },
+    {
+      "operation": "classic.reconstruct_data_slots",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 32768,
+      "missing_data_shards": 1,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_data_slots/10x4/32768/missing1+0/block0"
+    },
+    {
+      "operation": "classic.reconstruct_data_vec",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 32768,
+      "missing_data_shards": 2,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_data_vec/10x4/32768/missing2+0/block0"
+    },
+    {
+      "operation": "classic.reconstruct_data_slots",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 32768,
+      "missing_data_shards": 2,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_data_slots/10x4/32768/missing2+0/block0"
+    },
+    {
+      "operation": "classic.reconstruct_data_opt",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 32768,
+      "missing_data_shards": 1,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_data_opt/10x4/32768/missing1+0/block0"
+    },
+    {
+      "operation": "classic.reconstruct_data_opt",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 32768,
+      "missing_data_shards": 2,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_data_opt/10x4/32768/missing2+0/block0"
+    },
+    {
+      "operation": "classic.reconstruct_data_opt",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 1048576,
+      "missing_data_shards": 1,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_data_opt/10x4/1048576/missing1+0/block0"
+    },
+    {
+      "operation": "classic.reconstruct_data_opt",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 1048576,
+      "missing_data_shards": 2,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_data_opt/10x4/1048576/missing2+0/block0"
+    },
+    {
+      "operation": "encode.serial",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 1024,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.serial/10x4/1024/missing0+0/block0"
+    },
+    {
+      "operation": "encode.serial",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 32768,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.serial/10x4/32768/missing0+0/block0"
+    },
+    {
+      "operation": "encode.serial",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 1048576,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.serial/10x4/1048576/missing0+0/block0"
+    },
+    {
+      "operation": "encode.serial",
+      "data_shards": 12,
+      "parity_shards": 4,
+      "shard_size": 1024,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.serial/12x4/1024/missing0+0/block0"
+    },
+    {
+      "operation": "encode.serial",
+      "data_shards": 12,
+      "parity_shards": 4,
+      "shard_size": 32768,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.serial/12x4/32768/missing0+0/block0"
+    },
+    {
+      "operation": "encode.serial",
+      "data_shards": 12,
+      "parity_shards": 4,
+      "shard_size": 1048576,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.serial/12x4/1048576/missing0+0/block0"
+    },
+    {
+      "operation": "encode.serial",
+      "data_shards": 8,
+      "parity_shards": 3,
+      "shard_size": 1024,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.serial/8x3/1024/missing0+0/block0"
+    },
+    {
+      "operation": "encode.serial",
+      "data_shards": 8,
+      "parity_shards": 3,
+      "shard_size": 32768,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.serial/8x3/32768/missing0+0/block0"
+    },
+    {
+      "operation": "encode.serial",
+      "data_shards": 8,
+      "parity_shards": 3,
+      "shard_size": 1048576,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.serial/8x3/1048576/missing0+0/block0"
+    },
+    {
+      "operation": "encode.serial",
+      "data_shards": 8,
+      "parity_shards": 4,
+      "shard_size": 1024,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.serial/8x4/1024/missing0+0/block0"
+    },
+    {
+      "operation": "encode.serial",
+      "data_shards": 8,
+      "parity_shards": 4,
+      "shard_size": 32768,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.serial/8x4/32768/missing0+0/block0"
+    },
+    {
+      "operation": "encode.serial",
+      "data_shards": 8,
+      "parity_shards": 4,
+      "shard_size": 1048576,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.serial/8x4/1048576/missing0+0/block0"
+    },
+    {
+      "operation": "encode.serial",
+      "data_shards": 6,
+      "parity_shards": 3,
+      "shard_size": 1024,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.serial/6x3/1024/missing0+0/block0"
+    },
+    {
+      "operation": "encode.serial",
+      "data_shards": 6,
+      "parity_shards": 3,
+      "shard_size": 32768,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.serial/6x3/32768/missing0+0/block0"
+    },
+    {
+      "operation": "encode.serial",
+      "data_shards": 6,
+      "parity_shards": 3,
+      "shard_size": 1048576,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.serial/6x3/1048576/missing0+0/block0"
+    },
+    {
+      "operation": "encode.serial",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "shard_size": 1024,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.serial/4x2/1024/missing0+0/block0"
+    },
+    {
+      "operation": "encode.serial",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "shard_size": 32768,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.serial/4x2/32768/missing0+0/block0"
+    },
+    {
+      "operation": "encode.serial",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "shard_size": 1048576,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "encode.serial/4x2/1048576/missing0+0/block0"
+    },
+    {
+      "operation": "classic.reconstruct_all_present",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 65,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_all_present/10x4/65/missing0+0/block0"
+    },
+    {
+      "operation": "classic.reconstruct_all_present",
+      "data_shards": 40,
+      "parity_shards": 8,
+      "shard_size": 65,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_all_present/40x8/65/missing0+0/block0"
+    },
+    {
+      "operation": "classic.reconstruct_all_present",
+      "data_shards": 128,
+      "parity_shards": 64,
+      "shard_size": 65,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_all_present/128x64/65/missing0+0/block0"
+    },
+    {
+      "operation": "classic.reconstruct_opt_all_present",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "shard_size": 65,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_opt_all_present/10x4/65/missing0+0/block0"
+    },
+    {
+      "operation": "classic.reconstruct_opt_all_present",
+      "data_shards": 40,
+      "parity_shards": 8,
+      "shard_size": 65,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_opt_all_present/40x8/65/missing0+0/block0"
+    },
+    {
+      "operation": "classic.reconstruct_opt_all_present",
+      "data_shards": 128,
+      "parity_shards": 64,
+      "shard_size": 65,
+      "missing_data_shards": 0,
+      "missing_parity_shards": 0,
+      "stream_block_size": null,
+      "case_id": "classic.reconstruct_opt_all_present/128x64/65/missing0+0/block0"
+    }
+  ],
+  "phase_order": [
+    "A1",
+    "B1",
+    "B2",
+    "A2"
+  ],
+  "workers": 4,
+  "timing_rows": 288,
+  "observations": 864,
+  "sample_count": 3,
+  "sample_ms": 1000,
+  "warmup_iterations": 20,
+  "iterations_per_batch": 8,
+  "allocation_iterations": 1,
+  "same_version_repeat_limit": 0.05,
+  "allocation_bookends_must_repeat": true,
+  "continue_after_statistical_failures": true,
+  "sample_or_case_retry": false,
+  "rayon_threads": 4,
+  "process_visible_cpus": 8,
+  "options_max_parallel_jobs": 0,
+  "runtime_tuning_prefixes_cleared": [
+    "RS_PARALLEL_POLICY_",
+    "RS_RECONSTRUCT_",
+    "RS_AARCH64_RECONSTRUCT_",
+    "RSE_RECOVERY_"
+  ],
+  "features": [
+    "std",
+    "simd-accel"
+  ],
+  "benchmark_metrics": false,
+  "sample_protocol": "Unchanged existing recovery_paths:20 warmup calls,one all-thread allocation-count invocation,three independently time-targeted >=1000ms samples in eight-call batches. Counts are not shared between sources; this is not formal3warm9sample capture.",
+  "formal_performance_geometry_equivalence": false,
+  "uses_formal_release_capture": false,
+  "candidate_attribution": null,
+  "release_approval": false,
+  "regression_policy": "Preserve original recovery_paths5% bookend and allocation-repeat qualification. No invented formal publication threshold; report every four-way source ratio; any global refusal withholds all qualified latency/allocation ratios.",
+  "fixture_context": "Original deterministic seed and content/publication oracles, original retained-buffer vsOption/drop lifetimes; no dynamic/physical address-equivalence assertion.",
+  "artifact_kind": "selective-recovery-paths-abba-plan-v1",
+  "existing_benchmark_source": "benches/recovery_paths.rs",
+  "both_benchmark_sources_byte_identical": true,
+  "source_overlay": false,
+  "benchmark_code_or_timing_loop_modified": false,
+  "launch_context": {
+    "equal_length_independent_source_and_program_paths": true,
+    "common_argv0": true,
+    "benchmark_parses_argv": false,
+    "reported_revision_length_both_roles": 40,
+    "git_config_scope": "Per-benchmark-child core.abbrev=40; no system or repository configuration changed.",
+    "dynamic_or_physical_address_equivalence_observed": false,
+    "prior_argv_or_metadata_difference_unique_cause_proven": false
+  },
+  "cpu_context": {
+    "exclusive_guest_cpu_partition_size": 8,
+    "whole_process_budget": 8,
+    "rayon_workers": 4,
+    "new_thread_pin_hook": false,
+    "physical_host_exclusivity_or_fixed_frequency_proven": false
+  },
+  "affected_case": "classic.reconstruct_some_parity/32x16/65536/missing1+1/block0",
+  "other_cases_are_retained_controls": 71,
+  "catalog_scope": "Existing Classic GF8 APIs, encoding/verification/constructors and Leopard GF8/GF16 controls. Leopard GF16 labels do not constitute Classic GF16 selective-parity throughput evidence.",
+  "preflight": {
+    "exact_candidate_28_command_native_proof_reused": true,
+    "unchanged_program_embedded_content_oracles_execute_in_every_case": true,
+    "short_timing_preflight_executed": false,
+    "hardware_probe_added": false,
+    "synthetic_analyzer_boundary_checks": 7,
+    "synthetic_checks_are_codec_performance_evidence": false
+  },
+  "status": "launched-once-results-pending-all-four-phases",
+  "performance_approval": false
+}
