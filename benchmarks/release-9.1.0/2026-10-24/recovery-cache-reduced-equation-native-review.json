@@ -1,0 +1,674 @@
+{
+  "artifact_kind": "recovery-cache-reduced-equation-native-review-v1",
+  "source_bindings": {
+    "executed_candidate": "8ec2ddee8b89338d15c9c4ec9969e79e4f6a40f2",
+    "merged_main": "76897f6518821208887cf62aa598c3400265a52e",
+    "rebased_cache_change": "f5c96cd092b0586a4f29c62d011ff1f8770277cd",
+    "original_cache_change": "b0bd34232c19469819a16f64392ed9c47da60b08",
+    "reduced_equation_change": "4b97a1cd31c0c4ff9503ea5575c8ef55f9921057",
+    "prior_d138103_plan_superseded_before_any_launch": true
+  },
+  "validation_finished": true,
+  "all_functional_commands": 31,
+  "all_functional_commands_passed": true,
+  "linux_native": {
+    "library": 410,
+    "integration": 162,
+    "doc": 10,
+    "parent_passed": 582,
+    "filtered_child_executions_separate": 6,
+    "existing_ignored": 43,
+    "no_std": 265
+  },
+  "cache_and_reduced_solver_oracles": {
+    "inverse_oracle_tests": 10,
+    "reduced_solve_product_controls": 8,
+    "complete_small_layouts": 978,
+    "fields": 2,
+    "matrix_modes": 3,
+    "warmed_preallocated_zero_allocation_cases": 18,
+    "changed_selected_inputs_and_singular_and_disabled_cache_negative_controls": true
+  },
+  "reduced_solve_work": {
+    "shape": [
+      32,
+      16
+    ],
+    "missing_data": 2,
+    "missing_start_controls": [
+      0,
+      7,
+      16,
+      30
+    ],
+    "controlled_field_product_counts": [
+      {
+        "byte_row_view": false,
+        "reduced": 130,
+        "full_inverse": 3040
+      },
+      {
+        "byte_row_view": true,
+        "reduced": 136,
+        "full_inverse": 4096
+      }
+    ],
+    "all_8_controls_match_independent_full_inverse": true,
+    "instrumented_field_products_not_wall_clock_or_native_instruction_counts": true
+  },
+  "both_gfni_row_widths_actually_executed": true,
+  "published_9_0_0": {
+    "normal_configurations": 200,
+    "custom_backend_settings": 6,
+    "custom_configurations": 162,
+    "custom_cross_recoveries": 972,
+    "wide_configurations": 72,
+    "selective_configurations": 1620,
+    "selective_cross_recoveries": 15840,
+    "selective_backend_settings": 6,
+    "unrequested_data_stays_absent": true,
+    "exact_bytes_and_bidirectional_recovery": true
+  },
+  "backend_env_stress": {
+    "rounds": 12,
+    "parent_tests_per_round": 15,
+    "all_passed": true
+  },
+  "current_local_tool_validation": {
+    "source": "8ec2ddee8b89338d15c9c4ec9969e79e4f6a40f2",
+    "unit": 273,
+    "cli": 39,
+    "total": 312,
+    "codec_inverse_oracles": 10,
+    "full_recovery_regressions": 18,
+    "strict_tool_clippy": true,
+    "fmt_typos_diff": true,
+    "all_tracked_inputs_unchanged": true
+  },
+  "independent_review": {
+    "original_input_files": 74,
+    "all_inputs_unchanged": true,
+    "all_raw_command_summaries_exact": true,
+    "codec_calls_during_replay": 0,
+    "predeclared_child_count": 5,
+    "actual_successful_filtered_child_executions": 6,
+    "first_count_only_assertion_refusal_preserved": true,
+    "count_correction_verified_against_raw_output_and_source": true,
+    "frozen_plan_and_test_outputs_unmodified": true,
+    "no_codec_or_worker_failure": true
+  },
+  "shared_resource_control": {
+    "protocol_unit_tests": 38,
+    "all_passed": true,
+    "nonblocking_canonical_lease": true,
+    "continuous_process_observation": true,
+    "foreign_heavy_work_refuses_and_only_owned_groups_stopped": true,
+    "source_cpuset_and_original_observer_identity_restored": true,
+    "archive_verified_remote_and_independent_download_ack_before_close": true,
+    "no_cpuset_or_original_service_mutation": true,
+    "not_a_physical_isolation_proof": true
+  },
+  "lease_close_independently_verified": true,
+  "checks": [
+    {
+      "name": "full-codec",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "410",
+          "5"
+        ],
+        [
+          "0",
+          "1"
+        ],
+        [
+          "0",
+          "35"
+        ],
+        [
+          "0",
+          "1"
+        ],
+        [
+          "18",
+          "0"
+        ],
+        [
+          "3",
+          "0"
+        ],
+        [
+          "3",
+          "0"
+        ],
+        [
+          "9",
+          "0"
+        ],
+        [
+          "0",
+          "1"
+        ],
+        [
+          "5",
+          "0"
+        ],
+        [
+          "1",
+          "0"
+        ],
+        [
+          "1",
+          "0"
+        ],
+        [
+          "1",
+          "0"
+        ],
+        [
+          "8",
+          "0"
+        ],
+        [
+          "9",
+          "0"
+        ],
+        [
+          "13",
+          "0"
+        ],
+        [
+          "4",
+          "0"
+        ],
+        [
+          "7",
+          "0"
+        ],
+        [
+          "8",
+          "0"
+        ],
+        [
+          "4",
+          "0"
+        ],
+        [
+          "1",
+          "0"
+        ],
+        [
+          "3",
+          "0"
+        ],
+        [
+          "3",
+          "0"
+        ],
+        [
+          "9",
+          "0"
+        ],
+        [
+          "1",
+          "0"
+        ],
+        [
+          "1",
+          "0"
+        ],
+        [
+          "5",
+          "0"
+        ],
+        [
+          "6",
+          "0"
+        ],
+        [
+          "2",
+          "0"
+        ],
+        [
+          "5",
+          "0"
+        ],
+        [
+          "2",
+          "0"
+        ],
+        [
+          "2",
+          "0"
+        ],
+        [
+          "7",
+          "0"
+        ],
+        [
+          "13",
+          "0"
+        ],
+        [
+          "14",
+          "0"
+        ],
+        [
+          "10",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "auto"
+    },
+    {
+      "name": "new-gfni-row-oracles",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "3",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "auto"
+    },
+    {
+      "name": "selective-planning-oracles",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "5",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": null
+    },
+    {
+      "name": "survivor-cache-oracles",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "10",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": null
+    },
+    {
+      "name": "survivor-cache-allocations",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": null
+    },
+    {
+      "name": "no-std",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "265",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": null
+    },
+    {
+      "name": "ssse3-fallback",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "41",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "rust-ssse3"
+    },
+    {
+      "name": "avx2-fallback",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "40",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "rust-avx2"
+    },
+    {
+      "name": "scalar-general",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "41",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "scalar-rust"
+    },
+    {
+      "name": "gfni256-general",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "41",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "rust-gfni-avx2"
+    },
+    {
+      "name": "gfni512-general",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "41",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "rust-gfni-avx512"
+    },
+    {
+      "name": "published-200",
+      "passed": true,
+      "positive_summaries": [],
+      "markers_all_present": true,
+      "backend_override": null
+    },
+    {
+      "name": "published-custom-auto",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "auto"
+    },
+    {
+      "name": "published-wide-auto",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "auto"
+    },
+    {
+      "name": "published-custom-scalar-rust",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "scalar-rust"
+    },
+    {
+      "name": "published-wide-scalar-rust",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "scalar-rust"
+    },
+    {
+      "name": "published-custom-rust-ssse3",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "rust-ssse3"
+    },
+    {
+      "name": "published-wide-rust-ssse3",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "rust-ssse3"
+    },
+    {
+      "name": "published-custom-rust-avx2",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "rust-avx2"
+    },
+    {
+      "name": "published-wide-rust-avx2",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "rust-avx2"
+    },
+    {
+      "name": "published-custom-rust-gfni-avx2",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "rust-gfni-avx2"
+    },
+    {
+      "name": "published-wide-rust-gfni-avx2",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "rust-gfni-avx2"
+    },
+    {
+      "name": "published-custom-rust-gfni-avx512",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "rust-gfni-avx512"
+    },
+    {
+      "name": "published-wide-rust-gfni-avx512",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "rust-gfni-avx512"
+    },
+    {
+      "name": "backend-env-stress",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "auto"
+    },
+    {
+      "name": "published-selective-auto",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "auto"
+    },
+    {
+      "name": "published-selective-scalar-rust",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "scalar-rust"
+    },
+    {
+      "name": "published-selective-rust-ssse3",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "rust-ssse3"
+    },
+    {
+      "name": "published-selective-rust-avx2",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "rust-avx2"
+    },
+    {
+      "name": "published-selective-rust-gfni-avx2",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "rust-gfni-avx2"
+    },
+    {
+      "name": "published-selective-rust-gfni-avx512",
+      "passed": true,
+      "positive_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "markers_all_present": true,
+      "backend_override": "rust-gfni-avx512"
+    }
+  ],
+  "performance_observations": 0,
+  "functional_only": true,
+  "performance_approval": false,
+  "release_approval": false,
+  "candidate_attribution": null,
+  "historical_failed_campaigns_and_sources_preserved": true,
+  "accepted_complete_published_9_0_abba_and_layout_evidence_required": true,
+  "actual_strict_positive_release_preflight_required": true,
+  "tag_or_registry_upload": false
+}
