@@ -46,6 +46,23 @@ with `candidate_attribution=null`. Complete diagnostic collection is not a
 successful publication preflight. Run only in a new directory and retain the
 frozen source, private resource guard and original journals throughout.
 
+## Publish independent acknowledgement receipts atomically
+
+When a private resource owner waits for an independently verified archive ACK,
+file existence must mean the complete receipt is available. Upload to a unique
+temporary file in the destination directory; validate its complete JSON and
+matching archive digest, sync the file, then atomically rename it to the final
+ACK path and sync the directory where supported. Do not stream an upload into
+the final filename while a reader polls it.
+
+An incomplete or mismatched receipt remains a real finalization error. Preserve
+the original error/fence, archive and raw results; verify the exact failed owner
+and original state before explicit self-recovery. Do not relax strict JSON,
+re-run codec work, treat the error as a statistical refusal, or take over another
+owner. The [native batching review](gfni-batched-native-review-2026-10-24.md#shared-resources-and-independently-verified-finalization)
+records one completed case and its independent recovery checks. This is private
+resource handoff guidance, not a new codec performance or publication threshold.
+
 ## Collect on the controlled Linux x86_64 environment
 
 Use fresh, clean Git checkouts of the baseline and the final candidate; keep the
