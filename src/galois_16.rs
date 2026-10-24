@@ -1083,10 +1083,17 @@ mod tests {
             selected,
             avx2_layout_allowed(backend, is_x86_feature_detected!("avx2"))
         );
-        eprintln!(
-            "GF16_LAYOUT_SELECTED backend={} avx2={selected}",
+        use std::io::Write as _;
+        // Expected-panic hooks can write concurrently without the stderr lock.
+        // Format first so the short marker reaches the capture pipe in one write.
+        let marker = format!(
+            "GF16_LAYOUT_SELECTED backend={} avx2={selected}\n",
             galois_8::active_backend_name()
         );
+        std::io::stderr()
+            .lock()
+            .write_all(marker.as_bytes())
+            .unwrap();
     }
 
     #[test]
