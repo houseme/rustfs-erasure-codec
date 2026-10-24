@@ -32,9 +32,14 @@ impl SelectedRowKernel {
         }
     }
 
-    /// Amortize preparation over at least one four-vector batch. Short inputs
-    /// retain the existing coefficient-oriented path, including its tails.
-    pub(crate) fn select(shard_len: usize) -> Option<Self> {
+    /// Amortize preparation across multiple outputs and a full four-vector
+    /// batch. Single-output rows retain coefficient streaming: its matrix stays
+    /// in a register across the complete input instead of being reloaded per
+    /// row tile. This policy also preserves the existing small-input path.
+    pub(crate) fn select(inputs: usize, outputs: usize, shard_len: usize) -> Option<Self> {
+        if !(4..=32).contains(&inputs) || !(2..=4).contains(&outputs) || shard_len < 128 {
+            return None;
+        }
         static SELECTED: spin::Once<Option<SelectedRowKernel>> = spin::Once::new();
         SELECTED
             .call_once(|| Self::from_backend(active_backend_id()))

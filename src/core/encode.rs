@@ -254,16 +254,15 @@ impl<F: Field> ReedSolomon<F> {
             chunk_len,
         );
         #[cfg(rse_x86_gfni)]
-        if shard_len >= 32
-            && inputs.len() == self.data_shard_count()
-            && (4..=32).contains(&inputs.len())
-            && (1..=4).contains(&outputs.len())
+        if inputs.len() == self.data_shard_count()
             && matrix_rows.len() == outputs.len()
             // Complete checked views below provide the Field opt-in directly;
             // do not repeat the empty probes from try_native_encode.
             && F::ORDER == 256
             && let Some(kernel) =
-                crate::galois_8::x86::gfni_rows::SelectedRowKernel::select(shard_len)
+                crate::galois_8::x86::gfni_rows::SelectedRowKernel::select(
+                    inputs.len(), outputs.len(), shard_len,
+                )
             && Self::try_gfni_rows(kernel, matrix_rows, inputs, outputs, shard_len, chunk_len)
         {
             return;
