@@ -1,6 +1,56 @@
 #[cfg(test)]
 extern crate alloc;
 
+// Keep the general scalar loop out of the native vector frame. It is also
+// the direct path for inputs shorter than one vector; zero/unit shortcuts are
+// shared by the four checked entries below.
+#[inline(never)]
+fn scalar_tail<const XOR: bool>(c: u8, input: &[u8], out: &mut [u8]) {
+    assert_eq!(input.len(), out.len());
+    let table = &super::super::MUL_TABLE[c as usize];
+    for (&input, output) in input.iter().zip(out) {
+        let product = table[input as usize];
+        if XOR {
+            *output ^= product;
+        } else {
+            *output = product;
+        }
+    }
+}
+
+#[inline]
+fn handle_scalar_case<const XOR: bool, const WIDTH: usize>(
+    c: u8,
+    input: &[u8],
+    out: &mut [u8],
+) -> bool {
+    assert_eq!(input.len(), out.len());
+    if input.is_empty() {
+        return true;
+    }
+    if c == 0 {
+        if !XOR {
+            out.fill(0);
+        }
+        return true;
+    }
+    if c == 1 {
+        if XOR {
+            for (&input, output) in input.iter().zip(out) {
+                *output ^= input;
+            }
+        } else {
+            out.copy_from_slice(input);
+        }
+        return true;
+    }
+    if input.len() < WIDTH {
+        scalar_tail::<XOR>(c, input, out);
+        return true;
+    }
+    false
+}
+
 #[cfg(all(
     feature = "simd-gfni",
     target_arch = "x86_64",
@@ -8,16 +58,7 @@ extern crate alloc;
     not(any(target_os = "android", target_os = "ios"))
 ))]
 pub(crate) fn rust_gfni_avx2_mul_slice(c: u8, input: &[u8], out: &mut [u8]) {
-    assert_eq!(input.len(), out.len());
-    if input.is_empty() {
-        return;
-    }
-    if c == 0 {
-        out.fill(0);
-        return;
-    }
-    if c == 1 {
-        out.copy_from_slice(input);
+    if handle_scalar_case::<false, 32>(c, input, out) {
         return;
     }
     // SAFETY: reached only after runtime `is_x86_feature_detected!` confirmed GFNI and AVX2 in the
@@ -32,17 +73,7 @@ pub(crate) fn rust_gfni_avx2_mul_slice(c: u8, input: &[u8], out: &mut [u8]) {
     not(any(target_os = "android", target_os = "ios"))
 ))]
 pub(crate) fn rust_gfni_avx2_mul_slice_xor(c: u8, input: &[u8], out: &mut [u8]) {
-    assert_eq!(input.len(), out.len());
-    if input.is_empty() {
-        return;
-    }
-    if c == 0 {
-        return;
-    }
-    if c == 1 {
-        for (i, o) in input.iter().zip(out.iter_mut()) {
-            *o ^= *i;
-        }
+    if handle_scalar_case::<true, 32>(c, input, out) {
         return;
     }
     // SAFETY: reached only after runtime `is_x86_feature_detected!` confirmed GFNI and AVX2 in the
@@ -57,16 +88,7 @@ pub(crate) fn rust_gfni_avx2_mul_slice_xor(c: u8, input: &[u8], out: &mut [u8]) 
     not(any(target_os = "android", target_os = "ios"))
 ))]
 pub(crate) fn rust_gfni_avx512_mul_slice(c: u8, input: &[u8], out: &mut [u8]) {
-    assert_eq!(input.len(), out.len());
-    if input.is_empty() {
-        return;
-    }
-    if c == 0 {
-        out.fill(0);
-        return;
-    }
-    if c == 1 {
-        out.copy_from_slice(input);
+    if handle_scalar_case::<false, 64>(c, input, out) {
         return;
     }
     // SAFETY: reached only after runtime `is_x86_feature_detected!` confirmed GFNI, AVX512F and AVX512BW
@@ -81,17 +103,7 @@ pub(crate) fn rust_gfni_avx512_mul_slice(c: u8, input: &[u8], out: &mut [u8]) {
     not(any(target_os = "android", target_os = "ios"))
 ))]
 pub(crate) fn rust_gfni_avx512_mul_slice_xor(c: u8, input: &[u8], out: &mut [u8]) {
-    assert_eq!(input.len(), out.len());
-    if input.is_empty() {
-        return;
-    }
-    if c == 0 {
-        return;
-    }
-    if c == 1 {
-        for (i, o) in input.iter().zip(out.iter_mut()) {
-            *o ^= *i;
-        }
+    if handle_scalar_case::<true, 64>(c, input, out) {
         return;
     }
     // SAFETY: reached only after runtime `is_x86_feature_detected!` confirmed GFNI, AVX512F and AVX512BW
@@ -145,10 +157,8 @@ unsafe fn rust_gfni_avx2_mul_impl<const XOR: bool>(c: u8, input: &[u8], out: &mu
         }
     }
 
-    if XOR {
-        super::super::scalar::mul_slice_xor_pure_rust(c, tail_input, tail_out);
-    } else {
-        super::super::scalar::mul_slice_pure_rust(c, tail_input, tail_out);
+    if !tail_input.is_empty() {
+        scalar_tail::<XOR>(c, tail_input, tail_out);
     }
 }
 
@@ -198,10 +208,8 @@ unsafe fn rust_gfni_avx512_mul_impl<const XOR: bool>(c: u8, input: &[u8], out: &
         }
     }
 
-    if XOR {
-        super::super::scalar::mul_slice_xor_pure_rust(c, tail_input, tail_out);
-    } else {
-        super::super::scalar::mul_slice_pure_rust(c, tail_input, tail_out);
+    if !tail_input.is_empty() {
+        scalar_tail::<XOR>(c, tail_input, tail_out);
     }
 }
 
@@ -377,12 +385,12 @@ mod tests {
         multiply: fn(u8, &[u8], &mut [u8]),
         accumulate: fn(u8, &[u8], &mut [u8]),
     ) {
-        let input: alloc::vec::Vec<u8> = (0..1030).map(|i| (i * 173 + 11) as u8).collect();
+        let input: alloc::vec::Vec<u8> = (0..4102).map(|i| (i * 173 + 11) as u8).collect();
         for coefficient in 0..=u8::MAX {
             for (input_start, output_start) in [(0, 0), (1, 3), (3, 1)] {
                 for len in [
                     0, 1, 15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 128, 129, 255, 256, 257, 1023,
-                    1024, 1025,
+                    1024, 1025, 4096, 4097,
                 ] {
                     let source = &input[input_start..input_start + len];
                     let mut output = vec![0xa5; output_start + len + 1];
@@ -572,6 +580,45 @@ mod tests {
         }
         exercise_tower_coefficients(rust_gfni_avx512_mul_tower);
         std::println!("GFNI_AVX512_TOWER_EXECUTED");
+    }
+
+    #[test]
+    fn scalar_entry_handles_only_short_or_trivial_cases_before_any_native_write() {
+        fn check<const XOR: bool, const WIDTH: usize>() {
+            let input: alloc::vec::Vec<u8> = (0..4097).map(|i| (i * 173 + 11) as u8).collect();
+            for coefficient in 0..=u8::MAX {
+                for len in [0, 1, 31, 32, 33, 63, 64, 65, 128, 1025, 4096] {
+                    let mut output = vec![0xa5; len];
+                    let handled =
+                        handle_scalar_case::<XOR, WIDTH>(coefficient, &input[..len], &mut output);
+                    assert_eq!(handled, coefficient <= 1 || len < WIDTH);
+                    for (offset, &actual) in output.iter().enumerate() {
+                        let expected = if handled {
+                            let product = crate::galois_8::mul(coefficient, input[offset]);
+                            if XOR { 0xa5 ^ product } else { product }
+                        } else {
+                            0xa5
+                        };
+                        assert_eq!(actual, expected);
+                    }
+                }
+            }
+            for coefficient in [0, 1, 2, 0x9a] {
+                for len in [0, 1, 31, 32, 64, 65] {
+                    let mut output = vec![0xa5; len + 1];
+                    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                        handle_scalar_case::<XOR, WIDTH>(coefficient, &input[..len], &mut output)
+                    }));
+                    assert!(result.is_err());
+                    assert!(output.iter().all(|&value| value == 0xa5));
+                }
+            }
+        }
+        check::<false, 32>();
+        check::<true, 32>();
+        check::<false, 64>();
+        check::<true, 64>();
+        std::println!("GFNI_SCALAR_ENTRY_CONTRACT_EXECUTED");
     }
 
     const LENGTHS: [usize; 8] = [0usize, 1, 31, 32, 33, 255, 1024, 10_003];
