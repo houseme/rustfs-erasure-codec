@@ -135,7 +135,8 @@ jobs:
         run: cargo xtask stream-core-audit --check --output "$RUNNER_TEMP/stream-core-audit"
 
       - name: Check remaining dynamic storage in both source copies
-        timeout-minutes: 25
+        # Building both source copies and replaying all 516 workers can exceed 25 minutes.
+        timeout-minutes: 45
         run: cargo xtask diagnose-fixture-layout --check-dynamic --output "$RUNNER_TEMP/dynamic-buffer-audit"
 
       - name: Verify page-controlled slice fixtures without performance capture
