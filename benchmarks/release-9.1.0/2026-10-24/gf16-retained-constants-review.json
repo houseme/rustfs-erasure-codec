@@ -1,0 +1,29 @@
+{
+  "artifact_kind": "retained-gf16-constants-and-caller-audit-v1",
+  "source_comparison": {
+    "baseline": "986c1fedcfc9e75151b34392f43e41a50ff7ed9f",
+    "candidate": "7fa4fddeea73ef74ee0b52f600f80fd6bc89c066"
+  },
+  "codec_calls": 0,
+  "new_performance_observations": 0,
+  "all_original_inputs_unchanged": true,
+  "selected_function_count": 7,
+  "selected_direct_vector_constant_read_sites": 5,
+  "selected_direct_vector_constant_bytes_equal": true,
+  "ssse3_nibble_masks_equal": true,
+  "named_arithmetic_tables": 5,
+  "named_arithmetic_table_total_bytes": 74494,
+  "named_arithmetic_table_sizes_and_bytes_equal": true,
+  "launch_argv0_equal_length": false,
+  "argv_collected_before_fixture_allocation": true,
+  "mode_reparses_process_arguments_before_loop": true,
+  "observed_dynamic_layout_or_page_identity": false,
+  "actual_dynamic_binding_and_execution_cost_proven_equal": false,
+  "unique_regression_cause": null,
+  "prelaunch_binary_attestation": false,
+  "performance_approval": false,
+  "release_approval": false,
+  "interpretation": "Selected RIP-relative vector masks and named arithmetic tables match retained ELF bytes. This excludes a changed selected mask/table value in those retained binaries; it does not establish equal placement, runtime binding, dynamic caller layout, page residency or execution cost. Role-dependent argument materialization and repeated mode parsing are source-level calling-context differences before timing, not an attributed root cause.",
+  "unchanged_input_scope": "Selected retained executables, original harness/controller/plan and prior static disassemblies/reviews; the full capture retains its earlier separate 5881-input independent replay.",
+  "initial_static_reader_refusal_retained": true
+}

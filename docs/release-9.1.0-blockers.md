@@ -1,6 +1,17 @@
 # 9.1.0 publication blockers and completion criteria
 
-Current rebase review (2026-10-24): PR #84 now integrates main `0b10e7a`,
+Current integrated native review (2026-10-24): PR #84 has been externally
+merged. Executed source `43d678b` integrates main `0b10e7a`; reviewed main
+`801f499` has identical codec/test/build/WASM/workflow files and newer tool files.
+The [integrated native proof](gfni-tower-fusion-review-2026-10-24.md#integrated-main-native-compatibility-and-static-attribution-review)
+records all 21 Linux checks (562 parent codec cases / 252 no_std), six-backend published-format
+compatibility and the exact inverse/quotient comparison. All six earlier tower
+cohorts remain unaccepted. Static selected masks/tables match; caller geometry
+and execution-cost attribution remain unqualified. No final accepted full
+ABBA/layout evidence or strict positive preflight is recorded. Older source
+inventories and validation counts below retain their original bindings.
+
+Historical rebase review (2026-10-24): PR #84 now integrates main `0b10e7a`,
 including the GF16 norm, direct GFNI and portable accumulation/layout changes.
 The [rebase validation record](gfni-tower-fusion-review-2026-10-24.md#rebase-integration-2026-10-24)
 binds fresh ARM64 correctness/compatibility and x86 compile-only checks to

@@ -1,6 +1,17 @@
 # 9.1.0 merged-candidate review
 
-Current source review (2026-10-24): runtime `e38a8ad`, final validated test source
+Current integrated native review (2026-10-24): PR #84 has been externally
+merged. Executed source `43d678b` integrates main `0b10e7a`; reviewed main
+`801f499` has identical codec/test/build/WASM/workflow files and newer tool files.
+The [integrated native proof](gfni-tower-fusion-review-2026-10-24.md#integrated-main-native-compatibility-and-static-attribution-review)
+records all 21 Linux checks (562 parent codec cases / 252 no_std), six-backend published-format
+compatibility and the exact inverse/quotient comparison. All six earlier tower
+cohorts remain unaccepted. Static selected masks/tables match; caller geometry
+and execution-cost attribution remain unqualified. No final accepted full
+ABBA/layout evidence or strict positive preflight is recorded. Older source
+inventories and validation counts below retain their original bindings.
+
+Historical source review (2026-10-24): runtime `e38a8ad`, final validated test source
 `7fa4fdd`, in draft PR #84 stacked on #81. These candidates are not merged into
 reviewed main `afb9a52`. The [complete tower review](gfni-tower-fusion-review-2026-10-24.md)
 retains all six rejected component cohorts; the final same-42-case comparison
