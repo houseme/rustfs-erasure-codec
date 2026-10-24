@@ -1754,3 +1754,62 @@ retain their provenance. The core/WASM allowlists remain 67/six files, excluding
 repository tooling, Python and archived JSON. All five members inherit root
 dependencies. No dependency, codec format, tag, registry upload or performance
 approval is introduced.
+
+
+## Owned release rows and native harness fingerprints
+
+The final implementation `adbac76` is based on main `5ca2c20`, after PR #80 merged.
+Only the owned-row and harness commits follow that main in this PR. The merged
+GF16 norm inverse remains intact; codec sources, build inputs, dependency
+catalogs and lockfiles match main. The row ownership and harness migration are
+separate functional commits.
+
+The release-row model now returns its validated owned case/row tuples directly
+to native summary and median consumers. Input arrays move into the normalizer;
+consumers no longer serialize those tuples into generic JSON and immediately
+deserialize them. The external `release-rows` response keeps its original flat
+record array. Its obsolete private indexed-JSON adapter is removed. Validation
+still runs before normalization, and case order, extra fields and captured counts
+retain their contracts. A regression test proves that a retained extra payload
+keeps its original string allocation across normalization; all four complete
+profile catalogs also preserve their record views.
+
+The original harness digest uses the existing Rust fingerprint bridge and
+source reader/block selector. Its five file-label/NUL/raw-byte/NUL streams and
+eleven first-selected source blocks retain their exact order and separators.
+Unit-source text uses universal newline conversion; the five raw files keep their
+original bytes. Source identities are read fresh. This recipe remains independent
+of the repository tool's implementation, so bare published-baseline checkouts
+need only their original harness sources. Python no longer concatenates those
+source bytes or performs its own block extraction for this identity.
+Native dispatch selects native, sampling, view and harness recipes in one match.
+Golden coverage includes Unicode, LF/CRLF/CR, first-match duplicate declarations,
+unselected text, changed source bytes and missing source blocks.
+
+An original-Python comparison at `4450ea2` preserves the real-checkout harness
+digest. The complete report comparison covers 756 workers / 9,072 observations:
+four accepted variants (ordinary, legacy raw JSON, reversed summaries and legacy
+summary JSON) retain every report field; seven invalid variants retain refusal
+outcomes. All original files remain unchanged. The existing four-frame transport
+fixture stays at four frames, with no Python campaign member reads. The compiled
+complete directory CLI also matches its fields with an empty PATH, without
+Python or Cargo. These checks establish ownership and report/hash compatibility;
+codec throughput requires separate controlled performance evidence.
+
+All fifteen checks pass in a new independent checkout of the final main-based
+tree: 255 native (226 unit / 29 CLI), 252 Python and 538 top-level codec tests,
+ten doctests, strict tooling Clippy, Linux tool compilation, codec-only no_std,
+compatibility, all three audits, core packaging/reconstruction, extracted-package
+tests, formatting and diff checks. The package passes 372 library tests with
+five existing ignores; the repository retains 43 existing codec ignores.
+All 200 non-fast published-9.0.0/local-9.1.0 configurations pass exact parity and
+bidirectional cross-decoding, plus historical tower-field vectors. The older
+inconsistent fast-one-parity mode remains outside the probe. Spelling passes.
+
+The inventory is 34 active Python files / 7,488 lines: 3,276 production/helper
+and 4,212 test/fixture lines. This round removes seven production Python lines.
+The 591 JSON files / 3,520,171 bytes now include the GF16 norm report
+merged on main; this PR changes no JSON artifacts. Core/WASM allowlists remain
+67/six files and exclude repository tools, Python and archived evidence. All five
+workspace members inherit root dependencies. No dependency, codec-format change,
+tag, registry upload or release-performance approval is introduced by this PR.
