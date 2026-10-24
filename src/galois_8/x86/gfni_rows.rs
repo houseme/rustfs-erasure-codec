@@ -32,11 +32,13 @@ impl SelectedRowKernel {
         }
     }
 
+    /// Amortize preparation over at least one four-vector batch. Short inputs
+    /// retain the existing coefficient-oriented path, including its tails.
     pub(crate) fn select(shard_len: usize) -> Option<Self> {
         static SELECTED: spin::Once<Option<SelectedRowKernel>> = spin::Once::new();
         SELECTED
             .call_once(|| Self::from_backend(active_backend_id()))
-            .filter(|kernel| shard_len >= kernel.width)
+            .filter(|kernel| shard_len >= kernel.width * 4)
     }
 
     /// Check every view before the first output write. Chunk boundaries remain
@@ -148,7 +150,45 @@ macro_rules! dot_kernel {
             let (groups, tail) = terms[..general].as_chunks::<4>();
             let (units, unit_tail) = terms[general..count].as_chunks::<4>();
             let done = output.len() / $width * $width;
-            for offset in (0..done).step_by($width) {
+            // Reuse each matrix broadcast and input pointer for four vectors.
+            // The four independent output sums remain in registers throughout
+            // the complete row; no intermediate output is loaded or stored.
+            let batch = $width * 4;
+            let batched = output.len() / batch * batch;
+            for offset in (0..batched).step_by(batch) {
+                let at = start + offset;
+                let mut a = $zero();
+                let mut b = $zero();
+                let mut c = $zero();
+                let mut d = $zero();
+                // SAFETY: each batch covers four complete vectors inside the
+                // checked output chunk and every input. Every live term keeps
+                // its borrowed allocation provenance. The ISA and unaligned
+                // access requirements are identical to the single-vector path.
+                unsafe {
+                    for plan in &terms[..general] {
+                        let input = plan.input.add(at);
+                        let matrix = $broadcast(plan.matrix);
+                        a = $xor(a, $affine::<0>($load(input.cast()), matrix));
+                        b = $xor(b, $affine::<0>($load(input.add($width).cast()), matrix));
+                        c = $xor(c, $affine::<0>($load(input.add($width * 2).cast()), matrix));
+                        d = $xor(d, $affine::<0>($load(input.add($width * 3).cast()), matrix));
+                    }
+                    for plan in &terms[general..count] {
+                        let input = plan.input.add(at);
+                        a = $xor(a, $load(input.cast()));
+                        b = $xor(b, $load(input.add($width).cast()));
+                        c = $xor(c, $load(input.add($width * 2).cast()));
+                        d = $xor(d, $load(input.add($width * 3).cast()));
+                    }
+                    let destination = output.as_mut_ptr().add(offset);
+                    $store(destination.cast(), a);
+                    $store(destination.add($width).cast(), b);
+                    $store(destination.add($width * 2).cast(), c);
+                    $store(destination.add($width * 3).cast(), d);
+                }
+            }
+            for offset in (batched..done).step_by($width) {
                 let at = start + offset;
                 let mut a = $zero();
                 let mut b = $zero();
@@ -209,7 +249,9 @@ macro_rules! dot_kernel {
                     $store(output.as_mut_ptr().add(offset).cast(), sum);
                 }
             }
-            scalar_tail(row, inputs, &mut output[done..], start + done);
+            if done < output.len() {
+                scalar_tail(row, inputs, &mut output[done..], start + done);
+            }
         }
     };
 }

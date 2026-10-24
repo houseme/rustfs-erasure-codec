@@ -15,9 +15,10 @@ All notable changes to this project are documented in this file.
   requested-output publication, singular-matrix errors, cached inverses and
   encoded bytes; measured end-to-end throughput remains separately qualified.
 
-- Add a bounded GFNI row dot-product candidate for Classic GF8 coding. Keep
-  output vectors in registers, preserve coefficient zero/one shortcuts and
-  existing chunk boundaries, and validate all views before any write.
+- Add a bounded GFNI row dot-product candidate for Classic GF8 coding. Reuse
+  matrix broadcasts across four output vectors held in registers; retain the
+  original path below a complete batch. Preserve coefficient zero/one shortcuts
+  and existing chunk boundaries, and validate all views before any write.
 
 - Build Classic single-data recovery coefficients directly from one parity
   equation, retaining survivor order, singular-matrix errors and the decode cache.
