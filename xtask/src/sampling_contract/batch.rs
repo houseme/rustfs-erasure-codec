@@ -7,7 +7,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 #[derive(Deserialize)]
 #[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
-pub(super) enum Output {
+pub(crate) enum Output {
     Groups,
     Select { metric: String, diagnostic: bool },
     Describe { fixtures: BTreeMap<String, Value> },
@@ -34,44 +34,55 @@ impl Request {
             default_iterations: None,
             complete: false,
         };
-        let groups = validate_groups(
+        analyze(
             &self.records,
             &contract,
             &self.expected,
             self.allowed_cpus.as_deref(),
             self.expected_page_size,
-        )?;
-        if matches!(self.output, Output::Groups) {
-            return Ok(
-                json!({"groups":groups,"selected_indices":[],"spreads":[],"descriptions":[]}),
-            );
-        }
-        let mut selected = Vec::new();
-        let mut spreads = Vec::new();
-        let mut descriptions = Vec::new();
-        for (case, indices) in &groups {
-            let rows: Vec<_> = indices.iter().map(|i| &self.records[*i]).collect();
-            match &self.output {
-                Output::Groups => {}
-                Output::Select { metric, diagnostic } => {
-                    let (offset, spread) = select(&rows, case, metric, *diagnostic)?;
-                    selected.push(indices[offset]);
-                    spreads.push(spread);
-                }
-                Output::Describe { fixtures } => {
-                    descriptions.push(json!({"case":case,"detail":baseline::describe(&rows,crate::release_rows::metric(&contract.profile)?,fixtures.get(*case))?}));
-                }
+            &self.output,
+        )
+    }
+}
+
+/// Current controllers borrow their originals; wire requests use the same model.
+pub(crate) fn analyze(
+    records: &[Value],
+    contract: &crate::release_rows::Request,
+    expected: &BTreeSet<String>,
+    cpus: Option<&[u64]>,
+    page: Option<u64>,
+    output: &Output,
+) -> Result<Value> {
+    let groups = validate_groups(records, contract, expected, cpus, page)?;
+    if matches!(output, Output::Groups) {
+        return Ok(json!({"groups":groups,"selected_indices":[],"spreads":[],"descriptions":[]}));
+    }
+    let mut selected = Vec::new();
+    let mut spreads = Vec::new();
+    let mut descriptions = Vec::new();
+    for (case, indices) in &groups {
+        let rows: Vec<_> = indices.iter().map(|i| &records[*i]).collect();
+        match output {
+            Output::Groups => {}
+            Output::Select { metric, diagnostic } => {
+                let (offset, spread) = select(&rows, case, metric, *diagnostic)?;
+                selected.push(indices[offset]);
+                spreads.push(spread);
+            }
+            Output::Describe { fixtures } => {
+                descriptions.push(json!({"case":case,"detail":baseline::describe(&rows,crate::release_rows::metric(&contract.profile)?,fixtures.get(*case))?}));
             }
         }
-        descriptions.sort_by(|a, b| a["case"].as_str().cmp(&b["case"].as_str()));
-        let mut result = json!({"groups":groups,"selected_indices":selected,"spreads":spreads,"descriptions":descriptions});
-        if matches!(self.output, Output::Select { .. }) {
-            let preparation = super::preparation::Preparation::new(&self.records, false)?;
-            result["preparation"] = preparation.catalog();
-            result["worker_starts"] = json!(preparation.worker_starts);
-        }
-        Ok(result)
     }
+    descriptions.sort_by(|a, b| a["case"].as_str().cmp(&b["case"].as_str()));
+    let mut result = json!({"groups":groups,"selected_indices":selected,"spreads":spreads,"descriptions":descriptions});
+    if matches!(output, Output::Select { .. }) {
+        let preparation = super::preparation::Preparation::new(records, false)?;
+        result["preparation"] = preparation.catalog();
+        result["worker_starts"] = json!(preparation.worker_starts);
+    }
+    Ok(result)
 }
 
 /// Preserve original indices while sharing full worker validation with inventories.
