@@ -98,24 +98,24 @@ jobs:
           cargo xtask audit-json
           cargo xtask audit-package
           cargo xtask audit-workspace
-          python3 -m unittest discover -s scripts/tests -p 'test_*.py'
+          cargo xtask audit-no-python
           bash -n scripts/release-check.sh
 
       - name: Check read-only Linux kernel memory policy provenance
         run: |
           cargo xtask memory-policy
-          python3 -c "import sys; sys.path.insert(0, 'scripts'); import release_evidence as e; e.validate_runtime(e.runtime_context(e.capture_environment()))"
+          cargo xtask runtime-context
 
       - name: Check shared workers and real published-baseline input replay
         run: |
           git fetch --no-tags --depth=1 origin 9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6
-          python3 scripts/release_sampling.py --check --check-workers --baseline-ref 9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6
+          cargo xtask release-sampling --check --check-workers --baseline-ref 9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6
 
       - name: Check real stream views against both codec sources
-        run: python3 scripts/diagnose_fixture_layout.py --check-stream-views --baseline-ref 9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6
+        run: cargo xtask diagnose-fixture-layout --check-stream-views --baseline-ref 9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6
 
       - name: Check ordinary verify scratch in both diagnostic source copies
-        run: python3 scripts/verify_scratch_audit.py --check --output "$RUNNER_TEMP/verify-scratch-audit"
+        run: cargo xtask verify-scratch-audit --check --output "$RUNNER_TEMP/verify-scratch-audit"
 
       - name: Preserve ordinary verify scratch numeric observations
         if: always()
@@ -132,23 +132,23 @@ jobs:
           if-no-files-found: ignore
 
       - name: Check stream owner lifecycles in both diagnostic source copies
-        run: python3 scripts/stream_core_audit.py --check --output "$RUNNER_TEMP/stream-core-audit"
+        run: cargo xtask stream-core-audit --check --output "$RUNNER_TEMP/stream-core-audit"
 
       - name: Check remaining dynamic storage in both source copies
         timeout-minutes: 25
-        run: python3 scripts/diagnose_fixture_layout.py --check-dynamic --output "$RUNNER_TEMP/dynamic-buffer-audit"
+        run: cargo xtask diagnose-fixture-layout --check-dynamic --output "$RUNNER_TEMP/dynamic-buffer-audit"
 
       - name: Verify page-controlled slice fixtures without performance capture
-        run: python3 scripts/diagnose_verify_layout.py --check
+        run: cargo xtask diagnose-verify-layout --check
 
       - name: Verify ordinary sampler telemetry has no Rust heap activity
         run: cargo xtask check-sampler-telemetry
 
       - name: Compile and test the isolated ShardSlot diagnostic
-        run: python3 scripts/diagnose_shard_slot.py --check
+        run: cargo xtask diagnose-shard-slot --check
 
       - name: Compile and test the post-construction CPU placement diagnostic
-        run: python3 scripts/diagnose_cpu_placement.py --check
+        run: cargo xtask diagnose-cpu-placement --check
 
       - name: Compare published 9.0.0 encoding and allocation requests
         env:
@@ -173,18 +173,7 @@ jobs:
           RSE_RECOVERY_SAMPLE_MS: "1"
         run: |
           cargo bench --locked --features "std simd-accel" --bench recovery_paths > target/verification-resource-screen.log
-          python3 - <<'PY'
-          import json
-          from pathlib import Path
-          rows = [json.loads(line) for line in Path('target/verification-resource-screen.log').read_text().splitlines() if line.startswith('{')]
-          expected = {(op,k,m,size) for op in ('verify.ordinary','verify.caller_buffer','verify.workspace') for k,m,size in ((4,2,16384),(10,4,32768))}
-          assert len(rows) == 6 and {(r['operation'],r['data_shards'],r['parity_shards'],r['shard_size']) for r in rows} == expected
-          for row in rows:
-              ordinary = row['operation'] == 'verify.ordinary'
-              assert row['allocations'] == int(ordinary)
-              assert row['allocated_bytes'] == (row['parity_shards']*row['shard_size'] if ordinary else 0)
-          print('Six verification byte/corruption and allocation cases passed; no timing acceptance')
-          PY
+          cargo xtask check-verification-resources --input target/verification-resource-screen.log
 
       - name: Verify the actual distributable without uploading
         run: cargo publish --dry-run --locked --registry crates-io --package rustfs-erasure-codec
@@ -220,7 +209,7 @@ jobs:
       - name: Install matching wasm-bindgen CLI
         working-directory: .
         run: |
-          version="$(python3 -c 'import tomllib; p=tomllib.load(open("Cargo.lock", "rb")); print(next(x["version"] for x in p["package"] if x["name"] == "wasm-bindgen"))')"
+          version="$(cargo xtask lock-version --package wasm-bindgen)"
           cargo install wasm-bindgen-cli --version "${version}" --locked
 
       - name: Install locked JavaScript development tools
@@ -513,7 +502,7 @@ jobs:
 
       - name: Validate source, digests, complete profiles, drift and regressions
         run: >-
-          python3 scripts/release_evidence.py verify
+          cargo xtask release-evidence verify
           --manifest .release-evidence/release-evidence/manifest.json
           --report target/release-preflight/evidence-validation.json
 
@@ -523,12 +512,7 @@ jobs:
           INPUT_STATUS: ${{ job.status }}
         run: |
           mkdir -p target/release-preflight
-          python3 - <<'PYTHON'
-          import json, os, pathlib
-          pathlib.Path("target/release-preflight/input.json").write_text(json.dumps({
-              "status": os.environ["INPUT_STATUS"], "candidate_commit": os.environ["GITHUB_SHA"],
-              "evidence_ref": os.environ["EVIDENCE_REF"], "run_id": os.environ["GITHUB_RUN_ID"]}) + "\n")
-          PYTHON
+          bash scripts/write-ci-status.sh input target/release-preflight/input.json
 
       - name: Upload evidence validation report
         if: always()
@@ -599,16 +583,7 @@ jobs:
           EVIDENCE_REF: ${{ needs.release-inputs.outputs.evidence_ref }}
         run: |
           mkdir -p target/release-preflight
-          python3 - <<'PYTHON'
-          import json, os, pathlib, subprocess
-          report = {"status": os.environ["PREFLIGHT_STATUS"], "profile": "release",
-                    "candidate_commit": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
-                    "candidate_tree": subprocess.check_output(["git", "rev-parse", "HEAD^{tree}"], text=True).strip(),
-                    "evidence_ref": os.environ["EVIDENCE_REF"], "run_id": os.environ["GITHUB_RUN_ID"],
-                    "run_attempt": os.environ["GITHUB_RUN_ATTEMPT"], "ref": os.environ["GITHUB_REF"],
-                    "registry_uploaded": False}
-          pathlib.Path("target/release-preflight/preflight.json").write_text(json.dumps(report, indent=2) + "\n")
-          PYTHON
+          bash scripts/write-ci-status.sh preflight target/release-preflight/preflight.json
 
       - name: Upload preflight report
         if: always()
