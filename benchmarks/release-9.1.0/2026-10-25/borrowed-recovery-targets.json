@@ -1,0 +1,623 @@
+{
+  "artifact_kind": "borrowed-recovery-targets-review-v1",
+  "source": "7bf62d589c840c71246bb11e6fb568cb179416ef",
+  "production_parent": "e758f114df56a008f4dca06248aa95287599fd0e",
+  "invariant": "Ordinary All/Data goals reuse ordered validated missing-index slices. Required goals own one ordered filtered list filled in final storage; caller flags are not retained.",
+  "ownership": {
+    "data_and_parity_targets_share_shape_for_ordinary_goals": true,
+    "selective_target_list_owned_and_exact": true,
+    "request_flag_mutation_after_preparation_cannot_change_targets": true,
+    "inline_selective_capacity": 64,
+    "prior_separate_inline_capacities": [
+      32,
+      32
+    ],
+    "replaced_index_storage_footprint_does_not_grow": true,
+    "not_a_whole_stack_frame_measurement": true
+  },
+  "preserved_semantics": {
+    "quorum_mask_count_and_length_error_priority": true,
+    "first_k_survivor_and_inverse_cache_keys": true,
+    "matrix_and_field_arithmetic_and_kernel_selection": true,
+    "target_order_and_selective_unrequested_absence": true,
+    "singular_before_publication_and_late_destination_errors": true,
+    "workspace_and_stream_reuse": true,
+    "public_api_encoding_format_and_options": true,
+    "formal_benchmark_templates_and_loops": true,
+    "no_new_unsafe_or_shape_policy": true
+  },
+  "allocation_controls": {
+    "scope": "Cache-warmed generic ShardSlot recovery with preallocated 65-element buffers on the local default backend; not Option-vector/parallel throughput or RSS.",
+    "fields": [
+      256,
+      65536
+    ],
+    "matrix_modes": [
+      "Vandermonde",
+      "Cauchy",
+      "JerasureLike"
+    ],
+    "data_and_parity_counts": [
+      33,
+      40,
+      64
+    ],
+    "operations": [
+      "all-data",
+      "data-only",
+      "all-parity"
+    ],
+    "cases": 54,
+    "all_before": 5,
+    "all_after": 4,
+    "unmodified_parent_real_red_regression": true,
+    "all_recovered_bytes_and_present_flags_exact": true,
+    "comparisons": [
+      {
+        "field_order": 256,
+        "matrix": "Cauchy",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "operation": "all-data",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "Cauchy",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "operation": "all-parity",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "Cauchy",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "operation": "data-only",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "Cauchy",
+        "data_shards": 40,
+        "parity_shards": 40,
+        "operation": "all-data",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "Cauchy",
+        "data_shards": 40,
+        "parity_shards": 40,
+        "operation": "all-parity",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "Cauchy",
+        "data_shards": 40,
+        "parity_shards": 40,
+        "operation": "data-only",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "Cauchy",
+        "data_shards": 64,
+        "parity_shards": 64,
+        "operation": "all-data",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "Cauchy",
+        "data_shards": 64,
+        "parity_shards": 64,
+        "operation": "all-parity",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "Cauchy",
+        "data_shards": 64,
+        "parity_shards": 64,
+        "operation": "data-only",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "JerasureLike",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "operation": "all-data",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "JerasureLike",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "operation": "all-parity",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "JerasureLike",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "operation": "data-only",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "JerasureLike",
+        "data_shards": 40,
+        "parity_shards": 40,
+        "operation": "all-data",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "JerasureLike",
+        "data_shards": 40,
+        "parity_shards": 40,
+        "operation": "all-parity",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "JerasureLike",
+        "data_shards": 40,
+        "parity_shards": 40,
+        "operation": "data-only",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "JerasureLike",
+        "data_shards": 64,
+        "parity_shards": 64,
+        "operation": "all-data",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "JerasureLike",
+        "data_shards": 64,
+        "parity_shards": 64,
+        "operation": "all-parity",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "JerasureLike",
+        "data_shards": 64,
+        "parity_shards": 64,
+        "operation": "data-only",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "Vandermonde",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "operation": "all-data",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "Vandermonde",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "operation": "all-parity",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "Vandermonde",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "operation": "data-only",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "Vandermonde",
+        "data_shards": 40,
+        "parity_shards": 40,
+        "operation": "all-data",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "Vandermonde",
+        "data_shards": 40,
+        "parity_shards": 40,
+        "operation": "all-parity",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "Vandermonde",
+        "data_shards": 40,
+        "parity_shards": 40,
+        "operation": "data-only",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "Vandermonde",
+        "data_shards": 64,
+        "parity_shards": 64,
+        "operation": "all-data",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "Vandermonde",
+        "data_shards": 64,
+        "parity_shards": 64,
+        "operation": "all-parity",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 256,
+        "matrix": "Vandermonde",
+        "data_shards": 64,
+        "parity_shards": 64,
+        "operation": "data-only",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "Cauchy",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "operation": "all-data",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "Cauchy",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "operation": "all-parity",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "Cauchy",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "operation": "data-only",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "Cauchy",
+        "data_shards": 40,
+        "parity_shards": 40,
+        "operation": "all-data",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "Cauchy",
+        "data_shards": 40,
+        "parity_shards": 40,
+        "operation": "all-parity",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "Cauchy",
+        "data_shards": 40,
+        "parity_shards": 40,
+        "operation": "data-only",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "Cauchy",
+        "data_shards": 64,
+        "parity_shards": 64,
+        "operation": "all-data",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "Cauchy",
+        "data_shards": 64,
+        "parity_shards": 64,
+        "operation": "all-parity",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "Cauchy",
+        "data_shards": 64,
+        "parity_shards": 64,
+        "operation": "data-only",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "JerasureLike",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "operation": "all-data",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "JerasureLike",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "operation": "all-parity",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "JerasureLike",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "operation": "data-only",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "JerasureLike",
+        "data_shards": 40,
+        "parity_shards": 40,
+        "operation": "all-data",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "JerasureLike",
+        "data_shards": 40,
+        "parity_shards": 40,
+        "operation": "all-parity",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "JerasureLike",
+        "data_shards": 40,
+        "parity_shards": 40,
+        "operation": "data-only",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "JerasureLike",
+        "data_shards": 64,
+        "parity_shards": 64,
+        "operation": "all-data",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "JerasureLike",
+        "data_shards": 64,
+        "parity_shards": 64,
+        "operation": "all-parity",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "JerasureLike",
+        "data_shards": 64,
+        "parity_shards": 64,
+        "operation": "data-only",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "Vandermonde",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "operation": "all-data",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "Vandermonde",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "operation": "all-parity",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "Vandermonde",
+        "data_shards": 33,
+        "parity_shards": 33,
+        "operation": "data-only",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "Vandermonde",
+        "data_shards": 40,
+        "parity_shards": 40,
+        "operation": "all-data",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "Vandermonde",
+        "data_shards": 40,
+        "parity_shards": 40,
+        "operation": "all-parity",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "Vandermonde",
+        "data_shards": 40,
+        "parity_shards": 40,
+        "operation": "data-only",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "Vandermonde",
+        "data_shards": 64,
+        "parity_shards": 64,
+        "operation": "all-data",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "Vandermonde",
+        "data_shards": 64,
+        "parity_shards": 64,
+        "operation": "all-parity",
+        "before": 5,
+        "after": 4
+      },
+      {
+        "field_order": 65536,
+        "matrix": "Vandermonde",
+        "data_shards": 64,
+        "parity_shards": 64,
+        "operation": "data-only",
+        "before": 5,
+        "after": 4
+      }
+    ]
+  },
+  "local_validation": {
+    "codec": {
+      "library": 397,
+      "integration": 165,
+      "doc": 10,
+      "parent_passed": 572,
+      "filtered_child_executions_separate": 6,
+      "existing_ignored": 43,
+      "no_std": 268
+    },
+    "rust_tool": {
+      "unit": 278,
+      "cli": 39,
+      "total": 317
+    },
+    "strict_codec_and_tool_clippy": true,
+    "published_9_0_0": {
+      "backend_scope": "local default backend",
+      "normal_nonfast_configurations": 200,
+      "custom_configurations": 27,
+      "custom_cross_recoveries": 162,
+      "wide_gf16_configurations": 12,
+      "selective_configurations": 270,
+      "selective_cross_recoveries": 2640
+    },
+    "wasm": {
+      "release_build": true,
+      "typescript_contracts": true,
+      "node_suite_passed": 14,
+      "real_module_cases": 12,
+      "result_code_contract_cases": 1,
+      "facade_unit_cases": 1,
+      "skipped": 0
+    },
+    "fmt_typos_diff": true,
+    "all_tested_input_bytes_bound_to_commit": true
+  },
+  "x86_compilation": {
+    "darwin_all_targets_strict_clippy": "passed-compile-only",
+    "linux_library_strict_clippy": "passed-compile-only",
+    "linux_all_targets_attempt": "unavailable-benchmark-C-dependency",
+    "reason": "Local cross x86_64-linux-gnu-gcc is absent for benchmark-only alloca. Original refusal retained; this is not a codec compile failure.",
+    "linux_native_execution_for_this_source": false
+  },
+  "observer_compatibility": {
+    "families": {
+      "dynamic": 9,
+      "stream_core": 4,
+      "verify_scratch": 3
+    },
+    "all_bindings_valid": true,
+    "only_changed_generated_files": {
+      "dynamic": [
+        "src/core/reconstruct.rs"
+      ],
+      "stream-core": [
+        "src/core/stream.rs"
+      ],
+      "verify-scratch": []
+    },
+    "reverse_only_production_accessor_calls_restores_all_generated_outputs": true,
+    "legacy_source_and_frozen_snapshots_retained": true,
+    "observation_and_acceptance_rules_unchanged": true,
+    "codec_calls_during_comparison": 0
+  },
+  "native_status": {
+    "this_source_executed_on_linux": false,
+    "older_source_4aa4ee0_native_results_not_relabelled": true,
+    "prior_4aa4ee0_first8_and_failed_pipeline_preserved": true,
+    "prior_26_command_continuation_still_separate": true
+  },
+  "functional_resource_evidence_only": true,
+  "performance_observations": 0,
+  "performance_approval": false,
+  "release_approval": false,
+  "candidate_attribution": null,
+  "all_historical_timing_refusals_preserved": true,
+  "accepted_complete_source_bound_abba_and_layout_and_strict_positive_preflight_required": true,
+  "tag_or_registry_upload": false
+}
