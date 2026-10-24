@@ -403,6 +403,54 @@ outstanding; the user's automation stays paused.
 The integrated-source plan has launched once after the previous controlled owner
 completed and restored its resources. Its sole-owner entry preflight passes with
 zero codec observations; the first identity/heartbeat review is in preheat.
-This does not imply any timing row or result has completed. Frozen sources,
+At that launch checkpoint no timing row had completed. Frozen sources,
 counts, controller and guard remain unchanged while it runs; statistical
 refusals must not stop the remaining planned workers.
+
+
+## Complete integrated-source result
+
+The [complete 42-case result](../benchmarks/release-9.1.0/2026-10-24/gf16-integrated-component-review.json)
+retains all 168 cross-source comparisons, 84 repeats and 84 calling-thread
+CPU/wall repeat summaries. All 168 workers / 2,016 observations complete with
+zero execution errors; 84 payload workers and 1,724 pilot workers also complete.
+Independent raw replay checks all 5,874 inputs unchanged and 3,952 parent events,
+with zero codec calls. The reader's initial mistaken 4,216-row assertion is
+retained; correcting that reader to the declared 2,016 rows reproduces every
+original report/refusal without changing or resampling any input. Three sources,
+four owned cleanup conditions and both original observers restore.
+
+The entire cohort is **not accepted**: one width refusal, eleven repeat refusals,
+five regression cases and zero short samples. These are statistical refusals,
+not execution failures. The following table retains all groups and every pair's
+range, rather than selecting favorable targets:
+
+| Complete group | Cases | Unqualified candidate/baseline ratio range | Width / repeat / regression refusals |
+| --- | ---: | --- | --- |
+| native direct controls | 12 | 0.849912–1.225258 | 0 / 8 / 3 |
+| gf8 ordinary encode control | 1 | 1.012501–1.138013 | 0 / 1 / 1 |
+| gf16 ordinary encode control | 1 | 0.988422–1.014036 | 1 / 0 / 0 |
+| portable direct products | 12 | 0.676113–1.240974 | 0 / 2 / 1 |
+| native custom codec controls | 4 | 0.974751–1.069480 | 0 / 0 / 0 |
+| portable custom codecs | 12 | 0.653988–1.007099 | 0 / 0 / 0 |
+
+The five regression cases include auto tower overwrite at 1,025 elements,
+auto accumulation at 1,024, explicit GFNI AVX-512 overwrite at 1,024, the
+unchanged-GF8 encode control, and SSSE3 overwrite at 1,025. The unchanged GF8
+control has candidate-repeat drift of 11.9521219%; the largest repeat refusal
+is 24.3846690%. These counterexamples prevent assigning the entire result to
+portable arithmetic or declaring the lower AVX2 codec ratios an accepted gain.
+Faults and dynamic/physical layout equivalence remain unmeasured.
+
+The SSSE3 overwrite case is a distinct investigation priority: all four ratios
+are 1.144317–1.240974, while all its phase widths pass (maximum 5.3224931%) and
+both repeats pass (4.0630596% / 4.0404256%). Calling-thread CPU median drift
+tracks its wall drift, without proving a unique physical cause. Source/assembly
+review shows capability-only AVX2 layout selection can surround narrower legacy
+SSSE3 arithmetic; wide-layout VZEROUPPER sites and legacy shuffle arithmetic
+are present. Those sites are not a measured transition count or sole root cause.
+A backend-width-coordinated, cached layout choice is therefore a mechanism worth
+testing, without shape thresholds or allocator changes; it does not explain
+unchanged GF8/native-control drift. Any follow-through needs a new source freeze,
+compatibility proof and its own complete comparison. The frozen `7914ac4` run
+and all earlier refusals remain intact. Strict release acceptance is withheld.

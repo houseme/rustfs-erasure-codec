@@ -39,6 +39,11 @@ The [new integrated-source plan](../benchmarks/release-9.1.0/2026-10-24/gf16-int
 retains all controls and adds portable-backend codec workflows: 42 cases / 168
 ABBA workers, with all original limits preserved. It does not replace complete
 published-version release geometry or any earlier refusal.
+That comparison now completes and independently reproduces every record: one
+width, eleven repeats and five regression cases refuse the original limits,
+with zero short/execution failures. It remains unaccepted. The SSSE3 1,025-element
+overwrite case is slower in all four pairs despite passing its own width/repeat
+checks; unchanged GF8/native controls also drift, so no universal cause is claimed.
 
 ## GFNI component follow-through and cancellation fix
 
