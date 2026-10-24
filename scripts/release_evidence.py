@@ -24,8 +24,6 @@ import release_sampling as sampling
 import native_tools
 from diagnostic_overlay import overlay
 
-from native_tools import PROVENANCE_FIELDS, index_records, provenance_value, CASE_FIELDS, index_results
-
 SCHEMA_VERSION = 4
 QUALIFICATION_SCHEMA = "baseline-qualification-v2"
 DIAGNOSTIC_SCHEMA = "complete-campaign-diagnostic-v1"

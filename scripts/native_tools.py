@@ -193,37 +193,6 @@ def index_release_rows(**values):
     return _rows('release-rows', request=values)
 
 
-def index_records(rows, source='artifact', strict_provenance=False):
-    normalized = _rows('benchmark-rows', rows=rows, source=source, strict_provenance=strict_provenance)
-    return {(row['operation'], row['data_shards'], row['parity_shards'], row['shard_size'], row['stream_block_size']): row
-            for row in normalized}
-
-
-def index_results(rows, metric):
-    normalized = _rows('hotspot-rows', rows=rows, metric=metric)
-    for original, row in zip(rows, normalized):
-        original.update(row)
-    return {row['scenario']: row for row in rows}
-
-
-@functools.lru_cache(maxsize=512)
-def _provenance_outcomes(payload):
-    return _request_payload(payload)
-
-
-def provenance_value(row, field):
-    if field not in PROVENANCE_FIELDS:
-        return request('provenance-field', row=row, field=field)
-    # Timing/case fields cannot affect provenance. Include every current alias
-    # so repeated observations share work while conflicting/mutated aliases fail.
-    projected = {key: value for key, value in row.items() if key in _provenance_keys}
-    payload = _payload(dict(kind='benchmark-provenance', row=projected))
-    values = (_provenance_outcomes(payload) if len(payload)<65536 else _request_payload(payload))
-    if field in values['errors']:
-        raise ValueError(values['errors'][field])
-    return values['values'][field]
-
-
 def observation_contracts(profile, records, reference=None):
     def row(value):
         return {key: item for key, item in value.items() if key in _comparison_keys}
