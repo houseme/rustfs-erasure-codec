@@ -115,6 +115,44 @@ fn native_gfni_rows_match_scalar_across_coefficients_groups_offsets_and_tails() 
         for c in 0..=u8::MAX {
             compare(kernel, 4, 1, 257, true, 64, c);
         }
+        // Fill the complete 32-term plan with general coefficients, alongside
+        // its all-zero and all-unit rows. 257 bytes spans a complete batch and
+        // a scalar tail at both native vector widths.
+        let dense_data: Vec<Vec<u8>> = (0..32)
+            .map(|j| {
+                (0..257)
+                    .map(|i| (j * 73 + i * 109 + j * i * 17) as u8)
+                    .collect()
+            })
+            .collect();
+        let dense_inputs: Vec<&[u8]> = dense_data.iter().map(Vec::as_slice).collect();
+        let dense_rows = [
+            vec![0; 32],
+            vec![1; 32],
+            (0..32).map(|i| 2 + (i * 13 % 254) as u8).collect(),
+            vec![0x9a; 32],
+        ];
+        let dense_refs: Vec<&[u8]> = dense_rows.iter().map(Vec::as_slice).collect();
+        let expected: Vec<Vec<u8>> = dense_rows
+            .iter()
+            .map(|row| {
+                (0..257)
+                    .map(|at| {
+                        row.iter().zip(&dense_inputs).fold(0, |sum, (&c, input)| {
+                            sum ^ super::super::super::mul(c, input[at])
+                        })
+                    })
+                    .collect()
+            })
+            .collect();
+        let mut dense_output = vec![vec![0xa5; 257]; 4];
+        let mut dense_views: Vec<&mut [u8]> =
+            dense_output.iter_mut().map(Vec::as_mut_slice).collect();
+        kernel
+            .execute(&dense_refs, &dense_inputs, &mut dense_views, 257, 4096)
+            .unwrap();
+        assert_eq!(dense_output, expected);
+
         let data = [[3u8; 65], [5; 65], [7; 65], [11; 65]];
         let inputs = data.each_ref().map(|v| v.as_slice());
         let rows = [[0u8; 4], [1; 4], [0, 1, 0, 0], [0, 0, 0, 0x9a]];

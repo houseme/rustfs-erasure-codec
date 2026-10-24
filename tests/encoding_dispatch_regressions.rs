@@ -292,6 +292,14 @@ mod native {
         }
     }
 
+    fn expected_native_view_calls(len: usize) -> (usize, usize) {
+        match galois_8::active_backend_id() {
+            galois_8::BackendId::RustGfniAvx2 if len < 4 * 32 => (1, 1),
+            galois_8::BackendId::RustGfniAvx512 if len < 4 * 64 => (1, 1),
+            _ => (15, 5),
+        }
+    }
+
     #[test]
     fn serial_verification_uses_the_checked_native_encoder() {
         #[cfg(rse_x86_avx2)]
@@ -316,10 +324,10 @@ mod native {
         }
         let codec = ReedSolomon::<CountedViews>::new(10, 4).unwrap();
         let reference = galois_8::ReedSolomon::new(10, 4).unwrap();
-        // Both generated and GFNI rows prepare ten inputs, four coefficient
-        // rows and four output views once, after the two empty native probes.
-        let expected_calls = (15, 5);
+        // Short GFNI entries keep the old route after the empty probes.
+        // Eligible native rows prepare every complete view exactly once.
         for len in [65, 16 * 1024] {
+            let expected_calls = expected_native_view_calls(len);
             let mut shards = data_shards(10, len);
             shards.extend(vec![vec![0; len]; 4]);
             reference.encode(&mut shards).unwrap();
@@ -399,9 +407,9 @@ mod native {
             } else {
                 entry_codec.encode_sep(&data, &mut parity).unwrap();
             }
-            // Generated and GFNI row kernels prepare the same complete views
-            // once; chunking must not repeat conversion of the shard views.
-            let expected_calls = (15, 5);
+            // The small GFNI fallback has only the empty capability probes;
+            // eligible native rows prepare all complete views once.
+            let expected_calls = expected_native_view_calls(len);
             assert_eq!(VIEW_CALLS.with(Cell::get), expected_calls);
             let mut expected = vec![vec![0; len]; 4];
             galois_8::ReedSolomon::new(10, 4)
