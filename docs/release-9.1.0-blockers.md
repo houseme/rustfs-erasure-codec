@@ -1,5 +1,15 @@
 # 9.1.0 publication blockers and completion criteria
 
+Current native proof (2026-10-24): main `544bb06`, including `727690f` GFNI
+batching, now passes its own 29 Linux commands (575 parent codec tests / 261
+no_std), both native row widths and six-backend published-format/selective
+compatibility. The [batched-native review](gfni-batched-native-review-2026-10-24.md)
+records 82-input exact replay, shared-resource controls and the initial ACK
+publication failure plus explicit atomic-ACK recovery without native retries.
+Zero performance observations were collected. Final accepted complete evidence
+and strict positive release preflight remain outstanding; earlier source-bound
+refusals and snapshots below remain unchanged.
+
 Latest synchronized main (2026-10-24): `727690f` adds four-vector GFNI matrix
 reuse after the `3a62879` native snapshot. The [subsequent integration review](selective-parity-planning-2026-10-24.md#subsequent-main-synchronization-four-vector-matrix-reuse)
 records fresh local dispatch/recovery/identity/buffer, no_std and cross-target
