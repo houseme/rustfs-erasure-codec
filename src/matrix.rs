@@ -320,7 +320,15 @@ impl<F: Field> Matrix<F> {
         let row_count = self.row_count;
         let col_count = self.col_count;
 
-        let mut work = self.augment(&Self::identity(row_count))?;
+        // Build [self | I] in its final zeroed storage. A separate identity
+        // matrix would allocate and copy another square buffer for wide layouts.
+        // Preserve the complete augmented row width and elimination order.
+        let mut work = Self::new(row_count, col_count * 2);
+        for row in 0..row_count {
+            let start = row * work.col_count;
+            work.data[start..start + col_count].copy_from_slice(self.get_row(row));
+            acc!(work, row, col_count + row) = F::one();
+        }
         work.gaussian_elim()?;
 
         Ok(work.sub_matrix(0, row_count, col_count, col_count * 2))
@@ -686,6 +694,57 @@ mod tests {
             Matrix::<F>::new(2, 3).invert().err(),
             Some(Error::NonSquare)
         );
+    }
+
+    #[test]
+    fn direct_inverse_matches_augmented_reference_across_storage_boundaries() {
+        fn check<F: crate::Field>() {
+            for size in [0, 1, 2, 7, 31, 32, 33, 40, 64] {
+                for reversed in [false, true] {
+                    let mut input = Matrix::<F>::identity(size);
+                    for row in 0..size {
+                        for column in 0..row {
+                            input.set(
+                                row,
+                                column,
+                                F::nth((row * 263 + column * 17 + 1) % F::ORDER),
+                            );
+                        }
+                    }
+                    if reversed {
+                        for row in 0..size / 2 {
+                            input.swap_rows(row, size - 1 - row);
+                        }
+                    }
+                    let original: Vec<_> =
+                        (0..size).map(|row| input.get_row(row).to_vec()).collect();
+                    // Retain the old construction as a reference; its Gaussian
+                    // operations and row widths must produce the same inverse.
+                    let mut reference = input.augment(&Matrix::<F>::identity(size)).unwrap();
+                    reference.gaussian_elim().unwrap();
+                    let actual = input.invert().unwrap();
+                    for (row, before) in original.iter().enumerate() {
+                        assert_eq!(input.get_row(row), before.as_slice());
+                        assert_eq!(actual.get_row(row), &reference.get_row(row)[size..]);
+                    }
+                    assert_eq!(actual.row_count(), size);
+                    assert_eq!(actual.col_count(), size);
+                }
+            }
+            for size in [3, 33, 40] {
+                let mut input = Matrix::<F>::identity(size);
+                input.set(size - 1, size - 1, F::zero());
+                assert_eq!(input.invert().err(), Some(Error::SingularMatrix));
+            }
+            for (rows, columns) in [(0, 1), (1, 0), (2, 3)] {
+                assert_eq!(
+                    Matrix::<F>::new(rows, columns).invert().err(),
+                    Some(Error::NonSquare)
+                );
+            }
+        }
+        check::<crate::galois_8::Field>();
+        check::<crate::galois_16::Field>();
     }
 
     #[test]

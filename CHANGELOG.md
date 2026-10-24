@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Construct Classic inverse work directly as `[matrix | identity]`, avoiding a
+  separate identity matrix and its square allocation/copy in wide construction
+  and cold recovery. Preserve elimination order, SIMD row widths, inverse bytes,
+  singular errors and shard-publication behavior.
+
 - Reuse Classic decode inverses when only unselected trailing parity erasures
   change. Key the cache by the erasure prefix that determines the selected
   survivors; preserve output selection, singular errors and disabled-cache

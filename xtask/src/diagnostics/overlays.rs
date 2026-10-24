@@ -293,6 +293,14 @@ mod tests {
             .unwrap();
             selected
         };
+        let inverse = "    pub fn invert(";
+        let mut observed_inverse = body(&observed["src/matrix.rs"], inverse);
+        for stage in ["invert_ready", "invert_coded"] {
+            let marker = format!("        work.__rse_buffer_view(\"{stage}\");\n");
+            assert_eq!(observed_inverse.matches(&marker).count(), 1);
+            observed_inverse = observed_inverse.replace(&marker, "");
+        }
+        assert_eq!(observed_inverse, body(&original["src/matrix.rs"], inverse));
         let builder = "    fn build_data_decode_matrix(";
         let observed_builder = body(&observed["src/core/reconstruct.rs"], builder);
         let marker = "        selected.__rse_buffer_view(\"decode_submatrix\");\n";
@@ -367,7 +375,7 @@ mod tests {
         let original = dynamic_source_files(root);
         assert_eq!(
             digest(dynamic::patch(&original, root).unwrap(), root),
-            "a21b9a8accc9b0ce13a5e52c362cc65896a14d1dca384b442d06d4a5a9c6a891"
+            "1f5b4af8ad12872c298a8729fde85a54b7b71e22f63334071ad0c4421309c76d"
         );
     }
 }
