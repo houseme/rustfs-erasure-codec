@@ -138,11 +138,12 @@ def analyze_paired(phases, iterations, page_size, measuring_cpu, *, diagnostic=F
         iterations=iterations, page_size=page_size, measuring_cpu=measuring_cpu, diagnostic=diagnostic))
 
 
-def verify_paired(directory, candidate, compiler=True, *, diagnostic=False, manifest_sha256=evidence._UNBOUND):
+def verify_paired(directory, candidate, compiler=True, *, diagnostic=False, manifest_sha256=evidence._UNBOUND, campaign=None):
     """Bind Git/compiler state around one native original-directory replay."""
     request=dict(directory=str(directory.resolve()),diagnostic=diagnostic,code=tool_sources(),
                  baseline=evidence.source_at(candidate,evidence.BASELINE_COMMIT),
                  candidate=evidence.source_info(candidate),tool=evidence.source_info(TOOL))
+    if campaign is not None:request['campaign']=campaign
     if manifest_sha256 is not evidence._UNBOUND:request['manifest_sha256']=manifest_sha256
     result=native_tools.request('diagnostic-layout',request=dict(operation='paired-replay',request=request))
     if compiler and result['context']['compiler'] != evidence.command(['rustc', '--version'], candidate, dict(os.environ, RUSTUP_TOOLCHAIN='stable')):

@@ -265,11 +265,7 @@ def layout_member(document, root, *, diagnostic=False):
 
 
 def layout_iterations(sampling_contract):
-    counts = sampling_contract.get('common_iterations', {}).get('small_file', {})
-    values = [counts.get(case) for case in LAYOUT_CASES]
-    if any(type(n) is not int or not 1 <= n <= 1_000_000_000 for n in values):
-        raise ValueError('layout iterations require both completed buffered-verify calibration counts')
-    return max(values)
+    return native_tools.request('diagnostic-layout', request=dict(operation='campaign-iterations', sampling=sampling_contract))
 
 
 def verify(manifest, repository, compiler=True):
@@ -279,8 +275,10 @@ def verify(manifest, repository, compiler=True):
     layout_path = layout_member(document, manifest.parent)
     paths, data, report = _verify_profiles(document, manifest.parent, repository, compiler)
     from diagnose_verify_layout import verify_paired
-    layout = verify_paired(layout_path.parent, repository, compiler, manifest_sha256=document['layout_supplement']['sha256'])
-    verify_layout_binding(document, data, layout)
+    layout = verify_paired(layout_path.parent, repository, compiler, manifest_sha256=document['layout_supplement']['sha256'],
+        campaign=dict(sources=document['sources'], context=document['contexts']['A1'],
+                      counts={case:document['sampling']['common_iterations']['small_file'][case] for case in LAYOUT_CASES},
+                      rows={case:data['A1']['small_file'][case] for case in LAYOUT_CASES}))
     if not layout['layout_gate_passed']:
         raise EvidenceFailure('paired layouts failed; no release approval', {'layout': layout, 'candidate_attribution': None})
     report.update(status='passed', manifest_sha256=manifest_sha256,
@@ -289,23 +287,6 @@ def verify(manifest, repository, compiler=True):
                   layout_repeat_checks=len(layout['repeat_checks'])+sum(len(r['repeat_checks']) for r in layout['phase_reports'].values()),
                   layout_comparisons=len(layout['candidate_attribution']))
     return document, paths, report
-
-
-def verify_layout_binding(document, data, layout):
-    if any(layout['tool'][key] != document['sources']['candidate'][key] for key in ('tree', 'lock_sha256')):
-        raise ValueError('paired-layout tool does not match the frozen candidate tree/lock')
-    if layout['sources'] != document['sources'] or layout['context'] != document['contexts']['A1']:
-        raise ValueError('paired-layout source or resource context differs from the full campaign')
-    if layout['iterations'] != layout_iterations(document['sampling']):
-        raise ValueError('paired-layout iterations differ from the frozen full-campaign calibration')
-    native = layout['phase_reports']['A1']['provenance']
-    fields = ('backend', 'backend_id', 'backend_kind', 'features')
-    target_prefix = native['target_arch']+'-'+native['target_os']+'-'
-    for case in LAYOUT_CASES:
-        row = data['A1']['small_file'][case]
-        if (any(provenance_value(row, field) != native[field] for field in fields)
-                or not provenance_value(row, 'target_triple').startswith(target_prefix)):
-            raise ValueError(case+': paired-layout backend/features/target differ from the original buffered-verify cases')
 
 
 def verify_diagnostic(manifest, repository, compiler=True):
@@ -319,8 +300,10 @@ def verify_diagnostic(manifest, repository, compiler=True):
     layout_path = layout_member(document, manifest.parent, diagnostic=True)
     paths, data, report = _verify_profiles(document, manifest.parent, repository, compiler, diagnostic=True)
     from diagnose_verify_layout import verify_paired
-    layout = verify_paired(layout_path.parent, repository, compiler, diagnostic=True, manifest_sha256=document['layout_supplement']['sha256'])
-    verify_layout_binding(document, data, layout)
+    layout = verify_paired(layout_path.parent, repository, compiler, diagnostic=True, manifest_sha256=document['layout_supplement']['sha256'],
+        campaign=dict(sources=document['sources'], context=document['contexts']['A1'],
+                      counts={case:document['sampling']['common_iterations']['small_file'][case] for case in LAYOUT_CASES},
+                      rows={case:data['A1']['small_file'][case] for case in LAYOUT_CASES}))
     report.update(status='diagnostic_complete', diagnostic_only=True, release_approval=False,
                   candidate_attribution=None, all_checks_executed=True,
                   manifest_sha256=manifest_sha256, layout=layout,
