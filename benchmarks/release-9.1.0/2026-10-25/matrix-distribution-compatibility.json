@@ -1,0 +1,81 @@
+{
+  "artifact_kind": "inverse-work-distribution-compatibility-v1",
+  "runtime_source": "4aa4ee0a21f108d9311da33282b71a9f24fc19bd",
+  "executed_artifact_source": "bfac8fca4e28558b0268aa344bab59d3833d0ece",
+  "merged_main": "435393513ea057449b268911a36485b067e95078",
+  "main_complete_git_tree_equals_executed_source": true,
+  "core_crate": {
+    "package_members": 71,
+    "rust_source_members": 64,
+    "source_and_original_manifest_members_byte_exact": 68,
+    "generated_normalization_metadata_members": 3,
+    "packaged_vcs_source_exact": true,
+    "package_verify_build_passed": true,
+    "extracted_package_library_passed": 395,
+    "existing_ignored": 5,
+    "extracted_package_no_std_passed": 266,
+    "tools_and_private_evidence_excluded": true
+  },
+  "wasm": {
+    "target": "wasm32-unknown-unknown",
+    "profile": "release",
+    "wasm_bindgen": "0.2.129",
+    "typescript": "7.0.2",
+    "locked_dev_tools": true,
+    "build_and_typecheck_passed": true,
+    "node_tests_skipped": 0,
+    "tracked_source_inputs_unchanged": true,
+    "node_tests_passed": 14,
+    "real_wasm_cases": 13,
+    "facade_unit_cases": 1
+  },
+  "npm_tar": {
+    "package_members": 9,
+    "all_files_byte_exact_to_built_inputs": true,
+    "production_source_tools_and_private_files_excluded": true,
+    "copied_test_fixture_not_a_shipped_member": true,
+    "node_tests_skipped": 0,
+    "offline_install_from_local_tar_passed": true,
+    "public_named_exports_parity_and_recovery_passed": true,
+    "installed_consumer_typescript_passed": true,
+    "extracted_package_node_tests_passed": 14,
+    "real_wasm_cases": 13,
+    "facade_unit_cases": 1
+  },
+  "ci": {
+    "source": "bfac8fca4e28558b0268aa344bab59d3833d0ece",
+    "job": "WASM generated bindings (Node and Chromium)",
+    "conclusion": "SUCCESS",
+    "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40121425670/job/120953600347",
+    "steps": [
+      {
+        "name": "Build complete generated package",
+        "conclusion": "success"
+      },
+      {
+        "name": "Check TypeScript contracts",
+        "conclusion": "success"
+      },
+      {
+        "name": "Test real WASM in Node.js",
+        "conclusion": "success"
+      },
+      {
+        "name": "Test real WASM in Chromium",
+        "conclusion": "success"
+      }
+    ],
+    "not_an_all_workflow_or_release_preflight_claim": true
+  },
+  "independent_review": {
+    "source_reports_archives_and_logs": 16,
+    "all_inputs_unchanged": true,
+    "all_reported_test_totals_recomputed": true,
+    "codec_calls_during_replay": 0
+  },
+  "native_26_continuation_not_executed_by_this_review": true,
+  "performance_observations": 0,
+  "performance_approval": false,
+  "release_approval": false,
+  "tag_or_registry_upload": false
+}
