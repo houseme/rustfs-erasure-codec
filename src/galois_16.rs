@@ -61,12 +61,12 @@ impl crate::Field for Field {
 
     #[inline]
     fn mul_slice(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]]) {
-        gf16_mul_slice(elem, input, out, false);
+        gf16_mul_slice::<false>(elem, input, out);
     }
 
     #[inline]
     fn mul_slice_add(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]]) {
-        gf16_mul_slice(elem, input, out, true);
+        gf16_mul_slice::<true>(elem, input, out);
     }
 }
 
@@ -95,38 +95,6 @@ fn multiply_tower_gfni_avx512(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 
     galois_8::x86::gfni::rust_gfni_avx512_mul_tower(tower_mul_coefficients(elem), input, out, xor);
 }
 
-#[cfg(rse_x86_gfni)]
-fn gf16_mul_slice(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]], accumulate: bool) {
-    assert_eq!(input.len(), out.len());
-    // The constant-coordinate path needs neither a fallback frame nor general
-    // dispatch. Keep its existing flattened GF8 operation outside that frame.
-    if elem[0] == 0 {
-        if accumulate {
-            galois_8::mul_slice_xor(elem[1], input.as_flattened(), out.as_flattened_mut());
-        } else {
-            galois_8::mul_slice(elem[1], input.as_flattened(), out.as_flattened_mut());
-        }
-        return;
-    }
-    // An empty general operation originally did not select a GF8 backend.
-    if input.is_empty() {
-        return;
-    }
-    // Cache only native callables. Other backends retain a static call to the
-    // original executor rather than acquiring an indirect-call boundary.
-    let native = GFNI_TOWER_MULTIPLY
-        .call_once(|| select_native_tower_multiply(galois_8::active_backend_id()));
-    if let Some(multiply) = native {
-        multiply(elem, input, out, accumulate);
-    } else {
-        gf16_mul_slice_portable(elem, input, out, accumulate);
-    }
-}
-
-// Architectures/builds without GFNI retain the original executor directly.
-#[cfg(not(rse_x86_gfni))]
-use gf16_mul_slice_portable as gf16_mul_slice;
-
 /// SIMD-accelerated `out[i] = elem * input[i]` (or `out[i] ^= elem * input[i]`
 /// when `accumulate`) over the `GF((2^8)^2)` tower field.
 ///
@@ -147,21 +115,14 @@ use gf16_mul_slice_portable as gf16_mul_slice;
 /// On x86 with GFNI the GF(2^8) multiplies are so fast that a *scalar* byte
 /// de-/re-interleave dominates the runtime (Amdahl); SIMD-ing the layout
 /// conversion is what restores the tower decomposition's speed-up there.
-// Keep plane storage out of the native wrapper even on its direct fallback
-// branch. Builds without GFNI keep their previous inlining policy.
-#[cfg_attr(rse_x86_gfni, inline(never))]
-fn gf16_mul_slice_portable(
-    elem: [u8; 2],
-    input: &[[u8; 2]],
-    out: &mut [[u8; 2]],
-    accumulate: bool,
-) {
+#[inline]
+fn gf16_mul_slice<const ACCUMULATE: bool>(elem: [u8; 2], input: &[[u8; 2]], out: &mut [[u8; 2]]) {
     assert_eq!(input.len(), out.len());
 
     // A constant tower element scales both byte coordinates independently.
     // Keep their interleaved representation and reuse one GF8 slice operation.
     if elem[0] == 0 {
-        if accumulate {
+        if ACCUMULATE {
             galois_8::mul_slice_xor(elem[1], input.as_flattened(), out.as_flattened_mut());
         } else {
             galois_8::mul_slice(elem[1], input.as_flattened(), out.as_flattened_mut());
@@ -169,14 +130,22 @@ fn gf16_mul_slice_portable(
         return;
     }
 
-    // Preserve length validation even for an empty general-field operation.
-    if !input.is_empty() {
-        if accumulate {
-            gf16_mul_general::<true>(elem, input, out);
-        } else {
-            gf16_mul_general::<false>(elem, input, out);
+    // An empty general operation must not select a GF8 backend.
+    if input.is_empty() {
+        return;
+    }
+    #[cfg(rse_x86_gfni)]
+    {
+        // Resolve only optional native callables from the immutable GF8 choice.
+        // Other backends keep the statically specialized portable executor.
+        let native = GFNI_TOWER_MULTIPLY
+            .call_once(|| select_native_tower_multiply(galois_8::active_backend_id()));
+        if let Some(multiply) = native {
+            multiply(elem, input, out, ACCUMULATE);
+            return;
         }
     }
+    gf16_mul_general::<ACCUMULATE>(elem, input, out);
 }
 
 const GF16_CHUNK: usize = 1024;
@@ -1131,6 +1100,18 @@ mod tests {
     #[should_panic]
     fn constant_tower_accumulate_rejects_mismatched_lengths() {
         Field::mul_slice_add([0, 0], &[[0xa5, 0x5a]], &mut []);
+    }
+
+    #[test]
+    #[should_panic]
+    fn empty_general_tower_multiply_rejects_mismatched_lengths() {
+        Field::mul_slice([1, 0], &[], &mut [[0xa5, 0x5a]]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn empty_general_tower_accumulate_rejects_mismatched_lengths() {
+        Field::mul_slice_add([1, 0], &[[0xa5, 0x5a]], &mut []);
     }
 
     #[test]
