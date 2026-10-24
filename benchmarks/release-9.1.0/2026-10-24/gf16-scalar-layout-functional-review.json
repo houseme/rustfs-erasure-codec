@@ -1,0 +1,468 @@
+{
+  "artifact_kind": "gf16-scalar-layout-functional-review-v1",
+  "runtime_implementation": "e38a8ad591ca183a6c914b6e939963928575b8a5",
+  "validated_source": "7fa4fddeea73ef74ee0b52f600f80fd6bc89c066",
+  "production_equals_runtime_source": true,
+  "post_runtime_change": "Test-only backend environment isolation; no production changes.",
+  "policy": "CPU-capable scalar table arithmetic retains wide memory permutation; legacy SSSE3 stays narrow; wide SIMD arithmetic retains AVX2 layouts. One immutable cached decision, no shape/size threshold or allocator change.",
+  "local_validation": {
+    "library": 377,
+    "integration": 168,
+    "documentation": 10,
+    "existing_ignored": 43,
+    "no_std": 250,
+    "strict_arm_x86_all_target_clippy": true,
+    "strict_linux_library_std_and_no_std_clippy_on_equal_runtime": true,
+    "narrow_std_ssse3_clippy": true,
+    "default_std_metadata_child_positive": true,
+    "published200_custom27_wide12_passed": true
+  },
+  "native_linux_validation": {
+    "checks": [
+      {
+        "name": "full-codec",
+        "passed": true,
+        "test_summaries": [
+          [
+            390,
+            5
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            35
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            17,
+            0
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            9,
+            0
+          ],
+          [
+            0,
+            1
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            9,
+            0
+          ],
+          [
+            13,
+            0
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            8,
+            0
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            9,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            6,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            5,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            7,
+            0
+          ],
+          [
+            13,
+            0
+          ],
+          [
+            14,
+            0
+          ],
+          [
+            10,
+            0
+          ]
+        ],
+        "required_markers_verified": 6
+      },
+      {
+        "name": "no-std",
+        "passed": true,
+        "test_summaries": [
+          [
+            250,
+            0
+          ]
+        ],
+        "required_markers_verified": 0
+      },
+      {
+        "name": "ssse3-fallback",
+        "passed": true,
+        "test_summaries": [
+          [
+            39,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "avx2-fallback",
+        "passed": true,
+        "test_summaries": [
+          [
+            38,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "scalar-general",
+        "passed": true,
+        "test_summaries": [
+          [
+            39,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "gfni256-general",
+        "passed": true,
+        "test_summaries": [
+          [
+            39,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "gfni512-general",
+        "passed": true,
+        "test_summaries": [
+          [
+            39,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-200",
+        "passed": true,
+        "test_summaries": [],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-custom-auto",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 3
+      },
+      {
+        "name": "published-wide-auto",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-custom-scalar-rust",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 3
+      },
+      {
+        "name": "published-wide-scalar-rust",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-custom-rust-ssse3",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 3
+      },
+      {
+        "name": "published-wide-rust-ssse3",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-custom-rust-avx2",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 3
+      },
+      {
+        "name": "published-wide-rust-avx2",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-custom-rust-gfni-avx2",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 3
+      },
+      {
+        "name": "published-wide-rust-gfni-avx2",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "published-custom-rust-gfni-avx512",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 3
+      },
+      {
+        "name": "published-wide-rust-gfni-avx512",
+        "passed": true,
+        "test_summaries": [
+          [
+            1,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      },
+      {
+        "name": "backend-env-stress",
+        "passed": true,
+        "test_summaries": [
+          [
+            15,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            15,
+            0
+          ],
+          [
+            15,
+            0
+          ]
+        ],
+        "required_markers_verified": 1
+      }
+    ],
+    "all21_passed": true,
+    "library": 390,
+    "integration": 165,
+    "documentation": 10,
+    "existing_ignored": 43,
+    "no_std": 250,
+    "parallel_backend_stress_rounds": 12,
+    "parent_unit_tests_per_stress_round": 15,
+    "all_stress_rounds_required_no_retry_until_pass": true,
+    "cached_layout_scalar_true_ssse3_false_wide_true": true,
+    "positive_both_gfni_widths_and_avx2_layout": true,
+    "published_normal": 200,
+    "published_custom_configs_across6_backends": 162,
+    "published_custom_cross_recoveries": 972,
+    "published_wide_configs_across6_backends": 72
+  },
+  "independent_review": {
+    "inputs": 37,
+    "all_inputs_unchanged": true,
+    "all_raw_outputs_and_markers_reproduced": true,
+    "replay_codec_calls": 0
+  },
+  "retained_prior_functional_failure": {
+    "source": "e38a8ad591ca183a6c914b6e939963928575b8a5",
+    "failed_test": "galois_8::tests::test_active_backend_metadata",
+    "actual_override_observed": "rust-gfni-avx2",
+    "expected_scoped_override": "rust-gfni-avx512",
+    "cause": "Parallel tests temporarily changed one process-global environment while checking an immutable cached backend. Fresh child environments isolate values before initialization; parent values remain unchanged.",
+    "runtime_algorithm_unchanged_by_test_fix": true,
+    "all21_or20_command_count_scope": "The failed capture attempted all original20 commands; only full-codec failed. Final21 adds twelve fixed stress rounds.",
+    "cleanup4_restored": true,
+    "not_a_codec_numerical_failure_or_timing_cause": true
+  },
+  "source_restored": true,
+  "cleanup4_restored": true,
+  "performance_observations": 0,
+  "release_approval": false,
+  "performance_accepted": false,
+  "candidate_attribution": null
+}

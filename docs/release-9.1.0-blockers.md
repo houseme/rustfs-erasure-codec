@@ -53,6 +53,11 @@ Its complete 42-case comparison now independently reproduces 1 width / 17 repeat
 case is lower in all pairs, but all eight scalar cases are stably slower. Both
 the benefit and cost remain recorded; the entire cohort is not accepted.
 No earlier refusal or release approval is reassigned to this new source.
+Runtime `e38a8ad` preserves scalar wide permutation after all eight stable scalar
+costs; final test source `7fa4fdd` isolates backend environments in fresh children.
+The original concurrent metadata failure remains retained. All 21 native checks
+and twelve fixed parallel stress rounds pass; its own same-42-case comparison
+has launched once and still needs its complete result and independent replay.
 
 ## GFNI component follow-through and cancellation fix
 

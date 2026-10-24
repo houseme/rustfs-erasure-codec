@@ -1,7 +1,8 @@
 # GF16 GFNI tower-plane fusion
 
-Current width-coordination runtime: `0a354911c4ece2166f24589bdfad7270881dc40c`;
-validated final test source: `986c1fedcfc9e75151b34392f43e41a50ff7ed9f`.
+Current scalar-preserving runtime: `e38a8ad591ca183a6c914b6e939963928575b8a5`;
+validated final test source: `7fa4fddeea73ef74ee0b52f600f80fd6bc89c066`.
+The earlier width prototype is `0a35491` / `986c1fe`.
 The earlier combined implementation is `7914ac450856305f40f0c24eea424af2a153905f`.
 The final section records its separate correctness review; the three historical
 timing cohorts below remain bound to their original sources.
@@ -540,3 +541,51 @@ of arithmetic width. Restoring that predecessor choice while keeping SSSE3
 narrow is a source-level follow-through worth validating; no shape cutoff,
 allocator change or explanation of all native-control drift follows from it.
 Both complete 42-case cohorts and all original refusals remain immutable.
+
+
+## Preserve scalar permutation and isolate backend tests
+
+Runtime `e38a8ad` retains wide byte permutation for scalar table arithmetic on
+capable CPUs, while preserving the narrower legacy SSSE3 decision and all wide
+SIMD paths. The completed eight-case scalar cost is the reason to avoid a
+universal width rule; no sample/shape cutoff or allocator tuning is introduced.
+The former narrow-scalar mapping fails the new retention constraint before the
+single-arm policy change passes. Numerical/layout kernels, constant/empty
+behavior, public options, field bytes, core recovery and one-time caching remain
+unchanged. Old ratios from different campaigns are not multiplied into a new
+cross-version speedup.
+
+The first native full suite on that runtime exposes a separate real test race:
+`test_active_backend_metadata` observes a temporary GFNI AVX2 override while
+expecting its own GFNI AVX-512 override. The original scoped helper changed a
+process-global environment without isolating other parallel tests and removed
+rather than preserving prior values. The failed capture and successful cleanup
+remain retained. Test-only follow-through `7fa4fdd` installs override environments
+before fresh child processes initialize their cached backend. Children check
+requested names, IDs and actual cached selections; parent values remain intact.
+Positive child test counts prevent a zero-test success. Compile-time backend
+availability and unsupported override cases remain tested. Unsupported process
+platforms retain the earlier non-spawn path. No runtime production code changes,
+thread-count reduction or numerical assertion relaxation is used. This test race
+is not an explanation of standalone timing drift.
+
+The [complete final-source functional proof](../benchmarks/release-9.1.0/2026-10-24/gf16-scalar-layout-functional-review.json)
+records 21 positive native Linux commands, including twelve fixed parallel
+backend rounds of fifteen parent tests each, all required to pass. Independent
+review checks all 37 inputs unchanged, every raw output/marker and all twelve
+round summaries, with zero codec calls during replay. Full Linux counts remain
+390 library / 165 integration / ten doc, 43 existing ignored, and 250 no_std;
+ARM64 has 377 / 168 / ten and 250 no_std. Strict broad/narrow target Clippy and
+default-std metadata checks pass. Published 9.0.0 exact bytes and bidirectional
+recovery pass for 200 normal, six-backend custom 162 / 972 recoveries, and
+72 wide configurations. All previous failed functional captures are retained.
+
+The [final scalar-retention plan](../benchmarks/release-9.1.0/2026-10-24/gf16-scalar-layout-component-plan.json)
+compares `986c1fe` with final source `7fa4fdd` (runtime `e38a8ad`) using exactly
+the same 42 cases / 168 ABBA workers / 2,016 observations, unchanged harness,
+calibration and limits. The fresh 21-command proof is bound and reused; all 84
+benchmark payload checks remain required. It has launched once after cleanup;
+no result is assigned before every planned worker completes and independent raw
+replay. Every older refusal remains unchanged. This is unpublished-source
+component geometry, not full published-version release acceptance. Final-source
+accepted ABBA/layout evidence and strict positive preflight remain outstanding.
