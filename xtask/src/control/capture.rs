@@ -324,7 +324,7 @@ pub(super) fn campaign(
                 )?;
                 observations(profile, &records, Some(&contracts[role][profile]))?;
                 let selected = sampling::select(
-                    records,
+                    &records,
                     profile,
                     sources[role]["commit"].as_str().ok_or("missing source")?,
                     &contract["common_iterations"][profile],
@@ -490,7 +490,7 @@ pub(super) fn qualify(
                 observations(profile, &records, Some(&contracts[profile]))?;
                 let service = crate::diagnostics::baseline::service_times(&records)?;
                 let selected = sampling::select(
-                    records,
+                    &records,
                     profile,
                     BASELINE,
                     &counts[profile],

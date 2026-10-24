@@ -161,7 +161,7 @@ impl Fixture {
         self.document["files"][phase][profile]["samples"]["sha256"] =
             write(&path, &json!(rows)).into();
         let selected = crate::control::sampling::select(
-            rows,
+            &rows,
             profile,
             self.document["sources"][if phase.starts_with('A') {
                 "baseline"
