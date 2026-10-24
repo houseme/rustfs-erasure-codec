@@ -225,6 +225,35 @@ pub(crate) fn tower_mul_coefficients([cx, cc]: [u8; 2]) -> [u8; 4] {
     ]
 }
 
+// Keep the layout width consistent with the immutable arithmetic selection.
+// A wide CPU alone does not make widening a narrow arithmetic path profitable.
+#[cfg(any(
+    test,
+    all(feature = "std", feature = "simd-avx2", target_arch = "x86_64")
+))]
+fn avx2_layout_allowed(backend: galois_8::BackendId, cpu_has_avx2: bool) -> bool {
+    cpu_has_avx2
+        && matches!(
+            backend,
+            galois_8::BackendId::RustAvx2
+                | galois_8::BackendId::RustAvx512
+                | galois_8::BackendId::RustGfniAvx2
+                | galois_8::BackendId::RustGfniAvx512
+        )
+}
+
+#[cfg(all(feature = "std", feature = "simd-avx2", target_arch = "x86_64"))]
+#[inline]
+fn avx2_layout_enabled() -> bool {
+    static ENABLED: spin::Once<bool> = spin::Once::new();
+    *ENABLED.call_once(|| {
+        avx2_layout_allowed(
+            galois_8::active_backend_id(),
+            is_x86_feature_detected!("avx2"),
+        )
+    })
+}
+
 /// De-interleave interleaved GF(2^16) element bytes into two contiguous GF(2^8)
 /// byte planes: `even[i] = src[2*i]`, `odd[i] = src[2*i + 1]`.
 ///
@@ -241,7 +270,7 @@ fn deinterleave(src: &[u8], even: &mut [u8], odd: &mut [u8]) {
     #[cfg(all(feature = "std", target_arch = "x86_64"))]
     {
         #[cfg(feature = "simd-avx2")]
-        if even.len() >= 32 && is_x86_feature_detected!("avx2") {
+        if even.len() >= 32 && avx2_layout_enabled() {
             // SAFETY: AVX2 is detected and the checked slice lengths match the
             // 64-byte source / 32-byte plane spans used by this kernel.
             unsafe { deinterleave_avx2(src, even, odd) };
@@ -285,7 +314,7 @@ fn interleave<const ACCUMULATE: bool>(even: &[u8], odd: &[u8], dst: &mut [u8]) {
     #[cfg(all(feature = "std", target_arch = "x86_64"))]
     {
         #[cfg(feature = "simd-avx2")]
-        if even.len() >= 32 && is_x86_feature_detected!("avx2") {
+        if even.len() >= 32 && avx2_layout_enabled() {
             // SAFETY: AVX2 is detected; both 32-byte planes and the initialized
             // 64-byte destination satisfy the kernel's slice contract.
             unsafe { interleave_avx2::<ACCUMULATE>(even, odd, dst) };
@@ -1020,6 +1049,44 @@ mod tests {
             select_native_tower_multiply(BackendId::RustGfniAvx512).unwrap(),
             multiply_tower_gfni_avx512 as TowerMulFn
         ));
+    }
+
+    #[test]
+    fn avx2_layout_requires_wide_selected_arithmetic() {
+        use galois_8::BackendId;
+        for backend in [
+            BackendId::ScalarRust,
+            BackendId::RustSsse3,
+            BackendId::RustNeon,
+            BackendId::RustVsx,
+        ] {
+            assert!(!avx2_layout_allowed(backend, true), "{backend:?}");
+            assert!(!avx2_layout_allowed(backend, false), "{backend:?}");
+        }
+        for backend in [
+            BackendId::RustAvx2,
+            BackendId::RustAvx512,
+            BackendId::RustGfniAvx2,
+            BackendId::RustGfniAvx512,
+        ] {
+            assert!(avx2_layout_allowed(backend, true), "{backend:?}");
+            assert!(!avx2_layout_allowed(backend, false), "{backend:?}");
+        }
+    }
+
+    #[cfg(all(feature = "std", feature = "simd-avx2", target_arch = "x86_64"))]
+    #[test]
+    fn cached_avx2_layout_matches_selected_arithmetic() {
+        let backend = galois_8::active_backend_id();
+        let selected = avx2_layout_enabled();
+        assert_eq!(
+            selected,
+            avx2_layout_allowed(backend, is_x86_feature_detected!("avx2"))
+        );
+        eprintln!(
+            "GF16_LAYOUT_SELECTED backend={} avx2={selected}",
+            galois_8::active_backend_name()
+        );
     }
 
     #[test]
