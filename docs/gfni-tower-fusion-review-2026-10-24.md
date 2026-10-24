@@ -1,6 +1,10 @@
 # GF16 GFNI tower-plane fusion
 
-Frozen implementation: `07b08c8c9b65127b30e8340358955b68e121b941`.
+Current integrated implementation: `7914ac450856305f40f0c24eea424af2a153905f`.
+The final section records its separate correctness review; the three historical
+timing cohorts below remain bound to their original sources.
+
+First frozen implementation: `07b08c8c9b65127b30e8340358955b68e121b941`.
 Comparator: `9ddcac9348504d1c9b6b55231ec4596a1e938984`, including the separate
 GF8 affine-map candidate. The GF16 norm candidate is not included.
 
@@ -178,7 +182,8 @@ encoding dispatch and owned-buffer reuse tests, the existing 200 published cases
 and all 81 custom configurations / 486 cross recoveries under the three backend
 settings. Both twenty-case one-iteration payload catalogs agree. The fresh
 sampler is rebuilt without metrics before its fixed eighty-worker comparison;
-that comparison is still in progress and is not yet accepted.
+at that checkpoint the comparison had not completed. Its complete refusal
+is recorded immediately below.
 
 ## Complete cached-dispatch comparison
 
@@ -281,10 +286,76 @@ The five retained repeat refusals are:
 The entire latest cohort therefore remains **not accepted**. Favorable direct
 kernel/custom encode/recovery ratios remain in the complete JSON alongside all
 controls; they are not promoted to an approved speedup. No unchanged-source
-retry, extra variant or threshold change follows from these results. All three
+retry or threshold change is justified by these results. All three
 source-bound comparisons and original failures remain intact.
 
 The implementation/compatibility work is reviewable in PR #84. A combined final
 candidate still needs integration review with the separate candidates, source/
 lock/tool freeze, accepted full ABBA/layout evidence and actual strict positive
 release preflight. No release tag, registry upload or automatic merge is recorded.
+
+
+## Integrated native and portable execution
+
+The earlier documentation head `ce9eda7` completes 31 ordinary CI checks, with
+three release steps skipped. That result stays bound to its native-only source;
+the combined head requires its own CI, and skips are not strict positive preflight.
+
+Source `7914ac450856305f40f0c24eea424af2a153905f` explicitly integrates the
+portable accumulation/layout source `287c9b5` from PR #83, retaining both commit
+histories. This is a new combined implementation, not a relabeling of any prior
+measurement or a GitHub PR merge. The GF16 norm candidate remains separate.
+
+| Input/backend condition | Execution | Storage |
+| --- | --- | --- |
+| Constant coordinate `cx == 0` | Existing flattened GF8 multiply/XOR | Caller spans |
+| Empty general input | Return after equal-length validation | None |
+| Selected GFNI AVX2 / AVX-512 | Cached optional native tower callable | Register planes and checked scalar tail |
+| Other general input | Statically named, compile-time overwrite/XOR executor | Four initialized, 64-byte-aligned stack planes, 4 KiB total |
+
+The portable executor computes the same four GF8 products for both modes.
+Accumulation XORs them directly into initialized destinations during final
+interleave; it no longer deinterleaves the old destination first. Checked AVX2
+layout batches cover 32 elements, retaining SSSE3, NEON and scalar paths and
+all tails. The arithmetic override continues to select the GF8 backend; it does
+not disable feature-selected byte-layout conversion, as with the earlier SSSE3
+layout path. No new unsafe block is introduced by resolving the shared entry.
+All ten layout functions exactly match the reviewed portable source; its general
+executor differs only in naming the existing polynomial constants. The native
+kernel file, GF8 module, manifests, lockfile and build configuration exactly match
+`2f16f8b`. Core recovery, error/publication order, public APIs and format identity
+are unchanged. Mismatched empty/general spans retain panic validation.
+
+The [complete source-bound functional result](../benchmarks/release-9.1.0/2026-10-24/gf16-integrated-execution-functional-review.json)
+records twenty native Linux commands, all passing. Actual execution includes both
+GFNI widths and the AVX2 layout oracle, plus explicit scalar, SSSE3 and AVX2
+fallbacks. The full Linux suite passes 388 library, 165 integration and ten doc
+tests, with 43 existing ignored; 249 codec-only no_std tests pass. ARM64 separately
+passes 376 library, 168 integration and ten doc tests, with 43 existing ignored,
+and 249 no_std tests. Strict ARM64/x86 all-target, Linux library/no_std and
+published-compatibility Clippy, fmt and typos pass.
+
+Published 9.0.0 retains exact bytes and bidirectional recovery for the existing
+200 normal configurations. Six backend settings each pass 27 custom-matrix
+configurations / 162 cross recoveries (162 / 972 total) and twelve wide 2+255
+Vandermonde/Cauchy configurations (72 total), including data-only and full
+cross-recovery. Every raw command output, required execution marker and positive
+summary is checked independently against the frozen plan; all 35 inputs remain
+unchanged and replay runs no codec. The first reader's tuple-versus-JSON-list
+comparison error remains retained separately from the corrected read-only review.
+Both source copies, all four cleanup conditions and original observers restore.
+
+A Linux client compilation explicitly instantiates both public slice entries.
+Each has a 24-byte explicit stack subtraction and a statically named general
+fallback; the two fallback specializations separately reserve 4 KiB scratch
+(with 4,032+256-byte explicit subtractions and 64-byte stack alignment in this
+build). This avoids confusing absent inline instantiations with a verified entry.
+Assembly is not hardware timing or an RSS measurement. Core/WASM package
+membership remains 67/6.
+
+No new timing samples are collected for this integration. The three rejected
+component cohorts above remain immutable, including the latest five repeat
+refusals; their favorable ratios do not approve the combined source. PR #84
+remains a reviewable draft. Final-source/tool/lock binding, accepted complete
+ABBA/layout evidence and strict positive release preflight are still outstanding.
+No tag, registry upload or automatic PR merge is performed.
