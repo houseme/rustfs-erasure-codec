@@ -17,12 +17,14 @@ pub(super) type Environment = BTreeMap<String, String>;
 pub(super) struct Context<'a> {
     pub cancelled: &'a AtomicBool,
     pub unreaped: Cell<bool>,
+    pub preserve_inputs: Cell<bool>,
 }
 impl<'a> Context<'a> {
     pub fn new(cancelled: &'a AtomicBool) -> Self {
         Self {
             cancelled,
             unreaped: Cell::new(false),
+            preserve_inputs: Cell::new(false),
         }
     }
     pub fn now_ns(&self) -> Result<u64> {
@@ -278,13 +280,18 @@ impl<'a, 'b> Temporary<'a, 'b> {
 }
 impl Drop for Temporary<'_, '_> {
     fn drop(&mut self) {
-        if !self.context.unreaped.get() {
+        if !self.context.unreaped.get() && !self.context.preserve_inputs.get() {
             if let Err(error) = fs::remove_dir_all(&self.path) {
                 eprintln!("private source cleanup failed: {error}");
             }
         } else {
             eprintln!(
-                "owned child was not reaped; preserve {}",
+                "{}; preserve {}",
+                if self.context.unreaped.get() {
+                    "owned child was not reaped"
+                } else {
+                    "unexpected owned inputs"
+                },
                 self.path.display()
             );
         }

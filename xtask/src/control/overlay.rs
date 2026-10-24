@@ -158,7 +158,11 @@ impl<'a, 'b> Overlay<'a, 'b> {
     }
     pub fn finish(mut self) -> Result<()> {
         self.active = false;
-        self.restore()
+        let result = self.restore();
+        if result.is_err() {
+            self.context.preserve_inputs.set(true);
+        }
+        result
     }
 }
 impl Drop for Overlay<'_, '_> {
@@ -166,6 +170,7 @@ impl Drop for Overlay<'_, '_> {
         if self.active
             && let Err(error) = self.restore()
         {
+            self.context.preserve_inputs.set(true);
             eprintln!("overlay cleanup failed: {error}");
         }
     }
