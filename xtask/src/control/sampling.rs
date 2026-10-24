@@ -231,7 +231,7 @@ pub(super) fn checkout(
     ))
 }
 pub(super) fn select(
-    records: Vec<Value>,
+    records: &[Value],
     profile: &str,
     revision: &str,
     counts: &Value,
@@ -239,15 +239,37 @@ pub(super) fn select(
     page: &Value,
     diagnostic: bool,
 ) -> Result<Value> {
-    let metric = crate::release_rows::metric(profile)?;
-    let selected = sampling_model(
-        "batch",
-        json!({"request":{"profile":profile,"revision":revision,"records":records,"expected":catalog(profile)?,"counts":counts,"allowed_cpus":cpus,"expected_page_size":page,"output":{"kind":"select","metric":metric,"diagnostic":diagnostic}}}),
+    let contract = crate::release_rows::Request {
+        profile: profile.into(),
+        rows: Value::Null,
+        revision: revision.into(),
+        iteration_counts: Some(serde_json::from_value(counts.clone())?),
+        default_iterations: None,
+        complete: false,
+    };
+    let cpus: Option<Vec<u64>> = serde_json::from_value(cpus.clone())?;
+    let mut selected = sampling_contract::batch::analyze(
+        records,
+        &contract,
+        &catalog(profile)?,
+        cpus.as_deref(),
+        serde_json::from_value(page.clone())?,
+        &sampling_contract::batch::Output::Select {
+            metric: crate::release_rows::metric(profile)?.into(),
+            diagnostic,
+        },
     )?;
-    let indices: Vec<usize> = serde_json::from_value(selected["selected_indices"].clone())?;
-    Ok(
-        json!({"selected":indices.into_iter().map(|i|records[i]["rows"][0].clone()).collect::<Vec<_>>(),"spreads":selected["spreads"],"preparation":selected["preparation"],"worker_starts":selected["worker_starts"]}),
-    )
+    let indices: Vec<usize> = serde_json::from_value(selected["selected_indices"].take())?;
+    let rows: Vec<_> = indices
+        .into_iter()
+        .map(|i| records[i]["rows"][0].clone())
+        .collect();
+    Ok(Value::Object(serde_json::Map::from_iter([
+        ("selected".into(), rows.into()),
+        ("spreads".into(), selected["spreads"].take()),
+        ("preparation".into(), selected["preparation"].take()),
+        ("worker_starts".into(), selected["worker_starts"].take()),
+    ])))
 }
 /// Adapt the ordered wire counts once for both current and frozen Rust models.
 pub(super) fn calibrated_profile(mut report: Value) -> Result<Value> {

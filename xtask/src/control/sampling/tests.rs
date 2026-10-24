@@ -72,3 +72,132 @@ fn frozen_calibration_counts_reject_missing_duplicates_and_non_bounded_integers(
         assert!(calibrated_profile(json!({"counts":[["case",count]]})).is_err());
     }
 }
+
+fn measured(profile: &str) -> Vec<Value> {
+    let mut records = sampling_contract::calibration_profile::tests::records(profile);
+    for record in &mut records {
+        record["kind"] = if record["index"].as_u64().unwrap() < 3 {
+            "warmup"
+        } else {
+            "sample"
+        }
+        .into();
+        record["calibration_batch"] = 0.into();
+        record["rows"][0]["origin"] = record["index"].clone();
+    }
+    records
+}
+
+#[test]
+fn borrowed_selection_matches_frozen_wire_results_for_every_profile_without_changing_originals() {
+    let revision = "a".repeat(40);
+    let cpus = json!([0, 1, 2, 3, 4, 5, 6, 7]);
+    for profile in sampling_contract::PROFILES {
+        let records = measured(profile);
+        let before = records.clone();
+        let counts = serde_json::to_value(
+            catalog(profile)
+                .unwrap()
+                .into_iter()
+                .map(|case| (case, 1_u64))
+                .collect::<BTreeMap<_, _>>(),
+        )
+        .unwrap();
+        let wire = sampling_model("batch", json!({"request":{"profile":profile,"revision":revision,"records":records,"expected":catalog(profile).unwrap(),"counts":counts,"allowed_cpus":cpus,"expected_page_size":4096,"output":{"kind":"select","metric":crate::release_rows::metric(profile).unwrap(),"diagnostic":false}}})).unwrap();
+        let indices: Vec<usize> = serde_json::from_value(wire["selected_indices"].clone()).unwrap();
+        let expected = json!({"selected":indices.into_iter().map(|i|records[i]["rows"][0].clone()).collect::<Vec<_>>(),"spreads":wire["spreads"],"preparation":wire["preparation"],"worker_starts":wire["worker_starts"]});
+        assert_eq!(
+            select(
+                &records,
+                profile,
+                &revision,
+                &counts,
+                &cpus,
+                &json!(4096),
+                false
+            )
+            .unwrap(),
+            expected
+        );
+        assert_eq!(records, before);
+        assert!(
+            select(
+                &records[..records.len() - 1],
+                profile,
+                &revision,
+                &counts,
+                &cpus,
+                &json!(4096),
+                false
+            )
+            .is_err()
+        );
+    }
+}
+
+#[test]
+fn borrowed_selection_preserves_exact_integer_medians_and_diagnostic_short_samples() {
+    let profile = "small_file";
+    let revision = "a".repeat(40);
+    let mut records = measured(profile);
+    let counts = serde_json::to_value(
+        catalog(profile)
+            .unwrap()
+            .into_iter()
+            .map(|case| (case, 1_u64))
+            .collect::<BTreeMap<_, _>>(),
+    )
+    .unwrap();
+    for record in &mut records {
+        let metric = if record["index"] == 3 {
+            json!(9007199254740992.0)
+        } else {
+            json!(9007199254740993_u64)
+        };
+        record["rows"][0]["ns_per_iter"] = metric.clone();
+        record["timed_ns"] = metric;
+        record["wall_ns"] = json!(9007199254741993_u64);
+    }
+    let selected = select(
+        &records,
+        profile,
+        &revision,
+        &counts,
+        &Value::Null,
+        &json!(4096),
+        false,
+    )
+    .unwrap();
+    for row in selected["selected"].as_array().unwrap() {
+        assert_eq!(row["ns_per_iter"].as_u64(), Some(9007199254740993));
+        assert_eq!(row["origin"], 7);
+    }
+    for record in &mut records {
+        record["wall_ns"] = 1.into();
+    }
+    assert!(
+        select(
+            &records,
+            profile,
+            &revision,
+            &counts,
+            &Value::Null,
+            &json!(4096),
+            false
+        )
+        .is_err()
+    );
+    let report = select(
+        &records,
+        profile,
+        &revision,
+        &counts,
+        &Value::Null,
+        &json!(4096),
+        true,
+    )
+    .unwrap();
+    for spread in report["spreads"].as_array().unwrap() {
+        assert_eq!(spread["short_samples"].as_array().unwrap().len(), 9);
+    }
+}
