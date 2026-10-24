@@ -371,6 +371,84 @@ mod allocation_regressions {
     }
 
     #[test]
+    fn warmed_wide_recovery_does_not_copy_missing_target_indices() {
+        fn check<F: rustfs_erasure_codec::Field>() -> bool {
+            let mut budget_met = true;
+            for mode in [
+                MatrixMode::Vandermonde,
+                MatrixMode::Cauchy,
+                MatrixMode::JerasureLike,
+            ] {
+                for data in [33, 40, 64] {
+                    let codec = rustfs_erasure_codec::ReedSolomon::<F>::with_options(
+                        data,
+                        data,
+                        CodecOptions::builder().matrix_mode(mode).build(),
+                    )
+                    .unwrap();
+                    let mut original: Vec<Vec<F::Elem>> = (0..data * 2)
+                        .map(|index| {
+                            (0..65)
+                                .map(|offset| F::nth((index * 263 + offset * 17 + 1) % F::ORDER))
+                                .collect()
+                        })
+                        .collect();
+                    codec.encode(&mut original).unwrap();
+                    for operation in ["all-data", "data-only", "all-parity"] {
+                        let mut slots: Vec<_> = original
+                            .iter()
+                            .cloned()
+                            .map(ShardSlot::new_present)
+                            .collect();
+                        let missing = if operation == "all-parity" {
+                            data..data * 2
+                        } else {
+                            0..data
+                        };
+                        let recover = |slots: &mut Vec<ShardSlot<Vec<F::Elem>>>| {
+                            if operation == "data-only" {
+                                codec.reconstruct_data(slots).unwrap();
+                            } else {
+                                codec.reconstruct(slots).unwrap();
+                            }
+                        };
+                        for slot in &mut slots[missing.clone()] {
+                            slot.mark_missing();
+                            slot.as_inner_mut().fill(F::zero());
+                        }
+                        recover(&mut slots); // Resolve the inverse and backend outside the measured call.
+                        for slot in &mut slots[missing] {
+                            slot.mark_missing();
+                            slot.as_inner_mut().fill(F::zero());
+                        }
+                        let calls = allocation_calls(|| recover(&mut slots));
+                        // The validated shape and input/output views each need
+                        // wide storage. Missing targets already belong to the
+                        // shape and must not allocate another index copy.
+                        budget_met &= calls == 4;
+                        println!(
+                            "RECOVERY_TARGET_ALLOCATION field_order={} matrix={mode:?} data={data} operation={operation} calls={calls}",
+                            F::ORDER
+                        );
+                        for (slot, expected) in slots.iter().zip(&original) {
+                            assert!(slot.is_present());
+                            assert_eq!(slot.as_inner(), expected);
+                        }
+                    }
+                }
+            }
+            budget_met
+        }
+        let gf8 = check::<rustfs_erasure_codec::galois_8::Field>();
+        let gf16 = check::<rustfs_erasure_codec::galois_16::Field>();
+        assert!(
+            gf8 && gf16,
+            "missing-target indices must reuse the validated shape"
+        );
+        eprintln!("RECOVERY_TARGET_BORROW_ALLOCATION cases=54 calls_per_case=4");
+    }
+
+    #[test]
     fn cold_dense_inverse_allocates_only_selected_and_result_squares() {
         fn check<F: rustfs_erasure_codec::Field>() -> bool {
             let mut square_budget_met = true;

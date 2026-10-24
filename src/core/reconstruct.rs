@@ -168,8 +168,8 @@ impl<F: Field> ReedSolomon<F> {
         #[cfg(feature = "std")]
         self.runtime_profile_metrics.record_reconstruct(
             plan.data_only,
-            plan.data_targets.len(),
-            plan.parity_targets.len(),
+            plan.data_targets().len(),
+            plan.parity_targets().len(),
             plan.shape.invalid_indices.is_empty(),
         );
         if !plan.has_outputs() {
@@ -180,8 +180,8 @@ impl<F: Field> ReedSolomon<F> {
         let mut data_destinations: SmallVec<[&mut T; 32]> = SmallVec::new();
         let mut parity_destinations: SmallVec<[&mut T; 32]> = SmallVec::new();
         let mut survivors = plan.shape.valid_indices.iter().copied().peekable();
-        let mut data_targets = plan.data_targets.iter().copied().peekable();
-        let mut parity_targets = plan.parity_targets.iter().copied().peekable();
+        let mut data_targets = plan.data_targets().iter().copied().peekable();
+        let mut parity_targets = plan.parity_targets().iter().copied().peekable();
         for (index, shard) in shards.iter_mut().enumerate() {
             if survivors.peek() == Some(&index) {
                 let input = shard.get().ok_or(Error::TooFewShardsPresent)?;
@@ -242,7 +242,7 @@ impl<F: Field> ReedSolomon<F> {
             let mut existing = 0;
             let mut recovered = 0;
             for index in 0..self.data_shard_count() {
-                if plan.data_targets.get(recovered) == Some(&index) {
+                if plan.data_targets().get(recovered) == Some(&index) {
                     all_data.push(recovered_data[recovered]);
                     recovered += 1;
                 } else {
@@ -273,8 +273,8 @@ impl<F: Field> ReedSolomon<F> {
         #[cfg(feature = "std")]
         self.runtime_profile_metrics.record_reconstruct(
             plan.data_only,
-            plan.data_targets.len(),
-            plan.parity_targets.len(),
+            plan.data_targets().len(),
+            plan.parity_targets().len(),
             plan.shape.invalid_indices.is_empty(),
         );
         if !plan.has_outputs() {
@@ -286,8 +286,8 @@ impl<F: Field> ReedSolomon<F> {
         let mut data_outputs: SmallVec<[&mut [F::Elem]; 32]> = SmallVec::new();
         let mut parity_outputs: SmallVec<[&mut [F::Elem]; 32]> = SmallVec::new();
         let mut survivors = plan.shape.valid_indices.iter().copied().peekable();
-        let mut data_targets = plan.data_targets.iter().copied().peekable();
-        let mut parity_targets = plan.parity_targets.iter().copied().peekable();
+        let mut data_targets = plan.data_targets().iter().copied().peekable();
+        let mut parity_targets = plan.parity_targets().iter().copied().peekable();
 
         // Concrete Option<Vec<_>> destinations cannot reject initialization:
         // their new buffers have exactly the validated shard length. Keep the
@@ -354,7 +354,7 @@ impl<F: Field> ReedSolomon<F> {
             let mut existing = 0;
             let mut recovered = 0;
             for index in 0..self.data_shard_count() {
-                if plan.data_targets.get(recovered) == Some(&index) {
+                if plan.data_targets().get(recovered) == Some(&index) {
                     all_data.push(data_outputs[recovered]);
                     recovered += 1;
                 } else {
