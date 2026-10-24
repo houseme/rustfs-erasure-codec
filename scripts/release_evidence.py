@@ -337,41 +337,12 @@ def diagnostic_rows(records, profile, metric, revision, expected, counts,
 
 def _verify_profiles(document, root, repository, compiler=True, *, diagnostic=False):
     """Validate original full profiles; this partial result cannot approve release."""
-    if document.get("baseline_release") != BASELINE_RELEASE:
-        raise ValueError("release baseline must be the published 9.0.0")
-    sources = document.get("sources", {})
-    for role in ("baseline", "candidate"):
-        if not isinstance(sources.get(role), dict) or any(not REVISION.fullmatch(sources[role].get(k, "")) for k in ("commit", "tree")):
-            raise ValueError("sources must bind full commit and tree identifiers")
-        if not DIGEST.fullmatch(sources[role].get("lock_sha256", "")):
-            raise ValueError("sources must bind lockfile digests")
-    baseline = sources["baseline"]
-    if baseline["commit"] != BASELINE_COMMIT:
-        raise ValueError("baseline commit is not published 9.0.0")
-    if baseline != source_at(repository, BASELINE_COMMIT):
-        raise ValueError("baseline source metadata differs from published 9.0.0")
-    if sources["baseline"]["commit"] == sources["candidate"]["commit"] or sources["baseline"]["tree"] == sources["candidate"]["tree"]:
-        raise ValueError("candidate/self comparison is not release evidence")
     actual = source_info(repository)
-    if sources["candidate"]["tree"] != actual["tree"] or sources["candidate"]["lock_sha256"] != actual["lock_sha256"]:
-        raise ValueError("evidence does not match the current candidate tree/lock")
-    if document.get("harness_sha256") != harness_digest(repository):
-        raise ValueError("benchmark harness differs from measured evidence")
-    contexts = document.get("contexts", {})
-    reference = contexts.get("A1")
-    if not isinstance(reference, dict) or not isinstance(reference.get("isolation"), dict) or reference["isolation"].get("scope") != "exclusive-vm-cpu-partition":
-        raise ValueError("controlled resource provenance is required")
-    isolation = reference["isolation"]
-    expected_env = SAMPLING_ENV
-    if reference.get("settings") != expected_env or not reference.get("cpu_model") or not reference.get("compiler") or type(isolation.get("reserved_cpu_count")) is not int or isolation["reserved_cpu_count"] < 2 or isolation.get("physical_host_exclusivity_proven") is not False:
-        raise ValueError("incomplete or unexpected controlled capture settings")
-    runtime = reference.get("runtime")
-    validate_runtime(runtime)
-    if any(contexts.get(phase) != reference for phase in PHASES + ("after",)):
-        raise ValueError("measurement environment changed during the campaign")
-    if compiler and reference.get("compiler") != command(["rustc", "--version"], repository, dict(os.environ, RUSTUP_TOOLCHAIN="stable")):
-        raise ValueError("release compiler differs from measured evidence")
-    replay = verify_sampling(document, root, repository, diagnostic=diagnostic)
+    bindings = dict(baseline=source_at(repository, BASELINE_COMMIT), candidate=actual,
+        harness_sha256=harness_digest(repository), compiler=command(["rustc", "--version"], repository,
+            dict(os.environ, RUSTUP_TOOLCHAIN="stable")) if compiler else None)
+    replay = verify_sampling(document, root, repository, diagnostic=diagnostic, bindings=bindings)
+    sources = document['sources']
     sample_spreads, invocations = replay['sample_spreads'], replay['worker_invocations']
     analysis, data = replay['analysis'], replay['layout_rows']
     paths = {phase:{profile:root/entry['path'] for profile,entry in entries.items()}
@@ -401,13 +372,13 @@ def _verify_profiles(document, root, repository, compiler=True, *, diagnostic=Fa
     return paths, data, {"status": "profiles_verified", "candidate_commit": actual["commit"], "candidate_tree": actual["tree"], "measured_candidate_commit": sources["candidate"]["commit"], "baseline_commit": sources["baseline"]["commit"], "drift_checks": len(drifts), "sample_distribution_checks": len(sample_spreads), "case_counts": replay["case_counts"], "scope": "controlled recorded VM campaign; no new measurement on the verification runner"}
 
 
-def verify_sampling(document, root, repository, *, diagnostic=False):
+def verify_sampling(document, root, repository, *, diagnostic=False, bindings=None):
     contract = document.get("sampling", {})
     expected = dict(sampling.PROTOCOL, implementation_sha256=sampling.implementation_digest(), overlay_sha256=sampling.overlay_digest(repository))
     if any(contract.get(k) != v for k, v in expected.items()):
         raise ValueError("sampling protocol/implementation mismatch")
     result = native_tools.sampling_request('campaign', request=dict(capture=str(root.resolve()),
-        document=document, diagnostic=diagnostic))
+        document=document, diagnostic=diagnostic, bindings=bindings))
     spreads = result['sample_spreads']
     if result['unstable'] and not diagnostic:
         raise EvidenceFailure("sample distributions are unstable; no candidate attribution", {"sample_spreads": spreads, "candidate_attribution": None})

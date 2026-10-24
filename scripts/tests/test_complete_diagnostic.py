@@ -69,7 +69,7 @@ class CompleteReplayTests(unittest.TestCase):
         def read(path,*args,**kwargs):
             if path.name.endswith('-samples.json') or path.name in e.FILES.values():raise AssertionError('Python campaign member read')
             return reader(path,*args,**kwargs)
-        with mock.patch.object(e,'member_bytes',side_effect=read), mock.patch.object(native,'_request_payload',wraps=native._request_payload) as frames, mock.patch.object(e.subprocess,'run',return_value=subprocess.CompletedProcess([],0,'','')):
+        with mock.patch.object(e,'member_bytes',side_effect=read), mock.patch.object(e,'validate_runtime',side_effect=AssertionError('Python runtime prequery')), mock.patch.object(native,'_request_payload',wraps=native._request_payload) as frames, mock.patch.object(e.subprocess,'run',return_value=subprocess.CompletedProcess([],0,'','')):
             report=self.replay()
         self.assertEqual(report['worker_invocations'],756)
         requests=[c.args[0] for c in frames.call_args_list if json.loads(c.args[0]).get('kind')=='sampling' and json.loads(c.args[0]).get('request',{}).get('operation')=='campaign']
@@ -77,6 +77,8 @@ class CompleteReplayTests(unittest.TestCase):
         original_bytes=sum(p.stat().st_size for p in self.root.rglob('*-samples.json'))
         self.assertLess(len(requests[0].encode()),original_bytes//100)
         self.assertNotIn('summarized',json.loads(requests[0])['request']['request'])
+        self.assertIsInstance(json.loads(requests[0])['request']['request']['bindings'],dict)
+        self.assertEqual(json.loads(requests[0])['request']['request']['bindings']['compiler'],'rustc fixture')
 
     def test_execution_errors_do_not_become_complete_statistical_diagnostics(self):
         with mock.patch.object(e.subprocess,'run',return_value=subprocess.CompletedProcess([],2,'','input integrity failed')) as checks:
@@ -112,10 +114,10 @@ class CompleteReplayTests(unittest.TestCase):
 
     def test_passing_diagnostic_cannot_be_used_by_formal_verify_or_materialize(self):
         original=e.verify_sampling
-        def analyze(document,root,repository,*,diagnostic=False):
+        def analyze(document,root,repository,*,diagnostic=False,bindings=None):
             before=copy.deepcopy(document)
             with mock.patch.object(e.native_tools,'_request_payload',wraps=e.native_tools._request_payload) as frames:
-                result=original(document,root,repository,diagnostic=diagnostic)
+                result=original(document,root,repository,diagnostic=diagnostic,bindings=bindings)
             self.assertEqual(frames.call_count,1)
             self.assertEqual(document,before)
             return result
