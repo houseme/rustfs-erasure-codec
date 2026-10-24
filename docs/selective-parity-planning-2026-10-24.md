@@ -206,3 +206,48 @@ compatibility proof remains valid on its own source/scope. Final source/tool/
 lock freezing, accepted complete published-9.0.0 ABBA/paired-layout evidence and
 actual strict positive release preflight remain outstanding. This unpublished
 main-versus-candidate diagnostic supplies none of that missing approval.
+
+
+## Later main: independent GFNI row fusion
+
+Main `3a62879` also includes runtime `c558ef8`, introduced independently while
+the frozen API comparison was running. Versus `b1a10e4`, it changes the core
+serial coding entry, adds the GFNI row kernel/test modules, registers that
+module and updates backend wording/native-preparation tests. Benchmark source,
+manifest/lock/build configuration and WASM remain unchanged, but the runtime
+is different. Neither the old performance source labels nor its failed result
+is reassigned to this later main.
+
+Source review follows checked coefficient/data/output views into the selected
+kernel, complete dimension validation, register accumulation and scalar tails.
+The current Result errors occur before the first output write; the arithmetic
+callback returns no later Result that could trigger a post-write algorithm
+fallback. The selected immutable GF8 backend controls ISA choice. Other
+backends retain fallback. Full Field byte-view opt-in is checked, not inferred
+from element size. The full-vector loop stores once per coding row/vector;
+that source-level observation does not count DRAM traffic or establish latency.
+No reportable byte/bounds/output-validation defect was confirmed in this review.
+
+The [new exact-source native proof](../benchmarks/release-9.1.0/2026-10-24/current-gfni-rows-functional-review.json)
+binds actual source `3a62879`: all 29 Linux checks pass. Dedicated GFNI row tests
+execute both AVX2 and AVX-512 paths, compare scalar coefficients/groups/offsets/
+tails and reject malformed views before writes. Native parent totals are 405
+library / 160 integration / ten doc (575 passed, 43 existing ignored), plus five
+separate child executions and 261 no_std. All six backend settings retain the
+200 normal, custom 162 configurations / 972 recoveries, 72 wide, and selective
+1,620 configurations / 15,840 cross-recovery checks. Independent replay checks
+43 inputs unchanged and all raw summaries/markers exactly, with zero codec
+calls. Source/owned cleanup and the two original observers restore.
+
+Fresh local checks on documentation source `66601ef` have byte-identical codec,
+tests, build, tools and workflows to that main: 561 ARM64 parent codec tests,
+261 no_std, all 260 native tool tests and all 252 Python tests pass. Strict
+codec/tool and x86 compile-only all-target Clippy, fmt/typos/diff pass. Actual
+core/WASM package lists are now 71/6 because of the two added source modules;
+older 69/6 and 67/6 inventories retain their original source scope.
+
+This new native proof has zero performance observations. The entire old72 API
+refusal and the new runtime's own missing performance acceptance both remain
+visible. A later intended candidate/tool/lock freeze still needs its own
+accepted complete published-version data and actual strict positive preflight;
+no performance result is inferred from an external PR merge or ordinary CI.

@@ -1,6 +1,17 @@
 # 9.1.0 merged-candidate review
 
-Current API diagnostic result (2026-10-24): the complete 72-case A1/B1/B2/A2
+Reviewed native snapshot (2026-10-24): `3a62879` includes the independently added
+GFNI row-fusion runtime `c558ef8`, so it differs from frozen timing candidate
+`b1a10e4`. The [later-main review](selective-parity-planning-2026-10-24.md#later-main-independent-gfni-row-fusion)
+records 29 fresh native checks (575 parent codec cases / 261 no_std), positive
+execution of both row-kernel widths, six-backend published compatibility and
+43-input independent replay. Package lists are now 71/6. These are functional
+results, not this later runtime's throughput acceptance. The completed old72
+API comparison still has eleven repeat refusals and cannot be relabeled.
+Final accepted complete evidence and strict positive release preflight remain
+missing; older inventories below retain their source bindings.
+
+Historical API diagnostic result (2026-10-24): the complete 72-case A1/B1/B2/A2
 comparison of frozen `e3a1c1c` / `b1a10e4` has finished. All 288 rows / 864 samples
 and zero execution errors independently replay exactly, with 46 inputs unchanged.
 Eleven of 144 repeat checks fail (eight baseline, three candidate); all allocation
