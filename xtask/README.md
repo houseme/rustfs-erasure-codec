@@ -55,6 +55,7 @@ cargo test --locked --package xtask
 | Python original summary normalization, path helper and statistical transport | Same campaign snapshot and shared borrowed `baseline::analyze_campaign` model | All 16 summaries, first-seen case order, original hashes, fixed medians, distribution-refusal precedence and unchanged complete report fields |
 | Python original harness byte assembly and block hashing | Shared `fingerprint::harness` and existing source reader/block selector | Five raw file streams, eleven first-selected declarations, original separators, universal unit-source newlines and fresh source reads |
 | Python campaign source/environment validation and runtime prequery | Shared campaign bindings and runtime model in the existing replay frame | Fresh caller-owned Git/compiler observations, published baseline, same-tree rebase, strict reference flags, original context equality and unchanged reports |
+| Python full-campaign/paired-layout association and calibration counts | Shared `diagnostics::layout::campaign` inside the existing paired replay | Same frozen sources/context, tool tree/lock, both bounded counts, original backend aliases/features/target and unchanged complete reports |
 
 The obsolete implementations and their Python test entry points are removed.
 Rust unit and executable tests cover the retained contracts. The migration was
@@ -310,10 +311,10 @@ input; live captures are never cached. Local fixtures and Linux cross-compilatio
 verify the implementation here; native Linux sysfs/prctl execution is a CI check.
 
 Successful normalization is cached as immutable serialized values with bounded
-entries; callers receive fresh objects. Large batches bypass the cache. The
-provenance cache includes every current alias but excludes unrelated timing/case
-fields. Cache keys are derived again from current values, so alias mutations
-cannot reuse an earlier result. Live system capture is never cached.
+entries; callers receive fresh objects. Large batches bypass the cache. The former
+per-field provenance cache and unused row adapters are retired after complete
+campaign association moved into Rust. Native frames use the shared alias
+validator directly. Live system capture is never cached.
 
 The root serde_json dependency enables float_roundtrip. The default parser was
 observed to shift the least significant bit of some metric values; all 2,000
@@ -327,9 +328,9 @@ The initial inventory contained **56 Python files / 13,120 lines**. Twenty-three
 original files were removed (twelve implementations/helpers and eleven test
 modules). One native-tool compatibility binding remains. The intermediate Python
 normalization library was also removed after its consumers moved to Rust.
-The remaining **34 files / 7,461 lines** consist of 15 production/helper modules
+The remaining **34 files / 7,416 lines** consist of 15 production/helper modules
 and 19 test/fixture modules: about 43% fewer Python lines overall. The current
-production/helper and test/fixture split is 3,247/4,214 lines. This count
+production/helper and test/fixture split is 3,198/4,218 lines. This count
 includes the latest merged VM observer/cleanup checks, native dynamic envelopes
 and original-journal/paired-directory integration. Layout consolidation removes
 349 lines from its immediate parent (`75bc034`, 8,486 lines). The
@@ -458,13 +459,13 @@ and WASM inputs remain unchanged; an active tool contract and the deliberately
 retained helper-profile/complete-worker comparisons, the merged service-drift
 review, complete Linux diagnostic review, full dispatch/GFNI mechanism controls
 and subsequent source-bound matrix/GF16 reviews bring the current total to
-**590 files / 3,464,634 bytes**:
+**616 files / 6,395,402 bytes**:
 
 | Category | Files | Policy |
 | --- | ---: | --- |
 | Raw Criterion evidence | 448 | Preserve phase-local records and manifest paths |
-| Versioned evidence | 44 | Preserve schema and digest-bound contents |
-| Historical reports/evidence | 94 | Repository-only; do not reinterpret old runs as current acceptance |
+| Versioned evidence | 50 | Preserve schema and digest-bound contents |
+| Historical reports/evidence | 114 | Repository-only; do not reinterpret old runs as current acceptance |
 | WASM configuration/lockfiles | 3 | Preserve build and dependency reproducibility |
 | Shared tool contract | 1 | Field, alias and default-threshold definition; excluded from the codec crate |
 
@@ -512,12 +513,17 @@ added to a member manifest, and no package is uploaded.
 
 ## Current branch review and compatibility
 
-The latest campaign binding integration is frozen at `51194e9` on main `801f499`.
-Codec sources, build inputs, dependencies and lockfiles match that main. All 15
-final checks pass: 257 native, 252 Python and 547 top-level codec tests,
-ten doctests, strict tooling Clippy, Linux tool compilation, no_std, compatibility,
-all audits and actual package reconstruction. The extracted package passes
-379 library tests. See the [campaign binding review](../docs/global-review-9.1.0-2026-10-23.md#native-campaign-source-and-environment-bindings).
+The latest paired/full-campaign binding integration is frozen at `0705f21` on
+main `e3a1c1c`. Codec sources, build inputs, dependencies and lockfiles match
+that main. All 15 final checks pass: 260 native, 252 Python and
+552 top-level codec tests, ten doctests, strict tooling Clippy, Linux tool
+compilation, no_std, compatibility, all audits and actual package reconstruction.
+The extracted package passes 384 library tests. See the
+[paired campaign review](../docs/global-review-9.1.0-2026-10-23.md#native-paired-and-full-campaign-association).
+
+The preceding source/environment binding integration is frozen at `51194e9`.
+Its [campaign binding review](../docs/global-review-9.1.0-2026-10-23.md#native-campaign-source-and-environment-bindings)
+retains its original validation and request scope.
 
 The preceding owned-row/harness integration is frozen at `adbac76`. Its
 [owned-row/harness review](../docs/global-review-9.1.0-2026-10-23.md#owned-release-rows-and-native-harness-fingerprints)
