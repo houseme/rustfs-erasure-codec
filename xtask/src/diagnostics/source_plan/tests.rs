@@ -1,3 +1,4 @@
+use super::super::source;
 use super::*;
 use std::path::Path;
 
@@ -36,7 +37,7 @@ fn complete_plans_bind_generated_bytes_and_every_written_member() {
         (
             // Current production source, including every systematic decode branch.
             "dynamic",
-            "8726483a07cb4359de573b52e96b5d367aafe6629d159a71ba0dc49cda8320be",
+            "a21b9a8accc9b0ce13a5e52c362cc65896a14d1dca384b442d06d4a5a9c6a891",
         ),
     ] {
         let original = original(root, variant);
@@ -247,4 +248,36 @@ fn generated_workers_keep_setup_and_owned_metadata_outside_measured_work() {
         crate::sampling_contract::protocol_value()["result_metadata_policy"],
         "bounded-inline-hotspot-patterns-deferred-formatting"
     );
+}
+
+#[test]
+fn cache_observer_preserves_both_known_lookup_bodies() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
+    let original = source::read(root.join("src/core/reconstruct.rs")).unwrap();
+    assert_eq!(original.matches("cache.get(cache_erasures)").count(), 1);
+    for lookup in ["invalid_indices", "cache_erasures"] {
+        let source = original.replace("cache.get(cache_erasures)", &format!("cache.get({lookup})"));
+        let observed = dynamic::decode(&source).unwrap();
+        let restored = observed
+            .split_inclusive('\n')
+            .filter(|line| !line.contains("__rse_buffer_view") && !line.contains(dynamic::MODULE))
+            .collect::<String>();
+        assert_eq!(restored, source, "{lookup} production body changed");
+    }
+}
+
+#[test]
+fn cache_observer_refuses_unknown_or_ambiguous_lookups() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
+    let original = source::read(root.join("src/core/reconstruct.rs")).unwrap();
+    assert!(
+        dynamic::decode(&original.replace("cache.get(cache_erasures)", "cache.get(other)"))
+            .is_err()
+    );
+    let marker = "            if let Some(entry) = cache.get(cache_erasures) {";
+    let ambiguous = original.replace(
+        marker,
+        &format!("            if let Some(entry) = cache.get(invalid_indices) {{}}\n{marker}"),
+    );
+    assert!(dynamic::decode(&ambiguous).is_err());
 }
