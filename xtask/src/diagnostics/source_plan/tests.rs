@@ -34,9 +34,9 @@ fn complete_plans_bind_generated_bytes_and_every_written_member() {
             "3f3d3ce8443cf418f327a0b8385b41063a726ff52ae9a76dff93ca9aaec330e8",
         ),
         (
-            // Current production source, including the single-data builder.
+            // Current production source, including every systematic decode branch.
             "dynamic",
-            "0915c72168b5b57d9a243acf25d10a895d021cefab5a3413e5c48d7b7ba9551e",
+            "8726483a07cb4359de573b52e96b5d367aafe6629d159a71ba0dc49cda8320be",
         ),
     ] {
         let original = original(root, variant);

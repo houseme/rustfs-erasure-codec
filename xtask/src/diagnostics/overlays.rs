@@ -293,6 +293,15 @@ mod tests {
             .unwrap();
             selected
         };
+        let builder = "    fn build_data_decode_matrix(";
+        let observed_builder = body(&observed["src/core/reconstruct.rs"], builder);
+        let marker = "        selected.__rse_buffer_view(\"decode_submatrix\");\n";
+        assert_eq!(observed_builder.matches(marker).count(), 1);
+        assert_eq!(
+            observed_builder.replace(marker, ""),
+            body(&original["src/core/reconstruct.rs"], builder),
+            "only the declared submatrix observation may change the inverse builder"
+        );
         for entry in [
             "    pub fn verify_opt<T>",
             "    pub fn verify_with_buffer_opt<T, U>",
@@ -353,12 +362,12 @@ mod tests {
             );
         }
         // Unlike the frozen sampler snapshots above, this binds current production
-        // bodies, including the direct single-data builder and full-inverse
-        // fallback. The observer must preserve both branches unchanged.
+        // bodies, including reduced systematic equations, the direct single
+        // equation and dense fallback. The observer must preserve every branch.
         let original = dynamic_source_files(root);
         assert_eq!(
             digest(dynamic::patch(&original, root).unwrap(), root),
-            "0915c72168b5b57d9a243acf25d10a895d021cefab5a3413e5c48d7b7ba9551e"
+            "8726483a07cb4359de573b52e96b5d367aafe6629d159a71ba0dc49cda8320be"
         );
     }
 }
