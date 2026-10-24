@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Borrow Classic parity rows directly from the encoding matrix in serial,
+  parallel and incremental coding. Preserve decode views and checked kernels
+  through static row access, removing repeated wide reference-table allocations
+  without changing arithmetic, policy decisions or encoded bytes.
+
 - Reuse the selected-input view buffer after ordinary mixed data recovery. Merge
   restored data references in place before parity encoding, removing a redundant
   wide reference table while preserving byte order and late-error publication.
