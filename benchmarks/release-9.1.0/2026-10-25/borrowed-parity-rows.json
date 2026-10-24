@@ -1,0 +1,2550 @@
+{
+  "schema": "borrowed-parity-row-resource-review-v1",
+  "runtime_source": "31ccf7ee59ebb8156115cdcd118342292894223e",
+  "baseline_source": "e758f114df56a008f4dca06248aa95287599fd0e",
+  "diagnostic_only": true,
+  "performance_observations": 0,
+  "performance_approval": false,
+  "release_approval": false,
+  "resource_scope": {
+    "cases": 270,
+    "reduced_wide_cases": 162,
+    "unchanged_zero_allocation_small_cases": 108,
+    "all_after_requests": 0,
+    "before_request_distribution": {
+      "0": 108,
+      "1": 108,
+      "4": 18,
+      "10": 18,
+      "33": 18
+    },
+    "warm_backend_and_policy": true,
+    "shard_elements": 65,
+    "preallocated_payloads": true,
+    "matrices": [
+      "Vandermonde",
+      "Cauchy",
+      "JerasureLike"
+    ],
+    "fields": [
+      256,
+      65536
+    ],
+    "entry_semantics": {
+      "encode-sep": "one encode_sep call",
+      "encode": "one encode call",
+      "encode-sep-par": "one encode_sep_par call",
+      "encode-par": "one encode_par call",
+      "single-cycle": "complete data_shards calls to encode_single_sep",
+      "single-par-cycle": "complete data_shards calls to encode_single_sep_par",
+      "verify-buffer": "one verify_with_buffer call",
+      "verify-buffer-par": "one verify_with_buffer_par call",
+      "shard-by-shard": "complete data_shards calls to ShardByShard::encode_sep"
+    },
+    "parallel_api_resource_cases_use_existing_small_buffer_serial_policy": true,
+    "all_parity_bytes_exact": true
+  },
+  "cases": [
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode-sep",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "single-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode-sep",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 10,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "single-cycle",
+      "allocation_requests_before": 10,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 10,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode-sep",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 33,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "single-cycle",
+      "allocation_requests_before": 33,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 33,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode-sep",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "single-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode-sep",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 4,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "single-cycle",
+      "allocation_requests_before": 4,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 4,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode-sep",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "single-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode-sep",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 10,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "single-cycle",
+      "allocation_requests_before": 10,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 10,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode-sep",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 33,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "single-cycle",
+      "allocation_requests_before": 33,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 33,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode-sep",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "single-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode-sep",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 4,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "single-cycle",
+      "allocation_requests_before": 4,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 4,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode-sep",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "single-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode-sep",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 10,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "single-cycle",
+      "allocation_requests_before": 10,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 10,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode-sep",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 33,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "single-cycle",
+      "allocation_requests_before": 33,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 33,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode-sep",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "single-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode-sep",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 4,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "single-cycle",
+      "allocation_requests_before": 4,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 4,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 256,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode-sep",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "single-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode-sep",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 10,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "single-cycle",
+      "allocation_requests_before": 10,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 10,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode-sep",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 33,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "single-cycle",
+      "allocation_requests_before": 33,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 33,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode-sep",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "single-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode-sep",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 4,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "single-cycle",
+      "allocation_requests_before": 4,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 4,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Cauchy",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode-sep",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "single-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode-sep",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 10,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "single-cycle",
+      "allocation_requests_before": 10,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 10,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode-sep",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 33,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "single-cycle",
+      "allocation_requests_before": 33,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 33,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode-sep",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "single-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode-sep",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 4,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "single-cycle",
+      "allocation_requests_before": 4,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 4,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "JerasureLike",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode-sep",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "single-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 4,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode-sep",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 10,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "single-cycle",
+      "allocation_requests_before": 10,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 10,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 10,
+      "parity_shards": 40,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode-sep",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 33,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "single-cycle",
+      "allocation_requests_before": 33,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 33,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 33,
+      "parity_shards": 64,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode-sep",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "single-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 2,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 0,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode-sep",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "encode-sep-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "shard-by-shard",
+      "allocation_requests_before": 4,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "single-cycle",
+      "allocation_requests_before": 4,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "single-par-cycle",
+      "allocation_requests_before": 4,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "verify-buffer",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    },
+    {
+      "field_order": 65536,
+      "matrix_mode": "Vandermonde",
+      "data_shards": 4,
+      "parity_shards": 33,
+      "entry": "verify-buffer-par",
+      "allocation_requests_before": 1,
+      "allocation_requests_after": 0
+    }
+  ],
+  "local_validation": {
+    "codec_parent_tests": 573,
+    "library": 398,
+    "integration": 165,
+    "doc": 10,
+    "separate_filtered_child_executions": 6,
+    "existing_ignored": 43,
+    "no_std": 268,
+    "rust_tool_tests": 317,
+    "all15_steps_pass": true,
+    "row_range_all_interval_identity_and_bounds_checks": true,
+    "serial_and_configured_two_thread_component_checks": "GF8/GF16 x three matrix modes x range/decode-view rows; independent scalar definition",
+    "published9_default_backend": {
+      "normal_configs": 200,
+      "custom_configs": 27,
+      "custom_cross_recoveries": 162,
+      "wide_gf16_configs": 12,
+      "selective_configs": 270,
+      "selective_cross_recoveries": 2640
+    },
+    "wasm_node": {
+      "total": 14,
+      "actual_module": 12,
+      "result_code_contract": 1,
+      "facade_unit": 1,
+      "skipped": 0
+    },
+    "fresh_wasm_build_and_types": true,
+    "strict_host_codec_tool_clippy": true,
+    "x86_compile_only": [
+      "Darwin all-target strict Clippy",
+      "Linux library strict Clippy"
+    ],
+    "fmt_typos_diff": true,
+    "package_inventory": {
+      "core": 71,
+      "wasm": 6
+    },
+    "tracked_validation_and_new_regression_blobs_match_commit": true
+  },
+  "observer_review": {
+    "families": {
+      "dynamic": {
+        "members": 9,
+        "changed": [
+          "src/galois_8/policy.rs",
+          "src/matrix.rs"
+        ],
+        "complete_delta_exactly_matches_production_delta": true
+      },
+      "stream-core": {
+        "members": 4,
+        "changed": [],
+        "complete_delta_exactly_matches_production_delta": true
+      },
+      "verify-scratch": {
+        "members": 3,
+        "changed": [],
+        "complete_delta_exactly_matches_production_delta": true
+      }
+    },
+    "all_bindings_valid": true,
+    "codec_calls": 0,
+    "formal_sampling_and_acceptance_unchanged": true
+  },
+  "boundaries": [
+    "Local allocation request evidence is not end-to-end throughput, RSS, physical isolation or historical page-fault attribution.",
+    "This source is based on main e758f11; separate recovery PR106 is not included and its validation is not relabeled.",
+    "Dedicated native Linux validation, accepted complete published-9.0.0 ABBA/paired layouts, final source/tool/lock freeze and strict positive preflight remain outstanding.",
+    "Old source4aa native partial proof and never-launched26 continuation do not qualify this changed source."
+  ]
+}

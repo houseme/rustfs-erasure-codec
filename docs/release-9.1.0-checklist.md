@@ -1,5 +1,15 @@
 # 9.1.0 release preparation
 
+Borrowed parity rows (2026-10-25): runtime `31ccf7e` on main `e758f11` replaces
+per-entry parity-row reference tables with a static borrowed matrix range. The
+[complete source-bound review](borrowed-parity-rows-review-2026-10-25.md) retains
+all 270 controls: 162 wide cases decrease from 1 / 4 / 10 / 33 allocation requests
+to zero, and 108 small controls remain zero. Fresh 573 parent / 268 no_std / 317 tool
+tests, published-9.0.0 and WASM compatibility pass; package inventories remain 71/6.
+Separate recovery PR #106 is not included. Allocation evidence is not end-to-end
+throughput or release approval; final combined source, accepted full performance
+evidence and strict positive preflight remain outstanding.
+
 Mixed recovery survivor views (2026-10-25): runtime `7c94573` extends `873ce47`
 with a shared in-place reference merge after successful data recovery. The
 [complete review](mixed-recovery-view-review-2026-10-25.md) retains all 135 red/green
