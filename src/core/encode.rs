@@ -198,6 +198,38 @@ impl<F: Field> ReedSolomon<F> {
         self.code_some_slices_chunked(matrix_rows, inputs, outputs);
     }
 
+    /// Keep the bounded native metadata in its final callee frame; unsupported
+    /// fields, views and shapes fall back before any output write.
+    #[cfg(rse_x86_gfni)]
+    #[inline(never)]
+    fn try_gfni_rows<T: AsRef<[F::Elem]>, U: AsMut<[F::Elem]>>(
+        kernel: crate::galois_8::x86::gfni_rows::SelectedRowKernel,
+        matrix_rows: &[&[F::Elem]],
+        inputs: &[T],
+        outputs: &mut [U],
+        shard_len: usize,
+        chunk_len: usize,
+    ) -> bool {
+        let mut rows: SmallVec<[&[u8]; 4]> = SmallVec::new();
+        for row in matrix_rows {
+            let Some(bytes) = F::as_gf8_slice(row) else {
+                return false;
+            };
+            if bytes.len() != inputs.len() {
+                return false;
+            }
+            rows.push(bytes);
+        }
+        let Ok(mut views) = ByteShardViews::<[&[u8]; 32], [&mut [u8]; 4]>::prepare::<F, _, _>(
+            inputs, outputs, shard_len,
+        ) else {
+            return false;
+        };
+        kernel
+            .execute(&rows, &views.data, &mut views.parity, shard_len, chunk_len)
+            .is_ok()
+    }
+
     pub(crate) fn code_some_slices_chunked<T: AsRef<[F::Elem]>, U: AsMut<[F::Elem]>>(
         &self,
         matrix_rows: &[&[F::Elem]],
@@ -221,6 +253,21 @@ impl<F: Field> ReedSolomon<F> {
             outputs.len(),
             chunk_len,
         );
+        #[cfg(rse_x86_gfni)]
+        if shard_len >= 32
+            && inputs.len() == self.data_shard_count()
+            && (4..=32).contains(&inputs.len())
+            && (1..=4).contains(&outputs.len())
+            && matrix_rows.len() == outputs.len()
+            // Complete checked views below provide the Field opt-in directly;
+            // do not repeat the empty probes from try_native_encode.
+            && F::ORDER == 256
+            && let Some(kernel) =
+                crate::galois_8::x86::gfni_rows::SelectedRowKernel::select(shard_len)
+            && Self::try_gfni_rows(kernel, matrix_rows, inputs, outputs, shard_len, chunk_len)
+        {
+            return;
+        }
         let mut start = 0;
         while start < shard_len {
             let end = core::cmp::min(start + chunk_len, shard_len);

@@ -1,3 +1,6 @@
+#[cfg(rse_x86_gfni)]
+pub(crate) mod gfni_rows;
+
 #[cfg(all(
     feature = "simd-avx2",
     target_arch = "x86_64",
