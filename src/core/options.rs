@@ -104,7 +104,8 @@ pub struct CodecOptions {
     /// is more than one parity shard. Default: `false`.
     pub fast_one_parity: bool,
     /// When `true`, cache the inverted decode matrix for repeated reconstruction
-    /// with the same erasure pattern. Default: `true`.
+    /// with the same selected survivor rows. Unselected trailing parity erasures
+    /// share the same entry. Default: `true`.
     pub inversion_cache: bool,
     /// Capacity of the inversion cache (LRU). `0` means automatic sizing based on
     /// shard counts. Default: `0`.

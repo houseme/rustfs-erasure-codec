@@ -363,6 +363,66 @@ mod allocation_regressions {
         assert_eq!(allocation_calls(operation), 0);
     }
 
+    fn check_unused_parity_allocations<F: rustfs_erasure_codec::Field>() {
+        for mode in [
+            MatrixMode::Vandermonde,
+            MatrixMode::Cauchy,
+            MatrixMode::JerasureLike,
+        ] {
+            for (data, parity) in [(4, 4), (10, 4), (32, 16)] {
+                let codec = rustfs_erasure_codec::ReedSolomon::<F>::with_options(
+                    data,
+                    parity,
+                    CodecOptions::builder().matrix_mode(mode).build(),
+                )
+                .unwrap();
+                let mut original: Vec<Vec<F::Elem>> = (0..data + parity)
+                    .map(|shard| {
+                        (0..65)
+                            .map(|at| F::nth((shard * 71 + at * 19) % F::ORDER))
+                            .collect()
+                    })
+                    .collect();
+                codec.encode(&mut original).unwrap();
+                let mut slots: Vec<_> = original
+                    .iter()
+                    .cloned()
+                    .map(ShardSlot::new_present)
+                    .collect();
+                slots[0].mark_missing();
+                codec.reconstruct_data(&mut slots).unwrap();
+                slots[0].mark_missing();
+                slots[0].as_inner_mut().fill(F::one());
+                // The first parity stays selected. Later missing parity must
+                // neither rebuild the inverse nor publish or overwrite outputs.
+                for slot in &mut slots[data + 1..] {
+                    slot.mark_missing();
+                    slot.as_inner_mut().fill(F::one());
+                }
+                let calls = allocation_calls(|| codec.reconstruct_data(&mut slots).unwrap());
+                assert_eq!(
+                    calls,
+                    0,
+                    "same inputs rebuilt: field={}, data={data}, {mode:?}",
+                    F::ORDER
+                );
+                assert_eq!(slots[0].as_inner(), &original[0]);
+                assert!(slots[..data + 1].iter().all(ShardSlot::is_present));
+                for slot in &slots[data + 1..] {
+                    assert!(!slot.is_present());
+                    assert!(slot.as_inner().iter().all(|&value| value == F::one()));
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn warmed_data_recovery_does_not_rebuild_for_unused_parity_erasures() {
+        check_unused_parity_allocations::<rustfs_erasure_codec::galois_8::Field>();
+        check_unused_parity_allocations::<rustfs_erasure_codec::galois_16::Field>();
+        eprintln!("RECOVERY_CACHE_UNUSED_PARITY_ZERO_ALLOCATION cases=18");
+    }
+
     #[test]
     fn wide_parity_recovery_does_not_allocate_an_extra_row_view_array() {
         let codec = ReedSolomon::with_options(

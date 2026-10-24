@@ -680,6 +680,19 @@ impl<F: Field> ReedSolomon<F> {
             return Err(Error::TooFewShardsPresent);
         }
 
+        // Ordered erasures before the last selected survivor uniquely determine
+        // the first k inputs. Later missing parity never participates in this
+        // inverse, so keep it out of both the lookup and insertion keys. The
+        // common pattern without a trailing erasure keeps its original slice.
+        let cache_erasures = match (valid_indices.last(), invalid_indices.last()) {
+            (Some(&last_selected), Some(&last_missing))
+                if self.options.inversion_cache && last_missing > last_selected =>
+            {
+                &invalid_indices[..invalid_indices.partition_point(|&index| index < last_selected)]
+            }
+            _ => invalid_indices,
+        };
+
         if self.options.inversion_cache {
             #[cfg(feature = "std")]
             self.reconstruction_cache_metrics
@@ -687,7 +700,7 @@ impl<F: Field> ReedSolomon<F> {
                 .fetch_add(1, Ordering::Relaxed);
 
             let mut cache = self.data_decode_matrix_cache.lock();
-            if let Some(entry) = cache.get(invalid_indices) {
+            if let Some(entry) = cache.get(cache_erasures) {
                 #[cfg(feature = "std")]
                 self.reconstruction_cache_metrics
                     .hits
@@ -708,7 +721,7 @@ impl<F: Field> ReedSolomon<F> {
             let before_len = cache.len();
             #[cfg(feature = "std")]
             let capacity = cache.capacity();
-            let previous = cache.insert(Vec::from(invalid_indices), data_decode_matrix);
+            let previous = cache.insert(Vec::from(cache_erasures), data_decode_matrix);
             #[cfg(feature = "std")]
             let evicted = capacity > 0 && before_len >= capacity && previous.is_none();
             // A concurrent miss may have inserted the same pattern while we

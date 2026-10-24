@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Reuse Classic decode inverses when only unselected trailing parity erasures
+  change. Key the cache by the erasure prefix that determines the selected
+  survivors; preserve output selection, singular errors and disabled-cache
+  behavior while avoiding duplicate inverse storage and construction.
+
 - Compose selective Classic parity recovery from the known systematic terms and
   missing-data inverse rows, avoiding identity-row multiplications. Preserve
   requested-output publication, singular-matrix errors, cached inverses and
