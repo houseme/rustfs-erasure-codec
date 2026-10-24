@@ -383,15 +383,14 @@ class NativeControllerBindingsTests(unittest.TestCase):
     def test_normalization_cache_is_immutable_and_provenance_alias_mutations_are_rechecked(self):
         row={'operation':'encode','data_shards':4,'parity_shards':2,'shard_size':1024,
              'throughput_mb_s':2866592468.8449306,'ns_per_iter':8.344125545873929e-19,'backend':'scalar'}
-        result=next(iter(self.native.index_records([row]).values()))
+        result=self.native._rows('benchmark-rows', rows=[row], source='artifact', strict_provenance=False)[0]
         self.assertEqual(result['throughput_mb_s'],row['throughput_mb_s'])
         self.assertEqual(result['ns_per_iter'],row['ns_per_iter'])
         result['backend']='changed'
-        self.assertEqual(next(iter(self.native.index_records([row]).values()))['backend'],'scalar')
-        self.assertEqual(self.native.provenance_value(row,'backend'),'scalar')
+        self.assertEqual(self.native._rows('benchmark-rows', rows=[row], source='artifact', strict_provenance=False)[0]['backend'],'scalar')
+        self.assertEqual(self.native.request('benchmark-provenance',row=row)['values']['backend'],'scalar')
         row['backend_name']='rust-neon'
-        with self.assertRaisesRegex(ValueError,'conflicting aliases'):
-            self.native.provenance_value(row,'backend')
+        self.assertIn('conflicting aliases',self.native.request('benchmark-provenance',row=row)['errors']['backend'])
 
     def test_observation_batches_keep_references_and_validate_across_frame_boundaries(self):
         rows=[dict(case='a',kind='sample',index=i,rows=[{'backend':'scalar'}],placement={'cpu':2}) for i in range(130)]
