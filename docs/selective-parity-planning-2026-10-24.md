@@ -142,10 +142,67 @@ physical fixture addresses. Constructors retain the original eight visible guest
 CPUs and four Rayon workers; no new main-thread pin hook changes their budget.
 Guest reservation does not prove physical host isolation or fixed frequency.
 
-The plan has launched once after strict resource admission. No result is assigned
+At the launch checkpoint, the plan had launched once after strict resource admission. No result is assigned
 before all four full-program workers, embedded content oracles, raw input replay
 and cleanup have been checked. Statistical refusals never truncate later phases.
 Execution errors retain partial outputs and allow later planned phases to run;
-they are not renamed as statistical refusals. Results and release approval remain
-pending; the earlier 28-command correctness proof and every historical failure
+they are not renamed as statistical refusals. Results were pending at that checkpoint; the completed review below supersedes
+that status. The earlier 28-command correctness proof and every historical failure
 retain their original source/scope.
+
+
+## Complete 72-case API result: repeatability refusal
+
+The [complete derived result](../benchmarks/release-9.1.0/2026-10-24/selective-recovery-paths-abba-review.json)
+retains every case and all four cross-source comparisons: four full-program
+workers, 288 rows and 864 samples, zero execution errors. Every embedded content/
+publication oracle completes; source/build/lock/context checks and all four owned
+cleanup conditions pass, with both original observers active after completion.
+Independent replay checks all 46 inputs unchanged, eight parent events and every
+raw field/report outcome, reproducing the full report exactly without running a
+codec. The launch declaration remains immutable at its original checkpoint.
+
+The **entire comparison is not qualified**. Of 144 five-percent bookend checks,
+eleven fail: eight baseline A1/A2 and three candidate B1/B2, affecting ten cases.
+Maximum baseline/candidate drift is 16.8307707% / 12.4699008%. All 144 allocation
+bookends repeat, but the original global rule still withholds both latency and
+allocation attribution. Every qualified ratio remains null. Failed controls are:
+
+| Case | Baseline repeat | Candidate repeat |
+| --- | ---: | ---: |
+| `verify.caller_buffer/10x4/32768/missing0+0/block0` | 5.7797719% | 2.9297165% |
+| `classic.reconstruct_parity.cached/32x16/4096/missing0+1/block0` | 16.8307707% | 2.6504547% |
+| `classic.reconstruct_parity.uncached/32x16/4096/missing0+1/block0` | 15.2472944% | 0.9183338% |
+| `classic.reconstruct_data_slots/10x4/32768/missing1+0/block0` | 4.6673210% | 5.1279458% |
+| `classic.reconstruct_data_opt/10x4/32768/missing1+0/block0` | 6.1278877% | 3.1438333% |
+| `encode.serial/10x4/1024/missing0+0/block0` | 6.8350480% | 0.3080019% |
+| `encode.serial/12x4/1024/missing0+0/block0` | 8.5001029% | 1.6801894% |
+| `encode.serial/8x4/1024/missing0+0/block0` | 7.5424696% | 3.6969078% |
+| `encode.serial/8x4/32768/missing0+0/block0` | 3.7103827% | 5.8349571% |
+| `encode.serial/4x2/1024/missing0+0/block0` | 5.6912144% | 12.4699008% |
+
+The targeted `classic.reconstruct_some_parity/32x16/65536/missing1+1/block0`
+case has phase medians 25,937.2953 / 25,649.4999 / 25,531.1724 / 26,563.8740 ns.
+Its own baseline/candidate repeats pass at 2.4157444% / 0.4613249%, with zero
+allocation calls/requested bytes in all four resource observations. Its four
+unqualified ratios are 0.9611238–0.9889042. These observations are kept beside
+all unfavorable controls; they do not qualify an API improvement or convert the
+asserted planning-product reduction into a proportional throughput gain.
+
+All 1,235 retained host snapshots and the final post-capture marker remain
+intact. There are 214 snapshots fully inside each parent phase, no recorded
+outside workload, zero reserved-guest steal in those snapshot intervals, CPU
+some-avg10 pressure at most 0.45 and memory pressure zero. I/O pressure varies
+between phases. These are coarse whole-phase guest observations. The benchmark
+has no absolute case/API timestamps, so no individual host reading is assigned
+to one case; guest observations do not prove physical host isolation, fixed
+frequency or a unique explanation of the refusals. Equalized launch metadata
+and paths were insufficient for this complete comparison to pass; this neither
+attributes old failures to those differences nor proves them irrelevant.
+
+No source, sample, count, protocol, threshold or old refusal was rewritten, and
+no selected-case/unchanged-source retry follows. The operation-count and
+compatibility proof remains valid on its own source/scope. Final source/tool/
+lock freezing, accepted complete published-9.0.0 ABBA/paired-layout evidence and
+actual strict positive release preflight remain outstanding. This unpublished
+main-versus-candidate diagnostic supplies none of that missing approval.

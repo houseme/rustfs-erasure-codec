@@ -1,6 +1,16 @@
 # 9.1.0 merged-candidate review
 
-Current selective-planning candidate (2026-10-24): `b1a10e4` is based on
+Current API diagnostic result (2026-10-24): the complete 72-case A1/B1/B2/A2
+comparison of frozen `e3a1c1c` / `b1a10e4` has finished. All 288 rows / 864 samples
+and zero execution errors independently replay exactly, with 46 inputs unchanged.
+Eleven of 144 repeat checks fail (eight baseline, three candidate); all allocation
+bookends repeat, but the whole catalogue remains unqualified for latency and
+allocation attribution. The [complete selective recovery review](selective-parity-planning-2026-10-24.md#complete-72-case-api-result-repeatability-refusal)
+retains every case, every ratio and the passing-target counterexample. No prior
+measurement is relabeled and no unchanged retry is used. Final accepted full
+published-baseline evidence and strict positive release preflight remain missing.
+
+Historical selective-planning candidate (2026-10-24): `b1a10e4` is based on
 main `e3a1c1c`. The [selective parity review](selective-parity-planning-2026-10-24.md)
 records the systematic-row substitution, `k*d` rather than `k²` planning products
 per requested parity row, independent dense oracles and 28 positive native Linux
