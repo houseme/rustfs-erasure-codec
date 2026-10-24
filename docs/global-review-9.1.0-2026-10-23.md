@@ -2059,3 +2059,43 @@ dependencies and core/WASM allowlists remain 71/6 files. Codec source, formats,
 public APIs, dependency versions and lockfiles are unchanged from the previously
 validated runtime. Remote main still matches `544bb06` at delivery. CI results
 for the updated head are reported on PR #95 separately from these local gates.
+
+
+## Borrowed sample selection after Python retirement
+
+The complete Python migration and boundary fixes merged through PR #95. This
+follow-up runtime `6602580` is based on main `1be185d`, including its GFNI
+single-output policy. It changes repository tooling only; codec source, manifests,
+lockfiles and serialized data formats match that main.
+
+Current profile selection no longer serializes all observations into an owned
+JSON request for an in-process model. The controller and frozen wire adapter now
+share one borrowed batch function for group/source/count checks, worker validation,
+median selection and preparation. The current report transfers owned projection
+fields instead of serializing them again. Only the selected raw row per case is
+copied to its owned report. Wire schemas and standalone model behavior remain
+unchanged; no second selection algorithm or compatibility fallback is introduced.
+
+Two new controller tests compare every profile with the wire model, preserve
+original inputs and incomplete-worker refusals, and retain stable medians above
+2^53 plus diagnostic short-sample rules. Separate old/new binary comparisons over
+3,024 retained host diagnostic rows preserve all 32 refusal outcomes; these
+underlying-workload projections lack formal Linux telemetry and never become
+formal or release evidence. This is structural-copy and contract evidence, with
+no codec throughput or release-performance approval claim.
+
+All 19 final gates pass on the clean rebased runtime: 310 native tests
+(271 unit / 29 existing CLI / 10 controller CLI), 557 codec tests and ten doctests,
+strict host/Linux tooling Clippy, Windows compilation, codec-only no_std, Linux
+codec/test compilation, exact published-version compatibility, all four repository
+audits, real current/baseline sampler and stream-view checks, actual packaging,
+389 extracted-package library tests, formatting and diff checks. Spelling passes.
+The 200 non-fast exact-parity and bidirectional cross-decoding configurations and
+historical tower-field vectors pass again. The older inconsistent fast-one-parity
+mode remains outside that probe.
+
+The inventory contains zero Python files and 621 unchanged JSON files /
+6,568,679 bytes. All five workspace members inherit root Cargo dependencies;
+core/WASM allowlists remain 71/6 files and exclude repository tools and evidence.
+The following verification commit changes documentation only. CI results belong
+to the separate selection follow-up PR.
