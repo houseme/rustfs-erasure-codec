@@ -1,5 +1,14 @@
 # 9.1.0 publication blockers and completion criteria
 
+Windows parity-row validation (2026-10-25): test/workflow fix `ad00e79` keeps
+runtime `31ccf7e` unchanged. All three Windows toolchains now pass the complete std
+suite and explicit 270-case debug/release contracts. The [Windows context review](borrowed-parity-rows-review-2026-10-25.md#windows-debug-allocation-context)
+retains the three original failures, exact policy controls, absolute-zero release
+results, complete case records and 12-input independent replay. The corrected gate
+still rejects 162 old wide allocations in each local parent profile. This is
+functional/resource validation; combined-source and performance/preflight gates
+remain outstanding.
+
 Borrowed parity rows (2026-10-25): runtime `31ccf7e` on main `e758f11` replaces
 per-entry parity-row reference tables with a static borrowed matrix range. The
 [complete source-bound review](borrowed-parity-rows-review-2026-10-25.md) retains
