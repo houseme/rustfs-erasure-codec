@@ -1980,3 +1980,39 @@ results and package inventories are recorded with the delivery commit below.
 Codec source and formats are outside this migration. New/old data compatibility
 continues to use exact parity and bidirectional cross-decoding against published
 9.0.0; the older inconsistent fast-one-parity mode stays outside that probe.
+
+
+Delivery validation on 2026-10-24 uses runtime `e7b4b40`, rebased onto
+main `544bb06`. Its controller, template, CI, codec, manifest and lockfile bytes
+match the independently tested `b86f3fc` runtime on main `727690f`; the final
+rebase imports only documentation and two upstream evidence JSON files.
+The documentation-only verification commit follows this runtime.
+
+The earlier clean `c521300` controller snapshot passes all 24 checks, including
+published-baseline/current sampler input replay, page-controlled layouts, CPU and
+Slot worker tests, and real stream views against both sources. The source-copy
+checks execute and replay all 28 ordinary-verify workers, 30 stream-owner workers
+and 516 dynamic workers. The last group retains 6,192 observations and 1,488,099
+events. A real-path check caught a nonportable OsStr JSON representation; the
+shared declaration now writes relative string member names and has a regression
+test. Candidate-before-baseline dynamic execution remains explicit. Failed
+attempts are retained separately from the passing captures.
+
+All 17 post-rebase checks pass in a separate clean checkout: 301 native tests
+(262 unit, 29 existing CLI and 10 controller CLI), 557 codec tests, ten doctests,
+strict host/Linux tooling Clippy, codec-only no_std, Linux codec/test and generated
+CPU-worker compilation, all four repository audits, actual Cargo packaging and
+389 extracted-package library tests, formatting and diff checks. The Linux C test
+dependency uses the installed Zig cross compiler; these are compile checks, not
+Linux runtime or privileged MSR collection. Existing ignored-test boundaries are
+retained. The 200 non-fast parity and bidirectional cross-decoding configurations,
+plus historical tower-field vectors, pass again after the GFNI main update.
+
+The final inventory has zero Python files and no interpreter dependency in CI or
+Shell entry points. All 620 JSON files / 6,556,786 bytes match the updated main;
+the eleven identical-byte groups retain their provenance-bound paths. Core/WASM
+allowlists contain 71/6 package members and exclude repository tools and archived
+evidence. All five workspace members inherit the root dependency catalog.
+The branch changes no codec source, format, public API, dependency version or
+lockfile relative to that main. Local checks do not imply CI completion, VM/MSR
+runtime validation, registry upload or release-performance approval.
