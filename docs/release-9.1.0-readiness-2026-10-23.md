@@ -1,5 +1,15 @@
 # 9.1.0 merged-candidate review
 
+Borrowed recovery targets (2026-10-25): runtime `7bf62d5` on main `e758f11`
+reuses validated missing-index storage for ordinary recovery and keeps selective
+requests independent. The [source-bound review](borrowed-recovery-targets-review-2026-10-25.md)
+records all 54 warmed generic recovery controls (five to four allocation requests),
+572 local parent tests / 268 no_std, 317 Rust tool tests, published-version and
+fresh WASM compatibility. Positive x86 checks are compile-only; Linux all-target
+cross compilation lacks its benchmark C compiler. This source has not executed
+natively on Linux. Old native/timing sources remain unchanged; complete accepted
+performance evidence and strict positive preflight remain required.
+
 Distribution compatibility (2026-10-25): merged main `4353935` has the same
 complete Git tree as executed `bfac8fc` / runtime `4aa4ee0`. The
 [artifact-level record](inverse-work-review-2026-10-25.md#distribution-and-consumer-compatibility)
