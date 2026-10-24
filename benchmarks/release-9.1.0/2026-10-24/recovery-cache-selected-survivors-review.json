@@ -1,0 +1,136 @@
+{
+  "artifact_kind": "recovery-cache-selected-survivors-review-v1",
+  "source_bindings": {
+    "actual_before_runtime": "cdc4a056396f7a043010d69124f7eb9bb0717c6b",
+    "runtime_fix": "b0bd34232c19469819a16f64392ed9c47da60b08",
+    "executed_local_codec": "5007f4c291d30367890620c20fecfbaf98fbe9c2",
+    "integrated_candidate": "d13810333e1574c7d5ae3b6cb1ba42a1d461ad6d",
+    "integrated_main": "1be185d0639db5764ed394a22db2d8f8137389b3",
+    "codec_test_build_and_compatibility_bytes_equal_executed_local_source": true
+  },
+  "invariant": "For a fixed codec, the sorted erasure prefix before the last selected survivor determines exactly the first k surviving inputs. Missing parity after that survivor cannot affect the inverse.",
+  "cache_behavior": {
+    "borrowed_prefix_key_for_lookup_and_insertion": true,
+    "full_layout_still_used_for_validation_workspace_matching_and_output_selection": true,
+    "changed_selected_inputs_do_not_alias": true,
+    "custom_singularity_preserved": true,
+    "disabled_cache_still_builds_new_inverses": true,
+    "existing_lock_arc_and_lru_protocol_preserved": true,
+    "public_cache_hit_statistics_intentionally_recognize_equivalent_selected_inputs": true,
+    "no_new_allocation_unsafe_kernel_or_shape_policy": true
+  },
+  "initial_red_regressions": {
+    "production_source": "cdc4a056396f7a043010d69124f7eb9bb0717c6b",
+    "initial_narrower_test_fixture": true,
+    "gf8_and_gf16_failed_arc_reuse": true,
+    "preallocated_gf8_32_data_16_parity_65_byte_recovery_allocation_calls": 3,
+    "expected_after_fix": 0
+  },
+  "independent_oracles": {
+    "fields": [
+      256,
+      65536
+    ],
+    "matrix_modes": [
+      "Vandermonde",
+      "Cauchy",
+      "JerasureLike"
+    ],
+    "complete_small_layouts_per_field_mode": 163,
+    "total_layouts": 978,
+    "independent_full_matrix_elimination_matches_every_result": true,
+    "complete_selected_input_keys_check_pointer_reuse_and_separation": true,
+    "custom_singular_replacement_and_disabled_cache_negative_controls": true
+  },
+  "local_allocation_regression": {
+    "warmed_preallocated_shard_slots": true,
+    "data_and_parity_shapes": [
+      [
+        4,
+        4
+      ],
+      [
+        10,
+        4
+      ],
+      [
+        32,
+        16
+      ]
+    ],
+    "field_orders": [
+      256,
+      65536
+    ],
+    "matrix_modes": [
+      "Vandermonde",
+      "Cauchy",
+      "JerasureLike"
+    ],
+    "shard_elements": 65,
+    "cases": 18,
+    "all_allocation_calls_zero": true,
+    "missing_unrequested_parity_buffers_and_flags_unchanged": true,
+    "single_thread_caller_resource_counter_not_whole_process_rss_or_latency": true
+  },
+  "local_validation": {
+    "codec_source": "5007f4c291d30367890620c20fecfbaf98fbe9c2",
+    "arm_library": 392,
+    "arm_integration": 163,
+    "arm_doc": 10,
+    "arm_parent_passed": 565,
+    "filtered_child_executions_separate": 6,
+    "existing_ignored": 43,
+    "no_std": 264,
+    "published_normal_configurations": 200,
+    "published_custom_configurations": 27,
+    "published_custom_cross_recoveries": 162,
+    "published_wide_configurations": 12,
+    "published_selective_configurations": 270,
+    "published_selective_cross_recoveries": 2640,
+    "published_backend_scope": "Local default backend only; native six-backend plan has not started.",
+    "integrated_tool_source": "d13810333e1574c7d5ae3b6cb1ba42a1d461ad6d",
+    "native_tool_unit": 271,
+    "native_tool_cli": 39,
+    "native_tool_total": 310,
+    "strict_codec_tool_clippy": true,
+    "x86_all_target_clippy_compile_only": true,
+    "fmt_typos_diff": true,
+    "all_validation_inputs_unchanged": true,
+    "historical_pre_migration_python_252_passed_at_9f104da_not_current_native_tool_run": true
+  },
+  "observer_compatibility": {
+    "generated_files": 9,
+    "actual_legacy_input_snapshot": "544bb06932c3c0aea6b3b8f08dad5ac1e828da9b",
+    "legacy_generated_files_match_frozen_snapshot_exactly": true,
+    "only_changed_generated_file": "src/core/reconstruct.rs",
+    "reversing_only_production_cache_change_restores_all_generated_bytes": true,
+    "both_known_lookup_layouts_supported_without_changing_source": true,
+    "unknown_or_ambiguous_lookup_refused": true,
+    "formal_Rust_sampling_loops_and_benchmark_sources_unchanged": true
+  },
+  "native_validation": {
+    "state": "prepared-resource-waiting-not-launched",
+    "candidate": "d13810333e1574c7d5ae3b6cb1ba42a1d461ad6d",
+    "planned_functional_commands": 31,
+    "actual_launches": 0,
+    "codec_workloads_started": 0,
+    "performance_observations": 0,
+    "canonical_nonblocking_lease_and_continuous_observation_required": true,
+    "no_existing_partition_takeover": true,
+    "atomic_ack_publication_required": true,
+    "prior_9f104da_prepared_plan_superseded_before_any_workload_and_preserved": true
+  },
+  "package_member_counts": {
+    "core": 71,
+    "wasm": 6
+  },
+  "performance_observations": 0,
+  "performance_approval": false,
+  "release_approval": false,
+  "candidate_attribution": null,
+  "formal_performance_geometry_equivalence": false,
+  "earlier_complete_campaign_and_72_case_refusals_unchanged": true,
+  "tag_or_registry_upload": false,
+  "historical_drift_or_fault_root_cause_claim": null
+}

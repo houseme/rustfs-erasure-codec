@@ -1,5 +1,14 @@
 # 9.1.0 publication blockers and completion criteria
 
+Proposed recovery-cache candidate (2026-10-24): runtime `b0bd342`, integrated
+source `d138103`, keys inverse reuse by the selected-survivor erasure prefix.
+The [cache review](recovery-cache-selected-survivors-2026-10-24.md) records real
+before/after allocation regressions, 978 independent layout checks, 565 local
+parent codec tests / 264 no_std, published-format compatibility and 310 native
+Rust tool tests. Its separate 31-command Linux plan is resource-waiting and has
+not launched. No new latency or release acceptance is claimed; earlier proofs
+and refusals below keep their own source bindings.
+
 Current native proof (2026-10-24): main `544bb06`, including `727690f` GFNI
 batching, now passes its own 29 Linux commands (575 parent codec tests / 261
 no_std), both native row widths and six-backend published-format/selective
