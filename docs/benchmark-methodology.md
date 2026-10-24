@@ -468,7 +468,7 @@ Compare a fresh smoke run against a checked-in or archived baseline:
 
 ```bash
 RSE_SMOKE_BASELINE=/abs/path/to/smoke-results.json \
-python3 scripts/check_benchmark_regression.py \
+cargo xtask check-benchmark \
   --baseline "$RSE_SMOKE_BASELINE" \
   --current target/benchmark-smoke/smoke-results.json
 ```
@@ -483,7 +483,7 @@ Default allowed regressions:
 Thresholds can be overridden per operation:
 
 ```bash
-python3 scripts/check_benchmark_regression.py \
+cargo xtask check-benchmark \
   --baseline old.json \
   --current new.json \
   --threshold reconstruct=0.18 \
@@ -493,7 +493,7 @@ python3 scripts/check_benchmark_regression.py \
 The same tool also supports small-file latency checks:
 
 ```bash
-python3 scripts/check_benchmark_regression.py \
+cargo xtask check-benchmark \
   --baseline old-small-file.json \
   --current target/benchmark-smoke/small-file-results.json \
   --metric ns_per_iter \
@@ -534,7 +534,7 @@ cargo test --release --features "std simd-accel" \
 Compare it against a saved stream baseline using per-block latency:
 
 ```bash
-python3 scripts/check_benchmark_regression.py \
+cargo xtask check-benchmark \
   --baseline /path/to/stream-path-results.json \
   --current target/benchmark-smoke/stream-path-results.json \
   --metric ns_per_block \
@@ -644,7 +644,7 @@ cargo test --release --features "std simd-accel" benchmark_reconstruction_hotspo
 Compare it against a saved baseline:
 
 ```bash
-python3 scripts/check_reconstruction_hotspot_gate.py \
+cargo xtask check-hotspot \
   --baseline /path/to/reconstruction-hotspot-results.json \
   --current target/benchmark-smoke/reconstruction-hotspot-results.json \
   --require-scenario reconstruct_data_missing_1_data \

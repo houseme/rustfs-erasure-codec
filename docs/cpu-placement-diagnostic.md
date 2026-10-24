@@ -7,7 +7,7 @@ performance or attributes a candidate speedup. It preserves the original ordinar
 and nine samples. It is a scoped causal diagnostic, not a replacement for all 126
 release cases or the separate 16-layout acceptance.
 
-`diagnose_cpu_placement.py` generates an external overlay on unchanged published
+`cargo xtask diagnose-cpu-placement` generates an external overlay on unchanged published
 9.0.0. It reuses `PreparedSmallFile` and the original extracted execution loop.
 The codec is constructed with the entire audited reservation available, before any
 pin. Construction availability is recorded on both sides. The cached decision for
@@ -16,10 +16,11 @@ policy is **not** evidence that ordinary encode uses Rayon or proof of actual
 internal dispatch. No production or formal sampler source is modified.
 
 At each READY boundary the parent verifies the measuring TID belongs to its newly
-created worker session, verifies its expected previous affinity, applies a singleton
-CPU mask, reads it back, and acknowledges one byte. At END it checks actual affinity
-again and requires every observation. The worker independently checks the actual
-CPU in bounded procfs snapshots and the pinned available parallelism. Raw READY
+created owned process group and checks its expected previous affinity. After the
+acknowledgement, the measuring thread applies a singleton mask only to itself
+with PID zero. At END the parent checks actual affinity and requires every
+observation before acknowledging completion. The worker independently checks the
+actual CPU in bounded procfs snapshots and the pinned available parallelism. Raw READY
 logs contain the private TID; public gate records omit it. No unrelated thread or
 service is stopped or repinned.
 
@@ -43,7 +44,7 @@ Run only inside the owned audited Linux CPU partition, from a clean committed to
 and baseline checkout:
 
 ```sh
-python3 tool/scripts/diagnose_cpu_placement.py \
+cargo run --locked --manifest-path tool/xtask/Cargo.toml --package xtask -- diagnose-cpu-placement \
   --tool /path/to/tool --repository /path/to/published-9.0.0 \
   --output /path/to/new-capture --isolation-cgroup /sys/fs/cgroup/owned-partition \
   --iterations 384
@@ -54,11 +55,11 @@ run the predeclared default and retained-arena contexts; their results do not
 establish a cross-policy speedup. Every completed worker and interrupted numeric
 journal is preserved. Cleanup removes only byte-identical generated inputs and
 retains unexpected files for inspection. Termination/interrupt/hangup signals request
-cancellation through the bounded parent selector loop: it terminates only its owned
-worker session, preserves completed numerical journals, and restores prior signal
-handlers. This prevents a detached worker from surviving parent cancellation.
+cancellation through the bounded parent IO loop. Signal handling belongs to this
+native controller process. It stops and reaps only its owned worker group before
+restoring generated inputs, preserving completed numerical journals on failure.
 
-`python3 scripts/diagnose_cpu_placement.py --check` compiles/tests the real overlay.
+`cargo xtask diagnose-cpu-placement --check` compiles/tests the real overlay.
 Only this check overlay links the test allocation counter; normal diagnosis and
 formal sampling do not. Linux tests count zero allocation/reallocation/free for
 sixteen real fault-counter reads. This does not claim the entire diagnostic or

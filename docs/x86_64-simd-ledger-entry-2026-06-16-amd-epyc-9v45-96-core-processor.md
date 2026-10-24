@@ -26,4 +26,4 @@
 ## 备注
 
 1. 本轮开始前，先修复了 [src/core/mod.rs](/data/rustfs/reed-solomon-erasure/src/core/mod.rs:99) 的模块路径编译错误，否则 benchmark 无法启动
-2. 本轮同时校正了 [scripts/summarize_x86_simd_benchmarks.py](/data/rustfs/reed-solomon-erasure/scripts/summarize_x86_simd_benchmarks.py:22) 中对当前 `x86_64` runtime 优先级的旧假设，使结果记录与当前代码实现一致
+2. 本轮同时校正了 [原汇总脚本的 Rust 实现](../xtask/src/summary.rs) 中对当前 `x86_64` runtime 优先级的旧假设，使结果记录与当前代码实现一致

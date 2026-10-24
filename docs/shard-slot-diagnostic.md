@@ -34,7 +34,7 @@ context. An incomplete run has no completed diagnosis.
 Run only inside the already reserved and audited Linux cpuset partition:
 
 ```sh
-python3 scripts/diagnose_shard_slot.py \
+cargo xtask diagnose-shard-slot \
   --tool /path/to/clean/tool-checkout \
   --repository /path/to/clean/published-9.0.0-checkout \
   --output /path/to/new-diagnostic-directory \
@@ -42,7 +42,7 @@ python3 scripts/diagnose_shard_slot.py \
   --iterations 4096
 ```
 
-`python3 scripts/diagnose_shard_slot.py --check` runs the real generated Rust
+`cargo xtask diagnose-shard-slot --check` runs the real generated Rust
 adapter tests without reserving resources or collecting performance evidence.
 The diagnostic adapter itself does not change the formal workload. A subsequent ordinary-telemetry correction is explicitly bound to sampling protocol 8; earlier protocol-7 observations remain historical diagnostics and cannot validate the new observer.
 The pending #2897 completion conditions stay unchecked until their whole scope

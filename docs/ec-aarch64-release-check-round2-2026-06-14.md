@@ -5,7 +5,7 @@
 - `./scripts/release-check.sh`
 - `RSE_SMALL_FILE_PROFILE=fast ./scripts/run_small_file_benchmark_matrix.sh`
 - `RSE_SMALL_FILE_PROFILE=extended ./scripts/run_small_file_benchmark_matrix.sh`
-- `python3 scripts/check_benchmark_regression.py --baseline benchmarks/small-file/2026-05-27-aarch64-apple-silicon-extended.csv --current target/benchmark-smoke/small-file-results.json --metric ns_per_iter ...`
+- `cargo xtask check-benchmark --baseline benchmarks/small-file/2026-05-27-aarch64-apple-silicon-extended.csv --current target/benchmark-smoke/small-file-results.json --metric ns_per_iter ...`
 
 ## 2. 主链复核结果（release-check）
 

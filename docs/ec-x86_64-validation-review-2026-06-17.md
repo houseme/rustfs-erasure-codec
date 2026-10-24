@@ -57,7 +57,7 @@ Current small-file artifact refresh:
 
 ```bash
 RSE_SMALL_FILE_PROFILE=extended bash scripts/run_small_file_benchmark_matrix.sh
-python3 scripts/check_benchmark_regression.py \
+cargo xtask check-benchmark \
   --baseline benchmarks/small-file/2026-05-27-x86_64-linux-extended.csv \
   --current benchmarks/small-file/2026-06-17-x86_64-linux-extended.csv \
   --metric ns_per_iter \

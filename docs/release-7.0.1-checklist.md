@@ -49,7 +49,7 @@ cargo test --release --features std --test benchmark_stream_paths -- --ignored -
 stream gate 示例：
 
 ```bash
-python3 scripts/check_benchmark_regression.py \
+cargo xtask check-benchmark \
   --baseline benchmarks/stream-path/2026-06-28-cooldown/phase4-baseline-f1ad373-fast-auto-selected-iter10.csv \
   --current target/benchmark-smoke/stream-path-results.csv \
   --metric ns_per_block \

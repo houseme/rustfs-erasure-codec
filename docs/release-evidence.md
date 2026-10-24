@@ -14,12 +14,12 @@ failures are recorded without skipping later statistical checks or layouts.
 Original worker loops, durations, three warmups and nine samples remain intact.
 
 ```bash
-python3 candidate/scripts/release_evidence.py diagnose-complete \
+cargo run --locked --manifest-path candidate/xtask/Cargo.toml --package xtask -- release-evidence diagnose-complete \
   --baseline /test/baseline --candidate /test/candidate \
   --output /test/new-complete-diagnostic \
   --isolation-cgroup /sys/fs/cgroup/reserved-release
 
-python3 candidate/scripts/release_evidence.py verify-diagnostic \
+cargo run --locked --manifest-path candidate/xtask/Cargo.toml --package xtask -- release-evidence verify-diagnostic \
   --manifest /test/new-complete-diagnostic/diagnostic-manifest.json \
   --repository /test/candidate --report /test/new-diagnostic-replay.json
 ```
@@ -65,7 +65,7 @@ logs in private experiment storage.
 
 ```bash
 export PATH="$HOME/.cargo/bin:$PATH"
-python3 candidate/scripts/release_evidence.py capture \
+cargo run --locked --manifest-path candidate/xtask/Cargo.toml --package xtask -- release-evidence capture \
   --baseline /test/baseline --candidate /test/candidate \
   --output /test/new-campaign --isolation-cgroup /sys/fs/cgroup/reserved-release
 ```
@@ -183,7 +183,7 @@ The structural inventory checks all 103 retained caller cases in A1/B1/B2/A2 ord
 against both sources before performance capture:
 
 ```bash
-python3 candidate/scripts/diagnose_fixture_layout.py \
+cargo run --locked --manifest-path candidate/xtask/Cargo.toml --package xtask -- diagnose-fixture-layout \
   --tool /test/candidate --baseline /test/baseline --candidate /test/candidate \
   --output /test/new-fixture-inventory \
   --isolation-cgroup /sys/fs/cgroup/reserved-release
@@ -221,17 +221,17 @@ The original Vec release cases retain their original API and allocation policies
 ```bash
 # Choose one bounded iteration count before starting; it is identical for every
 # layout and phase. There is no retry, adaptive cell selection or pooled summary.
-python3 candidate/scripts/diagnose_verify_layout.py \
+cargo run --locked --manifest-path candidate/xtask/Cargo.toml --package xtask -- diagnose-verify-layout \
   --baseline /test/baseline --candidate /test/candidate \
   --iterations 262144 --output /test/new-layout-pair \
   --isolation-cgroup /sys/fs/cgroup/reserved-release
 
 # Recompute every result from the source-bound raw records and numeric journals.
-python3 candidate/scripts/diagnose_verify_layout.py \
+cargo run --locked --manifest-path candidate/xtask/Cargo.toml --package xtask -- diagnose-verify-layout \
   --verify /test/new-layout-pair --candidate /test/candidate
 
 # The single-source mode remains available for within-version diagnosis.
-python3 candidate/scripts/diagnose_verify_layout.py \
+cargo run --locked --manifest-path candidate/xtask/Cargo.toml --package xtask -- diagnose-verify-layout \
   --repository /test/baseline --output /test/new-layout-diagnostic \
   --isolation-cgroup /sys/fs/cgroup/reserved-release
 ```
@@ -320,7 +320,7 @@ change to one optimization.
 First run `verify` on the final candidate and inspect the successful report:
 
 ```bash
-python3 candidate/scripts/release_evidence.py verify \
+cargo run --locked --manifest-path candidate/xtask/Cargo.toml --package xtask -- release-evidence verify \
   --repository candidate --manifest /test/new-campaign/manifest.json \
   --report /test/verified-report.json
 ```
@@ -426,7 +426,7 @@ When the same baseline remains variable, collect a separate complete 9.0.0-only
 resource diagnosis under the same reserved CPU partition:
 
 ```bash
-python3 candidate/scripts/diagnose_release_vm.py \
+cargo run --locked --manifest-path candidate/xtask/Cargo.toml --package xtask -- diagnose-release-vm \
   --baseline /test/fresh-baseline --output /test/new-private-diagnosis \
   --isolation-cgroup /sys/fs/cgroup/reserved-diagnosis
 ```
@@ -508,7 +508,7 @@ execution-contract or environment correction. Run inside the authorized exclusiv
 VM CPU partition with a clean frozen tool checkout and a clean baseline checkout:
 
 ```sh
-python3 scripts/release_evidence.py qualify-baseline \
+cargo xtask release-evidence qualify-baseline \
   --baseline /path/to/published-9.0.0 --output /path/to/new-qualification \
   --isolation-cgroup /sys/fs/cgroup/owned-reservation
 ```
@@ -554,12 +554,12 @@ runtime algorithms. This controller is **diagnostic only** and cannot be supplie
 as a qualification or final release manifest:
 
 ```sh
-python3 scripts/diagnose_adjacent_baseline.py capture \
+cargo xtask diagnose-adjacent-baseline capture \
   --prior /test/original-qualification \
   --baseline /test/original-published-9.0.0 \
   --output /test/new-private-adjacent \
   --isolation-cgroup /sys/fs/cgroup/owned-reservation
-python3 scripts/diagnose_adjacent_baseline.py replay \
+cargo xtask diagnose-adjacent-baseline replay \
   --prior /test/original-qualification --output /test/new-private-adjacent
 ```
 
@@ -595,7 +595,7 @@ whole private campaign and resource cleanup have completed, extend the same
 baseline variability analysis with the frozen controller's original strict replay:
 
 ```sh
-python3 scripts/analyze_baseline_variability.py \
+cargo xtask analyze-baseline-variability \
   --adjacent-capture /test/completed-private-campaign \
   --prior /test/original-qualification \
   --frozen-tool /test/trusted-frozen-tool \
@@ -651,7 +651,7 @@ count or repetition override is accepted. A private external resource guard must
 reserve the original CPU set and verify restoration after capture.
 
 ```sh
-python3 scripts/diagnose_release_vm.py \
+cargo xtask diagnose-release-vm \
   --frequency-from-adjacent /private/complete-adjacent-campaign \
   --prior /private/original-qualification \
   --frozen-tool /private/trusted-original-tool \
@@ -659,7 +659,7 @@ python3 scripts/diagnose_release_vm.py \
   --isolation-cgroup /sys/fs/cgroup/owned-partition \
   --output /private/new-frequency-capture
 
-python3 scripts/diagnose_release_vm.py --replay-frequency \
+cargo xtask diagnose-release-vm --replay-frequency \
   --frequency-from-adjacent /private/complete-adjacent-campaign \
   --prior /private/original-qualification \
   --frozen-tool /private/trusted-original-tool \

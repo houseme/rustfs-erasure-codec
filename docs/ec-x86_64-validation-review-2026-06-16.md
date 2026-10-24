@@ -39,7 +39,7 @@ cargo test --release --features "std simd-accel" \
   --test benchmark_small_files \
   benchmark_small_file_matrix_runs_and_exports_results -- --ignored --nocapture
 
-python3 scripts/check_benchmark_regression.py \
+cargo xtask check-benchmark \
   --baseline benchmarks/small-file/2026-05-27-x86_64-linux-extended.csv \
   --current target/benchmark-smoke/small-file-results.json \
   --metric ns_per_iter \
