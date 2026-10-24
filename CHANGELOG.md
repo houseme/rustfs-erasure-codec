@@ -70,6 +70,8 @@ All notable changes to this project are documented in this file.
 - Compose fixed-coefficient GFNI multiplication into one affine map derived at
   compile time from the existing GF8 table. Preserve both SIMD widths, XOR,
   scalar tails, backend overrides, encoded bytes and output ownership.
+  Keep scalar tail work outside the native vector frame, skip empty tails,
+  and route short inputs directly through the same checked scalar dispatcher.
   Throughput approval remains withheld; the complete component comparison
   retains its original source-check and statistical refusals.
 
