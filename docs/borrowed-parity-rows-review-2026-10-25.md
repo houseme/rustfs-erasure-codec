@@ -74,3 +74,38 @@ published-9.0.0 ABBA/paired-layout data, final source/tool/lock freeze and stric
 positive preflight remain outstanding. Older source `4aa4ee0` records and its unlaunched
 26-command continuation are not relabeled. No tag, registry upload or automatic
 merge is performed.
+
+## Windows debug allocation context
+
+Original CI head `a012a78` fails the new total-allocation budget on Windows
+stable, beta and nightly. Every job completes the same 270 controls and all
+encoded-byte checks. The 120 nonzero totals correspond exactly to policy-query
+counts; the other 150 totals are zero. These original failures remain preserved.
+
+The existing debug policy hook reads `RS_PARALLEL_POLICY_DEBUG` on each query.
+The inspected stable standard library's Windows getenv converts that key with
+to_u16s into a Vec, including when the variable is absent. Test/workflow fix
+`ad00e79` measures the unchanged policy calls independently, and requires the
+coding entry to add zero allocations beyond that exact control. No arbitrary
+platform allowance is used. Release still requires absolute zero for both the
+control and the complete entry. Debug resource fixtures require logging disabled;
+production logging semantics, runtime and package-input source bytes, and formal
+sampling stay intact.
+
+On an independent unmodified main source copy with only the corrected test
+injected, both debug and release still reject all 162 old wide allocations and
+retain 108 small zero controls. Locally the changed runtime passes all 270 cases
+in both profiles, with zero policy/control/entry allocations on the host.
+
+The fixed Windows jobs now pass the full std workspace suite and explicit debug
+and release resource steps on all three toolchains. Each job records all 270
+cases in each profile. Debug totals exactly match the independent policy controls
+and original totals; coding extras are zero. Every release total/control is
+absolute zero. The complete case records agree across all three toolchains;
+[all 270 common records and per-toolchain outcomes](../benchmarks/release-9.1.0/2026-10-25/windows-parity-row-allocation-context.json)
+are retained. Independent replay checks all original inputs unchanged without
+running codec work, and requires unchanged compiler versions within each pair.
+
+This closes the Windows test-accounting failure. It is source-bound functional
+and resource evidence, without claiming end-to-end throughput, dedicated Linux
+validation, a tested combination with PR #106 or release approval.
