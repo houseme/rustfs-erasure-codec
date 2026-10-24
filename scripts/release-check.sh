@@ -259,7 +259,7 @@ if [[ "${STRICT_RELEASE}" == "1" ]]; then
   if [[ -n "${RSE_RELEASE_EVIDENCE:-}" ]]; then
     evidence_env="$(mktemp)"
     trap 'rm -f "$evidence_env"' EXIT
-    run python3 scripts/release_evidence.py materialize \
+    run cargo xtask release-evidence materialize \
       --manifest "${RSE_RELEASE_EVIDENCE}" --repository "$PWD" --env-file "$evidence_env"
     while IFS='=' read -r name value; do
       case "$name" in
