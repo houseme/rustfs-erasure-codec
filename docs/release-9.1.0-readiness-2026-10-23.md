@@ -1,5 +1,15 @@
 # 9.1.0 merged-candidate review
 
+Independent combined-source rehearsal (2026-10-25): review commit `6193ad3`
+combines PR #107 `0dd9434` and PR #106 `4fdb83a`, retaining both source histories.
+The [complete review](combined-coding-local-review-2026-10-25.md) records 578 parent
+codec tests / 271 no_std / 317 tool tests, all 459 unchanged resource contracts,
+published-9.0.0 and fresh WASM compatibility, plus an actual 71-member crate whose
+68 source members match exactly and whose extracted library passes 401/271 tests.
+All 31 original inputs replay unchanged without codec work. This independent
+review source has no combined CI or controlled timing acceptance; actual main
+integration, final source binding and strict positive preflight remain required.
+
 Parent-source records below retain their independent validation bindings. This
 review-branch combination has no performance or release approval.
 
