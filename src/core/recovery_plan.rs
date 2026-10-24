@@ -77,8 +77,11 @@ impl ClassicReconstructShape {
 /// stream reuse. A parity-only operation borrows encoding rows directly.
 pub(crate) struct ClassicReconstructPlan<F: Field> {
     pub(crate) shape: ClassicReconstructShape,
-    pub(crate) data_targets: SmallVec<[usize; 32]>,
-    pub(crate) parity_targets: SmallVec<[usize; 32]>,
+    // Ordinary recovery borrows the ordered missing indices from shape.
+    // Selective recovery owns one filtered list; its combined inline capacity
+    // preserves the two previous 32-index target buffers without a new spill.
+    selected_targets: Option<SmallVec<[usize; 64]>>,
+    data_target_count: usize,
     pub(crate) data_only: bool,
     pub(crate) direct_parity: bool,
     decode_matrix: Option<Arc<Matrix<F>>>,
@@ -89,8 +92,8 @@ impl<F: Field> ClassicReconstructPlan<F> {
     fn new(shape: ClassicReconstructShape, goal: ReconstructionGoal<'_>) -> Self {
         Self {
             shape,
-            data_targets: SmallVec::new(),
-            parity_targets: SmallVec::new(),
+            selected_targets: None,
+            data_target_count: 0,
             data_only: matches!(goal, ReconstructionGoal::Data),
             direct_parity: false,
             decode_matrix: None,
@@ -98,12 +101,30 @@ impl<F: Field> ClassicReconstructPlan<F> {
         }
     }
 
+    fn target_indices(&self) -> &[usize] {
+        self.selected_targets
+            .as_deref()
+            .unwrap_or(self.shape.invalid_indices.as_slice())
+    }
+
+    pub(crate) fn data_targets(&self) -> &[usize] {
+        &self.target_indices()[..self.data_target_count]
+    }
+
+    pub(crate) fn parity_targets(&self) -> &[usize] {
+        if self.data_only {
+            &[]
+        } else {
+            &self.target_indices()[self.data_target_count..]
+        }
+    }
+
     pub(crate) fn has_outputs(&self) -> bool {
-        !self.data_targets.is_empty() || !self.parity_targets.is_empty()
+        !self.data_targets().is_empty() || !self.parity_targets().is_empty()
     }
 
     pub(crate) fn data_rows(&self) -> impl ExactSizeIterator<Item = &[F::Elem]> {
-        self.data_targets.iter().map(|&index| {
+        self.data_targets().iter().map(|&index| {
             self.decode_matrix
                 .as_ref()
                 .expect("requested missing data requires an inverse")
@@ -125,7 +146,7 @@ impl<F: Field> ClassicReconstructPlan<F> {
         let encoding = if self.direct_parity {
             &[]
         } else {
-            self.parity_targets.as_slice()
+            self.parity_targets()
         };
         direct.iter().map(|row| row.as_slice()).chain(
             encoding
@@ -308,32 +329,31 @@ impl<F: Field> ReedSolomon<F> {
         {
             return Err(Error::InvalidShardFlags);
         }
-        let selected = |index: usize| match goal {
-            ReconstructionGoal::All => true,
-            ReconstructionGoal::Data => index < self.data_shard_count(),
-            ReconstructionGoal::Required(required) => required.get(index).copied().unwrap_or(false),
-        };
-        // Missing indices are ordered by shard index, so data and parity are
-        // adjacent slices of one list rather than separately stored copies.
-        let (missing_data, missing_parity) = shape
-            .invalid_indices
-            .split_at(shape.missing_data_count(self.data_shard_count()));
-        plan.data_targets.extend(
-            missing_data
-                .iter()
-                .copied()
-                .filter(|&index| selected(index)),
-        );
-        plan.parity_targets.extend(
-            missing_parity
-                .iter()
-                .copied()
-                .filter(|&index| selected(index)),
-        );
+        let missing_data_count = shape.missing_data_count(self.data_shard_count());
+        let missing_data = &shape.invalid_indices[..missing_data_count];
+        match goal {
+            ReconstructionGoal::All | ReconstructionGoal::Data => {
+                plan.data_target_count = missing_data_count;
+            }
+            ReconstructionGoal::Required(required) => {
+                // Fill the optional list in its final storage, without moving
+                // its inline buffer through a temporary collection result.
+                let targets = plan.selected_targets.get_or_insert_with(SmallVec::new);
+                targets.extend(
+                    shape
+                        .invalid_indices
+                        .iter()
+                        .copied()
+                        .filter(|&index| required.get(index).copied().unwrap_or(false)),
+                );
+                plan.data_target_count =
+                    targets.partition_point(|&index| index < self.data_shard_count());
+            }
+        }
         // Selecting requested missing outputs first makes an empty request a
         // validated no-op even when the unused survivor matrix is singular.
         let needs_inverse = !missing_data.is_empty()
-            && (!plan.data_targets.is_empty() || !plan.parity_targets.is_empty());
+            && (!plan.data_targets().is_empty() || !plan.parity_targets().is_empty());
         plan.decode_matrix = if needs_inverse {
             Some(self.get_data_decode_matrix(&shape.valid_indices, &shape.invalid_indices)?)
         } else {
@@ -341,13 +361,18 @@ impl<F: Field> ReedSolomon<F> {
         };
         plan.direct_parity = matches!(goal, ReconstructionGoal::Required(_))
             && !missing_data.is_empty()
-            && !plan.parity_targets.is_empty();
+            && !plan.parity_targets().is_empty();
         if plan.direct_parity {
             let inverse = plan
                 .decode_matrix
                 .as_ref()
                 .expect("missing data needs an inverse");
-            for &index in &plan.parity_targets {
+            // Borrow these fields separately while filling the independent rows.
+            let targets = plan
+                .selected_targets
+                .as_deref()
+                .unwrap_or(&shape.invalid_indices);
+            for &index in &targets[plan.data_target_count..] {
                 let parity = self.encoding_format().matrix().get_row(index);
                 let row = (0..self.data_shard_count())
                     .map(|column| {
