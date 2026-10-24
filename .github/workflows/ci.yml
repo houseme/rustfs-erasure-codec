@@ -433,6 +433,12 @@ jobs:
       - name: Test all crates
         run: cargo test --verbose --workspace --exclude rustfs-erasure-codec-fuzz
 
+      - name: Verify debug parity-row allocation context
+        run: cargo test --locked -p rustfs-erasure-codec --test encoding_row_view_regressions -- --nocapture
+
+      - name: Verify release parity-row zero allocations
+        run: cargo test --locked --release -p rustfs-erasure-codec --test encoding_row_view_regressions -- --nocapture
+
   test-macos-arm64:
     name: Test macOS ARM64 (${{ matrix.toolchain }})
     runs-on: macos-latest
