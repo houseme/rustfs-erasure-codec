@@ -1,5 +1,14 @@
 # 9.1.0 release preparation
 
+Current source review (2026-10-24): runtime `e38a8ad`, final validated test source
+`7fa4fdd`, in draft PR #84 stacked on #81. These candidates are not merged into
+reviewed main `afb9a52`. The [complete tower review](gfni-tower-fusion-review-2026-10-24.md)
+retains all six rejected component cohorts; the final same-42-case comparison
+has zero width/short failures but twelve repeat and ten regression refusals.
+Compatibility and 21-command native validation pass; accepted final full-release
+ABBA/layout evidence and strict positive preflight remain missing. Historical
+source inventories below retain their original scope.
+
 Status at the 2026-10-23 review: **implementation merged, performance acceptance
 incomplete, not tagged or uploaded**. The
 [current merged-candidate review](release-9.1.0-readiness-2026-10-23.md) records

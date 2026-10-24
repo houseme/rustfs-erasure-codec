@@ -1,5 +1,14 @@
 # 9.1.0 publication blockers and completion criteria
 
+Current source review (2026-10-24): runtime `e38a8ad`, final validated test source
+`7fa4fdd`, in draft PR #84 stacked on #81. These candidates are not merged into
+reviewed main `afb9a52`. The [complete tower review](gfni-tower-fusion-review-2026-10-24.md)
+retains all six rejected component cohorts; the final same-42-case comparison
+has zero width/short failures but twelve repeat and ten regression refusals.
+Compatibility and 21-command native validation pass; accepted final full-release
+ABBA/layout evidence and strict positive preflight remain missing. Historical
+source inventories below retain their original scope.
+
 Audit date: 2026-10-22 (Asia/Shanghai). Reviewed base main:
 `e671c0ac24f9deaf2ee2f1e5ebbd8358cd4d6133`, including the source-copy observation
 implementation in [PR #47](https://github.com/houseme/rustfs-erasure-codec/pull/47).
@@ -57,7 +66,12 @@ Runtime `e38a8ad` preserves scalar wide permutation after all eight stable scala
 costs; final test source `7fa4fdd` isolates backend environments in fresh children.
 The original concurrent metadata failure remains retained. All 21 native checks
 and twelve fixed parallel stress rounds pass; its own same-42-case comparison
-has launched once and still needs its complete result and independent replay.
+now completes and independently replays all 168 workers / 2,016 observations.
+Zero width/short failures do not qualify it: twelve repeats and ten regression
+cases refuse the limits. All eight scalar cases are lower, but all eight SSSE3
+cases are flagged despite unchanged logical selection/kernel source. Retained
+code sizes/opcode sequences match while code/caller geometry remains unqualified;
+no unique cause or release approval is inferred.
 
 ## GFNI component follow-through and cancellation fix
 

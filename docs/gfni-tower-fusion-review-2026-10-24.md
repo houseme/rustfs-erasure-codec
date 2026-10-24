@@ -585,7 +585,57 @@ compares `986c1fe` with final source `7fa4fdd` (runtime `e38a8ad`) using exactly
 the same 42 cases / 168 ABBA workers / 2,016 observations, unchanged harness,
 calibration and limits. The fresh 21-command proof is bound and reused; all 84
 benchmark payload checks remain required. It has launched once after cleanup;
-no result is assigned before every planned worker completes and independent raw
-replay. Every older refusal remains unchanged. This is unpublished-source
+at that launch checkpoint no result was assigned before every planned worker
+completed and independent raw replay. Every older refusal remains unchanged. This is unpublished-source
 component geometry, not full published-version release acceptance. Final-source
 accepted ABBA/layout evidence and strict positive preflight remain outstanding.
+
+
+## Complete final-source comparison and attribution limit
+
+The [complete final-source result](../benchmarks/release-9.1.0/2026-10-24/gf16-scalar-layout-component-review.json)
+retains all 42 cases, 168 cross-source comparisons and 84 CPU/wall repeat
+summaries. All 168 measurement workers / 2,016 observations, 84 payload workers
+and 1,727 pilots complete with zero execution errors. Pure independent replay
+checks 5,881 inputs unchanged, 3,958 parent events, every raw row/count/backend/
+witness and all original statistical outcomes. Sources, all four owned cleanup
+conditions and both original observers restore. No original input or failed
+cohort is replaced.
+
+All 168 widths pass and no sample is short, but twelve repeats and ten regression
+cases refuse the unchanged limits. The maximum repeat refusal is 24.8240676%.
+The entire final component remains **not accepted**. All groups are retained:
+
+| Complete group | Cases | Unqualified candidate/baseline ratio range | Width / repeat / regression refusals |
+| --- | ---: | --- | --- |
+| native direct controls | 12 | 0.774102–1.231042 | 0 / 8 / 1 |
+| gf8 ordinary encode control | 1 | 0.907869–1.014044 | 0 / 1 / 0 |
+| gf16 ordinary encode control | 1 | 0.980428–0.992144 | 0 / 0 / 0 |
+| portable direct products | 12 | 0.927200–1.293663 | 0 / 2 / 5 |
+| native custom codec controls | 4 | 0.966074–1.029650 | 0 / 0 / 0 |
+| portable custom codecs | 12 | 0.908758–1.210950 | 0 / 1 / 4 |
+
+All eight scalar cases now have every pair lower (0.908758–0.972996) and pass
+their own widths/repeats. Conversely, all eight SSSE3 cases are flagged by the
+original regression limit although their logical narrow-layout choice and
+numerical kernel source are unchanged. Those unfavorable cases are not excused
+by favorable scalar observations; neither result is promoted to a universal
+speedup or published-9.0.0 approval. Different campaigns' ratios are not chained.
+
+A separate read-only retained-ELF/source audit covers seven portable/SSSE3
+functions. Symbol sets, sizes and opcode sequences match, while relative code
+placement and some references differ; raw bytes are not all identical. Role
+launch paths have different lengths, and argv is materialized before fixture
+allocation. Dynamic/physical fixture addresses are not recorded by this harness.
+These are concrete attribution boundaries and investigation priorities, not proof
+of a path-length, code-placement, frequency or cache cause. Static review does
+not establish equal execution cost or a prelaunch binary attestation. Private
+scripts, summaries, input digests and status remain retained; no codec is rerun.
+
+No further codec variant or unchanged-source timing retry follows from these
+controls. The next work must audit unchanged-path generated code and caller/
+launch geometry before assigning a cause; it does not add hardware-counter or
+constant-frequency release conditions. Functional compatibility remains proved
+on the final source, while accepted final published-version full ABBA/layout
+and actual strict positive preflight remain missing. No tag, registry upload or
+automatic PR merge is performed, and automation remains paused.
