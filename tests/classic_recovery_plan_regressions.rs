@@ -309,14 +309,21 @@ mod allocation_regressions {
     thread_local! {
         static TRACKING: Cell<bool> = const { Cell::new(false) };
         static CALLS: Cell<usize> = const { Cell::new(0) };
+        static SIZED_CALLS: Cell<(usize, usize)> = const { Cell::new((0, 0)) };
     }
 
     struct CountingAllocator;
 
-    fn record_allocation() {
+    fn record_allocation(bytes: usize) {
         let _ = TRACKING.try_with(|tracking| {
             if tracking.get() {
                 CALLS.with(|calls| calls.set(calls.get() + 1));
+                SIZED_CALLS.with(|sized| {
+                    let (size, calls) = sized.get();
+                    if size != 0 && bytes == size {
+                        sized.set((size, calls + 1));
+                    }
+                });
             }
         });
     }
@@ -325,19 +332,19 @@ mod allocation_regressions {
     // thread-local counters neither allocate nor modify allocation ownership.
     unsafe impl GlobalAlloc for CountingAllocator {
         unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-            record_allocation();
+            record_allocation(layout.size());
             // SAFETY: The caller supplies a valid layout.
             unsafe { System.alloc(layout) }
         }
 
         unsafe fn alloc_zeroed(&self, layout: Layout) -> *mut u8 {
-            record_allocation();
+            record_allocation(layout.size());
             // SAFETY: Preserve the caller's valid layout and zeroing request.
             unsafe { System.alloc_zeroed(layout) }
         }
 
         unsafe fn realloc(&self, pointer: *mut u8, layout: Layout, size: usize) -> *mut u8 {
-            record_allocation();
+            record_allocation(size);
             // SAFETY: The caller supplies a live System allocation and valid size.
             unsafe { System.realloc(pointer, layout, size) }
         }
@@ -361,6 +368,69 @@ mod allocation_regressions {
 
     fn assert_no_allocations(operation: impl FnOnce()) {
         assert_eq!(allocation_calls(operation), 0);
+    }
+
+    #[test]
+    fn cold_dense_inverse_allocates_only_selected_and_result_squares() {
+        fn check<F: rustfs_erasure_codec::Field>() -> bool {
+            let mut square_budget_met = true;
+            for data in [33, 40, 64] {
+                // Reversed identity parity forces pivot swaps and the dense
+                // inverse path: no systematic data survives. All buffers and
+                // backend setup are prepared outside the allocation window.
+                let mut rows = vec![vec![F::zero(); data]; data];
+                for (row, coefficients) in rows.iter_mut().enumerate() {
+                    coefficients[data - 1 - row] = F::one();
+                }
+                let codec = rustfs_erasure_codec::ReedSolomon::<F>::with_custom_matrix(
+                    data,
+                    data,
+                    &rows,
+                    CodecOptions::builder().inversion_cache(false).build(),
+                )
+                .unwrap();
+                let mut original: Vec<Vec<F::Elem>> = (0..data * 2)
+                    .map(|index| {
+                        (0..65)
+                            .map(|offset| F::nth((index * 263 + offset * 17 + 1) % F::ORDER))
+                            .collect()
+                    })
+                    .collect();
+                codec.encode(&mut original).unwrap();
+                let mut slots: Vec<_> = original
+                    .iter()
+                    .cloned()
+                    .map(ShardSlot::new_present)
+                    .collect();
+                for slot in &mut slots[..data] {
+                    slot.mark_missing();
+                    slot.as_inner_mut().fill(F::zero());
+                }
+                let square_bytes = data * data * core::mem::size_of::<F::Elem>();
+                SIZED_CALLS.with(|sized| sized.set((square_bytes, 0)));
+                let calls = allocation_calls(|| codec.reconstruct_data(&mut slots).unwrap());
+                let sized_calls = SIZED_CALLS.with(|sized| sized.replace((0, 0)).1);
+                // The selected survivor matrix and returned inverse are both
+                // square; the identity half needs no separate allocation.
+                square_budget_met &= sized_calls == 2;
+                println!(
+                    "DENSE_INVERSE_ALLOCATION field_order={} data={data} square_calls={sized_calls} total_calls={calls}",
+                    F::ORDER
+                );
+                for (slot, expected) in slots.iter().zip(&original) {
+                    assert!(slot.is_present());
+                    assert_eq!(slot.as_inner(), expected);
+                }
+            }
+            square_budget_met
+        }
+        let gf8 = check::<rustfs_erasure_codec::galois_8::Field>();
+        let gf16 = check::<rustfs_erasure_codec::galois_16::Field>();
+        assert!(
+            gf8 && gf16,
+            "only selected and returned inverse square buffers are needed"
+        );
+        eprintln!("DENSE_INVERSE_SQUARE_ALLOCATION cases=6 calls_per_case=2");
     }
 
     fn check_unused_parity_allocations<F: rustfs_erasure_codec::Field>() {

@@ -24,11 +24,13 @@ pub fn matrix(text: &str) -> Result<String> {
         "matrix implementation changed",
     )?;
     let text = source::method(&text, "    pub fn invert(", |original, edit| {
-        if original
+        let legacy = original
             .matches("        let mut work = self.augment(&Self::identity(row_count))?;")
-            .count()
-            != 1
-        {
+            .count();
+        let direct = original
+            .matches("        let mut work = Self::new(row_count, col_count * 2);")
+            .count();
+        if legacy + direct != 1 {
             return Err("matrix scratch initializer changed".into());
         }
         let marker = "        work.gaussian_elim()?;";

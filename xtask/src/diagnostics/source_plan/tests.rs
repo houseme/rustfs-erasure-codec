@@ -37,7 +37,7 @@ fn complete_plans_bind_generated_bytes_and_every_written_member() {
         (
             // Current production source, including every systematic decode branch.
             "dynamic",
-            "a21b9a8accc9b0ce13a5e52c362cc65896a14d1dca384b442d06d4a5a9c6a891",
+            "1f5b4af8ad12872c298a8729fde85a54b7b71e22f63334071ad0c4421309c76d",
         ),
     ] {
         let original = original(root, variant);
@@ -76,6 +76,27 @@ fn complete_plans_bind_generated_bytes_and_every_written_member() {
             );
         }
     }
+}
+
+#[test]
+fn matrix_observer_accepts_one_known_scratch_shape_and_rejects_ambiguity() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
+    let current = std::fs::read_to_string(root.join("src/matrix.rs")).unwrap();
+    let direct = "        let mut work = Self::new(row_count, col_count * 2);";
+    let legacy = "        let mut work = self.augment(&Self::identity(row_count))?;";
+    assert_eq!(current.matches(direct).count(), 1);
+    assert!(super::super::dynamic::matrix(&current).is_ok());
+    assert!(super::super::dynamic::matrix(&current.replace(direct, legacy)).is_ok());
+    assert!(
+        super::super::dynamic::matrix(
+            &current.replace(direct, "        let mut work = unknown();")
+        )
+        .is_err()
+    );
+    assert!(
+        super::super::dynamic::matrix(&current.replace(direct, &format!("{direct}\n{legacy}")))
+            .is_err()
+    );
 }
 
 #[test]
@@ -162,12 +183,15 @@ fn observer_source_adapters_leave_other_apis_initialization_and_publication_unch
     assert!(stream::patch(&original.replace("pub fn encode_stream(", "pub fn renamed(")).is_err());
     assert!(stream::patch(&changed).is_err());
     let original = source::read(root.join("src/matrix.rs")).unwrap();
-    assert!(
-        dynamic::matrix(
-            &original.replace("let mut work = self.augment", "let mut work = self.other")
-        )
-        .is_err()
+    let changed = original.replace(
+        "let mut work = Self::new(row_count, col_count * 2);",
+        "let mut work = unknown();",
     );
+    assert_ne!(
+        changed, original,
+        "the negative control must change the initializer"
+    );
+    assert!(dynamic::matrix(&changed).is_err());
     assert_eq!(original, source::read(root.join("src/matrix.rs")).unwrap());
     let original = source::read(root.join("src/core/reconstruct.rs")).unwrap();
     let changed = dynamic::decode(&original).unwrap();
