@@ -2016,3 +2016,46 @@ evidence. All five workspace members inherit the root dependency catalog.
 The branch changes no codec source, format, public API, dependency version or
 lockfile relative to that main. Local checks do not imply CI completion, VM/MSR
 runtime validation, registry upload or release-performance approval.
+
+
+## Native controller boundary re-review
+
+Runtime `ecd1c98` keeps main `544bb06` and fixes three reproduced controller
+boundary defects after the complete Python retirement. Each issue failed a
+focused regression before its fix; the fixes share the existing model, bounded
+original reader and ownership context rather than adding per-command exceptions.
+
+- Calibration emits ordered wire pairs, while capture and prior-baseline readers
+  incorrectly deserialized them as maps. One adapter now creates unique, bounded
+  case maps for both current and frozen Rust models. Current capture, qualification
+  and VM calibration borrow original records directly, removing the caller-level
+  and JSON-request copies. The legacy ordered wire response and preparation fields
+  remain unchanged. All four profiles and malformed count results are covered.
+- Preflight export reopened original files after successful verification without
+  rebinding their digests. It now reads all eight bounded, hash-checked members
+  before creating any inputs, then exports those exact bytes. Post-verification
+  mutation is refused before publication; original byte encoding and environment
+  variable paths remain unchanged.
+- A failed overlay restoration preserved unexpected files, but an enclosing
+  temporary directory could subsequently remove them. Preservation now propagates
+  through the shared context independently of unreaped-process status. Both
+  explicit and Drop restoration retain the inputs; normal cleanup still removes
+  a fully restored private source.
+
+All 14 follow-up gates pass: 308 native tests (269 unit / 29 existing CLI /
+10 controller CLI), strict host/Linux tooling Clippy, Windows target compilation,
+published-version compatibility, all four source/package audits, actual sampler
+and stream-view checks against current and published-baseline sources, formatting
+and diff checks. Spelling passes. The seven added tests cover the three failures,
+successful export/cleanup and legacy wire compatibility. The 200 non-fast exact
+parity and bidirectional cross-decoding configurations and historical tower-field
+vectors pass again. The older inconsistent fast-one-parity mode remains outside
+that probe; privileged VM/MSR collection and release-performance approval are not
+claimed.
+
+Python remains absent from the migration branch. All 620 JSON files /
+6,556,786 bytes remain unchanged; all five workspace members inherit root Cargo
+dependencies and core/WASM allowlists remain 71/6 files. Codec source, formats,
+public APIs, dependency versions and lockfiles are unchanged from the previously
+validated runtime. Remote main still matches `544bb06` at delivery. CI results
+for the updated head are reported on PR #95 separately from these local gates.
