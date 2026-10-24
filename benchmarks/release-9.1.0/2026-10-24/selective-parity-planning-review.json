@@ -1,0 +1,658 @@
+{
+  "artifact_kind": "selective-parity-planning-review-v1",
+  "source": "b1a10e4e6a164cb5f8fdc212a455f7130e2e5e39",
+  "source_tree": "3a8d4084175771d2d1551b11b2e7fe4799a99ed4",
+  "integrated_main": "e3a1c1cffbbe3bcfbeecddce1de24e2b42888d1c",
+  "base_source": "e3a1c1cffbbe3bcfbeecddce1de24e2b42888d1c",
+  "validation_finished": true,
+  "all28_commands_passed": true,
+  "all_summaries_exactly_reproduced": true,
+  "all_raw_and_control_inputs_unchanged": true,
+  "independent_input_files": 42,
+  "linux_native": {
+    "library": 402,
+    "integration": 160,
+    "doc": 10,
+    "passed": 572,
+    "isolated_filtered_child_test_executions": 5,
+    "successful_parent_and_child_executions": 577,
+    "existing_ignored": 43,
+    "no_std": 261
+  },
+  "backend_env_stress": {
+    "rounds": 12,
+    "parent_tests_per_round": 15,
+    "all_passed": true
+  },
+  "published_9_0_0": {
+    "normal_configurations": 200,
+    "custom_backend_settings": 6,
+    "custom_configurations": 162,
+    "custom_cross_recoveries": 972,
+    "wide_configurations": 72,
+    "exact_bytes_and_bidirectional_recovery": true,
+    "selective_backend_settings": 6,
+    "selective_configurations": 1620,
+    "selective_cross_recoveries": 15840,
+    "selective_unrequested_data_stays_absent": true
+  },
+  "positive_gfni256_and_gfni512_execution_markers": true,
+  "positive_avx2_layout_oracle": true,
+  "source_copies_clean_and_restored": true,
+  "owned_cleanup_four_true": true,
+  "test_count_policy": "Main suite totals count unfiltered parent harness summaries; isolated filtered child-process executions are recorded separately. Raw positive summaries retain all parent/child output.",
+  "checks": [
+    {
+      "name": "full-codec",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "402",
+          "5"
+        ],
+        [
+          "0",
+          "1"
+        ],
+        [
+          "0",
+          "35"
+        ],
+        [
+          "0",
+          "1"
+        ],
+        [
+          "17",
+          "0"
+        ],
+        [
+          "3",
+          "0"
+        ],
+        [
+          "3",
+          "0"
+        ],
+        [
+          "9",
+          "0"
+        ],
+        [
+          "0",
+          "1"
+        ],
+        [
+          "5",
+          "0"
+        ],
+        [
+          "1",
+          "0"
+        ],
+        [
+          "1",
+          "0"
+        ],
+        [
+          "7",
+          "0"
+        ],
+        [
+          "9",
+          "0"
+        ],
+        [
+          "13",
+          "0"
+        ],
+        [
+          "4",
+          "0"
+        ],
+        [
+          "7",
+          "0"
+        ],
+        [
+          "8",
+          "0"
+        ],
+        [
+          "4",
+          "0"
+        ],
+        [
+          "1",
+          "0"
+        ],
+        [
+          "3",
+          "0"
+        ],
+        [
+          "3",
+          "0"
+        ],
+        [
+          "9",
+          "0"
+        ],
+        [
+          "1",
+          "0"
+        ],
+        [
+          "1",
+          "0"
+        ],
+        [
+          "5",
+          "0"
+        ],
+        [
+          "6",
+          "0"
+        ],
+        [
+          "2",
+          "0"
+        ],
+        [
+          "5",
+          "0"
+        ],
+        [
+          "2",
+          "0"
+        ],
+        [
+          "2",
+          "0"
+        ],
+        [
+          "7",
+          "0"
+        ],
+        [
+          "13",
+          "0"
+        ],
+        [
+          "14",
+          "0"
+        ],
+        [
+          "10",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "auto"
+    },
+    {
+      "name": "selective-planning-oracles",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "5",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": null
+    },
+    {
+      "name": "no-std",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "261",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": null
+    },
+    {
+      "name": "ssse3-fallback",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "41",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "rust-ssse3"
+    },
+    {
+      "name": "avx2-fallback",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "40",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "rust-avx2"
+    },
+    {
+      "name": "scalar-general",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "41",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "scalar-rust"
+    },
+    {
+      "name": "gfni256-general",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "41",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "rust-gfni-avx2"
+    },
+    {
+      "name": "gfni512-general",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "41",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "rust-gfni-avx512"
+    },
+    {
+      "name": "published-200",
+      "passed": true,
+      "positive_test_summaries": [],
+      "mandatory_markers_present": true,
+      "backend_override": null
+    },
+    {
+      "name": "published-custom-auto",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "auto"
+    },
+    {
+      "name": "published-wide-auto",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "auto"
+    },
+    {
+      "name": "published-custom-scalar-rust",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "scalar-rust"
+    },
+    {
+      "name": "published-wide-scalar-rust",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "scalar-rust"
+    },
+    {
+      "name": "published-custom-rust-ssse3",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "rust-ssse3"
+    },
+    {
+      "name": "published-wide-rust-ssse3",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "rust-ssse3"
+    },
+    {
+      "name": "published-custom-rust-avx2",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "rust-avx2"
+    },
+    {
+      "name": "published-wide-rust-avx2",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "rust-avx2"
+    },
+    {
+      "name": "published-custom-rust-gfni-avx2",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "rust-gfni-avx2"
+    },
+    {
+      "name": "published-wide-rust-gfni-avx2",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "rust-gfni-avx2"
+    },
+    {
+      "name": "published-custom-rust-gfni-avx512",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "rust-gfni-avx512"
+    },
+    {
+      "name": "published-wide-rust-gfni-avx512",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "rust-gfni-avx512"
+    },
+    {
+      "name": "backend-env-stress",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ],
+        [
+          "15",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "auto"
+    },
+    {
+      "name": "published-selective-auto",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "auto"
+    },
+    {
+      "name": "published-selective-scalar-rust",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "scalar-rust"
+    },
+    {
+      "name": "published-selective-rust-ssse3",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "rust-ssse3"
+    },
+    {
+      "name": "published-selective-rust-avx2",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "rust-avx2"
+    },
+    {
+      "name": "published-selective-rust-gfni-avx2",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "rust-gfni-avx2"
+    },
+    {
+      "name": "published-selective-rust-gfni-avx512",
+      "passed": true,
+      "positive_test_summaries": [
+        [
+          "1",
+          "0"
+        ]
+      ],
+      "mandatory_markers_present": true,
+      "backend_override": "rust-gfni-avx512"
+    }
+  ],
+  "codec_calls_during_replay": 0,
+  "performance_observations": 0,
+  "candidate_attribution": null,
+  "performance_approval": false,
+  "release_approval": false,
+  "mechanism": {
+    "operation": "selective Classic parity coefficient composition",
+    "data_count": "k",
+    "missing_data_count": "d",
+    "requested_parity_rows": "p",
+    "old_dense_products_per_parity": "k*k",
+    "new_asserted_products_per_parity": "k*d",
+    "known_systematic_rows_substituted": true,
+    "all_missing_data_terms_retained_including_unrequested": true,
+    "no_new_allocation_or_unsafe": true,
+    "inverse_cache_output_executors_kernels_api_unchanged": true,
+    "old_work_bound_red": {
+      "shape": [
+        8,
+        9,
+        1
+      ],
+      "observed_products": 64,
+      "new_expected_products": 8,
+      "original_failed_assertion_retained": true
+    },
+    "asserted_shapes": [
+      {
+        "data": 8,
+        "parity": 9,
+        "missing_data": 1,
+        "previous_dense_formula_products": 64,
+        "candidate_asserted_products": 8
+      },
+      {
+        "data": 8,
+        "parity": 9,
+        "missing_data": 2,
+        "previous_dense_formula_products": 64,
+        "candidate_asserted_products": 16
+      },
+      {
+        "data": 8,
+        "parity": 9,
+        "missing_data": 4,
+        "previous_dense_formula_products": 64,
+        "candidate_asserted_products": 32
+      },
+      {
+        "data": 8,
+        "parity": 9,
+        "missing_data": 8,
+        "previous_dense_formula_products": 64,
+        "candidate_asserted_products": 64
+      },
+      {
+        "data": 32,
+        "parity": 17,
+        "missing_data": 1,
+        "previous_dense_formula_products": 1024,
+        "candidate_asserted_products": 32
+      }
+    ],
+    "unreduced_case_retained": [
+      8,
+      9,
+      8
+    ],
+    "cycle_latency_throughput_claim": null
+  },
+  "local_arm64": {
+    "source": "b1a10e4e6a164cb5f8fdc212a455f7130e2e5e39",
+    "library": 389,
+    "integration": 162,
+    "doc": 10,
+    "parent_passed": 561,
+    "existing_ignored": 43,
+    "isolated_child_executions": 6,
+    "no_std": 261,
+    "native_unit": 228,
+    "native_cli": 29,
+    "native_total": 257,
+    "python_complete": 252,
+    "strict_codec_tool_and_compatibility_clippy": true,
+    "x86_all_target_clippy_compile_only": true,
+    "fmt_typos_diff": true
+  },
+  "guard_entry_tool": "9f935eef9c1af721165b245709897f7c4b9acc37",
+  "guard_tool_scope": "Existing strict zero-codec process-ownership entry only, not the executed codec or formal timing controller.",
+  "original_observers_active_at_postreview": true,
+  "package_member_counts": {
+    "core": 69,
+    "wasm": 6,
+    "core_new_relative_to_43d678b": [
+      "src/core/reconstruct/tests.rs",
+      "src/core/recovery_plan/tests.rs"
+    ],
+    "manifest_include_rule_unchanged": true,
+    "registry_upload": false
+  },
+  "scope_limit": "Planning arithmetic only. Ordinary encoding/full/data recovery and prepared-plan execution have no new throughput claim. All historical refused timing captures retain source labels and refusals. No new timing run. Final accepted published-baseline full ABBA/layout evidence and strict positive release preflight remain missing."
+}

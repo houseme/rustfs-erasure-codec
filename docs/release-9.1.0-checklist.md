@@ -1,6 +1,16 @@
 # 9.1.0 release preparation
 
-Current integrated native review (2026-10-24): PR #84 has been externally
+Current selective-planning candidate (2026-10-24): `b1a10e4` is based on
+main `e3a1c1c`. The [selective parity review](selective-parity-planning-2026-10-24.md)
+records the systematic-row substitution, `k*d` rather than `k²` planning products
+per requested parity row, independent dense oracles and 28 positive native Linux
+commands. Published-format/selective publication checks pass across six backend
+settings. Actual package lists are now 69/6, retaining the same include rule.
+These are functional/work-count results; final accepted full ABBA/layout and
+strict positive release preflight remain missing. Every older measurement and
+validation inventory below keeps its original source and counting convention.
+
+Historical integrated native review (2026-10-24): PR #84 has been externally
 merged. Executed source `43d678b` integrates main `0b10e7a`; reviewed main
 `801f499` has identical codec/test/build/WASM/workflow files and newer tool files.
 The [integrated native proof](gfni-tower-fusion-review-2026-10-24.md#integrated-main-native-compatibility-and-static-attribution-review)
