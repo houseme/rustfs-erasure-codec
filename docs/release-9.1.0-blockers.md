@@ -35,6 +35,10 @@ cache, with twenty positive Linux functional commands and exact published-9.0.0
 compatibility across six backend settings. It has no timing observations of its
 own; older refusals are not relabeled. Final accepted source-bound performance
 and strict positive preflight remain outstanding.
+The [new integrated-source plan](../benchmarks/release-9.1.0/2026-10-24/gf16-integrated-component-plan.json)
+retains all controls and adds portable-backend codec workflows: 42 cases / 168
+ABBA workers, with all original limits preserved. It does not replace complete
+published-version release geometry or any earlier refusal.
 
 ## GFNI component follow-through and cancellation fix
 
