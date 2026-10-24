@@ -1,5 +1,24 @@
 # 9.1.0 merged-candidate review
 
+Windows parity-row validation (2026-10-25): test/workflow fix `ad00e79` keeps
+runtime `31ccf7e` unchanged. All three Windows toolchains now pass the complete std
+suite and explicit 270-case debug/release contracts. The [Windows context review](borrowed-parity-rows-review-2026-10-25.md#windows-debug-allocation-context)
+retains the three original failures, exact policy controls, absolute-zero release
+results, complete case records and 12-input independent replay. The corrected gate
+still rejects 162 old wide allocations in each local parent profile. This is
+functional/resource validation; combined-source and performance/preflight gates
+remain outstanding.
+
+Borrowed parity rows (2026-10-25): runtime `31ccf7e` on main `e758f11` replaces
+per-entry parity-row reference tables with a static borrowed matrix range. The
+[complete source-bound review](borrowed-parity-rows-review-2026-10-25.md) retains
+all 270 controls: 162 wide cases decrease from 1 / 4 / 10 / 33 allocation requests
+to zero, and 108 small controls remain zero. Fresh 573 parent / 268 no_std / 317 tool
+tests, published-9.0.0 and WASM compatibility pass; package inventories remain 71/6.
+Separate recovery PR #106 is not included. Allocation evidence is not end-to-end
+throughput or release approval; final combined source, accepted full performance
+evidence and strict positive preflight remain outstanding.
+
 Distribution compatibility (2026-10-25): merged main `4353935` has the same
 complete Git tree as executed `bfac8fc` / runtime `4aa4ee0`. The
 [artifact-level record](inverse-work-review-2026-10-25.md#distribution-and-consumer-compatibility)

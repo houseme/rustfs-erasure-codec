@@ -649,7 +649,7 @@ impl crate::ReedSolomon<super::Field> {
                         row.push(data_decode_matrix.get(idx, col));
                     }
                 } else {
-                    let parity_row = parity_rows[idx - self.data_shard_count()];
+                    let parity_row = parity_rows.get_row(idx - self.data_shard_count());
                     for &col in &input_positions {
                         let mut acc = 0u8;
                         for i in 0..self.data_shard_count() {
