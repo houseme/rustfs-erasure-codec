@@ -1,5 +1,8 @@
 # Sampling selection review — 2026-10-24
 
+Latest scope: [shared borrowed metadata model](#shared-borrowed-metadata-model).
+Earlier sections retain their original source identities and validation scope.
+
 Reviewed local main `76897f6518821208887cf62aa598c3400265a52e`, initially clean.
 The scope follows the latest borrowed-selection integration, native controller
 boundary fixes, reduced systematic decoder and GFNI row dispatch. The workspace
@@ -119,3 +122,65 @@ pre-rebase source scope. Rebase does not assign new identities to those probes
 or turn them into codec throughput, native x86, Linux capture or release proof.
 The following validation commit changes this document only; CI belongs to the
 PR head and is reported separately.
+
+
+## Shared borrowed metadata model
+
+This follow-up reviews PR #101 at
+`ddb4c08a81a885ab0531a3f225f66abdcb92f8e6`. Its verified implementation is
+`fcf12ca787ebebaae3b09852e363b0c65b1c2c7c`. The preceding typed selection removed JSON
+intermediates, but `normalize_ref` still returned a fully owned metadata table
+for every original worker row. Validation immediately discarded those copied
+schema field names and scalar strings.
+
+`Record` and `Hotspot` now share a metadata projection parameter. One scalar
+normalizer, alias resolver and row normalizer serves both projections. Borrowed
+validation uses static schema names and `Cow` values tied to the original row;
+retained indices and ordinary report outputs choose owned keys/values before
+the metadata table is collected. This avoids a borrowed-table-to-owned-table
+rebuild. Hotspot exports continue retaining original raw provenance, so they
+validate a borrowed projection and discard it before updating the report.
+The bridge and persistent summary own individual values only at their output
+or retention boundaries. No alternative validator, runtime mode, cache or
+compatibility fallback is introduced.
+
+The same release-mode resource probe compares the PR head with the final four
+implementation files. The measurement scope and cumulative-allocation definition
+are the same as the earlier probe; fixture creation is outside the counter.
+
+| Profile | Allocations before → after | Requested bytes before → after |
+| --- | ---: | ---: |
+| smoke | 14,185 → 8,965 | 1,284,037 → 1,087,657 |
+| small_file | 95,103 → 64,479 | 8,912,593 → 7,759,441 |
+| hotspot | 11,680 → 8,896 | 928,511 → 822,527 |
+| stream | 17,877 → 12,477 | 1,602,489 → 1,405,029 |
+| Total | 138,845 → 94,817 | 12,727,630 → 11,074,654 |
+
+Complete sampling allocation requests decrease a further 31.71%; cumulative
+requested bytes decrease 12.99%, relative to the already optimized PR head.
+Ordinary smoke/small-file/stream report exports have exactly the same allocation
+counts and bytes as that head. The hotspot report's allocation requests decrease
+626 → 394 and requested bytes decrease 53,902 → 45,070. These are tool resource
+observations, with no elapsed-time, codec-throughput or release-approval claim.
+
+Four complete controller reports and 1,786 additional outcomes are byte-identical
+to the old binary. The outcomes include the previous 367 wire/scalar cases plus
+1,419 report/index/strict-validation outcomes: four report exports, four retained
+indices, 1,408 field mutations across all profiles, and three complete strict
+profiles. Extra raw fields, schema scalars, alias conflicts and error precedence
+retain their previous behavior. New regression tests additionally verify borrowed
+source slices and independent retained metadata after the input is consumed.
+
+All local follow-up gates pass: 316 tool tests (277 unit / 29 CLI / 10 controller
+CLI), strict host Clippy, all-target Linux and Windows GNU compilation, the four
+repository audits, formatting and diff checks. Windows compilation retains
+cfg-specific unused/dead-code warnings in untouched controller/test files;
+strict host Clippy has no warnings. Cross-compilation does not imply Windows
+execution. Codec source, encoding formats, observer templates, dependencies,
+lockfiles and all 623 historical JSON files remain unchanged by the follow-up.
+
+Final source snapshots, old/new executables, raw comparisons and local gate logs
+are retained under ignored `target/borrowed-model-review/`; normal sources contain
+no resource-probe allocator or measurement tests. CI for the original PR head is
+separate from this implementation's local verification. The documentation commit
+following the implementation changes this review only.
