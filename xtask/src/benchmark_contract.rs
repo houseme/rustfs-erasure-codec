@@ -3,6 +3,7 @@ use crate::{Result, artifact};
 use serde::Deserialize;
 use serde_json::Value;
 use std::{
+    borrow::Cow,
     collections::{BTreeMap, BTreeSet},
     path::Path,
     sync::LazyLock,
@@ -106,10 +107,11 @@ fn normalize_provenance(value: &Value, field: &str) -> Result<Option<String>> {
                 .join("|"),
         ));
     }
-    let mut text = if field == "schema_version" {
+    // Borrow string scalars until their final normalized value is retained.
+    let mut text: Cow<'_, str> = if field == "schema_version" {
         match value {
-            Value::String(s) => s.clone(),
-            Value::Number(n) => n.to_string(),
+            Value::String(s) => s.trim().into(),
+            Value::Number(n) => n.to_string().into(),
             Value::Bool(b) => if *b { "True" } else { "False" }.into(),
             _ => return Err("schema_version must be a scalar".into()),
         }
@@ -117,16 +119,16 @@ fn normalize_provenance(value: &Value, field: &str) -> Result<Option<String>> {
         value
             .as_str()
             .ok_or_else(|| format!("{field} must be a string"))?
-            .to_owned()
+            .trim()
+            .into()
     };
-    text = text.trim().to_owned();
     if text.is_empty() && field != "rustflags" {
         return Err(format!("{field} must not be empty when present").into());
     }
     if ["compiler", "cpu_model"].contains(&field) {
-        text = text.split_whitespace().collect::<Vec<_>>().join(" ");
-        if field == "compiler" {
-            text = text.strip_prefix("rustc ").unwrap_or(&text).to_owned();
+        text = text.split_whitespace().collect::<Vec<_>>().join(" ").into();
+        if field == "compiler" && text.starts_with("rustc ") {
+            text.to_mut().drain(.."rustc ".len());
         }
     }
     if field != "rustflags"
@@ -136,7 +138,7 @@ fn normalize_provenance(value: &Value, field: &str) -> Result<Option<String>> {
     {
         Ok(None)
     } else {
-        Ok(Some(text))
+        Ok(Some(text.into_owned()))
     }
 }
 
@@ -160,28 +162,34 @@ pub(crate) fn provenance_value(
         .flatten()
         .map(String::as_str)
         .chain(aliases.is_none().then_some(field));
-    let mut values = Vec::new();
-    for alias in names {
+    let mut first = None;
+    let mut conflict = false;
+    // Validate every alias before reporting a conflict, including aliases
+    // after a disagreement: malformed scalar errors retain their precedence.
+    for alias in names.clone() {
         if let Some(value) = record.get(alias)
             && let Some(value) = normalize_provenance(value, field)?
         {
-            values.push((alias, value));
+            if let Some(first) = &first {
+                conflict |= value != *first;
+            } else {
+                first = Some(value);
+            }
         }
     }
-    if let Some((_, first)) = values.first()
-        && values.iter().any(|(_, value)| value != first)
-    {
-        return Err(format!(
-            "conflicting aliases for {field}: {}",
-            values
-                .iter()
-                .map(|(name, _)| *name)
-                .collect::<Vec<_>>()
-                .join(", ")
-        )
-        .into());
+    if conflict {
+        // The uncommon error path alone needs the complete alias-name list.
+        let mut present = Vec::new();
+        for alias in names {
+            if let Some(value) = record.get(alias)
+                && normalize_provenance(value, field)?.is_some()
+            {
+                present.push(alias);
+            }
+        }
+        return Err(format!("conflicting aliases for {field}: {}", present.join(", ")).into());
     }
-    Ok(values.into_iter().next().map(|(_, value)| value))
+    Ok(first)
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -760,6 +768,70 @@ mod tests {
         conflict["cpu"] = "another CPU".into();
         assert!(normalize(conflict, true).is_err());
     }
+    #[test]
+    fn provenance_scalars_preserve_legacy_whitespace_unknown_and_schema_rules() {
+        for (field, value, expected) in [
+            ("backend", json!("  rust-neon\t"), Some("rust-neon")),
+            ("backend", json!("  UnKnOwN  "), None),
+            ("backend", Value::Null, None),
+            ("rustflags", json!(" \t "), Some("")),
+            ("rustflags", json!(" unknown "), Some("unknown")),
+            ("schema_version", json!(true), Some("True")),
+            ("schema_version", json!(false), Some("False")),
+            ("schema_version", json!(1.5), Some("1.5")),
+            ("schema_version", json!(" 01 "), Some("01")),
+            (
+                "compiler",
+                json!(" rustc\t 1.99.1   (example) "),
+                Some("1.99.1 (example)"),
+            ),
+            (
+                "compiler",
+                json!("rustc rustc 1.99.1"),
+                Some("rustc 1.99.1"),
+            ),
+            ("cpu_model", json!(" A\u{2003}B "), Some("A B")),
+        ] {
+            assert_eq!(
+                normalize_provenance(&value, field).unwrap().as_deref(),
+                expected,
+                "{field}: {value}"
+            );
+        }
+        assert_eq!(
+            normalize_provenance(&json!("  "), "backend")
+                .unwrap_err()
+                .to_string(),
+            "backend must not be empty when present"
+        );
+    }
+
+    #[test]
+    fn aliases_validate_all_scalars_before_reporting_the_complete_conflict() {
+        let row = json!({"compiler":"rustc 1","compiler_version":"rustc 2","rustc":"rustc 1","rustc_version":null});
+        assert_eq!(
+            provenance_value(row.as_object().unwrap(), "compiler")
+                .unwrap_err()
+                .to_string(),
+            "conflicting aliases for compiler: compiler, compiler_version, rustc"
+        );
+        let mut malformed = row;
+        malformed["rustc_version"] = true.into();
+        assert_eq!(
+            provenance_value(malformed.as_object().unwrap(), "compiler")
+                .unwrap_err()
+                .to_string(),
+            "compiler must be a string"
+        );
+        let row = json!({"compiler":"unknown","compiler_version":"rustc 2","rustc":"2","rustc_version":"none"});
+        assert_eq!(
+            provenance_value(row.as_object().unwrap(), "compiler")
+                .unwrap()
+                .as_deref(),
+            Some("2")
+        );
+    }
+
     #[test]
     fn malformed_fields_and_unmatched_extra_rows_are_all_rejected() {
         for field in CONTRACT
