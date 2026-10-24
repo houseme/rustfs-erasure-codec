@@ -1,6 +1,7 @@
 # Sampling selection review — 2026-10-24
 
-Latest scope: [shared borrowed metadata model](#shared-borrowed-metadata-model).
+Latest integration: [shared tooling architecture review](tooling-architecture-review-2026-10-24.md).
+Implementation/resource scope: [shared borrowed metadata model](#shared-borrowed-metadata-model).
 Earlier sections retain their original source identities and validation scope.
 
 Reviewed local main `76897f6518821208887cf62aa598c3400265a52e`, initially clean.
