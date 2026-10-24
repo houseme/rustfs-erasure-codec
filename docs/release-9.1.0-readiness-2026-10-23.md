@@ -1,5 +1,15 @@
 # 9.1.0 merged-candidate review
 
+Borrowed parity rows (2026-10-25): runtime `31ccf7e` on main `e758f11` replaces
+per-entry parity-row reference tables with a static borrowed matrix range. The
+[complete source-bound review](borrowed-parity-rows-review-2026-10-25.md) retains
+all 270 controls: 162 wide cases decrease from 1 / 4 / 10 / 33 allocation requests
+to zero, and 108 small controls remain zero. Fresh 573 parent / 268 no_std / 317 tool
+tests, published-9.0.0 and WASM compatibility pass; package inventories remain 71/6.
+Separate recovery PR #106 is not included. Allocation evidence is not end-to-end
+throughput or release approval; final combined source, accepted full performance
+evidence and strict positive preflight remain outstanding.
+
 Distribution compatibility (2026-10-25): merged main `4353935` has the same
 complete Git tree as executed `bfac8fc` / runtime `4aa4ee0`. The
 [artifact-level record](inverse-work-review-2026-10-25.md#distribution-and-consumer-compatibility)
