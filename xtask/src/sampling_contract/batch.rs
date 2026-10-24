@@ -55,34 +55,78 @@ pub(crate) fn analyze(
     output: &Output,
 ) -> Result<Value> {
     let groups = validate_groups(records, contract, expected, cpus, page)?;
-    if matches!(output, Output::Groups) {
-        return Ok(json!({"groups":groups,"selected_indices":[],"spreads":[],"descriptions":[]}));
-    }
-    let mut selected = Vec::new();
-    let mut spreads = Vec::new();
-    let mut descriptions = Vec::new();
-    for (case, indices) in &groups {
-        let rows: Vec<_> = indices.iter().map(|i| &records[*i]).collect();
-        match output {
-            Output::Groups => {}
-            Output::Select { metric, diagnostic } => {
-                let (offset, spread) = select(&rows, case, metric, *diagnostic)?;
-                selected.push(indices[offset]);
-                spreads.push(spread);
-            }
-            Output::Describe { fixtures } => {
+    match output {
+        Output::Groups => {
+            Ok(json!({"groups":groups,"selected_indices":[],"spreads":[],"descriptions":[]}))
+        }
+        Output::Select { metric, diagnostic } => {
+            let selection = select_groups(records, &groups, metric, *diagnostic)?;
+            Ok(json!({
+                "groups": groups,
+                "selected_indices": selection.indices,
+                "spreads": selection.spreads,
+                "descriptions": [],
+                "preparation": selection.preparation.catalog(),
+                "worker_starts": selection.preparation.worker_starts,
+            }))
+        }
+        Output::Describe { fixtures } => {
+            let mut descriptions = Vec::with_capacity(groups.len());
+            for (case, indices) in &groups {
+                let rows: Vec<_> = indices.iter().map(|i| &records[*i]).collect();
                 descriptions.push(json!({"case":case,"detail":baseline::describe(&rows,crate::release_rows::metric(&contract.profile)?,fixtures.get(*case))?}));
             }
+            descriptions.sort_by(|a, b| a["case"].as_str().cmp(&b["case"].as_str()));
+            Ok(
+                json!({"groups":groups,"selected_indices":[],"spreads":[],"descriptions":descriptions}),
+            )
         }
     }
-    descriptions.sort_by(|a, b| a["case"].as_str().cmp(&b["case"].as_str()));
-    let mut result = json!({"groups":groups,"selected_indices":selected,"spreads":spreads,"descriptions":descriptions});
-    if matches!(output, Output::Select { .. }) {
-        let preparation = super::preparation::Preparation::new(records, false)?;
-        result["preparation"] = preparation.catalog();
-        result["worker_starts"] = json!(preparation.worker_starts);
+}
+
+/// Internal results stay typed and retain borrowed preparation until projection.
+pub(crate) struct Selection<'a> {
+    pub(crate) indices: Vec<usize>,
+    pub(crate) spreads: Vec<Value>,
+    pub(crate) preparation: super::preparation::Preparation<'a>,
+}
+
+pub(crate) fn select_profile<'a>(
+    records: &'a [Value],
+    contract: &crate::release_rows::Request,
+    expected: &BTreeSet<String>,
+    cpus: Option<&[u64]>,
+    page: Option<u64>,
+    diagnostic: bool,
+) -> Result<Selection<'a>> {
+    let groups = validate_groups(records, contract, expected, cpus, page)?;
+    select_groups(
+        records,
+        &groups,
+        crate::release_rows::metric(&contract.profile)?,
+        diagnostic,
+    )
+}
+
+fn select_groups<'a>(
+    records: &'a [Value],
+    groups: &[(&str, Vec<usize>)],
+    metric: &str,
+    diagnostic: bool,
+) -> Result<Selection<'a>> {
+    let mut indices = Vec::with_capacity(groups.len());
+    let mut spreads = Vec::with_capacity(groups.len());
+    for (case, group) in groups {
+        let rows: Vec<_> = group.iter().map(|&index| &records[index]).collect();
+        let (offset, spread) = select(&rows, case, metric, diagnostic)?;
+        indices.push(group[offset]);
+        spreads.push(spread);
     }
-    Ok(result)
+    Ok(Selection {
+        indices,
+        spreads,
+        preparation: super::preparation::Preparation::new(records, false)?,
+    })
 }
 
 /// Preserve original indices while sharing full worker validation with inventories.

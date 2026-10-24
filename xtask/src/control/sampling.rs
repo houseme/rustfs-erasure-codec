@@ -248,27 +248,27 @@ pub(super) fn select(
         complete: false,
     };
     let cpus: Option<Vec<u64>> = serde_json::from_value(cpus.clone())?;
-    let mut selected = sampling_contract::batch::analyze(
+    let selected = sampling_contract::batch::select_profile(
         records,
         &contract,
         &catalog(profile)?,
         cpus.as_deref(),
         serde_json::from_value(page.clone())?,
-        &sampling_contract::batch::Output::Select {
-            metric: crate::release_rows::metric(profile)?.into(),
-            diagnostic,
-        },
+        diagnostic,
     )?;
-    let indices: Vec<usize> = serde_json::from_value(selected["selected_indices"].take())?;
-    let rows: Vec<_> = indices
+    let rows: Vec<_> = selected
+        .indices
         .into_iter()
         .map(|i| records[i]["rows"][0].clone())
         .collect();
     Ok(Value::Object(serde_json::Map::from_iter([
         ("selected".into(), rows.into()),
-        ("spreads".into(), selected["spreads"].take()),
-        ("preparation".into(), selected["preparation"].take()),
-        ("worker_starts".into(), selected["worker_starts"].take()),
+        ("spreads".into(), selected.spreads.into()),
+        ("preparation".into(), selected.preparation.catalog()),
+        (
+            "worker_starts".into(),
+            serde_json::to_value(selected.preparation.worker_starts)?,
+        ),
     ])))
 }
 /// Adapt the ordered wire counts once for both current and frozen Rust models.
