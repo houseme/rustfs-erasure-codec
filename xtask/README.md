@@ -54,6 +54,7 @@ cargo test --locked --package xtask
 | Python complete sampling-directory coordination and member adapters | Shared `sampling_contract::campaign`, calibration, batch, preparation and journal models; existing `sampling-contract` command | All 24 original calibration/phase members, optional worker journal, declared hashes, exact selected medians, conditional traces, controlled provenance and existing refusal details |
 | Python original summary normalization, path helper and statistical transport | Same campaign snapshot and shared borrowed `baseline::analyze_campaign` model | All 16 summaries, first-seen case order, original hashes, fixed medians, distribution-refusal precedence and unchanged complete report fields |
 | Python original harness byte assembly and block hashing | Shared `fingerprint::harness` and existing source reader/block selector | Five raw file streams, eleven first-selected declarations, original separators, universal unit-source newlines and fresh source reads |
+| Python campaign source/environment validation and runtime prequery | Shared campaign bindings and runtime model in the existing replay frame | Fresh caller-owned Git/compiler observations, published baseline, same-tree rebase, strict reference flags, original context equality and unchanged reports |
 
 The obsolete implementations and their Python test entry points are removed.
 Rust unit and executable tests cover the retained contracts. The migration was
@@ -326,9 +327,9 @@ The initial inventory contained **56 Python files / 13,120 lines**. Twenty-three
 original files were removed (twelve implementations/helpers and eleven test
 modules). One native-tool compatibility binding remains. The intermediate Python
 normalization library was also removed after its consumers moved to Rust.
-The remaining **34 files / 7,488 lines** consist of 15 production/helper modules
+The remaining **34 files / 7,461 lines** consist of 15 production/helper modules
 and 19 test/fixture modules: about 43% fewer Python lines overall. The current
-production/helper and test/fixture split is 3,276/4,212 lines. This count
+production/helper and test/fixture split is 3,247/4,214 lines. This count
 includes the latest merged VM observer/cleanup checks, native dynamic envelopes
 and original-journal/paired-directory integration. Layout consolidation removes
 349 lines from its immediate parent (`75bc034`, 8,486 lines). The
@@ -511,13 +512,16 @@ added to a member manifest, and no package is uploaded.
 
 ## Current branch review and compatibility
 
-The latest owned-row/harness implementation is frozen at `adbac76` on main
-`5ca2c20`, following the merge of PR #80 and the GF16 norm optimization. Codec,
-build inputs, dependencies and lockfiles match that main. All 15 final checks
-pass: 255 native, 252 Python and 538 top-level codec tests, ten doctests,
-strict tooling Clippy, Linux tool compilation, no_std, published/local
-compatibility, all audits and actual package reconstruction. The extracted
-package passes 372 library tests. See the [owned-row/harness review](../docs/global-review-9.1.0-2026-10-23.md#owned-release-rows-and-native-harness-fingerprints).
+The latest campaign binding integration is frozen at `51194e9` on main `801f499`.
+Codec sources, build inputs, dependencies and lockfiles match that main. All 15
+final checks pass: 257 native, 252 Python and 547 top-level codec tests,
+ten doctests, strict tooling Clippy, Linux tool compilation, no_std, compatibility,
+all audits and actual package reconstruction. The extracted package passes
+379 library tests. See the [campaign binding review](../docs/global-review-9.1.0-2026-10-23.md#native-campaign-source-and-environment-bindings).
+
+The preceding owned-row/harness integration is frozen at `adbac76`. Its
+[owned-row/harness review](../docs/global-review-9.1.0-2026-10-23.md#owned-release-rows-and-native-harness-fingerprints)
+retains its original validation scope.
 
 The preceding summary/statistics integration is frozen at `882efff`. Its
 [summary/statistics review](../docs/global-review-9.1.0-2026-10-23.md#original-summaries-and-borrowed-campaign-statistics)
