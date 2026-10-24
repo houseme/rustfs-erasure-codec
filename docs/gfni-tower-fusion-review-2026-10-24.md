@@ -359,3 +359,50 @@ refusals; their favorable ratios do not approve the combined source. PR #84
 remains a reviewable draft. Final-source/tool/lock binding, accepted complete
 ABBA/layout evidence and strict positive release preflight are still outstanding.
 No tag, registry upload or automatic PR merge is performed.
+
+
+## Integrated-source component plan
+
+The [new predeclared plan](../benchmarks/release-9.1.0/2026-10-24/gf16-integrated-component-plan.json)
+compares the actual combined runtime `7914ac4` with its native-only predecessor
+`2f16f8b`. It retains the earlier twenty cases and adds complete scalar/SSSE3/AVX2
+arithmetic-backend counterparts for general overwrite/XOR and custom-matrix
+encoding/warmed recovery at 1,024 and 1,025 elements. The full catalog has
+42 cases / 168 phase-major ABBA measurement workers / 2,016 observations
+(504 warmups and 1,512 measurements), plus all 84 one-iteration payload checks
+and both independent power-of-two calibrations.
+
+The private harness bytes, inner operation loops, three warmups/nine samples,
+200 ms calibration target, conservative common counts and original 10% width /
+5% repeat / 12% regression / 100 ms minimum-batch limits remain unchanged. All
+statistical refusals are evaluated after every planned worker; actual execution
+errors remain distinct. A complete independent reader is prepared separately
+from the controller. The existing exact-source twenty-command Linux correctness
+review is bound and reused; it is not rerun or relabeled as timing. Both fresh
+measurement binaries must be rebuilt with metrics disabled outside the source
+checkouts. Sources, plan, harness and guard are frozen before the single launch.
+
+The backend label identifies GF8 arithmetic, not the portable layout instruction
+stream. Payload witnesses do not track dynamic destinations or physical pages.
+The warmed-recovery workload retains the codec/inversion cache but drops two
+missing Option outputs each iteration and includes allocation/reconstruction/drop;
+it is not the separate owned-buffer zero-allocation resource test. Wall/calling-
+thread CPU batch windows do not measure exclusive API cycles; faults are
+unmeasured by this component harness. No allocator tuning, profiler, hardware
+counter or timing normalization is added.
+
+This source-changing comparison preserves every prior rejected cohort. It is a
+bounded unpublished-source diagnostic, not complete published-9.0.0 release
+geometry or approval. The resource guard requires the previous owner's complete
+cleanup, original observers and free resources; an empty cgroup is insufficient.
+Actual launch and terminal checks are recorded separately from this immutable
+plan. Final accepted full-release evidence and strict positive preflight remain
+outstanding; the user's automation stays paused.
+
+
+The integrated-source plan has launched once after the previous controlled owner
+completed and restored its resources. Its sole-owner entry preflight passes with
+zero codec observations; the first identity/heartbeat review is in preheat.
+This does not imply any timing row or result has completed. Frozen sources,
+counts, controller and guard remain unchanged while it runs; statistical
+refusals must not stop the remaining planned workers.
