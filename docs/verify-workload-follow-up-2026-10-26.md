@@ -108,3 +108,9 @@ stable Rust 1.99.1 / macOS ARM64：
 历史 ABBA 漂移失败记录保持，本轮没有重新计时、吞吐提升结论或发布性能验收。
 
 本轮执行 commit，未 push、创建 PR、打 tag 或发布 crate。
+
+## 后续进展
+
+第 5 项的并发缓存生命周期测量与替代策略取舍见
+[GF16 缓存生命周期跟进](gf16-cache-lifecycle-follow-up-2026-10-26.md)。
+上文保留本轮提交时的资源结果与状态。

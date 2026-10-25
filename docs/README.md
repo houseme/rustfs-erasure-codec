@@ -20,6 +20,7 @@ This directory contains development documentation, design documents, benchmark r
 | [leopard-lane-view-follow-up-2026-10-26.md](leopard-lane-view-follow-up-2026-10-26.md) | Reusable GF8/GF16 lane views across chunks, tail correctness and bounded allocation counts |
 | [gf16-parallel-views-follow-up-2026-10-26.md](gf16-parallel-views-follow-up-2026-10-26.md) | GF16 parallel output views bounded by existing job groups, with all-thread allocation evidence |
 | [verify-workload-follow-up-2026-10-26.md](verify-workload-follow-up-2026-10-26.md) | Complete verification resource catalog, validation precedence and exact wide view capacity |
+| [gf16-cache-lifecycle-follow-up-2026-10-26.md](gf16-cache-lifecycle-follow-up-2026-10-26.md) | Concurrent small/oversized cache lifecycle, live allocation peaks and policy trade-offs |
 | [global-review-9.1.0-2026-10-22.md](global-review-9.1.0-2026-10-22.md) | Archived earlier architecture review and bounded incremental-update resources |
 | [drift-analysis-9.1.0-2026-10-22.md](drift-analysis-9.1.0-2026-10-22.md) | Current drift investigation, benchmark lifetime fixes and sparse incremental-update validation |
 | [README-performance-index.md](README-performance-index.md) | Performance document index |

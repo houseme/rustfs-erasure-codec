@@ -1,0 +1,78 @@
+--- a/src/core/leopard_gf16/decode.rs
++++ b/src/core/leopard_gf16/decode.rs
+@@ -70,12 +70,17 @@
+     #[cfg(feature = "std")]
+     let cacheable = cacheable_decode_size(lanes, chunk_len);
+     #[cfg(feature = "std")]
+-    let mut buffers = DECODE_BUFFER_CACHE.with(|cache| {
+-        cache
+-            .take()
+-            .filter(|buffers| buffers.work.can_reuse(lanes, chunk_len))
+-            .unwrap_or_else(|| DecodeBuffers::new(lanes, chunk_len))
+-    });
++    let mut buffers = DECODE_BUFFER_CACHE
++        .with(|cache| {
++            if cacheable {
++                cache
++                    .take()
++                    .filter(|buffers| buffers.work.can_reuse(lanes, chunk_len))
++            } else {
++                None
++            }
++        })
++        .unwrap_or_else(|| DecodeBuffers::new(lanes, chunk_len));
+     #[cfg(not(feature = "std"))]
+     let mut buffers = DecodeBuffers::new(lanes, chunk_len);
+
+--- a/tests/leopard_cache_lifecycle.rs
++++ b/tests/leopard_cache_lifecycle.rs
+@@ -139,10 +139,8 @@
+     }
+ }
+
+-const POLICY: &str = "drop_smaller_cache";
++const POLICY: &str = "preserve_smaller_cache";
+ const LEN: usize = 64 * 1024;
+-// 16 FFT work lanes plus one conversion/scaling lane, each LEN bytes.
+-const SMALL_WORK_BYTES: usize = 17 * LEN;
+ const PHASES: [(bool, &str); 7] = [
+     (false, "small_hit"),
+     (true, "oversized_first"),
+@@ -283,18 +281,13 @@
+                 })
+                 .collect();
+             ready.wait();
+-            let mut previous_large = false;
+             let mut valid = true;
+             for (oversized, name) in PHASES {
+                 let sample = measure(|| {
+                     start.wait();
+                     done.wait();
+                 });
+-                let retained = match (previous_large, oversized) {
+-                    (false, true) => -(threads as i128 * SMALL_WORK_BYTES as i128),
+-                    (true, false) => threads as i128 * SMALL_WORK_BYTES as i128,
+-                    _ => 0,
+-                };
++                let retained = 0; // The alternative preserves the small workspace.
+                 // Tiny per-thread synchronization metadata can be initialized
+                 // on first contention. Keep a bounded allowance, not an exact
+                 // process-wide peak target that depends on worker overlap.
+@@ -303,9 +296,6 @@
+                 let payload = if oversized {
+                     // 64 FFT lanes, one scratch lane and one temporary output.
+                     threads * 66 * LEN
+-                } else if previous_large {
+-                    // Rebuild 16 work lanes and scratch; publish one output.
+-                    threads * 18 * LEN
+                 } else {
+                     threads * LEN
+                 };
+@@ -322,7 +312,6 @@
+                     sample.calls,
+                     sample.requested
+                 );
+-                previous_large = oversized;
+                 release.wait();
+             }
+             for worker in workers {
