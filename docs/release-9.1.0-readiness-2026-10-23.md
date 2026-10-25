@@ -1,5 +1,16 @@
 # 9.1.0 merged-candidate review
 
+Merged encoding/recovery source (2026-10-25): main `0225f5c` includes externally
+merged PRs #106 and #107. The [current integration review](combined-coding-local-review-2026-10-25.md#merged-main-source-review-2026-10-25)
+checks the complete CI-head tree and all 1,180 non-document files against rehearsal
+`6193ad3`, all 287 tested inputs and all 68 original crate members. The complete
+32-input replay is exact and preserves all 459 resource contracts without codec
+work. Both merged PRs have 31 successful ordinary CI checks and three skipped
+release-related checks. Actual main integration is checked; accepted full
+published-9.0.0 ABBA/paired-layout evidence, final source/tool/lock freeze and
+strict positive release preflight remain outstanding. No new timing or release
+approval is produced; all prior results retain their original source identities.
+
 Rebased parity-row integration (2026-10-25): source `2a9e65d` now includes
 main `39ca9cf` and #106's recovery changes. The
 [current rebase record](borrowed-parity-rows-review-2026-10-25.md#rebase-onto-main-2026-10-25)
