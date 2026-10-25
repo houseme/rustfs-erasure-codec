@@ -497,10 +497,10 @@ fn compute_reconstruct_chunk(
     Ok(())
 }
 
-/// Reconstruct each 64 KiB chunk on the rayon pool. Chunks touch disjoint output
-/// byte ranges, so the per-shard outputs are split into per-chunk mutable slices
-/// (a safe `chunks_mut` transpose) and each job owns its slice group plus a
-/// per-thread work buffer reused across the jobs that thread runs.
+/// Reconstruct 64 KiB chunks in the existing contiguous Rayon groups. Split
+/// each output once per group, so the staged reference tables are bounded by
+/// the job budget rather than shard length. Each group owns disjoint output
+/// ranges and leases the same per-thread work buffers as before.
 #[cfg(feature = "std")]
 #[allow(clippy::too_many_arguments)]
 fn reconstruct_chunks_parallel(
@@ -519,70 +519,71 @@ fn reconstruct_chunks_parallel(
 ) -> Result<(), Error> {
     use rayon::prelude::*;
 
-    let chunk_bytes = driver.chunk_size * 2;
-    // One mutable-chunk iterator per missing shard, in the same order as `missing`.
-    let mut per_shard_chunks: Vec<_> = outputs
-        .iter_mut()
-        .enumerate()
-        .filter(|(i, out)| !present[*i] && !out.is_empty())
-        .map(|(_, out)| out.chunks_mut(chunk_bytes))
-        .collect();
-
-    // Transpose to per-chunk jobs: (offset, size, one output slice per missing shard).
-    let mut jobs: Vec<(usize, usize, Vec<&mut [u8]>)> = Vec::new();
-    let mut offset = 0usize;
-    while offset < shard_u16_len {
-        let end = core::cmp::min(offset + driver.chunk_size, shard_u16_len);
-        let slices: Vec<&mut [u8]> = per_shard_chunks
-            .iter_mut()
-            .map(|it| it.next().expect("chunk count matches shard length"))
-            .collect();
-        jobs.push((offset, end - offset, slices));
-        offset = end;
-    }
-    drop(per_shard_chunks);
-
+    let chunk_count = shard_u16_len.div_ceil(driver.chunk_size);
     let available_jobs = rayon::current_num_threads().max(1);
     let max_jobs = if max_parallel_jobs == 0 {
         available_jobs
     } else {
         max_parallel_jobs.min(available_jobs).max(1)
     };
-    let chunks_per_job = jobs.len().div_ceil(max_jobs).max(1);
-    jobs.par_chunks_mut(chunks_per_job).try_for_each(|group| {
-        with_decode_buffers(driver.n, chunk_cap, |buffers| {
-            let DecodeBuffers { work, scratch } = buffers;
-            for (offset, size, chunk_out) in group {
-                let (offset, size) = (*offset, *size);
-                compute_reconstruct_chunk(
-                    work,
-                    scratch,
-                    offset,
-                    offset + size,
-                    size,
-                    present,
-                    input_data,
-                    err_locs,
-                    ifft_plan,
-                    fft_plan,
-                    tables,
-                    driver,
-                )?;
-                // Input conversion is complete; scaling can overwrite its scratch.
-                let out_scratch = &mut *scratch;
-                for (k, &(_, work_idx, inv_err)) in missing.iter().enumerate() {
-                    mulgf16(
-                        &mut out_scratch[..size],
-                        &work.lane(work_idx)[..size],
-                        inv_err,
-                        tables,
-                    );
-                    super::ops::work_u16_to_user_bytes(&out_scratch[..size], chunk_out[k]);
+    // These are the same contiguous chunk groups as par_chunks_mut previously
+    // formed from the per-chunk job table. Only their view preparation changes.
+    let chunks_per_job = chunk_count.div_ceil(max_jobs).max(1);
+    let chunk_bytes = driver.chunk_size * 2;
+    let group_bytes = chunks_per_job.saturating_mul(chunk_bytes);
+    let mut per_shard_groups: Vec<_> = outputs
+        .iter_mut()
+        .enumerate()
+        .filter(|(i, out)| !present[*i] && !out.is_empty())
+        .map(|(_, out)| out.chunks_mut(group_bytes))
+        .collect();
+
+    // Each item stores its absolute u16 range and relative output byte slices.
+    let mut jobs = Vec::with_capacity(chunk_count.div_ceil(chunks_per_job));
+    let mut offset = 0usize;
+    while offset < driver.shard_size {
+        let end = offset.saturating_add(group_bytes).min(driver.shard_size);
+        let slices: Vec<&mut [u8]> = per_shard_groups
+            .iter_mut()
+            .map(|it| it.next().expect("group count matches shard length"))
+            .collect();
+        jobs.push((offset / 2, end / 2, slices));
+        offset = end;
+    }
+    drop(per_shard_groups);
+
+    jobs.par_iter_mut()
+        .try_for_each(|(start, group_end, group_out)| {
+            let start = *start;
+            with_decode_buffers(driver.n, chunk_cap, |buffers| {
+                let DecodeBuffers { work, scratch } = buffers;
+                let mut offset = start;
+                while offset < *group_end {
+                    let end = (offset + driver.chunk_size).min(*group_end);
+                    let size = end - offset;
+                    compute_reconstruct_chunk(
+                        work, scratch, offset, end, size, present, input_data, err_locs, ifft_plan,
+                        fft_plan, tables, driver,
+                    )?;
+                    // Input conversion is complete; scaling can overwrite its scratch.
+                    let out_scratch = &mut *scratch;
+                    for (k, &(_, work_idx, inv_err)) in missing.iter().enumerate() {
+                        mulgf16(
+                            &mut out_scratch[..size],
+                            &work.lane(work_idx)[..size],
+                            inv_err,
+                            tables,
+                        );
+                        super::ops::work_u16_to_user_bytes(
+                            &out_scratch[..size],
+                            &mut group_out[k][(offset - start) * 2..(end - start) * 2],
+                        );
+                    }
+                    offset = end;
                 }
-            }
-            Ok(())
+                Ok(())
+            })
         })
-    })
 }
 
 pub(super) fn ifft_dit_decode16_with_plan(
