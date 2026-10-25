@@ -200,11 +200,23 @@ impl<F: Field> ReedSolomon<F> {
             return Ok(());
         }
         let data_rows = plan.data_rows();
-        let mut data_destinations: SmallVec<[&mut T; 32]> = SmallVec::new();
-        let mut parity_destinations: SmallVec<[&mut T; 32]> = SmallVec::new();
-        let mut recovered_data: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
+        let data_target_count = plan.data_targets().len();
+        let parity_target_count = plan.parity_targets().len();
+        let mut data_destinations: SmallVec<[&mut T; 32]> =
+            SmallVec::with_capacity(data_target_count);
+        let mut parity_destinations: SmallVec<[&mut T; 32]> =
+            SmallVec::with_capacity(parity_target_count);
+        // Only ordinary mixed recovery reads completed data outputs again.
+        let recovered_capacity = if plan.direct_parity || parity_target_count == 0 {
+            0
+        } else {
+            data_target_count
+        };
+        let mut recovered_data: SmallVec<[&[F::Elem]; 32]> =
+            SmallVec::with_capacity(recovered_capacity);
         // Drop the merged input views before the output owners they borrow.
-        let mut inputs: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
+        let mut inputs: SmallVec<[&[F::Elem]; 32]> =
+            SmallVec::with_capacity(plan.shape.valid_indices.len());
         let mut survivors = plan.shape.valid_indices.iter().copied().peekable();
         let mut data_targets = plan.data_targets().iter().copied().peekable();
         let mut parity_targets = plan.parity_targets().iter().copied().peekable();
@@ -297,10 +309,28 @@ impl<F: Field> ReedSolomon<F> {
             return Ok(());
         }
         let rows = plan.row_views(self);
-        let (data_rows, parity_rows) = rows.split_at(plan.data_targets().len());
-        let mut data_outputs: SmallVec<[&mut [F::Elem]; 32]> = SmallVec::new();
-        let mut parity_outputs: SmallVec<[&mut [F::Elem]; 32]> = SmallVec::new();
-        let mut inputs: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
+        let data_target_count = plan.data_targets().len();
+        let parity_target_count = plan.parity_targets().len();
+        let (data_rows, parity_rows) = rows.split_at(data_target_count);
+        // Composed rows execute as one data-then-parity stage. Collect those
+        // disjoint views directly into its final table instead of extending a
+        // second wide table after collection.
+        let data_output_count = if plan.direct_parity {
+            data_target_count + parity_target_count
+        } else {
+            data_target_count
+        };
+        let parity_output_count = if plan.direct_parity {
+            0
+        } else {
+            parity_target_count
+        };
+        let mut data_outputs: SmallVec<[&mut [F::Elem]; 32]> =
+            SmallVec::with_capacity(data_output_count);
+        let mut parity_outputs: SmallVec<[&mut [F::Elem]; 32]> =
+            SmallVec::with_capacity(parity_output_count);
+        let mut inputs: SmallVec<[&[F::Elem]; 32]> =
+            SmallVec::with_capacity(plan.shape.valid_indices.len());
         let mut survivors = plan.shape.valid_indices.iter().copied().peekable();
         let mut data_targets = plan.data_targets().iter().copied().peekable();
         let mut parity_targets = plan.parity_targets().iter().copied().peekable();
@@ -328,21 +358,24 @@ impl<F: Field> ReedSolomon<F> {
                     .get_or_insert_with(|| vec![F::zero(); plan.shape.shard_len])
                     .as_mut_slice();
                 debug_assert_eq!(output.len(), plan.shape.shard_len);
-                parity_outputs.push(output);
+                if plan.direct_parity {
+                    data_outputs.push(output);
+                } else {
+                    parity_outputs.push(output);
+                }
                 parity_targets.next();
             }
         }
         if plan.direct_parity {
             #[cfg(feature = "std")]
             {
-                if !data_outputs.is_empty() {
+                if data_target_count != 0 {
                     self.runtime_profile_metrics
-                        .record_reconstruct_data_stage(plan.shape.shard_len, data_outputs.len());
+                        .record_reconstruct_data_stage(plan.shape.shard_len, data_target_count);
                 }
                 self.runtime_profile_metrics
-                    .record_reconstruct_parity_stage(plan.shape.shard_len, parity_outputs.len());
+                    .record_reconstruct_parity_stage(plan.shape.shard_len, parity_target_count);
             }
-            data_outputs.extend(parity_outputs);
             compute(true, &rows, &inputs, &mut data_outputs);
             return Ok(());
         }

@@ -501,16 +501,17 @@ mod allocation_regressions {
                         erase(&mut slots);
                         codec.reconstruct(&mut slots).unwrap();
                         erase(&mut slots);
-                        // Both the old survivor list and an unnecessary merged
-                        // list grow from 32 to 64 slice references. Only the
-                        // existing survivor storage is needed after decoding.
-                        let view_bytes = 64 * core::mem::size_of::<&[F::Elem]>();
+                        // The selected-input table uses its exact planned width.
+                        // Reuse it after decoding instead of allocating a second
+                        // merged table, regardless of that table's growth size.
+                        let view_bytes = data * core::mem::size_of::<&[F::Elem]>();
+                        let metadata_calls = 2 + usize::from(missing.len() + 1 > 32);
                         SIZED_CALLS.with(|sized| sized.set((view_bytes, 0)));
                         let calls = allocation_calls(|| codec.reconstruct(&mut slots).unwrap());
                         let view_calls = SIZED_CALLS.with(|sized| sized.replace((0, 0)).1);
-                        budget_met &= view_calls == 1;
+                        budget_met &= view_calls == 1 && calls == metadata_calls;
                         println!(
-                            "MIXED_VIEW_ALLOCATION field_order={} matrix={mode:?} data={data} pattern={pattern} entry=generic view_calls={view_calls} total_calls={calls}",
+                            "MIXED_VIEW_ALLOCATION field_order={} matrix={mode:?} data={data} pattern={pattern} entry=generic view_calls={view_calls} view_bytes={view_bytes} total_calls={calls} budget_calls={metadata_calls}",
                             F::ORDER
                         );
                         for (slot, expected) in slots.iter().zip(&original) {
@@ -562,15 +563,16 @@ mod allocation_regressions {
     fn bulk_workspace_recovery_borrows_plan_rows_without_a_reference_table() {
         // Workspace execution has no policy-environment query or plan/cache
         // construction in the measured window. Count destination buffers and
-        // the existing input/output view growth independently of row views.
-        fn view_growth(count: usize) -> usize {
-            let mut capacity = 32;
-            let mut requests = 0;
-            while capacity < count {
-                capacity *= 2;
-                requests += 1;
+        // exact planned input/output storage independently of row views.
+        fn view_allocations(count: usize) -> usize {
+            usize::from(count > 32)
+        }
+        fn view_bytes(count: usize) -> usize {
+            if count > 32 {
+                count * core::mem::size_of::<&mut [u8]>()
+            } else {
+                0
             }
-            requests
         }
 
         let mut budget_met = true;
@@ -648,13 +650,21 @@ mod allocation_regressions {
                         0
                     } else {
                         missing
-                            + view_growth(data)
-                            + view_growth(missing_data)
-                            + view_growth(missing_parity)
+                            + view_allocations(data)
+                            + view_allocations(missing_data)
+                            + view_allocations(missing_parity)
                     };
-                    budget_met &= calls == budget;
+                    let byte_budget = if missing == 0 {
+                        0
+                    } else {
+                        missing * 65
+                            + view_bytes(data)
+                            + view_bytes(missing_data)
+                            + view_bytes(missing_parity)
+                    };
+                    budget_met &= calls == budget && bytes == byte_budget;
                     println!(
-                        "BULK_ROW_VIEW_ALLOCATION matrix={mode:?} data={data} parity={parity} missing_data={missing_data} missing_parity={missing_parity} calls={calls} budget={budget} bytes={bytes}"
+                        "BULK_ROW_VIEW_ALLOCATION matrix={mode:?} data={data} parity={parity} missing_data={missing_data} missing_parity={missing_parity} calls={calls} budget={budget} bytes={bytes} byte_budget={byte_budget}"
                     );
                     assert_eq!(shards, original);
                     cases += 1;

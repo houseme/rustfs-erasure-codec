@@ -999,3 +999,383 @@ fn prepared_selective_rows_skip_repeated_scalar_coefficient_composition() {
         }
     }
 }
+
+struct ViewCase {
+    name: &'static str,
+    data: usize,
+    parity: usize,
+    missing: Vec<usize>,
+    goal: &'static str,
+}
+fn view_cases() -> Vec<ViewCase> {
+    vec![
+        ViewCase {
+            name: "narrow",
+            data: 4,
+            parity: 3,
+            missing: vec![0, 1, 4],
+            goal: "all",
+        },
+        ViewCase {
+            name: "input32",
+            data: 32,
+            parity: 3,
+            missing: vec![0, 1, 32],
+            goal: "all",
+        },
+        ViewCase {
+            name: "input33",
+            data: 33,
+            parity: 3,
+            missing: vec![0, 1, 33],
+            goal: "all",
+        },
+        ViewCase {
+            name: "input64",
+            data: 64,
+            parity: 3,
+            missing: vec![0, 1, 64],
+            goal: "all",
+        },
+        ViewCase {
+            name: "parity32",
+            data: 2,
+            parity: 33,
+            missing: std::iter::once(0).chain(2..34).collect(),
+            goal: "parity",
+        },
+        ViewCase {
+            name: "parity33",
+            data: 2,
+            parity: 34,
+            missing: std::iter::once(0).chain(2..35).collect(),
+            goal: "parity",
+        },
+        ViewCase {
+            name: "parity64",
+            data: 2,
+            parity: 65,
+            missing: std::iter::once(0).chain(2..66).collect(),
+            goal: "parity",
+        },
+        ViewCase {
+            name: "all_data_mixed",
+            data: 33,
+            parity: 34,
+            missing: (0..34).collect(),
+            goal: "all",
+        },
+        ViewCase {
+            name: "all_data_only",
+            data: 33,
+            parity: 34,
+            missing: (0..34).collect(),
+            goal: "data",
+        },
+        ViewCase {
+            name: "split_direct",
+            data: 33,
+            parity: 34,
+            missing: (0..17).chain(33..50).collect(),
+            goal: "selected",
+        },
+        ViewCase {
+            name: "wide_parity_mixed",
+            data: 33,
+            parity: 34,
+            missing: std::iter::once(0).chain(33..66).collect(),
+            goal: "selected",
+        },
+        ViewCase {
+            name: "no_output",
+            data: 33,
+            parity: 3,
+            missing: vec![0, 1, 33],
+            goal: "empty",
+        },
+    ]
+}
+fn view_mask(case: &ViewCase) -> Vec<bool> {
+    (0..case.data + case.parity)
+        .map(|i| {
+            case.missing.contains(&i)
+                && match case.goal {
+                    "all" | "selected" => true,
+                    "data" => i < case.data,
+                    "parity" => i >= case.data,
+                    _ => false,
+                }
+        })
+        .collect()
+}
+fn view_plan<F: Field, T: rustfs_erasure_codec::ReconstructShard<F>>(
+    codec: &ReedSolomon<F>,
+    shards: &[T],
+    case: &ViewCase,
+    mask: &[bool],
+) -> ReconstructWorkspace<F> {
+    match case.goal {
+        "all" => codec.prepare_reconstruct_workspace(shards),
+        "data" => codec.prepare_reconstruct_data_workspace(shards),
+        _ => codec.prepare_reconstruct_some_workspace(shards, mask),
+    }
+    .unwrap()
+}
+fn view_budget<F: Field>(case: &ViewCase, mask: &[bool], bulk: bool) -> Requests {
+    let data = mask[..case.data].iter().filter(|b| **b).count();
+    let parity = mask[case.data..].iter().filter(|b| **b).count();
+    if data + parity == 0 {
+        return Requests::default();
+    }
+    let composed = matches!(case.goal, "selected" | "parity")
+        && parity > 0
+        && case.missing.iter().any(|i| *i < case.data);
+    let fat = std::mem::size_of::<&mut [F::Elem]>();
+    let thin = std::mem::size_of::<&mut ShardSlot<Vec<F::Elem>>>();
+    let tables = if bulk {
+        vec![
+            (case.data, fat),
+            (if composed { data + parity } else { data }, fat),
+            (if composed { 0 } else { parity }, fat),
+        ]
+    } else {
+        vec![
+            (case.data, fat),
+            (data, thin),
+            (parity, thin),
+            (if !composed && parity > 0 { data } else { 0 }, fat),
+        ]
+    };
+    Requests {
+        calls: tables.iter().filter(|(n, _)| *n > 32).count(),
+        bytes: tables
+            .iter()
+            .filter(|(n, _)| *n > 32)
+            .map(|(n, size)| n * size)
+            .sum(),
+    }
+}
+
+#[test]
+fn generic_wide_view_storage_follows_exact_plan_counts() {
+    fn exercise<F: Field>(field: &str) -> bool {
+        let mut bounded = true;
+        for case in view_cases() {
+            let codec = codec::<F>(case.data, case.parity, MatrixMode::Vandermonde, false, true);
+            let expected = encoded(&codec, 65, 1949);
+            let mask = view_mask(&case);
+            let mut reused = slots::<F>(&expected, &case.missing);
+            let plan = view_plan(&codec, &reused, &case, &mask);
+            let budget = view_budget::<F>(&case, &mask, false);
+            codec
+                .reconstruct_with_workspace(&mut reused, &plan)
+                .unwrap();
+            for repetition in 0..3 {
+                erase::<F>(&mut reused, &case.missing);
+                let (result, requests) =
+                    counted(|| codec.reconstruct_with_workspace(&mut reused, &plan));
+                result.unwrap();
+                for (i, slot) in reused.iter().enumerate() {
+                    let present = !case.missing.contains(&i) || mask[i];
+                    assert_eq!(slot.is_present(), present);
+                    if present {
+                        assert_eq!(slot.as_inner(), &expected[i]);
+                    } else {
+                        assert!(slot.as_inner().iter().all(|v| *v == F::one()));
+                    }
+                }
+                println!(
+                    "RECOVERY_VIEW_RESOURCE api=generic field={field} case={} data={} parity={} repetition={repetition} calls={} bytes={} budget_calls={} budget_bytes={}",
+                    case.name,
+                    case.data,
+                    case.parity,
+                    requests.calls,
+                    requests.bytes,
+                    budget.calls,
+                    budget.bytes
+                );
+                bounded &= requests.calls <= budget.calls && requests.bytes <= budget.bytes;
+            }
+        }
+        bounded
+    }
+    // Collect all controls and both fields before the final resource gate.
+    let byte = exercise::<galois_8::Field>("gf8");
+    let tower = exercise::<galois_16::Field>("tower-gf16");
+    assert!(
+        byte && tower,
+        "generic view storage exceeds planned metadata capacity"
+    );
+}
+
+#[cfg(feature = "std")]
+#[test]
+fn bulk_direct_recovery_builds_one_combined_output_view_table() {
+    let mut bounded = true;
+    for case in view_cases() {
+        let codec =
+            codec::<galois_8::Field>(case.data, case.parity, MatrixMode::Vandermonde, false, true);
+        let expected = encoded(&codec, 65, 1949);
+        let mask = view_mask(&case);
+        let mut shards: Vec<_> = expected.iter().cloned().map(Some).collect();
+        for &i in &case.missing {
+            shards[i] = None;
+        }
+        let plan = view_plan(&codec, &shards, &case, &mask);
+        let budget = view_budget::<galois_8::Field>(&case, &mask, true);
+        let payload_calls = mask.iter().filter(|b| **b).count();
+        let payload_bytes = payload_calls * 65;
+        codec
+            .reconstruct_opt_with_workspace(&mut shards, &plan)
+            .unwrap();
+        for repetition in 0..3 {
+            for &i in &case.missing {
+                shards[i] = None;
+            }
+            let before = codec.runtime_profile_stats();
+            let (result, requests) =
+                counted(|| codec.reconstruct_opt_with_workspace(&mut shards, &plan));
+            result.unwrap();
+            let after = codec.runtime_profile_stats();
+            let data_calls =
+                after.reconstruct_data_stage_calls - before.reconstruct_data_stage_calls;
+            let parity_calls =
+                after.reconstruct_parity_stage_calls - before.reconstruct_parity_stage_calls;
+            let data_bytes =
+                after.reconstruct_data_stage_bytes - before.reconstruct_data_stage_bytes;
+            let parity_bytes =
+                after.reconstruct_parity_stage_bytes - before.reconstruct_parity_stage_bytes;
+            let metrics = cfg!(feature = "benchmark-metrics");
+            let data_targets = mask[..case.data].iter().filter(|v| **v).count();
+            let parity_targets = payload_calls - data_targets;
+            assert_eq!(data_calls, usize::from(metrics && data_targets > 0));
+            assert_eq!(parity_calls, usize::from(metrics && parity_targets > 0));
+            assert_eq!(data_bytes, if metrics { data_targets * 65 } else { 0 });
+            assert_eq!(parity_bytes, if metrics { parity_targets * 65 } else { 0 });
+            for (i, shard) in shards.iter().enumerate() {
+                let present = !case.missing.contains(&i) || mask[i];
+                assert_eq!(shard.is_some(), present);
+                if present {
+                    assert_eq!(shard.as_ref().unwrap(), &expected[i]);
+                }
+            }
+            let metadata_calls = requests.calls.checked_sub(payload_calls).unwrap();
+            let metadata_bytes = requests.bytes.checked_sub(payload_bytes).unwrap();
+            println!(
+                "RECOVERY_VIEW_RESOURCE api=bulk field=gf8 case={} data={} parity={} repetition={repetition} calls={} bytes={} payload_calls={payload_calls} payload_bytes={payload_bytes} metadata_calls={metadata_calls} metadata_bytes={metadata_bytes} budget_calls={} budget_bytes={} data_calls={data_calls} parity_calls={parity_calls} data_bytes={data_bytes} parity_bytes={parity_bytes} metrics={metrics}",
+                case.name,
+                case.data,
+                case.parity,
+                requests.calls,
+                requests.bytes,
+                budget.calls,
+                budget.bytes
+            );
+            bounded &= metadata_calls <= budget.calls && metadata_bytes <= budget.bytes;
+        }
+    }
+    assert!(
+        bounded,
+        "bulk recovery duplicated or over-reserved view tables"
+    );
+}
+
+#[test]
+fn wide_fallible_destinations_publish_only_completed_earlier_targets() {
+    fn exercise<F: Field>() {
+        let codec = codec::<F>(33, 34, MatrixMode::Vandermonde, false, true);
+        let expected = encoded(&codec, 65, 1237);
+        let missing: Vec<_> = (0..34).collect();
+        for selective in [false, true] {
+            let mut shards = slots::<F>(&expected, &missing);
+            shards[32].as_inner_mut().pop();
+            let mask: Vec<_> = (0..67).map(|i| missing.contains(&i)).collect();
+            let plan = if selective {
+                codec.prepare_reconstruct_some_workspace(&shards, &mask)
+            } else {
+                codec.prepare_reconstruct_workspace(&shards)
+            }
+            .unwrap();
+            assert_eq!(
+                codec.reconstruct_with_workspace(&mut shards, &plan),
+                Err(Error::IncorrectShardSize)
+            );
+            for (i, slot) in shards.iter().enumerate() {
+                if !(32..34).contains(&i) {
+                    assert!(slot.is_present());
+                    assert_eq!(slot.as_inner(), &expected[i]);
+                } else {
+                    assert!(!slot.is_present());
+                    assert!(slot.as_inner().iter().all(|v| *v == F::one()));
+                }
+            }
+        }
+    }
+    exercise::<galois_8::Field>();
+    exercise::<galois_16::Field>();
+}
+
+#[cfg(feature = "std")]
+#[test]
+fn direct_bulk_parallel_chunks_keep_target_order_and_stage_counts() {
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(4)
+        .build()
+        .unwrap();
+    pool.install(|| {
+        for data in [2, 33] {
+            let codec = ReedSolomon::<galois_8::Field>::with_options(
+                data,
+                34,
+                CodecOptions::builder().max_parallel_jobs(2).build(),
+            )
+            .unwrap();
+            let len = 512 * 1024 + 65;
+            let expected = encoded(&codec, len, 1091);
+            let missing: Vec<_> = std::iter::once(0).chain(data..data + 33).collect();
+            let required: Vec<_> = (0..data + 34)
+                .map(|i| i >= data || data == 33 && i == 0)
+                .collect();
+            let mut shards: Vec<_> = expected.iter().cloned().map(Some).collect();
+            for &i in &missing {
+                shards[i] = None;
+            }
+            let outputs = required
+                .iter()
+                .enumerate()
+                .filter(|(i, b)| **b && missing.contains(i))
+                .count();
+            let decision = codec.parallel_policy(len, outputs);
+            codec.reset_runtime_profile_stats();
+            codec.reconstruct_some_opt(&mut shards, &required).unwrap();
+            let stats = codec.runtime_profile_stats();
+            let metrics = cfg!(feature = "benchmark-metrics");
+            if metrics {
+                assert_eq!(stats.reconstruct_data_stage_calls, usize::from(data == 33));
+                assert_eq!(
+                    stats.reconstruct_data_stage_bytes,
+                    if data == 33 { len } else { 0 }
+                );
+                assert_eq!(stats.reconstruct_parity_stage_calls, 1);
+                assert_eq!(stats.reconstruct_parity_stage_bytes, 33 * len);
+                if decision.use_parallel {
+                    assert!(stats.code_some_parallel_calls > 0);
+                }
+            }
+            for (i, shard) in shards.iter().enumerate() {
+                let present = !missing.contains(&i) || required[i];
+                assert_eq!(shard.is_some(), present);
+                if present {
+                    assert_eq!(shard.as_ref().unwrap(), &expected[i]);
+                }
+            }
+            println!(
+                "RECOVERY_VIEW_PARALLEL data={data} parity=34 len={len} requested={outputs} policy_parallel={} metrics={metrics} parallel_calls={} data_calls={} parity_calls={}",
+                decision.use_parallel,
+                stats.code_some_parallel_calls,
+                stats.reconstruct_data_stage_calls,
+                stats.reconstruct_parity_stage_calls
+            );
+        }
+    });
+}
