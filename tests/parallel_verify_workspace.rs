@@ -355,3 +355,53 @@ fn fast_single_parity_verification_reuses_the_classic_inline_scratch_budget() {
         "fast verification must share the ordinary inline scratch budget"
     );
 }
+
+#[test]
+fn parity_corruption_cannot_hide_a_later_invalid_shard_or_mutate_scratch() {
+    fn check<F: Field>()
+    where
+        F::Elem: Send + Sync,
+    {
+        for fast in [false, true] {
+            let parity = if fast { 1 } else { 3 };
+            let codec = ReedSolomon::<F>::with_options(
+                4,
+                parity,
+                CodecOptions::builder()
+                    .fast_one_parity(fast)
+                    .max_parallel_jobs(1)
+                    .build(),
+            )
+            .unwrap();
+            let mut shards = encoded(&codec, 65);
+            shards[4][0] = F::add(shards[4][0], F::one());
+            shards.last_mut().unwrap().pop();
+            let mut buffer = vec![vec![F::nth(23); 65]; parity];
+            let before = buffer.clone();
+            let other = ReedSolomon::<F>::new(2, 1).unwrap();
+            let mut workspace = VerifyWorkspace::new(&other, 1);
+            for api in 0..6 {
+                let (result, requests) = measure(|| match api {
+                    0 => codec.verify(&shards),
+                    1 => codec.verify_with_buffer(&shards, &mut buffer),
+                    2 => codec.verify_with_workspace(&shards, &mut workspace),
+                    3 => codec.verify_par(&shards),
+                    4 => codec.verify_with_buffer_par(&shards, &mut buffer),
+                    5 => codec.verify_with_workspace_par(&shards, &mut workspace),
+                    _ => unreachable!(),
+                });
+                assert_eq!(result, Err(Error::IncorrectShardSize));
+                assert_eq!(
+                    requests,
+                    (0, 0),
+                    "invalid input must precede scratch preparation"
+                );
+                assert!(buffer == before);
+                assert_eq!(workspace.parity_shards(), 1);
+                assert_eq!(workspace.shard_len(), Some(1));
+            }
+        }
+    }
+    check::<rustfs_erasure_codec::galois_8::Field>();
+    check::<rustfs_erasure_codec::galois_16::Field>();
+}

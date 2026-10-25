@@ -48,3 +48,32 @@ RUSTUP_TOOLCHAIN=stable RAYON_NUM_THREADS=4 RS_PARALLEL_POLICY_MAX_JOBS=4 RUSTFL
   --manifest-path scripts/release-compatibility/Cargo.toml --target-dir target \
   -- --allocation-report /path/to/new-resources.json
 ```
+
+## Verification workload resource report
+
+The separate `--verify-resource-report FILE` mode leaves the existing 45-case
+report and its schema unchanged. It compares the published and current codecs
+on the same Classic Vandermonde fixtures with fast parity disabled and
+`max_parallel_jobs=1`: GF8 and tower GF16, six element-count/layout controls,
+ordinary `verify`, caller-buffer verification and retained-workspace verification,
+and valid / first-parity-head / last-parity-tail inputs.
+
+The 108 observation cases keep two warmups and three counted calls per version
+(648 counted windows). All returned booleans are checked; each fixture's complete
+encoded parity is compared across versions. Fixtures are paired and dropped one
+at a time to avoid retaining full parity copies for every observation. Field
+elements and bytes are recorded separately. Buffer/workspace setup stays outside
+counting while ordinary verification retains its own API scratch lifecycle.
+No allocations are asserted to equal today's implementation: future candidates
+can reduce them while preserving the same validation and corruption oracles.
+
+```bash
+cargo +stable run --release --locked -p rse-release-compatibility \
+  -- --verify-resource-report /path/to/new-verify-resources.json
+```
+
+Both modes preserve existing report files. The original 200-configuration
+functional and cross-decoding preflight still runs first. The new report is a
+request-volume measurement, not RSS, latency, a production workload profile or
+performance acceptance. Bind the generated file to the exact source, lockfile,
+compiler and invocation before comparing it with another run.
