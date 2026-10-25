@@ -264,11 +264,11 @@ cargo run --locked --manifest-path candidate/xtask/Cargo.toml --package xtask --
 ```
 
 A complete pair contains **3,072 observations** (768 warmups and 2,304 measured
-samples), keeping each length, offset pair and pass separate. Each measured loop
-must reach 50ms; its wall and timed interval are the same complete verify loop,
-so it also meets the 2ms timed-work minimum. The central distribution width must
-be at most 10%. Forward/reverse repeats and A1/A2, B1/B2 repeats must stay within
-5%; each of the four candidate/baseline comparisons must satisfy the existing
+samples), keeping each length, offset pair and pass separate. Each measured
+protocol-15 loop must reach at least 1 s wall time; its wall and timed interval are
+the same complete verify loop, so it also satisfies the 40 ms timed-work minimum.
+The central distribution width must be at most 10%. Forward/reverse repeats and
+A1/A2, B1/B2 repeats must stay within 5%; each of the four candidate/baseline comparisons must satisfy the existing
 buffered-verify 12% latency regression limit in every cell. Ratios are withheld
 when any quality check fails; a single regressing cell fails the supplement.
 A failed complete phase retains all rows and stops later phases. No failure is
@@ -312,8 +312,12 @@ writes source/protocol/context provenance before calibration, so an interrupted
 attempt retains its source binding even without a final manifest.
 All three warmups are retained, and none of the nine samples can be replaced or
 silently retried. All pilot,
-warmup and sample exports are retained. A sample needs at least 50 ms wall time
-and 2 ms timed work; its interval must agree with the original raw metric.
+warmup and sample exports are retained. Under protocol 15, each sample needs at
+least 1 s wall time and 40 ms timed work; its interval must agree with the original
+raw metric. These floors apply uniformly to all 126 cases and paired layouts.
+The [shared duration constants](../scripts/release-sampling/service_window.rs)
+also define the calibration targets of 2 s wall time and 100 ms timed work.
+Historical captures retain their original source-bound protocol and limits.
 The summary must be the actual median of the nine samples. The width between
 the second and eighth sorted samples may not exceed 10% of the median; all nine
 samples remain in the evidence, including extremes. This distribution gate is
