@@ -49,7 +49,7 @@ impl Error {
                 "At least one of the provided shards is not of the correct size"
             }
             Error::TooFewShardsPresent => {
-                "The number of shards present is smaller than number of parity shards, cannot reconstruct missing shards"
+                "The number of present shards is smaller than the number of data shards required for reconstruction"
             }
             Error::EmptyShard => "The first shard provided is of zero length",
             Error::InvalidShardFlags => {
@@ -161,7 +161,7 @@ mod tests {
         );
         assert_eq!(
             alloc::format!("{}", Error::TooFewShardsPresent),
-            "The number of shards present is smaller than number of parity shards, cannot reconstruct missing shards"
+            "The number of present shards is smaller than the number of data shards required for reconstruction"
         );
         assert_eq!(
             alloc::format!("{}", Error::EmptyShard),
