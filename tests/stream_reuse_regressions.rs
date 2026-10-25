@@ -530,3 +530,44 @@ fn stream_verify_avoids_per_block_reference_allocations() {
         "{counts:?}"
     );
 }
+
+#[test]
+fn empty_recovery_does_not_allocate_a_duplicate_length_table() {
+    let codec = ReedSolomon::new(4, 2).unwrap();
+    let mut readers = [Some(&b""[..]); 6];
+    let mut writers: [Option<std::io::Sink>; 6] = std::array::from_fn(|_| None);
+    let counts = count_allocations(|| {
+        codec
+            .reconstruct_stream_from(&mut readers, &mut writers, &options(StreamIoMode::Serial))
+            .unwrap();
+    });
+    // Six retained input buffers and one owner table. Empty input needs no
+    // decoder, destinations, or second allocation to record Vec::len values.
+    assert_eq!(counts, (6, 7));
+}
+
+#[test]
+fn wide_stream_recovery_borrows_coefficient_rows() {
+    let codec = ReedSolomon::new(2, 33).unwrap();
+    let expected = encoded_shards(&codec, 37);
+    let mut readers: Vec<_> = expected
+        .iter()
+        .enumerate()
+        .map(|(index, shard)| (index < 2).then_some(shard.as_slice()))
+        .collect();
+    let mut writers: Vec<_> = (0..35)
+        .map(|index| (index >= 2).then(|| Vec::with_capacity(37)))
+        .collect();
+    let (_, requests) = count_allocations(|| {
+        codec
+            .reconstruct_stream_from(&mut readers, &mut writers, &options(StreamIoMode::Serial))
+            .unwrap();
+    });
+    for (writer, expected) in writers[2..].iter().zip(&expected[2..]) {
+        assert_eq!(writer.as_ref().unwrap(), expected);
+    }
+    eprintln!("wide parity stream recovery heap requests: {requests}");
+    // 35 payloads, their owner table, two missing-index lists, and one mutable
+    // output view table. Coefficients remain borrowed from the encoding matrix.
+    assert_eq!(requests, 39);
+}

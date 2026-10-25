@@ -151,8 +151,7 @@ pub fn patch(text: &str) -> Result<String> {
                 groups.push((1, "reconstruct_bufs", "option", ""));
             }
             if current {
-                let marker =
-                    "        let (all_eof, mut actual_len) = read_present_streams_with_mode(";
+                let marker = "        let (all_eof, mut actual_len) =";
                 edit.replace(
                     marker,
                     &(spans("reserved", &groups, 8) + "        rse_probe.next_block();\n" + marker),
@@ -165,8 +164,7 @@ pub fn patch(text: &str) -> Result<String> {
                     &(spans("ready", &groups, 12) + marker + "\n" + &spans("coded", &groups, 12)),
                     1,
                 )?;
-                let marker =
-                    "            let (all_eof, next_len) = read_present_streams_with_mode(";
+                let marker = "            let (all_eof, next_len) =";
                 edit.replace(
                     marker,
                     &("            rse_probe.next_block();\n".to_owned() + marker),
