@@ -1,0 +1,6241 @@
+{
+  "schema": "combined-coding-local-compatibility-review-v1",
+  "review_source": "6193ad329f5b53283c859110dfb967f686c3a26e",
+  "source_branch": "houseme/coding-integration-proof-9.1.0",
+  "parents": {
+    "encoding_pr107": "0dd9434452601a05469b27e13a5f50d24d7f5730",
+    "recovery_pr106": "4fdb83a6be66b514572c656ac95396d910f495d6"
+  },
+  "common_main": "e758f114df56a008f4dca06248aa95287599fd0e",
+  "independent_local_rehearsal": true,
+  "github_pr_merge_performed_by_task": false,
+  "diagnostic_only": true,
+  "performance_observations": 0,
+  "performance_approval": false,
+  "release_approval": false,
+  "composition": {
+    "exact_parent_source_test_workflow_blobs": 12,
+    "only_parent_runtime_changes_combined": true,
+    "runtime_conflict_files": [],
+    "conflicts_resolved": [
+      "CHANGELOG.md",
+      "docs/release-9.1.0-blockers.md",
+      "docs/release-9.1.0-checklist.md",
+      "docs/release-9.1.0-readiness-2026-10-23.md",
+      "xtask/src/diagnostics/overlays.rs",
+      "xtask/src/diagnostics/source_plan/tests.rs"
+    ],
+    "both_changelog_and_parent_evidence_retained": true,
+    "manifest_lock_build_config_wasm_scripts_unchanged": true,
+    "tool_logic_changes": "only recomputed current-source snapshot assertions"
+  },
+  "local_tests": {
+    "codec_parent": 578,
+    "library": 401,
+    "integration": 167,
+    "doc": 10,
+    "separate_filtered_child_executions": 6,
+    "existing_ignored": 43,
+    "codec_only_no_std": 271,
+    "rust_tool": 317,
+    "all15_steps_pass": true,
+    "all_tested_input_blobs_match_commit": true,
+    "published9_default_backend": {
+      "normal_configs": 200,
+      "custom_configs": 27,
+      "custom_cross_recoveries": 162,
+      "wide_gf16_configs": 12,
+      "selective_configs": 270,
+      "selective_cross_recoveries": 2640
+    },
+    "fresh_wasm_build_types": true,
+    "wasm_node": {
+      "total": 14,
+      "actual_module": 12,
+      "result_code_contract": 1,
+      "facade_unit": 1,
+      "skipped": 0
+    },
+    "strict_host_codec_tool_clippy": true,
+    "x86_compile_only": [
+      "Darwin all-target strict Clippy",
+      "Linux library strict Clippy"
+    ],
+    "fmt_typos_diff": true
+  },
+  "resource_catalogues": {
+    "total_cases": 459,
+    "all_parent_observed_contracts_retained": true,
+    "encoding": {
+      "cases": 270,
+      "scope": "preallocated encode/verify and complete incremental cycles; small buffers retain serial policy for parallel APIs",
+      "key_columns": [
+        "field_order",
+        "matrix_mode",
+        "data_shards",
+        "parity_shards",
+        "entry"
+      ],
+      "observed_columns": [
+        "total_allocation_requests"
+      ],
+      "records": [
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "10",
+            "4",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "10",
+            "4",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "10",
+            "4",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "10",
+            "4",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "10",
+            "4",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "10",
+            "4",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "10",
+            "4",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "10",
+            "4",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "10",
+            "4",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "10",
+            "40",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "10",
+            "40",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "10",
+            "40",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "10",
+            "40",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "10",
+            "40",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "10",
+            "40",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "10",
+            "40",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "10",
+            "40",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "10",
+            "40",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "64",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "64",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "64",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "64",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "64",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "64",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "64",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "64",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "64",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "4",
+            "2",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "4",
+            "2",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "4",
+            "2",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "4",
+            "2",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "4",
+            "2",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "4",
+            "2",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "4",
+            "2",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "4",
+            "2",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "4",
+            "2",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "4",
+            "33",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "4",
+            "33",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "4",
+            "33",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "4",
+            "33",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "4",
+            "33",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "4",
+            "33",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "4",
+            "33",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "4",
+            "33",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "4",
+            "33",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "10",
+            "4",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "10",
+            "4",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "10",
+            "4",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "10",
+            "4",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "10",
+            "4",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "10",
+            "4",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "10",
+            "4",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "10",
+            "4",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "10",
+            "4",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "10",
+            "40",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "10",
+            "40",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "10",
+            "40",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "10",
+            "40",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "10",
+            "40",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "10",
+            "40",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "10",
+            "40",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "10",
+            "40",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "10",
+            "40",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "64",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "64",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "64",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "64",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "64",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "64",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "64",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "64",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "64",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "4",
+            "2",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "4",
+            "2",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "4",
+            "2",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "4",
+            "2",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "4",
+            "2",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "4",
+            "2",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "4",
+            "2",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "4",
+            "2",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "4",
+            "2",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "4",
+            "33",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "4",
+            "33",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "4",
+            "33",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "4",
+            "33",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "4",
+            "33",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "4",
+            "33",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "4",
+            "33",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "4",
+            "33",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "4",
+            "33",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "10",
+            "4",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "10",
+            "4",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "10",
+            "4",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "10",
+            "4",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "10",
+            "4",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "10",
+            "4",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "10",
+            "4",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "10",
+            "4",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "10",
+            "4",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "10",
+            "40",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "10",
+            "40",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "10",
+            "40",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "10",
+            "40",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "10",
+            "40",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "10",
+            "40",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "10",
+            "40",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "10",
+            "40",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "10",
+            "40",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "64",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "64",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "64",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "64",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "64",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "64",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "64",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "64",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "64",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "4",
+            "2",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "4",
+            "2",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "4",
+            "2",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "4",
+            "2",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "4",
+            "2",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "4",
+            "2",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "4",
+            "2",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "4",
+            "2",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "4",
+            "2",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "4",
+            "33",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "4",
+            "33",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "4",
+            "33",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "4",
+            "33",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "4",
+            "33",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "4",
+            "33",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "4",
+            "33",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "4",
+            "33",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "4",
+            "33",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "10",
+            "4",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "10",
+            "4",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "10",
+            "4",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "10",
+            "4",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "10",
+            "4",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "10",
+            "4",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "10",
+            "4",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "10",
+            "4",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "10",
+            "4",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "10",
+            "40",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "10",
+            "40",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "10",
+            "40",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "10",
+            "40",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "10",
+            "40",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "10",
+            "40",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "10",
+            "40",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "10",
+            "40",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "10",
+            "40",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "33",
+            "64",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "33",
+            "64",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "33",
+            "64",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "33",
+            "64",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "33",
+            "64",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "33",
+            "64",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "33",
+            "64",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "33",
+            "64",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "33",
+            "64",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "4",
+            "2",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "4",
+            "2",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "4",
+            "2",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "4",
+            "2",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "4",
+            "2",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "4",
+            "2",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "4",
+            "2",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "4",
+            "2",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "4",
+            "2",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "4",
+            "33",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "4",
+            "33",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "4",
+            "33",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "4",
+            "33",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "4",
+            "33",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "4",
+            "33",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "4",
+            "33",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "4",
+            "33",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "4",
+            "33",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "10",
+            "4",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "10",
+            "4",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "10",
+            "4",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "10",
+            "4",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "10",
+            "4",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "10",
+            "4",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "10",
+            "4",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "10",
+            "4",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "10",
+            "4",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "10",
+            "40",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "10",
+            "40",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "10",
+            "40",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "10",
+            "40",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "10",
+            "40",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "10",
+            "40",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "10",
+            "40",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "10",
+            "40",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "10",
+            "40",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "33",
+            "64",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "33",
+            "64",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "33",
+            "64",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "33",
+            "64",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "33",
+            "64",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "33",
+            "64",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "33",
+            "64",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "33",
+            "64",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "33",
+            "64",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "4",
+            "2",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "4",
+            "2",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "4",
+            "2",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "4",
+            "2",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "4",
+            "2",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "4",
+            "2",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "4",
+            "2",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "4",
+            "2",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "4",
+            "2",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "4",
+            "33",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "4",
+            "33",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "4",
+            "33",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "4",
+            "33",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "4",
+            "33",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "4",
+            "33",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "4",
+            "33",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "4",
+            "33",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "4",
+            "33",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "10",
+            "4",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "10",
+            "4",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "10",
+            "4",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "10",
+            "4",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "10",
+            "4",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "10",
+            "4",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "10",
+            "4",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "10",
+            "4",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "10",
+            "4",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "10",
+            "40",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "10",
+            "40",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "10",
+            "40",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "10",
+            "40",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "10",
+            "40",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "10",
+            "40",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "10",
+            "40",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "10",
+            "40",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "10",
+            "40",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "33",
+            "64",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "33",
+            "64",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "33",
+            "64",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "33",
+            "64",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "33",
+            "64",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "33",
+            "64",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "33",
+            "64",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "33",
+            "64",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "33",
+            "64",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "4",
+            "2",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "4",
+            "2",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "4",
+            "2",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "4",
+            "2",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "4",
+            "2",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "4",
+            "2",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "4",
+            "2",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "4",
+            "2",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "4",
+            "2",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "4",
+            "33",
+            "encode"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "4",
+            "33",
+            "encode-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "4",
+            "33",
+            "encode-sep"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "4",
+            "33",
+            "encode-sep-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "4",
+            "33",
+            "shard-by-shard"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "4",
+            "33",
+            "single-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "4",
+            "33",
+            "single-par-cycle"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "4",
+            "33",
+            "verify-buffer"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "4",
+            "33",
+            "verify-buffer-par"
+          ],
+          "observed": [
+            0
+          ],
+          "equal_to_parent_observed_contract": true
+        }
+      ]
+    },
+    "target_borrow": {
+      "cases": 54,
+      "scope": "warmed generic preallocated recovery",
+      "key_columns": [
+        "field_order",
+        "matrix_mode",
+        "data_shards",
+        "operation"
+      ],
+      "observed_columns": [
+        "total_allocation_requests"
+      ],
+      "records": [
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "all-data"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "all-parity"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "data-only"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "40",
+            "all-data"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "40",
+            "all-parity"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "40",
+            "data-only"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "64",
+            "all-data"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "64",
+            "all-parity"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "64",
+            "data-only"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "all-data"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "all-parity"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "data-only"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "40",
+            "all-data"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "40",
+            "all-parity"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "40",
+            "data-only"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "64",
+            "all-data"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "64",
+            "all-parity"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "64",
+            "data-only"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "all-data"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "all-parity"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "data-only"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "40",
+            "all-data"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "40",
+            "all-parity"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "40",
+            "data-only"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "64",
+            "all-data"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "64",
+            "all-parity"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "64",
+            "data-only"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "33",
+            "all-data"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "33",
+            "all-parity"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "33",
+            "data-only"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "40",
+            "all-data"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "40",
+            "all-parity"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "40",
+            "data-only"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "64",
+            "all-data"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "64",
+            "all-parity"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "64",
+            "data-only"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "33",
+            "all-data"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "33",
+            "all-parity"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "33",
+            "data-only"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "40",
+            "all-data"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "40",
+            "all-parity"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "40",
+            "data-only"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "64",
+            "all-data"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "64",
+            "all-parity"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "64",
+            "data-only"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "33",
+            "all-data"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "33",
+            "all-parity"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "33",
+            "data-only"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "40",
+            "all-data"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "40",
+            "all-parity"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "40",
+            "data-only"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "64",
+            "all-data"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "64",
+            "all-parity"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "64",
+            "data-only"
+          ],
+          "observed": [
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        }
+      ]
+    },
+    "mixed_views": {
+      "cases": 135,
+      "scope": "warmed generic recovery and GF8 adaptive Option-vector recovery",
+      "key_columns": [
+        "field_order",
+        "matrix_mode",
+        "data_shards",
+        "missing_data_pattern",
+        "entry"
+      ],
+      "observed_columns": [
+        "wide_view_allocation_requests",
+        "total_allocation_requests"
+      ],
+      "records": [
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "0",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "0",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "1",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "1",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "2",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "2",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "3",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            6
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "3",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "4",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            19
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "33",
+            "4",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "40",
+            "0",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "40",
+            "0",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "40",
+            "1",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "40",
+            "1",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "40",
+            "2",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "40",
+            "2",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "40",
+            "3",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            6
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "40",
+            "3",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "40",
+            "4",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            23
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "40",
+            "4",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "64",
+            "0",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "64",
+            "0",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "64",
+            "1",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "64",
+            "1",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "64",
+            "2",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "64",
+            "2",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "64",
+            "3",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            6
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "64",
+            "3",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "64",
+            "4",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            36
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Cauchy",
+            "64",
+            "4",
+            "generic"
+          ],
+          "observed": [
+            1,
+            3
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "0",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "0",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "1",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "1",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "2",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "2",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "3",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            6
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "3",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "4",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            19
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "33",
+            "4",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "40",
+            "0",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "40",
+            "0",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "40",
+            "1",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "40",
+            "1",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "40",
+            "2",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "40",
+            "2",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "40",
+            "3",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            6
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "40",
+            "3",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "40",
+            "4",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            23
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "40",
+            "4",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "64",
+            "0",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "64",
+            "0",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "64",
+            "1",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "64",
+            "1",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "64",
+            "2",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "64",
+            "2",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "64",
+            "3",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            6
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "64",
+            "3",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "64",
+            "4",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            36
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "JerasureLike",
+            "64",
+            "4",
+            "generic"
+          ],
+          "observed": [
+            1,
+            3
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "0",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "0",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "1",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "1",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "2",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "2",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "3",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            6
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "3",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "4",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            19
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "33",
+            "4",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "40",
+            "0",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "40",
+            "0",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "40",
+            "1",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "40",
+            "1",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "40",
+            "2",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "40",
+            "2",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "40",
+            "3",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            6
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "40",
+            "3",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "40",
+            "4",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            23
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "40",
+            "4",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "64",
+            "0",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "64",
+            "0",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "64",
+            "1",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "64",
+            "1",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "64",
+            "2",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            4
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "64",
+            "2",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "64",
+            "3",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            6
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "64",
+            "3",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "64",
+            "4",
+            "bulk"
+          ],
+          "observed": [
+            1,
+            36
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "256",
+            "Vandermonde",
+            "64",
+            "4",
+            "generic"
+          ],
+          "observed": [
+            1,
+            3
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "33",
+            "0",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "33",
+            "1",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "33",
+            "2",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "33",
+            "3",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "33",
+            "4",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "40",
+            "0",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "40",
+            "1",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "40",
+            "2",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "40",
+            "3",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "40",
+            "4",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "64",
+            "0",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "64",
+            "1",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "64",
+            "2",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "64",
+            "3",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Cauchy",
+            "64",
+            "4",
+            "generic"
+          ],
+          "observed": [
+            1,
+            3
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "33",
+            "0",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "33",
+            "1",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "33",
+            "2",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "33",
+            "3",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "33",
+            "4",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "40",
+            "0",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "40",
+            "1",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "40",
+            "2",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "40",
+            "3",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "40",
+            "4",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "64",
+            "0",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "64",
+            "1",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "64",
+            "2",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "64",
+            "3",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "JerasureLike",
+            "64",
+            "4",
+            "generic"
+          ],
+          "observed": [
+            1,
+            3
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "33",
+            "0",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "33",
+            "1",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "33",
+            "2",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "33",
+            "3",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "33",
+            "4",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "40",
+            "0",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "40",
+            "1",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "40",
+            "2",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "40",
+            "3",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "40",
+            "4",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "64",
+            "0",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "64",
+            "1",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "64",
+            "2",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "64",
+            "3",
+            "generic"
+          ],
+          "observed": [
+            1,
+            2
+          ],
+          "equal_to_parent_observed_contract": true
+        },
+        {
+          "key": [
+            "65536",
+            "Vandermonde",
+            "64",
+            "4",
+            "generic"
+          ],
+          "observed": [
+            1,
+            3
+          ],
+          "equal_to_parent_observed_contract": true
+        }
+      ]
+    }
+  },
+  "observer_review": {
+    "families": {
+      "dynamic": {
+        "members": 9,
+        "changed_generated_files": [
+          "src/core/reconstruct.rs",
+          "src/galois_8/policy.rs",
+          "src/matrix.rs"
+        ],
+        "complete_delta_equals_production_delta": true
+      },
+      "stream-core": {
+        "members": 4,
+        "changed_generated_files": [
+          "src/core/stream.rs"
+        ],
+        "complete_delta_equals_production_delta": true
+      },
+      "verify-scratch": {
+        "members": 3,
+        "changed_generated_files": [],
+        "complete_delta_equals_production_delta": true
+      }
+    },
+    "freshly_rebuilt_tool_repeats_complete_report": true,
+    "all_source_bindings_valid": true,
+    "formal_templates_loops_counts_thresholds_unchanged": true,
+    "codec_calls": 0
+  },
+  "artifact_checks": {
+    "core_package_members": 71,
+    "source_original_members": 68,
+    "rust_src_members": 64,
+    "rust_members_including_build_rs": 65,
+    "all68_original_member_bytes_match_source": true,
+    "clean_vcs_matches_review_source": true,
+    "package_builtin_verify": false,
+    "separate_extracted_checks": {
+      "all_features_library_passed": 401,
+      "existing_ignored": 5,
+      "no_std_library_passed": 271
+    },
+    "wasm_source_package_inventory": 6,
+    "registry_upload": false
+  },
+  "independent_replay": {
+    "inputs_unchanged": 31,
+    "all459_records_exact_and_equal_to_parent_contracts": true,
+    "raw_summaries_replayed": {
+      "codec": {
+        "parent": 578,
+        "child": 6,
+        "ignored": 43
+      },
+      "no-std": {
+        "parent": 271,
+        "child": 0,
+        "ignored": 0
+      },
+      "tool": {
+        "parent": 317,
+        "child": 0,
+        "ignored": 0
+      }
+    },
+    "package_archive_and_original_source_members_rechecked": true,
+    "codec_calls": 0
+  },
+  "boundaries": [
+    "Independent review source6193 is not either PR head or a claimed main integration.",
+    "No combined-source native Linux/Windows/browser CI or controlled timing acceptance is claimed.",
+    "Parent Windows/native/timing results keep their original source bindings.",
+    "Complete accepted published-9.0.0 ABBA/paired layouts, final actual source/tool/lock freeze and strict positive preflight remain outstanding.",
+    "Allocation contracts are not end-to-end throughput, RSS, physical isolation or a unique explanation of older refusals."
+  ]
+}

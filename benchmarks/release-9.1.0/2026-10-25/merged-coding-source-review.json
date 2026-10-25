@@ -1,0 +1,417 @@
+{
+  "schema": "merged-coding-source-review-v1",
+  "main_source": "0225f5c850a47d46ae5b77ee06deeda863391ec3",
+  "prior_rehearsal_source": "6193ad329f5b53283c859110dfb967f686c3a26e",
+  "ci_source": "2ef006dd4e1c91a273a2ed23995494347e7d17b6",
+  "ci_source_complete_tree_equals_main": true,
+  "complete_tree_difference_from_rehearsal": [
+    "docs/borrowed-parity-rows-review-2026-10-25.md",
+    "docs/release-9.1.0-blockers.md",
+    "docs/release-9.1.0-checklist.md",
+    "docs/release-9.1.0-readiness-2026-10-23.md"
+  ],
+  "all_tracked_files_outside_docs_equal": true,
+  "unchanged_tracked_files": 1180,
+  "all_tested_source_inputs_equal_main": true,
+  "all68_prior_crate_originals_equal_main": true,
+  "prior_crate_vcs_source_retained": "6193ad329f5b53283c859110dfb967f686c3a26e",
+  "new_main_crate_or_test_execution_claimed": false,
+  "independent_replay": {
+    "unchanged_inputs": 32,
+    "report_equal_to_prior_replay": true,
+    "all459_resource_contracts_retained": true,
+    "codec_calls": 0
+  },
+  "resource_cases": {
+    "encoding": 270,
+    "recovery_targets": 54,
+    "mixed_recovery_views": 135,
+    "total": 459
+  },
+  "prs": [
+    {
+      "number": 106,
+      "state": "MERGED",
+      "head": "4fdb83a6be66b514572c656ac95396d910f495d6",
+      "merge_commit": "39ca9cf3de1256baa18937ef8f6cce54e57b01f3",
+      "ordinary_ci": {
+        "SUCCESS": 31,
+        "SKIPPED": 3
+      },
+      "skipped": [
+        "Validate controlled release evidence",
+        "Release preflight",
+        "Publish to crates.io"
+      ],
+      "checks": [
+        {
+          "name": "Typos",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978365846"
+        },
+        {
+          "name": "P0 Panic-hardening regression",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550097/job/120978130893"
+        },
+        {
+          "name": "Security (cargo-audit)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978365996"
+        },
+        {
+          "name": "AddressSanitizer (x86_64 SIMD)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550097/job/120978130703"
+        },
+        {
+          "name": "Release tooling and package dry-run",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978366002"
+        },
+        {
+          "name": "P1 Feature-complete regression",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550097/job/120978337413"
+        },
+        {
+          "name": "WASM generated bindings (Node and Chromium)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978365954"
+        },
+        {
+          "name": "P2 Backend override regression (scalar)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550097/job/120978611541"
+        },
+        {
+          "name": "P2 Backend override regression (rust-gfni-avx2)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550097/job/120978611595"
+        },
+        {
+          "name": "P2 Backend override regression (rust-avx2)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550097/job/120978611506"
+        },
+        {
+          "name": "Build Linux (stable)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978366024"
+        },
+        {
+          "name": "Build Linux (beta)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978365947"
+        },
+        {
+          "name": "Build Linux (nightly)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978365997"
+        },
+        {
+          "name": "Build Windows Native (stable)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978366186"
+        },
+        {
+          "name": "Build Windows Native (beta)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978366160"
+        },
+        {
+          "name": "Build Windows Native (nightly)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978365892"
+        },
+        {
+          "name": "Build Windows GNU Target (stable, i686-pc-windows-gnu)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978366033"
+        },
+        {
+          "name": "Build Windows GNU Target (stable, x86_64-pc-windows-gnu)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978366105"
+        },
+        {
+          "name": "Build Windows GNU Target (beta, i686-pc-windows-gnu)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978366141"
+        },
+        {
+          "name": "Build Windows GNU Target (beta, x86_64-pc-windows-gnu)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978365934"
+        },
+        {
+          "name": "Build Windows GNU Target (nightly, i686-pc-windows-gnu)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978365975"
+        },
+        {
+          "name": "Build Windows GNU Target (nightly, x86_64-pc-windows-gnu)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978366278"
+        },
+        {
+          "name": "Build ppc64le VSX (nightly)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978366057"
+        },
+        {
+          "name": "Test Linux (stable)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978365931"
+        },
+        {
+          "name": "Test Linux (beta)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978365953"
+        },
+        {
+          "name": "Test Linux (nightly)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978366005"
+        },
+        {
+          "name": "Test Linux ARM64 (stable)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978365999"
+        },
+        {
+          "name": "Test Windows Native (stable)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978365958"
+        },
+        {
+          "name": "Test Windows Native (beta)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978365985"
+        },
+        {
+          "name": "Test Windows Native (nightly)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978366027"
+        },
+        {
+          "name": "Test macOS ARM64 (stable)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978365948"
+        },
+        {
+          "name": "Validate controlled release evidence",
+          "conclusion": "SKIPPED",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120978366729"
+        },
+        {
+          "name": "Release preflight",
+          "conclusion": "SKIPPED",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120985142754"
+        },
+        {
+          "name": "Publish to crates.io",
+          "conclusion": "SKIPPED",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40129550098/job/120985143338"
+        }
+      ]
+    },
+    {
+      "number": 107,
+      "state": "MERGED",
+      "head": "2ef006dd4e1c91a273a2ed23995494347e7d17b6",
+      "merge_commit": "0225f5c850a47d46ae5b77ee06deeda863391ec3",
+      "ordinary_ci": {
+        "SUCCESS": 31,
+        "SKIPPED": 3
+      },
+      "skipped": [
+        "Validate controlled release evidence",
+        "Release preflight",
+        "Publish to crates.io"
+      ],
+      "checks": [
+        {
+          "name": "Typos",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188556"
+        },
+        {
+          "name": "P0 Panic-hardening regression",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629446/job/121077188452"
+        },
+        {
+          "name": "Security (cargo-audit)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188785"
+        },
+        {
+          "name": "AddressSanitizer (x86_64 SIMD)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629446/job/121077188561"
+        },
+        {
+          "name": "Release tooling and package dry-run",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188714"
+        },
+        {
+          "name": "P1 Feature-complete regression",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629446/job/121077480153"
+        },
+        {
+          "name": "WASM generated bindings (Node and Chromium)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188708"
+        },
+        {
+          "name": "P2 Backend override regression (scalar)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629446/job/121077653519"
+        },
+        {
+          "name": "P2 Backend override regression (rust-gfni-avx2)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629446/job/121077653503"
+        },
+        {
+          "name": "P2 Backend override regression (rust-avx2)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629446/job/121077653518"
+        },
+        {
+          "name": "Build Linux (stable)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188823"
+        },
+        {
+          "name": "Build Linux (beta)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188761"
+        },
+        {
+          "name": "Build Linux (nightly)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188719"
+        },
+        {
+          "name": "Build Windows Native (stable)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188839"
+        },
+        {
+          "name": "Build Windows Native (beta)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188783"
+        },
+        {
+          "name": "Build Windows Native (nightly)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188776"
+        },
+        {
+          "name": "Build Windows GNU Target (stable, i686-pc-windows-gnu)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188851"
+        },
+        {
+          "name": "Build Windows GNU Target (stable, x86_64-pc-windows-gnu)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188827"
+        },
+        {
+          "name": "Build Windows GNU Target (beta, i686-pc-windows-gnu)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188782"
+        },
+        {
+          "name": "Build Windows GNU Target (beta, x86_64-pc-windows-gnu)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188738"
+        },
+        {
+          "name": "Build Windows GNU Target (nightly, i686-pc-windows-gnu)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188797"
+        },
+        {
+          "name": "Build Windows GNU Target (nightly, x86_64-pc-windows-gnu)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188828"
+        },
+        {
+          "name": "Build ppc64le VSX (nightly)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188709"
+        },
+        {
+          "name": "Test Linux (stable)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188814"
+        },
+        {
+          "name": "Test Linux (beta)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188911"
+        },
+        {
+          "name": "Test Linux (nightly)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188872"
+        },
+        {
+          "name": "Test Linux ARM64 (stable)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188752"
+        },
+        {
+          "name": "Test Windows Native (stable)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188817"
+        },
+        {
+          "name": "Test Windows Native (beta)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188799"
+        },
+        {
+          "name": "Test Windows Native (nightly)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188847"
+        },
+        {
+          "name": "Test macOS ARM64 (stable)",
+          "conclusion": "SUCCESS",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077188903"
+        },
+        {
+          "name": "Validate controlled release evidence",
+          "conclusion": "SKIPPED",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121077189376"
+        },
+        {
+          "name": "Release preflight",
+          "conclusion": "SKIPPED",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121083377809"
+        },
+        {
+          "name": "Publish to crates.io",
+          "conclusion": "SKIPPED",
+          "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40162629435/job/121083378125"
+        }
+      ]
+    }
+  ],
+  "performance_observations": 0,
+  "performance_approval": false,
+  "release_approval": false,
+  "remaining": [
+    "final source/tool/lock freeze",
+    "accepted complete published-9.0.0 ABBA and paired-layout evidence",
+    "actual strict positive release preflight"
+  ],
+  "all287_tested_input_blobs_equal_main": true,
+  "github_pr_merge_performed_by_task": false
+}
