@@ -252,7 +252,14 @@ fn alternating_cache_sizes_report_live_retention_and_concurrent_peaks() {
 
     for threads in [1, 2, 4] {
         for repetition in 0..3 {
-            let ready = Arc::new(Barrier::new(threads + 1));
+            // Force every worker through parking_lot's blocking path before
+            // counting. A warm uncontended decode need not initialize the
+            // parking table used by the shared immutable-plan cache's mutex.
+            let ready = Arc::new((
+                parking_lot::Mutex::new((0, false)),
+                parking_lot::Condvar::new(),
+                parking_lot::Condvar::new(),
+            ));
             let start = Arc::new(Barrier::new(threads + 1));
             let done = Arc::new(Barrier::new(threads + 1));
             let release = Arc::new(Barrier::new(threads + 1));
@@ -263,7 +270,14 @@ fn alternating_cache_sizes_report_live_retention_and_concurrent_peaks() {
                         (ready.clone(), start.clone(), done.clone(), release.clone());
                     std::thread::spawn(move || {
                         let mut valid = small.recover();
-                        ready.wait();
+                        {
+                            let mut state = ready.0.lock();
+                            state.0 += 1;
+                            ready.1.notify_one();
+                            while !state.1 {
+                                ready.2.wait(&mut state);
+                            }
+                        }
                         for (oversized, _) in PHASES {
                             start.wait();
                             // Do not short-circuit later recoveries after an
@@ -282,7 +296,17 @@ fn alternating_cache_sizes_report_live_retention_and_concurrent_peaks() {
                     })
                 })
                 .collect();
-            ready.wait();
+            {
+                let mut state = ready.0.lock();
+                while state.0 != threads {
+                    ready.1.wait(&mut state);
+                }
+                // Each worker still holds the mutex until wait has registered
+                // its parking state and unlocked it. This guarantees all TLS
+                // parking data and hash-table growth precede the sample gate.
+                state.1 = true;
+                assert_eq!(ready.2.notify_all(), threads);
+            }
             let mut previous_large = false;
             let mut valid = true;
             for (oversized, name) in PHASES {
