@@ -1,0 +1,430 @@
+{
+  "schema": "leopard-encoder-lane-view-resources-v1",
+  "baseline_runtime_commit": "c8507b76963187e1eefb20e886e58fa9585f1d52",
+  "candidate_runtime_commit": "709a20886e25a0c329a4b2b4a7fba4123dff8227",
+  "upstream_main_commit": "07f02df5f78ada84588a6f4fc737b7fb484d33d1",
+  "baseline_runtime_files_sha256": {
+    "src/core/leopard.rs": "eebb5b4a6d69cbe26763fff24ac6b06fc4022523cddbd80874ac9157c734aa04",
+    "src/core/leopard_gf8/encode.rs": "f28209a1e1a4ef7c315ab248972299354b527ec77a94838e5d87510b963c4279",
+    "src/core/leopard_gf8/work.rs": "857bd05f07bbd058b243d770f0fda200764512bad05bac864ce6607ed3169a77",
+    "src/core/leopard_gf8/driver.rs": "fec660ae00377fe2c7a408aaf74708d70673c78dbd807950e12d1f7ab48890ed",
+    "src/core/leopard_gf16/encode.rs": "3605b7c4589eaee9c209f3c3df16f68df32a0b94e552d08b784e953b25725d3b",
+    "src/core/leopard_gf16/work.rs": "a1cfa088c93a1c7f4a38ff6c73faa5294428058a9310471c129dacfcbb3626e5",
+    "src/core/leopard_gf16/driver.rs": "5e9088270f9ead89d69017bd0b53c0aeee896f1104d2953c36f3b309625e96af",
+    "Cargo.toml": "9295d965b5a226317c85d20df80a7e5b72c8ced56dce5c3b88cf664fdb5abbe3",
+    "Cargo.lock": "6fb303fc350ca2da4a8788a683296ac15312b9d4767723f30990c7c196b33023",
+    "build.rs": "583cd71bd329d024512a3efcb0bf1d5d564064cb9454a04832bb338998edc841"
+  },
+  "candidate_runtime_files_sha256": {
+    "src/core/leopard.rs": "10b6fa3ea0cd4f5257a2e11202d7c9a9804c4a4b64c6078fde641e7d8da9f110",
+    "src/core/leopard_gf8/encode.rs": "43172c91246bf62f5438058322325eed26069f160a45a53d7c4da134e6a1dbf0",
+    "src/core/leopard_gf8/work.rs": "fdb2a2236bd2c47f632ab43bb52bfe0ce9873473a9afc45dae080f52c73a8ee1",
+    "src/core/leopard_gf8/driver.rs": "fec660ae00377fe2c7a408aaf74708d70673c78dbd807950e12d1f7ab48890ed",
+    "src/core/leopard_gf16/encode.rs": "43bb5d5e0c1ec18d255483348c8df09f6620509f64fa5592eb045818f9767f75",
+    "src/core/leopard_gf16/work.rs": "8d4c03b7eba5276b12e094f8a2b33242c12aff4afe9d977a220559b2acab25b8",
+    "src/core/leopard_gf16/driver.rs": "5e9088270f9ead89d69017bd0b53c0aeee896f1104d2953c36f3b309625e96af",
+    "Cargo.toml": "9295d965b5a226317c85d20df80a7e5b72c8ced56dce5c3b88cf664fdb5abbe3",
+    "Cargo.lock": "6fb303fc350ca2da4a8788a683296ac15312b9d4767723f30990c7c196b33023",
+    "build.rs": "583cd71bd329d024512a3efcb0bf1d5d564064cb9454a04832bb338998edc841"
+  },
+  "same_lockfile": true,
+  "probe_file": "tests/leopard_encode_reuse_regressions.rs",
+  "probe_file_sha256": "521b15d338bf421e2a3c5c4f09a1e8899fd7795bf08a7856e46dc2a016ce9488",
+  "baseline_probe": "identical final external test file overlaid on baseline runtime; expected exit 101 after every resource pair and parity check",
+  "candidate_probe": "exit 0 after every resource pair and parity check",
+  "build": "release",
+  "features": [
+    "std",
+    "simd-accel"
+  ],
+  "benchmark_metrics": false,
+  "operation": "encode_sep",
+  "compute": "existing serial Leopard encoder path on each caller thread",
+  "counter": "caller-thread alloc/alloc_zeroed/realloc requests and gross requested bytes; frees, other threads, allocator overhead and RSS are excluded",
+  "fixture_scope": "codec, global field tables, data, caller parity buffers and same-version reference output prepared before counting; one complete uncounted encode on each fresh OS thread before counting its second call",
+  "counted_scope": "complete second encode with existing work/plan/scratch cache policy, including local oversized work and metadata; caller parity overwritten with a nonzero fill first and every parity byte checked after counting",
+  "chunk_selection": "unchanged drivers: GF8 4+64 uses 32 KiB; GF8 80+64 reaches the existing high-fanout threshold with a remainder and uses 128 KiB; GF16 uses 32 Ki elements / 64 KiB",
+  "lengths": "short = chunk bytes + 64; long = 5 * chunk bytes + 64; both have a 64-byte final tail",
+  "paired_records_per_version": 9,
+  "allocation_windows_per_version": 18,
+  "lane_table_bytes_per_removed_request": 2048,
+  "lane_table_bytes_scope": "128 mutable slice views in these measured host layouts; inferred and checked against every before/after allocation delta",
+  "latency_measured": false,
+  "throughput_claim": null,
+  "peak_rss_measured": false,
+  "release_approval": false,
+  "baseline": [
+    {
+      "repetition": 0,
+      "family": "LeopardGF8",
+      "data": 4,
+      "parity": 64,
+      "chunk_bytes": 32768,
+      "short": {
+        "length_bytes": 32832,
+        "chunks": 2,
+        "allocation_calls": 11,
+        "requested_bytes": 4233824
+      },
+      "long": {
+        "length_bytes": 163904,
+        "chunks": 6,
+        "allocation_calls": 15,
+        "requested_bytes": 4242016
+      }
+    },
+    {
+      "repetition": 0,
+      "family": "LeopardGF8",
+      "data": 80,
+      "parity": 64,
+      "chunk_bytes": 131072,
+      "short": {
+        "length_bytes": 131136,
+        "chunks": 2,
+        "allocation_calls": 17,
+        "requested_bytes": 16917280
+      },
+      "long": {
+        "length_bytes": 655424,
+        "chunks": 6,
+        "allocation_calls": 21,
+        "requested_bytes": 16925472
+      }
+    },
+    {
+      "repetition": 0,
+      "family": "LeopardGF16",
+      "data": 4,
+      "parity": 64,
+      "chunk_bytes": 65536,
+      "short": {
+        "length_bytes": 65600,
+        "chunks": 2,
+        "allocation_calls": 10,
+        "requested_bytes": 8395360
+      },
+      "long": {
+        "length_bytes": 327744,
+        "chunks": 6,
+        "allocation_calls": 14,
+        "requested_bytes": 8403552
+      }
+    },
+    {
+      "repetition": 1,
+      "family": "LeopardGF8",
+      "data": 4,
+      "parity": 64,
+      "chunk_bytes": 32768,
+      "short": {
+        "length_bytes": 32832,
+        "chunks": 2,
+        "allocation_calls": 11,
+        "requested_bytes": 4233824
+      },
+      "long": {
+        "length_bytes": 163904,
+        "chunks": 6,
+        "allocation_calls": 15,
+        "requested_bytes": 4242016
+      }
+    },
+    {
+      "repetition": 1,
+      "family": "LeopardGF8",
+      "data": 80,
+      "parity": 64,
+      "chunk_bytes": 131072,
+      "short": {
+        "length_bytes": 131136,
+        "chunks": 2,
+        "allocation_calls": 17,
+        "requested_bytes": 16917280
+      },
+      "long": {
+        "length_bytes": 655424,
+        "chunks": 6,
+        "allocation_calls": 21,
+        "requested_bytes": 16925472
+      }
+    },
+    {
+      "repetition": 1,
+      "family": "LeopardGF16",
+      "data": 4,
+      "parity": 64,
+      "chunk_bytes": 65536,
+      "short": {
+        "length_bytes": 65600,
+        "chunks": 2,
+        "allocation_calls": 10,
+        "requested_bytes": 8395360
+      },
+      "long": {
+        "length_bytes": 327744,
+        "chunks": 6,
+        "allocation_calls": 14,
+        "requested_bytes": 8403552
+      }
+    },
+    {
+      "repetition": 2,
+      "family": "LeopardGF8",
+      "data": 4,
+      "parity": 64,
+      "chunk_bytes": 32768,
+      "short": {
+        "length_bytes": 32832,
+        "chunks": 2,
+        "allocation_calls": 11,
+        "requested_bytes": 4233824
+      },
+      "long": {
+        "length_bytes": 163904,
+        "chunks": 6,
+        "allocation_calls": 15,
+        "requested_bytes": 4242016
+      }
+    },
+    {
+      "repetition": 2,
+      "family": "LeopardGF8",
+      "data": 80,
+      "parity": 64,
+      "chunk_bytes": 131072,
+      "short": {
+        "length_bytes": 131136,
+        "chunks": 2,
+        "allocation_calls": 17,
+        "requested_bytes": 16917280
+      },
+      "long": {
+        "length_bytes": 655424,
+        "chunks": 6,
+        "allocation_calls": 21,
+        "requested_bytes": 16925472
+      }
+    },
+    {
+      "repetition": 2,
+      "family": "LeopardGF16",
+      "data": 4,
+      "parity": 64,
+      "chunk_bytes": 65536,
+      "short": {
+        "length_bytes": 65600,
+        "chunks": 2,
+        "allocation_calls": 10,
+        "requested_bytes": 8395360
+      },
+      "long": {
+        "length_bytes": 327744,
+        "chunks": 6,
+        "allocation_calls": 14,
+        "requested_bytes": 8403552
+      }
+    }
+  ],
+  "candidate": [
+    {
+      "repetition": 0,
+      "family": "LeopardGF8",
+      "data": 4,
+      "parity": 64,
+      "chunk_bytes": 32768,
+      "short": {
+        "length_bytes": 32832,
+        "chunks": 2,
+        "allocation_calls": 10,
+        "requested_bytes": 4231776
+      },
+      "long": {
+        "length_bytes": 163904,
+        "chunks": 6,
+        "allocation_calls": 10,
+        "requested_bytes": 4231776
+      }
+    },
+    {
+      "repetition": 0,
+      "family": "LeopardGF8",
+      "data": 80,
+      "parity": 64,
+      "chunk_bytes": 131072,
+      "short": {
+        "length_bytes": 131136,
+        "chunks": 2,
+        "allocation_calls": 16,
+        "requested_bytes": 16915232
+      },
+      "long": {
+        "length_bytes": 655424,
+        "chunks": 6,
+        "allocation_calls": 16,
+        "requested_bytes": 16915232
+      }
+    },
+    {
+      "repetition": 0,
+      "family": "LeopardGF16",
+      "data": 4,
+      "parity": 64,
+      "chunk_bytes": 65536,
+      "short": {
+        "length_bytes": 65600,
+        "chunks": 2,
+        "allocation_calls": 9,
+        "requested_bytes": 8393312
+      },
+      "long": {
+        "length_bytes": 327744,
+        "chunks": 6,
+        "allocation_calls": 9,
+        "requested_bytes": 8393312
+      }
+    },
+    {
+      "repetition": 1,
+      "family": "LeopardGF8",
+      "data": 4,
+      "parity": 64,
+      "chunk_bytes": 32768,
+      "short": {
+        "length_bytes": 32832,
+        "chunks": 2,
+        "allocation_calls": 10,
+        "requested_bytes": 4231776
+      },
+      "long": {
+        "length_bytes": 163904,
+        "chunks": 6,
+        "allocation_calls": 10,
+        "requested_bytes": 4231776
+      }
+    },
+    {
+      "repetition": 1,
+      "family": "LeopardGF8",
+      "data": 80,
+      "parity": 64,
+      "chunk_bytes": 131072,
+      "short": {
+        "length_bytes": 131136,
+        "chunks": 2,
+        "allocation_calls": 16,
+        "requested_bytes": 16915232
+      },
+      "long": {
+        "length_bytes": 655424,
+        "chunks": 6,
+        "allocation_calls": 16,
+        "requested_bytes": 16915232
+      }
+    },
+    {
+      "repetition": 1,
+      "family": "LeopardGF16",
+      "data": 4,
+      "parity": 64,
+      "chunk_bytes": 65536,
+      "short": {
+        "length_bytes": 65600,
+        "chunks": 2,
+        "allocation_calls": 9,
+        "requested_bytes": 8393312
+      },
+      "long": {
+        "length_bytes": 327744,
+        "chunks": 6,
+        "allocation_calls": 9,
+        "requested_bytes": 8393312
+      }
+    },
+    {
+      "repetition": 2,
+      "family": "LeopardGF8",
+      "data": 4,
+      "parity": 64,
+      "chunk_bytes": 32768,
+      "short": {
+        "length_bytes": 32832,
+        "chunks": 2,
+        "allocation_calls": 10,
+        "requested_bytes": 4231776
+      },
+      "long": {
+        "length_bytes": 163904,
+        "chunks": 6,
+        "allocation_calls": 10,
+        "requested_bytes": 4231776
+      }
+    },
+    {
+      "repetition": 2,
+      "family": "LeopardGF8",
+      "data": 80,
+      "parity": 64,
+      "chunk_bytes": 131072,
+      "short": {
+        "length_bytes": 131136,
+        "chunks": 2,
+        "allocation_calls": 16,
+        "requested_bytes": 16915232
+      },
+      "long": {
+        "length_bytes": 655424,
+        "chunks": 6,
+        "allocation_calls": 16,
+        "requested_bytes": 16915232
+      }
+    },
+    {
+      "repetition": 2,
+      "family": "LeopardGF16",
+      "data": 4,
+      "parity": 64,
+      "chunk_bytes": 65536,
+      "short": {
+        "length_bytes": 65600,
+        "chunks": 2,
+        "allocation_calls": 9,
+        "requested_bytes": 8393312
+      },
+      "long": {
+        "length_bytes": 327744,
+        "chunks": 6,
+        "allocation_calls": 9,
+        "requested_bytes": 8393312
+      }
+    }
+  ],
+  "validation": {
+    "workspace_passed": 930,
+    "workspace_existing_ignored": 43,
+    "no_std_simd_lib_passed": 273,
+    "no_std_simd_encoder_integration_passed": 3,
+    "strict_clippy": true,
+    "fmt_and_diff_check": true,
+    "compatibility_non_fast_configurations": 200,
+    "instrumented_baseline_functional_passed": 15,
+    "instrumented_candidate_functional_passed": 15,
+    "diagnostic_generated_members_per_copy": 9,
+    "baseline_diagnostic_digest": "9a5bae2bc6e121ba57fcbbc0814291cc6a02367cd3aa5d87039f0d45d39963bd",
+    "candidate_diagnostic_digest": "ecc6f792d334d9ccbf933b8c4e52c6036abf1f24b485b4140bd735a6a21754da",
+    "x86_64_linux_all_features_lib_check": true,
+    "wasm32_no_std_simd_lib_check": true,
+    "json_audit": true,
+    "package_members": {
+      "core": 71,
+      "wasm": 6
+    }
+  },
+  "limits": [
+    "No new stable timing qualification; preserve all historical failed ABBA evidence.",
+    "One wide lane table is still allocated per API call; payload buffers, plans and other API view tables remain. No whole-API zero-allocation claim.",
+    "No mutable reference table is retained in TLS; callback borrows end before work is returned to its existing cache.",
+    "Strict observer byte bindings include the updated work helper documentation; encoder internals have no new owner trace. Resource evidence comes from the uninstrumented allocator counter.",
+    "No process peak RSS, all-thread residency, hardware throughput or release approval."
+  ]
+}

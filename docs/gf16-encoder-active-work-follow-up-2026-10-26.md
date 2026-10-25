@@ -91,3 +91,9 @@ stable Rust 1.99.1 / macOS ARM64：
 
 历史 ABBA 漂移失败记录保持，本轮未重新计时，没有吞吐提升或全平台最优结论。
 本轮执行 commit，未 push、创建 PR、打 tag 或发布 crate。
+
+## 后续进展
+
+Leopard GF8/GF16 encoder 的跨块 lane 引用表复用与短尾验证见
+[lane 视图跟进报告](leopard-lane-view-follow-up-2026-10-26.md)。
+以上保留本轮原始实现身份及资源结果。
