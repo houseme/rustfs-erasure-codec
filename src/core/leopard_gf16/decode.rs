@@ -24,7 +24,7 @@ const MAX_CACHED_DECODE_BYTES: usize = 4 * 1024 * 1024;
 #[cfg(feature = "std")]
 fn cacheable_decode_size(lanes: usize, chunk_len: usize) -> bool {
     lanes
-        .saturating_add(2)
+        .saturating_add(1)
         .saturating_mul(chunk_len)
         .saturating_mul(core::mem::size_of::<u16>())
         <= MAX_CACHED_DECODE_BYTES
@@ -32,9 +32,8 @@ fn cacheable_decode_size(lanes: usize, chunk_len: usize) -> bool {
 
 struct DecodeBuffers {
     work: FlatWork16,
-    // Input layout conversion and FFT butterflies use scratch at disjoint stages.
+    // Conversion/FFT and output scaling run sequentially on the same chunk.
     scratch: Vec<u16>,
-    out_scratch: Vec<u16>,
 }
 
 impl DecodeBuffers {
@@ -42,7 +41,6 @@ impl DecodeBuffers {
         Self {
             work: FlatWork16::new(lanes, chunk_len),
             scratch: alloc::vec![0; chunk_len],
-            out_scratch: alloc::vec![0; chunk_len],
         }
     }
 
@@ -51,7 +49,6 @@ impl DecodeBuffers {
         self.work.allocated_bytes().saturating_add(
             self.scratch
                 .capacity()
-                .saturating_add(self.out_scratch.capacity())
                 .saturating_mul(core::mem::size_of::<u16>()),
         )
     }
@@ -389,11 +386,7 @@ pub(crate) fn reconstruct_with_tables16_with_options(
     }
 
     with_decode_buffers(driver.n, chunk_cap, |buffers| {
-        let DecodeBuffers {
-            work,
-            scratch,
-            out_scratch,
-        } = buffers;
+        let DecodeBuffers { work, scratch } = buffers;
         let mut offset = 0usize;
         while offset < shard_u16_len {
             let end = core::cmp::min(offset + driver.chunk_size, shard_u16_len);
@@ -404,9 +397,8 @@ pub(crate) fn reconstruct_with_tables16_with_options(
                 fft_plan, tables, &driver,
             )?;
 
-            if out_scratch.len() < size {
-                out_scratch.resize(size, 0);
-            }
+            // Input conversion is complete; scaling can overwrite its scratch.
+            let out_scratch = &mut *scratch;
             // Step 5: scale each missing shard's transform by the inverse error locator
             // and write it straight into user byte layout at this chunk's byte range.
             for &(shard_idx, work_idx, inv_err) in &missing {
@@ -559,11 +551,7 @@ fn reconstruct_chunks_parallel(
     let chunks_per_job = jobs.len().div_ceil(max_jobs).max(1);
     jobs.par_chunks_mut(chunks_per_job).try_for_each(|group| {
         with_decode_buffers(driver.n, chunk_cap, |buffers| {
-            let DecodeBuffers {
-                work,
-                scratch,
-                out_scratch,
-            } = buffers;
+            let DecodeBuffers { work, scratch } = buffers;
             for (offset, size, chunk_out) in group {
                 let (offset, size) = (*offset, *size);
                 compute_reconstruct_chunk(
@@ -580,9 +568,8 @@ fn reconstruct_chunks_parallel(
                     tables,
                     driver,
                 )?;
-                if out_scratch.len() < size {
-                    out_scratch.resize(size, 0);
-                }
+                // Input conversion is complete; scaling can overwrite its scratch.
+                let out_scratch = &mut *scratch;
                 for (k, &(_, work_idx, inv_err)) in missing.iter().enumerate() {
                     mulgf16(
                         &mut out_scratch[..size],
@@ -886,11 +873,27 @@ mod decode_buffer_tests {
         assert!(!cacheable_decode_size(64, 32 * 1024));
         DECODE_BUFFER_CACHE.with(|cache| *cache.borrow_mut() = None);
         with_decode_buffers(16, 64, |buffers| {
-            assert_eq!(buffers.retained_bytes(), (16 + 2) * 64 * 2);
+            assert_eq!(buffers.retained_bytes(), (16 + 1) * 64 * 2);
         });
         DECODE_BUFFER_CACHE.with(|cache| assert!(cache.borrow().is_some()));
-        // FlatWork alone fits exactly; the two scratch buffers put it over cap.
+        // FlatWork alone fits exactly; conversion/scaling scratch puts it over cap.
         with_decode_buffers(64, 32 * 1024, |buffers| {
+            assert!(buffers.retained_bytes() > MAX_CACHED_DECODE_BYTES);
+        });
+        DECODE_BUFFER_CACHE.with(|cache| assert!(cache.borrow().is_none()));
+    }
+
+    #[test]
+    fn decode_retention_rechecks_actual_scratch_capacity() {
+        DECODE_BUFFER_CACHE.with(|cache| *cache.borrow_mut() = None);
+        // Equality is permitted, but any capacity growth must release the pair.
+        assert!(cacheable_decode_size(31, 64 * 1024));
+        with_decode_buffers(31, 64 * 1024, |buffers| {
+            assert_eq!(buffers.retained_bytes(), MAX_CACHED_DECODE_BYTES);
+        });
+        DECODE_BUFFER_CACHE.with(|cache| assert!(cache.borrow().is_some()));
+        with_decode_buffers(31, 64 * 1024, |buffers| {
+            buffers.scratch.reserve_exact(1);
             assert!(buffers.retained_bytes() > MAX_CACHED_DECODE_BYTES);
         });
         DECODE_BUFFER_CACHE.with(|cache| assert!(cache.borrow().is_none()));

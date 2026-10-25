@@ -222,4 +222,111 @@ mod allocations {
             assert_eq!(slots[0].as_inner(), &expected[0]);
         }
     }
+
+    #[test]
+    fn cold_decode_reuses_conversion_storage_for_output_scaling() {
+        const CHILD: &str = "RSE_GF16_COLD_ALLOCATION_CHILD";
+        if std::env::var_os(CHILD).is_none() {
+            let status = std::process::Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "allocations::cold_decode_reuses_conversion_storage_for_output_scaling",
+                    "--test-threads=1",
+                    "--nocapture",
+                ])
+                .env(CHILD, "1")
+                .status()
+                .unwrap();
+            assert!(
+                status.success(),
+                "isolated cold GF16 resource regression failed"
+            );
+            return;
+        }
+
+        // Warm only the process-wide immutable plan. Every measured recovery
+        // runs on a fresh thread, so its mutable decode workspace starts cold.
+        let (codec, expected) = fixture(10, 4, 64, 1, 7);
+        let mut slots: Vec<_> = expected.into_iter().map(ShardSlot::new_present).collect();
+        slots[0].mark_missing();
+        codec.reconstruct(&mut slots).unwrap();
+
+        let mut within_budget = true;
+        for repetition in 0..3 {
+            for len in [32 * 1024, 64 * 1024, 128 * 1024 + 64] {
+                let (bytes, calls) = std::thread::spawn(move || {
+                    let (codec, expected) = fixture(10, 4, len, 1, 29 + repetition);
+                    let mut slots: Vec<_> = expected
+                        .iter()
+                        .cloned()
+                        .map(ShardSlot::new_present)
+                        .collect();
+                    slots[0].mark_missing();
+                    slots[0].as_inner_mut().fill(0xa5);
+                    MEASURE.with(|state| state.set(Some((0, 0, 0))));
+                    let result = codec.reconstruct(&mut slots);
+                    let (_, bytes, calls) = MEASURE.with(|state| state.replace(None).unwrap());
+                    result.unwrap();
+                    for (slot, expected) in slots.iter().zip(&expected) {
+                        assert!(slot.is_present());
+                        assert_eq!(slot.as_inner(), expected);
+                    }
+                    (bytes, calls)
+                })
+                .join()
+                .unwrap();
+                let chunk_bytes = len.min(64 * 1024);
+                // 16 FFT lanes, one conversion/scaling buffer, the requested
+                // temporary output, and a small allowance for API metadata.
+                let budget = 17 * chunk_bytes + len + 4096;
+                println!(
+                    "GF16_COLD_RESOURCE repetition={repetition} len={len} calls={calls} bytes={bytes} budget={budget}"
+                );
+                within_budget &= bytes <= budget;
+            }
+        }
+        // With 64 transform lanes, removing one scratch brings 64000-byte
+        // shards below 4 MiB. Full 64 KiB chunks must still be released.
+        for repetition in 0..3 {
+            for len in [64000, 64 * 1024] {
+                let (bytes, calls) = std::thread::spawn(move || {
+                    let (codec, expected) = fixture(40, 16, len, 1, 53 + repetition);
+                    let mut slots: Vec<_> = expected
+                        .iter()
+                        .cloned()
+                        .map(ShardSlot::new_present)
+                        .collect();
+                    slots[0].mark_missing();
+                    codec.reconstruct(&mut slots).unwrap();
+                    slots[0].mark_missing();
+                    slots[0].as_inner_mut().fill(0xa5);
+                    MEASURE.with(|state| state.set(Some((0, 0, 0))));
+                    let result = codec.reconstruct(&mut slots);
+                    let (_, bytes, calls) = MEASURE.with(|state| state.replace(None).unwrap());
+                    result.unwrap();
+                    for (slot, expected) in slots.iter().zip(&expected) {
+                        assert!(slot.is_present());
+                        assert_eq!(slot.as_inner(), expected);
+                    }
+                    (bytes, calls)
+                })
+                .join()
+                .unwrap();
+                let workspace_bytes = 65 * len;
+                let cacheable = workspace_bytes <= 4 * 1024 * 1024;
+                println!(
+                    "GF16_CACHE_RESOURCE repetition={repetition} len={len} cacheable={cacheable} calls={calls} bytes={bytes} workspace_bytes={workspace_bytes}"
+                );
+                within_budget &= if cacheable {
+                    bytes <= len + 4096
+                } else {
+                    bytes >= 64 * len && bytes <= workspace_bytes + len + 4096
+                };
+            }
+        }
+        assert!(
+            within_budget,
+            "decode scratch allocation/retention budget changed"
+        );
+    }
 }
