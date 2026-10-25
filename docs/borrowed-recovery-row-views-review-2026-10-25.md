@@ -1,5 +1,41 @@
 # Borrowed coefficient rows in Classic bulk recovery
 
+## Linear rebase onto main (2026-10-25)
+
+PR #109 is rebased from merge head `5f74fc3d8e70f1fc3887e87a5f5e9961d822b110`
+onto main `50f3e82af9bc7d43458edb8d9d39432cd625bbfe`. The original history
+contained a main merge; the resulting branch is linear. Three prepended release
+record conflicts retain both sides. The merge-only native integration metadata
+and shared-path review are restored exactly before adding this rebase record.
+At that point every tracked working-tree file matches the pre-rebase PR tree.
+
+Codec, tests, Rust tooling, workflows, build/config/package inputs, WASM and
+scripts remain byte-identical to immutable implementation `4bd1208`. All archived
+benchmark/native records retain their pre-rebase bytes. The running controlled
+capture keeps its original source/tool/lock binding; this task performs no remote
+campaign action or source relabeling.
+
+Fresh stable 1.99.1 checks on ARM64 pass:
+
+- 401 all-feature library tests (five existing ignored) and all 23 public recovery
+  regressions, covering borrowed coefficient rows, selective absence, validation
+  order and resource contracts.
+- All 93 workspace and 108 selective cases reproduce the exact original candidate
+  request and requested-byte counts: all 201 records match the preserved archive.
+- Codec-only no_std: 271 library tests.
+- Nine source-plan and four observer tests, including current source bindings,
+  original-statement preservation and unsupported/ambiguous-anchor rejection.
+- Release/workspace/package audits (71 core / 6 WASM members), JSON audit
+  (633 files, zero errors), formatting, spelling and diff checks.
+
+The previously recorded complete suites, native Linux proof and artifact/consumer
+checks keep their original executed-source labels. New-head CI is read separately;
+these local checks establish no new controlled timing or release approval. The
+existing capture, startup failures and outstanding performance/preflight gates
+remain source-bound.
+
+## Prior source-bound review
+
 Runtime source `4bd12089c9a1b9aa1f136de6473e3821f9d9b9d8` is based on main
 `0225f5c850a47d46ae5b77ee06deeda863391ec3`. The
 [complete resource result](../benchmarks/release-9.1.0/2026-10-25/borrowed-recovery-row-views.json)
@@ -158,3 +194,27 @@ It keeps implementation `4bd1208`, the same full catalogue, protocol, counts,
 loops and thresholds. No completed timing result or release acceptance is
 available. Scheduled follow-up remains paused; no unchanged measured campaign
 was rerun to select favorable results.
+
+## Main integration and shared-path review
+
+Remote main `50f3e82` includes the externally merged source/CI documentation from
+PR #108. This integration retains those records and the newer borrowed-row
+results together; all three conflicts concern prepended release-document blocks.
+Tracked codec, tests, Rust tooling, workflows, package manifests, build/config,
+WASM, scripts and benchmark source remain byte-exact to `4bd1208`. The complete
+Git tree changes, so the ongoing Linux capture still retains its original
+`4bd1208` tool/candidate label and is not relabeled as this merge.
+
+The shared-path review checks row ordering and empty/data/parity boundaries,
+workspace effective-format validation, inverse lifetime across cache eviction,
+selective absence and generic late-error publication. The borrowed rows remain
+bounded by their plan and encoding-matrix lifetimes. The GFNI row kernel accepts
+at most four outputs, matching its inline metadata capacity; every returned
+validation error precedes output writes. No additional supported runtime defect
+or measured bottleneck is identified. No shape threshold, allocator tuning or
+extra runtime patch is added while full evidence is pending.
+
+Before integration PR #109 was reported as conflicting and its latest
+record-only head had no CI results. New-head CI is checked independently after
+push. Documentation JSON/links/spelling/diff are rechecked; unchanged Rust
+suites retain their executed source bindings instead of being rerun for records.

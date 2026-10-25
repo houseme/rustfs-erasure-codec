@@ -1,5 +1,12 @@
 # 9.1.0 publication blockers and completion criteria
 
+Linear recovery-row rebase (2026-10-25): PR #109 is based on main `50f3e82`
+with the same protected implementation/test/tool inputs as `4bd1208`. The
+[current rebase record](borrowed-recovery-row-views-review-2026-10-25.md#linear-rebase-onto-main-2026-10-25)
+records fresh focused recovery/no_std/observer checks and exact agreement with
+all 201 resource records. Existing native/capture labels and release requirements
+remain unchanged; new-head CI has its own outcome.
+
 Borrowed bulk-recovery coefficient rows (2026-10-25): source `4bd1208` on
 main `0225f5c` replaces per-call data/parity reference tables with bounded static
 views into the validated plan. The [complete review](borrowed-recovery-row-views-review-2026-10-25.md)
