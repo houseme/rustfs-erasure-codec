@@ -1,0 +1,472 @@
+{
+  "schema": "gf16-parallel-output-view-resources-v1",
+  "baseline_runtime_commit": "88ab0e51d4a25e6c43ce485f5cf64043c0496c27",
+  "candidate_runtime_commit": "5fe100b138e801eba67ce30a41e69a1b63eb4742",
+  "upstream_main_commit": "07f02df5f78ada84588a6f4fc737b7fb484d33d1",
+  "baseline_runtime_files_sha256": {
+    "src/core/leopard_gf16/decode.rs": "39c5f8f59ed318e5518be7ecff30d8de983785aff7db76bf927f04ce724a0902",
+    "src/core/leopard_gf16/driver.rs": "5e9088270f9ead89d69017bd0b53c0aeee896f1104d2953c36f3b309625e96af",
+    "src/core/leopard_gf16/work.rs": "8d4c03b7eba5276b12e094f8a2b33242c12aff4afe9d977a220559b2acab25b8",
+    "src/core/leopard_gf16/ops.rs": "6cc36840ea62569b5bf520dd12335717992e919cfee327e03dd9fdb5f7195443",
+    "src/core/reconstruct.rs": "4aab982d93dcfabf4af48c3feb853832c06267e3cbba9b0753aa97316dc0a3b8",
+    "src/core/leopard.rs": "10b6fa3ea0cd4f5257a2e11202d7c9a9804c4a4b64c6078fde641e7d8da9f110",
+    "Cargo.toml": "9295d965b5a226317c85d20df80a7e5b72c8ced56dce5c3b88cf664fdb5abbe3",
+    "Cargo.lock": "6fb303fc350ca2da4a8788a683296ac15312b9d4767723f30990c7c196b33023",
+    "build.rs": "583cd71bd329d024512a3efcb0bf1d5d564064cb9454a04832bb338998edc841"
+  },
+  "candidate_runtime_files_sha256": {
+    "src/core/leopard_gf16/decode.rs": "fe8686124c99722edf26f66d4c643cb04829009c43d68fe042103deaf035df39",
+    "src/core/leopard_gf16/driver.rs": "5e9088270f9ead89d69017bd0b53c0aeee896f1104d2953c36f3b309625e96af",
+    "src/core/leopard_gf16/work.rs": "8d4c03b7eba5276b12e094f8a2b33242c12aff4afe9d977a220559b2acab25b8",
+    "src/core/leopard_gf16/ops.rs": "6cc36840ea62569b5bf520dd12335717992e919cfee327e03dd9fdb5f7195443",
+    "src/core/reconstruct.rs": "4aab982d93dcfabf4af48c3feb853832c06267e3cbba9b0753aa97316dc0a3b8",
+    "src/core/leopard.rs": "10b6fa3ea0cd4f5257a2e11202d7c9a9804c4a4b64c6078fde641e7d8da9f110",
+    "Cargo.toml": "9295d965b5a226317c85d20df80a7e5b72c8ced56dce5c3b88cf664fdb5abbe3",
+    "Cargo.lock": "6fb303fc350ca2da4a8788a683296ac15312b9d4767723f30990c7c196b33023",
+    "build.rs": "583cd71bd329d024512a3efcb0bf1d5d564064cb9454a04832bb338998edc841"
+  },
+  "same_lockfile": true,
+  "probe_file": "tests/leopard_gf16_decode_reuse.rs",
+  "probe_file_sha256": "ab83d9986d0aa26a39de16af0076cdf2cb88f8f5ba21122400ff22c780d77ab9",
+  "baseline_probe": "identical final external test file overlaid on baseline runtime; isolated exact-test child exits 101 after all records and output checks",
+  "candidate_probe": "isolated exact-test child exits 0 after all records and output checks",
+  "build": "release",
+  "features": [
+    "std",
+    "simd-accel"
+  ],
+  "benchmark_metrics": false,
+  "operation": "reconstruct with explicit LeopardGF16 family",
+  "data": 10,
+  "parity": 4,
+  "missing_indices": [
+    0,
+    1,
+    10
+  ],
+  "requested_outputs": 3,
+  "counter": "isolated child process global Rust allocator hooks, counting alloc/alloc_zeroed/realloc requests and gross requested bytes on caller and all Rayon workers during the synchronous pool.install call; frees, allocator overhead and RSS excluded",
+  "warmup": "fixed dedicated pools; broadcast a serial 64 KiB recovery on every worker to warm the same decode-work shape; prepare and run each complete parallel fixture once before counting its second recovery; immutable plan LRU stays process-local and hot",
+  "fixture_scope": "codec, encoded original, caller ShardSlot storage and pool construction outside counting; mark targets missing and fill existing caller output with nonzero data before counting; verify every shard byte and presence after counting",
+  "payload_accounting": "core reconstruct_leopard_impl still allocates one full temporary Vec per requested missing target. requested_overhead_bytes = gross requested bytes - 3 * shard length; this is a request-volume subtraction, not peak live metadata or RSS.",
+  "partition_model": "C = ceil(shard_u16_len / chunk_size); B = pool threads for jobs 0, otherwise min(requested jobs, pool threads); Q = ceil(C/B); J = ceil(C/Q). Old par_chunks_mut(Q) and new group output ranges use the same contiguous chunk partitions; modeled_groups is derived, not a worker-utilization measurement.",
+  "chunk_bytes": 65536,
+  "tail_bytes": 64,
+  "paired_records_per_version": 9,
+  "allocation_windows_per_version": 18,
+  "latency_measured": false,
+  "throughput_claim": null,
+  "peak_rss_measured": false,
+  "release_approval": false,
+  "baseline": [
+    {
+      "pool_threads": 2,
+      "max_parallel_jobs": 2,
+      "repetition": 0,
+      "short": {
+        "chunks": 12,
+        "length_bytes": 720960,
+        "modeled_groups": 2,
+        "allocation_calls": 19,
+        "requested_bytes": 2164672,
+        "requested_overhead_bytes": 1792
+      },
+      "long": {
+        "chunks": 36,
+        "length_bytes": 2293824,
+        "modeled_groups": 2,
+        "allocation_calls": 45,
+        "requested_bytes": 6888256,
+        "requested_overhead_bytes": 6784
+      }
+    },
+    {
+      "pool_threads": 2,
+      "max_parallel_jobs": 2,
+      "repetition": 1,
+      "short": {
+        "chunks": 12,
+        "length_bytes": 720960,
+        "modeled_groups": 2,
+        "allocation_calls": 19,
+        "requested_bytes": 2164672,
+        "requested_overhead_bytes": 1792
+      },
+      "long": {
+        "chunks": 36,
+        "length_bytes": 2293824,
+        "modeled_groups": 2,
+        "allocation_calls": 45,
+        "requested_bytes": 6888256,
+        "requested_overhead_bytes": 6784
+      }
+    },
+    {
+      "pool_threads": 2,
+      "max_parallel_jobs": 2,
+      "repetition": 2,
+      "short": {
+        "chunks": 12,
+        "length_bytes": 720960,
+        "modeled_groups": 2,
+        "allocation_calls": 19,
+        "requested_bytes": 2164672,
+        "requested_overhead_bytes": 1792
+      },
+      "long": {
+        "chunks": 36,
+        "length_bytes": 2293824,
+        "modeled_groups": 2,
+        "allocation_calls": 45,
+        "requested_bytes": 6888256,
+        "requested_overhead_bytes": 6784
+      }
+    },
+    {
+      "pool_threads": 4,
+      "max_parallel_jobs": 0,
+      "repetition": 0,
+      "short": {
+        "chunks": 12,
+        "length_bytes": 720960,
+        "modeled_groups": 4,
+        "allocation_calls": 19,
+        "requested_bytes": 2164672,
+        "requested_overhead_bytes": 1792
+      },
+      "long": {
+        "chunks": 36,
+        "length_bytes": 2293824,
+        "modeled_groups": 4,
+        "allocation_calls": 45,
+        "requested_bytes": 6888256,
+        "requested_overhead_bytes": 6784
+      }
+    },
+    {
+      "pool_threads": 4,
+      "max_parallel_jobs": 0,
+      "repetition": 1,
+      "short": {
+        "chunks": 12,
+        "length_bytes": 720960,
+        "modeled_groups": 4,
+        "allocation_calls": 19,
+        "requested_bytes": 2164672,
+        "requested_overhead_bytes": 1792
+      },
+      "long": {
+        "chunks": 36,
+        "length_bytes": 2293824,
+        "modeled_groups": 4,
+        "allocation_calls": 45,
+        "requested_bytes": 6888256,
+        "requested_overhead_bytes": 6784
+      }
+    },
+    {
+      "pool_threads": 4,
+      "max_parallel_jobs": 0,
+      "repetition": 2,
+      "short": {
+        "chunks": 12,
+        "length_bytes": 720960,
+        "modeled_groups": 4,
+        "allocation_calls": 19,
+        "requested_bytes": 2164672,
+        "requested_overhead_bytes": 1792
+      },
+      "long": {
+        "chunks": 36,
+        "length_bytes": 2293824,
+        "modeled_groups": 4,
+        "allocation_calls": 45,
+        "requested_bytes": 6888256,
+        "requested_overhead_bytes": 6784
+      }
+    },
+    {
+      "pool_threads": 4,
+      "max_parallel_jobs": 3,
+      "repetition": 0,
+      "short": {
+        "chunks": 12,
+        "length_bytes": 720960,
+        "modeled_groups": 3,
+        "allocation_calls": 19,
+        "requested_bytes": 2164672,
+        "requested_overhead_bytes": 1792
+      },
+      "long": {
+        "chunks": 36,
+        "length_bytes": 2293824,
+        "modeled_groups": 3,
+        "allocation_calls": 45,
+        "requested_bytes": 6888256,
+        "requested_overhead_bytes": 6784
+      }
+    },
+    {
+      "pool_threads": 4,
+      "max_parallel_jobs": 3,
+      "repetition": 1,
+      "short": {
+        "chunks": 12,
+        "length_bytes": 720960,
+        "modeled_groups": 3,
+        "allocation_calls": 19,
+        "requested_bytes": 2164672,
+        "requested_overhead_bytes": 1792
+      },
+      "long": {
+        "chunks": 36,
+        "length_bytes": 2293824,
+        "modeled_groups": 3,
+        "allocation_calls": 45,
+        "requested_bytes": 6888256,
+        "requested_overhead_bytes": 6784
+      }
+    },
+    {
+      "pool_threads": 4,
+      "max_parallel_jobs": 3,
+      "repetition": 2,
+      "short": {
+        "chunks": 12,
+        "length_bytes": 720960,
+        "modeled_groups": 3,
+        "allocation_calls": 19,
+        "requested_bytes": 2164672,
+        "requested_overhead_bytes": 1792
+      },
+      "long": {
+        "chunks": 36,
+        "length_bytes": 2293824,
+        "modeled_groups": 3,
+        "allocation_calls": 45,
+        "requested_bytes": 6888256,
+        "requested_overhead_bytes": 6784
+      }
+    }
+  ],
+  "candidate": [
+    {
+      "pool_threads": 2,
+      "max_parallel_jobs": 2,
+      "repetition": 0,
+      "short": {
+        "chunks": 12,
+        "length_bytes": 720960,
+        "modeled_groups": 2,
+        "allocation_calls": 7,
+        "requested_bytes": 2163152,
+        "requested_overhead_bytes": 272
+      },
+      "long": {
+        "chunks": 36,
+        "length_bytes": 2293824,
+        "modeled_groups": 2,
+        "allocation_calls": 7,
+        "requested_bytes": 6881744,
+        "requested_overhead_bytes": 272
+      }
+    },
+    {
+      "pool_threads": 2,
+      "max_parallel_jobs": 2,
+      "repetition": 1,
+      "short": {
+        "chunks": 12,
+        "length_bytes": 720960,
+        "modeled_groups": 2,
+        "allocation_calls": 7,
+        "requested_bytes": 2163152,
+        "requested_overhead_bytes": 272
+      },
+      "long": {
+        "chunks": 36,
+        "length_bytes": 2293824,
+        "modeled_groups": 2,
+        "allocation_calls": 7,
+        "requested_bytes": 6881744,
+        "requested_overhead_bytes": 272
+      }
+    },
+    {
+      "pool_threads": 2,
+      "max_parallel_jobs": 2,
+      "repetition": 2,
+      "short": {
+        "chunks": 12,
+        "length_bytes": 720960,
+        "modeled_groups": 2,
+        "allocation_calls": 7,
+        "requested_bytes": 2163152,
+        "requested_overhead_bytes": 272
+      },
+      "long": {
+        "chunks": 36,
+        "length_bytes": 2293824,
+        "modeled_groups": 2,
+        "allocation_calls": 7,
+        "requested_bytes": 6881744,
+        "requested_overhead_bytes": 272
+      }
+    },
+    {
+      "pool_threads": 4,
+      "max_parallel_jobs": 0,
+      "repetition": 0,
+      "short": {
+        "chunks": 12,
+        "length_bytes": 720960,
+        "modeled_groups": 4,
+        "allocation_calls": 9,
+        "requested_bytes": 2163328,
+        "requested_overhead_bytes": 448
+      },
+      "long": {
+        "chunks": 36,
+        "length_bytes": 2293824,
+        "modeled_groups": 4,
+        "allocation_calls": 9,
+        "requested_bytes": 6881920,
+        "requested_overhead_bytes": 448
+      }
+    },
+    {
+      "pool_threads": 4,
+      "max_parallel_jobs": 0,
+      "repetition": 1,
+      "short": {
+        "chunks": 12,
+        "length_bytes": 720960,
+        "modeled_groups": 4,
+        "allocation_calls": 9,
+        "requested_bytes": 2163328,
+        "requested_overhead_bytes": 448
+      },
+      "long": {
+        "chunks": 36,
+        "length_bytes": 2293824,
+        "modeled_groups": 4,
+        "allocation_calls": 9,
+        "requested_bytes": 6881920,
+        "requested_overhead_bytes": 448
+      }
+    },
+    {
+      "pool_threads": 4,
+      "max_parallel_jobs": 0,
+      "repetition": 2,
+      "short": {
+        "chunks": 12,
+        "length_bytes": 720960,
+        "modeled_groups": 4,
+        "allocation_calls": 9,
+        "requested_bytes": 2163328,
+        "requested_overhead_bytes": 448
+      },
+      "long": {
+        "chunks": 36,
+        "length_bytes": 2293824,
+        "modeled_groups": 4,
+        "allocation_calls": 9,
+        "requested_bytes": 6881920,
+        "requested_overhead_bytes": 448
+      }
+    },
+    {
+      "pool_threads": 4,
+      "max_parallel_jobs": 3,
+      "repetition": 0,
+      "short": {
+        "chunks": 12,
+        "length_bytes": 720960,
+        "modeled_groups": 3,
+        "allocation_calls": 8,
+        "requested_bytes": 2163240,
+        "requested_overhead_bytes": 360
+      },
+      "long": {
+        "chunks": 36,
+        "length_bytes": 2293824,
+        "modeled_groups": 3,
+        "allocation_calls": 8,
+        "requested_bytes": 6881832,
+        "requested_overhead_bytes": 360
+      }
+    },
+    {
+      "pool_threads": 4,
+      "max_parallel_jobs": 3,
+      "repetition": 1,
+      "short": {
+        "chunks": 12,
+        "length_bytes": 720960,
+        "modeled_groups": 3,
+        "allocation_calls": 8,
+        "requested_bytes": 2163240,
+        "requested_overhead_bytes": 360
+      },
+      "long": {
+        "chunks": 36,
+        "length_bytes": 2293824,
+        "modeled_groups": 3,
+        "allocation_calls": 8,
+        "requested_bytes": 6881832,
+        "requested_overhead_bytes": 360
+      }
+    },
+    {
+      "pool_threads": 4,
+      "max_parallel_jobs": 3,
+      "repetition": 2,
+      "short": {
+        "chunks": 12,
+        "length_bytes": 720960,
+        "modeled_groups": 3,
+        "allocation_calls": 8,
+        "requested_bytes": 2163240,
+        "requested_overhead_bytes": 360
+      },
+      "long": {
+        "chunks": 36,
+        "length_bytes": 2293824,
+        "modeled_groups": 3,
+        "allocation_calls": 8,
+        "requested_bytes": 6881832,
+        "requested_overhead_bytes": 360
+      }
+    }
+  ],
+  "validation": {
+    "workspace_passed": 932,
+    "workspace_existing_ignored": 43,
+    "no_std_simd_lib_passed": 273,
+    "no_std_simd_decode_integration_passed": 1,
+    "strict_clippy": true,
+    "fmt_and_diff_check": true,
+    "compatibility_non_fast_configurations": 200,
+    "instrumented_baseline_functional_passed": 16,
+    "instrumented_candidate_functional_passed": 16,
+    "diagnostic_generated_members_per_copy": 9,
+    "baseline_diagnostic_digest": "ecc6f792d334d9ccbf933b8c4e52c6036abf1f24b485b4140bd735a6a21754da",
+    "candidate_diagnostic_digest": "4ca069ad0c76af52187c00d099650da26aafab8ec552fd787664f4290df48271",
+    "x86_64_linux_all_features_lib_check": true,
+    "x86_64_darwin_all_targets_all_features_check": true,
+    "wasm32_no_std_simd_lib_check": true,
+    "json_audit": true,
+    "package_members": {
+      "core": 71,
+      "wasm": 6
+    }
+  },
+  "limits": [
+    "Metadata views are bounded by existing job groups and requested targets; full temporary outputs still scale with shard length to preserve publication semantics.",
+    "No new activation threshold, worker limit, arithmetic or cache retention policy.",
+    "Configured pool size is not a measurement of simultaneous worker occupancy.",
+    "Generated observer compilation and functional checks are not a formal all-thread internal-owner capture or release approval.",
+    "No new stable timing qualification; preserve historical ABBA drift failures. No peak RSS or throughput claim."
+  ]
+}

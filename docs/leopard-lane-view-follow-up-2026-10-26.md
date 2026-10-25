@@ -87,3 +87,9 @@ encoder 文件随完整副本构建；该 observer 没有 encoder 内部所有�
 历史 ABBA 漂移失败记录保持，本轮没有重新计时或声称吞吐提升。
 
 本轮执行 commit，未 push、创建 PR、打 tag 或发布 crate。
+
+## 后续进展
+
+GF16 并行恢复按既有作业组准备输出视图及全线程资源对照见
+[并行输出视图跟进报告](gf16-parallel-views-follow-up-2026-10-26.md)。
+以上保留本轮原始实现身份及资源记录。
