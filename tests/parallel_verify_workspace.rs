@@ -405,3 +405,72 @@ fn parity_corruption_cannot_hide_a_later_invalid_shard_or_mutate_scratch() {
     check::<rustfs_erasure_codec::galois_8::Field>();
     check::<rustfs_erasure_codec::galois_16::Field>();
 }
+
+#[test]
+fn ordinary_verify_reserves_only_the_known_wide_view_count() {
+    fn check<F: Field>() -> bool
+    where
+        F::Elem: Send + Sync,
+    {
+        let codec = ReedSolomon::<F>::with_options(
+            2,
+            33,
+            CodecOptions::builder()
+                .fast_one_parity(false)
+                .max_parallel_jobs(1)
+                .build(),
+        )
+        .unwrap();
+        let mut shards = encoded(&codec, 65);
+        let mut buffer = vec![vec![F::zero(); 65]; 33];
+        let view_bytes = 33 * size_of::<&mut [F::Elem]>();
+        let mut bounded = true;
+        for repetition in 0..3 {
+            for (condition, position) in [
+                ("valid", None),
+                ("head", Some((2, 0))),
+                ("tail", Some((34, 64))),
+            ] {
+                if let Some((row, offset)) = position {
+                    shards[row][offset] = F::add(shards[row][offset], F::one());
+                }
+                let expected = position.is_none();
+                let (serial, serial_count) = measure(|| codec.verify(&shards));
+                let (parallel, parallel_count) = measure(|| codec.verify_par(&shards));
+                let (direct, direct_count) =
+                    measure(|| codec.verify_with_buffer(&shards, &mut buffer));
+                let (direct_par, direct_par_count) =
+                    measure(|| codec.verify_with_buffer_par(&shards, &mut buffer));
+                for result in [serial, parallel, direct, direct_par] {
+                    assert_eq!(result.unwrap(), expected);
+                }
+                bounded &= serial_count.0 <= direct_count.0 + 1
+                    && serial_count.1 <= direct_count.1 + view_bytes;
+                bounded &= parallel_count.0 <= direct_par_count.0 + 1
+                    && parallel_count.1 <= direct_par_count.1 + view_bytes;
+                println!(
+                    "VERIFY_VIEW_RESOURCE field_order={} repetition={repetition} condition={condition} view_budget={view_bytes} serial_calls={} serial_bytes={} parallel_calls={} parallel_bytes={} buffer_calls={} buffer_bytes={} buffer_par_calls={} buffer_par_bytes={}",
+                    F::ORDER,
+                    serial_count.0,
+                    serial_count.1,
+                    parallel_count.0,
+                    parallel_count.1,
+                    direct_count.0,
+                    direct_count.1,
+                    direct_par_count.0,
+                    direct_par_count.1
+                );
+                if let Some((row, offset)) = position {
+                    shards[row][offset] = F::add(shards[row][offset], F::one());
+                }
+            }
+        }
+        bounded
+    }
+    let gf8 = check::<rustfs_erasure_codec::galois_8::Field>();
+    let gf16 = check::<rustfs_erasure_codec::galois_16::Field>();
+    assert!(
+        gf8 && gf16,
+        "ordinary verify over-reserved wide reference storage"
+    );
+}
