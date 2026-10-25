@@ -4,6 +4,12 @@ Release 9.1.0 uses published **9.0.0** (`9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b
 as its baseline. No accepted snapshot has been configured merely by adding this
 workflow. Ordinary CI and mocked tooling tests do not establish performance.
 
+The current native controller and worker use protocol 15. Version references
+below identify when individual workload/observation contracts were introduced;
+protocol 15 retains them and declares the uniform duration policy before
+calibration for all 126 cases and paired layouts. Replay uses the protocol and
+renderer bound to the frozen source; do not relabel older captures as protocol 15.
+
 ## Complete diagnostic collection
 
 When the objective is to collect the entire campaign before analyzing failures,
@@ -25,7 +31,9 @@ cargo run --locked --manifest-path candidate/xtask/Cargo.toml --package xtask --
 ```
 
 Replay computes all 504 profile distributions, 252 profile repeat checks, 16
-regression-program invocations and 504 unqualified metric comparisons. Layout
+in-process regression checks and 504 unqualified metric comparisons. The checks
+use the shared native benchmark/hotspot implementations and retain each result's
+exit-code and stdout/stderr contract; they do not launch separate checker programs. Layout
 analysis retains all 256 cell distributions, 256 within/cross-phase repeats and
 256 unqualified comparisons, including regression indicators when quality fails.
 Every raw observation and failed check remains available for cause analysis.
@@ -95,8 +103,9 @@ edited. The stream adapter corrects one explicit fixture constructor on both sou
 cloning an empty `Vec::with_capacity` discards its reservation. Every parity writer
 now receives an independent reservation; these allocations remain inside each
 original timed iteration. The original benchmark files stay untouched for source
-comparison. Protocol 7 binds this output policy; earlier policies require new
-calibration and cannot be mixed with the corrected workload. This fixture fix
+comparison. This output policy was introduced in protocol 7 and is retained by
+protocol 15; earlier policies require new calibration and cannot be mixed with
+the corrected workload. This fixture fix
 is not a production algorithm change or an attributed speedup.
 
 The external adapter excludes one-time fixture preparation from the
@@ -121,9 +130,9 @@ proposed count, calibration retains the same three warmups and nine probes used
 for measurement. All nine probes must meet both duration targets before the
 count is frozen. Any short probe increases the count and restarts the full warmup
 schedule. Calibration is bounded to 12 batches / 144 records per case, and every
-observation is retained. The Python controller chooses counts; the Rust worker
-executes one fixed schedule and receives the same scalar case/count inputs in
-both modes. Frozen-table parsing and adaptive selection stay in the controller,
+observation is retained. The native Rust controller chooses counts; the separate
+Rust worker executes one fixed schedule and receives the same scalar case/count
+inputs in both modes. Frozen-table parsing and adaptive selection stay in the controller,
 so no previous-count state or measurement-only count map changes the worker heap. This avoids freezing a count from cold probes that
 precede the actual measurement warmup schedule. Allocation state may still change
 between separate invocations; every formal sample must pass its own interval
@@ -131,7 +140,8 @@ check. The larger
 iteration count for each case is frozen for **both releases and every phase**.
 Each proposed calibration count and each measurement case runs in a fresh test process, in a fixed
 lexicographic case order. This prevents another case from seeding its allocator
-arenas or worker-pool state. Protocol 7 records `isolated_case=true` on every
+arenas or worker-pool state. The per-case isolation contract introduced in
+protocol 7 and retained by protocol 15 records `isolated_case=true` on every
 observation; missing/false markers are rejected. Every phase performs exactly
 three warmup invocations at the frozen count, then collects exactly nine samples.
 Basic scheduling snapshots retain numeric counters instead of formatted heap
@@ -623,7 +633,14 @@ The campaign root must contain `adjacent/` and `reservation/`; the frozen tool i
 an explicit trusted checkout, with the original commit object available and the
 same complete tree/lock/controller bytes. Pure rebase with an identical complete
 tree is supported. The analyzer never fetches a tool or runs a path from captured
-data. It invokes only `replay` under isolated Python, with bytecode writes disabled.
+data. It creates a private checkout of that trusted Rust source, verifies its
+complete tree/lock identity, and builds `xtask` with a locked offline release
+build in that checkout's own target directory. Dependencies must already be
+available locally. Frozen models run through a bounded native-helper process on
+a Unix verification host; no Python interpreter is invoked. Recorded historical
+controller files remain identity inputs and are not executed. The analyzer
+replays every retained worker and computes descriptive summaries without new
+codec measurements.
 Current policy validation also refuses a malformed v2 prior or a changed known
 policy, even when the older frozen controller predates that refusal.
 
