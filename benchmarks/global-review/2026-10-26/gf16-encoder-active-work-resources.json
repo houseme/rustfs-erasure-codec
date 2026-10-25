@@ -1,0 +1,560 @@
+{
+  "schema": "gf16-encoder-active-work-resources-v1",
+  "baseline_runtime_commit": "5ab7cdf2e1a49fad7dfe7460bd0a7700af8bac43",
+  "candidate_runtime_commit": "dba382ddc1dbd0b28b34ffe4ba9fb7f640828fce",
+  "upstream_main_commit": "07f02df5f78ada84588a6f4fc737b7fb484d33d1",
+  "baseline_runtime_files_sha256": {
+    "src/core/leopard_gf16/encode.rs": "9d03ac42667074568d3a77a33b7cc86d1843d8b3874884f23ad6862ad3bc4b94",
+    "src/core/leopard_gf16/work.rs": "a1cfa088c93a1c7f4a38ff6c73faa5294428058a9310471c129dacfcbb3626e5",
+    "src/core/leopard_gf16/ops.rs": "6cc36840ea62569b5bf520dd12335717992e919cfee327e03dd9fdb5f7195443",
+    "src/core/leopard_gf16/driver.rs": "5e9088270f9ead89d69017bd0b53c0aeee896f1104d2953c36f3b309625e96af",
+    "src/core/leopard.rs": "eebb5b4a6d69cbe26763fff24ac6b06fc4022523cddbd80874ac9157c734aa04",
+    "Cargo.toml": "9295d965b5a226317c85d20df80a7e5b72c8ced56dce5c3b88cf664fdb5abbe3",
+    "Cargo.lock": "6fb303fc350ca2da4a8788a683296ac15312b9d4767723f30990c7c196b33023",
+    "build.rs": "583cd71bd329d024512a3efcb0bf1d5d564064cb9454a04832bb338998edc841"
+  },
+  "candidate_runtime_files_sha256": {
+    "src/core/leopard_gf16/encode.rs": "3605b7c4589eaee9c209f3c3df16f68df32a0b94e552d08b784e953b25725d3b",
+    "src/core/leopard_gf16/work.rs": "a1cfa088c93a1c7f4a38ff6c73faa5294428058a9310471c129dacfcbb3626e5",
+    "src/core/leopard_gf16/ops.rs": "6cc36840ea62569b5bf520dd12335717992e919cfee327e03dd9fdb5f7195443",
+    "src/core/leopard_gf16/driver.rs": "5e9088270f9ead89d69017bd0b53c0aeee896f1104d2953c36f3b309625e96af",
+    "src/core/leopard.rs": "eebb5b4a6d69cbe26763fff24ac6b06fc4022523cddbd80874ac9157c734aa04",
+    "Cargo.toml": "9295d965b5a226317c85d20df80a7e5b72c8ced56dce5c3b88cf664fdb5abbe3",
+    "Cargo.lock": "6fb303fc350ca2da4a8788a683296ac15312b9d4767723f30990c7c196b33023",
+    "build.rs": "583cd71bd329d024512a3efcb0bf1d5d564064cb9454a04832bb338998edc841"
+  },
+  "same_lockfile": true,
+  "probe_file": "tests/leopard_encode_reuse_regressions.rs",
+  "probe_file_sha256": "17b6e6e4659e64336767c2f0f1ec46c0a9782a780e181e1ab261c04f570d6eaf",
+  "baseline_probe": "identical final external test file overlaid on baseline runtime; expected exit 101 after collecting all paired records and checking parity",
+  "candidate_probe": "exit 0 after collecting all paired records and checking parity",
+  "build": "release",
+  "features": [
+    "std",
+    "simd-accel"
+  ],
+  "benchmark_metrics": false,
+  "operation": "encode_sep",
+  "compute": "unchanged serial GF16 encoder path on each caller thread",
+  "counter": "caller-thread alloc/alloc_zeroed/realloc requests and gross requested bytes; deallocations, allocator overhead, RSS and other threads are excluded",
+  "fixture_scope": "codec, global field tables, input and caller parity buffers prepared before counting; global tables initialized by a parent-thread reference encode; every measured sequence uses a fresh OS thread",
+  "cold_scope": "first encode on the fresh thread: immutable FFT plans, active work, any scratch and API metadata are all counted; parity checked against a reference generated outside counting by the same runtime version",
+  "warm_scope": "second encode on the same thread and shape, after overwriting caller parity with a different nonzero fill; plans or work retained by the first call may be reused; every parity byte checked",
+  "budget_model": "work_bytes = 2 * next_power_of_two(parity_count) * min(shard_bytes, 65536). work_only_budget_eligible is the candidate work-only predicate in both versions, not an observed baseline cache flag. The 4 MiB limit covers active work allocation, with real scratch included on baseline. Immutable plans have a separate 1 MiB per-thread budget.",
+  "paired_records_per_version": 15,
+  "allocation_windows_per_version": 30,
+  "latency_measured": false,
+  "throughput_claim": null,
+  "peak_rss_measured": false,
+  "release_approval": false,
+  "baseline": [
+    {
+      "repetition": 0,
+      "data": 10,
+      "parity": 4,
+      "length_bytes": 32768,
+      "work_bytes": 262144,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 7,
+        "requested_bytes": 295712
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 0,
+      "data": 10,
+      "parity": 4,
+      "length_bytes": 65536,
+      "work_bytes": 524288,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 7,
+        "requested_bytes": 590624
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 0,
+      "data": 10,
+      "parity": 4,
+      "length_bytes": 131136,
+      "work_bytes": 524288,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 7,
+        "requested_bytes": 590624
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 0,
+      "data": 4,
+      "parity": 32,
+      "length_bytes": 65536,
+      "work_bytes": 4194304,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 9,
+        "requested_bytes": 4260992
+      },
+      "warm": {
+        "allocation_calls": 9,
+        "requested_bytes": 4260992
+      }
+    },
+    {
+      "repetition": 0,
+      "data": 4,
+      "parity": 64,
+      "length_bytes": 65536,
+      "work_bytes": 8388608,
+      "work_only_budget_eligible": false,
+      "cold": {
+        "allocation_calls": 10,
+        "requested_bytes": 8458848
+      },
+      "warm": {
+        "allocation_calls": 10,
+        "requested_bytes": 8458848
+      }
+    },
+    {
+      "repetition": 1,
+      "data": 10,
+      "parity": 4,
+      "length_bytes": 32768,
+      "work_bytes": 262144,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 7,
+        "requested_bytes": 295712
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 1,
+      "data": 10,
+      "parity": 4,
+      "length_bytes": 65536,
+      "work_bytes": 524288,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 7,
+        "requested_bytes": 590624
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 1,
+      "data": 10,
+      "parity": 4,
+      "length_bytes": 131136,
+      "work_bytes": 524288,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 7,
+        "requested_bytes": 590624
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 1,
+      "data": 4,
+      "parity": 32,
+      "length_bytes": 65536,
+      "work_bytes": 4194304,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 9,
+        "requested_bytes": 4260992
+      },
+      "warm": {
+        "allocation_calls": 9,
+        "requested_bytes": 4260992
+      }
+    },
+    {
+      "repetition": 1,
+      "data": 4,
+      "parity": 64,
+      "length_bytes": 65536,
+      "work_bytes": 8388608,
+      "work_only_budget_eligible": false,
+      "cold": {
+        "allocation_calls": 10,
+        "requested_bytes": 8458848
+      },
+      "warm": {
+        "allocation_calls": 10,
+        "requested_bytes": 8458848
+      }
+    },
+    {
+      "repetition": 2,
+      "data": 10,
+      "parity": 4,
+      "length_bytes": 32768,
+      "work_bytes": 262144,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 7,
+        "requested_bytes": 295712
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 2,
+      "data": 10,
+      "parity": 4,
+      "length_bytes": 65536,
+      "work_bytes": 524288,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 7,
+        "requested_bytes": 590624
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 2,
+      "data": 10,
+      "parity": 4,
+      "length_bytes": 131136,
+      "work_bytes": 524288,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 7,
+        "requested_bytes": 590624
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 2,
+      "data": 4,
+      "parity": 32,
+      "length_bytes": 65536,
+      "work_bytes": 4194304,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 9,
+        "requested_bytes": 4260992
+      },
+      "warm": {
+        "allocation_calls": 9,
+        "requested_bytes": 4260992
+      }
+    },
+    {
+      "repetition": 2,
+      "data": 4,
+      "parity": 64,
+      "length_bytes": 65536,
+      "work_bytes": 8388608,
+      "work_only_budget_eligible": false,
+      "cold": {
+        "allocation_calls": 10,
+        "requested_bytes": 8458848
+      },
+      "warm": {
+        "allocation_calls": 10,
+        "requested_bytes": 8458848
+      }
+    }
+  ],
+  "candidate": [
+    {
+      "repetition": 0,
+      "data": 10,
+      "parity": 4,
+      "length_bytes": 32768,
+      "work_bytes": 262144,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 6,
+        "requested_bytes": 262944
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 0,
+      "data": 10,
+      "parity": 4,
+      "length_bytes": 65536,
+      "work_bytes": 524288,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 6,
+        "requested_bytes": 525088
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 0,
+      "data": 10,
+      "parity": 4,
+      "length_bytes": 131136,
+      "work_bytes": 524288,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 6,
+        "requested_bytes": 525088
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 0,
+      "data": 4,
+      "parity": 32,
+      "length_bytes": 65536,
+      "work_bytes": 4194304,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 8,
+        "requested_bytes": 4195456
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 0,
+      "data": 4,
+      "parity": 64,
+      "length_bytes": 65536,
+      "work_bytes": 8388608,
+      "work_only_budget_eligible": false,
+      "cold": {
+        "allocation_calls": 9,
+        "requested_bytes": 8393312
+      },
+      "warm": {
+        "allocation_calls": 9,
+        "requested_bytes": 8393312
+      }
+    },
+    {
+      "repetition": 1,
+      "data": 10,
+      "parity": 4,
+      "length_bytes": 32768,
+      "work_bytes": 262144,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 6,
+        "requested_bytes": 262944
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 1,
+      "data": 10,
+      "parity": 4,
+      "length_bytes": 65536,
+      "work_bytes": 524288,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 6,
+        "requested_bytes": 525088
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 1,
+      "data": 10,
+      "parity": 4,
+      "length_bytes": 131136,
+      "work_bytes": 524288,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 6,
+        "requested_bytes": 525088
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 1,
+      "data": 4,
+      "parity": 32,
+      "length_bytes": 65536,
+      "work_bytes": 4194304,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 8,
+        "requested_bytes": 4195456
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 1,
+      "data": 4,
+      "parity": 64,
+      "length_bytes": 65536,
+      "work_bytes": 8388608,
+      "work_only_budget_eligible": false,
+      "cold": {
+        "allocation_calls": 9,
+        "requested_bytes": 8393312
+      },
+      "warm": {
+        "allocation_calls": 9,
+        "requested_bytes": 8393312
+      }
+    },
+    {
+      "repetition": 2,
+      "data": 10,
+      "parity": 4,
+      "length_bytes": 32768,
+      "work_bytes": 262144,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 6,
+        "requested_bytes": 262944
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 2,
+      "data": 10,
+      "parity": 4,
+      "length_bytes": 65536,
+      "work_bytes": 524288,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 6,
+        "requested_bytes": 525088
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 2,
+      "data": 10,
+      "parity": 4,
+      "length_bytes": 131136,
+      "work_bytes": 524288,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 6,
+        "requested_bytes": 525088
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 2,
+      "data": 4,
+      "parity": 32,
+      "length_bytes": 65536,
+      "work_bytes": 4194304,
+      "work_only_budget_eligible": true,
+      "cold": {
+        "allocation_calls": 8,
+        "requested_bytes": 4195456
+      },
+      "warm": {
+        "allocation_calls": 0,
+        "requested_bytes": 0
+      }
+    },
+    {
+      "repetition": 2,
+      "data": 4,
+      "parity": 64,
+      "length_bytes": 65536,
+      "work_bytes": 8388608,
+      "work_only_budget_eligible": false,
+      "cold": {
+        "allocation_calls": 9,
+        "requested_bytes": 8393312
+      },
+      "warm": {
+        "allocation_calls": 9,
+        "requested_bytes": 8393312
+      }
+    }
+  ],
+  "validation": {
+    "workspace_passed": 928,
+    "workspace_existing_ignored": 43,
+    "no_std_simd_lib_passed": 273,
+    "strict_clippy": true,
+    "fmt_and_diff_check": true,
+    "compatibility_non_fast_configurations": 200,
+    "instrumented_baseline_functional_passed": 14,
+    "instrumented_candidate_functional_passed": 14,
+    "diagnostic_generated_members_per_copy": 9,
+    "diagnostic_digest_unchanged": "9a5bae2bc6e121ba57fcbbc0814291cc6a02367cd3aa5d87039f0d45d39963bd",
+    "x86_64_linux_all_features_lib_check": true,
+    "wasm32_no_std_simd_lib_check": true,
+    "json_audit": true,
+    "package_members": {
+      "core": 71,
+      "wasm": 6
+    }
+  },
+  "limits": [
+    "No new stable timing qualification; preserve historical failed ABBA results.",
+    "4+32 now retains its exactly 4 MiB work allocation and separate FFT plans, so lower request traffic is not a claim that every workload retains less memory.",
+    "4+64 remains oversized and preserves any existing smaller warm work and plan; its active local allocation and wide metadata remain.",
+    "The unchanged dynamic observer does not instrument GF16 encoder internals; resource evidence comes from the external allocator counter, not an encoder owner trace.",
+    "No process or all-thread peak RSS, hardware throughput or release approval."
+  ]
+}
