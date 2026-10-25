@@ -98,3 +98,9 @@ scratch 仍需真实负载与稳定速度证据；第 5 项 GF16 decode 在 over
 历史 ABBA 漂移失败记录保持，本轮没有重新计时或声称吞吐提升。
 
 本轮执行 commit，未 push、创建 PR、打 tag 或发布 crate。
+
+## 后续进展
+
+普通 verify 的完整资源矩阵、异常输入门禁及精确引用表容量见
+[verify 测量与容量跟进报告](verify-workload-follow-up-2026-10-26.md)。
+以上保留本轮原始实现身份及资源记录。

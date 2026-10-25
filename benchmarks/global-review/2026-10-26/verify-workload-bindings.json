@@ -1,0 +1,975 @@
+{
+  "schema": "verify-workload-source-bindings-v1",
+  "measurement_tool_commit": "41a9af1230131fc2e1236cc83797eff63863bd23",
+  "runtime_before_commit": "41a9af1230131fc2e1236cc83797eff63863bd23",
+  "runtime_after_commit": "dc70f4dbda1f16538790892bec0cbc649e496493",
+  "upstream_main_commit": "07f02df5f78ada84588a6f4fc737b7fb484d33d1",
+  "runtime_before_files_sha256": {
+    "src/core/verify.rs": "e9afff0bf33af98fd58d8ad3621483bcd70f3cd7773effb6c2f95f2d914ea5ec",
+    "src/core/workspace.rs": "0f1f23034039ed54d4fb751d02ccb120912965c7c02abd5923dba435677e449e",
+    "src/core/encode.rs": "a81de35607cd7a8b1ea6de5fee169ecda80910203be1759ee05e8369c40fa0a6",
+    "Cargo.toml": "9295d965b5a226317c85d20df80a7e5b72c8ced56dce5c3b88cf664fdb5abbe3",
+    "Cargo.lock": "6fb303fc350ca2da4a8788a683296ac15312b9d4767723f30990c7c196b33023",
+    "build.rs": "583cd71bd329d024512a3efcb0bf1d5d564064cb9454a04832bb338998edc841"
+  },
+  "runtime_after_files_sha256": {
+    "src/core/verify.rs": "c68ffd444b1c2e418f868c9cad2cfbb5e3377a147804ad638812dbfd16f2fea9",
+    "src/core/workspace.rs": "0f1f23034039ed54d4fb751d02ccb120912965c7c02abd5923dba435677e449e",
+    "src/core/encode.rs": "a81de35607cd7a8b1ea6de5fee169ecda80910203be1759ee05e8369c40fa0a6",
+    "Cargo.toml": "9295d965b5a226317c85d20df80a7e5b72c8ced56dce5c3b88cf664fdb5abbe3",
+    "Cargo.lock": "6fb303fc350ca2da4a8788a683296ac15312b9d4767723f30990c7c196b33023",
+    "build.rs": "583cd71bd329d024512a3efcb0bf1d5d564064cb9454a04832bb338998edc841"
+  },
+  "tool_files_sha256": {
+    "scripts/release-compatibility/src/main.rs": "039901e310e125a3fd29e041fbad107c39828831c102b49be96c18ae46060687",
+    "scripts/release-compatibility/src/verify_probe.rs": "d755a6c9db7128414dad8115a61c87ff515b8ae7a20924f7f539b34c536a3fd9",
+    "scripts/release-compatibility/src/verify_report.rs": "d7364744b9f3b7c056d8dec646537f43bbbbd5cb7b0331ea13527da261d2a98f",
+    "scripts/release-compatibility/src/allocation.rs": "8b9a9fda13f147e1231040bcaa550a3c3485f56b8f96da21219b66bc4ce9f729",
+    "scripts/release-compatibility/src/probe.rs": "fda2a9c8bcafab3bf771da9d206bdfa97ed79da71b62e6c1d9856de32f883d3a",
+    "scripts/release-compatibility/src/resource_probe.rs": "82bcae7b81d291ed79653f4893e1b3ef0319f527419712217f72a8debea838ab",
+    "scripts/release-compatibility/Cargo.toml": "9ae6a04c76f806b8b995f62a9199df2a9acd1f3223c6e993453d8a6990900e95"
+  },
+  "same_sampling_tool": true,
+  "same_lockfile": true,
+  "reports": {
+    "before": {
+      "file": "benchmarks/global-review/2026-10-26/verify-workload-before.json",
+      "sha256": "0d83097aa8343f77e117ef813a2a7f3d1da071fe32f088e94815887be93faa99",
+      "runtime_commit": "41a9af1230131fc2e1236cc83797eff63863bd23"
+    },
+    "after": {
+      "file": "benchmarks/global-review/2026-10-26/verify-workload-after.json",
+      "sha256": "eef1113d3f38dcffe719545c92fa2b96c09d58bab8f47474685502e384cd487d",
+      "runtime_commit": "dc70f4dbda1f16538790892bec0cbc649e496493"
+    },
+    "legacy45": {
+      "file": "benchmarks/global-review/2026-10-26/verify-workload-legacy45.json",
+      "sha256": "5b228a1772f6e9684d88a7822f1f1db1378cd1580553ee75a8d3f0b162379017",
+      "runtime_commit": "41a9af1230131fc2e1236cc83797eff63863bd23"
+    }
+  },
+  "invocation": [
+    "cargo",
+    "+stable",
+    "run",
+    "--release",
+    "--locked",
+    "-p",
+    "rse-release-compatibility",
+    "--",
+    "--verify-resource-report",
+    "NEW_OUTPUT_FILE"
+  ],
+  "compiler": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "independent_replay": {
+    "fixture_keys_per_report": 12,
+    "observation_cases_per_report": 108,
+    "counted_windows_per_report": 648,
+    "total_verify_counted_windows": 1296,
+    "all_baseline_samples_unchanged": true,
+    "all_other_candidate_samples_unchanged": true,
+    "only_changed_observations": [
+      {
+        "field": "gf8",
+        "data": 2,
+        "parity": 33,
+        "elements": 65,
+        "api": "verify",
+        "condition": "valid",
+        "before_bytes": 1024,
+        "after_bytes": 528
+      },
+      {
+        "field": "gf8",
+        "data": 2,
+        "parity": 33,
+        "elements": 65,
+        "api": "verify",
+        "condition": "parity_head",
+        "before_bytes": 1024,
+        "after_bytes": 528
+      },
+      {
+        "field": "gf8",
+        "data": 2,
+        "parity": 33,
+        "elements": 65,
+        "api": "verify",
+        "condition": "parity_tail",
+        "before_bytes": 1024,
+        "after_bytes": 528
+      },
+      {
+        "field": "tower-gf16",
+        "data": 2,
+        "parity": 33,
+        "elements": 65,
+        "api": "verify",
+        "condition": "valid",
+        "before_bytes": 1024,
+        "after_bytes": 528
+      },
+      {
+        "field": "tower-gf16",
+        "data": 2,
+        "parity": 33,
+        "elements": 65,
+        "api": "verify",
+        "condition": "parity_head",
+        "before_bytes": 1024,
+        "after_bytes": 528
+      },
+      {
+        "field": "tower-gf16",
+        "data": 2,
+        "parity": 33,
+        "elements": 65,
+        "api": "verify",
+        "condition": "parity_tail",
+        "before_bytes": 1024,
+        "after_bytes": 528
+      }
+    ]
+  },
+  "validation": {
+    "workspace_passed": 936,
+    "workspace_existing_ignored": 43,
+    "no_std_simd_lib_passed": 273,
+    "strict_clippy": true,
+    "format_and_diff_checks": true,
+    "included_probe_explicit_rustfmt_check": true,
+    "published_compatibility_configurations": 200,
+    "legacy_resource_cases": 45,
+    "existing_report_preservation": true,
+    "instrumented_verify_scratch_functional_passed": 25,
+    "instrumented_stream_core_functional_passed": 25,
+    "verify_scratch_digest": "c5821bfce7cfd1d1938c9ce0fc8b6be49f005a342dbe485d3f364a4f114ca9b6",
+    "stream_core_digest": "ee599a576b6d3e9ed3917d61377043efe1be244adc7eca1b0697bbb65bc27933",
+    "x86_64_linux_all_features_lib_check": true,
+    "wasm32_no_std_simd_lib_check": true,
+    "json_audit": true,
+    "package_members": {
+      "core": 71,
+      "wasm": 6
+    }
+  },
+  "limits": [
+    "The published 9.0.0 columns are retained release controls, not this patch baseline. Before/after comparisons use candidate columns and identical sampler sources.",
+    "API ordinary verify keeps full parity scratch; caller buffer/workspace allocation is excluded from hot-call counting and still consumes retained memory.",
+    "Serial resource catalog and max_jobs=1 parallel-policy capacity control do not qualify multi-worker throughput or individual native kernel execution.",
+    "Corruption result/error-precedence gates pass, but no stable timing, production workload distribution, process peak RSS or release approval is established."
+  ],
+  "latency_claim": null,
+  "release_approval": false,
+  "capacity_control": {
+    "file": "tests/parallel_verify_workspace.rs",
+    "sha256": "a001c01b9ab507cc605b04c787f811edd78ec46f82ed04df75960355c6c56783",
+    "before_probe": "identical final external regression ran on pre-change runtime and failed only its view budget",
+    "after_probe": "same regression passed",
+    "data": 2,
+    "parity": 33,
+    "elements_per_shard": 65,
+    "max_parallel_jobs": 1,
+    "counter": "caller-thread requests; parallel-policy API takes its existing one-job execution path",
+    "records_per_version": 18,
+    "counted_windows_per_version": 72,
+    "records": {
+      "before": [
+        {
+          "field_order": 256,
+          "repetition": 0,
+          "condition": "valid",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 256,
+          "repetition": 0,
+          "condition": "head",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 256,
+          "repetition": 0,
+          "condition": "tail",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 256,
+          "repetition": 1,
+          "condition": "valid",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 256,
+          "repetition": 1,
+          "condition": "head",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 256,
+          "repetition": 1,
+          "condition": "tail",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 256,
+          "repetition": 2,
+          "condition": "valid",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 256,
+          "repetition": 2,
+          "condition": "head",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 256,
+          "repetition": 2,
+          "condition": "tail",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 65536,
+          "repetition": 0,
+          "condition": "valid",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 65536,
+          "repetition": 0,
+          "condition": "head",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 65536,
+          "repetition": 0,
+          "condition": "tail",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 65536,
+          "repetition": 1,
+          "condition": "valid",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 65536,
+          "repetition": 1,
+          "condition": "head",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 65536,
+          "repetition": 1,
+          "condition": "tail",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 65536,
+          "repetition": 2,
+          "condition": "valid",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 65536,
+          "repetition": 2,
+          "condition": "head",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 65536,
+          "repetition": 2,
+          "condition": "tail",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 1024
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        }
+      ],
+      "after": [
+        {
+          "field_order": 256,
+          "repetition": 0,
+          "condition": "valid",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 256,
+          "repetition": 0,
+          "condition": "head",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 256,
+          "repetition": 0,
+          "condition": "tail",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 256,
+          "repetition": 1,
+          "condition": "valid",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 256,
+          "repetition": 1,
+          "condition": "head",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 256,
+          "repetition": 1,
+          "condition": "tail",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 256,
+          "repetition": 2,
+          "condition": "valid",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 256,
+          "repetition": 2,
+          "condition": "head",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 256,
+          "repetition": 2,
+          "condition": "tail",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 65536,
+          "repetition": 0,
+          "condition": "valid",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 65536,
+          "repetition": 0,
+          "condition": "head",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 65536,
+          "repetition": 0,
+          "condition": "tail",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 65536,
+          "repetition": 1,
+          "condition": "valid",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 65536,
+          "repetition": 1,
+          "condition": "head",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 65536,
+          "repetition": 1,
+          "condition": "tail",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 65536,
+          "repetition": 2,
+          "condition": "valid",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 65536,
+          "repetition": 2,
+          "condition": "head",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        },
+        {
+          "field_order": 65536,
+          "repetition": 2,
+          "condition": "tail",
+          "view_budget_bytes": 528,
+          "serial": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "parallel_policy": {
+            "calls": 1,
+            "bytes": 528
+          },
+          "buffer": {
+            "calls": 0,
+            "bytes": 0
+          },
+          "buffer_parallel_policy": {
+            "calls": 0,
+            "bytes": 0
+          }
+        }
+      ]
+    }
+  }
+}
