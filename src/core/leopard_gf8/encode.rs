@@ -271,7 +271,6 @@ pub(super) fn encode_with_tables<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
         });
     #[cfg(not(feature = "std"))]
     let mut flat_work = FlatWork::new(needed_lanes, needed_lane_len);
-    let mut offset = 0usize;
 
     // Pre-allocate scratch buffer for allocation-free FFT butterflies.
     // Reused across all chunks and encode calls (via thread-local on std).
@@ -285,19 +284,26 @@ pub(super) fn encode_with_tables<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
     #[cfg(not(feature = "std"))]
     let mut scratch: Vec<u8> = Vec::new();
 
-    while offset < driver.shard_size {
-        #[cfg(feature = "std")]
-        PROFILE8.encode_chunks.fetch_add(1, Ordering::Relaxed);
-        let end = core::cmp::min(offset + driver.chunk_size, driver.shard_size);
-        let size = end - offset;
-        let work_size = core::cmp::min(driver.m * 2, flat_work.lanes());
+    let work_size = core::cmp::min(driver.m * 2, flat_work.lanes());
+    // Reuse the lane table across chunks without retaining references in TLS.
+    flat_work.with_lane_views(work_size, chunk_cap, |work| {
+        let mut offset = 0usize;
+        while offset < driver.shard_size {
+            #[cfg(feature = "std")]
+            PROFILE8.encode_chunks.fetch_add(1, Ordering::Relaxed);
+            let end = core::cmp::min(offset + driver.chunk_size, driver.shard_size);
+            let size = end - offset;
 
-        // Ensure scratch is large enough for this chunk.
-        if scratch.len() < size {
-            scratch.resize(size, 0);
-        }
+            // Ensure scratch is large enough for this chunk.
+            if scratch.len() < size {
+                scratch.resize(size, 0);
+            }
 
-        flat_work.with_lane_views(work_size, size, |work| {
+            if size < chunk_cap {
+                debug_assert_eq!(end, driver.shard_size);
+                super::super::leopard::truncate_lane_views(work, size);
+            }
+
             #[cfg(feature = "std")]
             if plans.first_ifft_plan.mtrunc == plans.first_ifft_plan.m {
                 PROFILE8.encode_full_groups.fetch_add(1, Ordering::Relaxed);
@@ -373,9 +379,9 @@ pub(super) fn encode_with_tables<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
             for (idx, output) in parity.iter_mut().enumerate() {
                 output.as_mut()[offset..end].copy_from_slice(&work[idx][..size]);
             }
-        });
-        offset = end;
-    }
+            offset = end;
+        }
+    });
 
     #[cfg(feature = "std")]
     if cacheable {

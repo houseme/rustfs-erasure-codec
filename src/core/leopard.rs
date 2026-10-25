@@ -23,6 +23,14 @@ pub(crate) fn leopard_work_cache_fits(work_bytes: usize, scratch_bytes: usize) -
     work_bytes.saturating_add(scratch_bytes) <= LEOPARD_MAX_CACHED_WORK_BYTES
 }
 
+/// Shorten the final chunk's lane views without another reference table.
+/// This changes only the borrowed lengths; allocation strides stay unchanged.
+pub(crate) fn truncate_lane_views<T>(views: &mut [&mut [T]], len: usize) {
+    for view in views {
+        *view = &mut core::mem::take(view)[..len];
+    }
+}
+
 /// Parity ceiling at or below which [`LeopardMode::PreferLeopard`] resolves to
 /// GF(2^8) Leopard. Above it a GF(2^8) Leopard codec can be constructed but not
 /// encoded, so resolution falls back to GF(2^16).
