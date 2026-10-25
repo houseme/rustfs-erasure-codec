@@ -621,3 +621,74 @@ fn wide_parity_recovery_does_not_allocate_output_views_for_each_block() {
         "output metadata must not allocate once per block: {counts:?}"
     );
 }
+
+#[test]
+fn data_recovery_metadata_requests_do_not_grow_with_block_count() {
+    use rustfs_erasure_codec::CodecOptions;
+    let mut counts = Vec::new();
+    for (data, parity, missing_data, missing_parity) in [
+        (33, 34, vec![17], vec![]),
+        (33, 34, (0..33).collect(), vec![]),
+        (
+            40,
+            40,
+            (0..40)
+                .filter(|i| ![1, 4, 9, 13, 21, 27, 38].contains(i))
+                .collect(),
+            vec![40, 79],
+        ),
+    ] {
+        let codec = ReedSolomon::with_options(
+            data,
+            parity,
+            CodecOptions::builder().inversion_cache(false).build(),
+        )
+        .unwrap();
+        let missing: Vec<_> = missing_data
+            .iter()
+            .chain(&missing_parity)
+            .copied()
+            .collect();
+        let measure = |blocks| {
+            let len = BLOCK_SIZE * blocks + 37;
+            let expected = encoded_shards(&codec, len);
+            let mut readers: Vec<_> = expected
+                .iter()
+                .enumerate()
+                .map(|(index, shard)| (!missing.contains(&index)).then_some(shard.as_slice()))
+                .collect();
+            let mut writers: Vec<_> = (0..data + parity)
+                .map(|index| missing.contains(&index).then(|| Vec::with_capacity(len)))
+                .collect();
+            let (_, calls) = count_allocations(|| {
+                codec
+                    .reconstruct_stream_from(
+                        &mut readers,
+                        &mut writers,
+                        &options(StreamIoMode::Serial),
+                    )
+                    .unwrap();
+            });
+            for (index, writer) in writers.iter().enumerate() {
+                if let Some(writer) = writer {
+                    assert_eq!(writer, &expected[index]);
+                }
+            }
+            calls
+        };
+        for repetition in 0..3 {
+            let short = measure(1);
+            let long = measure(5);
+            println!(
+                "DATA_STREAM_RESOURCE data={data} parity={parity} missing_data={} missing_parity={} cache=0 repetition={repetition} short_blocks=2 long_blocks=6 short_calls={short} long_calls={long}",
+                missing_data.len(),
+                missing_parity.len()
+            );
+            counts.push((short, long));
+        }
+    }
+    assert!(
+        counts.iter().all(|&(short, long)| short == long),
+        "data metadata must not allocate per block: {counts:?}"
+    );
+}

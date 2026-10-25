@@ -14,6 +14,52 @@ use super::{
     ReedSolomon, leopard,
 };
 
+/// Borrow contiguous or planned survivor inputs in coefficient-column order.
+trait CodingInputs<E> {
+    type Shard: AsRef<[E]>;
+    fn len(&self) -> usize;
+    fn contiguous(&self) -> Option<&[Self::Shard]> {
+        None
+    }
+    fn iter<'a>(&'a self) -> impl Iterator<Item = &'a Self::Shard>
+    where
+        Self::Shard: 'a;
+}
+
+impl<E, T: AsRef<[E]>> CodingInputs<E> for [T] {
+    type Shard = T;
+    fn len(&self) -> usize {
+        self.len()
+    }
+    fn contiguous(&self) -> Option<&[T]> {
+        Some(self)
+    }
+    fn iter<'a>(&'a self) -> impl Iterator<Item = &'a T>
+    where
+        T: 'a,
+    {
+        self.iter()
+    }
+}
+
+struct SelectedInputs<'a, T> {
+    shards: &'a [T],
+    indices: &'a [usize],
+}
+
+impl<E, T: AsRef<[E]>> CodingInputs<E> for SelectedInputs<'_, T> {
+    type Shard = T;
+    fn len(&self) -> usize {
+        self.indices.len()
+    }
+    fn iter<'a>(&'a self) -> impl Iterator<Item = &'a T>
+    where
+        T: 'a,
+    {
+        self.indices.iter().map(|&index| &self.shards[index])
+    }
+}
+
 /// Reborrow output shards without allocating a table of mutable references.
 /// Slice and selected-output adapters share the same coding loop and arithmetic.
 trait CodingOutputs<E> {
@@ -328,14 +374,66 @@ impl<F: Field> ReedSolomon<F> {
         );
     }
 
-    fn code_some_slices_with_outputs<T: AsRef<[F::Elem]>>(
+    /// Keep selected survivor lookup separate from disjoint output owners.
+    pub(crate) fn code_selected_inputs<T: AsRef<[F::Elem]>, U: AsMut<[F::Elem]>>(
         &self,
         matrix_rows: &(impl MatrixRows<F::Elem> + ?Sized),
         inputs: &[T],
+        indices: &[usize],
+        outputs: &mut [U],
+    ) {
+        self.code_some_slices_with_outputs(
+            matrix_rows,
+            &SelectedInputs {
+                shards: inputs,
+                indices,
+            },
+            &mut SliceOutputs { shards: outputs },
+        );
+    }
+
+    #[cfg(rse_x86_gfni)]
+    fn try_gfni_outputs<T: AsRef<[F::Elem]>>(
+        kernel: crate::galois_8::x86::gfni_rows::SelectedRowKernel,
+        matrix_rows: &(impl MatrixRows<F::Elem> + ?Sized),
+        inputs: &[T],
+        outputs: &mut impl CodingOutputs<F::Elem>,
+        shard_len: usize,
+        chunk_len: usize,
+    ) -> bool {
+        if let Some(contiguous) = outputs.contiguous() {
+            Self::try_gfni_rows(
+                kernel,
+                matrix_rows,
+                inputs,
+                contiguous,
+                shard_len,
+                chunk_len,
+            )
+        } else {
+            // SelectedRowKernel permits at most four outputs, kept inline.
+            let mut views: SmallVec<[&mut [F::Elem]; 4]> =
+                outputs.iter_mut().map(|output| output.as_mut()).collect();
+            Self::try_gfni_rows(
+                kernel,
+                matrix_rows,
+                inputs,
+                &mut views,
+                shard_len,
+                chunk_len,
+            )
+        }
+    }
+
+    fn code_some_slices_with_outputs(
+        &self,
+        matrix_rows: &(impl MatrixRows<F::Elem> + ?Sized),
+        inputs: &(impl CodingInputs<F::Elem> + ?Sized),
         outputs: &mut impl CodingOutputs<F::Elem>,
     ) {
         let shard_len = inputs
-            .first()
+            .iter()
+            .next()
             .map(|input| input.as_ref().len())
             .unwrap_or(0);
         if shard_len == 0 {
@@ -362,28 +460,21 @@ impl<F: Field> ReedSolomon<F> {
                     inputs.len(), outputs.len(), shard_len,
                 )
         {
-            let executed = if let Some(contiguous) = outputs.contiguous() {
-                Self::try_gfni_rows(
+            let executed = if let Some(contiguous) = inputs.contiguous() {
+                Self::try_gfni_outputs(
                     kernel,
                     matrix_rows,
-                    inputs,
                     contiguous,
+                    outputs,
                     shard_len,
                     chunk_len,
                 )
             } else {
-                // Selection above permits at most four GFNI outputs. Keep this
-                // narrow native adapter inline; wider targets use the shared loop.
-                let mut views: SmallVec<[&mut [F::Elem]; 4]> =
-                    outputs.iter_mut().map(|output| output.as_mut()).collect();
-                Self::try_gfni_rows(
-                    kernel,
-                    matrix_rows,
-                    inputs,
-                    &mut views,
-                    shard_len,
-                    chunk_len,
-                )
+                // Native selection bounds this adapter to 32 input references.
+                // Wide plans retain indexed access in the shared arithmetic loop.
+                let views: SmallVec<[&[F::Elem]; 32]> =
+                    inputs.iter().map(|input| input.as_ref()).collect();
+                Self::try_gfni_outputs(kernel, matrix_rows, &views, outputs, shard_len, chunk_len)
             };
             if executed {
                 return;

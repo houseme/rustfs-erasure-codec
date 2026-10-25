@@ -367,3 +367,84 @@ fn sparse_parity_targets_preserve_gaps_and_kernel_width_boundaries() {
         }
     }
 }
+
+#[test]
+fn selected_survivors_and_owned_data_outputs_preserve_order_across_blocks() {
+    for matrix_mode in [
+        MatrixMode::Vandermonde,
+        MatrixMode::Cauchy,
+        MatrixMode::JerasureLike,
+    ] {
+        let codec = ReedSolomon::with_options(
+            6,
+            8,
+            CodecOptions::builder().matrix_mode(matrix_mode).build(),
+        )
+        .unwrap();
+        let expected = encoded(&codec, BLOCK_SIZE * 2 + 37);
+        for data_targets in [
+            vec![0],
+            vec![5],
+            vec![1, 4],
+            vec![0, 2, 5],
+            vec![1, 2, 3, 5],
+            vec![0, 1, 2, 3, 5],
+            (0..6).collect(),
+        ] {
+            for parity_missing in [false, true] {
+                let mut missing = data_targets.clone();
+                if parity_missing {
+                    missing.push(13);
+                }
+                for mode in [
+                    StreamIoMode::Auto,
+                    StreamIoMode::Serial,
+                    StreamIoMode::Parallel,
+                ] {
+                    let mut streams: Vec<_> = expected
+                        .iter()
+                        .enumerate()
+                        .map(|(index, shard)| {
+                            Cursor::new(if missing.contains(&index) {
+                                Vec::new()
+                            } else {
+                                shard.clone()
+                            })
+                        })
+                        .collect();
+                    codec
+                        .reconstruct_stream(&mut streams, &options(mode))
+                        .unwrap();
+                    for (actual, expected) in streams.iter().zip(&expected) {
+                        assert_eq!(actual.get_ref(), expected);
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn wide_data_recovery_does_not_publish_a_truncated_block() {
+    let codec = ReedSolomon::new(33, 34).unwrap();
+    let expected = encoded(&codec, BLOCK_SIZE * 2 + 37);
+    for mode in [StreamIoMode::Serial, StreamIoMode::Parallel] {
+        let mut streams: Vec<_> = expected.iter().cloned().map(Cursor::new).collect();
+        for stream in &mut streams[..33] {
+            *stream = Cursor::new(Vec::new());
+        }
+        streams[33].get_mut().truncate(BLOCK_SIZE + 17);
+        let error = codec
+            .reconstruct_stream(&mut streams, &options(mode))
+            .unwrap_err();
+        assert_eq!(error.shard_index, 33);
+        assert!(matches!(
+            error.kind,
+            StreamErrorKind::Codec(Error::IncorrectShardSize)
+        ));
+        for (actual, expected) in streams[..33].iter().zip(&expected[..33]) {
+            assert_eq!(actual.get_ref(), &expected[..BLOCK_SIZE]);
+            assert_eq!(actual.position(), 0);
+        }
+    }
+}
