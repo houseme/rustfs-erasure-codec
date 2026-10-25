@@ -88,3 +88,8 @@ cargo +stable test --release --locked -p rustfs-erasure-codec --features simd-ac
 Leopard 缓存策略仍等待工作负载与峰值内存数据；本轮没有改变它。
 新资源报告和当前入口独立提交，历史报告的源码身份与结果保持原样。
 本轮只 commit，未 push、创建 PR、打 tag 或发布 crate。
+
+## 后续进展
+
+数据恢复阶段的宽引用表收敛见[索引输入与所有权复用](data-recovery-owner-follow-up-2026-10-26.md)。
+上文保留原实现提交时的资源结果和验证范围。
