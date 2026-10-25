@@ -17,6 +17,7 @@ This directory contains development documentation, design documents, benchmark r
 | [data-recovery-owner-follow-up-2026-10-26.md](data-recovery-owner-follow-up-2026-10-26.md) | Indexed survivors and reusable output owners in streaming data recovery |
 | [gf16-shared-scratch-follow-up-2026-10-26.md](gf16-shared-scratch-follow-up-2026-10-26.md) | Shared GF16 decode scratch, cold allocation and cache-budget boundary evidence |
 | [gf16-encoder-active-work-follow-up-2026-10-26.md](gf16-encoder-active-work-follow-up-2026-10-26.md) | Retired GF16 encoder scratch, active work budgets and cold/warm allocation evidence |
+| [leopard-lane-view-follow-up-2026-10-26.md](leopard-lane-view-follow-up-2026-10-26.md) | Reusable GF8/GF16 lane views across chunks, tail correctness and bounded allocation counts |
 | [global-review-9.1.0-2026-10-22.md](global-review-9.1.0-2026-10-22.md) | Archived earlier architecture review and bounded incremental-update resources |
 | [drift-analysis-9.1.0-2026-10-22.md](drift-analysis-9.1.0-2026-10-22.md) | Current drift investigation, benchmark lifetime fixes and sparse incremental-update validation |
 | [README-performance-index.md](README-performance-index.md) | Performance document index |
