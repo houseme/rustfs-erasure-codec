@@ -28,11 +28,11 @@ fn complete_plans_bind_generated_bytes_and_every_written_member() {
     for (variant, expected) in [
         (
             "verify-scratch",
-            "66d9b45a4ea8d2e07c1f2def8d3b757d6045bcb548b74bc7935ebc48084e065b",
+            "277be532fea1492c2e001711bdeb45a8b0a54d4393eadc25f4ee6c7240d1b69e",
         ),
         (
             "stream-core",
-            "bdcc909549d23c7e8e95ec6ada979750c9e6c2825fb03e8574bdb6637af24544",
+            "6977a31c230009563b871b7f04053b012f90bc57565ace27ef92c71b51ca8754",
         ),
         (
             // Current production source, including every systematic decode branch.

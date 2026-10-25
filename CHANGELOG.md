@@ -10,6 +10,10 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Reuse the Classic inline scratch for ordinary fast-one-parity verification.
+  Preserve the XOR encoder and corrupted-parity checks while avoiding heap
+  requests for up to 4096 field elements.
+
 - Add generic `verify_with_workspace_par` for repeated parallel-policy
   verification with reusable parity scratch, including tower GF16. Route the
   existing GF8 workspace-opt adapter through this shared entry point; retain

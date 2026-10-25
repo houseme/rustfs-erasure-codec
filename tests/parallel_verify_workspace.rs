@@ -303,3 +303,55 @@ fn repeated_workspace_verification_matches_caller_buffer_allocation_cost() {
     check::<rustfs_erasure_codec::galois_8::Field>();
     check::<rustfs_erasure_codec::galois_16::Field>();
 }
+
+#[test]
+fn fast_single_parity_verification_reuses_the_classic_inline_scratch_budget() {
+    fn check<F: Field>() -> bool
+    where
+        F::Elem: Send + Sync,
+    {
+        let mut budget_met = true;
+        let codec = ReedSolomon::<F>::with_options(
+            4,
+            1,
+            CodecOptions::builder()
+                .fast_one_parity(true)
+                .max_parallel_jobs(1)
+                .build(),
+        )
+        .unwrap();
+        for len in [1, 65, 4096, 4097] {
+            let mut shards = encoded(&codec, len);
+            assert!(codec.verify(&shards).unwrap());
+            assert!(codec.verify_par(&shards).unwrap());
+            for repetition in 0..3 {
+                let (valid, serial) = measure(|| codec.verify(&shards));
+                assert!(valid.unwrap());
+                let (valid, parallel) = measure(|| codec.verify_par(&shards));
+                assert!(valid.unwrap());
+                println!(
+                    "FAST_VERIFY_RESOURCE field_order={} elements={len} repetition={repetition} serial_calls={} serial_bytes={} parallel_calls={} parallel_bytes={}",
+                    F::ORDER,
+                    serial.0,
+                    serial.1,
+                    parallel.0,
+                    parallel.1
+                );
+                budget_met &= serial == parallel && (len > 4096 || serial == (0, 0));
+            }
+            for offset in [0, len - 1] {
+                shards[4][offset] = F::add(shards[4][offset], F::one());
+                assert!(!codec.verify(&shards).unwrap());
+                assert!(!codec.verify_par(&shards).unwrap());
+                shards[4][offset] = F::add(shards[4][offset], F::one());
+            }
+        }
+        budget_met
+    }
+    let gf8 = check::<rustfs_erasure_codec::galois_8::Field>();
+    let gf16 = check::<rustfs_erasure_codec::galois_16::Field>();
+    assert!(
+        gf8 && gf16,
+        "fast verification must share the ordinary inline scratch budget"
+    );
+}

@@ -21,7 +21,11 @@ impl<F: Field> ReedSolomon<F> {
         T: AsRef<[F::Elem]>,
         U: AsRef<[F::Elem]> + AsMut<[F::Elem]>,
     {
-        self.encode_classic_matrix(inputs, buffer)?;
+        if self.fast_one_parity_enabled() {
+            self.encode_fast_one_parity(inputs, buffer);
+        } else {
+            self.encode_classic_matrix(inputs, buffer)?;
+        }
         Ok(buffer
             .iter()
             .zip(to_check)
@@ -76,12 +80,6 @@ impl<F: Field> ReedSolomon<F> {
         let slice_len = slices[0].as_ref().len();
         let data = &slices[0..self.data_shard_count()];
         let to_check = &slices[self.data_shard_count()..];
-
-        if self.fast_one_parity_enabled() {
-            let mut buffer = vec![F::zero(); slice_len];
-            self.encode_fast_one_parity(data, core::slice::from_mut(&mut buffer));
-            return Ok(buffer.as_slice() == to_check[0].as_ref());
-        }
 
         let scratch_len = self.parity_shard_count() * slice_len;
         let mut scratch: SmallVec<[F::Elem; VERIFY_INLINE_SCRATCH_ELEMS]> =
@@ -170,11 +168,6 @@ impl<F: Field> ReedSolomon<F> {
 
         let data = &slices[0..self.data_shard_count()];
         let to_check = &slices[self.data_shard_count()..];
-
-        if self.fast_one_parity_enabled() {
-            self.encode_fast_one_parity(data, buffer);
-            return Ok(buffer[0].as_ref() == to_check[0].as_ref());
-        }
 
         self.check_classic_parity(data, to_check, buffer)
     }
