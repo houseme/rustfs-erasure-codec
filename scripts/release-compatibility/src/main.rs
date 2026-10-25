@@ -1,5 +1,6 @@
 //! Functional compatibility and optional resource counts; never latency measurement.
 mod allocation;
+mod verify_report;
 
 const RESOURCE_CASE_COUNT: usize = 45;
 
@@ -49,6 +50,16 @@ mod old {
     pub(super) fn resource_counts() -> Vec<super::ResourceCase> {
         resources::resources()
     }
+    mod verification {
+        use super::rustfs_erasure_codec;
+        include!("verify_probe.rs");
+    }
+    pub(super) fn verify_fixture(
+        field: crate::verify_report::FieldKind,
+        config: crate::verify_report::Config,
+    ) -> crate::verify_report::Fixture {
+        verification::fixture(field, config)
+    }
 }
 mod new {
     use codec_new as rustfs_erasure_codec;
@@ -59,6 +70,16 @@ mod new {
     }
     pub(super) fn resource_counts() -> Vec<super::ResourceCase> {
         resources::resources()
+    }
+    mod verification {
+        use super::rustfs_erasure_codec;
+        include!("verify_probe.rs");
+    }
+    pub(super) fn verify_fixture(
+        field: crate::verify_report::FieldKind,
+        config: crate::verify_report::Config,
+    ) -> crate::verify_report::Fixture {
+        verification::fixture(field, config)
     }
 }
 
@@ -81,10 +102,16 @@ fn main() {
     let args: Vec<_> = std::env::args_os().skip(1).collect();
     if !args.is_empty() {
         assert!(
-            args.len() == 2 && args[0] == "--allocation-report",
-            "usage: --allocation-report FILE"
+            args.len() == 2,
+            "usage: --allocation-report FILE | --verify-resource-report FILE"
         );
-        resource_report(std::path::Path::new(&args[1]));
+        match args[0].to_str() {
+            Some("--allocation-report") => resource_report(std::path::Path::new(&args[1])),
+            Some("--verify-resource-report") => {
+                verify_report::write(std::path::Path::new(&args[1]))
+            }
+            _ => panic!("usage: --allocation-report FILE | --verify-resource-report FILE"),
+        }
     }
     println!("200 published 9.0.0 -> candidate 9.1.0 non-fast parity/roundtrip cases passed");
 }
