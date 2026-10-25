@@ -32,6 +32,7 @@ use std::io::Error;
 
 use smallvec::SmallVec;
 
+use super::recovery_plan::ClassicReconstructRows;
 use super::{ClassicReconstructPlan, ReconstructionGoal};
 
 /// Lower bound for the read/write block size (1 KiB).
@@ -354,44 +355,39 @@ fn read_present_streams_with_mode<R: std::io::Read + Send>(
     buffers: &mut [Vec<u8>],
     max_len: usize,
     use_parallel_io: bool,
-    read_lengths: &mut Vec<(usize, usize)>,
 ) -> Result<(bool, usize), StreamError> {
-    read_lengths.clear();
-
     if use_parallel_io {
         use rayon::prelude::*;
 
-        read_lengths.resize(readers.len(), (0, 0));
         readers
             .par_iter_mut()
             .zip(buffers.par_iter_mut())
-            .zip(read_lengths.par_iter_mut())
             .enumerate()
-            .try_for_each(|(i, ((reader, buf), read_length))| {
-                *read_length = (i, 0);
+            .try_for_each(|(i, (reader, buf))| {
                 if let Some(reader) = reader {
                     let total = read_one_stream(reader, buf, max_len)
                         .map_err(|e| StreamError::read(i, e))?;
                     buf.truncate(total);
-                    read_length.1 = total;
                 }
                 Ok::<_, StreamError>(())
             })?;
-        read_lengths.retain(|&(i, _)| readers[i].is_some());
     } else {
         for (i, (reader, buf)) in readers.iter_mut().zip(buffers.iter_mut()).enumerate() {
             if let Some(reader) = reader {
                 let total =
                     read_one_stream(reader, buf, max_len).map_err(|e| StreamError::read(i, e))?;
                 buf.truncate(total);
-                read_lengths.push((i, total));
             }
         }
     }
 
-    let actual_len = read_lengths
+    // Present buffers already own their exact read lengths. Missing buffers
+    // may retain the previous block, so exclude them from both length checks.
+    let actual_len = readers
         .iter()
-        .map(|(_, total)| *total)
+        .zip(buffers.iter())
+        .filter(|(reader, _)| reader.is_some())
+        .map(|(_, buffer)| buffer.len())
         .max()
         .unwrap_or(0);
     if actual_len != 0 {
@@ -401,7 +397,11 @@ fn read_present_streams_with_mode<R: std::io::Read + Send>(
         // zero-padded into reconstruction, which would produce wrong recovered
         // data while returning Ok. This matches the in-memory `reconstruct`'s
         // `IncorrectShardSize` check.
-        if let Some(&(bad, _)) = read_lengths.iter().find(|(_, total)| *total != actual_len) {
+        if let Some(bad) = readers
+            .iter()
+            .zip(buffers.iter())
+            .position(|(reader, buffer)| reader.is_some() && buffer.len() != actual_len)
+        {
             return Err(StreamError::codec(bad, crate::Error::IncorrectShardSize));
         }
     }
@@ -582,22 +582,14 @@ impl<'codec> StreamReconstructPlan<'codec> {
         Ok(Self { codec, plan })
     }
 
-    fn data_rows(&self) -> SmallVec<[&[u8]; 32]> {
-        self.plan.data_rows().collect()
-    }
-
-    fn parity_rows(&self) -> SmallVec<[&[u8]; 32]> {
-        self.plan.parity_rows(self.codec).collect()
-    }
-
     /// All present buffers have already passed the equal-length read check,
     /// and missing buffers have been resized to the same block length.
     fn reconstruct_block(
         &self,
         buffers: &mut [Vec<u8>],
         shard_len: usize,
-        data_rows: &[&[u8]],
-        parity_rows: &[&[u8]],
+        data_rows: &ClassicReconstructRows<'_, crate::galois_8::Field>,
+        parity_rows: &ClassicReconstructRows<'_, crate::galois_8::Field>,
     ) {
         let missing_data = self.plan.data_targets().len();
         let missing_parity = self.plan.parity_targets().len();
@@ -993,23 +985,17 @@ impl super::ReedSolomon<crate::galois_8::Field> {
                 }
             })
             .collect();
-        let mut read_lengths = Vec::with_capacity(total);
 
-        let (all_eof, mut actual_len) = read_present_streams_with_mode(
-            readers,
-            &mut bufs,
-            block_size,
-            use_parallel_read,
-            &mut read_lengths,
-        )?;
+        let (all_eof, mut actual_len) =
+            read_present_streams_with_mode(readers, &mut bufs, block_size, use_parallel_read)?;
         if all_eof {
             return Ok(());
         }
 
         let plan = StreamReconstructPlan::new(self, &missing_indices, actual_len)
             .map_err(|e| StreamError::codec(0, e))?;
-        let data_rows = plan.data_rows();
-        let parity_rows = plan.parity_rows();
+        let rows = plan.plan.row_views(self);
+        let (data_rows, parity_rows) = rows.split_at(plan.plan.data_targets().len());
 
         loop {
             // Resize the retained missing buffers for the final partial block.
@@ -1022,13 +1008,8 @@ impl super::ReedSolomon<crate::galois_8::Field> {
 
             write_missing_streams_with_mode(writers, &bufs, actual_len, use_parallel_write)?;
 
-            let (all_eof, next_len) = read_present_streams_with_mode(
-                readers,
-                &mut bufs,
-                block_size,
-                use_parallel_read,
-                &mut read_lengths,
-            )?;
+            let (all_eof, next_len) =
+                read_present_streams_with_mode(readers, &mut bufs, block_size, use_parallel_read)?;
             if all_eof {
                 break;
             }

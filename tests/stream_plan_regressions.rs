@@ -295,3 +295,34 @@ fn stream_plan_is_not_prepared_until_the_first_read_is_validated() {
         assert!(shards[1].get_ref().is_empty());
     }
 }
+
+#[test]
+fn borrowed_stream_rows_cover_wide_data_parity_and_mixed_recovery() {
+    let codec = ReedSolomon::new(33, 34).unwrap();
+    let expected = encoded(&codec, BLOCK_SIZE * 2 + 37);
+    for missing in [
+        (0..33).collect::<Vec<_>>(),
+        (33..67).collect(),
+        (0..33).chain([66]).collect(),
+    ] {
+        for mode in [StreamIoMode::Serial, StreamIoMode::Parallel] {
+            let mut streams: Vec<_> = expected
+                .iter()
+                .enumerate()
+                .map(|(index, shard)| {
+                    Cursor::new(if missing.contains(&index) {
+                        Vec::new()
+                    } else {
+                        shard.clone()
+                    })
+                })
+                .collect();
+            codec
+                .reconstruct_stream(&mut streams, &options(mode))
+                .unwrap();
+            for (actual, expected) in streams.iter().zip(&expected) {
+                assert_eq!(actual.get_ref(), expected);
+            }
+        }
+    }
+}
