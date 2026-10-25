@@ -15,6 +15,7 @@ This directory contains development documentation, design documents, benchmark r
 | [caller-workspace-follow-up-2026-10-26.md](caller-workspace-follow-up-2026-10-26.md) | Generic parallel workspace reuse, resource evidence, and follow-up status |
 | [scratch-sparse-follow-up-2026-10-26.md](scratch-sparse-follow-up-2026-10-26.md) | Inline fast verification scratch and sparse streaming parity outputs |
 | [data-recovery-owner-follow-up-2026-10-26.md](data-recovery-owner-follow-up-2026-10-26.md) | Indexed survivors and reusable output owners in streaming data recovery |
+| [gf16-shared-scratch-follow-up-2026-10-26.md](gf16-shared-scratch-follow-up-2026-10-26.md) | Shared GF16 decode scratch, cold allocation and cache-budget boundary evidence |
 | [global-review-9.1.0-2026-10-22.md](global-review-9.1.0-2026-10-22.md) | Archived earlier architecture review and bounded incremental-update resources |
 | [drift-analysis-9.1.0-2026-10-22.md](drift-analysis-9.1.0-2026-10-22.md) | Current drift investigation, benchmark lifetime fixes and sparse incremental-update validation |
 | [README-performance-index.md](README-performance-index.md) | Performance document index |

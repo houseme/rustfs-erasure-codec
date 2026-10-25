@@ -77,3 +77,9 @@ payload 所有者在每个观测边界已放回原槽位；这些检查不构成
 第 3 项普通大分片 verify 的分块 scratch 尚未实现，第 5 项 Leopard 缓存策略未改变；
 两者仍需相应工作负载、稳定速度和内存证据。原有漂移失败记录保持，不作当前吞吐结论。
 本轮执行 commit，未 push、创建 PR、打 tag 或发布 crate。
+
+## 后续进展
+
+Leopard GF16 decode 的共享 scratch、冷工作区及缓存边界资源对照见
+[共享 scratch 跟进报告](gf16-shared-scratch-follow-up-2026-10-26.md)。
+以上保留本轮原始源码身份和验证结果。
