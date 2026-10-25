@@ -28,7 +28,7 @@ const RS_AARCH64_RECONSTRUCT_DATA_MIN_BYTES_PER_JOB_ENV: &str =
 const RS_AARCH64_RECONSTRUCT_PARITY_MIN_BYTES_PER_JOB_ENV: &str =
     "RS_AARCH64_RECONSTRUCT_PARITY_MIN_BYTES_PER_JOB";
 
-/// GF8 compatibility name for the generic full Classic reconstruction plan.
+/// GF8 compatibility name for the generic Classic reconstruction plan.
 ///
 /// Existing option-vector APIs retain their bulk serial executor. The same
 /// plan can also be used by the generic `ReconstructShard` workspace API.
@@ -306,6 +306,9 @@ impl crate::ReedSolomon<super::Field> {
     #[cfg(feature = "std")]
     /// Execute reconstruct using a previously prepared workspace.
     ///
+    /// Executes the workspace's prepared targets through the bulk executor.
+    /// The legacy preparer requests all missing shards; generic data/selected
+    /// workspace preparers may also be used to retain only those outputs.
     /// This skips the per-call option-vec planning pass, but the caller must
     /// provide shards with the same missing-index layout and shard length as the
     /// one used to prepare `workspace`. Codec shard counts must also match;
