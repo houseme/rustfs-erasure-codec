@@ -72,7 +72,8 @@ impl FlatWork16 {
         unsafe { core::slice::from_raw_parts_mut(self.ptr.add(start), self.lane_len) }
     }
 
-    /// Build lane view pointers into the flat buffer.
+    /// Borrow disjoint lane views for the callback's operation.
+    /// References never enter the cached work owner.
     pub(crate) fn with_lane_views<R>(
         &mut self,
         lanes: usize,

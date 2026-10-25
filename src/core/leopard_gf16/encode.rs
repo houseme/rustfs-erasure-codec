@@ -178,14 +178,19 @@ pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>
     // All chunk boundaries are multiples of 32 elements (64 user bytes), so the
     // per-chunk conversion preserves the split layout without full-shard copies.
 
-    let mut offset = 0usize;
-    while offset < shard_u16_len {
-        let end = core::cmp::min(offset + driver.chunk_size, shard_u16_len);
-        let size = end - offset;
-        let work_size = core::cmp::min(driver.m * 2, flat_work.lanes());
+    let work_size = core::cmp::min(driver.m * 2, flat_work.lanes());
+    // The callback owns these disjoint views for the whole operation. Only the
+    // final short chunk narrows them; the FlatWork metadata keeps its capacity.
+    flat_work.with_lane_views(work_size, chunk_cap, |work_views| {
+        let mut offset = 0usize;
+        while offset < shard_u16_len {
+            let end = core::cmp::min(offset + driver.chunk_size, shard_u16_len);
+            let size = end - offset;
+            if size < chunk_cap {
+                debug_assert_eq!(end, shard_u16_len);
+                super::super::leopard::truncate_lane_views(work_views, size);
+            }
 
-        // Build mutable views into flat work using with_lane_views.
-        flat_work.with_lane_views(work_size, size, |work_views| {
             ifft_dit_encoder16_with_plan(
                 data,
                 &plans.first_ifft_plan,
@@ -236,9 +241,9 @@ pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>
                     &mut out_bytes[offset * 2..end * 2],
                 );
             }
-        });
-        offset = end;
-    }
+            offset = end;
+        }
+    });
 
     #[cfg(feature = "std")]
     if cacheable {

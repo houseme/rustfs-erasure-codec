@@ -100,6 +100,53 @@ fn multichunk_encode_matches_independent_wire_blocks() {
     }
 }
 
+#[test]
+fn lane_views_preserve_chunk_tails_and_next_call_capacity() {
+    for (family, data_count, parity_count, chunk_bytes) in [
+        (CodecFamily::LeopardGF8, 10, 4, 32 * 1024),
+        (CodecFamily::LeopardGF16, 10, 4, 64 * 1024),
+        (CodecFamily::LeopardGF8, 4, 64, 32 * 1024),
+        (CodecFamily::LeopardGF8, 80, 64, 128 * 1024),
+        (CodecFamily::LeopardGF16, 4, 64, 64 * 1024),
+    ] {
+        if family == CodecFamily::LeopardGF16 && cfg!(target_endian = "big") {
+            continue;
+        }
+        let rs = codec(family, data_count, parity_count);
+        // Revisit a full chunk after a short tail, including the GF8 driver's
+        // high-fanout chunk size, without retaining any shortened lane views.
+        for len in [
+            64,
+            chunk_bytes,
+            chunk_bytes + 64,
+            2 * chunk_bytes,
+            chunk_bytes,
+        ] {
+            let data = data_shards(data_count, len, 83);
+            let mut whole = vec![vec![0xa5; len]; parity_count];
+            rs.encode_sep(&data, &mut whole).unwrap();
+            // Independent wire blocks use their own short work lanes. This
+            // catches accidentally coding a full-size final view or tail data
+            // being combined with a previous chunk's initialized contents.
+            let mut block_parity = vec![vec![0; 64]; parity_count];
+            for offset in (0..len).step_by(64) {
+                let block_data: Vec<_> = data.iter().map(|s| &s[offset..offset + 64]).collect();
+                rs.encode_sep(&block_data, &mut block_parity).unwrap();
+                for (expected, actual) in block_parity.iter().zip(&whole) {
+                    assert_eq!(
+                        expected,
+                        &actual[offset..offset + 64],
+                        "{family:?}, {data_count}+{parity_count}, {len}, {offset}"
+                    );
+                }
+            }
+            let zeros = vec![vec![0; len]; data_count];
+            rs.encode_sep(&zeros, &mut whole).unwrap();
+            assert!(whole.iter().flatten().all(|&byte| byte == 0));
+        }
+    }
+}
+
 #[cfg(feature = "std")]
 #[test]
 fn leopard_profile_counters_follow_benchmark_metrics_feature() {
@@ -245,5 +292,43 @@ mod allocations {
             within_budget,
             "GF16 encode allocated unused scratch or retained oversized work"
         );
+    }
+    #[test]
+    fn wide_lane_view_requests_do_not_grow_with_chunk_count() {
+        let mut bounded = true;
+        for repetition in 0..3 {
+            for (family, data_count, chunk_bytes) in [
+                (CodecFamily::LeopardGF8, 4, 32 * 1024),
+                (CodecFamily::LeopardGF8, 80, 128 * 1024),
+                (CodecFamily::LeopardGF16, 4, 64 * 1024),
+            ] {
+                let mut counts = Vec::new();
+                for len in [chunk_bytes + 64, 5 * chunk_bytes + 64] {
+                    let rs = codec(family, data_count, 64);
+                    let data = data_shards(data_count, len, 59 + repetition);
+                    let mut expected = vec![vec![0; len]; 64];
+                    rs.encode_sep(&data, &mut expected).unwrap();
+                    let count = std::thread::spawn(move || {
+                        let rs = codec(family, data_count, 64);
+                        let mut parity = vec![vec![0xa5; len]; 64];
+                        rs.encode_sep(&data, &mut parity).unwrap();
+                        parity.iter_mut().for_each(|shard| shard.fill(0x5a));
+                        let (result, count) = measure(|| rs.encode_sep(&data, &mut parity));
+                        result.unwrap();
+                        assert_eq!(parity, expected);
+                        count
+                    })
+                    .join()
+                    .unwrap();
+                    counts.push(count);
+                }
+                println!(
+                    "LANE_VIEW_RESOURCE repetition={repetition} family={family:?} data={data_count} parity=64 chunk_bytes={chunk_bytes} short_chunks=2 long_chunks=6 short_calls={} short_bytes={} long_calls={} long_bytes={}",
+                    counts[0].0, counts[0].1, counts[1].0, counts[1].1
+                );
+                bounded &= counts[0] == counts[1];
+            }
+        }
+        assert!(bounded, "wide lane views allocated again for each chunk");
     }
 }

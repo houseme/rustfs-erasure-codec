@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Borrow Leopard GF8/GF16 encoder lane views once per operation and reuse them
+  across chunks. Safely narrow only the final short chunk, preserving work
+  capacity, kernels, chunk policy and caches while removing repeated wide
+  reference-table allocations.
+
 - Remove the unused Leopard GF16 encoder scratch and its thread-local cache.
   Pass work lanes directly through FFT/IFFT helpers and account only for active
   work under the existing 4 MiB heap budget. Preserve warm caches during calls

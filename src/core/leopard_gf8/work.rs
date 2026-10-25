@@ -108,8 +108,8 @@ impl FlatWork {
         unsafe { core::slice::from_raw_parts_mut(self.ptr.add(start), self.lane_len) }
     }
 
-    /// Build lane view pointers into the cached `views` vector.
-    /// Returns a mutable slice of `&mut [u8]` views covering `size` bytes per lane.
+    /// Borrow disjoint `size`-byte lane views for the callback's operation.
+    /// The local reference table is released before this work owner is reused.
     pub(super) fn with_lane_views<R>(
         &mut self,
         lanes: usize,
