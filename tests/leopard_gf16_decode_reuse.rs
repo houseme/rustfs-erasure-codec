@@ -116,10 +116,66 @@ fn concurrent_recoveries_share_plans_without_sharing_mutable_buffers() {
 }
 
 #[cfg(feature = "std")]
+#[test]
+fn parallel_groups_preserve_serial_results_for_irregular_chunks_and_limits() {
+    for threads in [1, 2, 4] {
+        let pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(threads)
+            .build()
+            .unwrap();
+        pool.install(|| {
+            for jobs in [0, 1, 2, 3, 8] {
+                for len in [
+                    64,
+                    64 * 1024,
+                    64 * 1024 + 64,
+                    3 * 64 * 1024 + 64,
+                    5 * 64 * 1024,
+                    7 * 64 * 1024 + 64,
+                ] {
+                    let (codec, expected) = fixture(4, 3, len, jobs, threads + jobs);
+                    recover_selected(&codec, &expected, &[0, 1, 4], &[0, 4]);
+                }
+            }
+        });
+    }
+}
+
+#[cfg(feature = "std")]
 mod allocations {
     use super::*;
     use std::alloc::{GlobalAlloc, Layout, System};
     use std::cell::Cell;
+    use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+
+    // An isolated child uses one total order for the gate and allocator hooks
+    // on all Rayon workers. Pool completion bounds the synchronous window.
+    static ALL_ENABLED: AtomicBool = AtomicBool::new(false);
+    static ALL_CALLS: AtomicUsize = AtomicUsize::new(0);
+    static ALL_BYTES: AtomicUsize = AtomicUsize::new(0);
+
+    fn measure_all<T>(run: impl FnOnce() -> T) -> (T, (usize, usize)) {
+        assert!(!ALL_ENABLED.load(Ordering::SeqCst));
+        ALL_CALLS.store(0, Ordering::SeqCst);
+        ALL_BYTES.store(0, Ordering::SeqCst);
+        struct Stop;
+        impl Drop for Stop {
+            fn drop(&mut self) {
+                ALL_ENABLED.store(false, Ordering::SeqCst);
+            }
+        }
+        ALL_ENABLED.store(true, Ordering::SeqCst);
+        let stop = Stop;
+        let result = run();
+        drop(stop);
+        (
+            result,
+            (
+                ALL_CALLS.load(Ordering::SeqCst),
+                ALL_BYTES.load(Ordering::SeqCst),
+            ),
+        )
+    }
 
     // Measure only the caller thread; max_parallel_jobs=1 keeps decode here.
     thread_local! {
@@ -127,6 +183,10 @@ mod allocations {
     }
 
     fn record(bytes: usize) {
+        if ALL_ENABLED.load(Ordering::SeqCst) {
+            ALL_CALLS.fetch_add(1, Ordering::SeqCst);
+            ALL_BYTES.fetch_add(bytes, Ordering::SeqCst);
+        }
         let _ = MEASURE.try_with(|state| {
             if let Some((threshold, total, large)) = state.get() {
                 state.set(Some((
@@ -140,7 +200,7 @@ mod allocations {
 
     struct CountingAllocator;
     // SAFETY: all pointer and layout arguments are forwarded unchanged to
-    // System. Thread-local bookkeeping does not allocate or access user memory.
+    // System. Scalar bookkeeping does not allocate or access user memory.
     unsafe impl GlobalAlloc for CountingAllocator {
         unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
             record(layout.size());
@@ -327,6 +387,83 @@ mod allocations {
         assert!(
             within_budget,
             "decode scratch allocation/retention budget changed"
+        );
+    }
+    #[test]
+    fn parallel_output_views_are_bounded_by_groups_not_chunks() {
+        const CHILD: &str = "RSE_GF16_PARALLEL_VIEWS_CHILD";
+        if std::env::var_os(CHILD).is_none() {
+            let status = std::process::Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "allocations::parallel_output_views_are_bounded_by_groups_not_chunks",
+                    "--test-threads=1",
+                    "--nocapture",
+                ])
+                .env(CHILD, "1")
+                .status()
+                .unwrap();
+            assert!(
+                status.success(),
+                "isolated parallel output-view resource regression failed"
+            );
+            return;
+        }
+        let mut bounded = true;
+        for (threads, jobs) in [(2, 2), (4, 0), (4, 3)] {
+            let pool = rayon::ThreadPoolBuilder::new()
+                .num_threads(threads)
+                .build()
+                .unwrap();
+            let (serial, warm) = fixture(10, 4, 64 * 1024, 1, 17);
+            // Warm the same work shape on every worker, not just whichever
+            // worker happens to run the first parallel operation.
+            pool.broadcast(|_| {
+                let mut slots: Vec<_> = warm.iter().cloned().map(ShardSlot::new_present).collect();
+                for index in [0, 1, 10] {
+                    slots[index].mark_missing();
+                }
+                serial.reconstruct(&mut slots).unwrap();
+            });
+            for repetition in 0..3 {
+                let mut counts = Vec::new();
+                for chunks in [12, 36] {
+                    let len = (chunks - 1) * 64 * 1024 + 64;
+                    let (codec, expected) = fixture(10, 4, len, jobs, 41 + repetition);
+                    let mut slots: Vec<_> = expected
+                        .iter()
+                        .cloned()
+                        .map(ShardSlot::new_present)
+                        .collect();
+                    for index in [0, 1, 10] {
+                        slots[index].mark_missing();
+                    }
+                    pool.install(|| codec.reconstruct(&mut slots)).unwrap();
+                    for index in [0, 1, 10] {
+                        slots[index].mark_missing();
+                        slots[index].as_inner_mut().fill(0xa5);
+                    }
+                    let (result, count) =
+                        measure_all(|| pool.install(|| codec.reconstruct(&mut slots)));
+                    result.unwrap();
+                    for (slot, expected) in slots.iter().zip(&expected) {
+                        assert!(slot.is_present());
+                        assert_eq!(slot.as_inner(), expected);
+                    }
+                    // Requested temporary payload grows with length. Compare
+                    // the remaining requests/bytes, including all worker work.
+                    counts.push((count.0, count.1, count.1 - 3 * len));
+                }
+                println!(
+                    "PARALLEL_VIEW_RESOURCE threads={threads} jobs={jobs} repetition={repetition} short_chunks=12 long_chunks=36 short_calls={} short_bytes={} short_overhead={} long_calls={} long_bytes={} long_overhead={}",
+                    counts[0].0, counts[0].1, counts[0].2, counts[1].0, counts[1].1, counts[1].2
+                );
+                bounded &= counts[0].0 == counts[1].0 && counts[0].2 == counts[1].2;
+            }
+        }
+        assert!(
+            bounded,
+            "parallel output-view metadata grew with chunk count"
         );
     }
 }

@@ -10,6 +10,10 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Prepare Leopard GF16 parallel recovery output views per existing Rayon group
+  instead of per chunk. Bound staged metadata by the job budget while retaining
+  the same chunk partitions, worker limits, arithmetic and output publication.
+
 - Borrow Leopard GF8/GF16 encoder lane views once per operation and reuse them
   across chunks. Safely narrow only the final short chunk, preserving work
   capacity, kernels, chunk policy and caches while removing repeated wide
