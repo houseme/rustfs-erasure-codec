@@ -88,6 +88,63 @@ pub(crate) struct ClassicReconstructPlan<F: Field> {
     parity_decode_rows: SmallVec<[SmallVec<[F::Elem; 32]>; 4]>,
 }
 
+/// A bounded range of the plan's data rows followed by its parity rows.
+/// The plan owns every coefficient; execution only borrows it, without building
+/// a second table of slice references for either stage or their combination.
+#[cfg(feature = "std")]
+pub(crate) struct ClassicReconstructRows<'a, F: Field> {
+    plan: &'a ClassicReconstructPlan<F>,
+    encoding_matrix: &'a Matrix<F>,
+    start: usize,
+    len: usize,
+}
+
+#[cfg(feature = "std")]
+impl<F: Field> ClassicReconstructRows<'_, F> {
+    pub(crate) fn split_at(&self, index: usize) -> (Self, Self) {
+        assert!(index <= self.len);
+        (
+            Self {
+                len: index,
+                ..*self
+            },
+            Self {
+                start: self.start + index,
+                len: self.len - index,
+                ..*self
+            },
+        )
+    }
+}
+
+#[cfg(feature = "std")]
+impl<F: Field> crate::matrix::MatrixRows<F::Elem> for ClassicReconstructRows<'_, F> {
+    fn len(&self) -> usize {
+        self.len
+    }
+
+    fn row(&self, index: usize) -> &[F::Elem] {
+        assert!(index < self.len);
+        let index = self.start + index;
+        let data_targets = self.plan.data_targets();
+        if index < data_targets.len() {
+            return self
+                .plan
+                .decode_matrix
+                .as_ref()
+                .expect("requested missing data requires an inverse")
+                .get_row(data_targets[index]);
+        }
+        let index = index - data_targets.len();
+        if self.plan.direct_parity {
+            self.plan.parity_decode_rows[index].as_slice()
+        } else {
+            self.encoding_matrix
+                .get_row(self.plan.parity_targets()[index])
+        }
+    }
+}
+
 impl<F: Field> ClassicReconstructPlan<F> {
     fn new(shape: ClassicReconstructShape, goal: ReconstructionGoal<'_>) -> Self {
         Self {
@@ -121,6 +178,25 @@ impl<F: Field> ClassicReconstructPlan<F> {
 
     pub(crate) fn has_outputs(&self) -> bool {
         !self.data_targets().is_empty() || !self.parity_targets().is_empty()
+    }
+
+    #[cfg(feature = "std")]
+    pub(crate) fn row_views<'a>(
+        &'a self,
+        codec: &'a ReedSolomon<F>,
+    ) -> ClassicReconstructRows<'a, F> {
+        // Preserve the inverse invariant check before destinations are touched.
+        if !self.data_targets().is_empty() {
+            self.decode_matrix
+                .as_ref()
+                .expect("requested missing data requires an inverse");
+        }
+        ClassicReconstructRows {
+            plan: self,
+            encoding_matrix: codec.encoding_format().matrix(),
+            start: 0,
+            len: self.data_targets().len() + self.parity_targets().len(),
+        }
     }
 
     pub(crate) fn data_rows(&self) -> impl ExactSizeIterator<Item = &[F::Elem]> {
