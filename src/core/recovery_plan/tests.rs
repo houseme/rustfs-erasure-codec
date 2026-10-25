@@ -309,3 +309,74 @@ fn target_storage_preserves_inline_capacity_without_growing_index_metadata() {
     let selected: SmallVec<[usize; 64]> = (0..64).collect();
     assert!(!selected.spilled());
 }
+
+#[test]
+fn complete_required_targets_borrow_shape_for_full_and_short_owned_requests() {
+    fn exercise<F: Field>() {
+        let codec = ReedSolomon::<F>::with_options(
+            4,
+            100,
+            CodecOptions::builder()
+                .matrix_mode(MatrixMode::Cauchy)
+                .build(),
+        )
+        .unwrap();
+        for missing in [
+            vec![],
+            (0..4).collect(),
+            (4..101).collect(),
+            ::core::iter::once(0).chain(4..100).collect(),
+        ] {
+            let present: Vec<_> = (0..104).filter(|i| !missing.contains(i)).collect();
+            for mask_len in [4, 104] {
+                for excluded in [None, Some(0), Some(1), Some(32), Some(64), Some(96)] {
+                    if excluded.is_some_and(|position| position >= missing.len()) {
+                        continue;
+                    }
+                    let mut required: Vec<_> =
+                        (0..mask_len).map(|i| missing.contains(&i)).collect();
+                    if let Some(position) = excluded {
+                        let index = missing[position];
+                        if index < mask_len {
+                            required[index] = false;
+                        }
+                    }
+                    let expected: Vec<_> = missing
+                        .iter()
+                        .copied()
+                        .filter(|&i| required.get(i).copied().unwrap_or(false))
+                        .collect();
+                    let plan = codec
+                        .prepare_classic_reconstruct_plan(
+                            shape(4, 104, &present),
+                            ReconstructionGoal::Required(&required),
+                        )
+                        .unwrap();
+                    let complete = expected.len() == missing.len();
+                    assert_eq!(plan.selected_targets.is_none(), complete);
+                    assert_eq!(plan.target_indices(), expected);
+                    if complete {
+                        assert!(::core::ptr::eq(
+                            plan.target_indices(),
+                            plan.shape.invalid_indices.as_slice()
+                        ));
+                    }
+                    // The indices belong to the plan, not to these flags.
+                    required.fill(false);
+                    drop(required);
+                    assert_eq!(plan.target_indices(), expected);
+                    assert_eq!(
+                        plan.data_targets().len(),
+                        expected.iter().filter(|i| **i < 4).count()
+                    );
+                    assert_eq!(
+                        plan.parity_targets().len(),
+                        expected.iter().filter(|i| **i >= 4).count()
+                    );
+                }
+            }
+        }
+    }
+    exercise::<galois_8::Field>();
+    exercise::<galois_16::Field>();
+}

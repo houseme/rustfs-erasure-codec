@@ -77,8 +77,8 @@ impl ClassicReconstructShape {
 /// stream reuse. A parity-only operation borrows encoding rows directly.
 pub(crate) struct ClassicReconstructPlan<F: Field> {
     pub(crate) shape: ClassicReconstructShape,
-    // Ordinary recovery borrows the ordered missing indices from shape.
-    // Selective recovery owns one filtered list; its combined inline capacity
+    // Complete requests borrow the ordered missing indices from shape.
+    // A proper subset owns one filtered list; its combined inline capacity
     // preserves the two previous 32-index target buffers without a new spill.
     selected_targets: Option<SmallVec<[usize; 64]>>,
     data_target_count: usize,
@@ -412,18 +412,28 @@ impl<F: Field> ReedSolomon<F> {
                 plan.data_target_count = missing_data_count;
             }
             ReconstructionGoal::Required(required) => {
-                // Fill the optional list in its final storage, without moving
-                // its inline buffer through a temporary collection result.
-                let targets = plan.selected_targets.get_or_insert_with(SmallVec::new);
-                targets.extend(
-                    shape
-                        .invalid_indices
-                        .iter()
-                        .copied()
-                        .filter(|&index| required.get(index).copied().unwrap_or(false)),
-                );
-                plan.data_target_count =
-                    targets.partition_point(|&index| index < self.data_shard_count());
+                // Share the plan-owned erasure list when nothing is excluded.
+                // Only a proper subset needs another index buffer. Scan each
+                // request flag once, copying the accepted prefix after the
+                // first exclusion rather than filtering it a second time.
+                if let Some(first_excluded) = shape
+                    .invalid_indices
+                    .iter()
+                    .position(|&index| !required.get(index).copied().unwrap_or(false))
+                {
+                    let targets = plan.selected_targets.get_or_insert_with(SmallVec::new);
+                    targets.extend_from_slice(&shape.invalid_indices[..first_excluded]);
+                    targets.extend(
+                        shape.invalid_indices[first_excluded + 1..]
+                            .iter()
+                            .copied()
+                            .filter(|&index| required.get(index).copied().unwrap_or(false)),
+                    );
+                    plan.data_target_count =
+                        targets.partition_point(|&index| index < self.data_shard_count());
+                } else {
+                    plan.data_target_count = missing_data_count;
+                }
             }
         }
         // Selecting requested missing outputs first makes an empty request a
