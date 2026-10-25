@@ -47,7 +47,7 @@ pub(crate) use parallel::RuntimeParallelPolicyCache;
 pub use parallel::{PARALLEL_POLICY_VERSION, ParallelDecision, ParallelPolicy};
 pub(crate) use recovery_plan::{ClassicReconstructPlan, ReconstructionGoal};
 pub use shard_by_shard::ShardByShard;
-pub use workspace::VerifyWorkspace;
+pub use workspace::{ReconstructWorkspace, VerifyWorkspace};
 
 #[cfg(feature = "std")]
 use metrics::{ReconstructionCacheMetrics, RuntimeProfileMetrics};

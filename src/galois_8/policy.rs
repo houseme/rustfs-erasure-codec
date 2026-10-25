@@ -28,25 +28,12 @@ const RS_AARCH64_RECONSTRUCT_DATA_MIN_BYTES_PER_JOB_ENV: &str =
 const RS_AARCH64_RECONSTRUCT_PARITY_MIN_BYTES_PER_JOB_ENV: &str =
     "RS_AARCH64_RECONSTRUCT_PARITY_MIN_BYTES_PER_JOB";
 
-#[cfg(feature = "std")]
-/// Reusable reconstruct workspace for `Option<Vec<u8>>` shard sets.
+/// GF8 compatibility name for the generic full Classic reconstruction plan.
 ///
-/// This workspace caches the shard-size and missing-index planning derived from a
-/// specific `Option<Vec<u8>>` shape so repeated reconstruct calls can skip the
-/// per-call plan build. It is currently intended for repeated serial classic
-/// reconstruct workloads where the missing pattern stays stable across calls.
-pub struct OptionVecReconstructWorkspace {
-    plan: ClassicReconstructPlan<super::Field>,
-    format: crate::EncodingFormat<super::Field>,
-}
-
+/// Existing option-vector APIs retain their bulk serial executor. The same
+/// plan can also be used by the generic `ReconstructShard` workspace API.
 #[cfg(feature = "std")]
-impl OptionVecReconstructWorkspace {
-    /// Canonical format for which this reconstruction plan was prepared.
-    pub fn encoding_format(&self) -> &crate::EncodingFormat<super::Field> {
-        &self.format
-    }
-}
+pub type OptionVecReconstructWorkspace = crate::ReconstructWorkspace<super::Field>;
 
 impl crate::ReedSolomon<super::Field> {
     #[cfg(feature = "std")]
@@ -313,10 +300,7 @@ impl crate::ReedSolomon<super::Field> {
         &self,
         shards: &[Option<Vec<u8>>],
     ) -> Result<OptionVecReconstructWorkspace, crate::Error> {
-        Ok(OptionVecReconstructWorkspace {
-            plan: self.plan_option_vec_reconstruct(shards, None)?,
-            format: self.encoding_format().clone(),
-        })
+        self.prepare_reconstruct_workspace(shards)
     }
 
     #[cfg(feature = "std")]
@@ -331,30 +315,7 @@ impl crate::ReedSolomon<super::Field> {
         shards: &mut [Option<Vec<u8>>],
         workspace: &OptionVecReconstructWorkspace,
     ) -> Result<(), crate::Error> {
-        self.validate_opt_shard_count(shards.len())?;
-        if self.is_leopard_family() {
-            return Err(crate::Error::UnsupportedCodecFamily);
-        }
-        if workspace.format.data_shard_count() < self.data_shard_count() {
-            return Err(crate::Error::TooFewDataShards);
-        }
-        if workspace.format.data_shard_count() > self.data_shard_count() {
-            return Err(crate::Error::TooManyDataShards);
-        }
-        if workspace.format.parity_shard_count() < self.parity_shard_count() {
-            return Err(crate::Error::TooFewParityShards);
-        }
-        if workspace.format.parity_shard_count() > self.parity_shard_count() {
-            return Err(crate::Error::TooManyParityShards);
-        }
-        if self.encoding_format() != &workspace.format {
-            return Err(crate::Error::InvalidCustomMatrix);
-        }
-
-        self.validate_classic_plan_layout(
-            shards.iter().map(|shard| shard.as_ref().map(Vec::len)),
-            &workspace.plan.shape,
-        )?;
+        self.validate_reconstruct_workspace(shards, workspace)?;
         self.execute_classic_option_plan_serial(shards, &workspace.plan)
     }
 

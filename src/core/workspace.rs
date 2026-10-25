@@ -5,7 +5,7 @@ use alloc::vec::Vec;
 
 use crate::Field;
 
-use super::ReedSolomon;
+use super::{ClassicReconstructPlan, EncodingFormat, ReedSolomon};
 
 /// Reusable parity scratch space for repeated verify calls.
 ///
@@ -65,5 +65,30 @@ impl<F: Field> VerifyWorkspace<F> {
 
     pub(crate) fn as_mut_shards(&mut self) -> &mut [Vec<F::Elem>] {
         &mut self.parity
+    }
+}
+
+/// An owned, immutable plan for repeated full Classic reconstruction.
+///
+/// Prepared by [`ReedSolomon::prepare_reconstruct_workspace`]. The plan retains
+/// its encoding format, erasure layout and inverse independently of the codec's
+/// inversion cache. It owns no shard payload or references to caller storage.
+/// Reuse requires the same counts, effective matrix, missing pattern and length;
+/// these are checked before execution on every call.
+///
+/// Pair this plan with [`crate::ShardSlot`] to retain destination buffers across
+/// calls. Execution can still allocate view metadata for wide layouts, and
+/// allocating shard containers retain their normal initialization behavior.
+/// Leopard families are unsupported. The serial API is available in `no_std`
+/// and adds no `Send` or `Sync` bounds to the field or shard container.
+pub struct ReconstructWorkspace<F: Field> {
+    pub(crate) plan: ClassicReconstructPlan<F>,
+    pub(crate) format: EncodingFormat<F>,
+}
+
+impl<F: Field> ReconstructWorkspace<F> {
+    /// Canonical format for which this reconstruction plan was prepared.
+    pub fn encoding_format(&self) -> &EncodingFormat<F> {
+        &self.format
     }
 }

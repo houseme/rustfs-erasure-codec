@@ -8,7 +8,7 @@ use smallvec::SmallVec;
 
 #[cfg(feature = "std")]
 use super::recovery_plan::ClassicReconstructRows;
-use super::{ClassicReconstructPlan, ReconstructionGoal};
+use super::{ClassicReconstructPlan, ReconstructWorkspace, ReconstructionGoal};
 use crate::errors::Error;
 use crate::{Field, ReconstructShard};
 
@@ -365,6 +365,90 @@ impl<F: Field> ReedSolomon<F> {
         }
         compute(false, &parity_rows, &inputs, &mut parity_outputs);
         Ok(())
+    }
+
+    /// Prepare an owned plan for repeated full Classic reconstruction.
+    ///
+    /// The plan retains the inverse even when the inversion cache is disabled
+    /// or evicts its entry. It can be used with any [`ReconstructShard`] having
+    /// the same missing pattern and length, including caller-owned
+    /// [`crate::ShardSlot`] buffers. It does not borrow the input shards.
+    /// Leopard families return [`Error::UnsupportedCodecFamily`].
+    pub fn prepare_reconstruct_workspace<T: ReconstructShard<F>>(
+        &self,
+        shards: &[T],
+    ) -> Result<ReconstructWorkspace<F>, Error> {
+        check_piece_count!(all => self, shards);
+        if self.is_leopard_family() {
+            return Err(Error::UnsupportedCodecFamily);
+        }
+        let shape = self.classic_reconstruct_shape(shards.iter().map(ReconstructShard::len))?;
+        Ok(ReconstructWorkspace {
+            plan: self.prepare_classic_reconstruct_plan(shape, ReconstructionGoal::All)?,
+            format: self.encoding_format().clone(),
+        })
+    }
+
+    /// Reconstruct all missing shards using an owned Classic plan.
+    ///
+    /// Validates shard counts, effective format, every present length and the
+    /// complete missing pattern before initializing any destination. Format
+    /// mismatches return [`Error::InvalidCustomMatrix`]; a different missing
+    /// pattern returns [`Error::InvalidShardFlags`]. Equivalent codecs may reuse
+    /// the plan. The existing serial executor and fallible-output publication
+    /// order are preserved; no inversion-cache lookup or plan rebuild runs here.
+    ///
+    /// ```
+    /// use rustfs_erasure_codec::{galois_16::ReedSolomon, ShardSlot};
+    /// let codec = ReedSolomon::new(4, 2)?;
+    /// let mut shards = vec![vec![[3u8, 7]; 65]; 6];
+    /// codec.encode(&mut shards)?;
+    /// let mut slots: Vec<_> = shards.into_iter().map(ShardSlot::new_present).collect();
+    /// slots[0].mark_missing();
+    /// let workspace = codec.prepare_reconstruct_workspace(&slots)?;
+    /// for _ in 0..3 {
+    ///     slots[0].mark_missing();
+    ///     codec.reconstruct_with_workspace(&mut slots, &workspace)?;
+    /// }
+    /// # Ok::<(), rustfs_erasure_codec::Error>(())
+    /// ```
+    pub fn reconstruct_with_workspace<T: ReconstructShard<F>>(
+        &self,
+        shards: &mut [T],
+        workspace: &ReconstructWorkspace<F>,
+    ) -> Result<(), Error> {
+        self.validate_reconstruct_workspace(shards, workspace)?;
+        self.execute_classic_plan_serial(shards, &workspace.plan)
+    }
+
+    pub(crate) fn validate_reconstruct_workspace<T: ReconstructShard<F>>(
+        &self,
+        shards: &[T],
+        workspace: &ReconstructWorkspace<F>,
+    ) -> Result<(), Error> {
+        check_piece_count!(all => self, shards);
+        if self.is_leopard_family() {
+            return Err(Error::UnsupportedCodecFamily);
+        }
+        if workspace.format.data_shard_count() < self.data_shard_count() {
+            return Err(Error::TooFewDataShards);
+        }
+        if workspace.format.data_shard_count() > self.data_shard_count() {
+            return Err(Error::TooManyDataShards);
+        }
+        if workspace.format.parity_shard_count() < self.parity_shard_count() {
+            return Err(Error::TooFewParityShards);
+        }
+        if workspace.format.parity_shard_count() > self.parity_shard_count() {
+            return Err(Error::TooManyParityShards);
+        }
+        if self.encoding_format() != &workspace.format {
+            return Err(Error::InvalidCustomMatrix);
+        }
+        self.validate_classic_plan_layout(
+            shards.iter().map(ReconstructShard::len),
+            &workspace.plan.shape,
+        )
     }
 
     /// Reconstruct all missing shards (data and parity).
