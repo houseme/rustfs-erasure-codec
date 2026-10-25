@@ -150,3 +150,7 @@ RAYON_NUM_THREADS=4 RSE_RECOVERY_CASE_FILTER=stream.reconstruct RSE_RECOVERY_SAM
 调用者资源生命周期的已提交实现、资源结果和其余步骤状态见
 [2026-10-26 跟进报告](caller-workspace-follow-up-2026-10-26.md)。
 上文保留最初复审时的源码身份、测量结果及交付状态。
+
+Classic 完整、数据与选择性计划复用之后的宽执行视图进展见
+[Classic 恢复视图跟进报告](recovery-view-follow-up-2026-10-26.md)，
+包含精确容量、bulk 输出合并、完整申请对照及剩余执行顺序。
