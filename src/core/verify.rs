@@ -86,7 +86,8 @@ impl<F: Field> ReedSolomon<F> {
             SmallVec::with_capacity(scratch_len);
         scratch.resize(scratch_len, F::zero());
         let mut buffer_views: SmallVec<[&mut [F::Elem]; 32]> =
-            scratch.chunks_mut(slice_len).collect();
+            SmallVec::with_capacity(self.parity_shard_count());
+        buffer_views.extend(scratch.chunks_mut(slice_len));
 
         self.check_classic_parity(data, to_check, &mut buffer_views)
     }
@@ -228,7 +229,8 @@ impl<F: Field> ReedSolomon<F> {
             SmallVec::with_capacity(scratch_len);
         scratch.resize(scratch_len, F::zero());
         let mut buffer_views: SmallVec<[&mut [F::Elem]; 32]> =
-            scratch.chunks_mut(slice_len).collect();
+            SmallVec::with_capacity(self.parity_shard_count());
+        buffer_views.extend(scratch.chunks_mut(slice_len));
 
         self.verify_with_buffer_par(slices, &mut buffer_views)
     }

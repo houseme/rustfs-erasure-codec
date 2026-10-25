@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Reserve ordinary verification's reference table from its known parity count
+  for both serial and parallel-policy APIs. Avoid iterator-driven capacity
+  growth in wide layouts while preserving full parity scratch, validation,
+  kernels and caller-owned workspace behavior.
+
 - Prepare Leopard GF16 parallel recovery output views per existing Rayon group
   instead of per chunk. Bound staged metadata by the job budget while retaining
   the same chunk partitions, worker limits, arithmetic and output publication.
