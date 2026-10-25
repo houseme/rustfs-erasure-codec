@@ -102,3 +102,9 @@ stable Rust 1.99.1 / macOS ARM64，edition 2024、manifest 未声明 MSRV：
 跨平台实机吞吐或发布性能验收结论。
 
 本轮执行 commit，未 push、创建 PR、打 tag 或发布 crate。
+
+## 后续进展
+
+跨有限域和 ReconstructShard 容器的完整 Classic 计划复用见
+[泛型恢复 workspace 跟进](generic-reconstruct-workspace-follow-up-2026-10-26.md)。
+上文保留本轮的源码身份、资源结果和验证状态。

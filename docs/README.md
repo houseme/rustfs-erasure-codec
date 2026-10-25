@@ -22,6 +22,7 @@ This directory contains development documentation, design documents, benchmark r
 | [verify-workload-follow-up-2026-10-26.md](verify-workload-follow-up-2026-10-26.md) | Complete verification resource catalog, validation precedence and exact wide view capacity |
 | [gf16-cache-lifecycle-follow-up-2026-10-26.md](gf16-cache-lifecycle-follow-up-2026-10-26.md) | Concurrent small/oversized cache lifecycle, live allocation peaks and policy trade-offs |
 | [update-tail-follow-up-2026-10-26.md](update-tail-follow-up-2026-10-26.md) | Incremental update delta capacity, short-tail and growth trade-offs, deterministic cache-probe warmup |
+| [generic-reconstruct-workspace-follow-up-2026-10-26.md](generic-reconstruct-workspace-follow-up-2026-10-26.md) | Generic owned Classic recovery plans, GF8 bulk compatibility and cross-field/no_std reuse |
 | [global-review-9.1.0-2026-10-22.md](global-review-9.1.0-2026-10-22.md) | Archived earlier architecture review and bounded incremental-update resources |
 | [drift-analysis-9.1.0-2026-10-22.md](drift-analysis-9.1.0-2026-10-22.md) | Current drift investigation, benchmark lifetime fixes and sparse incremental-update validation |
 | [README-performance-index.md](README-performance-index.md) | Performance document index |
