@@ -1,5 +1,45 @@
 # Borrowed parity matrix rows for Classic coding
 
+## Rebase onto main (2026-10-25)
+
+PR #107 is rebased from `0dd9434452601a05469b27e13a5f50d24d7f5730` onto
+main `39ca9cf3de1256baa18937ef8f6cce54e57b01f3`, which now includes #106's
+borrowed targets and mixed-recovery survivor-view reuse. Validation source
+`2a9e65d` retains each parent's implementation without further runtime edits.
+The conflicts were limited to changelog, source-bound review records and two
+current-production observer snapshots; all parent entries are retained.
+
+Runtime, tests, Windows workflow, observer implementation, manifests/lock and
+compatibility inputs match preserved combined rehearsal `6193ad3` exactly.
+The encoding implementation, corrected allocation fixture and Windows steps
+remain byte-identical to original PR head `0dd9434`. Main's recovery changes
+are retained. Existing archived benchmark/Windows-context records are unchanged.
+
+Fresh stable 1.99.1 validation on ARM64 passes:
+
+- 401 library, 167 integration and 10 documentation parent tests (578 total),
+  with 43 existing ignored tests; codec-only no_std passes 271 library tests.
+- Both debug and default-feature release explicitly execute all 270 parity-row
+  allocation cases. On this host every entry/control/coding count is zero;
+  all keys are unique and every encoded-byte check passes.
+- Actual published 9.0.0 compatibility: 200 normal configurations, 27 custom
+  tower configurations / 162 cross recoveries, 12 wide GF16 configurations,
+  and 270 selective configurations / 2,640 cross recoveries.
+- All 317 native-tool tests (278 unit / 39 CLI), including recomputed combined
+  observer bindings and unchanged frozen sampler snapshots.
+- Strict all-target/all-feature codec, compatibility and tool Clippy;
+  x86_64 Darwin all-target and x86_64 Linux library Clippy; fmt, typos and diff.
+  Both x86 checks are compilation only on this ARM64 host.
+- Release/workspace/package audits pass (71 core / 6 WASM members); JSON audit
+  checks 629 files with zero errors.
+
+New-head Linux/Windows/WASM CI remains a separate result. Earlier Windows,
+WASM, extracted-artifact and rehearsal results below retain their own source
+bindings. No controlled performance campaign is run, and performance/release
+approval remains outstanding.
+
+## Prior source-bound review
+
 Runtime `31ccf7e` is based on main `e758f11`. The
 [complete resource result](../benchmarks/release-9.1.0/2026-10-25/borrowed-parity-rows.json)
 retains all 270 before/after controls. This independent encoding change does not

@@ -1,5 +1,12 @@
 # 9.1.0 release preparation
 
+Rebased parity-row integration (2026-10-25): source `2a9e65d` now includes
+main `39ca9cf` and #106's recovery changes. The
+[current rebase record](borrowed-parity-rows-review-2026-10-25.md#rebase-onto-main-2026-10-25)
+records fresh codec/resource, published-format and tool validation on the actual
+combined branch. Earlier parent/rehearsal/Windows results retain their original
+source bindings; new-head CI and performance/release qualification remain separate.
+
 Windows parity-row validation (2026-10-25): test/workflow fix `ad00e79` keeps
 runtime `31ccf7e` unchanged. All three Windows toolchains now pass the complete std
 suite and explicit 270-case debug/release contracts. The [Windows context review](borrowed-parity-rows-review-2026-10-25.md#windows-debug-allocation-context)
