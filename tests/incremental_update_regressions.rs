@@ -414,3 +414,98 @@ fn empty_update_rejects_a_first_shard_view_that_becomes_empty_after_layout_valid
     );
     assert_eq!(parity, before);
 }
+
+fn tail_requests<F: Field>(field: &str) -> bool {
+    let codec = ReedSolomon::<F>::new(4, 2).unwrap();
+    let mut within_budget = true;
+    for (len, tail) in [
+        (16 * 1024 + 1, 1),
+        (64 * 1024 + 1, 1),
+        (64 * 1024 + 65, 65),
+        (1024 * 1024 + 4097, 4097),
+        (4 * 1024 * 1024 + 65, 65),
+    ] {
+        let original = data::<F>(4, len);
+        let refs: Vec<_> = original.iter().map(Vec::as_slice).collect();
+        let mut changed = original[3].clone();
+        changed[len - 1] = F::add(changed[len - 1], F::one());
+        let changes = [None, None, None, Some(changed.as_slice())];
+        let mut changed_refs = refs.clone();
+        changed_refs[3] = &changed;
+        let restore = [None, None, None, Some(refs[3])];
+        let mut parity = vec![vec![F::zero(); len]; 2];
+        codec.encode_sep(&refs, &mut parity).unwrap();
+        let original_parity = parity.clone();
+        let mut expected = parity.clone();
+        codec.encode_sep(&changed_refs, &mut expected).unwrap();
+        for repetition in 0..3 {
+            let (result, forward) = counted(|| codec.update(&refs, &changes, &mut parity));
+            result.unwrap();
+            assert_eq!(parity, expected);
+            let (result, reverse) = counted(|| codec.update(&changed_refs, &restore, &mut parity));
+            result.unwrap();
+            assert_eq!(parity, original_parity);
+            let budget = tail * size_of::<F::Elem>();
+            println!(
+                "UPDATE_TAIL_RESOURCE field={field} len={len} tail={tail} repetition={repetition} forward_calls={} forward_bytes={} reverse_calls={} reverse_bytes={} budget={budget}",
+                forward.calls, forward.bytes, reverse.calls, reverse.bytes
+            );
+            within_budget &= forward.calls <= 1 && reverse.calls <= 1;
+            within_budget &= forward.bytes <= budget && reverse.bytes <= budget;
+        }
+    }
+    within_budget
+}
+
+#[test]
+fn tail_only_updates_allocate_only_the_active_delta_range() {
+    // Keep collecting both fields and all shapes before deciding the resource
+    // gate, so an old implementation produces a complete comparison catalog.
+    let byte = tail_requests::<rustfs_erasure_codec::galois_8::Field>("gf8");
+    let tower = tail_requests::<rustfs_erasure_codec::galois_16::Field>("tower-gf16");
+    assert!(byte && tower, "short deltas reserved a full coding chunk");
+}
+
+#[test]
+fn a_short_delta_can_grow_for_a_later_full_chunk_and_be_reused() {
+    fn check<F: Field>(field: &str) {
+        let codec = ReedSolomon::<F>::new(4, 2).unwrap();
+        let len = 64 * 1024 + 65;
+        let original = data::<F>(4, len);
+        let refs: Vec<_> = original.iter().map(Vec::as_slice).collect();
+        let mut first = original[0].clone();
+        first[len - 1] = F::add(first[len - 1], F::one());
+        let mut later = original[3].clone();
+        // Change a full block after the earlier shard's short tail. The full
+        // block and the final short tail must reuse the same scratch.
+        later[0] = F::add(later[0], F::one());
+        later[len - 1] = F::add(later[len - 1], F::one());
+        let changes = [Some(first.as_slice()), None, None, Some(later.as_slice())];
+        let mut changed_refs = refs.clone();
+        changed_refs[0] = &first;
+        changed_refs[3] = &later;
+        let restore = [Some(refs[0]), None, None, Some(refs[3])];
+        let mut parity = vec![vec![F::zero(); len]; 2];
+        codec.encode_sep(&refs, &mut parity).unwrap();
+        let original_parity = parity.clone();
+        let mut expected = parity.clone();
+        codec.encode_sep(&changed_refs, &mut expected).unwrap();
+        for repetition in 0..3 {
+            let (result, forward) = counted(|| codec.update(&refs, &changes, &mut parity));
+            result.unwrap();
+            assert_eq!(parity, expected);
+            let (result, reverse) = counted(|| codec.update(&changed_refs, &restore, &mut parity));
+            result.unwrap();
+            assert_eq!(parity, original_parity);
+            let budget = (65 + 64 * 1024) * size_of::<F::Elem>();
+            println!(
+                "UPDATE_GROW_RESOURCE field={field} repetition={repetition} forward_calls={} forward_bytes={} reverse_calls={} reverse_bytes={} budget={budget}",
+                forward.calls, forward.bytes, reverse.calls, reverse.bytes
+            );
+            assert!(forward.calls <= 2 && reverse.calls <= 2);
+            assert!(forward.bytes <= budget && reverse.bytes <= budget);
+        }
+    }
+    check::<rustfs_erasure_codec::galois_8::Field>("gf8");
+    check::<rustfs_erasure_codec::galois_16::Field>("tower-gf16");
+}
