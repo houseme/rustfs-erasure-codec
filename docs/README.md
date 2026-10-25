@@ -12,6 +12,7 @@ This directory contains development documentation, design documents, benchmark r
 | [ec-improvement-master-plan.md](ec-improvement-master-plan.md) | Master improvement plan (Chinese) |
 | [benchmark-methodology.md](benchmark-methodology.md) | How to run and interpret benchmarks |
 | [global-module-review-2026-10-26.md](global-module-review-2026-10-26.md) | Current module review, stream metadata consolidation, and validation limits |
+| [caller-workspace-follow-up-2026-10-26.md](caller-workspace-follow-up-2026-10-26.md) | Generic parallel workspace reuse, resource evidence, and follow-up status |
 | [global-review-9.1.0-2026-10-22.md](global-review-9.1.0-2026-10-22.md) | Archived earlier architecture review and bounded incremental-update resources |
 | [drift-analysis-9.1.0-2026-10-22.md](drift-analysis-9.1.0-2026-10-22.md) | Current drift investigation, benchmark lifetime fixes and sparse incremental-update validation |
 | [README-performance-index.md](README-performance-index.md) | Performance document index |
