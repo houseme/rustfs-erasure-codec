@@ -567,7 +567,57 @@ fn wide_stream_recovery_borrows_coefficient_rows() {
         assert_eq!(writer.as_ref().unwrap(), expected);
     }
     eprintln!("wide parity stream recovery heap requests: {requests}");
-    // 35 payloads, their owner table, two missing-index lists, and one mutable
-    // output view table. Coefficients remain borrowed from the encoding matrix.
-    assert_eq!(requests, 39);
+    // 35 payloads, their owner table, and two missing-index lists. Both
+    // coefficients and selected output traversal require no reference table.
+    assert_eq!(requests, 38);
+}
+
+#[test]
+fn wide_parity_recovery_does_not_allocate_output_views_for_each_block() {
+    let mut counts = Vec::new();
+    for (data, parity) in [(2, 33), (4, 40)] {
+        let codec = ReedSolomon::new(data, parity).unwrap();
+        let missing: Vec<_> = (0..parity)
+            .filter(|index| parity == 33 || ![2, 5, 9, 13, 17, 27, 39].contains(index))
+            .map(|index| data + index)
+            .collect();
+        let measure = |blocks| {
+            let len = BLOCK_SIZE * blocks + 37;
+            let expected = encoded_shards(&codec, len);
+            let mut readers: Vec<_> = expected
+                .iter()
+                .enumerate()
+                .map(|(index, shard)| (!missing.contains(&index)).then_some(shard.as_slice()))
+                .collect();
+            let mut writers: Vec<_> = (0..data + parity)
+                .map(|index| missing.contains(&index).then(|| Vec::with_capacity(len)))
+                .collect();
+            let (_, calls) = count_allocations(|| {
+                codec
+                    .reconstruct_stream_from(
+                        &mut readers,
+                        &mut writers,
+                        &options(StreamIoMode::Serial),
+                    )
+                    .unwrap();
+            });
+            for (index, writer) in writers.iter().enumerate() {
+                if let Some(writer) = writer {
+                    assert_eq!(writer, &expected[index]);
+                }
+            }
+            calls
+        };
+        let single = measure(1);
+        let multiple = measure(5);
+        println!(
+            "WIDE_STREAM_RESOURCE data={data} parity={parity} missing={} short_blocks=2 long_blocks=6 short_calls={single} long_calls={multiple}",
+            missing.len()
+        );
+        counts.push((single, multiple));
+    }
+    assert!(
+        counts.iter().all(|&(single, multiple)| single == multiple),
+        "output metadata must not allocate once per block: {counts:?}"
+    );
 }

@@ -14,6 +14,70 @@ use super::{
     ReedSolomon, leopard,
 };
 
+/// Reborrow output shards without allocating a table of mutable references.
+/// Slice and selected-output adapters share the same coding loop and arithmetic.
+trait CodingOutputs<E> {
+    type Shard: AsMut<[E]>;
+    fn len(&self) -> usize;
+    fn contiguous(&mut self) -> Option<&mut [Self::Shard]> {
+        None
+    }
+    fn iter_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut Self::Shard>
+    where
+        Self::Shard: 'a;
+}
+
+struct SliceOutputs<'a, U> {
+    shards: &'a mut [U],
+}
+
+impl<E, U: AsMut<[E]>> CodingOutputs<E> for SliceOutputs<'_, U> {
+    type Shard = U;
+    fn len(&self) -> usize {
+        self.shards.len()
+    }
+    fn contiguous(&mut self) -> Option<&mut [U]> {
+        Some(self.shards)
+    }
+    fn iter_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut U>
+    where
+        U: 'a,
+    {
+        self.shards.iter_mut()
+    }
+}
+
+struct SelectedOutputs<'a, U> {
+    shards: &'a mut [U],
+    indices: &'a [usize],
+    offset: usize,
+}
+
+impl<E, U: AsMut<[E]>> CodingOutputs<E> for SelectedOutputs<'_, U> {
+    type Shard = U;
+    fn len(&self) -> usize {
+        self.indices.len()
+    }
+    fn iter_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut U>
+    where
+        U: 'a,
+    {
+        let offset = self.offset;
+        let mut remaining = self.shards.iter_mut();
+        let mut next = 0;
+        self.indices.iter().map(move |&index| {
+            // The validated plan supplies sorted, distinct in-range targets.
+            // IterMut consumes each selected owner once, proving disjointness.
+            let index = index - offset;
+            let output = remaining
+                .nth(index - next)
+                .expect("validated output target");
+            next = index + 1;
+            output
+        })
+    }
+}
+
 /// Checked native byte views shared by Classic generated kernels and Leopard.
 /// Failed preparation never modifies an output shard.
 struct ByteShardViews<D: Array, P: Array> {
@@ -237,6 +301,39 @@ impl<F: Field> ReedSolomon<F> {
         inputs: &[T],
         outputs: &mut [U],
     ) {
+        self.code_some_slices_with_outputs(
+            matrix_rows,
+            inputs,
+            &mut SliceOutputs { shards: outputs },
+        );
+    }
+
+    /// Code validated sparse outputs through the same checked dispatch and loop.
+    pub(crate) fn code_selected_slices<T: AsRef<[F::Elem]>, U: AsMut<[F::Elem]>>(
+        &self,
+        matrix_rows: &(impl MatrixRows<F::Elem> + ?Sized),
+        inputs: &[T],
+        outputs: &mut [U],
+        indices: &[usize],
+        offset: usize,
+    ) {
+        self.code_some_slices_with_outputs(
+            matrix_rows,
+            inputs,
+            &mut SelectedOutputs {
+                shards: outputs,
+                indices,
+                offset,
+            },
+        );
+    }
+
+    fn code_some_slices_with_outputs<T: AsRef<[F::Elem]>>(
+        &self,
+        matrix_rows: &(impl MatrixRows<F::Elem> + ?Sized),
+        inputs: &[T],
+        outputs: &mut impl CodingOutputs<F::Elem>,
+    ) {
         let shard_len = inputs
             .first()
             .map(|input| input.as_ref().len())
@@ -264,15 +361,39 @@ impl<F: Field> ReedSolomon<F> {
                 crate::galois_8::x86::gfni_rows::SelectedRowKernel::select(
                     inputs.len(), outputs.len(), shard_len,
                 )
-            && Self::try_gfni_rows(kernel, matrix_rows, inputs, outputs, shard_len, chunk_len)
         {
-            return;
+            let executed = if let Some(contiguous) = outputs.contiguous() {
+                Self::try_gfni_rows(
+                    kernel,
+                    matrix_rows,
+                    inputs,
+                    contiguous,
+                    shard_len,
+                    chunk_len,
+                )
+            } else {
+                // Selection above permits at most four GFNI outputs. Keep this
+                // narrow native adapter inline; wider targets use the shared loop.
+                let mut views: SmallVec<[&mut [F::Elem]; 4]> =
+                    outputs.iter_mut().map(|output| output.as_mut()).collect();
+                Self::try_gfni_rows(
+                    kernel,
+                    matrix_rows,
+                    inputs,
+                    &mut views,
+                    shard_len,
+                    chunk_len,
+                )
+            };
+            if executed {
+                return;
+            }
         }
         let mut start = 0;
         while start < shard_len {
             let end = core::cmp::min(start + chunk_len, shard_len);
             for (i_input, input) in inputs.iter().enumerate().take(self.data_shard_count()) {
-                self.code_single_slice_range(
+                self.code_single_slice_range_with_outputs(
                     matrix_rows,
                     i_input,
                     input.as_ref(),
@@ -397,6 +518,25 @@ impl<F: Field> ReedSolomon<F> {
         i_input: usize,
         input: &[F::Elem],
         outputs: &mut [U],
+        start: usize,
+        end: usize,
+    ) {
+        self.code_single_slice_range_with_outputs(
+            matrix_rows,
+            i_input,
+            input,
+            &mut SliceOutputs { shards: outputs },
+            start,
+            end,
+        );
+    }
+
+    fn code_single_slice_range_with_outputs(
+        &self,
+        matrix_rows: &(impl MatrixRows<F::Elem> + ?Sized),
+        i_input: usize,
+        input: &[F::Elem],
+        outputs: &mut impl CodingOutputs<F::Elem>,
         start: usize,
         end: usize,
     ) {

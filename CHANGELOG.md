@@ -10,6 +10,10 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Traverse selected streaming parity outputs without per-block reference tables.
+  Share the existing chunked arithmetic loop with contiguous output slices and
+  preserve checked GFNI eligibility through a bounded native adapter.
+
 - Reuse the Classic inline scratch for ordinary fast-one-parity verification.
   Preserve the XOR encoder and corrupted-parity checks while avoiding heap
   requests for up to 4096 field elements.

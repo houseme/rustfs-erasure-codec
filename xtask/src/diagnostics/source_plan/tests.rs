@@ -32,7 +32,7 @@ fn complete_plans_bind_generated_bytes_and_every_written_member() {
         ),
         (
             "stream-core",
-            "6977a31c230009563b871b7f04053b012f90bc57565ace27ef92c71b51ca8754",
+            "767285b1206d1c010be20b3f1c14f39d09f4733783145c7476b3499eba6c1f26",
         ),
         (
             // Current production source, including every systematic decode branch.
