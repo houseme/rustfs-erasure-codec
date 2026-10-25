@@ -88,6 +88,8 @@ fn main() {
 ```
 
 如果需要高频校验，优先使用 `verify_with_workspace(...)` 或 `verify_with_buffer(...)` 复用临时缓冲区。
+启用 `std` 后，可用 `verify_with_workspace_par(...)` 在所有支持的有限域（包括 tower GF16）
+上复用 scratch 并沿用现有并行策略。每个并发操作使用自己的 workspace；分片布局变化时会自动调整。
 
 对于缺失模式稳定的重复 `Option<Vec<u8>>` 恢复，可以先准备 workspace：
 
@@ -112,7 +114,7 @@ rs.reconstruct_opt_with_workspace(&mut missing, &workspace).unwrap();
 |---|---|
 | Classic 编码 | `galois_8::ReedSolomon`, `galois_16::ReedSolomon` |
 | 编解码器选择 | `CodecOptions`, `CodecFamily`, `MatrixMode`, `LeopardMode` |
-| 校验复用 | `VerifyWorkspace`, `verify_with_workspace`, `verify_with_buffer` |
+| 校验复用 | `VerifyWorkspace`, `verify_with_workspace`, `verify_with_workspace_par`, `verify_with_buffer` |
 | 恢复复用 | `OptionVecReconstructWorkspace`, `ShardSlot<T>` |
 | 定向恢复 | `reconstruct_some`, `reconstruct_some_opt` |
 | 渐进式恢复 | `decode_idx` |

@@ -28,16 +28,16 @@ fn complete_plans_bind_generated_bytes_and_every_written_member() {
     for (variant, expected) in [
         (
             "verify-scratch",
-            "6f857299445f92d9c09fe2b3802746f75036620c08b970f68c53d5bdfb8fd4a5",
+            "66d9b45a4ea8d2e07c1f2def8d3b757d6045bcb548b74bc7935ebc48084e065b",
         ),
         (
             "stream-core",
-            "986f709fb40f7a708177587b22f5a78e70409cd835c441c67dc429b7cfba55d1",
+            "bdcc909549d23c7e8e95ec6ada979750c9e6c2825fb03e8574bdb6637af24544",
         ),
         (
             // Current production source, including every systematic decode branch.
             "dynamic",
-            "45aa8fdcb248e75d519577b43b2d88027d4e0b8d883894280416bf68501704a9",
+            "5788c39272e93d74c7e01701479939b212f477bd6d01e8c5da9970115cbec07d",
         ),
     ] {
         let original = original(root, variant);

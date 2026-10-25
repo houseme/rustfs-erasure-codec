@@ -115,6 +115,45 @@ impl<F: Field> ReedSolomon<F> {
         self.verify_with_buffer(slices, workspace.as_mut_shards())
     }
 
+    /// Verify with the parallel policy and reusable parity scratch.
+    ///
+    /// Uses the same execution path as [`Self::verify_with_buffer_par`], including
+    /// its serial fallback and Leopard-family dispatch. The workspace retains
+    /// parity storage between calls and adapts to a different codec or shard
+    /// length. Invalid input counts and lengths are rejected before resizing it.
+    ///
+    /// Keep one workspace per concurrent operation. This avoids recreating the
+    /// parity scratch on repeated calls; codec-specific internal workspaces keep
+    /// their existing allocation and caching behavior.
+    ///
+    /// ```
+    /// use rustfs_erasure_codec::{galois_16::ReedSolomon, VerifyWorkspace};
+    /// let codec = ReedSolomon::new(4, 2)?;
+    /// let mut shards = vec![vec![[0u8; 2]; 1024]; 6];
+    /// codec.encode(&mut shards)?;
+    /// let mut workspace = VerifyWorkspace::new(&codec, 1024);
+    /// for _ in 0..3 {
+    ///     assert!(codec.verify_with_workspace_par(&shards, &mut workspace)?);
+    /// }
+    /// # Ok::<(), rustfs_erasure_codec::Error>(())
+    /// ```
+    #[cfg(feature = "std")]
+    pub fn verify_with_workspace_par<T>(
+        &self,
+        slices: &[T],
+        workspace: &mut VerifyWorkspace<F>,
+    ) -> Result<bool, Error>
+    where
+        F::Elem: Send + Sync,
+        T: AsRef<[F::Elem]> + Sync,
+    {
+        check_piece_count!(all => self, slices);
+        check_slices!(multi => slices);
+
+        workspace.prepare(self, slices[0].as_ref().len());
+        self.verify_with_buffer_par(slices, workspace.as_mut_shards())
+    }
+
     /// Verify using a caller-provided scratch buffer.
     pub fn verify_with_buffer<T, U>(&self, slices: &[T], buffer: &mut [U]) -> Result<bool, Error>
     where

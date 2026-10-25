@@ -463,12 +463,7 @@ impl crate::ReedSolomon<super::Field> {
         slices: &[Vec<u8>],
         workspace: &mut crate::VerifyWorkspace<crate::galois_8::Field>,
     ) -> Result<bool, crate::Error> {
-        if self.is_leopard_gf8_family() {
-            return self.verify_with_workspace(slices, workspace);
-        }
-        let shard_len = self.validate_opt_shards(slices)?;
-        workspace.resize(self, shard_len);
-        self.verify_with_buffer_par(slices, workspace.as_mut_shards())
+        self.verify_with_workspace_par(slices, workspace)
     }
 
     #[cfg(feature = "std")]

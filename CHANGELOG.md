@@ -10,6 +10,12 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Add generic `verify_with_workspace_par` for repeated parallel-policy
+  verification with reusable parity scratch, including tower GF16. Route the
+  existing GF8 workspace-opt adapter through this shared entry point; retain
+  input validation before resizing and the existing kernels/family dispatch.
+
+
 - Borrow prepared data and parity coefficient rows in Classic bulk recovery.
   Preserve stage ordering, selective outputs, kernels and policy while removing
   the temporary reference tables and their wide allocations.
