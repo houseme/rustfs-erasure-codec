@@ -10,6 +10,10 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Reuse the Classic plan's owned erasure indices when a required mask selects
+  every missing shard. Build a separate target list only for a proper subset,
+  preserving mask ownership, target order, validation and composed parity rows.
+
 - Reserve Classic recovery view tables from exact prepared input/output counts.
   Collect composed data/parity outputs into one bulk table and allocate recovered
   data views only when ordinary mixed recovery needs them. Preserve target order,

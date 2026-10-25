@@ -1379,3 +1379,81 @@ fn direct_bulk_parallel_chunks_keep_target_order_and_stage_counts() {
         }
     });
 }
+
+#[test]
+fn complete_required_targets_reuse_the_owned_shape_index_storage() {
+    fn exercise<F: Field>(field: &str) -> bool {
+        let mut cases = vec![("present", 4, 3, Vec::new())];
+        for missing in [1, 32, 33, 64, 65, 96] {
+            cases.push(("parity", 4, missing + 1, (4..4 + missing).collect()));
+        }
+        for data in [4, 32, 33, 64, 65] {
+            cases.push(("data", data, data + 1, (0..data).collect()));
+        }
+        let mut bounded = true;
+        for (case, data, parity, missing) in cases {
+            let codec = codec::<F>(data, parity, MatrixMode::Cauchy, false, true);
+            let expected = encoded(&codec, 65, 4217);
+            let mut ordinary = slots::<F>(&expected, &missing);
+            let mut selected = ordinary.clone();
+            // Only erasures are requested; flags on surviving shards are false.
+            let required: Vec<_> = (0..data + parity).map(|i| missing.contains(&i)).collect();
+            codec.reconstruct(&mut ordinary).unwrap();
+            codec.reconstruct_some(&mut selected, &required).unwrap();
+            for repetition in 0..3 {
+                erase::<F>(&mut ordinary, &missing);
+                erase::<F>(&mut selected, &missing);
+                let (all_plan, all_prepare) =
+                    counted(|| codec.prepare_reconstruct_workspace(&ordinary));
+                let all_plan = all_plan.unwrap();
+                let (selected_plan, selected_prepare) =
+                    counted(|| codec.prepare_reconstruct_some_workspace(&selected, &required));
+                let selected_plan = selected_plan.unwrap();
+                assert_eq!(all_plan.data_targets(), selected_plan.data_targets());
+                assert_eq!(all_plan.parity_targets(), selected_plan.parity_targets());
+                codec
+                    .reconstruct_with_workspace(&mut ordinary, &all_plan)
+                    .unwrap();
+                codec
+                    .reconstruct_with_workspace(&mut selected, &selected_plan)
+                    .unwrap();
+                check::<F>(&ordinary, &expected);
+                check::<F>(&selected, &expected);
+                erase::<F>(&mut ordinary, &missing);
+                erase::<F>(&mut selected, &missing);
+                let (result, all_call) = counted(|| codec.reconstruct(&mut ordinary));
+                result.unwrap();
+                let (result, selected_call) =
+                    counted(|| codec.reconstruct_some(&mut selected, &required));
+                result.unwrap();
+                check::<F>(&ordinary, &expected);
+                check::<F>(&selected, &expected);
+                println!(
+                    "TARGET_INDEX_RESOURCE field={field} case={case} data={data} parity={parity} missing={} repetition={repetition} all_prepare_calls={} all_prepare_bytes={} selected_prepare_calls={} selected_prepare_bytes={} all_call_calls={} all_call_bytes={} selected_call_calls={} selected_call_bytes={}",
+                    missing.len(),
+                    all_prepare.calls,
+                    all_prepare.bytes,
+                    selected_prepare.calls,
+                    selected_prepare.bytes,
+                    all_call.calls,
+                    all_call.bytes,
+                    selected_call.calls,
+                    selected_call.bytes
+                );
+                // With only data or only parity erased, both goals use the
+                // same coefficients. Requested-target metadata needs no copy.
+                bounded &= all_prepare.calls == selected_prepare.calls
+                    && all_prepare.bytes == selected_prepare.bytes
+                    && all_call.calls == selected_call.calls
+                    && all_call.bytes == selected_call.bytes;
+            }
+        }
+        bounded
+    }
+    let byte = exercise::<galois_8::Field>("gf8");
+    let tower = exercise::<galois_16::Field>("tower-gf16");
+    assert!(
+        byte && tower,
+        "complete required targets duplicate shape indices"
+    );
+}
