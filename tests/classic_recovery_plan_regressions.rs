@@ -309,6 +309,7 @@ mod allocation_regressions {
     thread_local! {
         static TRACKING: Cell<bool> = const { Cell::new(false) };
         static CALLS: Cell<usize> = const { Cell::new(0) };
+        static REQUESTED_BYTES: Cell<usize> = const { Cell::new(0) };
         static SIZED_CALLS: Cell<(usize, usize)> = const { Cell::new((0, 0)) };
     }
 
@@ -318,6 +319,7 @@ mod allocation_regressions {
         let _ = TRACKING.try_with(|tracking| {
             if tracking.get() {
                 CALLS.with(|calls| calls.set(calls.get() + 1));
+                REQUESTED_BYTES.with(|bytes_total| bytes_total.set(bytes_total.get() + bytes));
                 SIZED_CALLS.with(|sized| {
                     let (size, calls) = sized.get();
                     if size != 0 && bytes == size {
@@ -360,6 +362,7 @@ mod allocation_regressions {
 
     fn allocation_calls(operation: impl FnOnce()) -> usize {
         CALLS.with(|calls| calls.set(0));
+        REQUESTED_BYTES.with(|bytes| bytes.set(0));
         TRACKING.with(|tracking| tracking.set(true));
         operation();
         TRACKING.with(|tracking| tracking.set(false));
@@ -553,6 +556,168 @@ mod allocation_regressions {
             "mixed recovery must reuse the selected-input view buffer"
         );
         eprintln!("MIXED_VIEW_REUSE_ALLOCATION cases=135 view_calls_per_case=1");
+    }
+
+    #[test]
+    fn bulk_workspace_recovery_borrows_plan_rows_without_a_reference_table() {
+        // Workspace execution has no policy-environment query or plan/cache
+        // construction in the measured window. Count destination buffers and
+        // the existing input/output view growth independently of row views.
+        fn view_growth(count: usize) -> usize {
+            let mut capacity = 32;
+            let mut requests = 0;
+            while capacity < count {
+                capacity *= 2;
+                requests += 1;
+            }
+            requests
+        }
+
+        let mut budget_met = true;
+        let mut cases = 0;
+        for mode in [
+            MatrixMode::Vandermonde,
+            MatrixMode::Cauchy,
+            MatrixMode::JerasureLike,
+        ] {
+            for (data, parity, patterns) in [
+                (4, 4, &[(0, 0), (0, 1), (1, 0), (1, 1), (2, 2)][..]),
+                (
+                    64,
+                    96,
+                    &[
+                        (0, 1),
+                        (0, 31),
+                        (0, 32),
+                        (0, 33),
+                        (0, 64),
+                        (0, 65),
+                        (0, 96),
+                        (1, 0),
+                        (31, 0),
+                        (32, 0),
+                        (33, 0),
+                        (40, 0),
+                        (64, 0),
+                        (1, 31),
+                        (1, 32),
+                        (1, 33),
+                        (31, 1),
+                        (32, 1),
+                        (33, 1),
+                        (31, 33),
+                        (32, 32),
+                        (33, 31),
+                        (33, 32),
+                        (33, 33),
+                        (64, 32),
+                        (32, 64),
+                    ][..],
+                ),
+            ] {
+                let codec = ReedSolomon::with_options(
+                    data,
+                    parity,
+                    CodecOptions::builder()
+                        .codec_family(rustfs_erasure_codec::CodecFamily::Classic)
+                        .matrix_mode(mode)
+                        .build(),
+                )
+                .unwrap();
+                let original = encoded(&codec, 65);
+                for &(missing_data, missing_parity) in patterns {
+                    let mut shards = original.clone();
+                    let erase = |shards: &mut [Option<Vec<u8>>]| {
+                        shards[..missing_data].fill(None);
+                        shards[data..data + missing_parity].fill(None);
+                    };
+                    erase(&mut shards);
+                    let workspace = codec.prepare_reconstruct_opt_workspace(&shards).unwrap();
+                    codec
+                        .reconstruct_opt_with_workspace(&mut shards, &workspace)
+                        .unwrap();
+                    erase(&mut shards);
+                    let calls = allocation_calls(|| {
+                        codec
+                            .reconstruct_opt_with_workspace(&mut shards, &workspace)
+                            .unwrap();
+                    });
+                    let bytes = REQUESTED_BYTES.with(Cell::get);
+                    let missing = missing_data + missing_parity;
+                    let budget = if missing == 0 {
+                        0
+                    } else {
+                        missing
+                            + view_growth(data)
+                            + view_growth(missing_data)
+                            + view_growth(missing_parity)
+                    };
+                    budget_met &= calls == budget;
+                    println!(
+                        "BULK_ROW_VIEW_ALLOCATION matrix={mode:?} data={data} parity={parity} missing_data={missing_data} missing_parity={missing_parity} calls={calls} budget={budget} bytes={bytes}"
+                    );
+                    assert_eq!(shards, original);
+                    cases += 1;
+                }
+            }
+        }
+        assert_eq!(cases, 93);
+        assert!(
+            budget_met,
+            "bulk recovery must borrow its prepared coefficient rows"
+        );
+    }
+
+    #[test]
+    fn selective_bulk_row_ranges_preserve_sparse_target_order_and_absence() {
+        let mut cases = 0;
+        for mode in [
+            MatrixMode::Vandermonde,
+            MatrixMode::Cauchy,
+            MatrixMode::JerasureLike,
+        ] {
+            let codec = ReedSolomon::with_options(
+                64,
+                96,
+                CodecOptions::builder()
+                    .codec_family(rustfs_erasure_codec::CodecFamily::Classic)
+                    .matrix_mode(mode)
+                    .build(),
+            )
+            .unwrap();
+            let original = encoded(&codec, 65);
+            for data_targets in [0, 1, 31, 32, 33, 40] {
+                for parity_targets in [0, 1, 31, 32, 33, 40] {
+                    let mut required = vec![false; 160];
+                    required[40 - data_targets..40].fill(true);
+                    required[104 - parity_targets..104].fill(true);
+                    let mut shards = original.clone();
+                    let erase = |shards: &mut [Option<Vec<u8>>]| {
+                        shards[..40].fill(None);
+                        shards[64..104].fill(None);
+                    };
+                    erase(&mut shards);
+                    codec.reconstruct_some_opt(&mut shards, &required).unwrap();
+                    erase(&mut shards);
+                    let calls = allocation_calls(|| {
+                        codec.reconstruct_some_opt(&mut shards, &required).unwrap();
+                    });
+                    println!(
+                        "SELECTIVE_ROW_VIEW_ALLOCATION matrix={mode:?} data_targets={data_targets} parity_targets={parity_targets} calls={calls} bytes={}",
+                        REQUESTED_BYTES.with(Cell::get)
+                    );
+                    for (index, (shard, expected)) in shards.iter().zip(&original).enumerate() {
+                        if (index < 40 || (64..104).contains(&index)) && !required[index] {
+                            assert!(shard.is_none(), "unrequested output {index} was published");
+                        } else {
+                            assert_eq!(shard, expected, "wrong output at index {index}");
+                        }
+                    }
+                    cases += 1;
+                }
+            }
+        }
+        assert_eq!(cases, 108);
     }
 
     #[test]

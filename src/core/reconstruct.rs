@@ -6,6 +6,8 @@ use alloc::vec::Vec;
 
 use smallvec::SmallVec;
 
+#[cfg(feature = "std")]
+use super::recovery_plan::ClassicReconstructRows;
 use super::{ClassicReconstructPlan, ReconstructionGoal};
 use crate::errors::Error;
 use crate::{Field, ReconstructShard};
@@ -72,7 +74,7 @@ impl<F: Field> ReedSolomon<F> {
     #[cfg(feature = "std")]
     pub(crate) fn code_some_slices_with_policy_raw(
         &self,
-        matrix_rows: &[&[F::Elem]],
+        matrix_rows: &(impl crate::matrix::MatrixRows<F::Elem> + Sync + ?Sized),
         inputs: &[&[F::Elem]],
         outputs: &mut [&mut [F::Elem]],
         policy: ParallelPolicy,
@@ -277,7 +279,12 @@ impl<F: Field> ReedSolomon<F> {
         &self,
         shards: &mut [Option<Vec<F::Elem>>],
         plan: &ClassicReconstructPlan<F>,
-        mut compute: impl FnMut(bool, &[&[F::Elem]], &[&[F::Elem]], &mut [&mut [F::Elem]]),
+        mut compute: impl FnMut(
+            bool,
+            &ClassicReconstructRows<'_, F>,
+            &[&[F::Elem]],
+            &mut [&mut [F::Elem]],
+        ),
     ) -> Result<(), Error> {
         #[cfg(feature = "std")]
         self.runtime_profile_metrics.record_reconstruct(
@@ -289,8 +296,8 @@ impl<F: Field> ReedSolomon<F> {
         if !plan.has_outputs() {
             return Ok(());
         }
-        let data_rows: SmallVec<[&[F::Elem]; 32]> = plan.data_rows().collect();
-        let parity_rows: SmallVec<[&[F::Elem]; 32]> = plan.parity_rows(self).collect();
+        let rows = plan.row_views(self);
+        let (data_rows, parity_rows) = rows.split_at(plan.data_targets().len());
         let mut data_outputs: SmallVec<[&mut [F::Elem]; 32]> = SmallVec::new();
         let mut parity_outputs: SmallVec<[&mut [F::Elem]; 32]> = SmallVec::new();
         let mut inputs: SmallVec<[&[F::Elem]; 32]> = SmallVec::new();
@@ -335,8 +342,6 @@ impl<F: Field> ReedSolomon<F> {
                 self.runtime_profile_metrics
                     .record_reconstruct_parity_stage(plan.shape.shard_len, parity_outputs.len());
             }
-            let mut rows = data_rows;
-            rows.extend(parity_rows);
             data_outputs.extend(parity_outputs);
             compute(true, &rows, &inputs, &mut data_outputs);
             return Ok(());

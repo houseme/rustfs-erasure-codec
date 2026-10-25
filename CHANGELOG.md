@@ -10,6 +10,10 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Borrow prepared data and parity coefficient rows in Classic bulk recovery.
+  Preserve stage ordering, selective outputs, kernels and policy while removing
+  the temporary reference tables and their wide allocations.
+
 - Borrow Classic parity rows directly from the encoding matrix in serial,
   parallel and incremental coding. Preserve decode views and checked kernels
   through static row access, removing repeated wide reference-table allocations
