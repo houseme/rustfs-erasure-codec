@@ -1,0 +1,281 @@
+{
+  "schema": "borrowed-recovery-row-views-native-review-v1",
+  "implementation_commit": "4bd12089c9a1b9aa1f136de6473e3821f9d9b9d8",
+  "published_baseline": "9.0.0",
+  "baseline_commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+  "platform_scope": "Linux x86_64 execution",
+  "checks": [
+    {
+      "name": "native-test-catalog",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "full-codec",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "direct-inverse-matrix-oracle",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "direct-inverse-allocation-oracle",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "gfni-scalar-entry-oracle",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "new-gfni-row-oracles",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "selective-planning-oracles",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "survivor-cache-oracles",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "survivor-cache-allocations",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "borrowed-row-workspace",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "borrowed-row-selective",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "borrowed-encoding-rows",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "no-std",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "ssse3-fallback",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "avx2-fallback",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "scalar-general",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "gfni256-general",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "gfni512-general",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "published-200",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "published-custom-auto",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "published-wide-auto",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "published-custom-scalar-rust",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "published-wide-scalar-rust",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "published-custom-rust-ssse3",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "published-wide-rust-ssse3",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "published-custom-rust-avx2",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "published-wide-rust-avx2",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "published-custom-rust-gfni-avx2",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "published-wide-rust-gfni-avx2",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "published-custom-rust-gfni-avx512",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "published-wide-rust-gfni-avx512",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "backend-env-stress",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "published-selective-auto",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "published-selective-scalar-rust",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "published-selective-rust-ssse3",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "published-selective-rust-avx2",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "published-selective-rust-gfni-avx2",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "published-selective-rust-gfni-avx512",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "native-tool",
+      "passed": true,
+      "exit_code": 0
+    },
+    {
+      "name": "native-sampler-both-sources",
+      "passed": true,
+      "exit_code": 0
+    }
+  ],
+  "all40_checks_positive": true,
+  "validation_control_tests": {
+    "passed": 44,
+    "skipped": 0
+  },
+  "codec_counts": {
+    "parent": 596,
+    "ignored": 43,
+    "child": 6
+  },
+  "native_catalog_total": 639,
+  "native_catalog_matches_complete_execution": true,
+  "published_format_compatibility": {
+    "normal_configurations": 200,
+    "custom_configurations_per_backend": 27,
+    "custom_cross_recoveries_per_backend": 162,
+    "wide_gf16_configurations_per_backend": 12,
+    "selective_configurations_per_backend": 270,
+    "selective_cross_recoveries_per_backend": 2640,
+    "backend_conditions": [
+      "auto",
+      "scalar-rust",
+      "rust-ssse3",
+      "rust-avx2",
+      "rust-gfni-avx2",
+      "rust-gfni-avx512"
+    ]
+  },
+  "all201_allocator_request_rows_match_local_contract": true,
+  "both_gfni_widths_and_direct_avx2_bytes_executed": true,
+  "source_and_compiler_unchanged": true,
+  "original_services_and_cpuset_restored": true,
+  "independent_archive": {
+    "original_files": 167,
+    "all_bytes_exact": true,
+    "codec_calls": 0,
+    "atomic_ack_readback": true,
+    "lease_closed_owner_absent": true
+  },
+  "controlled_performance_observations_in_native_job": 0,
+  "manual_full_validation": {
+    "source": "4bd12089c9a1b9aa1f136de6473e3821f9d9b9d8",
+    "mode": "diagnose-complete",
+    "actually_launched": true,
+    "startup_status": "preheating; no completed timing result",
+    "profiles": {
+      "smoke": 15,
+      "small_file": 88,
+      "hotspot": 8,
+      "stream": 15
+    },
+    "phase_order": [
+      "A1",
+      "B1",
+      "B2",
+      "A2"
+    ],
+    "expected_profile_workers": 504,
+    "expected_profile_observations": 6048,
+    "expected_layout_observations": 3072,
+    "calibration_workers": "adaptive; not fixed in advance",
+    "warmups": 3,
+    "samples": 9,
+    "sample_spread_limit": 0.1,
+    "repeat_drift_limit": 0.05,
+    "statistical_refusals_continue": true,
+    "sampler_protocol": 15,
+    "automation": "PAUSED"
+  },
+  "performance_evidence_accepted": false,
+  "candidate_attribution": null,
+  "release_approval": false
+}
