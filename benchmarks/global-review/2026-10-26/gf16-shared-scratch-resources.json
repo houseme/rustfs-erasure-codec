@@ -1,0 +1,297 @@
+{
+  "schema": "gf16-shared-decode-scratch-resources-v1",
+  "baseline_runtime_commit": "c207f179eaa61fb29ad0658500b0fcf184bfe43f",
+  "candidate_runtime_commit": "0b0b89efc4cc81025bc5d2c9b035963d77a72938",
+  "upstream_main_commit": "07f02df5f78ada84588a6f4fc737b7fb484d33d1",
+  "baseline_runtime_files_sha256": {
+    "src/core/leopard_gf16/decode.rs": "1bbbc46cec3ccb2b41f44f8f7af0d4bcd2f617c1ce67b56654de905d4e7ebdd4",
+    "src/core/leopard_gf16/work.rs": "a1cfa088c93a1c7f4a38ff6c73faa5294428058a9310471c129dacfcbb3626e5",
+    "src/core/leopard_gf16/ops.rs": "6cc36840ea62569b5bf520dd12335717992e919cfee327e03dd9fdb5f7195443",
+    "Cargo.toml": "9295d965b5a226317c85d20df80a7e5b72c8ced56dce5c3b88cf664fdb5abbe3",
+    "Cargo.lock": "6fb303fc350ca2da4a8788a683296ac15312b9d4767723f30990c7c196b33023",
+    "build.rs": "583cd71bd329d024512a3efcb0bf1d5d564064cb9454a04832bb338998edc841"
+  },
+  "candidate_runtime_files_sha256": {
+    "src/core/leopard_gf16/decode.rs": "39c5f8f59ed318e5518be7ecff30d8de983785aff7db76bf927f04ce724a0902",
+    "src/core/leopard_gf16/work.rs": "a1cfa088c93a1c7f4a38ff6c73faa5294428058a9310471c129dacfcbb3626e5",
+    "src/core/leopard_gf16/ops.rs": "6cc36840ea62569b5bf520dd12335717992e919cfee327e03dd9fdb5f7195443",
+    "Cargo.toml": "9295d965b5a226317c85d20df80a7e5b72c8ced56dce5c3b88cf664fdb5abbe3",
+    "Cargo.lock": "6fb303fc350ca2da4a8788a683296ac15312b9d4767723f30990c7c196b33023",
+    "build.rs": "583cd71bd329d024512a3efcb0bf1d5d564064cb9454a04832bb338998edc841"
+  },
+  "same_lockfile": true,
+  "probe_file": "tests/leopard_gf16_decode_reuse.rs",
+  "probe_file_sha256": "33f3d3d2e15dd50e4b7cf9f529f51541d1b4d4e4368eec20536110c885ab0790",
+  "baseline_probe": "identical final external test file overlaid on baseline runtime; expected exit 101 after all resource records and output checks",
+  "candidate_probe": "exit 0 after all resource records and output checks",
+  "build": "release",
+  "features": [
+    "std",
+    "simd-accel"
+  ],
+  "benchmark_metrics": false,
+  "max_parallel_jobs": 1,
+  "counter": "caller-thread alloc/alloc_zeroed/realloc requests and gross requested bytes; all measured compute stays on that thread; frees and RSS are not counted",
+  "fixture_scope": "codec, encoded input and owned ShardSlot containers are prepared outside counting; requested temporary output and API metadata remain inside counting",
+  "cold_workspace_scope": "10+4, missing data index 0; immutable global plan prewarmed; every counted decode on a fresh OS thread with no cached mutable decode workspace; all output bytes and presence checked",
+  "warm_boundary_scope": "40+16, missing data index 0; one complete decode before counting on each fresh thread; all output bytes and presence checked after counted second decode",
+  "budget_model": "shared_workspace_modeled_bytes = (FFT lanes + 1 scratch) * chunk bytes. fits_shared_buffer_budget is this candidate budget predicate in both versions, not a sampled baseline cache flag. Cold uses 16 lanes; warm boundary uses 64 lanes. Both retain at most 4 MiB in heap work and scratch buffers per decode workspace; plans, caller storage and other caches are excluded.",
+  "records_per_version": 15,
+  "allocation_windows_per_version": 15,
+  "latency_measured": false,
+  "throughput_claim": null,
+  "peak_rss_measured": false,
+  "release_approval": false,
+  "baseline": {
+    "cold_mutable_workspace": [
+      {
+        "repetition": 0,
+        "length_bytes": 32768,
+        "allocation_calls": 4,
+        "requested_bytes": 622592,
+        "shared_buffer_api_budget_bytes": 593920
+      },
+      {
+        "repetition": 0,
+        "length_bytes": 65536,
+        "allocation_calls": 4,
+        "requested_bytes": 1245184,
+        "shared_buffer_api_budget_bytes": 1183744
+      },
+      {
+        "repetition": 0,
+        "length_bytes": 131136,
+        "allocation_calls": 4,
+        "requested_bytes": 1310784,
+        "shared_buffer_api_budget_bytes": 1249344
+      },
+      {
+        "repetition": 1,
+        "length_bytes": 32768,
+        "allocation_calls": 4,
+        "requested_bytes": 622592,
+        "shared_buffer_api_budget_bytes": 593920
+      },
+      {
+        "repetition": 1,
+        "length_bytes": 65536,
+        "allocation_calls": 4,
+        "requested_bytes": 1245184,
+        "shared_buffer_api_budget_bytes": 1183744
+      },
+      {
+        "repetition": 1,
+        "length_bytes": 131136,
+        "allocation_calls": 4,
+        "requested_bytes": 1310784,
+        "shared_buffer_api_budget_bytes": 1249344
+      },
+      {
+        "repetition": 2,
+        "length_bytes": 32768,
+        "allocation_calls": 4,
+        "requested_bytes": 622592,
+        "shared_buffer_api_budget_bytes": 593920
+      },
+      {
+        "repetition": 2,
+        "length_bytes": 65536,
+        "allocation_calls": 4,
+        "requested_bytes": 1245184,
+        "shared_buffer_api_budget_bytes": 1183744
+      },
+      {
+        "repetition": 2,
+        "length_bytes": 131136,
+        "allocation_calls": 4,
+        "requested_bytes": 1310784,
+        "shared_buffer_api_budget_bytes": 1249344
+      }
+    ],
+    "warmed_budget_boundary": [
+      {
+        "repetition": 0,
+        "length_bytes": 64000,
+        "fits_shared_buffer_budget": true,
+        "allocation_calls": 8,
+        "requested_bytes": 4291320,
+        "shared_workspace_modeled_bytes": 4160000
+      },
+      {
+        "repetition": 0,
+        "length_bytes": 65536,
+        "fits_shared_buffer_budget": false,
+        "allocation_calls": 8,
+        "requested_bytes": 4394232,
+        "shared_workspace_modeled_bytes": 4259840
+      },
+      {
+        "repetition": 1,
+        "length_bytes": 64000,
+        "fits_shared_buffer_budget": true,
+        "allocation_calls": 8,
+        "requested_bytes": 4291320,
+        "shared_workspace_modeled_bytes": 4160000
+      },
+      {
+        "repetition": 1,
+        "length_bytes": 65536,
+        "fits_shared_buffer_budget": false,
+        "allocation_calls": 8,
+        "requested_bytes": 4394232,
+        "shared_workspace_modeled_bytes": 4259840
+      },
+      {
+        "repetition": 2,
+        "length_bytes": 64000,
+        "fits_shared_buffer_budget": true,
+        "allocation_calls": 8,
+        "requested_bytes": 4291320,
+        "shared_workspace_modeled_bytes": 4160000
+      },
+      {
+        "repetition": 2,
+        "length_bytes": 65536,
+        "fits_shared_buffer_budget": false,
+        "allocation_calls": 8,
+        "requested_bytes": 4394232,
+        "shared_workspace_modeled_bytes": 4259840
+      }
+    ]
+  },
+  "candidate": {
+    "cold_mutable_workspace": [
+      {
+        "repetition": 0,
+        "length_bytes": 32768,
+        "allocation_calls": 3,
+        "requested_bytes": 589824,
+        "shared_buffer_api_budget_bytes": 593920
+      },
+      {
+        "repetition": 0,
+        "length_bytes": 65536,
+        "allocation_calls": 3,
+        "requested_bytes": 1179648,
+        "shared_buffer_api_budget_bytes": 1183744
+      },
+      {
+        "repetition": 0,
+        "length_bytes": 131136,
+        "allocation_calls": 3,
+        "requested_bytes": 1245248,
+        "shared_buffer_api_budget_bytes": 1249344
+      },
+      {
+        "repetition": 1,
+        "length_bytes": 32768,
+        "allocation_calls": 3,
+        "requested_bytes": 589824,
+        "shared_buffer_api_budget_bytes": 593920
+      },
+      {
+        "repetition": 1,
+        "length_bytes": 65536,
+        "allocation_calls": 3,
+        "requested_bytes": 1179648,
+        "shared_buffer_api_budget_bytes": 1183744
+      },
+      {
+        "repetition": 1,
+        "length_bytes": 131136,
+        "allocation_calls": 3,
+        "requested_bytes": 1245248,
+        "shared_buffer_api_budget_bytes": 1249344
+      },
+      {
+        "repetition": 2,
+        "length_bytes": 32768,
+        "allocation_calls": 3,
+        "requested_bytes": 589824,
+        "shared_buffer_api_budget_bytes": 593920
+      },
+      {
+        "repetition": 2,
+        "length_bytes": 65536,
+        "allocation_calls": 3,
+        "requested_bytes": 1179648,
+        "shared_buffer_api_budget_bytes": 1183744
+      },
+      {
+        "repetition": 2,
+        "length_bytes": 131136,
+        "allocation_calls": 3,
+        "requested_bytes": 1245248,
+        "shared_buffer_api_budget_bytes": 1249344
+      }
+    ],
+    "warmed_budget_boundary": [
+      {
+        "repetition": 0,
+        "length_bytes": 64000,
+        "fits_shared_buffer_budget": true,
+        "allocation_calls": 5,
+        "requested_bytes": 67320,
+        "shared_workspace_modeled_bytes": 4160000
+      },
+      {
+        "repetition": 0,
+        "length_bytes": 65536,
+        "fits_shared_buffer_budget": false,
+        "allocation_calls": 7,
+        "requested_bytes": 4328696,
+        "shared_workspace_modeled_bytes": 4259840
+      },
+      {
+        "repetition": 1,
+        "length_bytes": 64000,
+        "fits_shared_buffer_budget": true,
+        "allocation_calls": 5,
+        "requested_bytes": 67320,
+        "shared_workspace_modeled_bytes": 4160000
+      },
+      {
+        "repetition": 1,
+        "length_bytes": 65536,
+        "fits_shared_buffer_budget": false,
+        "allocation_calls": 7,
+        "requested_bytes": 4328696,
+        "shared_workspace_modeled_bytes": 4259840
+      },
+      {
+        "repetition": 2,
+        "length_bytes": 64000,
+        "fits_shared_buffer_budget": true,
+        "allocation_calls": 5,
+        "requested_bytes": 67320,
+        "shared_workspace_modeled_bytes": 4160000
+      },
+      {
+        "repetition": 2,
+        "length_bytes": 65536,
+        "fits_shared_buffer_budget": false,
+        "allocation_calls": 7,
+        "requested_bytes": 4328696,
+        "shared_workspace_modeled_bytes": 4259840
+      }
+    ]
+  },
+  "validation": {
+    "workspace_passed": 927,
+    "workspace_existing_ignored": 43,
+    "no_std_simd_lib_passed": 273,
+    "compatibility_non_fast_configurations": 200,
+    "strict_clippy": true,
+    "fmt_and_diff_check": true,
+    "instrumented_baseline_functional_passed": 11,
+    "instrumented_candidate_functional_passed": 11,
+    "x86_64_linux_all_features_lib_check": true,
+    "wasm32_no_std_simd_lib_check": true
+  },
+  "limits": [
+    "No new stable timing qualification; preserve prior failed ABBA evidence.",
+    "No process or cross-thread peak RSS measurement; per-worker resource sharing follows the common helper and functional concurrency tests.",
+    "Cache eligibility follows actual shared-buffer budget; oversized workspaces still release the previous cache and are not retained.",
+    "Other caller, plan, FFT and output allocations remain; no whole-API zero-allocation claim."
+  ]
+}
