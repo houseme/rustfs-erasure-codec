@@ -8,8 +8,13 @@ retains all 201 before/after controls: 123 use one to three fewer requests,
 contracts remain intact. Fresh 580 codec parent / 271 no_std / 317 tool tests,
 published-9.0.0 compatibility, WASM/Node and an actual source-exact 71-member crate
 pass; 45 inputs replay unchanged without codec calls. These are functional and
-allocation results. Native source binding, accepted complete performance evidence
-and actual strict positive release preflight remain outstanding.
+allocation results. The same frozen source subsequently passes all 40 Linux
+native checks (596 codec parent tests, six separate children, 43 existing ignored)
+and 44 validation-control tests; the complete 167-file archive independently
+replays before ACK and lease closure. The manually authorized full 126-case ABBA
+and paired-layout diagnostic has started, with no completed timing result yet;
+scheduled follow-up stays paused. Accepted complete performance evidence and
+actual strict positive release preflight remain outstanding.
 
 Merged encoding/recovery source (2026-10-25): main `0225f5c` includes externally
 merged PRs #106 and #107. The [current integration review](combined-coding-local-review-2026-10-25.md#merged-main-source-review-2026-10-25)

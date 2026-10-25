@@ -85,9 +85,44 @@ raw test summaries, generated bindings and all original crate bytes with zero
 codec calls. The initial zero-test filter and the rejected packed-table prototype
 remain preserved separately. No partial or favorable subset replaces a catalogue.
 
-These results establish functional and allocation behavior on this source.
-They do not establish native Linux ISA execution, controlled end-to-end encoding
-or decoding throughput, or later-head CI. Dedicated source-bound validation,
-accepted complete published-9.0.0 ABBA/paired-layout evidence, final source/tool/lock
-freeze and actual strict positive release preflight remain outstanding.
-Performance and release approval remain withheld; no automatic PR merge occurs.
+These initial local results establish functional and allocation behavior on this
+source. The later Linux execution below adds native compatibility evidence;
+controlled throughput, accepted full evidence and release qualification remain
+separate.
+
+## Manual Linux compatibility and full validation
+
+The same immutable `4bd1208` implementation passes all 40 native checks and all
+44 validation-control regressions with zero skipped. Complete Linux execution
+passes 596 codec parent tests, with six filtered child executions counted
+separately and 43 existing ignored tests. Its native catalogue contains exactly
+639 entries (596 executed parents plus 43 ignored).
+
+Both GFNI widths, direct AVX2 bytes, scalar entry contracts, inverse/cache oracles,
+271 no_std tests and all 201 allocator request/byte controls execute positively.
+Published-9.0.0 exact encoding and cross-decoding pass the full normal/custom,
+wide GF16 and selective catalogues across automatic, scalar, SSSE3, AVX2 and both
+GFNI backend conditions. The [complete native check result](../benchmarks/release-9.1.0/2026-10-25/borrowed-recovery-row-views-native.json)
+retains all 40 outcomes and their scope.
+
+An independent replay checks every byte of all 167 archived inputs without codec
+work, confirms every resource row against the local contract, and verifies the
+source/compiler and original resource/service state. The matching ACK is read
+back atomically; the native lease closes and its owner exits.
+
+After that gate, the explicitly authorized one-shot full diagnostic actually
+starts on `4bd1208` against published 9.0.0. It uses separate frozen tool/candidate
+copies with matching complete trees and locks, all 126 cases, phase-major ABBA,
+adaptive calibration and complete paired layouts. Protocol 15 keeps its original
+loops, three warmups/nine samples, duration/count rules and thresholds. Every
+statistical refusal is retained while remaining work continues. At this record's
+startup check the job is preheating; there is no completed timing result. A finite
+archive verifier can only read and acknowledge this job; it cannot start another
+workload. Scheduled follow-up remains paused.
+
+The previous documentation head `f99a22f` has its own 31 successful CI checks and
+three actual skips. Those skips do not establish positive release preflight.
+Native compatibility, CI and job startup do not establish throughput or RSS
+acceptance. Complete accepted evidence, final source/tool/lock binding and actual
+strict positive release preflight remain outstanding. Performance/release
+approval is withheld; no automatic PR merge, tag or registry upload occurs.
