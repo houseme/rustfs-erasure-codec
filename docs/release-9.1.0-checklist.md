@@ -12,9 +12,13 @@ allocation results. The same frozen source subsequently passes all 40 Linux
 native checks (596 codec parent tests, six separate children, 43 existing ignored)
 and 44 validation-control tests; the complete 167-file archive independently
 replays before ACK and lease closure. The manually authorized full 126-case ABBA
-and paired-layout diagnostic has started, with no completed timing result yet;
-scheduled follow-up stays paused. Accepted complete performance evidence and
-actual strict positive release preflight remain outstanding.
+and paired-layout diagnostic has started, with no completed timing result yet.
+Two zero-sample controller errors are preserved with independent archive/restore
+proofs; the [safe continuation](borrowed-recovery-row-views-review-2026-10-25.md#preserved-startup-errors-and-safe-continuation)
+passes all 57 Linux control checks before its own preheat. Codec source, strict
+guards, sampler and thresholds remain unchanged. Scheduled follow-up stays paused.
+Accepted complete performance evidence and actual strict positive release
+preflight remain outstanding.
 
 Merged encoding/recovery source (2026-10-25): main `0225f5c` includes externally
 merged PRs #106 and #107. The [current integration review](combined-coding-local-review-2026-10-25.md#merged-main-source-review-2026-10-25)
