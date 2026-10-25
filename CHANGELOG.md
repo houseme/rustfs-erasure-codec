@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Remove the unused Leopard GF16 encoder scratch and its thread-local cache.
+  Pass work lanes directly through FFT/IFFT helpers and account only for active
+  work under the existing 4 MiB heap budget. Preserve warm caches during calls
+  whose active work exceeds the budget.
+
 - Reuse Leopard GF16 decode conversion scratch for output scaling after the
   transform completes. Remove one chunk buffer per active worker from serial,
   parallel and no_std recovery while retaining the 4 MiB cache budget and

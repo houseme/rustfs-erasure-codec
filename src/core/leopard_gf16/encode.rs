@@ -22,12 +22,6 @@ thread_local! {
         const { std::cell::RefCell::new(None) };
 }
 
-#[cfg(feature = "std")]
-thread_local! {
-    static SCRATCH16_CACHE: std::cell::RefCell<Option<Vec<u16>>> =
-        const { std::cell::RefCell::new(None) };
-}
-
 // Keep only one immutable schedule per thread. Large configurations are built
 // locally instead of retaining unbounded plan memory in long-lived worker threads.
 #[cfg(feature = "std")]
@@ -109,16 +103,12 @@ thread_local! {
         const { std::cell::RefCell::new(None) };
 }
 
-// Reserve no memory for caching: account for the work allocation and the
-// scratch Vec's actual capacity after computation, then keep or drop both.
+// The u16 butterflies operate directly on work lanes and need no scratch.
+// Check the actual work allocation before returning it to the thread cache.
 #[cfg(feature = "std")]
-fn cache_encode_buffers(work: FlatWork16, scratch: Vec<u16>) {
-    let scratch_bytes = scratch
-        .capacity()
-        .saturating_mul(core::mem::size_of::<u16>());
-    if leopard_work_cache_fits(work.allocated_bytes(), scratch_bytes) {
+fn cache_encode_work(work: FlatWork16) {
+    if leopard_work_cache_fits(work.allocated_bytes(), 0) {
         FLAT_WORK16_CACHE.with(|cache| *cache.borrow_mut() = Some(work));
-        SCRATCH16_CACHE.with(|cache| *cache.borrow_mut() = Some(scratch));
     }
 }
 
@@ -151,7 +141,7 @@ pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>
         needed_lanes
             .saturating_mul(needed_lane_len)
             .saturating_mul(core::mem::size_of::<u16>()),
-        needed_lane_len.saturating_mul(core::mem::size_of::<u16>()),
+        0,
     );
 
     #[cfg(feature = "std")]
@@ -183,15 +173,6 @@ pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>
     #[cfg(not(feature = "std"))]
     let mut flat_work = FlatWork16::new(needed_lanes, needed_lane_len);
 
-    #[cfg(feature = "std")]
-    let mut scratch = if cacheable {
-        SCRATCH16_CACHE.with(|cache| cache.take().unwrap_or_default())
-    } else {
-        Vec::new()
-    };
-    #[cfg(not(feature = "std"))]
-    let mut scratch: Vec<u16> = Vec::new();
-
     // Each IFFT group initializes every active lane: input lanes are converted
     // directly from bytes, partial radix-4 groups and trailing lanes are zeroed.
     // All chunk boundaries are multiples of 32 elements (64 user bytes), so the
@@ -203,10 +184,6 @@ pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>
         let size = end - offset;
         let work_size = core::cmp::min(driver.m * 2, flat_work.lanes());
 
-        if scratch.len() < size {
-            scratch.resize(size, 0);
-        }
-
         // Build mutable views into flat work using with_lane_views.
         flat_work.with_lane_views(work_size, size, |work_views| {
             ifft_dit_encoder16_with_plan(
@@ -217,7 +194,6 @@ pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>
                 offset,
                 end,
                 tables,
-                &mut scratch,
             );
 
             let mut group_offset = driver.m;
@@ -231,7 +207,6 @@ pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>
                     offset,
                     end,
                     tables,
-                    &mut scratch,
                 );
                 group_offset += driver.m;
             }
@@ -246,16 +221,10 @@ pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>
                     offset,
                     end,
                     tables,
-                    &mut scratch,
                 );
             }
 
-            fft_dit16_with_plan(
-                &mut work_views[..driver.m],
-                &plans.fft_plan,
-                tables,
-                &mut scratch,
-            );
+            fft_dit16_with_plan(&mut work_views[..driver.m], &plans.fft_plan, tables);
 
             // Write parity shards straight into user byte layout: the fused
             // de-interleave skips the intermediate split-byte buffer and the
@@ -273,7 +242,7 @@ pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>
 
     #[cfg(feature = "std")]
     if cacheable {
-        cache_encode_buffers(flat_work, scratch);
+        cache_encode_work(flat_work);
     }
 
     #[cfg(feature = "std")]
@@ -294,12 +263,7 @@ fn zero_trailing_lanes_16(work: &mut [&mut [u16]], start_lane: usize, count: usi
     }
 }
 
-fn fft_dit16_with_plan(
-    work: &mut [&mut [u16]],
-    plan: &FftDit16Plan,
-    tables: &LeopardGf16Tables,
-    scratch: &mut [u16],
-) {
+fn fft_dit16_with_plan(work: &mut [&mut [u16]], plan: &FftDit16Plan, tables: &LeopardGf16Tables) {
     for block in &plan.stage4_blocks {
         dit4_at_16(
             true,
@@ -310,7 +274,6 @@ fn fft_dit16_with_plan(
             block.log_m23,
             block.log_m02,
             tables,
-            scratch,
         );
     }
 
@@ -323,7 +286,6 @@ fn fft_dit16_with_plan(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 fn ifft_dit_encoder16_with_plan<T: AsRef<[u8]>>(
     data: &[T],
     plan: &IfftDit16Plan,
@@ -332,7 +294,6 @@ fn ifft_dit_encoder16_with_plan<T: AsRef<[u8]>>(
     start: usize,
     end: usize,
     tables: &LeopardGf16Tables,
-    scratch: &mut [u16],
 ) {
     let size = end - start;
 
@@ -370,7 +331,6 @@ fn ifft_dit_encoder16_with_plan<T: AsRef<[u8]>>(
                 block.log_m23,
                 block.log_m02,
                 tables,
-                scratch,
             );
         }
 
@@ -390,7 +350,6 @@ fn ifft_dit_encoder16_with_plan<T: AsRef<[u8]>>(
                 block.log_m23,
                 block.log_m02,
                 tables,
-                scratch,
             );
         }
     }
@@ -423,7 +382,6 @@ fn dit4_at_16(
     log_m23: u16,
     log_m02: u16,
     tables: &LeopardGf16Tables,
-    scratch: &mut [u16],
 ) {
     for i in 0..dist {
         let a = base + i;
@@ -450,7 +408,6 @@ fn dit4_at_16(
                     a_ref, b_ref, c_ref, d_ref, log_m01, log_m23, log_m02, tables,
                 );
             }
-            let _ = scratch;
         } else {
             dit4_pairwise_16(forward, work, a, dist, log_m01, log_m23, log_m02, tables);
         }
@@ -536,26 +493,23 @@ mod encode_cache_budget_tests {
 
     fn clear_caches() {
         FLAT_WORK16_CACHE.with(|cache| *cache.borrow_mut() = None);
-        SCRATCH16_CACHE.with(|cache| *cache.borrow_mut() = None);
         ENCODE_PLAN_CACHE.with(|cache| *cache.borrow_mut() = None);
     }
 
-    fn small_cache_pointers() -> (*const u8, *const u8, *const u8) {
+    fn small_cache_pointers() -> (*const u8, *const u8) {
         let work = FLAT_WORK16_CACHE.with(|cache| {
             let cache = cache.borrow();
             let work = cache.as_ref().unwrap();
             assert!(work.can_reuse(8, 32));
             work.lane(0).as_ptr().cast::<u8>()
         });
-        let scratch =
-            SCRATCH16_CACHE.with(|cache| cache.borrow().as_ref().unwrap().as_ptr().cast::<u8>());
         let plan = ENCODE_PLAN_CACHE.with(|cache| {
             let cache = cache.borrow();
             let plan = cache.as_ref().unwrap();
             assert_eq!((plan.data_shards, plan.parity_shards), (10, 4));
             plan.first_ifft_plan.initial_blocks.as_ptr().cast::<u8>()
         });
-        (work, scratch, plan)
+        (work, plan)
     }
 
     #[test]
@@ -569,18 +523,15 @@ mod encode_cache_budget_tests {
         encode_with_tables16(10, 4, &data, &mut parity).unwrap();
         assert_eq!(small_cache_pointers(), warmed);
 
-        // The work allocation alone equals the budget. Scratch makes the
-        // request oversized, so none of its resources may replace the cache.
+        // The active work allocation exceeds the budget, so none of the
+        // oversized call's resources may replace the small warm cache.
         let large_data = vec![vec![0x5a; 65536]; 4];
-        let mut large_parity = vec![vec![0; 65536]; 32];
-        let driver = encode_with_tables16(4, 32, &large_data, &mut large_parity).unwrap();
+        let mut large_parity = vec![vec![0; 65536]; 64];
+        let driver = encode_with_tables16(4, 64, &large_data, &mut large_parity).unwrap();
         let lane_len = (driver.shard_size / core::mem::size_of::<u16>()).min(driver.chunk_size);
         let work_bytes = driver.work_slices * lane_len * core::mem::size_of::<u16>();
-        assert_eq!(work_bytes, LEOPARD_MAX_CACHED_WORK_BYTES);
-        assert!(!leopard_work_cache_fits(
-            work_bytes,
-            lane_len * core::mem::size_of::<u16>()
-        ));
+        assert!(work_bytes > LEOPARD_MAX_CACHED_WORK_BYTES);
+        assert!(!leopard_work_cache_fits(work_bytes, 0));
         assert_eq!(small_cache_pointers(), warmed);
 
         parity.iter_mut().for_each(|shard| shard.fill(0xa5));
@@ -590,15 +541,22 @@ mod encode_cache_budget_tests {
     }
 
     #[test]
-    fn cache_return_accounts_for_scratch_capacity_instead_of_length() {
+    fn cache_return_accounts_for_the_actual_work_allocation() {
         clear_caches();
-        let work = FlatWork16::new(1, 64);
-        let mut scratch =
-            Vec::<u16>::with_capacity(LEOPARD_MAX_CACHED_WORK_BYTES / core::mem::size_of::<u16>());
-        scratch.push(0);
-        assert_eq!(scratch.len(), 1);
-        cache_encode_buffers(work, scratch);
+        let exact = FlatWork16::new(64, 32 * 1024);
+        assert_eq!(exact.allocated_bytes(), LEOPARD_MAX_CACHED_WORK_BYTES);
+        cache_encode_work(exact);
+        FLAT_WORK16_CACHE.with(|cache| {
+            assert_eq!(
+                cache.borrow().as_ref().unwrap().allocated_bytes(),
+                LEOPARD_MAX_CACHED_WORK_BYTES
+            );
+        });
+
+        clear_caches();
+        let oversized = FlatWork16::new(64, 32 * 1024 + 32);
+        assert!(oversized.allocated_bytes() > LEOPARD_MAX_CACHED_WORK_BYTES);
+        cache_encode_work(oversized);
         FLAT_WORK16_CACHE.with(|cache| assert!(cache.borrow().is_none()));
-        SCRATCH16_CACHE.with(|cache| assert!(cache.borrow().is_none()));
     }
 }
