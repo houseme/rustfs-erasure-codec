@@ -90,7 +90,10 @@ fn main() {
 ```
 
 For repeated verification, prefer `verify_with_workspace(...)` or
-`verify_with_buffer(...)` over plain `verify(...)`.
+`verify_with_buffer(...)` over plain `verify(...)`. With `std`, use
+`verify_with_workspace_par(...)` to combine the existing parallel policy with
+reusable scratch for any supported field, including tower GF16. Keep one
+workspace per concurrent operation; it resizes for changed shard shapes.
 
 For repeated `Option<Vec<u8>>` recovery with a stable missing pattern, prepare a
 workspace once:
@@ -116,7 +119,7 @@ rs.reconstruct_opt_with_workspace(&mut missing, &workspace).unwrap();
 |---|---|
 | Classic coding | `galois_8::ReedSolomon`, `galois_16::ReedSolomon` |
 | Codec selection | `CodecOptions`, `CodecFamily`, `MatrixMode`, `LeopardMode` |
-| Verification reuse | `VerifyWorkspace`, `verify_with_workspace`, `verify_with_buffer` |
+| Verification reuse | `VerifyWorkspace`, `verify_with_workspace`, `verify_with_workspace_par`, `verify_with_buffer` |
 | Reconstruction reuse | `OptionVecReconstructWorkspace`, `ShardSlot<T>` |
 | Targeted recovery | `reconstruct_some`, `reconstruct_some_opt` |
 | Progressive recovery | `decode_idx` |
