@@ -113,6 +113,31 @@ let workspace = rs.prepare_reconstruct_opt_workspace(&missing).unwrap();
 rs.reconstruct_opt_with_workspace(&mut missing, &workspace).unwrap();
 ```
 
+The generic full-recovery path also supports tower GF16, caller-owned
+`ShardSlot` buffers, and `no_std`:
+
+```rust
+use rustfs_erasure_codec::{galois_16::ReedSolomon, ShardSlot};
+let rs = ReedSolomon::new(4, 2).unwrap();
+let mut shards = vec![vec![[3u8, 7]; 65]; 6];
+rs.encode(&mut shards).unwrap();
+let mut slots: Vec<_> = shards.into_iter().map(ShardSlot::new_present).collect();
+slots[0].mark_missing();
+let workspace = rs.prepare_reconstruct_workspace(&slots).unwrap();
+for _ in 0..3 {
+    slots[0].mark_missing();
+    rs.reconstruct_with_workspace(&mut slots, &workspace).unwrap();
+}
+```
+
+`ReconstructWorkspace<F>` retains the format and inverse independently of the
+codec cache. Reuse requires matching counts, effective matrix, missing pattern
+and length, checked before every execution. Prepare it again when the layout
+changes. It owns no payload buffers; `ShardSlot` retains those separately. The
+existing GF8 `OptionVecReconstructWorkspace` name is an alias, and its option-vector
+entry point keeps the bulk executor. These workspace APIs cover full Classic
+recovery; Leopard and selective/data-only calls retain their existing paths.
+
 ## Main APIs
 
 | Area | APIs |
@@ -120,7 +145,7 @@ rs.reconstruct_opt_with_workspace(&mut missing, &workspace).unwrap();
 | Classic coding | `galois_8::ReedSolomon`, `galois_16::ReedSolomon` |
 | Codec selection | `CodecOptions`, `CodecFamily`, `MatrixMode`, `LeopardMode` |
 | Verification reuse | `VerifyWorkspace`, `verify_with_workspace`, `verify_with_workspace_par`, `verify_with_buffer` |
-| Reconstruction reuse | `OptionVecReconstructWorkspace`, `ShardSlot<T>` |
+| Reconstruction reuse | `ReconstructWorkspace<F>`, `prepare_reconstruct_workspace`, `reconstruct_with_workspace`, `OptionVecReconstructWorkspace`, `ShardSlot<T>` |
 | Targeted recovery | `reconstruct_some`, `reconstruct_some_opt` |
 | Progressive recovery | `decode_idx` |
 | Incremental encoding | `ShardByShard` |

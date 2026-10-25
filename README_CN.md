@@ -108,6 +108,14 @@ let workspace = rs.prepare_reconstruct_opt_workspace(&missing).unwrap();
 rs.reconstruct_opt_with_workspace(&mut missing, &workspace).unwrap();
 ```
 
+泛型 Classic 全量恢复现在可通过 `prepare_reconstruct_workspace(...)` 准备
+`ReconstructWorkspace<F>`，随后用 `reconstruct_with_workspace(...)` 复用格式、
+缺失布局和逆矩阵，支持 tower GF16、`ShardSlot` 和 no_std。每次执行前仍检查
+分片数量、有效矩阵、缺失位置和长度；布局变化后需重新准备。计划不持有调用者
+payload，目标存储可由 `ShardSlot` 单独复用。GF8 原有
+`OptionVecReconstructWorkspace` 名称作为别名保留，旧入口继续使用批量执行器。
+详见 [英文使用示例](README.md)。
+
 ## 主要 API
 
 | 领域 | API |
@@ -115,7 +123,7 @@ rs.reconstruct_opt_with_workspace(&mut missing, &workspace).unwrap();
 | Classic 编码 | `galois_8::ReedSolomon`, `galois_16::ReedSolomon` |
 | 编解码器选择 | `CodecOptions`, `CodecFamily`, `MatrixMode`, `LeopardMode` |
 | 校验复用 | `VerifyWorkspace`, `verify_with_workspace`, `verify_with_workspace_par`, `verify_with_buffer` |
-| 恢复复用 | `OptionVecReconstructWorkspace`, `ShardSlot<T>` |
+| 恢复复用 | `ReconstructWorkspace<F>`, `prepare_reconstruct_workspace`, `reconstruct_with_workspace`, `OptionVecReconstructWorkspace`, `ShardSlot<T>` |
 | 定向恢复 | `reconstruct_some`, `reconstruct_some_opt` |
 | 渐进式恢复 | `decode_idx` |
 | 增量编码 | `ShardByShard` |

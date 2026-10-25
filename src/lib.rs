@@ -68,10 +68,10 @@ pub use crate::core::ReedSolomon;
 #[cfg(feature = "std")]
 pub use crate::core::RuntimeProfileStats;
 pub use crate::core::ShardByShard;
-pub use crate::core::VerifyWorkspace;
 #[cfg(feature = "std")]
 pub use crate::core::stream;
 pub use crate::core::{LEOPARD_SHARD_MULTIPLE, leopard_aligned_shard_len};
+pub use crate::core::{ReconstructWorkspace, VerifyWorkspace};
 
 #[cfg(feature = "std")]
 pub fn leopard_gf8_profile_stats() -> LeopardGf8ProfileStats {
