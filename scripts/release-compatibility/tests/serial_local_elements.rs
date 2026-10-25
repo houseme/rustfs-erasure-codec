@@ -209,3 +209,81 @@ fn serial_public_apis_keep_non_send_and_non_sync_element_support() {
         totals[0], totals[1], totals[2]
     );
 }
+
+#[test]
+fn selective_serial_recovery_preserves_thread_local_element_absence() {
+    let mut configurations = 0;
+    let mut selections = 0;
+    let mut cross_recoveries = 0;
+    for mode in 0..3 {
+        let old_codec =
+            codec_old::ReedSolomon::<OldField>::with_options(4, 3, options!(codec_old, mode))
+                .unwrap();
+        let new_codec =
+            codec_new::ReedSolomon::<NewField>::with_options(4, 3, options!(codec_new, mode))
+                .unwrap();
+        for len in [1, 33, 65] {
+            let payload: Vec<Vec<_>> = (0..7)
+                .map(|row| {
+                    (0..len)
+                        .map(|column| element((row * 41 + column * 13) as u8))
+                        .collect()
+                })
+                .collect();
+            let mut published = payload.clone();
+            let mut current = payload;
+            old_codec.encode(&mut published).unwrap();
+            new_codec.encode(&mut current).unwrap();
+            assert_eq!(current, published, "matrix {mode}, length {len}");
+            configurations += 1;
+            let complete: Vec<_> = current.iter().cloned().map(Some).collect();
+            for erased in [&[0][..], &[6][..], &[0, 6][..], &[0, 1, 6][..]] {
+                // Exercise both public mask lengths, including empty requests,
+                // present-only requests and every partial missing-output subset.
+                for flag_len in [4, 7] {
+                    for mask in 0..(1usize << flag_len) {
+                        let required: Vec<_> =
+                            (0..flag_len).map(|i| mask & (1 << i) != 0).collect();
+                        let mut selected = missing(&published, erased);
+                        new_codec
+                            .reconstruct_some(&mut selected, &required)
+                            .unwrap();
+                        for (index, actual) in selected.iter().enumerate() {
+                            if erased.contains(&index)
+                                && !required.get(index).copied().unwrap_or(false)
+                            {
+                                assert!(
+                                    actual.is_none(),
+                                    "unrequested output: mode={mode}, len={len}, erased={erased:?}, flags={flag_len}, mask={mask}, index={index}"
+                                );
+                            } else {
+                                assert_eq!(
+                                    actual.as_ref(),
+                                    Some(&published[index]),
+                                    "requested or surviving output: mode={mode}, len={len}, erased={erased:?}, flags={flag_len}, mask={mask}, index={index}"
+                                );
+                            }
+                        }
+                        selections += 1;
+
+                        // Published full recovery consumes the candidate's
+                        // selected repairs; the candidate then consumes those
+                        // published survivors in the other direction as well.
+                        let mut for_old = selected.clone();
+                        old_codec.reconstruct(&mut for_old).unwrap();
+                        assert_eq!(for_old, complete);
+                        new_codec.reconstruct(&mut selected).unwrap();
+                        assert_eq!(selected, complete);
+                        cross_recoveries += 2;
+                    }
+                }
+            }
+        }
+    }
+    assert_eq!(configurations, 9);
+    assert_eq!(selections, 5184);
+    assert_eq!(cross_recoveries, 10368);
+    println!(
+        "LOCAL_ELEMENT_SELECTIVE_COMPAT configurations={configurations} selections={selections} cross_recoveries={cross_recoveries} opaque_element=true"
+    );
+}
