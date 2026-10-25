@@ -25,6 +25,7 @@ This directory contains development documentation, design documents, benchmark r
 | [generic-reconstruct-workspace-follow-up-2026-10-26.md](generic-reconstruct-workspace-follow-up-2026-10-26.md) | Generic owned Classic recovery plans, GF8 bulk compatibility and cross-field/no_std reuse |
 | [subset-reconstruct-workspace-follow-up-2026-10-26.md](subset-reconstruct-workspace-follow-up-2026-10-26.md) | Data-only and selected-output plan reuse, owned targets and retained composed parity rows |
 | [recovery-view-follow-up-2026-10-26.md](recovery-view-follow-up-2026-10-26.md) | Exact Classic recovery view capacity, consolidated bulk outputs and complete allocation controls |
+| [target-index-follow-up-2026-10-26.md](target-index-follow-up-2026-10-26.md) | Shared plan-owned erasure indices for complete required masks, with preparation and scoped-call costs |
 | [global-review-9.1.0-2026-10-22.md](global-review-9.1.0-2026-10-22.md) | Archived earlier architecture review and bounded incremental-update resources |
 | [drift-analysis-9.1.0-2026-10-22.md](drift-analysis-9.1.0-2026-10-22.md) | Current drift investigation, benchmark lifetime fixes and sparse incremental-update validation |
 | [README-performance-index.md](README-performance-index.md) | Performance document index |

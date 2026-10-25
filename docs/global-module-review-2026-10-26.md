@@ -154,3 +154,6 @@ RAYON_NUM_THREADS=4 RSE_RECOVERY_CASE_FILTER=stream.reconstruct RSE_RECOVERY_SAM
 Classic 完整、数据与选择性计划复用之后的宽执行视图进展见
 [Classic 恢复视图跟进报告](recovery-view-follow-up-2026-10-26.md)，
 包含精确容量、bulk 输出合并、完整申请对照及剩余执行顺序。
+
+Classic 计划构造中的完整 required 目标索引复用、准备/普通调用成本及后续容量检查见
+[Classic 完整目标索引跟进报告](target-index-follow-up-2026-10-26.md)。
