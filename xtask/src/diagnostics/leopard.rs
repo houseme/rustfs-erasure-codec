@@ -81,6 +81,23 @@ fn gf8(text: &str) -> Result<String> {
     })
 }
 fn gf16(text: &str) -> Result<String> {
+    let separate = regex::Regex::new(
+        r"(?m)^( +)if out_scratch\.len\(\) < size \{\n +out_scratch\.resize\(size, 0\);\n +\}",
+    )?;
+    let shared = regex::Regex::new(r"(?m)^( +)let out_scratch = &mut \*scratch;")?;
+    let separate_output = match (
+        separate.captures_iter(text).count(),
+        shared.captures_iter(text).count(),
+    ) {
+        (2, 0) => true,
+        (0, 2) => false,
+        _ => return Err("GF16 output scratch boundary changed or is ambiguous".into()),
+    };
+    if text.contains("struct DecodeBuffers {")
+        && separate_output != text.contains("    out_scratch: Vec<u16>,")
+    {
+        return Err("GF16 output scratch owner changed".into());
+    }
     let mut text = text.to_owned();
     if text.contains("struct DecodeBuffers {") {
         text = source::top(&text, "fn with_decode_buffers<", |edit| {
@@ -88,7 +105,11 @@ fn gf16(text: &str) -> Result<String> {
                 format!(
                     "    buffers.work.__rse_decode_view(\"{stage}\",0);\n{}{}",
                     vector("buffers.scratch", "leopard_scratch", stage, 4),
-                    vector("buffers.out_scratch", "leopard_out_scratch", stage, 4)
+                    if separate_output {
+                        vector("buffers.out_scratch", "leopard_out_scratch", stage, 4)
+                    } else {
+                        String::new()
+                    }
                 )
             };
             let marker = "    let result = operation(&mut buffers);";
@@ -120,15 +141,13 @@ fn gf16(text: &str) -> Result<String> {
             1,
         )
     })?;
-    let regex = regex::Regex::new(
-        r"(?m)^( +)if out_scratch\.len\(\) < size \{\n +out_scratch\.resize\(size, 0\);\n +\}",
-    )?;
-    let positions: Vec<_> = regex
+    let expected = if separate_output { &separate } else { &shared };
+    let positions: Vec<_> = expected
         .captures_iter(&text)
         .map(|c| (c.get(0).expect("whole match").range(), c[1].len()))
         .collect();
     if positions.len() != 2 {
-        return Err("GF16 output scratch initialization changed".into());
+        return Err("GF16 output scratch boundary changed or is ambiguous".into());
     }
     for (range, indent) in positions.iter().rev() {
         text.insert_str(
@@ -155,4 +174,38 @@ pub fn patch(original: &BTreeMap<String, String>) -> Result<BTreeMap<String, Str
         (FILES[2].into(), work(get(FILES[2])?, true)?),
         (FILES[3].into(), gf16(get(FILES[3])?)?),
     ]))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn gf16_observer_accepts_shared_and_separate_scratch_and_rejects_ambiguity() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap();
+        let current = std::fs::read_to_string(root.join(FILES[3])).unwrap();
+        let alias = "let out_scratch = &mut *scratch;";
+        assert_eq!(current.matches(alias).count(), 2);
+        let observed = gf16(&current).unwrap();
+        assert!(!observed.contains("buffers.out_scratch"));
+        assert_eq!(observed.matches("span(\"leopard_out_scratch\"").count(), 2);
+
+        let shared = regex::Regex::new(r"(?m)^( +)let out_scratch = &mut \*scratch;").unwrap();
+        let legacy = shared.replace_all(&current, |capture: &regex::Captures<'_>| {
+            let indent = &capture[1];
+            format!("{indent}if out_scratch.len() < size {{\n{indent}    out_scratch.resize(size, 0);\n{indent}}}")
+        }).replace("    scratch: Vec<u16>,", "    scratch: Vec<u16>,\n    out_scratch: Vec<u16>,");
+        let observed = gf16(&legacy).unwrap();
+        assert!(observed.contains("buffers.out_scratch"));
+        assert_eq!(observed.matches("span(\"leopard_out_scratch\"").count(), 4);
+        for invalid in [
+            current.replace(alias, "let out_scratch = unknown();"),
+            current.replacen(alias, &format!("{alias}\n            {alias}"), 1),
+            current.replacen(alias, &format!("{alias}\n            if out_scratch.len() < size {{\n                out_scratch.resize(size, 0);\n            }}"), 1),
+        ] {
+            assert!(gf16(&invalid).is_err());
+        }
+    }
 }

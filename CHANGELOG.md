@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Reuse Leopard GF16 decode conversion scratch for output scaling after the
+  transform completes. Remove one chunk buffer per active worker from serial,
+  parallel and no_std recovery while retaining the 4 MiB cache budget and
+  oversized-call release behavior.
+
 - Read streaming recovery survivors through planned indices and reuse an owned
   output container across blocks. Restore buffer owners before parity coding or
   I/O, removing wide data-stage reference-table allocations while preserving
