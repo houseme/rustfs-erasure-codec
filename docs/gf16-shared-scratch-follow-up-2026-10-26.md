@@ -105,3 +105,9 @@ stable Rust 1.99.1 / macOS ARM64：
 
 本轮没有重新计时，历史 ABBA 漂移失败记录保持；没有吞吐提升或全平台最优结论。
 提交保留在 houseme/codec-global-review，未 push、创建 PR、打 tag 或发布 crate。
+
+## 后续进展
+
+GF16 encoder 的闲置 scratch 清理与实际 work 缓存边界见
+[encoder 跟进报告](gf16-encoder-active-work-follow-up-2026-10-26.md)。
+以上保留本轮原始实现身份及验证结果。
