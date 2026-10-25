@@ -126,3 +126,35 @@ Native compatibility, CI and job startup do not establish throughput or RSS
 acceptance. Complete accepted evidence, final source/tool/lock binding and actual
 strict positive release preflight remain outstanding. Performance/release
 approval is withheld; no automatic PR merge, tag or registry upload occurs.
+
+## Preserved startup errors and safe continuation
+
+The initial startup record above is followed by two actual execution failures,
+each before full sampling. These are neither statistical refusals nor codec
+performance results.
+
+The first private prewarm adapter treated the renderer's logical names as
+repository-relative paths. Cargo therefore could not discover the sampling
+integration target. Both-source correctness had passed; all four cleanup checks
+passed. An independent replay verifies all 81 archived files, ACK and lease
+closure. The correction uses exactly the frozen native `Overlay::generated`
+mapping into the integration-test entry and support directory. Both actual
+source targets then compile in a local no-run check with exact source restoration.
+
+The next controller unit gate deliberately orphaned a short-lived fixture child.
+The outer strict guard correctly refused that detached process. No source copies,
+partitions or capture existed. Its unverified fence stayed in place until a
+narrow recovery of the same failed job verified the original services/CPU state,
+unchanged inputs and all 41 original archived files. Independent ACK precedes
+closure of that same token; original failure records remain unchanged.
+
+The owner now uses process-local Linux child adoption, so its own descendants
+stay attached to their actual top owner. The strict and legacy guards are
+byte-unchanged; unrelated work is still refused. All 57 Linux controller checks
+pass with zero skipped, including adoption and parent-flag isolation controls.
+Completed adopted children are reaped only after tracked commands are quiescent.
+A new, separately frozen continuation has actually launched and is preheating.
+It keeps implementation `4bd1208`, the same full catalogue, protocol, counts,
+loops and thresholds. No completed timing result or release acceptance is
+available. Scheduled follow-up remains paused; no unchanged measured campaign
+was rerun to select favorable results.

@@ -250,7 +250,7 @@
     "source": "4bd12089c9a1b9aa1f136de6473e3821f9d9b9d8",
     "mode": "diagnose-complete",
     "actually_launched": true,
-    "startup_status": "preheating; no completed timing result",
+    "startup_status": "original startup failed before capture; two zero-sample errors preserved; ownership-corrected continuation launched and preheating",
     "profiles": {
       "smoke": 15,
       "small_file": 88,
@@ -273,7 +273,46 @@
     "repeat_drift_limit": 0.05,
     "statistical_refusals_continue": true,
     "sampler_protocol": 15,
-    "automation": "PAUSED"
+    "automation": "PAUSED",
+    "zero_sample_attempts": [
+      {
+        "step": 1,
+        "failure_class": "execution error in private prewarm path mapping",
+        "positive_both_source_correctness": true,
+        "formal_performance_observations": 0,
+        "cleanup_checks_passed": 4,
+        "independent_original_files": 81,
+        "archive_ack_lease_closed": true,
+        "owner_exited": true,
+        "correction": "match frozen native Overlay::generated logical-to-Cargo-test destination mapping",
+        "correction_verified": "both actual source integration targets compiled locally without execution"
+      },
+      {
+        "step": 2,
+        "failure_class": "strict guard refused intentional orphan fixture during controller unit gate",
+        "formal_performance_observations": 0,
+        "source_copies_partitions_capture_created": false,
+        "initial_unverified_fence_preserved": true,
+        "independent_original_files": 41,
+        "positive_original_state_recovery_then_atomic_ack": true,
+        "same_failed_token_closed": true,
+        "original_failure_records_unchanged": true,
+        "correction": "process-local Linux subreaper keeps owned descendants attached; strict and legacy guard source unchanged"
+      }
+    ],
+    "current_continuation": {
+      "source": "4bd12089c9a1b9aa1f136de6473e3821f9d9b9d8",
+      "actually_launched": true,
+      "linux_control_tests": {
+        "passed": 57,
+        "skipped": 0
+      },
+      "process_local_child_adoption_readback": true,
+      "foreign_workload_policy_unchanged": true,
+      "native_source_sampler_counts_thresholds_unchanged": true,
+      "status_at_record": "preheating; no completed timing result",
+      "automation": "PAUSED"
+    }
   },
   "performance_evidence_accepted": false,
   "candidate_attribution": null,
