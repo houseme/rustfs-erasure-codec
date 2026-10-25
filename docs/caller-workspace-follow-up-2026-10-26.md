@@ -84,3 +84,8 @@ Leopard GF8/GF16。独立大分片测试在本机两个有限域均记录 `paral
 
 上述记录来自 stable Rust 1.99.1/macOS ARM64。没有补充其他架构实机吞吐、长期 fuzz
 或正式发布性能验收。本轮执行 commit；未 push、创建 PR、打 tag 或发布 crate。
+
+## 后续进展
+
+第 3、4 项的后续资源改进见[scratch 与稀疏输出跟进](scratch-sparse-follow-up-2026-10-26.md)。
+上文保留本次生命周期实现提交时的状态与证据。

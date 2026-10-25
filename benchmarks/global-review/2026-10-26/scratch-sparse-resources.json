@@ -1,0 +1,533 @@
+{
+  "schema": "scratch-and-sparse-output-resources-v1",
+  "build": "release",
+  "features": [
+    "std",
+    "simd-accel"
+  ],
+  "benchmark_metrics": false,
+  "measurement": "caller-thread allocation requests; inputs and output reservations outside measured window",
+  "latency_measured": false,
+  "throughput_claim": null,
+  "peak_rss_measured": false,
+  "release_approval": false,
+  "fast_verify": {
+    "baseline_runtime_commit": "19c8383a14089ddf70d9153fe2d283e0e8ef348d",
+    "candidate_runtime_commit": "90d82ae3d3e34682c2cbf9b72aa30c2923a50213",
+    "probe_file": "tests/parallel_verify_workspace.rs",
+    "baseline_probe_note": "The new regression was added to the baseline test file; runtime sources remained the baseline. It collected all records before the expected assertion failure.",
+    "candidate_probe_sha256": {
+      "tests/parallel_verify_workspace.rs": "b76dc74860cc74e1c4e0fd94744db093ad31b01808283b2ccd509a896a7f5a0b"
+    },
+    "baseline_runtime_files_sha256": {
+      "src/core/verify.rs": "9a30b6c74d022f3211755df5d8bbbbd07a0d328538ffe4292e5215b0e3e9c49e",
+      "src/core/encode.rs": "b8a5e4ead404583222be1fec009b1136f3369420f5f56d8e160c6d0a19e5a2a1",
+      "Cargo.toml": "9764d83e2ebece6fc924f9993f498b3d7446a19bc0b197db0523c9506eb9f9a4",
+      "Cargo.lock": "9e28a15bd589a91e5292163b942c54486e1acb355afaba91ad2db2bf26201b23"
+    },
+    "candidate_runtime_files_sha256": {
+      "src/core/verify.rs": "e9afff0bf33af98fd58d8ad3621483bcd70f3cd7773effb6c2f95f2d914ea5ec",
+      "src/core/encode.rs": "b8a5e4ead404583222be1fec009b1136f3369420f5f56d8e160c6d0a19e5a2a1",
+      "Cargo.toml": "9764d83e2ebece6fc924f9993f498b3d7446a19bc0b197db0523c9506eb9f9a4",
+      "Cargo.lock": "9e28a15bd589a91e5292163b942c54486e1acb355afaba91ad2db2bf26201b23"
+    },
+    "baseline": [
+      {
+        "field_order": 256,
+        "elements": 1,
+        "repetition": 0,
+        "serial_calls": 1,
+        "serial_bytes": 1,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 256,
+        "elements": 1,
+        "repetition": 1,
+        "serial_calls": 1,
+        "serial_bytes": 1,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 256,
+        "elements": 1,
+        "repetition": 2,
+        "serial_calls": 1,
+        "serial_bytes": 1,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 256,
+        "elements": 65,
+        "repetition": 0,
+        "serial_calls": 1,
+        "serial_bytes": 65,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 256,
+        "elements": 65,
+        "repetition": 1,
+        "serial_calls": 1,
+        "serial_bytes": 65,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 256,
+        "elements": 65,
+        "repetition": 2,
+        "serial_calls": 1,
+        "serial_bytes": 65,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 256,
+        "elements": 4096,
+        "repetition": 0,
+        "serial_calls": 1,
+        "serial_bytes": 4096,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 256,
+        "elements": 4096,
+        "repetition": 1,
+        "serial_calls": 1,
+        "serial_bytes": 4096,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 256,
+        "elements": 4096,
+        "repetition": 2,
+        "serial_calls": 1,
+        "serial_bytes": 4096,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 256,
+        "elements": 4097,
+        "repetition": 0,
+        "serial_calls": 1,
+        "serial_bytes": 4097,
+        "parallel_calls": 1,
+        "parallel_bytes": 4097
+      },
+      {
+        "field_order": 256,
+        "elements": 4097,
+        "repetition": 1,
+        "serial_calls": 1,
+        "serial_bytes": 4097,
+        "parallel_calls": 1,
+        "parallel_bytes": 4097
+      },
+      {
+        "field_order": 256,
+        "elements": 4097,
+        "repetition": 2,
+        "serial_calls": 1,
+        "serial_bytes": 4097,
+        "parallel_calls": 1,
+        "parallel_bytes": 4097
+      },
+      {
+        "field_order": 65536,
+        "elements": 1,
+        "repetition": 0,
+        "serial_calls": 1,
+        "serial_bytes": 2,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 65536,
+        "elements": 1,
+        "repetition": 1,
+        "serial_calls": 1,
+        "serial_bytes": 2,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 65536,
+        "elements": 1,
+        "repetition": 2,
+        "serial_calls": 1,
+        "serial_bytes": 2,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 65536,
+        "elements": 65,
+        "repetition": 0,
+        "serial_calls": 1,
+        "serial_bytes": 130,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 65536,
+        "elements": 65,
+        "repetition": 1,
+        "serial_calls": 1,
+        "serial_bytes": 130,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 65536,
+        "elements": 65,
+        "repetition": 2,
+        "serial_calls": 1,
+        "serial_bytes": 130,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 65536,
+        "elements": 4096,
+        "repetition": 0,
+        "serial_calls": 1,
+        "serial_bytes": 8192,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 65536,
+        "elements": 4096,
+        "repetition": 1,
+        "serial_calls": 1,
+        "serial_bytes": 8192,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 65536,
+        "elements": 4096,
+        "repetition": 2,
+        "serial_calls": 1,
+        "serial_bytes": 8192,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 65536,
+        "elements": 4097,
+        "repetition": 0,
+        "serial_calls": 1,
+        "serial_bytes": 8194,
+        "parallel_calls": 1,
+        "parallel_bytes": 8194
+      },
+      {
+        "field_order": 65536,
+        "elements": 4097,
+        "repetition": 1,
+        "serial_calls": 1,
+        "serial_bytes": 8194,
+        "parallel_calls": 1,
+        "parallel_bytes": 8194
+      },
+      {
+        "field_order": 65536,
+        "elements": 4097,
+        "repetition": 2,
+        "serial_calls": 1,
+        "serial_bytes": 8194,
+        "parallel_calls": 1,
+        "parallel_bytes": 8194
+      }
+    ],
+    "candidate": [
+      {
+        "field_order": 256,
+        "elements": 1,
+        "repetition": 0,
+        "serial_calls": 0,
+        "serial_bytes": 0,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 256,
+        "elements": 1,
+        "repetition": 1,
+        "serial_calls": 0,
+        "serial_bytes": 0,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 256,
+        "elements": 1,
+        "repetition": 2,
+        "serial_calls": 0,
+        "serial_bytes": 0,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 256,
+        "elements": 65,
+        "repetition": 0,
+        "serial_calls": 0,
+        "serial_bytes": 0,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 256,
+        "elements": 65,
+        "repetition": 1,
+        "serial_calls": 0,
+        "serial_bytes": 0,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 256,
+        "elements": 65,
+        "repetition": 2,
+        "serial_calls": 0,
+        "serial_bytes": 0,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 256,
+        "elements": 4096,
+        "repetition": 0,
+        "serial_calls": 0,
+        "serial_bytes": 0,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 256,
+        "elements": 4096,
+        "repetition": 1,
+        "serial_calls": 0,
+        "serial_bytes": 0,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 256,
+        "elements": 4096,
+        "repetition": 2,
+        "serial_calls": 0,
+        "serial_bytes": 0,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 256,
+        "elements": 4097,
+        "repetition": 0,
+        "serial_calls": 1,
+        "serial_bytes": 4097,
+        "parallel_calls": 1,
+        "parallel_bytes": 4097
+      },
+      {
+        "field_order": 256,
+        "elements": 4097,
+        "repetition": 1,
+        "serial_calls": 1,
+        "serial_bytes": 4097,
+        "parallel_calls": 1,
+        "parallel_bytes": 4097
+      },
+      {
+        "field_order": 256,
+        "elements": 4097,
+        "repetition": 2,
+        "serial_calls": 1,
+        "serial_bytes": 4097,
+        "parallel_calls": 1,
+        "parallel_bytes": 4097
+      },
+      {
+        "field_order": 65536,
+        "elements": 1,
+        "repetition": 0,
+        "serial_calls": 0,
+        "serial_bytes": 0,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 65536,
+        "elements": 1,
+        "repetition": 1,
+        "serial_calls": 0,
+        "serial_bytes": 0,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 65536,
+        "elements": 1,
+        "repetition": 2,
+        "serial_calls": 0,
+        "serial_bytes": 0,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 65536,
+        "elements": 65,
+        "repetition": 0,
+        "serial_calls": 0,
+        "serial_bytes": 0,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 65536,
+        "elements": 65,
+        "repetition": 1,
+        "serial_calls": 0,
+        "serial_bytes": 0,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 65536,
+        "elements": 65,
+        "repetition": 2,
+        "serial_calls": 0,
+        "serial_bytes": 0,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 65536,
+        "elements": 4096,
+        "repetition": 0,
+        "serial_calls": 0,
+        "serial_bytes": 0,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 65536,
+        "elements": 4096,
+        "repetition": 1,
+        "serial_calls": 0,
+        "serial_bytes": 0,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 65536,
+        "elements": 4096,
+        "repetition": 2,
+        "serial_calls": 0,
+        "serial_bytes": 0,
+        "parallel_calls": 0,
+        "parallel_bytes": 0
+      },
+      {
+        "field_order": 65536,
+        "elements": 4097,
+        "repetition": 0,
+        "serial_calls": 1,
+        "serial_bytes": 8194,
+        "parallel_calls": 1,
+        "parallel_bytes": 8194
+      },
+      {
+        "field_order": 65536,
+        "elements": 4097,
+        "repetition": 1,
+        "serial_calls": 1,
+        "serial_bytes": 8194,
+        "parallel_calls": 1,
+        "parallel_bytes": 8194
+      },
+      {
+        "field_order": 65536,
+        "elements": 4097,
+        "repetition": 2,
+        "serial_calls": 1,
+        "serial_bytes": 8194,
+        "parallel_calls": 1,
+        "parallel_bytes": 8194
+      }
+    ]
+  },
+  "sparse_stream": {
+    "baseline_runtime_commit": "90d82ae3d3e34682c2cbf9b72aa30c2923a50213",
+    "candidate_runtime_commit": "e3f7ed4c35b1d24c2a09973cea20b548e84110da",
+    "probe_file": "tests/stream_reuse_regressions.rs",
+    "probe_function": "wide_parity_recovery_does_not_allocate_output_views_for_each_block",
+    "baseline_probe_note": "The selected resource regression was appended to the baseline test file and collected both layouts before the expected failure. Other test budgets were updated later and were not selected in that baseline command.",
+    "candidate_probe_sha256": {
+      "tests/stream_reuse_regressions.rs": "81df7fc4578ed7d4374f11e2d89976249e1a6025c65fd434269ec0602846337b"
+    },
+    "baseline_runtime_files_sha256": {
+      "src/core/encode.rs": "b8a5e4ead404583222be1fec009b1136f3369420f5f56d8e160c6d0a19e5a2a1",
+      "src/core/stream.rs": "e413b8a688b5b7a794909f53ba14026927083e1cf66fb152e0250119f12753f0",
+      "Cargo.toml": "9764d83e2ebece6fc924f9993f498b3d7446a19bc0b197db0523c9506eb9f9a4",
+      "Cargo.lock": "9e28a15bd589a91e5292163b942c54486e1acb355afaba91ad2db2bf26201b23"
+    },
+    "candidate_runtime_files_sha256": {
+      "src/core/encode.rs": "21872ed086d57567090f881b72c48ff9f0af3a05d00539452a807d87bca73172",
+      "src/core/stream.rs": "14974ad8998ee4751f928d68b15b287c7e9d24cdfa4cc9697ff49e2f02bcc324",
+      "Cargo.toml": "9764d83e2ebece6fc924f9993f498b3d7446a19bc0b197db0523c9506eb9f9a4",
+      "Cargo.lock": "9e28a15bd589a91e5292163b942c54486e1acb355afaba91ad2db2bf26201b23"
+    },
+    "baseline": [
+      {
+        "data": 2,
+        "parity": 33,
+        "missing": 33,
+        "short_blocks": 2,
+        "long_blocks": 6,
+        "short_calls": 40,
+        "long_calls": 44
+      },
+      {
+        "data": 4,
+        "parity": 40,
+        "missing": 33,
+        "short_blocks": 2,
+        "long_blocks": 6,
+        "short_calls": 49,
+        "long_calls": 53
+      }
+    ],
+    "candidate": [
+      {
+        "data": 2,
+        "parity": 33,
+        "missing": 33,
+        "short_blocks": 2,
+        "long_blocks": 6,
+        "short_calls": 38,
+        "long_calls": 38
+      },
+      {
+        "data": 4,
+        "parity": 40,
+        "missing": 33,
+        "short_blocks": 2,
+        "long_blocks": 6,
+        "short_calls": 47,
+        "long_calls": 47
+      }
+    ]
+  }
+}
