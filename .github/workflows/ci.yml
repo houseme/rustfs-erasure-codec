@@ -160,6 +160,11 @@ jobs:
           --manifest-path scripts/release-compatibility/Cargo.toml --target-dir target
           -- --allocation-report "$RUNNER_TEMP/codec-resources-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT.json"
 
+      - name: Check serial APIs with opaque thread-local field elements
+        run: >-
+          cargo test --locked --release --package rse-release-compatibility
+          --test serial_local_elements -- --nocapture
+
       - name: Preserve codec resource comparison (not release performance evidence)
         uses: actions/upload-artifact@v7
         with:
