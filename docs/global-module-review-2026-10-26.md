@@ -144,3 +144,9 @@ RAYON_NUM_THREADS=4 RSE_RECOVERY_CASE_FILTER=stream.reconstruct RSE_RECOVERY_SAM
 
 本轮没有运行 x86/Windows/PowerPC 实机基准、浏览器端测试、Miri 或长时间 fuzz。
 没有推送、创建 PR、打 tag 或发布 crate。改动保留在隔离 worktree，供代码审阅和后续提交。
+
+## 后续进展
+
+调用者资源生命周期的已提交实现、资源结果和其余步骤状态见
+[2026-10-26 跟进报告](caller-workspace-follow-up-2026-10-26.md)。
+上文保留最初复审时的源码身份、测量结果及交付状态。
