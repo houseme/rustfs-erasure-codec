@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Reserve Classic recovery view tables from exact prepared input/output counts.
+  Collect composed data/parity outputs into one bulk table and allocate recovered
+  data views only when ordinary mixed recovery needs them. Preserve target order,
+  arithmetic, parallel policies, phase metrics and fallible-output publication.
+
 - Add generic `ReconstructWorkspace<F>` with full, data-only and selected-output
   Classic preparers for any field and `ReconstructShard` container, including
   tower GF16 and caller-owned `ShardSlot` storage in no_std. Retain inverse and
