@@ -326,3 +326,44 @@ fn borrowed_stream_rows_cover_wide_data_parity_and_mixed_recovery() {
         }
     }
 }
+
+#[test]
+fn sparse_parity_targets_preserve_gaps_and_kernel_width_boundaries() {
+    let codec = ReedSolomon::new(6, 40).unwrap();
+    let expected = encoded(&codec, BLOCK_SIZE * 2 + 37);
+    for count in [1, 2, 3, 4, 5, 32, 33, 40] {
+        for missing_data in [false, true] {
+            if missing_data && count == 40 {
+                continue;
+            }
+            let mut missing: Vec<_> = (0..count).map(|i| 6 + i * 17 % 40).collect();
+            if missing_data {
+                missing.push(0);
+            }
+            missing.sort_unstable();
+            for mode in [
+                StreamIoMode::Auto,
+                StreamIoMode::Serial,
+                StreamIoMode::Parallel,
+            ] {
+                let mut streams: Vec<_> = expected
+                    .iter()
+                    .enumerate()
+                    .map(|(index, shard)| {
+                        Cursor::new(if missing.contains(&index) {
+                            Vec::new()
+                        } else {
+                            shard.clone()
+                        })
+                    })
+                    .collect();
+                codec
+                    .reconstruct_stream(&mut streams, &options(mode))
+                    .unwrap();
+                for (actual, expected) in streams.iter().zip(&expected) {
+                    assert_eq!(actual.get_ref(), expected);
+                }
+            }
+        }
+    }
+}

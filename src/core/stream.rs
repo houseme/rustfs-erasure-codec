@@ -628,17 +628,15 @@ impl<'codec> StreamReconstructPlan<'codec> {
             // The data phase's views have ended; restored data can now be read
             // while only the disjoint parity buffers are mutated.
             let (data, parity) = buffers.split_at_mut(self.codec.data_shard_count());
-            let mut missing = self.plan.parity_targets().iter().copied().peekable();
-            let mut outputs: SmallVec<[&mut [u8]; 32]> = SmallVec::with_capacity(missing_parity);
-            for (offset, buffer) in parity.iter_mut().enumerate() {
-                if missing.peek() == Some(&(self.codec.data_shard_count() + offset)) {
-                    outputs.push(buffer.as_mut_slice());
-                    missing.next();
-                }
-            }
             self.codec
                 .record_reconstruct_parity_stage_runtime(shard_len, missing_parity);
-            self.codec.code_some_slices(parity_rows, data, &mut outputs);
+            self.codec.code_selected_slices(
+                parity_rows,
+                data,
+                parity,
+                self.plan.parity_targets(),
+                self.codec.data_shard_count(),
+            );
         }
     }
 }
