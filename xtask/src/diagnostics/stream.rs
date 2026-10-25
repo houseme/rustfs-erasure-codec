@@ -2,6 +2,11 @@ use super::source;
 use crate::Result;
 pub const MODULE: &str = "__rse_stream_core";
 
+pub(super) const RECONSTRUCT_BLOCK_CALLS: [&str; 2] = [
+    "            plan.reconstruct_block(&mut bufs, actual_len, &data_rows, &parity_rows);",
+    "            plan.reconstruct_block(\n                &mut bufs,\n                actual_len,\n                &data_rows,\n                &parity_rows,\n                &mut data_outputs,\n            );",
+];
+
 fn guard(api: &str, variant: &str) -> String {
     format!("        let mut rse_probe = crate::{MODULE}::Guard::new(\"{api}\", \"{variant}\");\n")
 }
@@ -132,7 +137,7 @@ pub fn patch(text: &str) -> Result<String> {
         } else {
             "    pub fn reconstruct_stream("
         },
-        |_, edit| {
+        |method, edit| {
             let first = "        let mut bufs:";
             edit.replace(
                 first,
@@ -158,7 +163,14 @@ pub fn patch(text: &str) -> Result<String> {
                     1,
                 )?;
                 edit.replace("        if all_eof {\n            return Ok(());\n        }",&(spans("read",&groups,8)+"        if all_eof {\n            rse_probe.complete(None);\n            return Ok(());\n        }"),1)?;
-                let marker = "            plan.reconstruct_block(&mut bufs, actual_len, &data_rows, &parity_rows);";
+                let mut calls = RECONSTRUCT_BLOCK_CALLS
+                    .iter()
+                    .copied()
+                    .filter(|call| method.contains(call));
+                let marker = calls.next().ok_or("stream reconstruction call changed")?;
+                if calls.next().is_some() {
+                    return Err("ambiguous stream reconstruction calls".into());
+                }
                 edit.replace(
                     marker,
                     &(spans("ready", &groups, 12) + marker + "\n" + &spans("coded", &groups, 12)),

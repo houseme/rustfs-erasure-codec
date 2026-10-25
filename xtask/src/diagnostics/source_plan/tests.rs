@@ -32,7 +32,7 @@ fn complete_plans_bind_generated_bytes_and_every_written_member() {
         ),
         (
             "stream-core",
-            "767285b1206d1c010be20b3f1c14f39d09f4733783145c7476b3499eba6c1f26",
+            "2afe9b986620a0b13f5c2151ae803ba3a3924394921310d2405a46b1f0cae072",
         ),
         (
             // Current production source, including every systematic decode branch.
@@ -304,4 +304,18 @@ fn cache_observer_refuses_unknown_or_ambiguous_lookups() {
         &format!("            if let Some(entry) = cache.get(invalid_indices) {{}}\n{marker}"),
     );
     assert!(dynamic::decode(&ambiguous).is_err());
+}
+
+#[test]
+fn stream_reconstruction_anchors_accept_both_shapes_and_reject_ambiguity() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
+    let original = source::read(root.join("src/core/stream.rs")).unwrap();
+    let [legacy, retained] = stream::RECONSTRUCT_BLOCK_CALLS;
+    assert_eq!(original.matches(retained).count(), 1);
+    for call in [legacy, retained] {
+        assert!(stream::patch(&original.replace(retained, call)).is_ok());
+    }
+    let ambiguous = original.replace(retained, &format!("{retained}\n{legacy}"));
+    assert!(stream::patch(&ambiguous).is_err());
+    assert!(stream::patch(&original.replace(retained, "            unexpected();")).is_err());
 }

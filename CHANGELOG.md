@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Read streaming recovery survivors through planned indices and reuse an owned
+  output container across blocks. Restore buffer owners before parity coding or
+  I/O, removing wide data-stage reference-table allocations while preserving
+  the shared arithmetic and bounded native adapters.
+
 - Traverse selected streaming parity outputs without per-block reference tables.
   Share the existing chunked arithmetic loop with contiguous output slices and
   preserve checked GFNI eligibility through a bounded native adapter.

@@ -590,6 +590,7 @@ impl<'codec> StreamReconstructPlan<'codec> {
         shard_len: usize,
         data_rows: &ClassicReconstructRows<'_, crate::galois_8::Field>,
         parity_rows: &ClassicReconstructRows<'_, crate::galois_8::Field>,
+        data_outputs: &mut SmallVec<[Vec<u8>; 32]>,
     ) {
         let missing_data = self.plan.data_targets().len();
         let missing_parity = self.plan.parity_targets().len();
@@ -601,27 +602,24 @@ impl<'codec> StreamReconstructPlan<'codec> {
         );
 
         if missing_data != 0 {
-            let mut inputs: SmallVec<[&[u8]; 32]> =
-                SmallVec::with_capacity(self.plan.shape.valid_indices.len());
-            let mut outputs: SmallVec<[&mut [u8]; 32]> = SmallVec::with_capacity(missing_data);
-            let mut survivors = self.plan.shape.valid_indices.iter().copied().peekable();
-            let mut missing = self.plan.data_targets().iter().copied().peekable();
-
-            // Each buffer is borrowed once. Sorted, disjoint index lists select
-            // the original survivors and missing data outputs without aliasing.
-            for (index, buffer) in buffers.iter_mut().enumerate() {
-                if survivors.peek() == Some(&index) {
-                    inputs.push(buffer.as_slice());
-                    survivors.next();
-                } else if missing.peek() == Some(&index) {
-                    outputs.push(buffer.as_mut_slice());
-                    missing.next();
-                }
+            debug_assert!(data_outputs.is_empty());
+            // Move only missing owners out so survivors can be borrowed directly.
+            // Vec moves transfer metadata, without copying payloads or aliases.
+            for &index in self.plan.data_targets() {
+                data_outputs.push(core::mem::take(&mut buffers[index]));
             }
             self.codec
                 .record_reconstruct_data_stage_runtime(shard_len, missing_data);
-            self.codec
-                .code_some_slices(data_rows, &inputs, &mut outputs);
+            self.codec.code_selected_inputs(
+                data_rows,
+                buffers,
+                &self.plan.shape.valid_indices,
+                data_outputs.as_mut_slice(),
+            );
+            // Restore canonical ownership before parity reads, I/O or probes.
+            for (&index, output) in self.plan.data_targets().iter().zip(data_outputs.drain(..)) {
+                buffers[index] = output;
+            }
         }
 
         if missing_parity != 0 {
@@ -992,6 +990,8 @@ impl super::ReedSolomon<crate::galois_8::Field> {
 
         let plan = StreamReconstructPlan::new(self, &missing_indices, actual_len)
             .map_err(|e| StreamError::codec(0, e))?;
+        let mut data_outputs: SmallVec<[Vec<u8>; 32]> =
+            SmallVec::with_capacity(plan.plan.data_targets().len());
         let rows = plan.plan.row_views(self);
         let (data_rows, parity_rows) = rows.split_at(plan.plan.data_targets().len());
 
@@ -1002,7 +1002,13 @@ impl super::ReedSolomon<crate::galois_8::Field> {
                 bufs[idx].resize(actual_len, 0);
             }
 
-            plan.reconstruct_block(&mut bufs, actual_len, &data_rows, &parity_rows);
+            plan.reconstruct_block(
+                &mut bufs,
+                actual_len,
+                &data_rows,
+                &parity_rows,
+                &mut data_outputs,
+            );
 
             write_missing_streams_with_mode(writers, &bufs, actual_len, use_parallel_write)?;
 
