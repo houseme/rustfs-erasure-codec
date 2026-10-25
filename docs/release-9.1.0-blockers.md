@@ -1,5 +1,16 @@
 # 9.1.0 publication blockers and completion criteria
 
+Borrowed bulk-recovery coefficient rows (2026-10-25): source `4bd1208` on
+main `0225f5c` replaces per-call data/parity reference tables with bounded static
+views into the validated plan. The [complete review](borrowed-recovery-row-views-review-2026-10-25.md)
+retains all 201 before/after controls: 123 use one to three fewer requests,
+78 are unchanged, and requested bytes never increase. All 459 existing resource
+contracts remain intact. Fresh 580 codec parent / 271 no_std / 317 tool tests,
+published-9.0.0 compatibility, WASM/Node and an actual source-exact 71-member crate
+pass; 45 inputs replay unchanged without codec calls. These are functional and
+allocation results. Native source binding, accepted complete performance evidence
+and actual strict positive release preflight remain outstanding.
+
 Merged encoding/recovery source (2026-10-25): main `0225f5c` includes externally
 merged PRs #106 and #107. The [current integration review](combined-coding-local-review-2026-10-25.md#merged-main-source-review-2026-10-25)
 checks the complete CI-head tree and all 1,180 non-document files against rehearsal
