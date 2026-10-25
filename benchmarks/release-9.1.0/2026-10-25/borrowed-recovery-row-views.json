@@ -1,0 +1,2589 @@
+{
+  "schema": "borrowed-recovery-row-views-review-v1",
+  "runtime_source": "4bd12089c9a1b9aa1f136de6473e3821f9d9b9d8",
+  "baseline_main": "0225f5c850a47d46ae5b77ee06deeda863391ec3",
+  "diagnostic_only": true,
+  "production_changes": [
+    "src/core/reconstruct.rs",
+    "src/core/recovery_plan.rs"
+  ],
+  "dispatch": "statically dispatched borrowed MatrixRows ranges; no trait objects or temporary row-reference arrays",
+  "resource_cases": 201,
+  "reduced_request_cases": 123,
+  "unchanged_request_cases": 78,
+  "request_measurement": "caller-thread allocator requests, including full target size of realloc; not retained memory or RSS",
+  "catalogues": {
+    "workspace": {
+      "cases": 93,
+      "reduced_requests": 45,
+      "unchanged_requests": 48,
+      "all_requested_bytes_nonincreasing": true,
+      "records": [
+        {
+          "key": [
+            "Cauchy",
+            "4",
+            "4",
+            "0",
+            "0"
+          ],
+          "before_calls": 0,
+          "after_calls": 0,
+          "before_requested_bytes": 0,
+          "after_requested_bytes": 0
+        },
+        {
+          "key": [
+            "Cauchy",
+            "4",
+            "4",
+            "0",
+            "1"
+          ],
+          "before_calls": 1,
+          "after_calls": 1,
+          "before_requested_bytes": 65,
+          "after_requested_bytes": 65
+        },
+        {
+          "key": [
+            "Cauchy",
+            "4",
+            "4",
+            "1",
+            "0"
+          ],
+          "before_calls": 1,
+          "after_calls": 1,
+          "before_requested_bytes": 65,
+          "after_requested_bytes": 65
+        },
+        {
+          "key": [
+            "Cauchy",
+            "4",
+            "4",
+            "1",
+            "1"
+          ],
+          "before_calls": 2,
+          "after_calls": 2,
+          "before_requested_bytes": 130,
+          "after_requested_bytes": 130
+        },
+        {
+          "key": [
+            "Cauchy",
+            "4",
+            "4",
+            "2",
+            "2"
+          ],
+          "before_calls": 4,
+          "after_calls": 4,
+          "before_requested_bytes": 260,
+          "after_requested_bytes": 260
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "0",
+            "1"
+          ],
+          "before_calls": 2,
+          "after_calls": 2,
+          "before_requested_bytes": 1089,
+          "after_requested_bytes": 1089
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "0",
+            "31"
+          ],
+          "before_calls": 32,
+          "after_calls": 32,
+          "before_requested_bytes": 3039,
+          "after_requested_bytes": 3039
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "0",
+            "32"
+          ],
+          "before_calls": 33,
+          "after_calls": 33,
+          "before_requested_bytes": 3104,
+          "after_requested_bytes": 3104
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "0",
+            "33"
+          ],
+          "before_calls": 36,
+          "after_calls": 35,
+          "before_requested_bytes": 5217,
+          "after_requested_bytes": 4193
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "0",
+            "64"
+          ],
+          "before_calls": 67,
+          "after_calls": 66,
+          "before_requested_bytes": 7232,
+          "after_requested_bytes": 6208
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "0",
+            "65"
+          ],
+          "before_calls": 69,
+          "after_calls": 68,
+          "before_requested_bytes": 10369,
+          "after_requested_bytes": 8321
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "0",
+            "96"
+          ],
+          "before_calls": 100,
+          "after_calls": 99,
+          "before_requested_bytes": 12384,
+          "after_requested_bytes": 10336
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "1",
+            "0"
+          ],
+          "before_calls": 2,
+          "after_calls": 2,
+          "before_requested_bytes": 1089,
+          "after_requested_bytes": 1089
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "1",
+            "31"
+          ],
+          "before_calls": 33,
+          "after_calls": 33,
+          "before_requested_bytes": 3104,
+          "after_requested_bytes": 3104
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "1",
+            "32"
+          ],
+          "before_calls": 34,
+          "after_calls": 34,
+          "before_requested_bytes": 3169,
+          "after_requested_bytes": 3169
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "1",
+            "33"
+          ],
+          "before_calls": 37,
+          "after_calls": 36,
+          "before_requested_bytes": 5282,
+          "after_requested_bytes": 4258
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "31",
+            "0"
+          ],
+          "before_calls": 32,
+          "after_calls": 32,
+          "before_requested_bytes": 3039,
+          "after_requested_bytes": 3039
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "31",
+            "1"
+          ],
+          "before_calls": 33,
+          "after_calls": 33,
+          "before_requested_bytes": 3104,
+          "after_requested_bytes": 3104
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "31",
+            "33"
+          ],
+          "before_calls": 67,
+          "after_calls": 66,
+          "before_requested_bytes": 7232,
+          "after_requested_bytes": 6208
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "32",
+            "0"
+          ],
+          "before_calls": 33,
+          "after_calls": 33,
+          "before_requested_bytes": 3104,
+          "after_requested_bytes": 3104
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "32",
+            "1"
+          ],
+          "before_calls": 34,
+          "after_calls": 34,
+          "before_requested_bytes": 3169,
+          "after_requested_bytes": 3169
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "32",
+            "32"
+          ],
+          "before_calls": 65,
+          "after_calls": 65,
+          "before_requested_bytes": 5184,
+          "after_requested_bytes": 5184
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "32",
+            "64"
+          ],
+          "before_calls": 99,
+          "after_calls": 98,
+          "before_requested_bytes": 9312,
+          "after_requested_bytes": 8288
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "33",
+            "0"
+          ],
+          "before_calls": 36,
+          "after_calls": 35,
+          "before_requested_bytes": 5217,
+          "after_requested_bytes": 4193
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "33",
+            "1"
+          ],
+          "before_calls": 37,
+          "after_calls": 36,
+          "before_requested_bytes": 5282,
+          "after_requested_bytes": 4258
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "33",
+            "31"
+          ],
+          "before_calls": 67,
+          "after_calls": 66,
+          "before_requested_bytes": 7232,
+          "after_requested_bytes": 6208
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "33",
+            "32"
+          ],
+          "before_calls": 68,
+          "after_calls": 67,
+          "before_requested_bytes": 7297,
+          "after_requested_bytes": 6273
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "33",
+            "33"
+          ],
+          "before_calls": 71,
+          "after_calls": 69,
+          "before_requested_bytes": 9410,
+          "after_requested_bytes": 7362
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "40",
+            "0"
+          ],
+          "before_calls": 43,
+          "after_calls": 42,
+          "before_requested_bytes": 5672,
+          "after_requested_bytes": 4648
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "64",
+            "0"
+          ],
+          "before_calls": 67,
+          "after_calls": 66,
+          "before_requested_bytes": 7232,
+          "after_requested_bytes": 6208
+        },
+        {
+          "key": [
+            "Cauchy",
+            "64",
+            "96",
+            "64",
+            "32"
+          ],
+          "before_calls": 99,
+          "after_calls": 98,
+          "before_requested_bytes": 9312,
+          "after_requested_bytes": 8288
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "4",
+            "4",
+            "0",
+            "0"
+          ],
+          "before_calls": 0,
+          "after_calls": 0,
+          "before_requested_bytes": 0,
+          "after_requested_bytes": 0
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "4",
+            "4",
+            "0",
+            "1"
+          ],
+          "before_calls": 1,
+          "after_calls": 1,
+          "before_requested_bytes": 65,
+          "after_requested_bytes": 65
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "4",
+            "4",
+            "1",
+            "0"
+          ],
+          "before_calls": 1,
+          "after_calls": 1,
+          "before_requested_bytes": 65,
+          "after_requested_bytes": 65
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "4",
+            "4",
+            "1",
+            "1"
+          ],
+          "before_calls": 2,
+          "after_calls": 2,
+          "before_requested_bytes": 130,
+          "after_requested_bytes": 130
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "4",
+            "4",
+            "2",
+            "2"
+          ],
+          "before_calls": 4,
+          "after_calls": 4,
+          "before_requested_bytes": 260,
+          "after_requested_bytes": 260
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "0",
+            "1"
+          ],
+          "before_calls": 2,
+          "after_calls": 2,
+          "before_requested_bytes": 1089,
+          "after_requested_bytes": 1089
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "0",
+            "31"
+          ],
+          "before_calls": 32,
+          "after_calls": 32,
+          "before_requested_bytes": 3039,
+          "after_requested_bytes": 3039
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "0",
+            "32"
+          ],
+          "before_calls": 33,
+          "after_calls": 33,
+          "before_requested_bytes": 3104,
+          "after_requested_bytes": 3104
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "0",
+            "33"
+          ],
+          "before_calls": 36,
+          "after_calls": 35,
+          "before_requested_bytes": 5217,
+          "after_requested_bytes": 4193
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "0",
+            "64"
+          ],
+          "before_calls": 67,
+          "after_calls": 66,
+          "before_requested_bytes": 7232,
+          "after_requested_bytes": 6208
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "0",
+            "65"
+          ],
+          "before_calls": 69,
+          "after_calls": 68,
+          "before_requested_bytes": 10369,
+          "after_requested_bytes": 8321
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "0",
+            "96"
+          ],
+          "before_calls": 100,
+          "after_calls": 99,
+          "before_requested_bytes": 12384,
+          "after_requested_bytes": 10336
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "1",
+            "0"
+          ],
+          "before_calls": 2,
+          "after_calls": 2,
+          "before_requested_bytes": 1089,
+          "after_requested_bytes": 1089
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "1",
+            "31"
+          ],
+          "before_calls": 33,
+          "after_calls": 33,
+          "before_requested_bytes": 3104,
+          "after_requested_bytes": 3104
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "1",
+            "32"
+          ],
+          "before_calls": 34,
+          "after_calls": 34,
+          "before_requested_bytes": 3169,
+          "after_requested_bytes": 3169
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "1",
+            "33"
+          ],
+          "before_calls": 37,
+          "after_calls": 36,
+          "before_requested_bytes": 5282,
+          "after_requested_bytes": 4258
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "31",
+            "0"
+          ],
+          "before_calls": 32,
+          "after_calls": 32,
+          "before_requested_bytes": 3039,
+          "after_requested_bytes": 3039
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "31",
+            "1"
+          ],
+          "before_calls": 33,
+          "after_calls": 33,
+          "before_requested_bytes": 3104,
+          "after_requested_bytes": 3104
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "31",
+            "33"
+          ],
+          "before_calls": 67,
+          "after_calls": 66,
+          "before_requested_bytes": 7232,
+          "after_requested_bytes": 6208
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "32",
+            "0"
+          ],
+          "before_calls": 33,
+          "after_calls": 33,
+          "before_requested_bytes": 3104,
+          "after_requested_bytes": 3104
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "32",
+            "1"
+          ],
+          "before_calls": 34,
+          "after_calls": 34,
+          "before_requested_bytes": 3169,
+          "after_requested_bytes": 3169
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "32",
+            "32"
+          ],
+          "before_calls": 65,
+          "after_calls": 65,
+          "before_requested_bytes": 5184,
+          "after_requested_bytes": 5184
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "32",
+            "64"
+          ],
+          "before_calls": 99,
+          "after_calls": 98,
+          "before_requested_bytes": 9312,
+          "after_requested_bytes": 8288
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "33",
+            "0"
+          ],
+          "before_calls": 36,
+          "after_calls": 35,
+          "before_requested_bytes": 5217,
+          "after_requested_bytes": 4193
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "33",
+            "1"
+          ],
+          "before_calls": 37,
+          "after_calls": 36,
+          "before_requested_bytes": 5282,
+          "after_requested_bytes": 4258
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "33",
+            "31"
+          ],
+          "before_calls": 67,
+          "after_calls": 66,
+          "before_requested_bytes": 7232,
+          "after_requested_bytes": 6208
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "33",
+            "32"
+          ],
+          "before_calls": 68,
+          "after_calls": 67,
+          "before_requested_bytes": 7297,
+          "after_requested_bytes": 6273
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "33",
+            "33"
+          ],
+          "before_calls": 71,
+          "after_calls": 69,
+          "before_requested_bytes": 9410,
+          "after_requested_bytes": 7362
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "40",
+            "0"
+          ],
+          "before_calls": 43,
+          "after_calls": 42,
+          "before_requested_bytes": 5672,
+          "after_requested_bytes": 4648
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "64",
+            "0"
+          ],
+          "before_calls": 67,
+          "after_calls": 66,
+          "before_requested_bytes": 7232,
+          "after_requested_bytes": 6208
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "64",
+            "96",
+            "64",
+            "32"
+          ],
+          "before_calls": 99,
+          "after_calls": 98,
+          "before_requested_bytes": 9312,
+          "after_requested_bytes": 8288
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "4",
+            "4",
+            "0",
+            "0"
+          ],
+          "before_calls": 0,
+          "after_calls": 0,
+          "before_requested_bytes": 0,
+          "after_requested_bytes": 0
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "4",
+            "4",
+            "0",
+            "1"
+          ],
+          "before_calls": 1,
+          "after_calls": 1,
+          "before_requested_bytes": 65,
+          "after_requested_bytes": 65
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "4",
+            "4",
+            "1",
+            "0"
+          ],
+          "before_calls": 1,
+          "after_calls": 1,
+          "before_requested_bytes": 65,
+          "after_requested_bytes": 65
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "4",
+            "4",
+            "1",
+            "1"
+          ],
+          "before_calls": 2,
+          "after_calls": 2,
+          "before_requested_bytes": 130,
+          "after_requested_bytes": 130
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "4",
+            "4",
+            "2",
+            "2"
+          ],
+          "before_calls": 4,
+          "after_calls": 4,
+          "before_requested_bytes": 260,
+          "after_requested_bytes": 260
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "0",
+            "1"
+          ],
+          "before_calls": 2,
+          "after_calls": 2,
+          "before_requested_bytes": 1089,
+          "after_requested_bytes": 1089
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "0",
+            "31"
+          ],
+          "before_calls": 32,
+          "after_calls": 32,
+          "before_requested_bytes": 3039,
+          "after_requested_bytes": 3039
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "0",
+            "32"
+          ],
+          "before_calls": 33,
+          "after_calls": 33,
+          "before_requested_bytes": 3104,
+          "after_requested_bytes": 3104
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "0",
+            "33"
+          ],
+          "before_calls": 36,
+          "after_calls": 35,
+          "before_requested_bytes": 5217,
+          "after_requested_bytes": 4193
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "0",
+            "64"
+          ],
+          "before_calls": 67,
+          "after_calls": 66,
+          "before_requested_bytes": 7232,
+          "after_requested_bytes": 6208
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "0",
+            "65"
+          ],
+          "before_calls": 69,
+          "after_calls": 68,
+          "before_requested_bytes": 10369,
+          "after_requested_bytes": 8321
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "0",
+            "96"
+          ],
+          "before_calls": 100,
+          "after_calls": 99,
+          "before_requested_bytes": 12384,
+          "after_requested_bytes": 10336
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "1",
+            "0"
+          ],
+          "before_calls": 2,
+          "after_calls": 2,
+          "before_requested_bytes": 1089,
+          "after_requested_bytes": 1089
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "1",
+            "31"
+          ],
+          "before_calls": 33,
+          "after_calls": 33,
+          "before_requested_bytes": 3104,
+          "after_requested_bytes": 3104
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "1",
+            "32"
+          ],
+          "before_calls": 34,
+          "after_calls": 34,
+          "before_requested_bytes": 3169,
+          "after_requested_bytes": 3169
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "1",
+            "33"
+          ],
+          "before_calls": 37,
+          "after_calls": 36,
+          "before_requested_bytes": 5282,
+          "after_requested_bytes": 4258
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "31",
+            "0"
+          ],
+          "before_calls": 32,
+          "after_calls": 32,
+          "before_requested_bytes": 3039,
+          "after_requested_bytes": 3039
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "31",
+            "1"
+          ],
+          "before_calls": 33,
+          "after_calls": 33,
+          "before_requested_bytes": 3104,
+          "after_requested_bytes": 3104
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "31",
+            "33"
+          ],
+          "before_calls": 67,
+          "after_calls": 66,
+          "before_requested_bytes": 7232,
+          "after_requested_bytes": 6208
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "32",
+            "0"
+          ],
+          "before_calls": 33,
+          "after_calls": 33,
+          "before_requested_bytes": 3104,
+          "after_requested_bytes": 3104
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "32",
+            "1"
+          ],
+          "before_calls": 34,
+          "after_calls": 34,
+          "before_requested_bytes": 3169,
+          "after_requested_bytes": 3169
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "32",
+            "32"
+          ],
+          "before_calls": 65,
+          "after_calls": 65,
+          "before_requested_bytes": 5184,
+          "after_requested_bytes": 5184
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "32",
+            "64"
+          ],
+          "before_calls": 99,
+          "after_calls": 98,
+          "before_requested_bytes": 9312,
+          "after_requested_bytes": 8288
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "33",
+            "0"
+          ],
+          "before_calls": 36,
+          "after_calls": 35,
+          "before_requested_bytes": 5217,
+          "after_requested_bytes": 4193
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "33",
+            "1"
+          ],
+          "before_calls": 37,
+          "after_calls": 36,
+          "before_requested_bytes": 5282,
+          "after_requested_bytes": 4258
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "33",
+            "31"
+          ],
+          "before_calls": 67,
+          "after_calls": 66,
+          "before_requested_bytes": 7232,
+          "after_requested_bytes": 6208
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "33",
+            "32"
+          ],
+          "before_calls": 68,
+          "after_calls": 67,
+          "before_requested_bytes": 7297,
+          "after_requested_bytes": 6273
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "33",
+            "33"
+          ],
+          "before_calls": 71,
+          "after_calls": 69,
+          "before_requested_bytes": 9410,
+          "after_requested_bytes": 7362
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "40",
+            "0"
+          ],
+          "before_calls": 43,
+          "after_calls": 42,
+          "before_requested_bytes": 5672,
+          "after_requested_bytes": 4648
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "64",
+            "0"
+          ],
+          "before_calls": 67,
+          "after_calls": 66,
+          "before_requested_bytes": 7232,
+          "after_requested_bytes": 6208
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "64",
+            "96",
+            "64",
+            "32"
+          ],
+          "before_calls": 99,
+          "after_calls": 98,
+          "before_requested_bytes": 9312,
+          "after_requested_bytes": 8288
+        }
+      ]
+    },
+    "selective": {
+      "cases": 108,
+      "reduced_requests": 78,
+      "unchanged_requests": 30,
+      "all_requested_bytes_nonincreasing": true,
+      "records": [
+        {
+          "key": [
+            "Cauchy",
+            "0",
+            "0"
+          ],
+          "before_calls": 3,
+          "after_calls": 3,
+          "before_requested_bytes": 2048,
+          "after_requested_bytes": 2048
+        },
+        {
+          "key": [
+            "Cauchy",
+            "0",
+            "1"
+          ],
+          "before_calls": 6,
+          "after_calls": 6,
+          "before_requested_bytes": 3201,
+          "after_requested_bytes": 3201
+        },
+        {
+          "key": [
+            "Cauchy",
+            "0",
+            "31"
+          ],
+          "before_calls": 69,
+          "after_calls": 69,
+          "before_requested_bytes": 9759,
+          "after_requested_bytes": 9759
+        },
+        {
+          "key": [
+            "Cauchy",
+            "0",
+            "32"
+          ],
+          "before_calls": 71,
+          "after_calls": 71,
+          "before_requested_bytes": 9888,
+          "after_requested_bytes": 9888
+        },
+        {
+          "key": [
+            "Cauchy",
+            "0",
+            "33"
+          ],
+          "before_calls": 78,
+          "after_calls": 76,
+          "before_requested_bytes": 17185,
+          "after_requested_bytes": 15137
+        },
+        {
+          "key": [
+            "Cauchy",
+            "0",
+            "40"
+          ],
+          "before_calls": 92,
+          "after_calls": 90,
+          "before_requested_bytes": 18088,
+          "after_requested_bytes": 16040
+        },
+        {
+          "key": [
+            "Cauchy",
+            "1",
+            "0"
+          ],
+          "before_calls": 5,
+          "after_calls": 5,
+          "before_requested_bytes": 3137,
+          "after_requested_bytes": 3137
+        },
+        {
+          "key": [
+            "Cauchy",
+            "1",
+            "1"
+          ],
+          "before_calls": 7,
+          "after_calls": 7,
+          "before_requested_bytes": 3266,
+          "after_requested_bytes": 3266
+        },
+        {
+          "key": [
+            "Cauchy",
+            "1",
+            "31"
+          ],
+          "before_calls": 70,
+          "after_calls": 70,
+          "before_requested_bytes": 9824,
+          "after_requested_bytes": 9824
+        },
+        {
+          "key": [
+            "Cauchy",
+            "1",
+            "32"
+          ],
+          "before_calls": 74,
+          "after_calls": 73,
+          "before_requested_bytes": 12001,
+          "after_requested_bytes": 10977
+        },
+        {
+          "key": [
+            "Cauchy",
+            "1",
+            "33"
+          ],
+          "before_calls": 79,
+          "after_calls": 77,
+          "before_requested_bytes": 17250,
+          "after_requested_bytes": 15202
+        },
+        {
+          "key": [
+            "Cauchy",
+            "1",
+            "40"
+          ],
+          "before_calls": 93,
+          "after_calls": 91,
+          "before_requested_bytes": 18153,
+          "after_requested_bytes": 16105
+        },
+        {
+          "key": [
+            "Cauchy",
+            "31",
+            "0"
+          ],
+          "before_calls": 35,
+          "after_calls": 35,
+          "before_requested_bytes": 5087,
+          "after_requested_bytes": 5087
+        },
+        {
+          "key": [
+            "Cauchy",
+            "31",
+            "1"
+          ],
+          "before_calls": 37,
+          "after_calls": 37,
+          "before_requested_bytes": 5216,
+          "after_requested_bytes": 5216
+        },
+        {
+          "key": [
+            "Cauchy",
+            "31",
+            "31"
+          ],
+          "before_calls": 102,
+          "after_calls": 101,
+          "before_requested_bytes": 13822,
+          "after_requested_bytes": 12798
+        },
+        {
+          "key": [
+            "Cauchy",
+            "31",
+            "32"
+          ],
+          "before_calls": 104,
+          "after_calls": 103,
+          "before_requested_bytes": 13951,
+          "after_requested_bytes": 12927
+        },
+        {
+          "key": [
+            "Cauchy",
+            "31",
+            "33"
+          ],
+          "before_calls": 109,
+          "after_calls": 107,
+          "before_requested_bytes": 19200,
+          "after_requested_bytes": 17152
+        },
+        {
+          "key": [
+            "Cauchy",
+            "31",
+            "40"
+          ],
+          "before_calls": 124,
+          "after_calls": 122,
+          "before_requested_bytes": 23175,
+          "after_requested_bytes": 20103
+        },
+        {
+          "key": [
+            "Cauchy",
+            "32",
+            "0"
+          ],
+          "before_calls": 36,
+          "after_calls": 36,
+          "before_requested_bytes": 5152,
+          "after_requested_bytes": 5152
+        },
+        {
+          "key": [
+            "Cauchy",
+            "32",
+            "1"
+          ],
+          "before_calls": 40,
+          "after_calls": 39,
+          "before_requested_bytes": 7329,
+          "after_requested_bytes": 6305
+        },
+        {
+          "key": [
+            "Cauchy",
+            "32",
+            "31"
+          ],
+          "before_calls": 103,
+          "after_calls": 102,
+          "before_requested_bytes": 13887,
+          "after_requested_bytes": 12863
+        },
+        {
+          "key": [
+            "Cauchy",
+            "32",
+            "32"
+          ],
+          "before_calls": 105,
+          "after_calls": 104,
+          "before_requested_bytes": 14016,
+          "after_requested_bytes": 12992
+        },
+        {
+          "key": [
+            "Cauchy",
+            "32",
+            "33"
+          ],
+          "before_calls": 111,
+          "after_calls": 109,
+          "before_requested_bytes": 22337,
+          "after_requested_bytes": 19265
+        },
+        {
+          "key": [
+            "Cauchy",
+            "32",
+            "40"
+          ],
+          "before_calls": 125,
+          "after_calls": 123,
+          "before_requested_bytes": 23240,
+          "after_requested_bytes": 20168
+        },
+        {
+          "key": [
+            "Cauchy",
+            "33",
+            "0"
+          ],
+          "before_calls": 39,
+          "after_calls": 38,
+          "before_requested_bytes": 7265,
+          "after_requested_bytes": 6241
+        },
+        {
+          "key": [
+            "Cauchy",
+            "33",
+            "1"
+          ],
+          "before_calls": 41,
+          "after_calls": 40,
+          "before_requested_bytes": 7394,
+          "after_requested_bytes": 6370
+        },
+        {
+          "key": [
+            "Cauchy",
+            "33",
+            "31"
+          ],
+          "before_calls": 104,
+          "after_calls": 103,
+          "before_requested_bytes": 13952,
+          "after_requested_bytes": 12928
+        },
+        {
+          "key": [
+            "Cauchy",
+            "33",
+            "32"
+          ],
+          "before_calls": 109,
+          "after_calls": 107,
+          "before_requested_bytes": 19201,
+          "after_requested_bytes": 16129
+        },
+        {
+          "key": [
+            "Cauchy",
+            "33",
+            "33"
+          ],
+          "before_calls": 114,
+          "after_calls": 111,
+          "before_requested_bytes": 24450,
+          "after_requested_bytes": 20354
+        },
+        {
+          "key": [
+            "Cauchy",
+            "33",
+            "40"
+          ],
+          "before_calls": 128,
+          "after_calls": 125,
+          "before_requested_bytes": 25353,
+          "after_requested_bytes": 21257
+        },
+        {
+          "key": [
+            "Cauchy",
+            "40",
+            "0"
+          ],
+          "before_calls": 46,
+          "after_calls": 45,
+          "before_requested_bytes": 7720,
+          "after_requested_bytes": 6696
+        },
+        {
+          "key": [
+            "Cauchy",
+            "40",
+            "1"
+          ],
+          "before_calls": 48,
+          "after_calls": 47,
+          "before_requested_bytes": 7849,
+          "after_requested_bytes": 6825
+        },
+        {
+          "key": [
+            "Cauchy",
+            "40",
+            "31"
+          ],
+          "before_calls": 114,
+          "after_calls": 112,
+          "before_requested_bytes": 19527,
+          "after_requested_bytes": 16455
+        },
+        {
+          "key": [
+            "Cauchy",
+            "40",
+            "32"
+          ],
+          "before_calls": 116,
+          "after_calls": 114,
+          "before_requested_bytes": 19656,
+          "after_requested_bytes": 16584
+        },
+        {
+          "key": [
+            "Cauchy",
+            "40",
+            "33"
+          ],
+          "before_calls": 121,
+          "after_calls": 118,
+          "before_requested_bytes": 24905,
+          "after_requested_bytes": 20809
+        },
+        {
+          "key": [
+            "Cauchy",
+            "40",
+            "40"
+          ],
+          "before_calls": 135,
+          "after_calls": 132,
+          "before_requested_bytes": 25808,
+          "after_requested_bytes": 21712
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "0",
+            "0"
+          ],
+          "before_calls": 3,
+          "after_calls": 3,
+          "before_requested_bytes": 2048,
+          "after_requested_bytes": 2048
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "0",
+            "1"
+          ],
+          "before_calls": 6,
+          "after_calls": 6,
+          "before_requested_bytes": 3201,
+          "after_requested_bytes": 3201
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "0",
+            "31"
+          ],
+          "before_calls": 69,
+          "after_calls": 69,
+          "before_requested_bytes": 9759,
+          "after_requested_bytes": 9759
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "0",
+            "32"
+          ],
+          "before_calls": 71,
+          "after_calls": 71,
+          "before_requested_bytes": 9888,
+          "after_requested_bytes": 9888
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "0",
+            "33"
+          ],
+          "before_calls": 78,
+          "after_calls": 76,
+          "before_requested_bytes": 17185,
+          "after_requested_bytes": 15137
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "0",
+            "40"
+          ],
+          "before_calls": 92,
+          "after_calls": 90,
+          "before_requested_bytes": 18088,
+          "after_requested_bytes": 16040
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "1",
+            "0"
+          ],
+          "before_calls": 5,
+          "after_calls": 5,
+          "before_requested_bytes": 3137,
+          "after_requested_bytes": 3137
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "1",
+            "1"
+          ],
+          "before_calls": 7,
+          "after_calls": 7,
+          "before_requested_bytes": 3266,
+          "after_requested_bytes": 3266
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "1",
+            "31"
+          ],
+          "before_calls": 70,
+          "after_calls": 70,
+          "before_requested_bytes": 9824,
+          "after_requested_bytes": 9824
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "1",
+            "32"
+          ],
+          "before_calls": 74,
+          "after_calls": 73,
+          "before_requested_bytes": 12001,
+          "after_requested_bytes": 10977
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "1",
+            "33"
+          ],
+          "before_calls": 79,
+          "after_calls": 77,
+          "before_requested_bytes": 17250,
+          "after_requested_bytes": 15202
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "1",
+            "40"
+          ],
+          "before_calls": 93,
+          "after_calls": 91,
+          "before_requested_bytes": 18153,
+          "after_requested_bytes": 16105
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "31",
+            "0"
+          ],
+          "before_calls": 35,
+          "after_calls": 35,
+          "before_requested_bytes": 5087,
+          "after_requested_bytes": 5087
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "31",
+            "1"
+          ],
+          "before_calls": 37,
+          "after_calls": 37,
+          "before_requested_bytes": 5216,
+          "after_requested_bytes": 5216
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "31",
+            "31"
+          ],
+          "before_calls": 102,
+          "after_calls": 101,
+          "before_requested_bytes": 13822,
+          "after_requested_bytes": 12798
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "31",
+            "32"
+          ],
+          "before_calls": 104,
+          "after_calls": 103,
+          "before_requested_bytes": 13951,
+          "after_requested_bytes": 12927
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "31",
+            "33"
+          ],
+          "before_calls": 109,
+          "after_calls": 107,
+          "before_requested_bytes": 19200,
+          "after_requested_bytes": 17152
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "31",
+            "40"
+          ],
+          "before_calls": 124,
+          "after_calls": 122,
+          "before_requested_bytes": 23175,
+          "after_requested_bytes": 20103
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "32",
+            "0"
+          ],
+          "before_calls": 36,
+          "after_calls": 36,
+          "before_requested_bytes": 5152,
+          "after_requested_bytes": 5152
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "32",
+            "1"
+          ],
+          "before_calls": 40,
+          "after_calls": 39,
+          "before_requested_bytes": 7329,
+          "after_requested_bytes": 6305
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "32",
+            "31"
+          ],
+          "before_calls": 103,
+          "after_calls": 102,
+          "before_requested_bytes": 13887,
+          "after_requested_bytes": 12863
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "32",
+            "32"
+          ],
+          "before_calls": 105,
+          "after_calls": 104,
+          "before_requested_bytes": 14016,
+          "after_requested_bytes": 12992
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "32",
+            "33"
+          ],
+          "before_calls": 111,
+          "after_calls": 109,
+          "before_requested_bytes": 22337,
+          "after_requested_bytes": 19265
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "32",
+            "40"
+          ],
+          "before_calls": 125,
+          "after_calls": 123,
+          "before_requested_bytes": 23240,
+          "after_requested_bytes": 20168
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "33",
+            "0"
+          ],
+          "before_calls": 39,
+          "after_calls": 38,
+          "before_requested_bytes": 7265,
+          "after_requested_bytes": 6241
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "33",
+            "1"
+          ],
+          "before_calls": 41,
+          "after_calls": 40,
+          "before_requested_bytes": 7394,
+          "after_requested_bytes": 6370
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "33",
+            "31"
+          ],
+          "before_calls": 104,
+          "after_calls": 103,
+          "before_requested_bytes": 13952,
+          "after_requested_bytes": 12928
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "33",
+            "32"
+          ],
+          "before_calls": 109,
+          "after_calls": 107,
+          "before_requested_bytes": 19201,
+          "after_requested_bytes": 16129
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "33",
+            "33"
+          ],
+          "before_calls": 114,
+          "after_calls": 111,
+          "before_requested_bytes": 24450,
+          "after_requested_bytes": 20354
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "33",
+            "40"
+          ],
+          "before_calls": 128,
+          "after_calls": 125,
+          "before_requested_bytes": 25353,
+          "after_requested_bytes": 21257
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "40",
+            "0"
+          ],
+          "before_calls": 46,
+          "after_calls": 45,
+          "before_requested_bytes": 7720,
+          "after_requested_bytes": 6696
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "40",
+            "1"
+          ],
+          "before_calls": 48,
+          "after_calls": 47,
+          "before_requested_bytes": 7849,
+          "after_requested_bytes": 6825
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "40",
+            "31"
+          ],
+          "before_calls": 114,
+          "after_calls": 112,
+          "before_requested_bytes": 19527,
+          "after_requested_bytes": 16455
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "40",
+            "32"
+          ],
+          "before_calls": 116,
+          "after_calls": 114,
+          "before_requested_bytes": 19656,
+          "after_requested_bytes": 16584
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "40",
+            "33"
+          ],
+          "before_calls": 121,
+          "after_calls": 118,
+          "before_requested_bytes": 24905,
+          "after_requested_bytes": 20809
+        },
+        {
+          "key": [
+            "JerasureLike",
+            "40",
+            "40"
+          ],
+          "before_calls": 135,
+          "after_calls": 132,
+          "before_requested_bytes": 25808,
+          "after_requested_bytes": 21712
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "0",
+            "0"
+          ],
+          "before_calls": 3,
+          "after_calls": 3,
+          "before_requested_bytes": 2048,
+          "after_requested_bytes": 2048
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "0",
+            "1"
+          ],
+          "before_calls": 6,
+          "after_calls": 6,
+          "before_requested_bytes": 3201,
+          "after_requested_bytes": 3201
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "0",
+            "31"
+          ],
+          "before_calls": 69,
+          "after_calls": 69,
+          "before_requested_bytes": 9759,
+          "after_requested_bytes": 9759
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "0",
+            "32"
+          ],
+          "before_calls": 71,
+          "after_calls": 71,
+          "before_requested_bytes": 9888,
+          "after_requested_bytes": 9888
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "0",
+            "33"
+          ],
+          "before_calls": 78,
+          "after_calls": 76,
+          "before_requested_bytes": 17185,
+          "after_requested_bytes": 15137
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "0",
+            "40"
+          ],
+          "before_calls": 92,
+          "after_calls": 90,
+          "before_requested_bytes": 18088,
+          "after_requested_bytes": 16040
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "1",
+            "0"
+          ],
+          "before_calls": 5,
+          "after_calls": 5,
+          "before_requested_bytes": 3137,
+          "after_requested_bytes": 3137
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "1",
+            "1"
+          ],
+          "before_calls": 7,
+          "after_calls": 7,
+          "before_requested_bytes": 3266,
+          "after_requested_bytes": 3266
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "1",
+            "31"
+          ],
+          "before_calls": 70,
+          "after_calls": 70,
+          "before_requested_bytes": 9824,
+          "after_requested_bytes": 9824
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "1",
+            "32"
+          ],
+          "before_calls": 74,
+          "after_calls": 73,
+          "before_requested_bytes": 12001,
+          "after_requested_bytes": 10977
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "1",
+            "33"
+          ],
+          "before_calls": 79,
+          "after_calls": 77,
+          "before_requested_bytes": 17250,
+          "after_requested_bytes": 15202
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "1",
+            "40"
+          ],
+          "before_calls": 93,
+          "after_calls": 91,
+          "before_requested_bytes": 18153,
+          "after_requested_bytes": 16105
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "31",
+            "0"
+          ],
+          "before_calls": 35,
+          "after_calls": 35,
+          "before_requested_bytes": 5087,
+          "after_requested_bytes": 5087
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "31",
+            "1"
+          ],
+          "before_calls": 37,
+          "after_calls": 37,
+          "before_requested_bytes": 5216,
+          "after_requested_bytes": 5216
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "31",
+            "31"
+          ],
+          "before_calls": 102,
+          "after_calls": 101,
+          "before_requested_bytes": 13822,
+          "after_requested_bytes": 12798
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "31",
+            "32"
+          ],
+          "before_calls": 104,
+          "after_calls": 103,
+          "before_requested_bytes": 13951,
+          "after_requested_bytes": 12927
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "31",
+            "33"
+          ],
+          "before_calls": 109,
+          "after_calls": 107,
+          "before_requested_bytes": 19200,
+          "after_requested_bytes": 17152
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "31",
+            "40"
+          ],
+          "before_calls": 124,
+          "after_calls": 122,
+          "before_requested_bytes": 23175,
+          "after_requested_bytes": 20103
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "32",
+            "0"
+          ],
+          "before_calls": 36,
+          "after_calls": 36,
+          "before_requested_bytes": 5152,
+          "after_requested_bytes": 5152
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "32",
+            "1"
+          ],
+          "before_calls": 40,
+          "after_calls": 39,
+          "before_requested_bytes": 7329,
+          "after_requested_bytes": 6305
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "32",
+            "31"
+          ],
+          "before_calls": 103,
+          "after_calls": 102,
+          "before_requested_bytes": 13887,
+          "after_requested_bytes": 12863
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "32",
+            "32"
+          ],
+          "before_calls": 105,
+          "after_calls": 104,
+          "before_requested_bytes": 14016,
+          "after_requested_bytes": 12992
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "32",
+            "33"
+          ],
+          "before_calls": 111,
+          "after_calls": 109,
+          "before_requested_bytes": 22337,
+          "after_requested_bytes": 19265
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "32",
+            "40"
+          ],
+          "before_calls": 125,
+          "after_calls": 123,
+          "before_requested_bytes": 23240,
+          "after_requested_bytes": 20168
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "33",
+            "0"
+          ],
+          "before_calls": 39,
+          "after_calls": 38,
+          "before_requested_bytes": 7265,
+          "after_requested_bytes": 6241
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "33",
+            "1"
+          ],
+          "before_calls": 41,
+          "after_calls": 40,
+          "before_requested_bytes": 7394,
+          "after_requested_bytes": 6370
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "33",
+            "31"
+          ],
+          "before_calls": 104,
+          "after_calls": 103,
+          "before_requested_bytes": 13952,
+          "after_requested_bytes": 12928
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "33",
+            "32"
+          ],
+          "before_calls": 109,
+          "after_calls": 107,
+          "before_requested_bytes": 19201,
+          "after_requested_bytes": 16129
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "33",
+            "33"
+          ],
+          "before_calls": 114,
+          "after_calls": 111,
+          "before_requested_bytes": 24450,
+          "after_requested_bytes": 20354
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "33",
+            "40"
+          ],
+          "before_calls": 128,
+          "after_calls": 125,
+          "before_requested_bytes": 25353,
+          "after_requested_bytes": 21257
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "40",
+            "0"
+          ],
+          "before_calls": 46,
+          "after_calls": 45,
+          "before_requested_bytes": 7720,
+          "after_requested_bytes": 6696
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "40",
+            "1"
+          ],
+          "before_calls": 48,
+          "after_calls": 47,
+          "before_requested_bytes": 7849,
+          "after_requested_bytes": 6825
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "40",
+            "31"
+          ],
+          "before_calls": 114,
+          "after_calls": 112,
+          "before_requested_bytes": 19527,
+          "after_requested_bytes": 16455
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "40",
+            "32"
+          ],
+          "before_calls": 116,
+          "after_calls": 114,
+          "before_requested_bytes": 19656,
+          "after_requested_bytes": 16584
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "40",
+            "33"
+          ],
+          "before_calls": 121,
+          "after_calls": 118,
+          "before_requested_bytes": 24905,
+          "after_requested_bytes": 20809
+        },
+        {
+          "key": [
+            "Vandermonde",
+            "40",
+            "40"
+          ],
+          "before_calls": 135,
+          "after_calls": 132,
+          "before_requested_bytes": 25808,
+          "after_requested_bytes": 21712
+        }
+      ]
+    }
+  },
+  "all201_request_and_requested_byte_counts_nonincreasing": true,
+  "existing459_resource_contracts_unchanged": true,
+  "discarded_packed_table_prototype": {
+    "adopted": false,
+    "request_byte_increase_cases": [
+      {
+        "catalogue": "workspace",
+        "key": [
+          "Cauchy",
+          "64",
+          "96",
+          "32",
+          "64"
+        ],
+        "before_requested_bytes": 9312,
+        "packed_requested_bytes": 10336
+      },
+      {
+        "catalogue": "workspace",
+        "key": [
+          "Cauchy",
+          "64",
+          "96",
+          "33",
+          "32"
+        ],
+        "before_requested_bytes": 7297,
+        "packed_requested_bytes": 8321
+      },
+      {
+        "catalogue": "workspace",
+        "key": [
+          "Cauchy",
+          "64",
+          "96",
+          "64",
+          "32"
+        ],
+        "before_requested_bytes": 9312,
+        "packed_requested_bytes": 10336
+      },
+      {
+        "catalogue": "workspace",
+        "key": [
+          "JerasureLike",
+          "64",
+          "96",
+          "32",
+          "64"
+        ],
+        "before_requested_bytes": 9312,
+        "packed_requested_bytes": 10336
+      },
+      {
+        "catalogue": "workspace",
+        "key": [
+          "JerasureLike",
+          "64",
+          "96",
+          "33",
+          "32"
+        ],
+        "before_requested_bytes": 7297,
+        "packed_requested_bytes": 8321
+      },
+      {
+        "catalogue": "workspace",
+        "key": [
+          "JerasureLike",
+          "64",
+          "96",
+          "64",
+          "32"
+        ],
+        "before_requested_bytes": 9312,
+        "packed_requested_bytes": 10336
+      },
+      {
+        "catalogue": "workspace",
+        "key": [
+          "Vandermonde",
+          "64",
+          "96",
+          "32",
+          "64"
+        ],
+        "before_requested_bytes": 9312,
+        "packed_requested_bytes": 10336
+      },
+      {
+        "catalogue": "workspace",
+        "key": [
+          "Vandermonde",
+          "64",
+          "96",
+          "33",
+          "32"
+        ],
+        "before_requested_bytes": 7297,
+        "packed_requested_bytes": 8321
+      },
+      {
+        "catalogue": "workspace",
+        "key": [
+          "Vandermonde",
+          "64",
+          "96",
+          "64",
+          "32"
+        ],
+        "before_requested_bytes": 9312,
+        "packed_requested_bytes": 10336
+      }
+    ]
+  },
+  "local_validation": {
+    "codec_parent": 580,
+    "separate_filtered_children": 6,
+    "existing_ignored": 43,
+    "no_std": 271,
+    "tool": 317,
+    "strict_codec_tool_clippy": true,
+    "cross_target_x86_checks": "compile only",
+    "published9_local_default_backend": {
+      "normal_configs": 200,
+      "custom_configs": 27,
+      "custom_cross_recoveries": 162,
+      "wide_gf16_configs": 12,
+      "selective_configs": 270,
+      "selective_cross_recoveries": 2640
+    },
+    "fresh_wasm_build_and_types": true,
+    "node_tests": 14,
+    "node_skipped": 0
+  },
+  "artifact": {
+    "source": "4bd12089c9a1b9aa1f136de6473e3821f9d9b9d8",
+    "members": 71,
+    "all68_original_members_byte_exact": true,
+    "extracted_all_features_tests": 401,
+    "extracted_no_std_tests": 271
+  },
+  "observer": {
+    "dynamic_members": 9,
+    "stream_members": 4,
+    "verify_members": 3,
+    "all_generated_production_deltas_match": true,
+    "new_recovery_plan_passthrough_and_overlay_compile": true,
+    "fresh_tool_report_exact": true,
+    "formal_sampler_loops_counts_thresholds_unchanged": true
+  },
+  "independent_review": {
+    "inputs_unchanged": 45,
+    "codec_calls": 0
+  },
+  "performance_observations": 0,
+  "performance_approval": false,
+  "release_approval": false,
+  "resource_scope": "Classic GF8 public Option<Vec<u8>> workspace and selective recovery, 65-byte shards, all three matrix modes"
+}
