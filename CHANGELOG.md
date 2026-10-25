@@ -10,11 +10,12 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
-- Add generic `ReconstructWorkspace<F>` and full Classic prepare/execute APIs
-  for repeated recovery over any field and `ReconstructShard` container,
-  including tower GF16 and caller-owned `ShardSlot` storage in no_std. Reuse
-  the existing plan and serial executor, validate format/layout before outputs,
-  and retain the GF8 option-vector alias and bulk executor.
+- Add generic `ReconstructWorkspace<F>` with full, data-only and selected-output
+  Classic preparers for any field and `ReconstructShard` container, including
+  tower GF16 and caller-owned `ShardSlot` storage in no_std. Retain inverse and
+  composed parity rows in the owned plan, expose sorted targets, validate the
+  complete format/layout before execution, and preserve the GF8 option-vector
+  alias, existing executors and fallible-output publication order.
 
 - Reserve ordinary verification's reference table from its known parity count
   for both serial and parallel-policy APIs. Avoid iterator-driven capacity

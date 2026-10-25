@@ -68,11 +68,15 @@ impl<F: Field> VerifyWorkspace<F> {
     }
 }
 
-/// An owned, immutable plan for repeated full Classic reconstruction.
+/// An owned, immutable plan for repeated Classic reconstruction.
 ///
-/// Prepared by [`ReedSolomon::prepare_reconstruct_workspace`]. The plan retains
-/// its encoding format, erasure layout and inverse independently of the codec's
-/// inversion cache. It owns no shard payload or references to caller storage.
+/// Choose [`ReedSolomon::prepare_reconstruct_workspace`] for every missing shard,
+/// [`ReedSolomon::prepare_reconstruct_data_workspace`] for data, or
+/// [`ReedSolomon::prepare_reconstruct_some_workspace`] for requested targets.
+/// [`ReedSolomon::reconstruct_with_workspace`] executes the prepared targets.
+/// The plan owns its format, erasure layout, requested targets, any inverse and
+/// composed parity rows independently of the codec's inversion cache. It owns
+/// no shard payload or references to caller storage.
 /// Reuse requires the same counts, effective matrix, missing pattern and length;
 /// these are checked before execution on every call.
 ///
@@ -87,6 +91,16 @@ pub struct ReconstructWorkspace<F: Field> {
 }
 
 impl<F: Field> ReconstructWorkspace<F> {
+    /// Missing data shards requested by this plan, sorted by shard index.
+    pub fn data_targets(&self) -> &[usize] {
+        self.plan.data_targets()
+    }
+
+    /// Missing parity shards requested by this plan, sorted by shard index.
+    pub fn parity_targets(&self) -> &[usize] {
+        self.plan.parity_targets()
+    }
+
     /// Canonical format for which this reconstruction plan was prepared.
     pub fn encoding_format(&self) -> &EncodingFormat<F> {
         &self.format

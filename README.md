@@ -135,8 +135,12 @@ codec cache. Reuse requires matching counts, effective matrix, missing pattern
 and length, checked before every execution. Prepare it again when the layout
 changes. It owns no payload buffers; `ShardSlot` retains those separately. The
 existing GF8 `OptionVecReconstructWorkspace` name is an alias, and its option-vector
-entry point keeps the bulk executor. These workspace APIs cover full Classic
-recovery; Leopard and selective/data-only calls retain their existing paths.
+entry point keeps the bulk executor. Choose `prepare_reconstruct_data_workspace`
+for data-only recovery or `prepare_reconstruct_some_workspace` for a data-only or
+complete required mask. The workspace owns its requested targets and composed
+parity rows; later mask changes do not alter the plan. `data_targets()` and
+`parity_targets()` show its sorted outputs. The shared executor restores only
+those targets while still validating all erasures. Leopard remains unsupported.
 
 ## Main APIs
 

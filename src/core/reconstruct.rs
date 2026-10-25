@@ -378,18 +378,72 @@ impl<F: Field> ReedSolomon<F> {
         &self,
         shards: &[T],
     ) -> Result<ReconstructWorkspace<F>, Error> {
+        self.prepare_reconstruct_workspace_with_goal(shards, ReconstructionGoal::All)
+    }
+
+    /// Prepare a Classic plan that restores missing data and leaves parity missing.
+    ///
+    /// All present lengths and the complete erasure layout are still validated.
+    /// Reuse it with [`Self::reconstruct_with_workspace`] for the same layout.
+    pub fn prepare_reconstruct_data_workspace<T: ReconstructShard<F>>(
+        &self,
+        shards: &[T],
+    ) -> Result<ReconstructWorkspace<F>, Error> {
+        self.prepare_reconstruct_workspace_with_goal(shards, ReconstructionGoal::Data)
+    }
+
+    /// Prepare a Classic plan for only the requested missing shards.
+    ///
+    /// Accepts a data-only or complete `required` mask, with the same validation
+    /// order as [`Self::reconstruct_some`]. Requested targets and composed parity
+    /// rows are owned by the plan, so the mask can be changed or dropped later.
+    /// Unrequested erasures remain part of the validated input layout.
+    ///
+    /// ```
+    /// use rustfs_erasure_codec::galois_8::ReedSolomon;
+    /// let codec = ReedSolomon::new(4, 3)?;
+    /// let mut shards = vec![vec![2u8; 65]; 7];
+    /// codec.encode(&mut shards)?;
+    /// let mut shards: Vec<_> = shards.into_iter().map(Some).collect();
+    /// for index in [0, 1, 4] { shards[index] = None; }
+    /// let mut required = vec![false; 7];
+    /// required[4] = true;
+    /// let plan = codec.prepare_reconstruct_some_workspace(&shards, &required)?;
+    /// required.fill(false);
+    /// codec.reconstruct_with_workspace(&mut shards, &plan)?;
+    /// assert!(shards[0].is_none() && shards[1].is_none());
+    /// assert!(shards[4].is_some());
+    /// assert_eq!(plan.parity_targets(), &[4]);
+    /// # Ok::<(), rustfs_erasure_codec::Error>(())
+    /// ```
+    pub fn prepare_reconstruct_some_workspace<T: ReconstructShard<F>>(
+        &self,
+        shards: &[T],
+        required: &[bool],
+    ) -> Result<ReconstructWorkspace<F>, Error> {
+        if required.len() != self.data_shard_count() && required.len() != self.total_shard_count() {
+            return Err(Error::InvalidShardFlags);
+        }
+        self.prepare_reconstruct_workspace_with_goal(shards, ReconstructionGoal::Required(required))
+    }
+
+    fn prepare_reconstruct_workspace_with_goal<T: ReconstructShard<F>>(
+        &self,
+        shards: &[T],
+        goal: ReconstructionGoal<'_>,
+    ) -> Result<ReconstructWorkspace<F>, Error> {
         check_piece_count!(all => self, shards);
         if self.is_leopard_family() {
             return Err(Error::UnsupportedCodecFamily);
         }
         let shape = self.classic_reconstruct_shape(shards.iter().map(ReconstructShard::len))?;
         Ok(ReconstructWorkspace {
-            plan: self.prepare_classic_reconstruct_plan(shape, ReconstructionGoal::All)?,
+            plan: self.prepare_classic_reconstruct_plan(shape, goal)?,
             format: self.encoding_format().clone(),
         })
     }
 
-    /// Reconstruct all missing shards using an owned Classic plan.
+    /// Execute the missing-shard outputs selected by an owned Classic plan.
     ///
     /// Validates shard counts, effective format, every present length and the
     /// complete missing pattern before initializing any destination. Format

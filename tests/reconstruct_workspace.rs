@@ -338,21 +338,34 @@ fn singular_preparation_and_short_destination_keep_existing_publication_order() 
 
 #[test]
 fn plans_own_their_format_and_inverse_after_the_source_codec_is_dropped() {
-    let (workspace, expected) = {
-        let source = codec::<galois_16::Field>(4, 3, MatrixMode::Cauchy, false, false);
-        let expected = encoded(&source, 65, 1234);
-        let missing = slots::<galois_16::Field>(&expected, &[0, 1, 4]);
-        (
-            source.prepare_reconstruct_workspace(&missing).unwrap(),
-            expected,
-        )
-    };
-    let equivalent = codec::<galois_16::Field>(4, 3, MatrixMode::Cauchy, false, true);
-    let mut missing = slots::<galois_16::Field>(&expected, &[0, 1, 4]);
-    equivalent
-        .reconstruct_with_workspace(&mut missing, &workspace)
+    for goal in ["all", "data", "mixed"] {
+        let required = [true, false, false, false, true, false, false];
+        let (workspace, expected) = {
+            let source = codec::<galois_16::Field>(4, 3, MatrixMode::Cauchy, false, false);
+            let expected = encoded(&source, 65, 1234);
+            let missing = slots::<galois_16::Field>(&expected, &[0, 1, 4]);
+            let plan = match goal {
+                "all" => source.prepare_reconstruct_workspace(&missing),
+                "data" => source.prepare_reconstruct_data_workspace(&missing),
+                _ => source.prepare_reconstruct_some_workspace(&missing, &required),
+            }
+            .unwrap();
+            (plan, expected)
+        };
+        let equivalent = codec::<galois_16::Field>(4, 3, MatrixMode::Cauchy, false, true);
+        let mut missing = slots::<galois_16::Field>(&expected, &[0, 1, 4]);
+        let mut ordinary = missing.clone();
+        match goal {
+            "all" => equivalent.reconstruct(&mut ordinary),
+            "data" => equivalent.reconstruct_data(&mut ordinary),
+            _ => equivalent.reconstruct_some(&mut ordinary, &required),
+        }
         .unwrap();
-    check::<galois_16::Field>(&missing, &expected);
+        equivalent
+            .reconstruct_with_workspace(&mut missing, &workspace)
+            .unwrap();
+        assert_eq!(missing, ordinary);
+    }
 }
 
 #[test]
@@ -393,6 +406,23 @@ fn serial_workspace_supports_thread_local_field_elements() {
         .reconstruct_with_workspace(&mut missing, &workspace)
         .unwrap();
     check::<LocalField>(&missing, &expected);
+    for data_only in [false, true] {
+        let mut missing = slots::<LocalField>(&expected, &[0, 1, 4]);
+        let mut ordinary = missing.clone();
+        let required = [false, false, false, false, true, false, false];
+        let plan = if data_only {
+            codec.reconstruct_data(&mut ordinary).unwrap();
+            codec.prepare_reconstruct_data_workspace(&missing)
+        } else {
+            codec.reconstruct_some(&mut ordinary, &required).unwrap();
+            codec.prepare_reconstruct_some_workspace(&missing, &required)
+        }
+        .unwrap();
+        codec
+            .reconstruct_with_workspace(&mut missing, &plan)
+            .unwrap();
+        assert_eq!(missing, ordinary);
+    }
 }
 
 #[cfg(feature = "std")]
@@ -547,5 +577,425 @@ fn leopard_workspaces_are_rejected_after_shard_count_validation() {
             Err(Error::UnsupportedCodecFamily)
         );
         assert_eq!(candidate, before);
+    }
+}
+
+#[test]
+fn data_and_selected_plans_match_existing_recovery_for_all_small_masks() {
+    fn exercise<F: Field>() {
+        for mode in [
+            MatrixMode::Vandermonde,
+            MatrixMode::Cauchy,
+            MatrixMode::JerasureLike,
+            MatrixMode::Custom,
+        ] {
+            for (parity, fast) in [(2, false), (1, true)] {
+                for cache in [false, true] {
+                    let codec = codec::<F>(3, parity, mode, fast, cache);
+                    let expected = encoded(&codec, 65, 3791);
+                    let total = codec.total_shard_count();
+                    for erasures in 0usize..1 << total {
+                        if erasures.count_ones() as usize > parity {
+                            continue;
+                        }
+                        let missing: Vec<_> =
+                            (0..total).filter(|i| erasures & (1 << i) != 0).collect();
+                        let initial = slots::<F>(&expected, &missing);
+                        let mut data_only = initial.clone();
+                        let mut ordinary_data = initial.clone();
+                        let plan = codec
+                            .prepare_reconstruct_data_workspace(&data_only)
+                            .unwrap();
+                        assert_eq!(
+                            plan.data_targets(),
+                            missing
+                                .iter()
+                                .copied()
+                                .filter(|i| *i < 3)
+                                .collect::<Vec<_>>()
+                        );
+                        assert!(plan.parity_targets().is_empty());
+                        codec.reconstruct_data(&mut ordinary_data).unwrap();
+                        codec
+                            .reconstruct_with_workspace(&mut data_only, &plan)
+                            .unwrap();
+                        assert_eq!(data_only, ordinary_data);
+                        for requested in 0usize..1 << total {
+                            let mask: Vec<_> =
+                                (0..total).map(|i| requested & (1 << i) != 0).collect();
+                            for required in [&mask[..3], mask.as_slice()] {
+                                let mut ordinary = initial.clone();
+                                codec.reconstruct_some(&mut ordinary, required).unwrap();
+                                let mut reused = initial.clone();
+                                let plan = codec
+                                    .prepare_reconstruct_some_workspace(&reused, required)
+                                    .unwrap();
+                                let wanted: Vec<_> = missing
+                                    .iter()
+                                    .copied()
+                                    .filter(|i| required.get(*i).copied().unwrap_or(false))
+                                    .collect();
+                                assert_eq!(
+                                    plan.data_targets(),
+                                    wanted
+                                        .iter()
+                                        .copied()
+                                        .filter(|i| *i < 3)
+                                        .collect::<Vec<_>>()
+                                );
+                                assert_eq!(
+                                    plan.parity_targets(),
+                                    wanted
+                                        .iter()
+                                        .copied()
+                                        .filter(|i| *i >= 3)
+                                        .collect::<Vec<_>>()
+                                );
+                                for _ in 0..2 {
+                                    erase::<F>(&mut reused, &missing);
+                                    codec
+                                        .reconstruct_with_workspace(&mut reused, &plan)
+                                        .unwrap();
+                                    assert_eq!(reused, ordinary);
+                                    for (i, slot) in reused.iter().enumerate() {
+                                        let present = !missing.contains(&i) || wanted.contains(&i);
+                                        assert_eq!(slot.is_present(), present);
+                                        if present {
+                                            assert_eq!(slot.as_inner(), &expected[i]);
+                                        } else {
+                                            assert_eq!(slot, &initial[i]);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    exercise::<galois_8::Field>();
+    exercise::<galois_16::Field>();
+}
+
+#[test]
+fn empty_requested_plans_skip_unused_singular_inverses_but_validate_inputs() {
+    fn exercise<F: Field>() {
+        let codec = ReedSolomon::<F>::with_custom_matrix(
+            2,
+            2,
+            &[vec![F::one(); 2], vec![F::one(); 2]],
+            CodecOptions::default(),
+        )
+        .unwrap();
+        let expected = encoded(&codec, 65, 31);
+        let initial = slots::<F>(&expected, &[0, 1]);
+        for mask in [
+            &[false, false][..],
+            &[false, false, false, false],
+            &[false, false, true, false],
+        ] {
+            let plan = codec
+                .prepare_reconstruct_some_workspace(&initial, mask)
+                .unwrap();
+            assert!(plan.data_targets().is_empty() && plan.parity_targets().is_empty());
+            let mut candidate = initial.clone();
+            codec
+                .reconstruct_with_workspace(&mut candidate, &plan)
+                .unwrap();
+            assert_eq!(candidate, initial);
+            candidate[3].as_inner_mut().pop();
+            let before = candidate.clone();
+            assert_eq!(
+                codec.reconstruct_with_workspace(&mut candidate, &plan),
+                Err(Error::IncorrectShardSize)
+            );
+            assert_eq!(candidate, before);
+        }
+        assert!(matches!(
+            codec.prepare_reconstruct_data_workspace(&initial),
+            Err(Error::InvalidCustomMatrix)
+        ));
+        for size in [0, 1, 3, 5] {
+            assert!(matches!(
+                codec.prepare_reconstruct_some_workspace(&initial[..3], &vec![false; size]),
+                Err(Error::InvalidShardFlags)
+            ));
+        }
+        assert!(matches!(
+            codec.prepare_reconstruct_some_workspace(&initial[..3], &[false; 4]),
+            Err(Error::TooFewShards)
+        ));
+        let mut insufficient = initial.clone();
+        insufficient[2].mark_missing();
+        assert!(matches!(
+            codec.prepare_reconstruct_some_workspace(&insufficient, &[false; 4]),
+            Err(Error::TooFewShardsPresent)
+        ));
+    }
+    exercise::<galois_8::Field>();
+    exercise::<galois_16::Field>();
+    for family in [CodecFamily::LeopardGF8, CodecFamily::LeopardGF16] {
+        if family == CodecFamily::LeopardGF16 && cfg!(target_endian = "big") {
+            continue;
+        }
+        let codec = ReedSolomon::<galois_8::Field>::with_options(
+            4,
+            3,
+            CodecOptions::builder().codec_family(family).build(),
+        )
+        .unwrap();
+        let shards = slots::<galois_8::Field>(&encoded(&codec, 64, 71), &[0]);
+        assert!(matches!(
+            codec.prepare_reconstruct_data_workspace(&shards),
+            Err(Error::UnsupportedCodecFamily)
+        ));
+        assert!(matches!(
+            codec.prepare_reconstruct_some_workspace(&shards, &[false; 7]),
+            Err(Error::UnsupportedCodecFamily)
+        ));
+        assert!(matches!(
+            codec.prepare_reconstruct_some_workspace(&shards[..6], &[false; 6]),
+            Err(Error::InvalidShardFlags)
+        ));
+        assert!(matches!(
+            codec.prepare_reconstruct_some_workspace(&shards[..6], &[false; 7]),
+            Err(Error::TooFewShards)
+        ));
+    }
+}
+
+#[test]
+fn subset_plans_preserve_partial_publication_when_a_requested_buffer_is_short() {
+    let codec = codec::<galois_16::Field>(4, 3, MatrixMode::Cauchy, false, false);
+    let expected = encoded(&codec, 65, 191);
+    for data_only in [false, true] {
+        let mut reused = slots::<galois_16::Field>(&expected, &[0, 1, 4]);
+        reused[1].as_inner_mut().pop();
+        let mut ordinary = reused.clone();
+        let required = [true, true, false, false, true, false, false];
+        let plan = if data_only {
+            codec.prepare_reconstruct_data_workspace(&reused)
+        } else {
+            codec.prepare_reconstruct_some_workspace(&reused, &required)
+        }
+        .unwrap();
+        let result = if data_only {
+            codec.reconstruct_data(&mut ordinary)
+        } else {
+            codec.reconstruct_some(&mut ordinary, &required)
+        };
+        assert_eq!(result, Err(Error::IncorrectShardSize));
+        assert_eq!(
+            codec.reconstruct_with_workspace(&mut reused, &plan),
+            Err(Error::IncorrectShardSize)
+        );
+        assert_eq!(reused, ordinary);
+        assert!(reused[0].is_present());
+        assert_eq!(reused[0].as_inner(), &expected[0]);
+        assert!(!reused[1].is_present() && !reused[4].is_present());
+    }
+}
+
+#[cfg(feature = "std")]
+#[test]
+fn selected_masks_are_owned_and_legacy_bulk_executes_only_prepared_targets() {
+    let codec = galois_8::ReedSolomon::new(4, 3).unwrap();
+    let expected = encoded(&codec, 65, 719);
+    for goal in ["data", "parity", "mixed"] {
+        let data_only = goal == "data";
+        let mut options: Vec<_> = expected.iter().cloned().map(Some).collect();
+        for i in [0, 1, 4] {
+            options[i] = None;
+        }
+        let initial = options.clone();
+        let mut required = vec![false; 7];
+        required[4] = true;
+        required[0] = goal == "mixed";
+        let plan: galois_8::OptionVecReconstructWorkspace = if data_only {
+            codec.prepare_reconstruct_data_workspace(&options)
+        } else {
+            codec.prepare_reconstruct_some_workspace(&options, &required)
+        }
+        .unwrap();
+        let mut ordinary = initial.clone();
+        if data_only {
+            codec.reconstruct_data(&mut ordinary).unwrap();
+        } else {
+            codec.reconstruct_some(&mut ordinary, &required).unwrap();
+        }
+        required.fill(false);
+        drop(required);
+        codec
+            .reconstruct_opt_with_workspace(&mut options, &plan)
+            .unwrap();
+        assert_eq!(options, ordinary);
+        for (i, shard) in options.iter().enumerate() {
+            assert_eq!(
+                shard.is_some(),
+                !([0, 1, 4].contains(&i))
+                    || if data_only {
+                        i < 4
+                    } else {
+                        i == 4 || (goal == "mixed" && i == 0)
+                    }
+            );
+        }
+    }
+}
+
+#[cfg(feature = "std")]
+#[test]
+fn subset_workspace_resources_reuse_data_inverse_and_composed_parity_rows() {
+    fn exercise<F: Field>(field: &str) {
+        for data in [4, 33] {
+            for cache in [false, true] {
+                let codec = codec::<F>(data, 3, MatrixMode::Vandermonde, false, cache);
+                let expected = encoded(&codec, 65, 1319);
+                let missing = [0, 1, data];
+                for goal in ["data", "parity", "mixed"] {
+                    let mut required = vec![false; data + 3];
+                    if goal == "data" {
+                        required[..data].fill(true);
+                    } else {
+                        required[data] = true;
+                        required[0] = goal == "mixed";
+                    }
+                    let mut regular = slots::<F>(&expected, &missing);
+                    let mut reused = regular.clone();
+                    let plan = if goal == "data" {
+                        codec.prepare_reconstruct_data_workspace(&reused)
+                    } else {
+                        codec.prepare_reconstruct_some_workspace(&reused, &required)
+                    }
+                    .unwrap();
+                    if goal == "data" {
+                        codec.reconstruct_data(&mut regular).unwrap();
+                    } else {
+                        codec.reconstruct_some(&mut regular, &required).unwrap();
+                    }
+                    codec
+                        .reconstruct_with_workspace(&mut reused, &plan)
+                        .unwrap();
+                    for repetition in 0..3 {
+                        erase::<F>(&mut regular, &missing);
+                        erase::<F>(&mut reused, &missing);
+                        let before = codec.reconstruction_cache_stats().requests;
+                        let (result, old) = counted(|| {
+                            if goal == "data" {
+                                codec.reconstruct_data(&mut regular)
+                            } else {
+                                codec.reconstruct_some(&mut regular, &required)
+                            }
+                        });
+                        result.unwrap();
+                        let after_regular = codec.reconstruction_cache_stats().requests;
+                        let (result, new) =
+                            counted(|| codec.reconstruct_with_workspace(&mut reused, &plan));
+                        result.unwrap();
+                        let regular_lookups = after_regular - before;
+                        let workspace_lookups =
+                            codec.reconstruction_cache_stats().requests - after_regular;
+                        let metrics = cfg!(feature = "benchmark-metrics");
+                        assert_eq!(regular_lookups, usize::from(cache && metrics));
+                        assert_eq!(workspace_lookups, 0);
+                        assert_eq!(regular, reused);
+                        for (i, slot) in reused.iter().enumerate() {
+                            let present = !missing.contains(&i) || required[i];
+                            assert_eq!(slot.is_present(), present);
+                            if present {
+                                assert_eq!(slot.as_inner(), &expected[i]);
+                            } else {
+                                assert!(slot.as_inner().iter().all(|v| *v == F::one()));
+                            }
+                        }
+                        println!(
+                            "SUBSET_WORKSPACE_RESOURCE field={field} data={data} parity=3 len=65 cache={cache} goal={goal} repetition={repetition} regular_calls={} regular_bytes={} workspace_calls={} workspace_bytes={} regular_lookups={regular_lookups} workspace_lookups={workspace_lookups} metrics={metrics}",
+                            old.calls, old.bytes, new.calls, new.bytes
+                        );
+                        assert!(new.calls <= old.calls && new.bytes <= old.bytes);
+                        if data == 4 {
+                            assert_eq!(new.calls, 0);
+                        }
+                        if !cache {
+                            assert!(new.calls < old.calls);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    exercise::<galois_8::Field>("gf8");
+    exercise::<galois_16::Field>("tower-gf16");
+}
+
+#[test]
+fn prepared_selective_rows_skip_repeated_scalar_coefficient_composition() {
+    thread_local! {static OPS:Cell<(usize,usize)>=const{Cell::new((0,0))};}
+    struct Observed;
+    impl Field for Observed {
+        const ORDER: usize = 256;
+        type Elem = u8;
+        fn add(a: u8, b: u8) -> u8 {
+            OPS.with(|c| {
+                let (m, n) = c.get();
+                c.set((m, n + 1));
+            });
+            galois_8::add(a, b)
+        }
+        fn mul(a: u8, b: u8) -> u8 {
+            OPS.with(|c| {
+                let (m, n) = c.get();
+                c.set((m + 1, n));
+            });
+            galois_8::mul(a, b)
+        }
+        fn div(a: u8, b: u8) -> u8 {
+            galois_8::div(a, b)
+        }
+        fn exp(a: u8, n: usize) -> u8 {
+            galois_8::exp(a, n)
+        }
+        fn zero() -> u8 {
+            0
+        }
+        fn one() -> u8 {
+            1
+        }
+        fn nth_internal(n: usize) -> u8 {
+            n as u8
+        }
+    }
+    let codec = ReedSolomon::<Observed>::new(4, 3).unwrap();
+    for len in [1, 65, 4097] {
+        let expected = encoded(&codec, len, 217);
+        let mut required = [false; 7];
+        required[4] = true;
+        let mut regular = slots::<Observed>(&expected, &[0, 1, 4]);
+        let mut reused = regular.clone();
+        let plan = codec
+            .prepare_reconstruct_some_workspace(&reused, &required)
+            .unwrap();
+        for repetition in 0..3 {
+            erase::<Observed>(&mut regular, &[0, 1, 4]);
+            erase::<Observed>(&mut reused, &[0, 1, 4]);
+            OPS.with(|c| c.set((0, 0)));
+            codec.reconstruct_some(&mut regular, &required).unwrap();
+            let old = OPS.with(Cell::get);
+            OPS.with(|c| c.set((0, 0)));
+            codec
+                .reconstruct_with_workspace(&mut reused, &plan)
+                .unwrap();
+            let new = OPS.with(Cell::get);
+            assert_eq!(regular, reused);
+            assert_eq!(reused[4].as_inner(), &expected[4]);
+            assert!(!reused[0].is_present() && !reused[1].is_present());
+            println!(
+                "SUBSET_WORKSPACE_ARITHMETIC len={len} repetition={repetition} regular_mul={} regular_add={} workspace_mul={} workspace_add={}",
+                old.0, old.1, new.0, new.1
+            );
+            assert_eq!(old.0, new.0 + 8);
+            assert_eq!(old.1, new.1 + 8);
+        }
     }
 }
