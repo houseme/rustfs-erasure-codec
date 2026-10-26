@@ -1,0 +1,126 @@
+{
+  "schema": "collector-digest-reuse-validation-v1",
+  "source_commit": "29122c7bc9935e9c1ab63be45c02ec8a6f624cc9",
+  "prior_head": "1edde5596cd0f7b9f5a1271fa95aed9a8f9e60eb",
+  "synthetic_collection": {
+    "fake_workers": 8,
+    "observations": 2784,
+    "raw_to_canonical_bindings": 8352,
+    "independent_reader_agreed": true,
+    "previous_case_and_copy_records_equal": true,
+    "previous_canonical_bytes_equal": true,
+    "capture_provenance_verified": false,
+    "performance_accepted": false
+  },
+  "hash_work_inventory": {
+    "method": "source call-site inventory combined with complete original member count; no runtime hash-call instrumentation",
+    "initial_binding_hashes_per_artifact": 1,
+    "extra_receipt_hashes_per_artifact_before": 2,
+    "extra_receipt_hashes_per_artifact_after": 0,
+    "extra_full_artifact_hash_calls_removed": 16704,
+    "original_bytes": 2543952,
+    "extra_full_artifact_bytes_to_hash_removed": 5087904,
+    "final_revalidation_retained": true,
+    "source_original_read_and_binding_unchanged": true,
+    "owned_receipt_strings_remain": true,
+    "runtime_hash_call_count_measured": false
+  },
+  "legacy_replays": [
+    {
+      "protocol": "collection",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "execution",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "statistics",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "functional",
+      "passed": true,
+      "originals_unchanged": true
+    }
+  ],
+  "formal_timing_run": false,
+  "rss_or_allocation_counts_measured": false,
+  "remote_resource_changes": false,
+  "pull_request": "https://github.com/houseme/rustfs-erasure-codec/pull/116",
+  "reviewed_main": "ec9211b66255c194ad0b79290ef27e2c01bb9607",
+  "scope": "reuse already-bound original artifact digests for collector case and copy receipts; no codec runtime change",
+  "comparison_capture_source_commit": "bcc77fbf909565e8a182f3de2bba402fc44b2887",
+  "implementation_structure": {
+    "digest_source": "Snapshot.member_digest after successful original byte binding",
+    "new_digest_api_or_cache": false,
+    "reserialized_json_used_for_pins": false,
+    "copied_bytes_equal_bound_originals": true,
+    "final_snapshot_reread_unchanged": true,
+    "required_receipt_string_ownership_retained": true,
+    "statistical_member_name_reused": true,
+    "all_path_type_member_scope_budget_guards_retained": true,
+    "partial_outputs_and_null_missing_member_pins_retained": true,
+    "no_protocol_or_gate_changes": true
+  },
+  "validation": {
+    "toolchain": "stable Rust 1.99.1",
+    "new_ingestion_contracts": 2,
+    "new_contracts": "noncanonical JSON and multi-chunk metadata retain exact original pins and copies; missing sample retains null pin and only bound partial copies",
+    "workspace_all_features": {
+      "passed": 1039,
+      "failed": 0,
+      "ignored": 43
+    },
+    "top_level_executables": 44,
+    "counting": "last summary per top-level executable; excludes self-spawned duplicates",
+    "strict_clippy": "workspace all-targets all-features -D warnings passed",
+    "format": "passed",
+    "diff_check": "passed",
+    "linux_test_cross_check": {
+      "target": "x86_64-unknown-linux-gnu",
+      "command": "cargo +stable check --offline --locked -p xtask --tests --target x86_64-unknown-linux-gnu",
+      "passed": true,
+      "linux_execution_performed": false
+    },
+    "json_audit": {
+      "files": 665,
+      "errors": []
+    },
+    "package_allowlist": {
+      "core_members": 71,
+      "wasm_members": 6,
+      "tool_test_evidence_excluded": true
+    },
+    "workspace_dependency_inheritance": "all 5 members passed",
+    "interpreter_surface_audit": "passed"
+  },
+  "provenance": {
+    "codec_source_files_unchanged": 64,
+    "root_manifest_lock_build_script_unchanged": true,
+    "independent_digest_reference": "SHA-256 over each complete original file and equality with canonical bytes and receipt pins",
+    "previous_capture_comparison": "stable plan and entire statistical samples document, copy records and canonical bytes equal previous capture; new monotonic journals retain their run identity",
+    "raw_evidence": "private unit/build logs, synthetic collection, independent readers, source comparison and legacy readbacks retained",
+    "public_boundary": "no private paths, binary digests, trusted pins or machine identity"
+  },
+  "performance_boundary": {
+    "formal_timing_run": false,
+    "runtime_hash_call_count_measured": false,
+    "allocator_calls_measured": false,
+    "rss_measured": false,
+    "throughput_or_latency_measured": false,
+    "real_linux_baseline_qualified": false,
+    "capture_provenance_verified": false,
+    "performance_accepted": false,
+    "release_qualified": false
+  },
+  "next_steps": [
+    "locally separate complete capsule installation from verification-only and binary-only consumers without introducing a second manifest decoding or validation policy",
+    "continue deferring formal timing and remote resource changes as requested",
+    "confirm dedicated or explicitly authorized Linux reservation, native same-source inputs and complete unchanged baseline before formal timing",
+    "qualify actual collector supervision overhead and repeat stability; evaluate runtime policy only after ABBA/A2 drift and per-layout gates pass"
+  ]
+}
