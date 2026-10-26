@@ -249,6 +249,8 @@ fn a_failed_regression_stops_later_release_checks() {
 #[test]
 fn native_controller_help_lists_real_required_arguments() {
     for (command, flag) in [
+        ("capture-plan-campaign", "--baseline-sha256"),
+        ("replay-plan-campaign", "--plan-sha256"),
         ("release-evidence", "--manifest"),
         ("release-sampling", "--baseline-ref"),
         ("diagnose-release-vm", "--native-service-clock"),
