@@ -40,6 +40,8 @@ struct Estimates {
 }
 #[derive(Serialize)]
 pub(super) struct Distribution {
+    #[serde(skip_serializing)]
+    pub total_ns: Option<f64>,
     pub samples: usize,
     pub mean_ns: f64,
     median_ns: f64,
@@ -122,6 +124,10 @@ pub(super) fn analyze(
         }
         values.push(ratio);
     }
+    let total_ns = sample.times.iter().try_fold(0.0_f64, |sum, value| {
+        let total = sum + value.as_f64()?;
+        total.is_finite().then_some(total)
+    });
     let maximum = values.iter().copied().fold(0.0, f64::max);
     let mean = maximum * (values.iter().map(|v| v / maximum).sum::<f64>() / count as f64);
     values.sort_by(f64::total_cmp);
@@ -171,6 +177,7 @@ pub(super) fn analyze(
         return Err("nonfinite relative confidence width".into());
     }
     Ok(Distribution {
+        total_ns,
         samples: count,
         mean_ns: mean,
         median_ns: median,

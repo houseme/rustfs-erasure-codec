@@ -363,3 +363,11 @@ fn source_current() -> Result<()> {
 
 #[cfg(test)]
 mod tests;
+
+/// Read the existing Linux reservation; never change cgroups or affinity.
+pub(crate) fn plan_resource_context(root: &Path, group: &Path) -> Result<Value> {
+    if !cfg!(target_os = "linux") {
+        return Err("plan resource preflight requires Linux".into());
+    }
+    environment::context(root, &environment::capture(), group)
+}

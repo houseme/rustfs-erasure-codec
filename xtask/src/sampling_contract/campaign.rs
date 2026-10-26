@@ -247,6 +247,7 @@ impl Request {
 }
 
 mod bindings;
+pub(crate) use bindings::validate_context;
 mod summaries;
 
 #[cfg(test)]

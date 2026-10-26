@@ -5,12 +5,12 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 mod criterion;
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;
 const SCHEMA: &str = "plan-bench-statistical-inputs-v1";
 
-#[derive(Clone, Copy, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
-enum Origin {
+pub(super) enum Origin {
     Synthetic,
     Recorded,
 }
@@ -18,7 +18,7 @@ enum Origin {
 #[serde(deny_unknown_fields)]
 struct Document {
     schema: String,
-    origin: Origin,
+    pub(super) origin: Origin,
     baseline_sha256: String,
     candidate_sha256: String,
     repetitions: u8,
@@ -70,18 +70,18 @@ struct Drift {
     candidate_repeat: Option<f64>,
 }
 #[derive(Serialize)]
-struct Report {
+pub(super) struct Report {
     schema: &'static str,
     input_sha256: String,
-    origin: Origin,
+    pub(super) origin: Origin,
     catalog_cases: usize,
     repetitions: u8,
     minimum_samples: usize,
     confidence_level: f64,
     max_ci_width: f64,
     max_drift: f64,
-    integrity_accepted: bool,
-    diagnostics_passed: bool,
+    pub(super) integrity_accepted: bool,
+    pub(super) diagnostics_passed: bool,
     performance_accepted: bool,
     capture_provenance_verified: bool,
     attempts: Vec<AttemptSummary>,
@@ -152,13 +152,49 @@ fn center(a: Option<f64>, b: Option<f64>) -> Option<f64> {
     a.zip(b).map(|(a, b)| a + (b - a) / 2.0)
 }
 fn verify(root: &Path, pin: &str) -> Result<Report> {
-    valid_digest(pin)?;
     let mut snapshot = Snapshot::new(root)?;
-    let mut document: Document =
-        serde_json::from_value(snapshot.json_bound("samples.json", Some(pin))?)?;
+    let (mut report, _) = bound(&mut snapshot, "", pin)?;
+    if let Err(error) = snapshot.finish() {
+        report
+            .errors
+            .push(format!("original snapshot refused: {error}"));
+    }
+    report.integrity_accepted = report.errors.is_empty();
+    report.diagnostics_passed = report.integrity_accepted && report.diagnostic_failures.is_empty();
+    Ok(report)
+}
+pub(super) struct Binding {
+    pub baseline_sha256: String,
+    pub candidate_sha256: String,
+    pub baseline: Manifest,
+    pub candidate: Manifest,
+    pub attempts: Vec<String>,
+    pub attempt_times: Vec<Option<f64>>,
+    pub repetitions: u8,
+}
+pub(super) fn bound(snapshot: &mut Snapshot, prefix: &str, pin: &str) -> Result<(Report, Binding)> {
+    valid_digest(pin)?;
+    let wire = snapshot.json_bound(&format!("{prefix}samples.json"), Some(pin))?;
+    // Hash the already-decoded original Value directly: no cloned typed catalog
+    // or extra Value allocation per attempt, and sorted object keys are stable.
+    let attempts = wire["attempts"]
+        .as_array()
+        .ok_or("missing statistical attempts")?
+        .iter()
+        .map(|attempt| Ok(digest(&serde_json::to_vec(attempt)?)))
+        .collect::<Result<Vec<_>>>()?;
+    let mut document: Document = serde_json::from_value(wire)?;
     document.validate()?;
-    let a = frozen_snapshot(&mut snapshot, "sources/A/", &document.baseline_sha256)?;
-    let b = frozen_snapshot(&mut snapshot, "sources/B/", &document.candidate_sha256)?;
+    let a = frozen_snapshot(
+        snapshot,
+        &format!("{prefix}sources/A/"),
+        &document.baseline_sha256,
+    )?;
+    let b = frozen_snapshot(
+        snapshot,
+        &format!("{prefix}sources/B/"),
+        &document.candidate_sha256,
+    )?;
     compatible(&a, &b)?;
     let mut report = Report {
         schema: "plan-bench-statistical-audit-v1",
@@ -181,6 +217,7 @@ fn verify(root: &Path, pin: &str) -> Result<Report> {
         diagnostic_failures: Vec::new(),
     };
     let expected = usize::from(document.repetitions) * 4;
+    let mut attempt_times = Vec::with_capacity(expected);
     if document.attempts.len() != expected {
         report
             .errors
@@ -216,6 +253,7 @@ fn verify(root: &Path, pin: &str) -> Result<Report> {
                 .errors
                 .push(format!("{repetition}/{stage}: incomplete case catalog"));
         }
+        let mut total_ns: Option<f64> = Some(0.0);
         let mut seen = BTreeSet::new();
         if repetition <= usize::from(document.repetitions) {
             for (position, entry) in attempt.cases.iter().enumerate() {
@@ -231,7 +269,10 @@ fn verify(root: &Path, pin: &str) -> Result<Report> {
                         .push(format!("{repetition}/{stage}: noncanonical case order"));
                 }
                 let key = &a.catalog[entry.case_index];
-                let prefix = format!("records/{repetition:02}/{stage}/{:04}", entry.case_index);
+                let member_prefix = format!(
+                    "{prefix}records/{repetition:02}/{stage}/{:04}",
+                    entry.case_index
+                );
                 if entry.benchmark_sha256.is_none()
                     || entry.sample_sha256.is_none()
                     || entry.estimates_sha256.is_none()
@@ -241,7 +282,7 @@ fn verify(root: &Path, pin: &str) -> Result<Report> {
                     ));
                     continue;
                 }
-                let [benchmark, sample, estimates] = read_case(&mut snapshot, &prefix, entry)?;
+                let [benchmark, sample, estimates] = read_case(snapshot, &member_prefix, entry)?;
                 let checked = if benchmark["full_id"] != key.as_str() {
                     Err("benchmark identity differs from the full frozen catalog".into())
                 } else {
@@ -254,6 +295,10 @@ fn verify(root: &Path, pin: &str) -> Result<Report> {
                 };
                 match checked {
                     Ok(distribution) => {
+                        total_ns = total_ns
+                            .zip(distribution.total_ns)
+                            .map(|(a, b)| a + b)
+                            .filter(|v| v.is_finite());
                         if distribution.relative_ci_width > document.max_ci_width {
                             report.diagnostic_failures.push(format!(
                                 "{repetition}/{stage}/{key}: CI width exceeds declared policy"
@@ -276,6 +321,7 @@ fn verify(root: &Path, pin: &str) -> Result<Report> {
                 }
             }
         }
+        attempt_times.push(total_ns);
         report.attempts.push(AttemptSummary {
             repetition: attempt.repetition,
             stage: attempt.stage,
@@ -327,14 +373,20 @@ fn verify(root: &Path, pin: &str) -> Result<Report> {
             });
         }
     }
-    if let Err(error) = snapshot.finish() {
-        report
-            .errors
-            .push(format!("original snapshot refused: {error}"));
-    }
     report.integrity_accepted = report.errors.is_empty();
     report.diagnostics_passed = report.integrity_accepted && report.diagnostic_failures.is_empty();
-    Ok(report)
+    Ok((
+        report,
+        Binding {
+            baseline_sha256: document.baseline_sha256,
+            candidate_sha256: document.candidate_sha256,
+            baseline: a,
+            candidate: b,
+            attempts,
+            attempt_times,
+            repetitions: document.repetitions,
+        },
+    ))
 }
 pub(crate) fn replay(args: &Args) -> Result<bool> {
     let report = verify(
