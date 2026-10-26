@@ -1,3 +1,6 @@
+#[path = "common/reconstruct_shape_cases.rs"]
+mod shape_cases;
+
 use rustfs_erasure_codec::{
     CodecFamily, CodecOptions, Error, Field, MatrixMode, ReconstructWorkspace, ReedSolomon,
     ShardSlot, galois_8, galois_16,
@@ -1460,64 +1463,8 @@ fn complete_required_targets_reuse_the_owned_shape_index_storage() {
 
 #[test]
 fn shape_index_storage_is_exact_after_validation_and_bounded_on_errors() {
-    struct Case {
-        name: &'static str,
-        data: usize,
-        parity: usize,
-        missing: Vec<usize>,
-        bad_length: Option<usize>,
-    }
-    fn cases() -> Vec<Case> {
-        let mut cases = Vec::new();
-        for data in [4, 32, 33, 64, 65, 96] {
-            for (name, missing, bad_length) in [
-                ("present", vec![], None),
-                ("head", vec![0], None),
-                ("middle", vec![data / 2], None),
-                ("tail", vec![data + 3], None),
-                ("sparse", vec![0, data / 2, data + 1], None),
-                ("quorum", (0..5).collect(), None),
-                ("short", vec![0], Some(64)),
-                ("empty", vec![0], Some(0)),
-                ("quorum_short", (0..5).collect(), Some(64)),
-            ] {
-                cases.push(Case {
-                    name,
-                    data,
-                    parity: 4,
-                    missing,
-                    bad_length,
-                });
-            }
-        }
-        for (name, missing, bad_length) in [
-            ("wide_missing", (4..69).collect(), None),
-            (
-                "wide_mixed",
-                std::iter::once(0).chain(4..69).collect(),
-                None,
-            ),
-            ("wide_quorum", (0..101).collect(), None),
-            ("wide_short", (4..100).collect(), Some(64)),
-        ] {
-            cases.push(Case {
-                name,
-                data: 4,
-                parity: 97,
-                missing,
-                bad_length,
-            });
-        }
-        cases
-    }
-    fn expected_error(case: &Case) -> Option<Error> {
-        match case.bad_length {
-            Some(0) => Some(Error::EmptyShard),
-            Some(_) => Some(Error::IncorrectShardSize),
-            None if case.missing.len() > case.parity => Some(Error::TooFewShardsPresent),
-            None => None,
-        }
-    }
+    use shape_cases::{Case, cases, expected_error};
+
     fn budget<F: Field>(case: &Case, full: bool, call: bool) -> Requests {
         // Missing-index growth is intentionally unchanged. Valid inputs spill
         // only after successful validation, directly to their final k width.
