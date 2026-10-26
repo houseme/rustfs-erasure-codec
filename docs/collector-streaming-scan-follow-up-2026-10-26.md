@@ -75,3 +75,11 @@ stable Rust 1.99.1 完整 workspace all-features 为 1,030 项通过、43 项既
 完整未变 baseline、ABBA、A2 漂移与逐布局门槛通过后，再评估生产尺寸/并发/
 峰值预算下的 verify 分块及 oversized GF16 cache 策略。所有历史失败与来源保留，
 本轮未合并、打 tag 或发布。
+
+## 交付来源映射
+
+交付期间原 PR #115 已合并。最新 main 为 ec9211b，其完整源码树与已验证基线
+8d87f1f 相同。本轮两个提交单独放到该 main 上，对应代码提交 a52eda3，
+交付 [PR #116](https://github.com/houseme/rustfs-erasure-codec/pull/116)。
+原采集源码 340156b 与 a52eda3 的完整树一致，验证数据和原源码身份保留，
+没有因为移动交付分支而重标测量或重复运行正式计时。
