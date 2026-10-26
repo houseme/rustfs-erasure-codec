@@ -10,6 +10,11 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Add repository-only frozen plan-benchmark build, functional stage capture and
+  offline replay commands. Bind source/archive/binary/catalog inputs and raw
+  logs to independent manifest/receipt pins, preserve failures and enforce
+  complete case inventories without granting timing or release qualification.
+
 - Add a repository-only `reconstruct_plans` Criterion diagnostic for full plan
   preparation, no-output preparation and no-output calls. Share the existing
   shape resource catalog and retain fixture owners outside repeated callbacks.
