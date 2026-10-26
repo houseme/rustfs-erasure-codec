@@ -1,5 +1,9 @@
 mod source_stamp;
 fn main() {
+    println!(
+        "cargo:rustc-env=RSE_NATIVE_TARGET={}",
+        std::env::var("TARGET").expect("Cargo sets target identity")
+    );
     let manifest = std::path::PathBuf::from(
         std::env::var_os("CARGO_MANIFEST_DIR").expect("Cargo sets the manifest root"),
     );

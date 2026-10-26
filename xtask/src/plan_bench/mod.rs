@@ -7,6 +7,7 @@ mod run;
 pub(crate) mod samples;
 #[cfg(test)]
 mod tests;
+mod window;
 
 use crate::{Args, Result, artifact};
 use artifact::snapshot::{Snapshot, digest};

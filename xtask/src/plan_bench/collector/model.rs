@@ -44,13 +44,14 @@ impl Plan {
                 != execution::baseline_catalog()
             || !(1..=60).contains(&self.warm_up_seconds)
             || !(1..=600).contains(&self.measurement_seconds)
-            || !(1..=86400).contains(&self.stage_seconds)
-            || !(1..=604800).contains(&self.window_seconds)
-            || !(1..=60).contains(&self.gap_seconds)
-            || self.stage_seconds > self.window_seconds
         {
             return Err("invalid predeclared collection plan".into());
         }
+        super::super::window::Budget::new(
+            self.stage_seconds,
+            self.window_seconds,
+            self.gap_seconds,
+        )?;
         for pin in self.baseline_members.values() {
             valid_digest(pin)?;
         }

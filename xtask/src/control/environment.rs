@@ -134,8 +134,15 @@ pub(super) fn baseline(root: &Path) -> Result<Value> {
     source_at(root, BASELINE)
 }
 pub(super) fn compiler(root: &Path) -> Result<String> {
-    let out = std::process::Command::new("rustc")
-        .arg("--version")
+    compiler_identity(root, false)
+}
+pub(super) fn compiler_identity(root: &Path, verbose: bool) -> Result<String> {
+    let mut command = std::process::Command::new("rustc");
+    command.arg("--version");
+    if verbose {
+        command.arg("--verbose");
+    }
+    let out = command
         .current_dir(root)
         .env("RUSTUP_TOOLCHAIN", "stable")
         .output()?;
