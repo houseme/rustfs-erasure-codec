@@ -160,3 +160,6 @@ Classic 计划构造中的完整 required 目标索引复用、准备/普通调�
 
 Classic shape 的有效索引延迟分配、有效/无输出/错误路径完整资源目录见
 [Classic shape 索引跟进报告](shape-index-follow-up-2026-10-26.md)。
+
+耗时验证前置的共享计划生命周期目录、348 个功能场景和受控测量边界见
+[Classic 计划生命周期报告](reconstruct-plan-benchmark-2026-10-26.md)。
