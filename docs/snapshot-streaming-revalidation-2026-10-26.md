@@ -64,3 +64,9 @@ performance_accepted 保持 false；64 份 codec 源码及根 manifest、lock、
 完整 ABBA、A2 漂移与逐布局门槛通过后，再按生产对象尺寸、并发度和峰值预算
 评估 verify 分块及 oversized GF16 cache 策略；本地合成数据和固定缓冲大小不授予
 候选性能归因。本轮未合并、打 tag 或发布。
+
+## 初次摘要绑定的后续改进
+
+本页保留提交 `5879017` 的实现和验证事实。之后初次摘要绑定与最终复核共用
+Snapshot 持有的按需堆缓冲；具体入口、完整目录范围及独立验证见
+[摘要绑定报告](snapshot-opaque-verification-2026-10-26.md)。

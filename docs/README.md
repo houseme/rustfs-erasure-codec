@@ -36,6 +36,7 @@ This directory contains development documentation, design documents, benchmark r
 | [collector-admission-follow-up-2026-10-26.md](collector-admission-follow-up-2026-10-26.md) | Exact native compiler admission, shared stage deadlines and preserved outcomes on clock failure |
 | [collector-streaming-scan-follow-up-2026-10-26.md](collector-streaming-scan-follow-up-2026-10-26.md) | Streaming budget traversal, metadata-only retained paths and fixed argv reuse with unchanged guards |
 | [snapshot-streaming-revalidation-2026-10-26.md](snapshot-streaming-revalidation-2026-10-26.md) | Fixed-scratch original digest revalidation and streaming path-component checks with unchanged acceptance rules |
+| [snapshot-opaque-verification-2026-10-26.md](snapshot-opaque-verification-2026-10-26.md) | Digest-only initial binding and final verification share lazy Snapshot scratch and actual-byte budgets |
 | [global-review-9.1.0-2026-10-22.md](global-review-9.1.0-2026-10-22.md) | Archived earlier architecture review and bounded incremental-update resources |
 | [drift-analysis-9.1.0-2026-10-22.md](drift-analysis-9.1.0-2026-10-22.md) | Current drift investigation, benchmark lifetime fixes and sparse incremental-update validation |
 | [README-performance-index.md](README-performance-index.md) | Performance document index |

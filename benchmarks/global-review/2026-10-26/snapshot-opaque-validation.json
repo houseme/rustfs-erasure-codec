@@ -1,0 +1,135 @@
+{
+  "schema": "snapshot-opaque-validation-v1",
+  "source_commit": "bcc77fbf909565e8a182f3de2bba402fc44b2887",
+  "verification_buffer_bytes": 65536,
+  "buffer_reused_across_members": true,
+  "streaming_reader_source_unmodified": true,
+  "independent_sha256_cases": 4,
+  "empty_original_checked": true,
+  "multi_chunk_original_checked": true,
+  "maximum_read_request_bytes": 65536,
+  "synthetic_collection": {
+    "fake_workers": 8,
+    "observations": 2784,
+    "raw_to_canonical_bindings": 8352,
+    "independent_reader_agreed": true,
+    "capture_provenance_verified": false,
+    "performance_accepted": false
+  },
+  "legacy_replays": [
+    {
+      "protocol": "collection",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "execution",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "statistics",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "functional",
+      "passed": true,
+      "originals_unchanged": true
+    }
+  ],
+  "formal_timing_run": false,
+  "rss_or_allocation_counts_measured": false,
+  "remote_resource_changes": false,
+  "pull_request": "https://github.com/houseme/rustfs-erasure-codec/pull/116",
+  "prior_head": "91f03c3479860a6605dc9ac4e3d46d412a391046",
+  "reviewed_main": "ec9211b66255c194ad0b79290ef27e2c01bb9607",
+  "scope": "shared Snapshot digest-only initial bindings and final revalidation use one lazy scratch; no codec runtime change",
+  "implementation_structure": {
+    "digest_only_initial_bindings_return_file_vec": false,
+    "scratch_ownership": "one lazily allocated Vec per Snapshot; retained until Snapshot is dropped",
+    "verification_scratch_bytes": 65536,
+    "scratch_reused_across_initial_bindings_and_final_revalidation": true,
+    "previous_final_revalidation_scratch": "one stack array per unchanged call",
+    "owned_copy_and_decode_reads_retained": true,
+    "actual_byte_accounting_shared_with_owned_reads": true,
+    "member_limit_bytes": 33554432,
+    "read_limit_plus_one_enforced": true,
+    "empty_logs_allowed_but_empty_binary_refused": true,
+    "duplicate_and_wrong_pin_refused": true,
+    "scoped_and_total_budget_semantics_retained": true,
+    "final_original_change_refused": true,
+    "pathbuf_hex_report_and_decode_allocations_remain": true,
+    "no_protocol_or_gate_changes": true
+  },
+  "readonly_collection_inventory": {
+    "scope": "one complete readonly collection replay; parsed canonical members remain owned reads",
+    "digest_only_registrations": 8380,
+    "nonempty_digest_only_members": 8372,
+    "empty_raw_logs": 8,
+    "groups": {
+      "frozen_archive_and_binary": 4,
+      "worker_binary": 8,
+      "worker_logs": 16,
+      "worker_original_artifacts": 8352
+    },
+    "unique_member_paths_verified": true,
+    "allocation_calls_measured": false
+  },
+  "validation": {
+    "toolchain": "stable Rust 1.99.1",
+    "new_snapshot_contracts": 3,
+    "snapshot_focused_contracts": 16,
+    "workspace_all_features": {
+      "passed": 1037,
+      "failed": 0,
+      "ignored": 43
+    },
+    "counting": "last summary per top-level executable; excludes self-spawned duplicates",
+    "strict_clippy": "workspace all-targets all-features -D warnings passed",
+    "format": "passed",
+    "diff_check": "passed",
+    "linux_test_cross_check": {
+      "target": "x86_64-unknown-linux-gnu",
+      "command": "cargo +stable check --offline --locked -p xtask --tests --target x86_64-unknown-linux-gnu",
+      "passed": true,
+      "linux_execution_performed": false
+    },
+    "json_audit": {
+      "files": 664,
+      "errors": []
+    },
+    "package_allowlist": {
+      "core_members": 71,
+      "wasm_members": 6,
+      "tool_test_evidence_excluded": true
+    },
+    "workspace_dependency_inheritance": "all 5 members passed",
+    "interpreter_surface_audit": "passed"
+  },
+  "provenance": {
+    "codec_source_files_unchanged": 64,
+    "root_manifest_lock_build_script_unchanged": true,
+    "source_reader_wrapper": "unmodified committed digest_reader, digest_reader_counted and hex implementations with a private read-request observer",
+    "independent_digest_reference": "SHA-256 over each complete original file",
+    "inventory_method": "unique member paths from frozen sources and complete receipt; no allocator instrumentation",
+    "raw_evidence": "private unit/build logs, reader wrapper and observations, synthetic collection, independent reader and legacy readbacks retained",
+    "public_boundary": "no private paths, binary digests, trusted pins or machine identity"
+  },
+  "performance_boundary": {
+    "formal_timing_run": false,
+    "allocator_calls_measured": false,
+    "rss_measured": false,
+    "throughput_or_latency_measured": false,
+    "real_linux_baseline_qualified": false,
+    "capture_provenance_verified": false,
+    "performance_accepted": false,
+    "release_qualified": false
+  },
+  "next_steps": [
+    "continue deferring formal timing and remote resource changes as requested",
+    "confirm dedicated or explicitly authorized Linux reservation before formal timing",
+    "qualify native same-source collection, actual supervision overhead and complete repeat stability",
+    "only after unchanged complete baseline, ABBA/A2 drift and per-layout gates pass, evaluate runtime policy against production concurrency and peak-memory budgets"
+  ]
+}

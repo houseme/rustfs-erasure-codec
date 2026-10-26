@@ -187,3 +187,6 @@ Classic shape 的有效索引延迟分配、有效/无输出/错误路径完整�
 
 固定缓冲的最终字节摘要复核与路径组件迭代见
 [Snapshot 流式复核报告](snapshot-streaming-revalidation-2026-10-26.md)。
+
+初次摘要绑定去掉立即丢弃的文件 Vec、复用 Snapshot scratch 及混合预算契约见
+[Snapshot 摘要绑定报告](snapshot-opaque-verification-2026-10-26.md)。
