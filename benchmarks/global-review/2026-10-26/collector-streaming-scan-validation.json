@@ -1,0 +1,183 @@
+{
+  "schema": "collector-streaming-scan-validation-v1",
+  "source_commit": "340156b0f9170423355456a61c32c26d6992c9a2",
+  "measurement_kind": "filesystem inventory and code-path structure; no allocation-count, elapsed-time, throughput, or RSS measurement",
+  "monitor": {
+    "entries_checked": 13978,
+    "files_checked": 8392,
+    "old_file_names_retained": 8392,
+    "new_file_name_collection_retained": 0,
+    "old_relative_name_payload_bytes": 309696
+  },
+  "ingestion": {
+    "old_all_raw_file_paths_retained": 8352,
+    "new_metadata_paths_retained": 2784,
+    "per_worker": [
+      {
+        "raw_files": 1044,
+        "retained_metadata_paths": 348,
+        "old_relative_name_payload_bytes": 28188,
+        "new_metadata_name_payload_bytes": 9744
+      },
+      {
+        "raw_files": 1044,
+        "retained_metadata_paths": 348,
+        "old_relative_name_payload_bytes": 28188,
+        "new_metadata_name_payload_bytes": 9744
+      },
+      {
+        "raw_files": 1044,
+        "retained_metadata_paths": 348,
+        "old_relative_name_payload_bytes": 28188,
+        "new_metadata_name_payload_bytes": 9744
+      },
+      {
+        "raw_files": 1044,
+        "retained_metadata_paths": 348,
+        "old_relative_name_payload_bytes": 28188,
+        "new_metadata_name_payload_bytes": 9744
+      },
+      {
+        "raw_files": 1044,
+        "retained_metadata_paths": 348,
+        "old_relative_name_payload_bytes": 28188,
+        "new_metadata_name_payload_bytes": 9744
+      },
+      {
+        "raw_files": 1044,
+        "retained_metadata_paths": 348,
+        "old_relative_name_payload_bytes": 28188,
+        "new_metadata_name_payload_bytes": 9744
+      },
+      {
+        "raw_files": 1044,
+        "retained_metadata_paths": 348,
+        "old_relative_name_payload_bytes": 28188,
+        "new_metadata_name_payload_bytes": 9744
+      },
+      {
+        "raw_files": 1044,
+        "retained_metadata_paths": 348,
+        "old_relative_name_payload_bytes": 28188,
+        "new_metadata_name_payload_bytes": 9744
+      }
+    ]
+  },
+  "argv_source_analysis": {
+    "completed_workers": 8,
+    "old_collection_loop_plan_args_calls": 24,
+    "new_collection_loop_plan_args_calls": 1,
+    "old_replay_plan_args_calls": 16,
+    "new_replay_plan_args_calls": 1,
+    "new_replay_expected_json_builds": 1,
+    "note": "source-derived builder counts; Command ownership and receipt/JSON copies still allocate"
+  },
+  "synthetic_collection": {
+    "fake_workers": 8,
+    "observations": 2784,
+    "original_to_corpus_bindings": 8352,
+    "independent_reader_agreed": true,
+    "performance_accepted": false
+  },
+  "legacy_replays": [
+    {
+      "protocol": "collection",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "execution",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "statistics",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "functional",
+      "passed": true,
+      "originals_unchanged": true
+    }
+  ],
+  "real_timing_run": false,
+  "remote_resource_changes": false,
+  "pull_request": "https://github.com/houseme/rustfs-erasure-codec/pull/115",
+  "prior_head": "8d87f1f3f73a737ddd55239a4a50760f0a542f8c",
+  "scope": "streaming artifact budget scans, metadata-only path retention and immutable argv reuse; no codec runtime change",
+  "validation": {
+    "toolchain": "stable Rust 1.99.1",
+    "new_locally_executed_contracts": 4,
+    "local_plan_contracts": 61,
+    "linux_only_invalid_filename_contract": "compiled by Linux test cross-check; not executed on local filesystem",
+    "workspace_all_features": {
+      "passed": 1030,
+      "failed": 0,
+      "ignored": 43
+    },
+    "counting": "last summary per top-level executable; excludes self-spawned duplicates",
+    "strict_clippy": "workspace all-targets all-features -D warnings passed",
+    "format": "passed",
+    "diff_check": "passed",
+    "linux_cross_check": {
+      "target": "x86_64-unknown-linux-gnu",
+      "includes_tests": true,
+      "command": "cargo +stable check --offline --locked -p xtask --tests --target x86_64-unknown-linux-gnu",
+      "passed": true,
+      "linux_execution_performed": false
+    },
+    "json_audit": {
+      "files": 662,
+      "errors": []
+    },
+    "package_allowlist": {
+      "core_members": 71,
+      "wasm_members": 6,
+      "tool_test_evidence_excluded": true
+    },
+    "workspace_dependency_inheritance": "all 5 members passed",
+    "interpreter_surface_audit": "passed"
+  },
+  "preserved_guards": {
+    "all_entries_and_file_types_checked": true,
+    "all_regular_file_names_validate_utf8_even_if_ignored": true,
+    "depth_limit": 32,
+    "member_limit_bytes": 33554432,
+    "monitored_total_limit_bytes": 1073741824,
+    "max_entry_formula_unchanged": true,
+    "full_workers_tree_checked_without_cached_prior_totals": true,
+    "root_symlinks_rejected_before_following": true,
+    "input_and_receipt_schemas_unchanged": true
+  },
+  "provenance": {
+    "codec_source_files_unchanged": 64,
+    "root_manifest_lock_build_script_unchanged": true,
+    "traversal_wrapper": "unmodified prefix of the committed artifacts module, plus private std-only imports and output wrapper",
+    "independent_inventory": "filesystem lstat and relative-path selection; no runtime/RSS/allocator inference",
+    "raw_evidence": "private source wrapper, directory inventories, synthetic collection, independent reader and historical readbacks retained",
+    "public_boundary": "no private paths, binary digests, trusted pins or machine identity"
+  },
+  "prior_head_ci": {
+    "head": "8d87f1f3f73a737ddd55239a4a50760f0a542f8c",
+    "checks": {
+      "SUCCESS": 31,
+      "SKIPPED": 3
+    }
+  },
+  "performance_boundary": {
+    "formal_timing_run": false,
+    "allocator_calls_measured": false,
+    "rss_measured": false,
+    "throughput_or_latency_measured": false,
+    "real_linux_qualification_performed": false,
+    "capture_provenance_verified": false,
+    "performance_accepted": false,
+    "release_qualified": false
+  },
+  "next_steps": [
+    "confirm dedicated or explicitly authorized Linux resources before formal timing",
+    "qualify same-source native collection, supervision overhead and complete repeat stability",
+    "only after full unchanged baseline, ABBA/A2 drift and per-layout gates pass, evaluate production-budget-driven runtime policy changes"
+  ]
+}
