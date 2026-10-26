@@ -388,3 +388,81 @@ fn failed_clock_observation_still_preserves_the_owned_worker_outcome() {
     assert_eq!(outcome.exit_code, Some(0));
     assert!(!out.join("workers/01/B1").exists());
 }
+
+#[test]
+fn ingestion_reuses_original_byte_pins_for_both_receipt_views_and_exact_copies() {
+    let (root, _) = fixture("success");
+    let plan: Plan = artifact::read_json(&root.0.join("plan.json")).unwrap();
+    let manifest: Manifest =
+        artifact::read_json(&root.0.join("corpus/sources/A/manifest.json")).unwrap();
+    let stage = root.0.join("workers/01/A1");
+    let raw = stage.join("raw/case/new");
+    fs::create_dir_all(&raw).unwrap();
+    let members = ["benchmark.json", "sample.json", "estimates.json"];
+    for name in members {
+        let mut value: Value =
+            artifact::read_json(&root.0.join("corpus/records/01/A1/0000").join(name)).unwrap();
+        if name == "benchmark.json" {
+            value["opaque_metadata"] = "x".repeat(128 * 1024).into();
+        }
+        let bytes = format!(
+            " \r\n{}\r\n\t",
+            serde_json::to_string_pretty(&value).unwrap()
+        );
+        fs::write(raw.join(name), bytes).unwrap();
+    }
+    let output = root.0.join("ingested");
+    let result = artifacts::collect(&root.0, &stage, &output, &manifest, &plan).unwrap();
+    assert!(result.valid && result.error.is_none());
+    assert_eq!(result.copies.len(), 3);
+    for (name, field) in
+        members
+            .into_iter()
+            .zip(["benchmark_sha256", "sample_sha256", "estimates_sha256"])
+    {
+        let original = fs::read(raw.join(name)).unwrap();
+        let value: Value = serde_json::from_slice(&original).unwrap();
+        let hash = digest(&original);
+        assert_ne!(hash, digest(&serde_json::to_vec(&value).unwrap()));
+        assert_eq!(result.cases[0][field], hash);
+        let copy = result
+            .copies
+            .iter()
+            .find(|copy| copy.canonical.ends_with(name))
+            .unwrap();
+        assert_eq!(copy.sha256, hash);
+        assert_eq!(fs::read(root.0.join(&copy.original)).unwrap(), original);
+        assert_eq!(fs::read(root.0.join(&copy.canonical)).unwrap(), original);
+    }
+    assert!(result.means[0].is_some());
+}
+
+#[test]
+fn missing_ingestion_member_retains_null_pin_and_only_bound_partial_copies() {
+    let (root, _) = fixture("success");
+    let plan: Plan = artifact::read_json(&root.0.join("plan.json")).unwrap();
+    let manifest: Manifest =
+        artifact::read_json(&root.0.join("corpus/sources/A/manifest.json")).unwrap();
+    let stage = root.0.join("workers/01/A1");
+    let raw = stage.join("raw/case/new");
+    fs::create_dir_all(&raw).unwrap();
+    for name in ["benchmark.json", "estimates.json"] {
+        fs::copy(
+            root.0.join("corpus/records/01/A1/0000").join(name),
+            raw.join(name),
+        )
+        .unwrap();
+    }
+    let output = root.0.join("partial");
+    let result = artifacts::collect(&root.0, &stage, &output, &manifest, &plan).unwrap();
+    assert!(!result.valid && result.error.is_some());
+    assert!(result.cases[0]["sample_sha256"].is_null());
+    assert!(result.means[0].is_none());
+    assert_eq!(result.copies.len(), 2);
+    for copy in &result.copies {
+        let original = fs::read(root.0.join(&copy.original)).unwrap();
+        assert_eq!(copy.sha256, digest(&original));
+        assert_eq!(fs::read(root.0.join(&copy.canonical)).unwrap(), original);
+    }
+    assert!(!output.join("0000/sample.json").exists());
+}

@@ -125,7 +125,12 @@ pub(super) fn collect(
         let directory = output.join(format!("{index:04}"));
         fs::create_dir_all(&directory)?;
         write(&directory.join("benchmark.json"), &bytes)?;
-        result[index]["benchmark_sha256"] = digest(&bytes).into();
+        // Snapshot hashed these exact bytes when binding the original. Both
+        // receipt views reuse that pin; neither hashes a reserialized value.
+        let hash = snapshot
+            .member_digest(name)
+            .ok_or("missing bound benchmark digest")?;
+        result[index]["benchmark_sha256"] = hash.into();
         copies.push(ArtifactCopy {
             canonical: directory
                 .join("benchmark.json")
@@ -139,7 +144,7 @@ pub(super) fn collect(
                 .to_str()
                 .ok_or("invalid raw path")?
                 .into(),
-            sha256: digest(&bytes),
+            sha256: hash.into(),
         });
         let prefix = name
             .strip_suffix("benchmark.json")
@@ -149,10 +154,14 @@ pub(super) fn collect(
             ("sample.json", "sample_sha256"),
             ("estimates.json", "estimates_sha256"),
         ] {
-            match snapshot.original(&format!("{prefix}{member}")) {
+            let name = format!("{prefix}{member}");
+            match snapshot.original(&name) {
                 Ok(bytes) => {
                     write(&directory.join(member), &bytes)?;
-                    result[index][field] = digest(&bytes).into();
+                    let hash = snapshot
+                        .member_digest(&name)
+                        .ok_or("missing bound statistical digest")?;
+                    result[index][field] = hash.into();
                     copies.push(ArtifactCopy {
                         canonical: directory
                             .join(member)
@@ -161,12 +170,12 @@ pub(super) fn collect(
                             .ok_or("invalid canonical path")?
                             .into(),
                         original: raw
-                            .join(format!("{prefix}{member}"))
+                            .join(&name)
                             .strip_prefix(root)?
                             .to_str()
                             .ok_or("invalid raw path")?
                             .into(),
-                        sha256: digest(&bytes),
+                        sha256: hash.into(),
                     });
                     let artifact::StrictJson(value) = serde_json::from_slice(&bytes)?;
                     values.push(value);
