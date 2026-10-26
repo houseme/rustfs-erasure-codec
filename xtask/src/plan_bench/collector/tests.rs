@@ -8,7 +8,11 @@ fn script(mode: &str) -> String {
     let key = "reconstruct_plans/prepare_full/gf8/4x4/head/elements65";
     let estimate = |point: f64| json!({"point_estimate":point,"confidence_interval":{"confidence_level":0.95,"lower_bound":point*0.99,"upper_bound":point*1.01},"standard_error":0.0});
     let sample = json!({"sampling_mode":"Linear","iters":[1,2,3,4,5,6,7,8,9,10],"times":[100,200,300,400,500,600,700,800,900,1000]});
-    let estimates = json!({"mean":estimate(100.0),"median":estimate(100.0),"median_abs_dev":estimate(0.0),"std_dev":estimate(0.0),"slope":estimate(100.0)});
+    let mut estimates = json!({"mean":estimate(100.0),"median":estimate(100.0),"median_abs_dev":estimate(0.0),"std_dev":estimate(0.0),"slope":estimate(100.0)});
+    if mode == "wide" {
+        estimates["mean"]["confidence_interval"]["lower_bound"] = 50.into();
+        estimates["mean"]["confidence_interval"]["upper_bound"] = 150.into();
+    }
     let end = match mode {
         "exit" => "exit 7",
         "hang" => "printf ready > ready; sleep 20 & wait",
@@ -20,15 +24,38 @@ fn script(mode: &str) -> String {
         "link" => "ln -s /tmp \"$CRITERION_HOME/link\"",
         _ => ":",
     };
-    format!(
+    let normal = format!(
         "#!/bin/sh\n[ \"$1\" = --test ] || exit 42\nmkdir -p \"$CRITERION_HOME/case/new\"\ncat > \"$CRITERION_HOME/case/new/benchmark.json\" <<'JSON'\n{{\"full_id\":\"{key}\"}}\nJSON\ncat > \"$CRITERION_HOME/case/new/sample.json\" <<'JSON'\n{sample}\nJSON\n{}\n{end}\n",
         if mode == "partial" {
             String::new()
         } else {
             format!("cat > \"$CRITERION_HOME/case/new/estimates.json\" <<'JSON'\n{estimates}\nJSON")
         }
-    )
+    );
+    if ["drift", "repeat"].contains(&mode) {
+        let sample = json!({"sampling_mode":"Linear","iters":[1,2,3,4,5,6,7,8,9,10],"times":[200,400,600,800,1000,1200,1400,1600,1800,2000]});
+        let estimates = json!({"mean":estimate(200.0),"median":estimate(200.0),"median_abs_dev":estimate(0.0),"std_dev":estimate(0.0),"slope":estimate(200.0)});
+        let pattern = if mode == "drift" {
+            "*/B2"
+        } else {
+            "*/02/B1|*/02/B2"
+        };
+        return format!(
+            r#"{normal}
+case "$PWD" in {pattern})
+cat > "$CRITERION_HOME/case/new/sample.json" <<'JSON'
+{sample}
+JSON
+cat > "$CRITERION_HOME/case/new/estimates.json" <<'JSON'
+{estimates}
+JSON
+;; esac
+"#
+        );
+    }
+    normal
 }
+
 pub(crate) fn fixture(mode: &str) -> (Directory, String) {
     let (root, _) = execution::tests::fixture();
     let mut source_pins = Vec::new();
@@ -218,4 +245,22 @@ fn raw_worker_artifact_mutation_is_rejected_even_when_canonical_corpus_is_unchan
     .unwrap();
     assert!(replay::verify(&out, &pin, &rpin).is_err());
     assert!(replay::verify(&out, &"0".repeat(64), &rpin).is_err());
+}
+
+#[test]
+fn width_and_available_drift_failures_stop_before_the_next_worker() {
+    for (mode, expected) in [("wide", 2), ("drift", 3), ("repeat", 7)] {
+        let (source, _) = fixture(mode);
+        let mut plan: Value = artifact::read_json(&source.0.join("plan.json")).unwrap();
+        if mode == "repeat" {
+            plan["repetitions"] = 2.into();
+        }
+        let pin = put(&source.0.join("plan.json"), &plan);
+        let parent = Directory::new();
+        let out = parent.0.join("capture");
+        assert!(!capture_fixture(&source.0, &out, &pin, &AtomicBool::new(false)).unwrap());
+        let (_, r) = receipt(&out);
+        assert!(!r.completed);
+        assert_eq!(r.steps.len(), expected, "{mode}");
+    }
 }

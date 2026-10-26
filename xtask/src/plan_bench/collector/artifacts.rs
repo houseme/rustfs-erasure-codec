@@ -46,6 +46,8 @@ pub(super) struct Produced {
     pub cases: Vec<Value>,
     pub copies: Vec<ArtifactCopy>,
     pub valid: bool,
+    pub means: Vec<Option<f64>>,
+    pub error: Option<String>,
 }
 pub(super) fn collect(
     root: &Path,
@@ -61,6 +63,7 @@ pub(super) fn collect(
     let mut result:Vec<_>=(0..manifest.catalog.len()).map(|i|json!({"case_index":i,"benchmark_sha256":null,"sample_sha256":null,"estimates_sha256":null})).collect();
     let mut errors = Vec::new();
     let mut copies = Vec::new();
+    let mut means = vec![None; manifest.catalog.len()];
     for name in files
         .iter()
         .filter(|n| n.ends_with("/new/benchmark.json") || n.as_str() == "new/benchmark.json")
@@ -135,13 +138,15 @@ pub(super) fn collect(
             }
             let estimates = values.pop().ok_or("missing estimate")?;
             let sample = values.pop().ok_or("missing sample")?;
-            if let Err(e) = samples::validate_raw(
+            match samples::validate_raw(
                 sample,
                 estimates,
                 plan.minimum_samples,
                 plan.confidence_level,
+                plan.max_ci_width,
             ) {
-                errors.push(e.to_string());
+                Ok(mean) => means[index] = Some(mean),
+                Err(e) => errors.push(format!("{key}: {e}")),
             }
         }
     }
@@ -150,5 +155,11 @@ pub(super) fn collect(
         cases: result,
         copies,
         valid: seen.len() == manifest.catalog.len() && errors.is_empty(),
+        means,
+        error: if seen.len() != manifest.catalog.len() {
+            Some("incomplete original case catalog".into())
+        } else {
+            errors.into_iter().next()
+        },
     })
 }

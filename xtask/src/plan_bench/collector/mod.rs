@@ -147,6 +147,7 @@ fn collect(
     observe(plan, &reference, observer)?;
     let origin = Instant::now();
     let mut attempts = Vec::new();
+    let mut means = vec![vec![[None; 4]; a.catalog.len()]; usize::from(plan.repetitions)];
     let mut executed = Vec::new();
     let mut previous = 0;
     let result = (|| -> Result<()> {
@@ -250,13 +251,16 @@ fn collect(
                 manifest,
                 plan,
             );
-            let case_error = produced.as_ref().err().map(ToString::to_string);
+            let case_error = match &produced {
+                Ok(p) => p.error.clone(),
+                Err(e) => Some(e.to_string()),
+            };
             let valid = produced.as_ref().is_ok_and(|p| p.valid);
-            let cases = if let Ok(produced) = produced {
+            let (cases, case_means) = if let Ok(produced) = produced {
                 step.copies = produced.copies;
-                produced.cases
+                (produced.cases, produced.means)
             } else {
-                Vec::new()
+                (Vec::new(), Vec::new())
             };
             let unchanged = inputs.unchanged().is_ok()
                 && crate::fingerprint::file(&directory.join("binary"))
@@ -285,6 +289,23 @@ fn collect(
                     "{stage} failed; artifacts: {case_error:?}; guard: {guard_error:?}"
                 )
                 .into());
+            }
+            for (case, mean) in case_means.into_iter().enumerate() {
+                means[index / 4][case][index % 4] = mean;
+                for value in samples::drift_values(means[index / 4][case], means[0][case])
+                    .into_iter()
+                    .flatten()
+                {
+                    let drift =
+                        value.map_err(|e| format!("{stage}/{}: {e}", manifest.catalog[case]))?;
+                    if drift.abs() > plan.max_drift {
+                        return Err(format!(
+                            "{stage}/{}: observed statistical drift exceeds the predeclared limit",
+                            manifest.catalog[case]
+                        )
+                        .into());
+                    }
+                }
             }
             inputs.unchanged()?;
         }
