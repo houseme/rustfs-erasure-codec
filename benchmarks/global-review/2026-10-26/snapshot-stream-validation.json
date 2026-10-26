@@ -1,0 +1,123 @@
+{
+  "schema": "snapshot-stream-validation-v1",
+  "source_commit": "58790171c85ae9812c68db673de9c85c02942097",
+  "verification_buffer_bytes": 65536,
+  "buffer_reused_across_members": true,
+  "streaming_reader_source_unmodified": true,
+  "independent_sha256_cases": 4,
+  "empty_original_checked": true,
+  "multi_chunk_original_checked": true,
+  "maximum_read_request_bytes": 65536,
+  "synthetic_collection": {
+    "fake_workers": 8,
+    "observations": 2784,
+    "raw_to_canonical_bindings": 8352,
+    "independent_reader_agreed": true,
+    "capture_provenance_verified": false,
+    "performance_accepted": false
+  },
+  "legacy_replays": [
+    {
+      "protocol": "collection",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "execution",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "statistics",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "functional",
+      "passed": true,
+      "originals_unchanged": true
+    }
+  ],
+  "formal_timing_run": false,
+  "rss_or_allocation_counts_measured": false,
+  "remote_resource_changes": false,
+  "pull_request": "https://github.com/houseme/rustfs-erasure-codec/pull/116",
+  "prior_head": "7be3067be25b534d079724551c06f9446547078a",
+  "scope": "shared Snapshot final original-byte digest streaming and component iteration; no codec runtime change",
+  "implementation_structure": {
+    "initial_original_byte_read_and_decode_unchanged": true,
+    "final_revalidation_file_sized_vec_removed": true,
+    "verification_scratch_bytes": 65536,
+    "scratch_reused_for_all_registered_members": true,
+    "path_component_vec_removed": true,
+    "all_component_type_checks_retained": true,
+    "pathbuf_hex_report_and_decode_allocations_remain": true,
+    "member_limit_bytes": 33554432,
+    "read_limit_plus_one_enforced": true,
+    "scoped_and_total_original_budget_unchanged": true,
+    "no_directory_cache": true,
+    "no_protocol_or_gate_changes": true
+  },
+  "validation": {
+    "toolchain": "stable Rust 1.99.1",
+    "new_snapshot_contracts": 4,
+    "snapshot_focused_contracts": 13,
+    "workspace_all_features": {
+      "passed": 1034,
+      "failed": 0,
+      "ignored": 43
+    },
+    "counting": "last summary per top-level executable; excludes self-spawned duplicates",
+    "strict_clippy": "workspace all-targets all-features -D warnings passed",
+    "format": "passed",
+    "diff_check": "passed",
+    "linux_test_cross_check": {
+      "target": "x86_64-unknown-linux-gnu",
+      "command": "cargo +stable check --offline --locked -p xtask --tests --target x86_64-unknown-linux-gnu",
+      "passed": true,
+      "linux_execution_performed": false
+    },
+    "json_audit": {
+      "files": 663,
+      "errors": []
+    },
+    "package_allowlist": {
+      "core_members": 71,
+      "wasm_members": 6,
+      "tool_test_evidence_excluded": true
+    },
+    "workspace_dependency_inheritance": "all 5 members passed",
+    "interpreter_surface_audit": "passed"
+  },
+  "provenance": {
+    "codec_source_files_unchanged": 64,
+    "root_manifest_lock_build_script_unchanged": true,
+    "source_reader_wrapper": "unmodified committed digest_reader and hex implementations with a private read-request observer",
+    "independent_digest_reference": "SHA-256 over each complete original file",
+    "raw_evidence": "private unit/build logs, reader wrapper and observations, synthetic collection, independent reader and legacy readbacks retained",
+    "public_boundary": "no private paths, binary digests, trusted pins or machine identity"
+  },
+  "prior_head_ci": {
+    "head": "7be3067be25b534d079724551c06f9446547078a",
+    "checks": {
+      "SUCCESS": 30,
+      "IN_PROGRESS": 1,
+      "SKIPPED": 1
+    }
+  },
+  "performance_boundary": {
+    "formal_timing_run": false,
+    "allocator_calls_measured": false,
+    "rss_measured": false,
+    "throughput_or_latency_measured": false,
+    "real_linux_baseline_qualified": false,
+    "capture_provenance_verified": false,
+    "performance_accepted": false,
+    "release_qualified": false
+  },
+  "next_steps": [
+    "confirm dedicated or explicitly authorized Linux reservation before formal timing",
+    "qualify native same-source collection, actual supervision overhead and complete repeat stability",
+    "only after complete unchanged baseline, ABBA/A2 drift and per-layout gates pass, evaluate production-budget-driven runtime policy changes"
+  ]
+}
