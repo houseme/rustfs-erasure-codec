@@ -111,3 +111,6 @@ allowlist 审计通过，核心 71、WASM 6 成员不变。Windows 远程结论�
 codec 源码及根 Cargo.toml、Cargo.lock、build.rs 字节均与创建 PR 时相同，未更改
 并行阈值或缓存策略。
 本轮在同一 PR 中提交并推送后续实现和证据，未合并、打 tag 或发布 crate。
+
+跨阶段固定配对、连续功能窗口、独立重放及后续执行顺序见
+[连续计划 campaign 跟进报告](plan-campaign-follow-up-2026-10-26.md)。

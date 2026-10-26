@@ -166,3 +166,6 @@ Classic shape 的有效索引延迟分配、有效/无输出/错误路径完整�
 
 已创建 PR 后的冻结构建、四阶段功能采集与原始成员离线重放见
 [冻结计划基准跟进报告](frozen-plan-capture-follow-up-2026-10-26.md)。
+
+跨阶段固定配对、连续功能窗口、独立重放及后续执行顺序见
+[连续计划 campaign 跟进报告](plan-campaign-follow-up-2026-10-26.md)。

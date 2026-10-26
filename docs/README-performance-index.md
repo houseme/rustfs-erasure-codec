@@ -6,6 +6,8 @@ published crate. Use `cargo xtask audit-json` to refresh the file inventory.
 
 ## Current Useful References
 
+- [Continuous functional plan campaign](plan-campaign-follow-up-2026-10-26.md)
+
 - [Frozen plan benchmark functional stages](frozen-plan-capture-follow-up-2026-10-26.md)
   - Git-bound builds, complete raw-stage replay, refusal controls and pending timing prerequisites
 - [Classic plan lifecycle benchmark](reconstruct-plan-benchmark-2026-10-26.md)

@@ -1,0 +1,192 @@
+{
+  "controller_source_commit": "818a21389582885732aad59793c33e41511aad5c",
+  "frozen_sources": [
+    {
+      "source_commit": "c8d196326c109c21331254a178532fb12c9f722b",
+      "git_members_verified": 1246
+    },
+    {
+      "source_commit": "818a21389582885732aad59793c33e41511aad5c",
+      "git_members_verified": 1250
+    }
+  ],
+  "stages": [
+    {
+      "stage": "A1",
+      "cases": 348
+    },
+    {
+      "stage": "B1",
+      "cases": 348
+    },
+    {
+      "stage": "B2",
+      "cases": 348
+    },
+    {
+      "stage": "A2",
+      "cases": 348
+    }
+  ],
+  "observed": 1392,
+  "rust_replay_accepted": true,
+  "independent_reader_accepted": true,
+  "negative_controls": [
+    {
+      "control": "wrong_plan_pin",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "wrong_receipt_pin",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "swapped_order",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "cross_campaign",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "overlap",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "gap",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "stage_deadline",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "window_deadline",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "wrong_frozen_pair",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "partial_with_forged_success",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "duplicate_json_field",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    }
+  ],
+  "original_campaign_unchanged": true,
+  "codec_identical_between_AB": true,
+  "statistical_timing_run": false,
+  "performance_accepted": false,
+  "schema": "frozen-plan-functional-campaign-validation-v1",
+  "prior_head": "2e333c2213ce1930b40d4ae26a3e357d915fe24a",
+  "pull_request": "https://github.com/houseme/rustfs-erasure-codec/pull/115",
+  "scope": "repository-only continuous functional campaign and offline replay; no codec runtime changes",
+  "protocol": {
+    "schema": "plan-bench-functional-campaign-v1",
+    "order": [
+      "A1",
+      "B1",
+      "B2",
+      "A2"
+    ],
+    "prepares_all_four_frozen_inputs_before_window": true,
+    "random_campaign_nonce": true,
+    "frozen_pair_binding": "A1/A2 baseline; B1/B2 candidate; exact compiler/features/catalog match",
+    "stages_hash_chained": true,
+    "monotonic_single_controller_window": true,
+    "stage_seconds": 120,
+    "window_seconds": 600,
+    "gap_seconds": 5,
+    "one_snapshot_across_replay": true,
+    "imports_old_stage_capsules": false,
+    "resumes_interrupted_campaign": false,
+    "mode": "functional"
+  },
+  "cancellation_control": {
+    "fixture": "real baseline and explicitly synthetic cancellation worker, functional control only",
+    "signal": "SIGINT to owned controller after B1 worker ready",
+    "stages_started": 2,
+    "accepted": false,
+    "observed": 348,
+    "reason": "cancelled",
+    "reaped": true,
+    "later_workers_not_started": true,
+    "raw_logs_and_terminal_receipt_retained": true,
+    "performance_accepted": false
+  },
+  "unit_contracts": {
+    "campaign_tests": 7,
+    "total_plan_tests": 19,
+    "covers": [
+      "read-only full replay, distinct frozen pair and independent external pins",
+      "order, chain, cross-campaign identity and fresh-pin semantic rejection",
+      "overlap, gap, per-stage and total deadlines",
+      "wrong pair, partial failure and forged derived success",
+      "changed originals and duplicate JSON keys",
+      "compiler/catalog compatibility and bounded limits",
+      "actual successful, failed and timed-out child captures; stop and overwrite refusal"
+    ]
+  },
+  "validation": {
+    "toolchain": "stable Rust 1.99.1",
+    "workspace_all_features": {
+      "passed": 987,
+      "failed": 0,
+      "ignored": 43
+    },
+    "counting": "last summary per top-level executable; excludes self-spawned duplicates",
+    "strict_clippy": "workspace all-targets all-features -D warnings passed",
+    "format": "passed",
+    "diff_check": "passed",
+    "json_audit": {
+      "files": 657,
+      "errors": []
+    },
+    "package_allowlist": {
+      "core_members": 71,
+      "wasm_members": 6,
+      "tool_test_evidence_excluded": true
+    }
+  },
+  "provenance": {
+    "benchmark_mode": "--test only; no statistical Criterion samples",
+    "all_64_codec_sources_equal_to_prior_head": true,
+    "manifest_lock_and_build_script_unchanged": true,
+    "raw_originals": "frozen builds, source archives, binaries, logs, stage journals, terminal receipts, external pins, refusal copies and independent reader retained privately",
+    "public_boundary": "no private paths, binary digests or machine identity",
+    "prior_head_ci": {
+      "head": "2e333c2213ce1930b40d4ae26a3e357d915fe24a",
+      "success": 31,
+      "skipped": 3,
+      "failed": 0,
+      "includes_windows_stable_beta_nightly": true
+    }
+  },
+  "performance_boundary": {
+    "performance_accepted": false,
+    "release_qualified": false,
+    "resource_isolation_established": false,
+    "timing_schema_supported": false,
+    "reason": "same codec implementation across distinct frozen source commits; functional controller and provenance control only; external pins are trusted inputs, not host attestation"
+  },
+  "next_steps": [
+    "design a separate statistical raw-sample/estimate schema with original refusal and distribution retention",
+    "require resource isolation and a complete unchanged baseline before any timing capture",
+    "only after baseline and repeated drift/width gates pass, evaluate caller lifecycle, verification chunking and oversized GF16 cache tradeoffs with production budgets"
+  ]
+}
