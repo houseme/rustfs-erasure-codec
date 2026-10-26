@@ -190,3 +190,6 @@ Classic shape 的有效索引延迟分配、有效/无输出/错误路径完整�
 
 初次摘要绑定去掉立即丢弃的文件 Vec、复用 Snapshot scratch 及混合预算契约见
 [Snapshot 摘要绑定报告](snapshot-opaque-verification-2026-10-26.md)。
+
+原件摘要在 case/copy 两份记录中的复用、完整新旧目录对照和后续生命周期顺序见
+[Collector 摘要复用报告](collector-digest-reuse-2026-10-27.md)。

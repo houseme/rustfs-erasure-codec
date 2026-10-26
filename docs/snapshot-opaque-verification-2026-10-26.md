@@ -73,3 +73,8 @@ performance_accepted 和 release_qualified 保持 false。没有吞吐、延迟�
 未变 baseline、collector 实际监督开销和重复稳定性。完整 ABBA、A2 漂移及逐布局
 门槛通过后，再按生产并发和峰值内存预算评估 verify 分块或 oversized GF16 cache。
 本地合成结果不授予这些运行策略调整的性能归因。
+
+## Collector 接收阶段的后续改进
+
+本页保留提交 `bcc77fb` 的验证事实。接收阶段复用 Snapshot 已绑定摘要、去掉两份
+记录各自的重复计算，详见[摘要复用报告](collector-digest-reuse-2026-10-27.md)。
