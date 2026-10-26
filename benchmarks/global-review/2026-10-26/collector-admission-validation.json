@@ -1,0 +1,129 @@
+{
+  "schema": "collector-admission-validation-v1",
+  "source_commit": "9ab1fb8900d04c9e5e9ea0777e640a6232c22571",
+  "synthetic_collection": {
+    "fake_workers": 8,
+    "observations": 2784,
+    "raw_to_canonical_bindings": 8352,
+    "independent_reader_agreed": true,
+    "capture_provenance_verified": false,
+    "performance_accepted": false
+  },
+  "legacy_replays": [
+    {
+      "protocol": "collection",
+      "replayed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "execution",
+      "replayed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "statistics",
+      "replayed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "functional",
+      "replayed": true,
+      "originals_unchanged": true
+    }
+  ],
+  "real_timing_run": false,
+  "remote_actions": "read-only bounded inventory; no reservation creation, service takeover or benchmark",
+  "resource_configuration_modified": false,
+  "pull_request": "https://github.com/houseme/rustfs-erasure-codec/pull/115",
+  "prior_head": "5e72488aa0ab9c830506ba8fbd3502bd952dcacd",
+  "scope": "local native compiler admission, shared full-stage deadline model and owned outcome retention; no formal timing",
+  "changes": {
+    "shared_collection_and_replay_window_budget": true,
+    "pre_spawn_overhead_deducted": true,
+    "expired_stage_stops_next_worker": true,
+    "terminal_window_checked_after_sample_save": true,
+    "exact_verbose_compiler_match_required_for_recorded_workers": true,
+    "linux_host_matches_compiled_controller_target": true,
+    "resource_context_format_unchanged": true,
+    "clock_failure_preserves_owned_outcome": true,
+    "input_protocols_unchanged": true
+  },
+  "bounded_linux_inventory": {
+    "read_only": true,
+    "maximum_scan_depth": 3,
+    "task_owned_qualified_partition_identified": false,
+    "active_workloads_observed": true,
+    "qualification_established": false,
+    "global_partition_absence_proven": false,
+    "reservation_created": false,
+    "services_or_affinity_changed": false,
+    "raw_inventory_retained_privately": true
+  },
+  "validation": {
+    "toolchain": "stable Rust 1.99.1",
+    "new_contracts": 8,
+    "total_plan_contracts": 57,
+    "workspace_all_features": {
+      "passed": 1026,
+      "failed": 0,
+      "ignored": 43
+    },
+    "counting": "last summary per top-level executable; excludes self-spawned duplicates",
+    "strict_clippy": "workspace all-targets all-features -D warnings passed",
+    "format": "passed",
+    "diff_check": "passed",
+    "red_green_reproducer": {
+      "old_workers_completed": 4,
+      "old_receipt_completed": true,
+      "old_final_acceptance": false,
+      "new_workers_started": 1,
+      "later_worker_directory_absent": true,
+      "outcome_and_originals_retained": true
+    },
+    "linux_cross_check": {
+      "target": "x86_64-unknown-linux-gnu",
+      "command": "cargo +stable check --offline --locked -p xtask --target x86_64-unknown-linux-gnu",
+      "passed": true,
+      "compiled_native_target_binding_verified": true,
+      "linux_execution_performed": false
+    },
+    "json_audit": {
+      "files": 661,
+      "errors": []
+    },
+    "package_allowlist": {
+      "core_members": 71,
+      "wasm_members": 6,
+      "tool_test_evidence_excluded": true
+    },
+    "workspace_dependency_inheritance": "all 5 members passed",
+    "interpreter_surface_audit": "passed"
+  },
+  "provenance": {
+    "codec_source_files_unchanged": 64,
+    "root_manifest_lock_build_script_unchanged": true,
+    "tool_build_script_changed": "records compiled controller target for native admission",
+    "raw_evidence": "private source-bound logs, controlled-clock red/green result, synthetic collection, independent reader, old-protocol readbacks and bounded inventory retained",
+    "public_boundary": "no private addresses, paths, process identities, binary digests, trusted pins or machine fingerprint"
+  },
+  "prior_head_ci": {
+    "head": "5e72488aa0ab9c830506ba8fbd3502bd952dcacd",
+    "checks": {
+      "SUCCESS": 31,
+      "SKIPPED": 3
+    }
+  },
+  "performance_boundary": {
+    "real_criterion_timing_run": false,
+    "qualified_linux_reservation_used": false,
+    "real_baseline_qualification_performed": false,
+    "capture_provenance_verified": false,
+    "performance_accepted": false,
+    "release_qualified": false
+  },
+  "next_steps": [
+    "confirm a dedicated or explicitly authorized qualified Linux reservation before formal timing",
+    "freeze native Criterion inputs on the target toolchain and qualify same-source collection, supervision overhead and repeat stability",
+    "only after complete ABBA/A2 drift/per-layout gates pass, evaluate production-budget-driven verify chunking or oversized GF16 cache policy"
+  ]
+}
