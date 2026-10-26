@@ -117,3 +117,6 @@ recorded 计划还需 --root 与 --isolation-cgroup，且必须先满足真实�
 产物布局、固定构建/环境、监督开销及重复稳定性。任何门槛失败都保留原件并停止归因。
 之后才允许单变量候选比较，先通过完整 ABBA、重复和逐布局门槛，再按生产对象尺寸、
 并发度与峰值预算推进 verify 分块和 oversized GF16 cache 策略。
+
+原生编译身份、采集/重放统一预算与本地验证边界见
+[collector 准入跟进报告](collector-admission-follow-up-2026-10-26.md)。
