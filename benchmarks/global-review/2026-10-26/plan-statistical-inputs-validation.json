@@ -1,0 +1,178 @@
+{
+  "controller_source_commit": "aaae989c438e9418bba2368429e2fd0cd619bccb",
+  "schema": "plan-statistical-input-protocol-validation-v1",
+  "fixture_origin": "synthetic",
+  "case_catalog": 348,
+  "repetitions": 2,
+  "attempts": 8,
+  "observations": 2784,
+  "paired_samples": 27840,
+  "raw_criterion_members": 8352,
+  "rust_replay": {
+    "integrity_accepted": true,
+    "diagnostics_passed": true,
+    "performance_accepted": false,
+    "capture_provenance_verified": false
+  },
+  "independent_reader_agreed": true,
+  "negative_controls": [
+    {
+      "control": "wrong_input_pin",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "swapped_stage_order",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "wrong_source_pair",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "wrong_case_identity",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "wrong_raw_mean",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "fractional_iterations",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "nonfinite_sample",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "wide_ci",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "within_repeat_drift",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "between_repeat_drift",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "failed_worker",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "partial_with_forged_summary",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "duplicate_json_key",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    }
+  ],
+  "original_corpus_unchanged": true,
+  "timing_executed": false,
+  "performance_accepted": false,
+  "source_commits": [
+    "c8d196326c109c21331254a178532fb12c9f722b",
+    "818a21389582885732aad59793c33e41511aad5c"
+  ],
+  "scope": "repository-only pinned statistical input protocol and read-only deterministic audit; no timing collector or codec runtime changes",
+  "prior_head": "3ffdaf505b788d52ffc2de4f828e2d9215b9b54d",
+  "pull_request": "https://github.com/houseme/rustfs-erasure-codec/pull/115",
+  "protocol": {
+    "input_schema": "plan-bench-statistical-inputs-v1",
+    "report_schema": "plan-bench-statistical-audit-v1",
+    "metric": "arithmetic mean of raw time per iteration, nanoseconds",
+    "modes": [
+      "Flat",
+      "Linear"
+    ],
+    "complete_frozen_pair_and_case_catalog": true,
+    "complete_repetition_stage_matrix": true,
+    "sample_count_bounds": [
+      10,
+      100000
+    ],
+    "maximum_repetitions": 9,
+    "exact_iteration_maximum": 9007199254740992,
+    "relative_point_tolerance": 1e-09,
+    "origin_is_a_declaration_not_capture_proof": true,
+    "bootstrap_reproduced": false,
+    "mad_and_stddev_points_recomputed": false,
+    "raw_distributions_and_all_attempts_retained": true,
+    "snapshot_member_limit_bytes": 33554432,
+    "snapshot_total_limit_bytes": 268435456,
+    "malformed_or_unreadable_originals_fail_immediately": true
+  },
+  "validation": {
+    "toolchain": "stable Rust 1.99.1",
+    "new_statistical_contracts": 11,
+    "total_plan_contracts": 30,
+    "workspace_all_features": {
+      "passed": 998,
+      "failed": 0,
+      "ignored": 43
+    },
+    "counting": "last summary per top-level executable; excludes self-spawned duplicates",
+    "strict_clippy": "workspace all-targets all-features -D warnings passed",
+    "format": "passed",
+    "diff_check": "passed",
+    "historical_original_numeric_compatibility_cases": 4,
+    "existing_functional_campaign_replay": {
+      "accepted": true,
+      "observed": 1392,
+      "performance_accepted": false
+    },
+    "json_audit": {
+      "files": 658,
+      "errors": []
+    },
+    "package_allowlist": {
+      "core_members": 71,
+      "wasm_members": 6,
+      "tool_test_evidence_excluded": true
+    },
+    "workspace_dependency_inheritance": "all 5 members passed",
+    "interpreter_surface_audit": "passed; no interpreter files or entry points"
+  },
+  "prior_head_ci": {
+    "head": "3ffdaf505b788d52ffc2de4f828e2d9215b9b54d",
+    "checks": {
+      "SUCCESS": 31,
+      "SKIPPED": 3
+    }
+  },
+  "provenance": {
+    "codec_sources_unchanged": 64,
+    "manifest_lock_build_script_unchanged": true,
+    "raw_originals": "original input declarations, frozen source members, raw synthetic records, derived CLI output, independent reader and refusal copies retained privately",
+    "public_boundary": "no private paths, binary digests or machine identity",
+    "freeze_reused_without_relabelling": true
+  },
+  "performance_boundary": {
+    "statistical_timing_run": false,
+    "resource_isolation_established": false,
+    "capture_provenance_verified": false,
+    "performance_accepted": false,
+    "release_qualified": false,
+    "reason": "synthetic input protocol controls and deterministic audit do not prove controlled collection, bootstrap correctness or performance qualification"
+  },
+  "next_steps": [
+    "reuse existing resource/sampling models to bind a separate controlled statistical execution envelope and original sample/estimate outputs",
+    "require resource isolation and a complete unchanged baseline before timing capture; preserve explicit refusal if unavailable",
+    "pass repeated baseline, A2 drift and per-layout gates before production-budget-driven runtime policy changes"
+  ]
+}
