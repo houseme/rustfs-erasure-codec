@@ -171,13 +171,13 @@ fn collect(
             fs::create_dir_all(directory.parent().ok_or("missing worker parent")?)?;
             new_directory(&directory)?;
             new_directory(&directory.join("raw"))?;
-            let frozen = load(
+            let frozen = load_binary(
                 &root.join(format!("corpus/sources/{label}")),
                 plan.pin(index),
             )?;
-            write(&directory.join("binary"), &frozen.binary)?;
+            write(&directory.join("binary"), &frozen.bytes)?;
             executable(&directory.join("binary"))?;
-            frozen.snapshot.finish()?;
+            frozen.finish()?;
             let before_context = observe(plan, &reference, &a.compiler, observer)?;
             let before_ns = clock()?;
             budget.admit(previous, before_ns)?;

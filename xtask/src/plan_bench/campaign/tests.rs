@@ -51,7 +51,7 @@ fn fixture() -> (Directory, String, String) {
         let frozen = load(&source.0, plan.pin(i)).unwrap();
         let dir = root.0.join(stage);
         install(&frozen, &dir).unwrap();
-        frozen.snapshot.finish().unwrap();
+        frozen.finish().unwrap();
         fs::write(dir.join("worker.stdout"), logs()).unwrap();
         fs::write(dir.join("worker.stderr"), b"").unwrap();
         let rpin = save(
