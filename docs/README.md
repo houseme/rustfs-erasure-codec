@@ -31,6 +31,7 @@ This directory contains development documentation, design documents, benchmark r
 | [frozen-plan-capture-follow-up-2026-10-26.md](frozen-plan-capture-follow-up-2026-10-26.md) | Frozen functional capsules, pinned source/receipt checks, independent replay and refusal controls |
 | [plan-campaign-follow-up-2026-10-26.md](plan-campaign-follow-up-2026-10-26.md) | Continuous functional ABBA controller, frozen pair binding, bounded monotonic windows and raw replay |
 | [plan-statistical-inputs-follow-up-2026-10-26.md](plan-statistical-inputs-follow-up-2026-10-26.md) | Pinned statistical inputs, full repeated raw catalogs, deterministic audit and preserved width/drift refusals |
+| [plan-execution-follow-up-2026-10-26.md](plan-execution-follow-up-2026-10-26.md) | Shared-snapshot baseline and statistical execution bindings, bounded windows and read-only resource preflight |
 | [global-review-9.1.0-2026-10-22.md](global-review-9.1.0-2026-10-22.md) | Archived earlier architecture review and bounded incremental-update resources |
 | [drift-analysis-9.1.0-2026-10-22.md](drift-analysis-9.1.0-2026-10-22.md) | Current drift investigation, benchmark lifetime fixes and sparse incremental-update validation |
 | [README-performance-index.md](README-performance-index.md) | Performance document index |

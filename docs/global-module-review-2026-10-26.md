@@ -172,3 +172,6 @@ Classic shape 的有效索引延迟分配、有效/无输出/错误路径完整�
 
 独立统计原始输入协议、完整重复目录与宽度/漂移拒绝验证见
 [统计输入跟进报告](plan-statistical-inputs-follow-up-2026-10-26.md)。
+
+完整原始 baseline、执行窗口和只读资源预检的绑定及后续顺序见
+[执行绑定跟进报告](plan-execution-follow-up-2026-10-26.md)。
