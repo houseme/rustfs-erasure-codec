@@ -7,7 +7,6 @@ use std::collections::{BTreeMap, BTreeSet};
 #[cfg(test)]
 pub(crate) mod tests;
 const SCHEMA: &str = "plan-bench-execution-inputs-v1";
-const SECOND: u64 = 1_000_000_000;
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct Execution {
@@ -77,15 +76,10 @@ impl Execution {
         ] {
             valid_digest(pin)?;
         }
-        if self.schema != SCHEMA
-            || self.session_sha256.bytes().all(|b| b == b'0')
-            || !(1..=86400).contains(&self.stage_seconds)
-            || !(1..=604800).contains(&self.window_seconds)
-            || !(1..=60).contains(&self.gap_seconds)
-            || self.stage_seconds > self.window_seconds
-        {
+        if self.schema != SCHEMA || self.session_sha256.bytes().all(|b| b == b'0') {
             return Err("unsupported execution identity or bounded window".into());
         }
+        super::window::Budget::new(self.stage_seconds, self.window_seconds, self.gap_seconds)?;
         if self
             .baseline_members
             .keys()
@@ -343,6 +337,11 @@ pub(super) fn bound(
             .errors
             .push("complete repeated execution matrix is required".into());
     }
+    let budget = super::window::Budget::new(
+        execution.stage_seconds,
+        execution.window_seconds,
+        execution.gap_seconds,
+    )?;
     let mut previous = 0;
     for (index, attempt) in execution.attempts.iter().enumerate() {
         let repetition = index / 4 + 1;
@@ -387,14 +386,17 @@ pub(super) fn bound(
                 "{repetition}/{stage}: session or resource context changed"
             ));
         }
-        if !(previous <= before.observed_ns
-            && before.observed_ns <= attempt.started_ns
-            && attempt.started_ns <= attempt.ended_ns
-            && attempt.ended_ns <= after.observed_ns
-            && after.observed_ns <= execution.window_seconds * SECOND)
-            || before.observed_ns.saturating_sub(previous) > execution.gap_seconds * SECOND
-            || after.observed_ns.saturating_sub(before.observed_ns)
-                > execution.stage_seconds * SECOND
+        if budget
+            .check(
+                previous,
+                [
+                    before.observed_ns,
+                    attempt.started_ns,
+                    attempt.ended_ns,
+                    after.observed_ns,
+                ],
+            )
+            .is_err()
         {
             report.errors.push(format!(
                 "{repetition}/{stage}: overlapping, discontinuous or expired execution window"
@@ -414,10 +416,7 @@ pub(super) fn bound(
         }
         previous = after.observed_ns;
     }
-    if execution.ended_ns < previous
-        || execution.ended_ns > execution.window_seconds * SECOND
-        || execution.ended_ns.saturating_sub(previous) > execution.gap_seconds * SECOND
-    {
+    if budget.finish(previous, execution.ended_ns).is_err() {
         report
             .errors
             .push("invalid terminal execution window".into());

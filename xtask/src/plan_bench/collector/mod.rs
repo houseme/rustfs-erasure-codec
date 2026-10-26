@@ -10,6 +10,8 @@ use std::{
 };
 mod artifacts;
 mod model;
+mod native;
+pub(crate) use native::require_compiler;
 mod replay;
 #[cfg(all(test, unix))]
 pub(crate) mod tests;
@@ -123,12 +125,13 @@ fn command(directory: &Path, plan: &Plan, reference: &Value) -> Command {
 fn observe(
     plan: &Plan,
     reference: &Value,
-    observer: &mut dyn FnMut() -> Result<Value>,
+    compiler: &str,
+    observer: &mut dyn FnMut(&str) -> Result<Value>,
 ) -> Result<Value> {
     let actual = if plan.origin == samples::Origin::Synthetic {
         reference.clone()
     } else {
-        observer()?
+        observer(compiler)?
     };
     if actual != *reference {
         return Err("live resource context changed; refuse collection".into());
@@ -141,11 +144,14 @@ fn collect(
     plan: &Plan,
     receipt: &mut Receipt,
     cancelled: &AtomicBool,
-    observer: &mut dyn FnMut() -> Result<Value>,
+    observer: &mut dyn FnMut(&str) -> Result<Value>,
+    clock: &mut dyn FnMut() -> Result<u64>,
 ) -> Result<()> {
     let (inputs, a, b, reference) = protected(root, plan, pin)?;
-    observe(plan, &reference, observer)?;
-    let origin = Instant::now();
+    observe(plan, &reference, &a.compiler, observer)?;
+    let budget =
+        super::window::Budget::new(plan.stage_seconds, plan.window_seconds, plan.gap_seconds)?;
+    clock()?;
     let mut attempts = Vec::new();
     let mut means = vec![vec![[None; 4]; a.catalog.len()]; usize::from(plan.repetitions)];
     let mut executed = Vec::new();
@@ -171,19 +177,15 @@ fn collect(
             write(&directory.join("binary"), &frozen.binary)?;
             executable(&directory.join("binary"))?;
             frozen.snapshot.finish()?;
-            let before_context = observe(plan, &reference, observer)?;
-            let before_ns = elapsed(origin)?;
-            if before_ns.saturating_sub(previous) > plan.gap_seconds * 1_000_000_000
-                || before_ns >= plan.window_seconds * 1_000_000_000
-            {
-                return Err("collection gap or total window expired".into());
-            }
+            let before_context = observe(plan, &reference, &a.compiler, observer)?;
+            let before_ns = clock()?;
+            budget.admit(previous, before_ns)?;
             let context_prefix = root.join(format!("contexts/{repetition:02}/{stage}"));
             let before_pin = save(
                 &context_prefix.join("before.json"),
                 &json!({"session_sha256":plan.session_sha256,"observed_ns":before_ns,"context":before_context}),
             )?;
-            let started_ns = elapsed(origin)?;
+            let started_ns = clock()?;
             let start_pin = save(
                 &directory.join("start.json"),
                 &json!({"plan_sha256":pin,"repetition":repetition,"stage":stage,"binary_sha256":manifest.binary_sha256,"arguments":plan.args(),"before_sha256":before_pin,"started_ns":started_ns}),
@@ -200,18 +202,14 @@ fn collect(
                 execution: None,
                 copies: Vec::new(),
             });
-            let timeout = (plan.stage_seconds * 1_000_000_000)
-                .min((plan.window_seconds * 1_000_000_000).saturating_sub(started_ns));
-            if timeout == 0 {
-                return Err("collection total deadline expired before spawn".into());
-            }
+            let timeout = budget.worker_timeout(before_ns, started_ns)?;
             let mut last_check = Instant::now();
             let mut guard_error = None;
             let outcome = run::execute_guarded(
                 command(&directory, plan, &reference),
                 &directory,
                 "worker",
-                Duration::from_nanos(timeout),
+                timeout,
                 cancelled,
                 |force| {
                     if force || last_check.elapsed() >= Duration::from_secs(1) {
@@ -227,7 +225,7 @@ fn collect(
                     Ok(())
                 },
             )?;
-            let ended_ns = elapsed(origin)?;
+            let ended_ns = clock();
             let step = receipt
                 .steps
                 .last_mut()
@@ -236,6 +234,7 @@ fn collect(
             if !outcome.reaped {
                 return Err("owned worker was not reaped; preserve inputs without inspecting live artifacts".into());
             }
+            let ended_ns = ended_ns?;
             for (name, slot) in [
                 ("stdout", &mut step.stdout_sha256),
                 ("stderr", &mut step.stderr_sha256),
@@ -268,15 +267,17 @@ fn collect(
             let attempt = json!({"repetition":repetition,"stage":stage,"manifest_sha256":plan.pin(index),"outcome":outcome,"originals_unchanged":unchanged,"cases":cases});
             let attempt_pin = digest(&serde_json::to_vec(&attempt)?);
             attempts.push(attempt);
-            let after_context = observe(plan, &reference, observer)?;
+            let after_context = observe(plan, &reference, &a.compiler, observer)?;
+            let after_ns = clock()?;
             let after_pin = save(
                 &context_prefix.join("after.json"),
-                &json!({"session_sha256":plan.session_sha256,"observed_ns":elapsed(origin)?,"context":after_context}),
+                &json!({"session_sha256":plan.session_sha256,"observed_ns":after_ns,"context":after_context}),
             )?;
             let execution = json!({"repetition":repetition,"stage":stage,"manifest_sha256":plan.pin(index),"attempt_sha256":attempt_pin,"before_sha256":before_pin,"after_sha256":after_pin,"started_ns":started_ns,"ended_ns":ended_ns});
             step.execution = Some(execution.clone());
             executed.push(execution);
-            previous = elapsed(origin)?;
+            budget.check(previous, [before_ns, started_ns, ended_ns, after_ns])?;
+            previous = after_ns;
             if outcome.exit_code != Some(0)
                 || outcome.reason != "exited"
                 || !outcome.reaped
@@ -315,11 +316,14 @@ fn collect(
         &root.join("corpus/samples.json"),
         &plan.document(attempts),
     )?);
+    let ended_ns = clock()?;
+    let terminal = budget.finish(previous, ended_ns);
     receipt.execution_sha256 = Some(save(
         &root.join("execution.json"),
-        &json!({"schema":"plan-bench-execution-inputs-v1","session_sha256":plan.session_sha256,"samples_sha256":receipt.samples_sha256,"baseline_members":plan.baseline_members,"renderer_sha256":plan.renderer_sha256,"analyzer_sha256":plan.analyzer_sha256,"stage_seconds":plan.stage_seconds,"window_seconds":plan.window_seconds,"gap_seconds":plan.gap_seconds,"ended_ns":elapsed(origin)?,"attempts":executed}),
+        &json!({"schema":"plan-bench-execution-inputs-v1","session_sha256":plan.session_sha256,"samples_sha256":receipt.samples_sha256,"baseline_members":plan.baseline_members,"renderer_sha256":plan.renderer_sha256,"analyzer_sha256":plan.analyzer_sha256,"stage_seconds":plan.stage_seconds,"window_seconds":plan.window_seconds,"gap_seconds":plan.gap_seconds,"ended_ns":ended_ns,"attempts":executed}),
     )?);
     result?;
+    terminal?;
     inputs.finish()?;
     Ok(())
 }
@@ -328,7 +332,19 @@ fn capture_owned(
     root: &Path,
     pin: &str,
     cancelled: &AtomicBool,
-    observer: &mut dyn FnMut() -> Result<Value>,
+    observer: &mut dyn FnMut(&str) -> Result<Value>,
+) -> Result<bool> {
+    let mut origin = None;
+    let mut clock = || elapsed(*origin.get_or_insert_with(Instant::now));
+    capture_timed(source, root, pin, cancelled, observer, &mut clock)
+}
+fn capture_timed(
+    source: &Path,
+    root: &Path,
+    pin: &str,
+    cancelled: &AtomicBool,
+    observer: &mut dyn FnMut(&str) -> Result<Value>,
+    clock: &mut dyn FnMut() -> Result<u64>,
 ) -> Result<bool> {
     valid_digest(pin)?;
     new_directory(root)?;
@@ -345,7 +361,7 @@ fn capture_owned(
     };
     let result = (|| {
         let plan = prepare(source, &root, pin)?;
-        collect(&root, pin, &plan, &mut receipt, cancelled, observer)
+        collect(&root, pin, &plan, &mut receipt, cancelled, observer, clock)
     })();
     if let Err(e) = result {
         receipt.error = Some(e.to_string());
@@ -367,10 +383,11 @@ pub(crate) fn capture(args: &Args) -> Result<bool> {
         return Err("supervised plan collection requires Unix".into());
     }
     crate::control::source_current()?;
-    let mut observer = || {
-        crate::control::plan_resource_context(
+    let mut observer = |compiler: &str| {
+        crate::control::plan_collection_context(
             &args.root(),
             Path::new(args.required("--isolation-cgroup")?),
+            compiler,
         )
     };
     capture_owned(

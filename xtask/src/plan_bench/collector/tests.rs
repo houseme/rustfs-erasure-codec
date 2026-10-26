@@ -68,12 +68,12 @@ pub(crate) fn fixture(mode: &str) -> (Directory, String) {
         source_pins.push(put(&directory.join("manifest.json"), &manifest));
     }
     let execution: Value = artifact::read_json(&root.0.join("execution.json")).unwrap();
-    let plan = json!({"schema":SCHEMA,"origin":"synthetic","session_sha256":"a".repeat(64),"baseline_sha256":source_pins[0],"candidate_sha256":source_pins[1],"baseline_members":execution["baseline_members"],"renderer_sha256":execution["renderer_sha256"],"analyzer_sha256":execution["analyzer_sha256"],"repetitions":1,"minimum_samples":10,"confidence_level":0.95,"max_ci_width":0.1,"max_drift":0.05,"warm_up_seconds":1,"measurement_seconds":1,"stage_seconds":5,"window_seconds":60,"gap_seconds":10});
+    let plan = json!({"schema":SCHEMA,"origin":"synthetic","session_sha256":"a".repeat(64),"baseline_sha256":source_pins[0],"candidate_sha256":source_pins[1],"baseline_members":execution["baseline_members"],"renderer_sha256":execution["renderer_sha256"],"analyzer_sha256":execution["analyzer_sha256"],"repetitions":1,"minimum_samples":10,"confidence_level":0.95,"max_ci_width":0.1,"max_drift":0.05,"warm_up_seconds":1,"measurement_seconds":1,"stage_seconds":30,"window_seconds":300,"gap_seconds":30});
     let pin = put(&root.0.join("plan.json"), &plan);
     (root, pin)
 }
 fn capture_fixture(source: &Path, out: &Path, pin: &str, cancelled: &AtomicBool) -> Result<bool> {
-    capture_owned(source, out, pin, cancelled, &mut || {
+    capture_owned(source, out, pin, cancelled, &mut |_| {
         Err("synthetic worker must not request live resources".into())
     })
 }
@@ -180,9 +180,13 @@ fn preflight_failure_prevents_any_worker_and_keeps_the_original_plan() {
     let parent = Directory::new();
     let out = parent.0.join("capture");
     assert!(
-        !capture_owned(&source.0, &out, &pin, &AtomicBool::new(false), &mut || Err(
-            "Linux partition unavailable".into()
-        ))
+        !capture_owned(
+            &source.0,
+            &out,
+            &pin,
+            &AtomicBool::new(false),
+            &mut |_| Err("Linux partition unavailable".into())
+        )
         .unwrap()
     );
     let (_, r) = receipt(&out);
@@ -263,4 +267,124 @@ fn width_and_available_drift_failures_stop_before_the_next_worker() {
         assert!(!r.completed);
         assert_eq!(r.steps.len(), expected, "{mode}");
     }
+}
+
+#[test]
+fn post_worker_deadline_refusal_prevents_the_next_worker() {
+    let (source, _) = fixture("success");
+    let mut plan: Value = artifact::read_json(&source.0.join("plan.json")).unwrap();
+    plan["stage_seconds"] = 1.into();
+    let pin = put(&source.0.join("plan.json"), &plan);
+    let parent = Directory::new();
+    let out = parent.0.join("capture");
+    let mut count = 0_u64;
+    let mut clock = || {
+        let time = match count {
+            0 | 1 => 0,
+            2 => 1_000_000,
+            3 => 10_000_000,
+            4 => 1_000_000_001,
+            n => 1_000_000_001 + (n - 4) * 20_000_000,
+        };
+        count += 1;
+        Ok(time)
+    };
+    assert!(
+        !capture_timed(
+            &source.0,
+            &out,
+            &pin,
+            &AtomicBool::new(false),
+            &mut |_| Err("synthetic context".into()),
+            &mut clock
+        )
+        .unwrap()
+    );
+    let (_, r) = receipt(&out);
+    assert!(!r.completed);
+    assert_eq!(r.steps.len(), 1);
+    assert!(!out.join("workers/01/B1").exists());
+    assert!(r.error.as_deref().unwrap().contains("deadline"));
+}
+
+#[test]
+fn compiler_mismatch_is_refused_before_any_recorded_worker() {
+    let (source, _) = fixture("success");
+    let mut plan: Value = artifact::read_json(&source.0.join("plan.json")).unwrap();
+    let compiler = format!(
+        "rustc 1.99.1 (fixture)\nbinary: rustc\ncommit-hash: {}\ncommit-date: 2026-10-13\nhost: x86_64-unknown-linux-gnu\nrelease: 1.99.1\nLLVM version: 23.1.1",
+        "a".repeat(40)
+    );
+    for (label, field) in [("A", "baseline_sha256"), ("B", "candidate_sha256")] {
+        let path = source
+            .0
+            .join(format!("corpus/sources/{label}/manifest.json"));
+        let mut value: Value = artifact::read_json(&path).unwrap();
+        value["compiler"] = compiler.clone().into();
+        plan[field] = put(&path, &value).into();
+    }
+    for member in ["provenance.json", "qualification.json"] {
+        let path = source.0.join("baseline").join(member);
+        let mut value: Value = artifact::read_json(&path).unwrap();
+        value["context"]["compiler"] = compiler.lines().next().unwrap().into();
+        plan["baseline_members"][member] = put(&path, &value).into();
+    }
+    plan["origin"] = "recorded".into();
+    let pin = put(&source.0.join("plan.json"), &plan);
+    let parent = Directory::new();
+    let out = parent.0.join("capture");
+    let live = compiler.replace("x86_64-unknown-linux-gnu", "aarch64-unknown-linux-gnu");
+    let mut observed = |frozen: &str| {
+        require_compiler(frozen, &live, "aarch64-unknown-linux-gnu")?;
+        Err("compiler gate should have refused".into())
+    };
+    assert!(
+        !capture_owned(
+            &source.0,
+            &out,
+            &pin,
+            &AtomicBool::new(false),
+            &mut observed
+        )
+        .unwrap()
+    );
+    let (_, r) = receipt(&out);
+    assert!(r.steps.is_empty());
+    assert!(r.error.as_deref().unwrap().contains("compiler identity"));
+    assert!(!out.join("workers").exists());
+}
+
+#[test]
+fn failed_clock_observation_still_preserves_the_owned_worker_outcome() {
+    let (source, pin) = fixture("success");
+    let parent = Directory::new();
+    let out = parent.0.join("capture");
+    let mut count = 0;
+    let mut clock = || {
+        count += 1;
+        if count == 4 {
+            Err("clock observation failed".into())
+        } else {
+            Ok(count * 1_000_000_u64)
+        }
+    };
+    assert!(
+        !capture_timed(
+            &source.0,
+            &out,
+            &pin,
+            &AtomicBool::new(false),
+            &mut |_| Err("synthetic context".into()),
+            &mut clock
+        )
+        .unwrap()
+    );
+    let (_, r) = receipt(&out);
+    assert!(!r.completed);
+    assert_eq!(r.steps.len(), 1);
+    assert!(r.steps[0].outcome_sha256.is_some());
+    let outcome: Outcome = artifact::read_json(&out.join("workers/01/A1/outcome.json")).unwrap();
+    assert!(outcome.reaped);
+    assert_eq!(outcome.exit_code, Some(0));
+    assert!(!out.join("workers/01/B1").exists());
 }

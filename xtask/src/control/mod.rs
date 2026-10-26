@@ -371,3 +371,19 @@ pub(crate) fn plan_resource_context(root: &Path, group: &Path) -> Result<Value> 
     }
     environment::context(root, &environment::capture(), group)
 }
+
+/// Preserve the existing context format while requiring an exact native build.
+pub(crate) fn plan_collection_context(
+    root: &Path,
+    group: &Path,
+    frozen_compiler: &str,
+) -> Result<Value> {
+    let observed = plan_resource_context(root, group)?;
+    let compiler = environment::compiler_identity(root, true)?;
+    crate::plan_bench::collector::require_compiler(
+        frozen_compiler,
+        &compiler,
+        env!("RSE_NATIVE_TARGET"),
+    )?;
+    Ok(observed)
+}
