@@ -111,3 +111,9 @@ cargo +stable bench --no-run --locked -p rustfs-erasure-codec \
 真实调用频率、宽度/缺失分布及无输出比例仍需调用方证据。普通 verify 分块与
 Leopard oversized 缓存策略继续等待各自的生产瓶颈和内存预算。
 本轮已进行本地 main 合入、基准及证据 commit，未 push、创建 PR、打 tag 或发布 crate。
+
+## 后续进展
+
+已创建 PR 后继续实现的 Git 来源冻结、功能阶段采集、独立 pin 和离线重放见
+[冻结计划基准跟进报告](frozen-plan-capture-follow-up-2026-10-26.md)。
+上文的功能结果、源码身份和计时边界保持。

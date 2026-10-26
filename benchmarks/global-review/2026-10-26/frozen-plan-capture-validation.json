@@ -1,0 +1,168 @@
+{
+  "schema": "frozen-plan-functional-validation-v1",
+  "source_commit": "c8d196326c109c21331254a178532fb12c9f722b",
+  "prior_commit": "4e154075ede2ae2b572dfe7dd97fa1b881534094",
+  "pull_request": "https://github.com/houseme/rustfs-erasure-codec/pull/115",
+  "scope": "repository-only freeze/capture/offline replay; no codec runtime or timing changes",
+  "freeze": {
+    "from_committed_git_archive": true,
+    "git_source_members_independently_verified": 1246,
+    "git_tree_and_archive_member_bytes_agree": true,
+    "source_before_after_build_unchanged": true,
+    "one_owned_source_and_target_cargo_benchmark_artifact": true,
+    "canonical_case_keys": 348,
+    "fixed_features": [
+      "std",
+      "simd-accel"
+    ],
+    "worker_arguments": [
+      "--test"
+    ],
+    "worker_environment": "cleared parent environment, fixed PATH, NO_COLOR=1 and RAYON_NUM_THREADS=1",
+    "manifest_and_receipt_external_pins_verified": true
+  },
+  "functional_stages": [
+    {
+      "stage": "A1",
+      "functional_cases": 348,
+      "rust_offline_accepted": true,
+      "independent_reader_accepted": true,
+      "performance_accepted": false
+    },
+    {
+      "stage": "B1",
+      "functional_cases": 348,
+      "rust_offline_accepted": true,
+      "independent_reader_accepted": true,
+      "performance_accepted": false
+    },
+    {
+      "stage": "B2",
+      "functional_cases": 348,
+      "rust_offline_accepted": true,
+      "independent_reader_accepted": true,
+      "performance_accepted": false
+    },
+    {
+      "stage": "A2",
+      "functional_cases": 348,
+      "rust_offline_accepted": true,
+      "independent_reader_accepted": true,
+      "performance_accepted": false
+    }
+  ],
+  "same_source_functional_control": true,
+  "total_functional_case_executions": 1392,
+  "offline_rust_replays": 4,
+  "independent_reader_replays": 4,
+  "negative_controls": [
+    {
+      "control": "wrong_stage",
+      "refused": true
+    },
+    {
+      "control": "wrong_source_pin",
+      "refused": true
+    },
+    {
+      "control": "wrong_receipt_pin",
+      "refused": true
+    },
+    {
+      "control": "self_consistent_failure_with_forged_derived_success",
+      "refused": true,
+      "partial_success_records_retained": 1
+    }
+  ],
+  "unit_contracts": {
+    "tests": 12,
+    "cases": [
+      "canonical unique inventory and exact binary list",
+      "complete output, missing/duplicate/unknown/truncated cases",
+      "independent manifest/receipt/binary/archive/stdout/stderr tamper refusal",
+      "external source/receipt pins and stage/mode relabelling",
+      "nonzero exit, timeout, unreaped worker and changed originals",
+      "source member versus empty raw log acceptance and late mutation",
+      "duplicate JSON keys with valid replacement byte pins",
+      "symlinked members",
+      "one successful owned-source/target Cargo build artifact",
+      "actual child capture with success, empty failure logs and overwrite refusal",
+      "owned process timeout, cancellation and spawn failure"
+    ]
+  },
+  "provenance": {
+    "tool_source_sha256": {
+      "benches/reconstruct_plans.rs": "8f807dc9993d47fc0e8da9234fb61751721d77f965d77cf5b52434f77a1fd47f",
+      "benches/reconstruct_plans/cases.txt": "34bc72df6db5a5fb142fb37cb2d55746e25c03225e8afb6911304f1472be5293",
+      "xtask/src/artifact/snapshot.rs": "d881f071ff15d7136525a6b6bf819523e9f308be04e2818439a643bcc3e6b7dd",
+      "xtask/src/main.rs": "9fd96f819b371b6cff245c19a1f819d23ef8160a3fc510f1e5684379e1ea4241",
+      "xtask/src/plan_bench/mod.rs": "4a6f6c9f3f777daf8773230338171856434f521c8984c0b6799a0f5a6fe4866e",
+      "xtask/src/plan_bench/model.rs": "a49a43fb49927fe3f4d1bf101ffc23052953560fb3a73a01360f78ce31dc6ef0",
+      "xtask/src/plan_bench/run.rs": "9b27892f84e4bd085e4de970252495af7ff8332f1ec80ecdb1b24241e13d0ea4",
+      "xtask/src/plan_bench/tests.rs": "4738613e2b0500ab41e7e10eda667ad21b02e210d9d826eb93387921cbc68272"
+    },
+    "codec_reference": "benchmarks/global-review/2026-10-26/plan-benchmark-validation.json",
+    "all_64_codec_sources_byte_equal": true,
+    "manifest_lock_and_build_script_unchanged": true,
+    "raw_originals": "source archive, binary, build records, stage logs, receipts and trusted pins retained privately; no private paths, binary digests or machine identity published",
+    "newline_test_source_sha256": "48d22ca3f93211c8d2192b47af4d39ea933a59a8d185524f8367ed3fdbb544a4"
+  },
+  "validation": {
+    "workspace_all_features": {
+      "passed": 980,
+      "failed": 0,
+      "ignored": 43
+    },
+    "counting": "last summary per top-level executable; excludes self-spawned duplicates",
+    "no_std_simd": {
+      "lib": 275,
+      "workspace_contracts": 14
+    },
+    "strict_clippy": "workspace all-targets all-features -D warnings passed",
+    "format": "passed",
+    "diff_check": "passed",
+    "json_audit": {
+      "files": 656,
+      "errors": []
+    },
+    "package_allowlist": {
+      "core_members": 71,
+      "wasm_members": 6,
+      "tool_test_evidence_excluded": true
+    },
+    "initial_implementation_workspace": {
+      "passed": 979,
+      "failed": 0,
+      "ignored": 43
+    }
+  },
+  "performance_boundary": {
+    "statistical_timing_run": false,
+    "accepted_abba_campaign": false,
+    "resource_isolation_established": false,
+    "performance_accepted": false,
+    "release_qualified": false,
+    "reason": "four same-source functional stages do not replace baseline qualification, controlled timing, pair/repeat/width gates or release preflight"
+  },
+  "remaining_work": [
+    "typed cross-stage campaign order and frozen A/B pair binding",
+    "controlled-environment and complete baseline prerequisites before timing support",
+    "statistical raw sample/estimate schema with original refusal preservation; no extension of this functional schema into timing acceptance"
+  ],
+  "delivery": "PR created before this implementation; implementation/evidence commits update the same PR; no merge, tag or publication",
+  "capture_source_commit": "c8d196326c109c21331254a178532fb12c9f722b",
+  "verification_source_commit": "805d2d5a0f2e87d012569dc8273f8aedc0601b2c",
+  "windows_ci_followup": {
+    "initial_head": "4e154075ede2ae2b572dfe7dd97fa1b881534094",
+    "failed_toolchains": [
+      "stable",
+      "beta",
+      "nightly"
+    ],
+    "same_test": "diagnostics::leopard::tests::gf16_observer_accepts_shared_and_separate_scratch_and_rejects_ambiguity",
+    "cause": "test read raw CRLF source instead of the production universal-newline loader",
+    "fix_commit": "805d2d5a0f2e87d012569dc8273f8aedc0601b2c",
+    "local_LF_CRLF_CR_regression": "passed",
+    "latest_head_remote_ci": "requires rerun; report current PR status separately"
+  }
+}
