@@ -137,8 +137,8 @@ pub(crate) fn capture(args: &Args) -> Result<bool> {
             &root.join(stage),
         )?;
     }
-    a.snapshot.finish()?;
-    b.snapshot.finish()?;
+    a.finish()?;
+    b.finish()?;
     let plan_pin = save(&root.join("campaign.json"), &plan)?;
     println!("campaign plan sha256: {plan_pin}");
     use std::io::Write;

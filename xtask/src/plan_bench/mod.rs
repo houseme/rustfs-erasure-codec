@@ -2,6 +2,7 @@
 pub(crate) mod campaign;
 pub(crate) mod collector;
 pub(crate) mod execution;
+mod frozen;
 mod model;
 mod run;
 pub(crate) mod samples;
@@ -11,6 +12,7 @@ mod window;
 
 use crate::{Args, Result, artifact};
 use artifact::snapshot::{Snapshot, digest};
+use frozen::{CapsuleBytes, Frozen, load, load_binary, load_verified};
 use model::*;
 use std::{fs, path::Path, process::Command, time::Duration};
 
@@ -81,30 +83,6 @@ fn command_text(program: &str, args: &[&str]) -> Result<String> {
         return Err(format!("{program} identity unavailable").into());
     }
     Ok(String::from_utf8(out.stdout)?.trim().to_owned())
-}
-struct Frozen {
-    manifest: Manifest,
-    manifest_bytes: Vec<u8>,
-    archive: Vec<u8>,
-    binary: Vec<u8>,
-    snapshot: Snapshot,
-}
-fn load(root: &Path, pin: &str) -> Result<Frozen> {
-    valid_digest(pin)?;
-    let mut snapshot = Snapshot::new(root)?;
-    let manifest_bytes = snapshot.binary_bound("manifest.json", pin)?;
-    let artifact::StrictJson(value) = serde_json::from_slice(&manifest_bytes)?;
-    let manifest: Manifest = serde_json::from_value(value)?;
-    manifest.validate()?;
-    let archive = snapshot.binary_bound("source.tar.gz", &manifest.archive_sha256)?;
-    let binary = snapshot.binary_bound("binary", &manifest.binary_sha256)?;
-    Ok(Frozen {
-        manifest,
-        manifest_bytes,
-        archive,
-        binary,
-        snapshot,
-    })
 }
 
 fn compatible(a: &Manifest, b: &Manifest) -> Result<()> {
@@ -224,7 +202,7 @@ pub(crate) fn freeze(args: &Args) -> Result<()> {
     artifact::write_json(&output.join("manifest.json"), &manifest)?;
     // Validate all bounded original members after building before publishing the pin.
     let pin = crate::fingerprint::file(&output.join("manifest.json"))?;
-    load(&output, &pin)?.snapshot.finish()?;
+    load_verified(&output, &pin)?.finish()?;
     fs::remove_dir_all(&source)?;
     println!("frozen functional plan benchmark; manifest sha256: {pin}");
     Ok(())
@@ -245,7 +223,7 @@ pub(crate) fn capture(args: &Args) -> Result<bool> {
     }
     let output = Path::new(args.required("--output")?);
     install(&original, output)?;
-    original.snapshot.finish()?;
+    original.finish()?;
     Ok(
         capture_prepared(output, pin, stage, Duration::from_secs(timeout))?
             .0
@@ -253,11 +231,11 @@ pub(crate) fn capture(args: &Args) -> Result<bool> {
     )
 }
 
-fn install(original: &Frozen, output: &Path) -> Result<()> {
+fn install(original: &Frozen<CapsuleBytes>, output: &Path) -> Result<()> {
     new_directory(output)?;
-    write(&output.join("manifest.json"), &original.manifest_bytes)?;
-    write(&output.join("source.tar.gz"), &original.archive)?;
-    write(&output.join("binary"), &original.binary)?;
+    write(&output.join("manifest.json"), &original.bytes.manifest)?;
+    write(&output.join("source.tar.gz"), &original.bytes.archive)?;
+    write(&output.join("binary"), &original.bytes.binary)?;
     executable(&output.join("binary"))
 }
 
@@ -268,7 +246,9 @@ fn capture_prepared(
     timeout: Duration,
 ) -> Result<(Check, String)> {
     let output = fs::canonicalize(output)?;
-    let originals = load(&output, pin)?;
+    let originals = load_verified(&output, pin)?;
+    let expected = originals.manifest.catalog.len();
+    let originals = originals.into_snapshot();
     let command = worker(&output.join("binary"), "--test", &output);
     let outcome = run::execute(command, &output, "worker", timeout)?;
     write(
@@ -277,7 +257,7 @@ fn capture_prepared(
     )?;
     let stdout = bounded_log(&output.join("worker.stdout"))?;
     let stderr = bounded_log(&output.join("worker.stderr"))?;
-    let unchanged = originals.snapshot.finish().is_ok();
+    let unchanged = originals.finish().is_ok();
     let receipt = Receipt {
         schema: SCHEMA.into(),
         stage: stage.into(),
@@ -294,9 +274,7 @@ fn capture_prepared(
     artifact::write_json(&output.join("replay.json"), &check)?;
     println!(
         "{stage}: {}/{} functional cases; accepted={}; performance_accepted=false",
-        check.observed,
-        originals.manifest.catalog.len(),
-        check.accepted
+        check.observed, expected, check.accepted
     );
     println!("receipt sha256: {receipt_pin}");
     Ok((check, receipt_pin))

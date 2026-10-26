@@ -302,3 +302,121 @@ fn actual_capture_retains_success_failure_and_empty_logs_without_overwriting() {
         assert_eq!(source_hash(&stage).unwrap(), before);
     }
 }
+
+fn frozen_mode_snapshot(root: &Path, pin: &str, mode: usize) -> Result<Snapshot> {
+    Ok(match mode {
+        0 => load(root, pin)?.into_snapshot(),
+        1 => load_binary(root, pin)?.into_snapshot(),
+        2 => load_verified(root, pin)?.into_snapshot(),
+        _ => panic!("unknown test load mode"),
+    })
+}
+
+#[test]
+fn frozen_load_modes_bind_the_same_originals_and_install_exact_bytes() {
+    let (source, _, _) = fixture();
+    let archive = vec![3_u8; 128 * 1024 + 1];
+    let binary = vec![7_u8; 64 * 1024 + 3];
+    fs::write(source.0.join("source.tar.gz"), &archive).unwrap();
+    fs::write(source.0.join("binary"), &binary).unwrap();
+    let mut manifest: serde_json::Value =
+        artifact::read_json(&source.0.join("manifest.json")).unwrap();
+    manifest["archive_sha256"] = digest(&archive).into();
+    manifest["binary_sha256"] = digest(&binary).into();
+    let manifest_bytes = format!(" \r\n{manifest:#}\r\n\t").into_bytes();
+    fs::write(source.0.join("manifest.json"), &manifest_bytes).unwrap();
+    let pin = digest(&manifest_bytes);
+    let capsule = load(&source.0, &pin).unwrap();
+    let worker = load_binary(&source.0, &pin).unwrap();
+    let verified: Frozen<()> = load_verified(&source.0, &pin).unwrap();
+    assert_eq!(capsule.bytes.manifest, manifest_bytes);
+    assert_eq!(capsule.bytes.archive, archive);
+    assert_eq!(capsule.bytes.binary, binary);
+    assert_eq!(worker.bytes, binary);
+    let output = Directory::new();
+    let target = output.0.join("capsule");
+    install(&capsule, &target).unwrap();
+    for name in ["manifest.json", "source.tar.gz", "binary"] {
+        assert_eq!(
+            fs::read(target.join(name)).unwrap(),
+            fs::read(source.0.join(name)).unwrap()
+        );
+    }
+    for snapshot in [
+        capsule.into_snapshot(),
+        worker.into_snapshot(),
+        verified.into_snapshot(),
+    ] {
+        let pins = snapshot.finish().unwrap();
+        assert_eq!(pins.len(), 3);
+        assert_eq!(pins["manifest.json"], pin);
+        assert_eq!(pins["source.tar.gz"], digest(&archive));
+        assert_eq!(pins["binary"], digest(&binary));
+    }
+}
+
+#[test]
+fn frozen_load_modes_share_strict_manifest_and_original_member_refusals() {
+    for mode in 0..3 {
+        for name in ["manifest.json", "source.tar.gz", "binary"] {
+            for bytes in [b"".as_slice(), b"changed"] {
+                let (source, pin, _) = fixture();
+                fs::write(source.0.join(name), bytes).unwrap();
+                assert!(frozen_mode_snapshot(&source.0, &pin, mode).is_err());
+            }
+        }
+        let (source, _, _) = fixture();
+        let text = fs::read_to_string(source.0.join("manifest.json")).unwrap();
+        let duplicate = format!("{{\"schema\":\"{SCHEMA}\",{}", text.trim_start_matches('{'));
+        let utf16: Vec<u8> = [0xff, 0xfe]
+            .into_iter()
+            .chain(text.encode_utf16().flat_map(u16::to_le_bytes))
+            .collect();
+        for bytes in [duplicate.into_bytes(), utf16] {
+            fs::write(source.0.join("manifest.json"), &bytes).unwrap();
+            assert!(frozen_mode_snapshot(&source.0, &digest(&bytes), mode).is_err());
+        }
+    }
+}
+
+#[test]
+fn frozen_load_modes_recheck_all_originals_after_payload_release() {
+    for mode in 0..3 {
+        for name in ["manifest.json", "source.tar.gz", "binary"] {
+            let (source, pin, _) = fixture();
+            let snapshot = frozen_mode_snapshot(&source.0, &pin, mode).unwrap();
+            fs::write(source.0.join(name), b"late change").unwrap();
+            assert!(snapshot.finish().is_err(), "mode {mode}, member {name}");
+        }
+    }
+}
+
+#[cfg(unix)]
+#[test]
+fn verified_functional_inputs_still_detect_a_worker_mutating_the_archive() {
+    let (source, _, _) = fixture();
+    let script = format!(
+        "#!/bin/sh\nprintf '%s' '{}'\nprintf changed > source.tar.gz\n",
+        logs()
+    );
+    fs::write(source.0.join("binary"), script.as_bytes()).unwrap();
+    let mut manifest: serde_json::Value =
+        artifact::read_json(&source.0.join("manifest.json")).unwrap();
+    manifest["binary_sha256"] = digest(script.as_bytes()).into();
+    artifact::write_json(&source.0.join("manifest.json"), &manifest).unwrap();
+    let pin = crate::fingerprint::file(&source.0.join("manifest.json")).unwrap();
+    let parent = Directory::new();
+    let output = parent.0.join("installed");
+    let capsule = load(&source.0, &pin).unwrap();
+    install(&capsule, &output).unwrap();
+    capsule.finish().unwrap();
+    assert!(capture_prepared(&output, &pin, "A1", Duration::from_secs(1)).is_err());
+    let receipt: Receipt = artifact::read_json(&output.join("receipt.json")).unwrap();
+    assert!(!receipt.originals_unchanged);
+    assert_eq!(receipt.outcome.exit_code, Some(0));
+    assert!(receipt.outcome.reaped);
+    assert_eq!(
+        fs::read_to_string(output.join("worker.stdout")).unwrap(),
+        logs()
+    );
+}
