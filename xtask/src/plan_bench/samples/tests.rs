@@ -20,7 +20,7 @@ fn raw(factor: f64) -> (Value, Value) {
         json!({"mean":estimate(104.5*factor),"median":estimate(104.5*factor),"median_abs_dev":estimate(2.5*factor),"std_dev":estimate(3.0276503540974917*factor),"slope":estimate(slope)}),
     )
 }
-fn fixture() -> (Directory, String) {
+pub(crate) fn fixture() -> (Directory, String) {
     let dir = Directory::new();
     let mut pins = Vec::new();
     for (label, revision) in [("A", "a"), ("B", "b")] {

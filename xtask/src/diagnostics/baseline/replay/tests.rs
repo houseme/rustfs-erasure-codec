@@ -1,7 +1,7 @@
 use super::*;
 use crate::artifact::snapshot::tests::Directory;
 
-fn fixture() -> Directory {
+pub(crate) fn fixture() -> Directory {
     let directory = Directory::new();
     for name in ["calibration", "A1", "A2"] {
         fs::create_dir(directory.0.join(name)).unwrap();

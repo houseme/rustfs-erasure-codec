@@ -31,6 +31,28 @@ fn truthy(value: &Value) -> bool {
         Value::Object(v) => !v.is_empty(),
     }
 }
+pub(crate) fn validate_context(reference: &Value) -> Result<()> {
+    let isolation = &reference["isolation"];
+    if !reference.is_object()
+        || !isolation.is_object()
+        || isolation["scope"] != "exclusive-vm-cpu-partition"
+    {
+        return Err("controlled resource provenance is required".into());
+    }
+    if !equivalent(&reference["settings"], &protocol::sampling_environment())
+        || !truthy(&reference["cpu_model"])
+        || !truthy(&reference["compiler"])
+        || !isolation["reserved_cpu_count"]
+            .as_u64()
+            .is_some_and(|n| n >= 2)
+        || isolation["physical_host_exclusivity_proven"] != false
+    {
+        return Err("incomplete or unexpected controlled capture settings".into());
+    }
+    runtime::validate_runtime(&reference["runtime"])?;
+    Ok(())
+}
+
 impl Bindings {
     pub(super) fn validate(&self, document: &Value) -> Result<()> {
         if document["baseline_release"] != "9.0.0" {
@@ -68,24 +90,7 @@ impl Bindings {
         }
         let contexts = &document["contexts"];
         let reference = &contexts["A1"];
-        let isolation = &reference["isolation"];
-        if !reference.is_object()
-            || !isolation.is_object()
-            || isolation["scope"] != "exclusive-vm-cpu-partition"
-        {
-            return Err("controlled resource provenance is required".into());
-        }
-        if !equivalent(&reference["settings"], &protocol::sampling_environment())
-            || !truthy(&reference["cpu_model"])
-            || !truthy(&reference["compiler"])
-            || !isolation["reserved_cpu_count"]
-                .as_u64()
-                .is_some_and(|n| n >= 2)
-            || isolation["physical_host_exclusivity_proven"] != false
-        {
-            return Err("incomplete or unexpected controlled capture settings".into());
-        }
-        runtime::validate_runtime(&reference["runtime"])?;
+        validate_context(reference)?;
         if STAGES
             .into_iter()
             .chain(["after"])

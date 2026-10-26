@@ -101,6 +101,16 @@ impl Args {
 }
 
 const COMMANDS: &[(&str, &[&str])] = &[
+    ("replay-plan-execution", &["--input", "--execution-sha256"]),
+    (
+        "preflight-plan-execution",
+        &[
+            "--input",
+            "--execution-sha256",
+            "--root",
+            "--isolation-cgroup",
+        ],
+    ),
     ("replay-plan-samples", &["--input", "--manifest-sha256"]),
     (
         "capture-plan-campaign",
@@ -322,6 +332,8 @@ fn run() -> Result<bool> {
         "capture-plan-campaign" => return plan_bench::campaign::capture(&args),
         "replay-plan-campaign" => return plan_bench::campaign::replay(&args),
         "replay-plan-samples" => return plan_bench::samples::replay(&args),
+        "replay-plan-execution" => return plan_bench::execution::run(&args, false),
+        "preflight-plan-execution" => return plan_bench::execution::run(&args, true),
         "capture-plan-bench" => return plan_bench::capture(&args),
         "replay-plan-bench" => return plan_bench::replay(&args),
         "audit-json" => return audit::json(&args.root()),
