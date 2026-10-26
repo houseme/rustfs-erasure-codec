@@ -181,3 +181,6 @@ Classic shape 的有效索引延迟分配、有效/无输出/错误路径完整�
 
 原生编译身份、采集/重放统一预算与本地验证边界见
 [collector 准入跟进报告](collector-admission-follow-up-2026-10-26.md)。
+
+预算扫描的流式遍历、metadata 路径保留与 argv 复用见
+[扫描开销跟进报告](collector-streaming-scan-follow-up-2026-10-26.md)。

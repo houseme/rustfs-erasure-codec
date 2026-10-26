@@ -84,3 +84,6 @@ Criterion 产物和同源输入，完成完整未变 baseline、监督开销和�
 当前不据本地合成或交叉编译结果推进候选性能归因。真实完整 ABBA、A2 漂移和
 逐布局门槛通过后，才按生产对象尺寸、并发度和峰值预算评估 verify 分块及
 oversized GF16 cache 策略。本轮未合并、打 tag 或发布。
+
+预算扫描的流式遍历、metadata 路径保留与 argv 复用见
+[扫描开销跟进报告](collector-streaming-scan-follow-up-2026-10-26.md)。
