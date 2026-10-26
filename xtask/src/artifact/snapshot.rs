@@ -94,18 +94,29 @@ impl Snapshot {
         Ok(path)
     }
     fn bytes(&self, name: &str) -> Result<Vec<u8>> {
+        self.read_bytes(name, false)
+    }
+    fn read_bytes(&self, name: &str, allow_empty: bool) -> Result<Vec<u8>> {
         let path = self.member(name)?;
         let file = fs::File::open(path)?;
         let len = file.metadata()?.len();
-        if len == 0 || len > MEMBER_LIMIT {
+        if (!allow_empty && len == 0) || len > MEMBER_LIMIT {
             return Err("bounded regular original members required".into());
         }
         let mut bytes = Vec::new();
         file.take(MEMBER_LIMIT + 1).read_to_end(&mut bytes)?;
-        if bytes.is_empty() || bytes.len() as u64 > MEMBER_LIMIT {
+        if (!allow_empty && bytes.is_empty()) || bytes.len() as u64 > MEMBER_LIMIT {
             return Err("original member changed beyond byte budget".into());
         }
         Ok(bytes)
+    }
+    /// Bind arbitrary original bytes, including executables and source archives.
+    pub(crate) fn binary_bound(&mut self, name: &str, expected: &str) -> Result<Vec<u8>> {
+        self.bound(name, Some(expected), Ok)
+    }
+    /// Raw worker logs may be empty; source/JSON member requirements stay strict.
+    pub(crate) fn raw_bound(&mut self, name: &str, expected: &str) -> Result<Vec<u8>> {
+        self.bind(name, Some(expected), true, Ok)
     }
     pub(crate) fn json(&mut self, name: &str) -> Result<Value> {
         self.json_bound(name, None)
@@ -137,10 +148,19 @@ impl Snapshot {
         expected: Option<&str>,
         decode: impl FnOnce(Vec<u8>) -> Result<T>,
     ) -> Result<T> {
+        self.bind(name, expected, false, decode)
+    }
+    fn bind<T>(
+        &mut self,
+        name: &str,
+        expected: Option<&str>,
+        allow_empty: bool,
+        decode: impl FnOnce(Vec<u8>) -> Result<T>,
+    ) -> Result<T> {
         if self.members.contains_key(name) {
             return Err("original member must be read once".into());
         }
-        let bytes = self.bytes(name)?;
+        let bytes = self.read_bytes(name, allow_empty)?;
         self.total = self
             .total
             .checked_add(bytes.len() as u64)
@@ -158,7 +178,7 @@ impl Snapshot {
     }
     pub(crate) fn finish(self) -> Result<BTreeMap<String, String>> {
         for (name, expected) in &self.members {
-            if digest(&self.bytes(name)?) != *expected {
+            if digest(&self.read_bytes(name, true)?) != *expected {
                 return Err("original members changed during replay".into());
             }
         }

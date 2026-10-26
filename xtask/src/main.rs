@@ -13,6 +13,7 @@ mod manifest;
 mod memory_policy;
 mod metadata;
 mod perf;
+mod plan_bench;
 mod regression;
 mod release_rows;
 mod runtime;
@@ -100,6 +101,29 @@ impl Args {
 }
 
 const COMMANDS: &[(&str, &[&str])] = &[
+    (
+        "freeze-plan-bench",
+        &["--root", "--revision", "--output", "--target-dir"],
+    ),
+    (
+        "capture-plan-bench",
+        &[
+            "--frozen",
+            "--manifest-sha256",
+            "--stage",
+            "--output",
+            "--timeout-seconds",
+        ],
+    ),
+    (
+        "replay-plan-bench",
+        &[
+            "--input",
+            "--manifest-sha256",
+            "--receipt-sha256",
+            "--stage",
+        ],
+    ),
     ("validate-diagnostic-ledger", &["--input"]),
     ("analyze-layout", &["--input"]),
     ("analyze-baseline-data", &["--input"]),
@@ -273,6 +297,12 @@ fn run() -> Result<bool> {
         ),
         "extract-criterion" => criterion::extract(&args)?,
         "analyze-abba" => return abba::run(&args),
+        "freeze-plan-bench" => {
+            plan_bench::freeze(&args)?;
+            return Ok(true);
+        }
+        "capture-plan-bench" => return plan_bench::capture(&args),
+        "replay-plan-bench" => return plan_bench::replay(&args),
         "audit-json" => return audit::json(&args.root()),
         "audit-no-python" => return audit::no_python(&args.root()),
         "audit-package" => audit::package(&args.root())?,

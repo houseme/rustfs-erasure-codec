@@ -42,6 +42,29 @@ fn field_cases<F: Field>(criterion: &mut Criterion, field: &str) {
 }
 
 fn plan_lifecycles(criterion: &mut Criterion) {
+    let mut actual = std::collections::BTreeSet::new();
+    for field in ["gf8", "tower-gf16"] {
+        for case in cases::cases() {
+            for action in ACTIONS {
+                actual.insert(format!(
+                    "reconstruct_plans/{action}/{field}/{}x{}/{}/elements{SHARD_ELEMENTS}",
+                    case.data, case.parity, case.name
+                ));
+            }
+        }
+    }
+    let declared: Vec<_> = include_str!("reconstruct_plans/cases.txt")
+        .lines()
+        .collect();
+    assert_eq!(
+        declared.len(),
+        actual.len(),
+        "duplicate or missing plan case"
+    );
+    assert_eq!(
+        actual.iter().map(String::as_str).collect::<Vec<_>>(),
+        declared
+    );
     field_cases::<galois_8::Field>(criterion, "gf8");
     field_cases::<galois_16::Field>(criterion, "tower-gf16");
 }
