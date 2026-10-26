@@ -1,5 +1,12 @@
 # 9.1.0 release preparation
 
+Current performance result (2026-10-26): the original full attempt stops at
+85/126 A2 workers. The [independent A2 follow-up](independent-a2-followup-2026-10-26.md)
+records the separate complete rerun, exact archive/resource closure, all 126
+case diagnostics, 12 candidate repeat refusals and 23 cross-episode baseline
+differences. The latter are descriptive only. Full ABBA/paired-layout acceptance,
+final source/lock binding and strict positive preflight remain outstanding.
+
 Linear recovery-row rebase (2026-10-25): PR #109 is based on main `50f3e82`
 with the same protected implementation/test/tool inputs as `4bd1208`. The
 [current rebase record](borrowed-recovery-row-views-review-2026-10-25.md#linear-rebase-onto-main-2026-10-25)

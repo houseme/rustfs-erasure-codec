@@ -6,6 +6,8 @@ published crate. Use `cargo xtask audit-json` to refresh the file inventory.
 
 ## Current Useful References
 
+- [Interrupted full campaign and independent A2 follow-up](independent-a2-followup-2026-10-26.md)
+  - complete case diagnostics, repeat/width refusals, source binding and remaining gates
 - `docs/main-vs-origin-main-performance-2026-05-28.md`
   - baseline commit vs current working tree on shared smoke operations
 - `docs/ec-update-benchmark-results-2026-05-28.md`
