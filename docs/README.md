@@ -28,6 +28,7 @@ This directory contains development documentation, design documents, benchmark r
 | [target-index-follow-up-2026-10-26.md](target-index-follow-up-2026-10-26.md) | Shared plan-owned erasure indices for complete required masks, with preparation and scoped-call costs |
 | [shape-index-follow-up-2026-10-26.md](shape-index-follow-up-2026-10-26.md) | Deferred exact survivor-index storage, valid/no-output/error controls and one-read length contracts |
 | [reconstruct-plan-benchmark-2026-10-26.md](reconstruct-plan-benchmark-2026-10-26.md) | Shared plan lifecycle fixtures, complete Criterion functional catalog and controlled timing boundary |
+| [frozen-plan-capture-follow-up-2026-10-26.md](frozen-plan-capture-follow-up-2026-10-26.md) | Frozen functional capsules, pinned source/receipt checks, independent replay and refusal controls |
 | [global-review-9.1.0-2026-10-22.md](global-review-9.1.0-2026-10-22.md) | Archived earlier architecture review and bounded incremental-update resources |
 | [drift-analysis-9.1.0-2026-10-22.md](drift-analysis-9.1.0-2026-10-22.md) | Current drift investigation, benchmark lifetime fixes and sparse incremental-update validation |
 | [README-performance-index.md](README-performance-index.md) | Performance document index |

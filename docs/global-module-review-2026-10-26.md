@@ -163,3 +163,6 @@ Classic shape 的有效索引延迟分配、有效/无输出/错误路径完整�
 
 耗时验证前置的共享计划生命周期目录、348 个功能场景和受控测量边界见
 [Classic 计划生命周期报告](reconstruct-plan-benchmark-2026-10-26.md)。
+
+已创建 PR 后的冻结构建、四阶段功能采集与原始成员离线重放见
+[冻结计划基准跟进报告](frozen-plan-capture-follow-up-2026-10-26.md)。
