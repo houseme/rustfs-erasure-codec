@@ -53,6 +53,33 @@ pub(crate) fn text_member(path: &Path, expected: &str) -> Result<String> {
     }
     Ok(universal_newlines(String::from_utf8(bytes)?))
 }
+const VERIFY_BUFFER_LEN: usize = 64 * 1024;
+fn digest_reader(reader: impl Read, limit: u64, buffer: &mut [u8]) -> Result<String> {
+    if buffer.is_empty() {
+        return Err("nonempty verification buffer required".into());
+    }
+    let mut reader = reader.take(
+        limit
+            .checked_add(1)
+            .ok_or("verification byte budget overflow")?,
+    );
+    let mut hash = Sha256::new();
+    let mut total = 0_u64;
+    loop {
+        let count = match reader.read(buffer) {
+            Ok(0) => break,
+            Ok(count) => count,
+            Err(e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
+            Err(e) => return Err(e.into()),
+        };
+        total += count as u64;
+        if total > limit {
+            return Err("original member changed beyond byte budget".into());
+        }
+        hash.update(&buffer[..count]);
+    }
+    Ok(hex(hash.finalize().as_slice()))
+}
 impl Snapshot {
     pub(crate) fn new(root: &Path) -> Result<Self> {
         Self::with_budget(root, SNAPSHOT_LIMIT)
@@ -68,11 +95,11 @@ impl Snapshot {
     }
     fn member(&self, name: &str) -> Result<PathBuf> {
         let mut path = self.root.clone();
-        let parts: Vec<_> = Path::new(name).components().collect();
-        if parts.is_empty() {
+        let mut parts = Path::new(name).components().peekable();
+        if parts.peek().is_none() {
             return Err("regular original member required".into());
         }
-        for (index, part) in parts.iter().enumerate() {
+        while let Some(part) = parts.next() {
             let Component::Normal(part) = part else {
                 return Err("invalid original member path".into());
             };
@@ -83,7 +110,7 @@ impl Snapshot {
                     "bounded regular original members required (symlinked original member)".into(),
                 );
             }
-            if if index + 1 == parts.len() {
+            if if parts.peek().is_none() {
                 !meta.is_file()
             } else {
                 !meta.is_dir()
@@ -93,16 +120,19 @@ impl Snapshot {
         }
         Ok(path)
     }
-    fn bytes(&self, name: &str) -> Result<Vec<u8>> {
-        self.read_bytes(name, false)
-    }
-    fn read_bytes(&self, name: &str, allow_empty: bool) -> Result<Vec<u8>> {
-        let path = self.member(name)?;
-        let file = fs::File::open(path)?;
+    fn open_member(&self, name: &str, allow_empty: bool) -> Result<fs::File> {
+        let file = fs::File::open(self.member(name)?)?;
         let len = file.metadata()?.len();
         if (!allow_empty && len == 0) || len > MEMBER_LIMIT {
             return Err("bounded regular original members required".into());
         }
+        Ok(file)
+    }
+    fn bytes(&self, name: &str) -> Result<Vec<u8>> {
+        self.read_bytes(name, false)
+    }
+    fn read_bytes(&self, name: &str, allow_empty: bool) -> Result<Vec<u8>> {
+        let file = self.open_member(name, allow_empty)?;
         let mut bytes = Vec::new();
         file.take(MEMBER_LIMIT + 1).read_to_end(&mut bytes)?;
         if (!allow_empty && bytes.is_empty()) || bytes.len() as u64 > MEMBER_LIMIT {
@@ -198,8 +228,10 @@ impl Snapshot {
         self.members.get(name).map(String::as_str)
     }
     pub(crate) fn unchanged(&self) -> Result<()> {
+        let mut buffer = [0_u8; VERIFY_BUFFER_LEN];
         for (name, expected) in &self.members {
-            if digest(&self.read_bytes(name, true)?) != *expected {
+            let actual = digest_reader(self.open_member(name, true)?, MEMBER_LIMIT, &mut buffer)?;
+            if actual != *expected {
                 return Err("original members changed during replay".into());
             }
         }

@@ -219,3 +219,107 @@ fn scoped_original_budget_refuses_oversized_input_and_restores_the_outer_limit()
     assert_eq!(snapshot.original("large").unwrap(), b"123456");
     assert_eq!(snapshot.finish().unwrap().len(), 2);
 }
+
+#[test]
+fn streaming_revalidation_matches_original_digests_across_chunk_boundaries() {
+    let dir = Directory::new();
+    let mut snapshot = Snapshot::new(&dir.0).unwrap();
+    for size in [
+        0,
+        1,
+        VERIFY_BUFFER_LEN - 1,
+        VERIFY_BUFFER_LEN,
+        VERIFY_BUFFER_LEN + 1,
+        2 * VERIFY_BUFFER_LEN + 3,
+    ] {
+        let bytes: Vec<_> = (0..size).map(|i| (i % 251) as u8).collect();
+        let name = format!("chunk-{size}");
+        fs::write(dir.0.join(&name), &bytes).unwrap();
+        assert_eq!(snapshot.raw_bound(&name, &digest(&bytes)).unwrap(), bytes);
+    }
+    snapshot.unchanged().unwrap();
+    assert_eq!(snapshot.finish().unwrap().len(), 6);
+}
+#[test]
+fn streaming_reader_retries_interrupts_and_rejects_errors_and_growth() {
+    struct Interrupt {
+        inner: std::io::Cursor<Vec<u8>>,
+        first: bool,
+    }
+    impl Read for Interrupt {
+        fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+            if self.first {
+                self.first = false;
+                return Err(std::io::ErrorKind::Interrupted.into());
+            }
+            self.inner.read(buf)
+        }
+    }
+    let mut buffer = [0_u8; 3];
+    let source = b"bounded original";
+    let reader = Interrupt {
+        inner: std::io::Cursor::new(source.to_vec()),
+        first: true,
+    };
+    assert_eq!(
+        digest_reader(reader, source.len() as u64, &mut buffer).unwrap(),
+        digest(source)
+    );
+    assert!(
+        digest_reader(
+            std::io::Cursor::new(source),
+            source.len() as u64 - 1,
+            &mut buffer
+        )
+        .is_err()
+    );
+    struct Failed;
+    impl Read for Failed {
+        fn read(&mut self, _: &mut [u8]) -> std::io::Result<usize> {
+            Err(std::io::ErrorKind::Other.into())
+        }
+    }
+    assert!(digest_reader(Failed, 10, &mut buffer).is_err());
+    assert!(digest_reader(std::io::Cursor::new(source), 100, &mut []).is_err());
+}
+#[test]
+fn streaming_revalidation_preserves_empty_and_overbudget_mutation_refusals() {
+    let dir = Directory::new();
+    fs::write(dir.0.join("original"), b"original").unwrap();
+    let mut snapshot = Snapshot::new(&dir.0).unwrap();
+    snapshot.original("original").unwrap();
+    fs::write(dir.0.join("original"), b"").unwrap();
+    assert!(snapshot.unchanged().is_err());
+    fs::File::create(dir.0.join("original"))
+        .unwrap()
+        .set_len(MEMBER_LIMIT + 1)
+        .unwrap();
+    assert!(snapshot.unchanged().is_err());
+    fs::write(dir.0.join("empty"), b"").unwrap();
+    let mut snapshot = Snapshot::new(&dir.0).unwrap();
+    snapshot.raw_bound("empty", &digest(b"")).unwrap();
+    snapshot.unchanged().unwrap();
+    fs::write(dir.0.join("empty"), b"late").unwrap();
+    assert!(snapshot.finish().is_err());
+}
+#[test]
+fn component_iteration_keeps_path_and_leaf_type_boundaries() {
+    let dir = Directory::new();
+    fs::create_dir(dir.0.join("nested")).unwrap();
+    fs::write(dir.0.join("nested/leaf"), b"original").unwrap();
+    let mut snapshot = Snapshot::new(&dir.0).unwrap();
+    assert_eq!(snapshot.original("nested/leaf").unwrap(), b"original");
+    for name in [
+        "",
+        ".",
+        "..",
+        "../outside",
+        "/absolute",
+        "nested/../leaf",
+        "nested",
+        "nested/leaf/child",
+    ] {
+        assert!(snapshot.original(name).is_err(), "{name}");
+    }
+    assert_eq!(snapshot.finish().unwrap().len(), 1);
+}
