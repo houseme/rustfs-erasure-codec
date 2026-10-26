@@ -181,11 +181,29 @@ mod tests {
     use super::*;
 
     #[test]
+    fn gf16_observer_uses_the_shared_reader_for_lf_crlf_and_cr_checkouts() {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .unwrap();
+        let canonical = source::read(root.join(FILES[3])).unwrap();
+        let expected = gf16(&canonical).unwrap();
+        let directory = crate::artifact::snapshot::tests::Directory::new();
+        let input = directory.0.join("decode.rs");
+        for newline in ["\n", "\r\n", "\r"] {
+            let bytes = canonical.replace('\n', newline);
+            std::fs::write(&input, bytes).unwrap();
+            let loaded = source::read(&input).unwrap();
+            assert_eq!(loaded, canonical);
+            assert_eq!(gf16(&loaded).unwrap(), expected);
+        }
+    }
+
+    #[test]
     fn gf16_observer_accepts_shared_and_separate_scratch_and_rejects_ambiguity() {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .unwrap();
-        let current = std::fs::read_to_string(root.join(FILES[3])).unwrap();
+        let current = source::read(root.join(FILES[3])).unwrap();
         let alias = "let out_scratch = &mut *scratch;";
         assert_eq!(current.matches(alias).count(), 2);
         let observed = gf16(&current).unwrap();
