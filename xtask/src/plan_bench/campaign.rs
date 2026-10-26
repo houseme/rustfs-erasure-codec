@@ -86,12 +86,6 @@ struct CampaignCheck {
     performance_accepted: bool,
 }
 
-fn compatible(a: &Manifest, b: &Manifest) -> Result<()> {
-    if a.compiler != b.compiler || a.features != b.features || a.catalog != b.catalog {
-        return Err("campaign requires identical compiler, features and full case catalog".into());
-    }
-    Ok(())
-}
 fn save<T: Serialize>(path: &Path, value: &T) -> Result<String> {
     let bytes = serde_json::to_vec_pretty(value)?;
     write(path, &bytes)?;

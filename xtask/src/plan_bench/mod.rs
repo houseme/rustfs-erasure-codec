@@ -2,6 +2,7 @@
 pub(crate) mod campaign;
 mod model;
 mod run;
+pub(crate) mod samples;
 #[cfg(test)]
 mod tests;
 
@@ -101,6 +102,13 @@ fn load(root: &Path, pin: &str) -> Result<Frozen> {
         binary,
         snapshot,
     })
+}
+
+fn compatible(a: &Manifest, b: &Manifest) -> Result<()> {
+    if a.compiler != b.compiler || a.features != b.features || a.catalog != b.catalog {
+        return Err("campaign requires identical compiler, features and full case catalog".into());
+    }
+    Ok(())
 }
 
 pub(crate) fn freeze(args: &Args) -> Result<()> {
@@ -311,9 +319,7 @@ fn verify_snapshot(
     valid_stage(stage)?;
     valid_digest(pin)?;
     valid_digest(receipt_pin)?;
-    let manifest = manifest_snapshot(snapshot, prefix, pin)?;
-    snapshot.binary_bound(&format!("{prefix}source.tar.gz"), &manifest.archive_sha256)?;
-    snapshot.binary_bound(&format!("{prefix}binary"), &manifest.binary_sha256)?;
+    let manifest = frozen_snapshot(snapshot, prefix, pin)?;
     let value = snapshot.json_bound(&format!("{prefix}receipt.json"), Some(receipt_pin))?;
     let receipt: Receipt = serde_json::from_value(value)?;
     if receipt.schema != SCHEMA
@@ -338,6 +344,13 @@ fn verify_snapshot(
     check.accepted = check.errors.is_empty();
     Ok((check, manifest))
 }
+fn frozen_snapshot(snapshot: &mut Snapshot, prefix: &str, pin: &str) -> Result<Manifest> {
+    let manifest = manifest_snapshot(snapshot, prefix, pin)?;
+    snapshot.binary_bound(&format!("{prefix}source.tar.gz"), &manifest.archive_sha256)?;
+    snapshot.binary_bound(&format!("{prefix}binary"), &manifest.binary_sha256)?;
+    Ok(manifest)
+}
+
 fn manifest_snapshot(snapshot: &mut Snapshot, prefix: &str, pin: &str) -> Result<Manifest> {
     let value = snapshot.json_bound(&format!("{prefix}manifest.json"), Some(pin))?;
     let manifest: Manifest = serde_json::from_value(value)?;
