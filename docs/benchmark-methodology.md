@@ -203,6 +203,23 @@ isolation. For isolated acceptance, prepare both binaries before measurement,
 reserve and verify the execution resources, and retain every phase's evidence;
 the convenience runner's Cargo/ref switching is not itself an isolation proof.
 
+### Classic plan lifecycle diagnostic
+
+The standalone `reconstruct_plans` target shares the shape resource catalog and
+keeps fixture owners outside repeated Criterion callbacks. It separates full
+workspace preparation, no-output preparation and no-output calls for GF8/tower
+GF16, including wide and malformed layouts. Returned owned plans are destroyed
+inside `iter`; this is a lifecycle window, not a drop-excluded timer.
+
+```bash
+cargo +stable bench --locked --features simd-accel --bench reconstruct_plans -- --test
+```
+
+This functional command checks all 348 IDs without a statistical timing campaign.
+See [the source-bound follow-up](reconstruct-plan-benchmark-2026-10-26.md) for
+preflight oracles, paired-source overlays, lifecycle boundaries and the remaining
+controlled-environment gates. These diagnostics do not replace release evidence.
+
 ## 3. Determinism Rules
 
 - Use fixed seeds from `benches/common/mod.rs` (`BASE_SEED` + `derived_seed`).

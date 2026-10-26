@@ -118,3 +118,9 @@ stable Rust 1.99.1 / macOS ARM64：
 普通 verify 分块仍需生产瓶颈、大小/并发分布和 scratch 预算；Leopard oversized
 缓存策略仍需线程/大小分布及峰值预算；算术与并行阈值继续等待稳定测量环境。
 本轮仅提交本地实现与证据，未 push、创建 PR、打 tag 或发布 crate。
+
+## 后续进展
+
+补集遍历/分配取舍的独立生命周期微基准、共享目录及功能验证见
+[Classic 计划生命周期报告](reconstruct-plan-benchmark-2026-10-26.md)。
+上文的申请数据、源码身份和未通过的耗时门槛保持。
