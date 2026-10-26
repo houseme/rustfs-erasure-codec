@@ -251,6 +251,7 @@ fn native_controller_help_lists_real_required_arguments() {
     for (command, flag) in [
         ("capture-plan-campaign", "--baseline-sha256"),
         ("replay-plan-campaign", "--plan-sha256"),
+        ("replay-plan-samples", "--manifest-sha256"),
         ("release-evidence", "--manifest"),
         ("release-sampling", "--baseline-ref"),
         ("diagnose-release-vm", "--native-service-clock"),
