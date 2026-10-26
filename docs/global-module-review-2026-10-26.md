@@ -175,3 +175,6 @@ Classic shape 的有效索引延迟分配、有效/无输出/错误路径完整�
 
 完整原始 baseline、执行窗口和只读资源预检的绑定及后续顺序见
 [执行绑定跟进报告](plan-execution-follow-up-2026-10-26.md)。
+
+受监督采集、原件逐份绑定、取消/超时及统计失败提前终止见
+[collector 跟进报告](plan-collector-follow-up-2026-10-26.md)。

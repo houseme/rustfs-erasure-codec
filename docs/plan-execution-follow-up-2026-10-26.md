@@ -115,3 +115,6 @@ target/debug/xtask preflight-plan-execution --input target/plan-execution \
 只有在真实 Linux 资源条件、完整未变 baseline 及这些执行前提满足后才运行正式
 计时；通过重复 baseline、A2 漂移和逐布局门槛后，再按生产预算推进 verify 分块
 与 oversized GF16 cache 策略。本轮继续更新同一 PR，未合并、打 tag 或发布。
+
+受监督采集、原件逐份绑定、取消/超时及统计失败提前终止见
+[collector 跟进报告](plan-collector-follow-up-2026-10-26.md)。

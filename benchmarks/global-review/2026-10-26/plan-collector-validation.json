@@ -1,0 +1,186 @@
+{
+  "schema": "supervised-plan-collector-validation-v1",
+  "controller_source_commit": "25cc67c29b7788723eaa7fa82459b5507d17fe5a",
+  "origin": "synthetic native fake workers, explicitly not codec builds or timing measurements",
+  "case_catalog": 348,
+  "repetitions": 2,
+  "owned_workers": 8,
+  "observations": 2784,
+  "paired_synthetic_samples": 27840,
+  "raw_to_canonical_bindings": 8352,
+  "independent_reader_agreed": true,
+  "controls": [
+    {
+      "control": "wrong_plan_pin",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "wrong_receipt_pin",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "wrong_worker_arguments",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "changed_worker_original",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "changed_worker_log",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "failed-worker",
+      "refused": true,
+      "later_workers_not_started": true,
+      "retained_terminal_receipt": true
+    },
+    {
+      "control": "timed-out",
+      "refused": true,
+      "later_workers_not_started": true,
+      "retained_terminal_receipt": true
+    },
+    {
+      "control": "cancelled",
+      "refused": true,
+      "later_workers_not_started": true,
+      "retained_terminal_receipt": true
+    },
+    {
+      "control": "linux-preflight",
+      "refused": true,
+      "later_workers_not_started": true,
+      "retained_terminal_receipt": true
+    }
+  ],
+  "original_collection_unchanged": true,
+  "real_sigint_reaped_worker": true,
+  "actual_linux_preflight_refused": true,
+  "real_criterion_timing_run": false,
+  "resource_configuration_modified": false,
+  "capture_provenance_verified": false,
+  "performance_accepted": false,
+  "verification_source_commit": "4531d005260db8f1b79c1e87818360eccf140321",
+  "early_statistical_gate_controls": [
+    {
+      "control": "wide",
+      "owned_workers_started": 2,
+      "later_worker_absent": true,
+      "all_owned_outcomes_exited_zero_and_reaped": true,
+      "numeric_failure_independently_recomputed": true,
+      "original_copies_retained": 2088
+    },
+    {
+      "control": "drift",
+      "owned_workers_started": 3,
+      "later_worker_absent": true,
+      "all_owned_outcomes_exited_zero_and_reaped": true,
+      "numeric_failure_independently_recomputed": true,
+      "original_copies_retained": 3132
+    },
+    {
+      "control": "repeat",
+      "owned_workers_started": 7,
+      "later_worker_absent": true,
+      "all_owned_outcomes_exited_zero_and_reaped": true,
+      "numeric_failure_independently_recomputed": true,
+      "original_copies_retained": 7308
+    }
+  ],
+  "initial_collection_replays_with_final_tool": true,
+  "legacy_replays": [
+    "functional",
+    "statistical inputs",
+    "execution envelope"
+  ],
+  "pull_request": "https://github.com/houseme/rustfs-erasure-codec/pull/115",
+  "prior_head": "856a36dd34787482599618e85ea5f029b4fd61e5",
+  "scope": "supervised fixed-argument collection, original-to-corpus replay and early statistical refusal; no codec runtime change",
+  "protocol": {
+    "schema": "plan-bench-collection-v1",
+    "predeclared_plan_and_frozen_inputs": true,
+    "fresh_output_and_per_worker_directories": true,
+    "synthetic_argument": "--test",
+    "recorded_argument": "--bench",
+    "criterion_home_is_owned_per_worker": true,
+    "no_build_or_source_switch_inside_window": true,
+    "expected_raw_triples_bound": true,
+    "owned_group_exit_and_reap_before_artifact_parsing": true,
+    "width_and_available_drift_stop_later_workers": true,
+    "incremental_typed_mean_cache": "shared drift arithmetic with offline audit; no growing-corpus reread per stage",
+    "execution_data_budget_bytes": 268435456,
+    "collection_replay_budget_bytes": 2147483648,
+    "monitored_worker_bytes": 1073741824,
+    "member_limit_bytes": 33554432,
+    "monitor_is_not_a_kernel_quota": true
+  },
+  "validation": {
+    "toolchain": "stable Rust 1.99.1",
+    "initial_workspace": {
+      "passed": 1017,
+      "failed": 0,
+      "ignored": 43
+    },
+    "final_workspace": {
+      "passed": 1018,
+      "failed": 0,
+      "ignored": 43
+    },
+    "counting": "last summary per top-level executable; excludes self-spawned duplicates",
+    "collector_contracts": 9,
+    "shared_budget_contracts": 1,
+    "total_plan_contracts": 49,
+    "strict_clippy": "workspace all-targets all-features -D warnings passed",
+    "format": "passed",
+    "diff_check": "passed",
+    "early_gate_red_green": "reproduced completion after failed width, then verified early stops at 2/3/7 workers",
+    "json_audit": {
+      "files": 660,
+      "errors": []
+    },
+    "package_allowlist": {
+      "core_members": 71,
+      "wasm_members": 6,
+      "tool_test_evidence_excluded": true
+    },
+    "workspace_dependency_inheritance": "all 5 members passed",
+    "interpreter_surface_audit": "passed"
+  },
+  "provenance": {
+    "codec_source_files_unchanged": 64,
+    "manifest_lock_build_script_unchanged": true,
+    "full_collection_source_commit": "25cc67c29b7788723eaa7fa82459b5507d17fe5a",
+    "early_gate_and_replay_source_commit": "4531d005260db8f1b79c1e87818360eccf140321",
+    "originals": "private fake-worker sources, binaries, input plans, copied baseline members, raw/canonical artifacts, start/outcome/logs, receipts, independent readers and refusal copies retained",
+    "public_boundary": "no private paths, binary digests, trusted pins or machine identity"
+  },
+  "performance_boundary": {
+    "synthetic_only_validation": true,
+    "real_linux_recorded_collection_validated": false,
+    "real_baseline_qualification_performed": false,
+    "real_criterion_timing_run": false,
+    "resource_configuration_modified": false,
+    "capture_provenance_verified": false,
+    "performance_accepted": false,
+    "release_qualified": false
+  },
+  "next_steps": [
+    "qualify the collector itself with real frozen Criterion binaries in an already qualified Linux reservation and same-source baseline",
+    "verify actual output layout, fixed build/environment, supervision overhead and complete repeat stability; stop attribution on any failed gate",
+    "only then evaluate single-variable candidates through complete ABBA/repeat/per-layout gates before production-budget-driven runtime policy changes"
+  ],
+  "prior_head_ci": {
+    "head": "856a36dd34787482599618e85ea5f029b4fd61e5",
+    "checks": {
+      "SUCCESS": 31,
+      "SKIPPED": 3
+    }
+  }
+}
