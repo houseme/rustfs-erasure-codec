@@ -207,3 +207,15 @@ fn fixed_catalog_budgets_preserve_inclusive_member_limits() {
             .contains("budget")
     );
 }
+
+#[test]
+fn scoped_original_budget_refuses_oversized_input_and_restores_the_outer_limit() {
+    let directory = Directory::new();
+    fs::write(directory.0.join("large"), b"123456").unwrap();
+    fs::write(directory.0.join("small"), b"ok").unwrap();
+    let mut snapshot = Snapshot::with_budget(&directory.0, 32).unwrap();
+    assert!(snapshot.scoped(5, |s| s.original("large")).is_err());
+    assert_eq!(snapshot.original("small").unwrap(), b"ok");
+    assert_eq!(snapshot.original("large").unwrap(), b"123456");
+    assert_eq!(snapshot.finish().unwrap().len(), 2);
+}

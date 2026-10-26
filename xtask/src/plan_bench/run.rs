@@ -18,6 +18,9 @@ pub(super) fn execute(
     name: &str,
     timeout: Duration,
 ) -> Result<Outcome> {
+    execute_with_cancel(command, output, name, timeout, cancellation()?)
+}
+pub(super) fn cancellation() -> Result<&'static AtomicBool> {
     static CANCELLED: AtomicBool = AtomicBool::new(false);
     static HANDLER: OnceLock<std::result::Result<(), String>> = OnceLock::new();
     HANDLER
@@ -27,14 +30,24 @@ pub(super) fn execute(
         })
         .as_ref()
         .map_err(|e| format!("cannot install owned-worker cancellation: {e}"))?;
-    execute_with_cancel(command, output, name, timeout, &CANCELLED)
+    Ok(&CANCELLED)
 }
 pub(super) fn execute_with_cancel(
+    command: Command,
+    output: &Path,
+    name: &str,
+    timeout: Duration,
+    cancelled: &AtomicBool,
+) -> Result<Outcome> {
+    execute_guarded(command, output, name, timeout, cancelled, |_| Ok(()))
+}
+pub(super) fn execute_guarded(
     mut command: Command,
     output: &Path,
     name: &str,
     timeout: Duration,
     cancelled: &AtomicBool,
+    mut guard: impl FnMut(bool) -> Result<()>,
 ) -> Result<Outcome> {
     let stdout = output.join(format!("{name}.stdout"));
     let stderr = output.join(format!("{name}.stderr"));
@@ -69,10 +82,16 @@ pub(super) fn execute_with_cancel(
         if oversized() {
             break "output_limit";
         }
+        if guard(false).is_err() {
+            break "guard_failed";
+        }
         match process.poll() {
             Ok(Some(status)) => {
                 if oversized() {
                     break "output_limit";
+                }
+                if guard(true).is_err() {
+                    break "guard_failed";
                 }
                 return Ok(Outcome {
                     exit_code: status.code(),

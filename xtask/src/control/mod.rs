@@ -351,7 +351,7 @@ pub(super) fn run(command: &str, args: Vec<String>) -> Result<bool> {
     Ok(true)
 }
 
-fn source_current() -> Result<()> {
+pub(crate) fn source_current() -> Result<()> {
     if source_stamp::digest(tool())? != env!("RSE_NATIVE_SOURCE_SHA256") {
         return Err(
             "native controller sources differ from this executable; rebuild with cargo xtask"

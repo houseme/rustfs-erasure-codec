@@ -1,5 +1,6 @@
 //! Frozen, functional-only plan benchmark capture. Never a timing/release gate.
 pub(crate) mod campaign;
+pub(crate) mod collector;
 pub(crate) mod execution;
 mod model;
 mod run;

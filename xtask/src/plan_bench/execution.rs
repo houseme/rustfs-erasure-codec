@@ -5,35 +5,35 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::collections::{BTreeMap, BTreeSet};
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;
 const SCHEMA: &str = "plan-bench-execution-inputs-v1";
 const SECOND: u64 = 1_000_000_000;
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-struct Execution {
-    schema: String,
-    session_sha256: String,
-    samples_sha256: String,
-    baseline_members: BTreeMap<String, String>,
-    renderer_sha256: String,
-    analyzer_sha256: String,
-    stage_seconds: u64,
-    window_seconds: u64,
-    gap_seconds: u64,
-    ended_ns: u64,
-    attempts: Vec<Attempt>,
+pub(super) struct Execution {
+    pub(super) schema: String,
+    pub(super) session_sha256: String,
+    pub(super) samples_sha256: String,
+    pub(super) baseline_members: BTreeMap<String, String>,
+    pub(super) renderer_sha256: String,
+    pub(super) analyzer_sha256: String,
+    pub(super) stage_seconds: u64,
+    pub(super) window_seconds: u64,
+    pub(super) gap_seconds: u64,
+    pub(super) ended_ns: u64,
+    pub(super) attempts: Vec<Attempt>,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-struct Attempt {
-    repetition: u8,
-    stage: String,
-    manifest_sha256: String,
-    attempt_sha256: String,
-    before_sha256: String,
-    after_sha256: String,
-    started_ns: u64,
-    ended_ns: u64,
+pub(super) struct Attempt {
+    pub(super) repetition: u8,
+    pub(super) stage: String,
+    pub(super) manifest_sha256: String,
+    pub(super) attempt_sha256: String,
+    pub(super) before_sha256: String,
+    pub(super) after_sha256: String,
+    pub(super) started_ns: u64,
+    pub(super) ended_ns: u64,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -43,20 +43,20 @@ struct Observation {
     context: Value,
 }
 #[derive(Serialize)]
-struct Report {
-    schema: &'static str,
-    execution_sha256: String,
-    bindings_verified: bool,
-    baseline_quality_passed: bool,
-    preflight_passed: bool,
-    capture_provenance_verified: bool,
-    performance_accepted: bool,
-    baseline: Value,
-    statistical: samples::Report,
-    errors: Vec<String>,
-    live_errors: Vec<String>,
+pub(super) struct Report {
+    pub(super) schema: &'static str,
+    pub(super) execution_sha256: String,
+    pub(super) bindings_verified: bool,
+    pub(super) baseline_quality_passed: bool,
+    pub(super) preflight_passed: bool,
+    pub(super) capture_provenance_verified: bool,
+    pub(super) performance_accepted: bool,
+    pub(super) baseline: Value,
+    pub(super) statistical: samples::Report,
+    pub(super) errors: Vec<String>,
+    pub(super) live_errors: Vec<String>,
 }
-fn baseline_catalog() -> BTreeSet<String> {
+pub(super) fn baseline_catalog() -> BTreeSet<String> {
     ["provenance.json", "qualification.json"]
         .into_iter()
         .map(str::to_owned)
@@ -101,7 +101,7 @@ impl Execution {
         Ok(())
     }
 }
-fn context(value: &Value, compiler: &str) -> Result<()> {
+pub(super) fn context(value: &Value, compiler: &str) -> Result<()> {
     sampling_contract::campaign::validate_context(value)?;
     let cpus: Vec<u64> = serde_json::from_value(value["isolation"]["cpu_affinity"].clone())?;
     if cpus.len() < 2
@@ -234,44 +234,28 @@ fn terminal_matches(
     }
     Ok(true)
 }
-fn verify(
-    root: &Path,
-    pin: &str,
-    mut observer: Option<&mut dyn FnMut() -> Result<Value>>,
-) -> Result<Report> {
-    valid_digest(pin)?;
-    let before = observer.as_mut().map(|f| f());
-    let mut snapshot = Snapshot::new(root)?;
-    let execution: Execution =
-        serde_json::from_value(snapshot.json_bound("execution.json", Some(pin))?)?;
-    execution.validate()?;
-    let (statistical, binding) =
-        samples::bound(&mut snapshot, "corpus/", &execution.samples_sha256)?;
-    let (baseline_report, provenance, counts) = baseline::bound(
-        &mut snapshot,
-        "baseline/",
-        Some(&execution.baseline_members),
-        &execution.renderer_sha256,
-        &execution.analyzer_sha256,
-        true,
-    )?;
-    let mut report = Report {
-        schema: "plan-bench-execution-audit-v1",
-        execution_sha256: pin.into(),
-        bindings_verified: false,
-        baseline_quality_passed: quality(&baseline_report),
-        preflight_passed: false,
-        capture_provenance_verified: false,
-        performance_accepted: false,
-        baseline: baseline_report,
-        statistical,
-        errors: Vec::new(),
-        live_errors: Vec::new(),
-    };
+pub(super) struct BaselineGate {
+    pub report: Value,
+    pub context: Value,
+    pub passed: bool,
+    pub errors: Vec<String>,
+}
+pub(super) fn baseline_gate(
+    snapshot: &mut Snapshot,
+    pins: &BTreeMap<String, String>,
+    renderer: &str,
+    analyzer: &str,
+    compiler: &str,
+) -> Result<BaselineGate> {
+    if pins.keys().cloned().collect::<BTreeSet<_>>() != baseline_catalog() {
+        return Err("complete baseline members required".into());
+    }
+    let (baseline_report, provenance, counts) =
+        baseline::bound(snapshot, "baseline/", Some(pins), renderer, analyzer, true)?;
+    let passed = quality(&baseline_report);
+    let mut errors = Vec::new();
     if provenance["schema_version"] != "baseline-qualification-v2" {
-        report
-            .errors
-            .push("complete v2 baseline runtime provenance is required".into());
+        errors.push("complete v2 baseline runtime provenance is required".into());
     }
     for role in ["source", "tool"] {
         for field in ["commit", "tree"] {
@@ -289,26 +273,65 @@ fn verify(
     }
     let terminal = snapshot.json_bound(
         "baseline/qualification.json",
-        Some(&execution.baseline_members["qualification.json"]),
+        Some(&pins["qualification.json"]),
     )?;
-    if !terminal_matches(
-        &terminal,
-        &provenance,
-        &counts,
-        &report.baseline,
-        &execution.baseline_members,
-    )? {
-        report
-            .errors
-            .push("baseline terminal status, identity or raw member bindings failed".into());
+    if !terminal_matches(&terminal, &provenance, &counts, &baseline_report, pins)? {
+        errors.push("baseline terminal status, identity or raw member bindings failed".into());
     }
     let reference = &provenance["context"];
-    context(reference, &binding.baseline.compiler)?;
-    if !report.baseline_quality_passed {
-        report
-            .errors
-            .push("recomputed baseline width, duration, layout or repeat gate failed".into());
+    context(reference, compiler)?;
+    if !passed {
+        errors.push("recomputed baseline width, duration, layout or repeat gate failed".into());
     }
+    Ok(BaselineGate {
+        report: baseline_report,
+        context: provenance["context"].clone(),
+        passed,
+        errors,
+    })
+}
+fn verify(
+    root: &Path,
+    pin: &str,
+    observer: Option<&mut dyn FnMut() -> Result<Value>>,
+) -> Result<Report> {
+    let mut snapshot = Snapshot::new(root)?;
+    let (report, _, _) = bound(&mut snapshot, pin, observer)?;
+    snapshot.finish()?;
+    Ok(report)
+}
+pub(super) fn bound(
+    snapshot: &mut Snapshot,
+    pin: &str,
+    mut observer: Option<&mut dyn FnMut() -> Result<Value>>,
+) -> Result<(Report, Execution, samples::Binding)> {
+    valid_digest(pin)?;
+    let before = observer.as_mut().map(|f| f());
+    let execution: Execution =
+        serde_json::from_value(snapshot.json_bound("execution.json", Some(pin))?)?;
+    execution.validate()?;
+    let (statistical, binding) = samples::bound(snapshot, "corpus/", &execution.samples_sha256)?;
+    let gate = baseline_gate(
+        snapshot,
+        &execution.baseline_members,
+        &execution.renderer_sha256,
+        &execution.analyzer_sha256,
+        &binding.baseline.compiler,
+    )?;
+    let reference = &gate.context;
+    let mut report = Report {
+        schema: "plan-bench-execution-audit-v1",
+        execution_sha256: pin.into(),
+        bindings_verified: false,
+        baseline_quality_passed: gate.passed,
+        preflight_passed: false,
+        capture_provenance_verified: false,
+        performance_accepted: false,
+        baseline: gate.report,
+        statistical,
+        errors: gate.errors,
+        live_errors: Vec::new(),
+    };
     if !report.statistical.integrity_accepted || !report.statistical.diagnostics_passed {
         report
             .errors
@@ -415,11 +438,10 @@ fn verify(
                 .push("synthetic inputs cannot pass live capture preflight".into());
         }
     }
-    snapshot.finish()?;
     report.bindings_verified = report.errors.is_empty();
     report.preflight_passed =
         observer.is_some() && report.bindings_verified && report.live_errors.is_empty();
-    Ok(report)
+    Ok((report, execution, binding))
 }
 pub(crate) fn run(args: &Args, live: bool) -> Result<bool> {
     let root = Path::new(args.required("--input")?);
