@@ -110,3 +110,6 @@ target/debug/xtask replay-plan-campaign --input target/plan-campaign \
 
 本轮继续更新同一 [PR #115](https://github.com/houseme/rustfs-erasure-codec/pull/115)。
 历史失败与原始测量保留，未合并、打 tag 或发布 crate。
+
+独立统计原始输入协议、完整重复目录与宽度/漂移拒绝验证见
+[统计输入跟进报告](plan-statistical-inputs-follow-up-2026-10-26.md)。

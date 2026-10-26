@@ -169,3 +169,6 @@ Classic shape 的有效索引延迟分配、有效/无输出/错误路径完整�
 
 跨阶段固定配对、连续功能窗口、独立重放及后续执行顺序见
 [连续计划 campaign 跟进报告](plan-campaign-follow-up-2026-10-26.md)。
+
+独立统计原始输入协议、完整重复目录与宽度/漂移拒绝验证见
+[统计输入跟进报告](plan-statistical-inputs-follow-up-2026-10-26.md)。
