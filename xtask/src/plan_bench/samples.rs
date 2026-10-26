@@ -9,8 +9,13 @@ pub(super) fn validate_raw(
     estimates: serde_json::Value,
     minimum: usize,
     confidence: f64,
-) -> Result<()> {
-    criterion::analyze(sample, estimates, minimum, confidence).map(|_| ())
+    max_width: f64,
+) -> Result<f64> {
+    let distribution = criterion::analyze(sample, estimates, minimum, confidence)?;
+    if distribution.relative_ci_width > max_width {
+        return Err("original CI width exceeds the predeclared limit".into());
+    }
+    Ok(distribution.mean_ns)
 }
 pub(super) fn validate_configuration(value: serde_json::Value) -> Result<()> {
     let doc: Document = serde_json::from_value(value)?;
@@ -154,14 +159,33 @@ fn read_case(
     ])
 }
 
-fn relative(later: Option<f64>, earlier: Option<f64>) -> Option<f64> {
-    later
-        .zip(earlier)
-        .map(|(a, b)| a / b - 1.0)
-        .filter(|v| v.is_finite())
+fn relative(
+    later: Option<f64>,
+    earlier: Option<f64>,
+) -> Option<std::result::Result<f64, &'static str>> {
+    later.zip(earlier).map(|(a, b)| {
+        let value = a / b - 1.0;
+        if value.is_finite() {
+            Ok(value)
+        } else {
+            Err("nonfinite drift")
+        }
+    })
 }
 fn center(a: Option<f64>, b: Option<f64>) -> Option<f64> {
     a.zip(b).map(|(a, b)| a + (b - a) / 2.0)
+}
+pub(super) fn drift_values(
+    current: [Option<f64>; 4],
+    first: [Option<f64>; 4],
+) -> [Option<std::result::Result<f64, &'static str>>; 4] {
+    let [a1, b1, b2, a2] = current;
+    [
+        relative(a2, a1),
+        relative(b2, b1),
+        relative(center(a1, a2), center(first[0], first[3])),
+        relative(center(b1, b2), center(first[1], first[2])),
+    ]
 }
 fn verify(root: &Path, pin: &str) -> Result<Report> {
     let mut snapshot = Snapshot::new(root)?;
@@ -342,17 +366,9 @@ pub(super) fn bound(snapshot: &mut Snapshot, prefix: &str, pin: &str) -> Result<
         });
     }
     for (repeat, rows) in means.iter().enumerate() {
-        for (index, &[a1, b1, b2, a2]) in rows.iter().enumerate() {
-            let baseline = relative(a2, a1);
-            let candidate = relative(b2, b1);
-            let baseline_repeat = relative(
-                center(a1, a2),
-                center(means[0][index][0], means[0][index][3]),
-            );
-            let candidate_repeat = relative(
-                center(b1, b2),
-                center(means[0][index][1], means[0][index][2]),
-            );
+        for (index, &values) in rows.iter().enumerate() {
+            let [baseline, candidate, baseline_repeat, candidate_repeat] =
+                drift_values(values, means[0][index]).map(|value| value.and_then(|r| r.ok()));
             for (name, value) in [
                 ("A2/A1", baseline),
                 ("B2/B1", candidate),
