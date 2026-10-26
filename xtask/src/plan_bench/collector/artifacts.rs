@@ -1,36 +1,64 @@
 use super::*;
-/// Polling limits are conservative checks, not a kernel filesystem quota.
-pub(super) fn tree(root: &Path, max_entries: usize) -> Result<Vec<String>> {
+/// Polling checks preserve every entry/type/byte constraint without retaining
+/// relative names. Directory paths are needed only for the traversal stack.
+#[derive(Default)]
+pub(super) struct Scan {
+    pub entries: usize,
+    pub files: usize,
+    pub bytes: u64,
+}
+#[derive(Clone, Copy)]
+struct Limits {
+    member: u64,
+    total: u64,
+    depth: usize,
+}
+const LIMITS: Limits = Limits {
+    member: artifact::snapshot::MEMBER_LIMIT,
+    total: 1024 * 1024 * 1024,
+    depth: 32,
+};
+fn scan(
+    root: &Path,
+    max_entries: usize,
+    limits: Limits,
+    mut file: impl FnMut(&str),
+) -> Result<Scan> {
+    let root_meta = fs::symlink_metadata(root)?;
+    if root_meta.file_type().is_symlink() || !root_meta.is_dir() {
+        return Err("regular worker artifact root required".into());
+    }
     let mut pending = vec![(root.to_owned(), 0)];
-    let mut files = Vec::new();
-    let (mut entries, mut total) = (0, 0_u64);
+    let mut result = Scan::default();
     while let Some((dir, depth)) = pending.pop() {
-        if depth > 32 {
+        if depth > limits.depth {
             return Err("worker artifact directory nesting exceeded".into());
         }
         for entry in fs::read_dir(dir)? {
             let entry = entry?;
-            entries += 1;
-            if entries > max_entries {
+            result.entries += 1;
+            if result.entries > max_entries {
                 return Err("worker artifact entry budget exceeded".into());
             }
-            let meta = fs::symlink_metadata(entry.path())?;
+            let path = entry.path();
+            let meta = fs::symlink_metadata(&path)?;
             if meta.is_dir() {
-                pending.push((entry.path(), depth + 1));
+                pending.push((path, depth + 1));
             } else if meta.is_file() {
-                total = total
+                result.files += 1;
+                result.bytes = result
+                    .bytes
                     .checked_add(meta.len())
                     .ok_or("worker artifact size overflow")?;
-                if meta.len() > artifact::snapshot::MEMBER_LIMIT || total > 1024 * 1024 * 1024 {
+                if meta.len() > limits.member || result.bytes > limits.total {
                     return Err("worker artifact byte budget exceeded".into());
                 }
-                files.push(
-                    entry
-                        .path()
-                        .strip_prefix(root)?
+                // Validate all names, including ignored sidecars; narrowing the
+                // retained catalog must not narrow original acceptance rules.
+                file(
+                    path.strip_prefix(root)?
                         .to_str()
-                        .ok_or("non-UTF8 artifact name")?
-                        .replace('\\', "/"),
+                        .ok_or("non-UTF8 artifact name")?,
                 );
             } else {
                 return Err(
@@ -39,6 +67,23 @@ pub(super) fn tree(root: &Path, max_entries: usize) -> Result<Vec<String>> {
             }
         }
     }
+    Ok(result)
+}
+pub(super) fn check(root: &Path, max_entries: usize) -> Result<Scan> {
+    scan(root, max_entries, LIMITS, |_| {})
+}
+pub(super) fn metadata(root: &Path, max_entries: usize) -> Result<Vec<String>> {
+    let mut files = Vec::new();
+    scan(root, max_entries, LIMITS, |name| {
+        let normalized = if name.contains('\\') {
+            std::borrow::Cow::Owned(name.replace('\\', "/"))
+        } else {
+            std::borrow::Cow::Borrowed(name)
+        };
+        if normalized == "new/benchmark.json" || normalized.ends_with("/new/benchmark.json") {
+            files.push(normalized.into_owned());
+        }
+    })?;
     files.sort();
     Ok(files)
 }
@@ -57,17 +102,14 @@ pub(super) fn collect(
     plan: &Plan,
 ) -> Result<Produced> {
     let raw = stage.join("raw");
-    let files = tree(&raw, manifest.catalog.len() * 64 + 128)?;
+    let files = metadata(&raw, manifest.catalog.len() * 64 + 128)?;
     let mut snapshot = Snapshot::new(&raw)?;
     let mut seen = BTreeSet::new();
     let mut result:Vec<_>=(0..manifest.catalog.len()).map(|i|json!({"case_index":i,"benchmark_sha256":null,"sample_sha256":null,"estimates_sha256":null})).collect();
     let mut errors = Vec::new();
     let mut copies = Vec::new();
     let mut means = vec![None; manifest.catalog.len()];
-    for name in files
-        .iter()
-        .filter(|n| n.ends_with("/new/benchmark.json") || n.as_str() == "new/benchmark.json")
-    {
+    for name in &files {
         let bytes = snapshot.original(name)?;
         let artifact::StrictJson(value) = serde_json::from_slice(&bytes)?;
         let key = value["full_id"]
@@ -163,3 +205,6 @@ pub(super) fn collect(
         },
     })
 }
+
+#[cfg(test)]
+mod tests;

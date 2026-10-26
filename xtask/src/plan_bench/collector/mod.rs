@@ -96,11 +96,11 @@ fn protected(root: &Path, plan: &Plan, pin: &str) -> Result<(Snapshot, Manifest,
     }
     Ok((snapshot, a, b, gate.context))
 }
-fn command(directory: &Path, plan: &Plan, reference: &Value) -> Command {
+fn command(directory: &Path, arguments: &[String], reference: &Value) -> Command {
     let mut command = Command::new(directory.join("binary"));
     command
         .current_dir(directory)
-        .args(plan.args())
+        .args(arguments)
         .env_clear()
         .env("PATH", "/usr/bin:/bin")
         .env("NO_COLOR", "1")
@@ -152,6 +152,7 @@ fn collect(
     let budget =
         super::window::Budget::new(plan.stage_seconds, plan.window_seconds, plan.gap_seconds)?;
     clock()?;
+    let arguments = plan.args();
     let mut attempts = Vec::new();
     let mut means = vec![vec![[None; 4]; a.catalog.len()]; usize::from(plan.repetitions)];
     let mut executed = Vec::new();
@@ -188,13 +189,13 @@ fn collect(
             let started_ns = clock()?;
             let start_pin = save(
                 &directory.join("start.json"),
-                &json!({"plan_sha256":pin,"repetition":repetition,"stage":stage,"binary_sha256":manifest.binary_sha256,"arguments":plan.args(),"before_sha256":before_pin,"started_ns":started_ns}),
+                &json!({"plan_sha256":pin,"repetition":repetition,"stage":stage,"binary_sha256":manifest.binary_sha256,"arguments":arguments,"before_sha256":before_pin,"started_ns":started_ns}),
             )?;
             receipt.steps.push(Step {
                 repetition: repetition as u8,
                 stage: stage.into(),
                 binary_sha256: manifest.binary_sha256.clone(),
-                arguments: plan.args(),
+                arguments: arguments.clone(),
                 start_sha256: start_pin,
                 outcome_sha256: None,
                 stdout_sha256: None,
@@ -206,7 +207,7 @@ fn collect(
             let mut last_check = Instant::now();
             let mut guard_error = None;
             let outcome = run::execute_guarded(
-                command(&directory, plan, &reference),
+                command(&directory, &arguments, &reference),
                 &directory,
                 "worker",
                 timeout,
@@ -214,7 +215,7 @@ fn collect(
                 |force| {
                     if force || last_check.elapsed() >= Duration::from_secs(1) {
                         last_check = Instant::now();
-                        if let Err(e) = artifacts::tree(
+                        if let Err(e) = artifacts::check(
                             &root.join("workers"),
                             usize::from(plan.repetitions) * 4 * (a.catalog.len() * 64 + 128),
                         ) {
