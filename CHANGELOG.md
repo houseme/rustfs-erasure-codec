@@ -10,6 +10,10 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Add a repository-only `reconstruct_plans` Criterion diagnostic for full plan
+  preparation, no-output preparation and no-output calls. Share the existing
+  shape resource catalog and retain fixture owners outside repeated callbacks.
+
 - Defer wide Classic survivor-index allocation until all lengths and the recovery
   quorum pass, then reserve the exact data width. Retain the inline survivor
   prefix and derive its suffix from owned erasures without rereading lengths.
