@@ -17,6 +17,7 @@ pub(crate) struct Snapshot {
     total: u64,
     limit: u64,
     members: BTreeMap<String, String>,
+    verification_buffer: Vec<u8>,
 }
 pub(crate) fn hex(bytes: &[u8]) -> String {
     const HEX: &[u8; 16] = b"0123456789abcdef";
@@ -55,6 +56,13 @@ pub(crate) fn text_member(path: &Path, expected: &str) -> Result<String> {
 }
 const VERIFY_BUFFER_LEN: usize = 64 * 1024;
 fn digest_reader(reader: impl Read, limit: u64, buffer: &mut [u8]) -> Result<String> {
+    Ok(digest_reader_counted(reader, limit, buffer)?.0)
+}
+fn digest_reader_counted(
+    reader: impl Read,
+    limit: u64,
+    buffer: &mut [u8],
+) -> Result<(String, u64)> {
     if buffer.is_empty() {
         return Err("nonempty verification buffer required".into());
     }
@@ -78,7 +86,7 @@ fn digest_reader(reader: impl Read, limit: u64, buffer: &mut [u8]) -> Result<Str
         }
         hash.update(&buffer[..count]);
     }
-    Ok(hex(hash.finalize().as_slice()))
+    Ok((hex(hash.finalize().as_slice()), total))
 }
 impl Snapshot {
     pub(crate) fn new(root: &Path) -> Result<Self> {
@@ -91,6 +99,7 @@ impl Snapshot {
             total: 0,
             limit,
             members: BTreeMap::new(),
+            verification_buffer: Vec::new(),
         })
     }
     fn member(&self, name: &str) -> Result<PathBuf> {
@@ -191,13 +200,7 @@ impl Snapshot {
             return Err("original member must be read once".into());
         }
         let bytes = self.read_bytes(name, allow_empty)?;
-        self.total = self
-            .total
-            .checked_add(bytes.len() as u64)
-            .ok_or("snapshot byte budget overflow")?;
-        if self.total > self.limit {
-            return Err("original snapshot exceeds byte budget".into());
-        }
+        self.account(bytes.len() as u64)?;
         let hash = digest(&bytes);
         if expected.is_some_and(|expected| expected != hash) {
             return Err("original member digest mismatch".into());
@@ -205,6 +208,44 @@ impl Snapshot {
         let value = decode(bytes).map_err(|e| format!("{name}: {e}"))?;
         self.members.insert(name.into(), hash);
         Ok(value)
+    }
+    fn account(&mut self, length: u64) -> Result<()> {
+        self.total = self
+            .total
+            .checked_add(length)
+            .ok_or("snapshot byte budget overflow")?;
+        if self.total > self.limit {
+            return Err("original snapshot exceeds byte budget".into());
+        }
+        Ok(())
+    }
+    fn verify(&mut self, name: &str, expected: &str, allow_empty: bool) -> Result<()> {
+        if self.members.contains_key(name) {
+            return Err("original member must be read once".into());
+        }
+        let file = self.open_member(name, allow_empty)?;
+        if self.verification_buffer.is_empty() {
+            self.verification_buffer.resize(VERIFY_BUFFER_LEN, 0);
+        }
+        let (hash, length) =
+            digest_reader_counted(file, MEMBER_LIMIT, &mut self.verification_buffer)?;
+        if !allow_empty && length == 0 {
+            return Err("original member changed beyond byte budget".into());
+        }
+        self.account(length)?;
+        if hash != expected {
+            return Err("original member digest mismatch".into());
+        }
+        self.members.insert(name.into(), hash);
+        Ok(())
+    }
+    /// Opaque originals are bound without materializing bytes that are discarded.
+    pub(crate) fn verify_binary(&mut self, name: &str, expected: &str) -> Result<()> {
+        self.verify(name, expected, false)
+    }
+    /// Raw logs may be empty, matching raw_bound rather than source-member rules.
+    pub(crate) fn verify_raw(&mut self, name: &str, expected: &str) -> Result<()> {
+        self.verify(name, expected, true)
     }
     pub(crate) fn scoped<T>(
         &mut self,
@@ -227,17 +268,23 @@ impl Snapshot {
     pub(crate) fn member_digest(&self, name: &str) -> Option<&str> {
         self.members.get(name).map(String::as_str)
     }
-    pub(crate) fn unchanged(&self) -> Result<()> {
-        let mut buffer = [0_u8; VERIFY_BUFFER_LEN];
+    pub(crate) fn unchanged(&mut self) -> Result<()> {
+        if self.members.is_empty() {
+            return Ok(());
+        }
+        if self.verification_buffer.is_empty() {
+            self.verification_buffer.resize(VERIFY_BUFFER_LEN, 0);
+        }
         for (name, expected) in &self.members {
-            let actual = digest_reader(self.open_member(name, true)?, MEMBER_LIMIT, &mut buffer)?;
+            let file = self.open_member(name, true)?;
+            let actual = digest_reader(file, MEMBER_LIMIT, &mut self.verification_buffer)?;
             if actual != *expected {
                 return Err("original members changed during replay".into());
             }
         }
         Ok(())
     }
-    pub(crate) fn finish(self) -> Result<BTreeMap<String, String>> {
+    pub(crate) fn finish(mut self) -> Result<BTreeMap<String, String>> {
         self.unchanged()?;
         Ok(self.members)
     }
