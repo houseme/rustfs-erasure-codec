@@ -334,23 +334,56 @@ impl<F: Field> ReedSolomon<F> {
         mut state: ClassicShardLengths,
         first_missing: usize,
     ) -> Result<(), Error> {
+        let data_shards = self.data_shard_count();
+        let inline_inputs = data_shards.min(shape.valid_indices.inline_size());
         shape
             .valid_indices
-            .extend(0..first_missing.min(self.data_shard_count()));
+            .extend(0..first_missing.min(inline_inputs));
         shape.invalid_indices.push(first_missing);
-        // Do not decide quorum or initialize destinations until every remaining
-        // present length has been checked, even if too many erasures are known.
+        // Keep selected inputs inline until every length and the quorum have
+        // passed. Failed recovery never needs their spilled index table.
         for (index, length) in lengths {
             if state.observe(length)? {
-                if shape.valid_indices.len() < self.data_shard_count() {
+                if shape.valid_indices.len() < inline_inputs {
                     shape.valid_indices.push(index);
                 }
             } else {
                 shape.invalid_indices.push(index);
             }
         }
+        if state.number_present < data_shards {
+            return Err(Error::TooFewShardsPresent);
+        }
         shape.shard_len = state.shard_len;
         shape.number_present = state.number_present;
+        let remaining = data_shards - shape.valid_indices.len();
+        if remaining != 0 {
+            // The erasure list completely describes the remaining survivors.
+            // Fill their final storage without rereading shard lengths or
+            // introducing an auxiliary presence bitmap/index list.
+            shape.valid_indices.reserve_exact(remaining);
+            let start = shape.valid_indices.last().map_or(0, |index| index + 1);
+            let first_erasure = shape
+                .invalid_indices
+                .partition_point(|&index| index < start);
+            let mut missing = shape.invalid_indices[first_erasure..]
+                .iter()
+                .copied()
+                .peekable();
+            shape.valid_indices.extend(
+                (start..self.total_shard_count())
+                    .filter(|index| {
+                        if missing.peek() == Some(index) {
+                            missing.next();
+                            false
+                        } else {
+                            true
+                        }
+                    })
+                    .take(remaining),
+            );
+        }
+        debug_assert_eq!(shape.valid_indices.len(), data_shards);
         Ok(())
     }
 

@@ -380,3 +380,82 @@ fn complete_required_targets_borrow_shape_for_full_and_short_owned_requests() {
     exercise::<galois_8::Field>();
     exercise::<galois_16::Field>();
 }
+
+#[test]
+fn deferred_survivor_indices_match_the_complement_with_one_length_read() {
+    use ::core::cell::Cell;
+    fn exercise<F: Field>() {
+        for data in [4, 32, 33, 64, 65, 96] {
+            let total = data + 8;
+            let codec = ReedSolomon::<F>::with_options(
+                data,
+                8,
+                CodecOptions::builder()
+                    .matrix_mode(MatrixMode::Cauchy)
+                    .build(),
+            )
+            .unwrap();
+            for missing in [
+                vec![],
+                vec![0],
+                vec![data / 2],
+                vec![total - 1],
+                vec![0, 31.min(data - 1), data + 3],
+                (data / 2..data / 2 + 8).collect(),
+                (0..9).collect(),
+            ] {
+                for bad_length in [None, Some(0), Some(64)] {
+                    // Keep the final shard present when testing a late error.
+                    if bad_length.is_some() && missing.contains(&(total - 1)) {
+                        continue;
+                    }
+                    let reads: Vec<_> = (0..total).map(|_| Cell::new(0)).collect();
+                    let result = codec.classic_reconstruct_shape((0..total).map(|i| {
+                        reads[i].set(reads[i].get() + 1);
+                        if missing.contains(&i) {
+                            None
+                        } else {
+                            Some(if i == total - 1 {
+                                bad_length.unwrap_or(65)
+                            } else {
+                                65
+                            })
+                        }
+                    }));
+                    assert!(reads.iter().all(|count| count.get() == 1));
+                    let error = match bad_length {
+                        Some(0) => Some(Error::EmptyShard),
+                        Some(_) => Some(Error::IncorrectShardSize),
+                        None if missing.len() > 8 => Some(Error::TooFewShardsPresent),
+                        None => None,
+                    };
+                    match (result, error) {
+                        (Err(actual), Some(expected)) => assert_eq!(actual, expected),
+                        (Ok(shape), None) => {
+                            assert_eq!(shape.shard_len, 65);
+                            assert_eq!(shape.number_present, total - missing.len());
+                            let mut sorted = missing.clone();
+                            sorted.sort_unstable();
+                            assert_eq!(shape.invalid_indices.as_slice(), sorted);
+                            let expected: Vec<_> = if missing.is_empty() {
+                                vec![]
+                            } else {
+                                (0..total)
+                                    .filter(|i| !missing.contains(i))
+                                    .take(data)
+                                    .collect()
+                            };
+                            assert_eq!(shape.valid_indices.as_slice(), expected);
+                            if !missing.is_empty() && data > 32 {
+                                assert_eq!(shape.valid_indices.capacity(), data);
+                            }
+                        }
+                        _ => panic!("shape validation or selected survivors changed"),
+                    }
+                }
+            }
+        }
+    }
+    exercise::<galois_8::Field>();
+    exercise::<galois_16::Field>();
+}
