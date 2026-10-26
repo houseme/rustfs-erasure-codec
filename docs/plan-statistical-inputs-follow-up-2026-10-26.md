@@ -114,3 +114,6 @@ collector；所有完整目录控制都是合成数据，本轮没有运行统�
 满足条件后先通过重复 baseline、A2 漂移及逐布局门槛，再依据生产对象尺寸、
 调用方 workspace 生命周期、并发度与峰值预算推进 verify 分块和 oversized GF16
 cache 策略。历史资源记录及所有失败保留，本轮未改运行时策略、合并、打 tag 或发布。
+
+完整原始 baseline、执行窗口和只读资源预检的绑定及后续顺序见
+[执行绑定跟进报告](plan-execution-follow-up-2026-10-26.md)。

@@ -1,0 +1,151 @@
+{
+  "schema": "plan-execution-binding-validation-v1",
+  "controller_source_commit": "57a306a8a5442069d366f675ff8228b4dcf8a412",
+  "fixture_origin": "synthetic, generated from committed test factories and prior synthetic statistical corpus",
+  "baseline_cases": 126,
+  "baseline_original_members": 14,
+  "statistical_observations": 2784,
+  "statistical_paired_samples": 27840,
+  "execution_attempts": 8,
+  "context_members": 16,
+  "independent_reader_agreed": true,
+  "negative_controls": [
+    {
+      "control": "wrong_execution_pin",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "wrong_attempt_binding",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "wrong_frozen_source",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "context_session",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "changed_context",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "short_worker_window",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "failed_original_terminal",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "missing_baseline_member",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    },
+    {
+      "control": "raw_baseline_drift",
+      "rust_refused": true,
+      "independent_reader_refused": true
+    }
+  ],
+  "actual_local_preflight": {
+    "passed": false,
+    "reason": "Linux reservation required; synthetic data cannot qualify live preflight",
+    "resources_modified": false,
+    "benchmark_workers_started": 0
+  },
+  "originals_unchanged": true,
+  "performance_accepted": false,
+  "capture_provenance_verified": false,
+  "timing_run": false,
+  "pull_request": "https://github.com/houseme/rustfs-erasure-codec/pull/115",
+  "prior_head": "f38e29e778e7946331cd6d39ec05dfd5b69357c9",
+  "scope": "shared original-byte baseline/statistical replay, structural execution binding and read-only Linux preflight; no collector or codec runtime change",
+  "protocol": {
+    "schema": "plan-bench-execution-inputs-v1",
+    "report_schema": "plan-bench-execution-audit-v1",
+    "single_snapshot": true,
+    "required_baseline_members": 14,
+    "baseline_terminal_and_raw_recomputed": true,
+    "source": "published 9.0.0 qualification plus distinct plan benchmark frozen identities",
+    "complete_profiles": 4,
+    "stage_seconds_range": [
+      1,
+      86400
+    ],
+    "window_seconds_range": [
+      1,
+      604800
+    ],
+    "gap_seconds_range": [
+      1,
+      60
+    ],
+    "raw_sample_time_must_fit_worker_window": true,
+    "live_resource_observations": 2,
+    "physical_host_exclusivity_claimed": false,
+    "collector_implemented": false
+  },
+  "validation": {
+    "toolchain": "stable Rust 1.99.1",
+    "new_execution_contracts": 10,
+    "total_plan_contracts": 40,
+    "workspace_all_features": {
+      "passed": 1008,
+      "failed": 0,
+      "ignored": 43
+    },
+    "counting": "last summary per top-level executable; excludes self-spawned duplicates",
+    "strict_clippy": "workspace all-targets all-features -D warnings passed",
+    "format": "passed",
+    "diff_check": "passed",
+    "existing_functional_replay_cases": 1392,
+    "existing_synthetic_statistical_observations": 2784,
+    "private_fixture_export": "one supplemental export-only test in a private committed-source copy; excluded from regression totals",
+    "json_audit": {
+      "files": 659,
+      "errors": []
+    },
+    "package_allowlist": {
+      "core_members": 71,
+      "wasm_members": 6,
+      "tool_test_evidence_excluded": true
+    },
+    "workspace_dependency_inheritance": "all 5 members passed",
+    "interpreter_surface_audit": "passed"
+  },
+  "provenance": {
+    "codec_source_files_unchanged": 64,
+    "manifest_lock_build_script_unchanged": true,
+    "raw_originals": "private synthetic fixtures, original declarations, contexts, raw members, CLI outputs, independent reader and refusal copies retained",
+    "public_boundary": "no private paths, binary digests, trusted pins or machine identity"
+  },
+  "performance_boundary": {
+    "resource_isolation_established": false,
+    "real_baseline_qualification_performed": false,
+    "statistical_timing_run": false,
+    "capture_provenance_verified": false,
+    "performance_accepted": false,
+    "release_qualified": false
+  },
+  "next_steps": [
+    "implement a supervised statistical collector binding a predeclared plan, live resources, exact binary arguments, owned process outcomes and every raw artifact",
+    "verify failure cancellation timeout and original retention with controlled fake workers before timing",
+    "only time in a qualified Linux reservation with a complete unchanged baseline; retain all repeat, drift and per-layout gates before runtime policy changes"
+  ],
+  "prior_head_ci": {
+    "head": "f38e29e778e7946331cd6d39ec05dfd5b69357c9",
+    "checks": {
+      "SUCCESS": 31,
+      "SKIPPED": 3
+    }
+  }
+}

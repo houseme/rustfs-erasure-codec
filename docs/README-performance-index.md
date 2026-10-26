@@ -6,6 +6,8 @@ published crate. Use `cargo xtask audit-json` to refresh the file inventory.
 
 ## Current Useful References
 
+- [Plan execution bindings and resource preflight](plan-execution-follow-up-2026-10-26.md)
+
 - [Plan statistical input protocol](plan-statistical-inputs-follow-up-2026-10-26.md)
 
 - [Continuous functional plan campaign](plan-campaign-follow-up-2026-10-26.md)
