@@ -83,3 +83,6 @@ stable Rust 1.99.1 完整 workspace all-features 为 1,030 项通过、43 项既
 交付 [PR #116](https://github.com/houseme/rustfs-erasure-codec/pull/116)。
 原采集源码 340156b 与 a52eda3 的完整树一致，验证数据和原源码身份保留，
 没有因为移动交付分支而重标测量或重复运行正式计时。
+
+固定缓冲的最终字节摘要复核与路径组件迭代见
+[Snapshot 流式复核报告](snapshot-streaming-revalidation-2026-10-26.md)。

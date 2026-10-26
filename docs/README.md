@@ -35,6 +35,7 @@ This directory contains development documentation, design documents, benchmark r
 | [plan-collector-follow-up-2026-10-26.md](plan-collector-follow-up-2026-10-26.md) | Supervised fixed-plan collection, raw-to-corpus bindings, bounded workers and early statistical refusal |
 | [collector-admission-follow-up-2026-10-26.md](collector-admission-follow-up-2026-10-26.md) | Exact native compiler admission, shared stage deadlines and preserved outcomes on clock failure |
 | [collector-streaming-scan-follow-up-2026-10-26.md](collector-streaming-scan-follow-up-2026-10-26.md) | Streaming budget traversal, metadata-only retained paths and fixed argv reuse with unchanged guards |
+| [snapshot-streaming-revalidation-2026-10-26.md](snapshot-streaming-revalidation-2026-10-26.md) | Fixed-scratch original digest revalidation and streaming path-component checks with unchanged acceptance rules |
 | [global-review-9.1.0-2026-10-22.md](global-review-9.1.0-2026-10-22.md) | Archived earlier architecture review and bounded incremental-update resources |
 | [drift-analysis-9.1.0-2026-10-22.md](drift-analysis-9.1.0-2026-10-22.md) | Current drift investigation, benchmark lifetime fixes and sparse incremental-update validation |
 | [README-performance-index.md](README-performance-index.md) | Performance document index |

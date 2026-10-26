@@ -184,3 +184,6 @@ Classic shape 的有效索引延迟分配、有效/无输出/错误路径完整�
 
 预算扫描的流式遍历、metadata 路径保留与 argv 复用见
 [扫描开销跟进报告](collector-streaming-scan-follow-up-2026-10-26.md)。
+
+固定缓冲的最终字节摘要复核与路径组件迭代见
+[Snapshot 流式复核报告](snapshot-streaming-revalidation-2026-10-26.md)。
