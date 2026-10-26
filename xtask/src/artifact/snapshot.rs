@@ -176,12 +176,37 @@ impl Snapshot {
         self.members.insert(name.into(), hash);
         Ok(value)
     }
-    pub(crate) fn finish(self) -> Result<BTreeMap<String, String>> {
+    pub(crate) fn scoped<T>(
+        &mut self,
+        budget: u64,
+        read: impl FnOnce(&mut Self) -> Result<T>,
+    ) -> Result<T> {
+        let original = self.limit;
+        self.limit = self.limit.min(
+            self.total
+                .checked_add(budget)
+                .ok_or("snapshot byte budget overflow")?,
+        );
+        let result = read(self);
+        self.limit = original;
+        result
+    }
+    pub(crate) fn original(&mut self, name: &str) -> Result<Vec<u8>> {
+        self.bound(name, None, Ok)
+    }
+    pub(crate) fn member_digest(&self, name: &str) -> Option<&str> {
+        self.members.get(name).map(String::as_str)
+    }
+    pub(crate) fn unchanged(&self) -> Result<()> {
         for (name, expected) in &self.members {
             if digest(&self.read_bytes(name, true)?) != *expected {
                 return Err("original members changed during replay".into());
             }
         }
+        Ok(())
+    }
+    pub(crate) fn finish(self) -> Result<BTreeMap<String, String>> {
+        self.unchanged()?;
         Ok(self.members)
     }
 }

@@ -254,6 +254,8 @@ fn native_controller_help_lists_real_required_arguments() {
         ("replay-plan-samples", "--manifest-sha256"),
         ("replay-plan-execution", "--execution-sha256"),
         ("preflight-plan-execution", "--isolation-cgroup"),
+        ("collect-plan-statistics", "--plan-sha256"),
+        ("replay-plan-collection", "--receipt-sha256"),
         ("release-evidence", "--manifest"),
         ("release-sampling", "--baseline-ref"),
         ("diagnose-release-vm", "--native-service-clock"),

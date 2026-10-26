@@ -4,6 +4,18 @@ use crate::abba::STAGES;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 mod criterion;
+pub(super) fn validate_raw(
+    sample: serde_json::Value,
+    estimates: serde_json::Value,
+    minimum: usize,
+    confidence: f64,
+) -> Result<()> {
+    criterion::analyze(sample, estimates, minimum, confidence).map(|_| ())
+}
+pub(super) fn validate_configuration(value: serde_json::Value) -> Result<()> {
+    let doc: Document = serde_json::from_value(value)?;
+    doc.validate()
+}
 #[cfg(test)]
 pub(crate) mod tests;
 const SCHEMA: &str = "plan-bench-statistical-inputs-v1";
@@ -47,10 +59,10 @@ struct Entry {
     estimates_sha256: Option<String>,
 }
 #[derive(Serialize)]
-struct AttemptSummary {
+pub(super) struct AttemptSummary {
     repetition: u8,
     stage: String,
-    outcome: Outcome,
+    pub(super) outcome: Outcome,
     originals_unchanged: bool,
 }
 #[derive(Serialize)]
@@ -71,24 +83,24 @@ struct Drift {
 }
 #[derive(Serialize)]
 pub(super) struct Report {
-    schema: &'static str,
-    input_sha256: String,
+    pub(super) schema: &'static str,
+    pub(super) input_sha256: String,
     pub(super) origin: Origin,
-    catalog_cases: usize,
-    repetitions: u8,
-    minimum_samples: usize,
-    confidence_level: f64,
-    max_ci_width: f64,
-    max_drift: f64,
+    pub(super) catalog_cases: usize,
+    pub(super) repetitions: u8,
+    pub(super) minimum_samples: usize,
+    pub(super) confidence_level: f64,
+    pub(super) max_ci_width: f64,
+    pub(super) max_drift: f64,
     pub(super) integrity_accepted: bool,
     pub(super) diagnostics_passed: bool,
-    performance_accepted: bool,
-    capture_provenance_verified: bool,
-    attempts: Vec<AttemptSummary>,
+    pub(super) performance_accepted: bool,
+    pub(super) capture_provenance_verified: bool,
+    pub(super) attempts: Vec<AttemptSummary>,
     observations: Vec<Observation>,
     drift: Vec<Drift>,
-    errors: Vec<String>,
-    diagnostic_failures: Vec<String>,
+    pub(super) errors: Vec<String>,
+    pub(super) diagnostic_failures: Vec<String>,
 }
 impl Document {
     fn validate(&self) -> Result<()> {
@@ -395,4 +407,19 @@ pub(crate) fn replay(args: &Args) -> Result<bool> {
     )?;
     println!("{}", serde_json::to_string_pretty(&report)?);
     Ok(report.integrity_accepted && report.diagnostics_passed)
+}
+
+impl Report {
+    pub(super) fn matches_configuration(&self, value: &serde_json::Value) -> bool {
+        value["origin"] == serde_json::to_value(self.origin).unwrap_or_default()
+            && value["repetitions"].as_u64() == Some(u64::from(self.repetitions))
+            && value["minimum_samples"].as_u64() == Some(self.minimum_samples as u64)
+            && value["confidence_level"].as_f64() == Some(self.confidence_level)
+            && value["max_ci_width"].as_f64() == Some(self.max_ci_width)
+            && value["max_drift"].as_f64() == Some(self.max_drift)
+            && self
+                .observations
+                .iter()
+                .all(|v| v.distribution.samples == self.minimum_samples)
+    }
 }
