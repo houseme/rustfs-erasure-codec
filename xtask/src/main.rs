@@ -102,6 +102,23 @@ impl Args {
 
 const COMMANDS: &[(&str, &[&str])] = &[
     (
+        "capture-plan-campaign",
+        &[
+            "--baseline",
+            "--baseline-sha256",
+            "--candidate",
+            "--candidate-sha256",
+            "--output",
+            "--stage-seconds",
+            "--window-seconds",
+            "--gap-seconds",
+        ],
+    ),
+    (
+        "replay-plan-campaign",
+        &["--input", "--plan-sha256", "--receipt-sha256"],
+    ),
+    (
         "freeze-plan-bench",
         &["--root", "--revision", "--output", "--target-dir"],
     ),
@@ -301,6 +318,8 @@ fn run() -> Result<bool> {
             plan_bench::freeze(&args)?;
             return Ok(true);
         }
+        "capture-plan-campaign" => return plan_bench::campaign::capture(&args),
+        "replay-plan-campaign" => return plan_bench::campaign::replay(&args),
         "capture-plan-bench" => return plan_bench::capture(&args),
         "replay-plan-bench" => return plan_bench::replay(&args),
         "audit-json" => return audit::json(&args.root()),

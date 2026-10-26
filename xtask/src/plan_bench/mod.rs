@@ -1,4 +1,5 @@
 //! Frozen, functional-only plan benchmark capture. Never a timing/release gate.
+pub(crate) mod campaign;
 mod model;
 mod run;
 #[cfg(test)]
@@ -232,17 +233,33 @@ pub(crate) fn capture(args: &Args) -> Result<bool> {
         return Err("timeout must be between 1 and 1200 seconds".into());
     }
     let output = Path::new(args.required("--output")?);
+    install(&original, output)?;
+    original.snapshot.finish()?;
+    Ok(
+        capture_prepared(output, pin, stage, Duration::from_secs(timeout))?
+            .0
+            .accepted,
+    )
+}
+
+fn install(original: &Frozen, output: &Path) -> Result<()> {
     new_directory(output)?;
-    let output = fs::canonicalize(output)?;
-    // Freeze a self-contained copy before execution; no build or source switch occurs here.
     write(&output.join("manifest.json"), &original.manifest_bytes)?;
     write(&output.join("source.tar.gz"), &original.archive)?;
     write(&output.join("binary"), &original.binary)?;
-    executable(&output.join("binary"))?;
-    original.snapshot.finish()?;
+    executable(&output.join("binary"))
+}
+
+fn capture_prepared(
+    output: &Path,
+    pin: &str,
+    stage: &str,
+    timeout: Duration,
+) -> Result<(Check, String)> {
+    let output = fs::canonicalize(output)?;
     let originals = load(&output, pin)?;
     let command = worker(&output.join("binary"), "--test", &output);
-    let outcome = run::execute(command, &output, "worker", Duration::from_secs(timeout))?;
+    let outcome = run::execute(command, &output, "worker", timeout)?;
     write(
         &output.join("worker.outcome.json"),
         &serde_json::to_vec_pretty(&outcome)?,
@@ -267,20 +284,37 @@ pub(crate) fn capture(args: &Args) -> Result<bool> {
     println!(
         "{stage}: {}/{} functional cases; accepted={}; performance_accepted=false",
         check.observed,
-        original.manifest.catalog.len(),
+        originals.manifest.catalog.len(),
         check.accepted
     );
     println!("receipt sha256: {receipt_pin}");
-    Ok(check.accepted)
+    Ok((check, receipt_pin))
 }
 
 pub(crate) fn verify(root: &Path, pin: &str, receipt_pin: &str, stage: &str) -> Result<Check> {
     valid_stage(stage)?;
     valid_digest(receipt_pin)?;
-    let mut frozen = load(root, pin)?;
-    let value = frozen
-        .snapshot
-        .json_bound("receipt.json", Some(receipt_pin))?;
+    let mut snapshot = Snapshot::new(root)?;
+    let (check, _) = verify_snapshot(&mut snapshot, "", pin, receipt_pin, stage)?;
+    snapshot.finish()?;
+    Ok(check)
+}
+
+// The campaign owns one snapshot across all four stages, including the final re-read.
+fn verify_snapshot(
+    snapshot: &mut Snapshot,
+    prefix: &str,
+    pin: &str,
+    receipt_pin: &str,
+    stage: &str,
+) -> Result<(Check, Manifest)> {
+    valid_stage(stage)?;
+    valid_digest(pin)?;
+    valid_digest(receipt_pin)?;
+    let manifest = manifest_snapshot(snapshot, prefix, pin)?;
+    snapshot.binary_bound(&format!("{prefix}source.tar.gz"), &manifest.archive_sha256)?;
+    snapshot.binary_bound(&format!("{prefix}binary"), &manifest.binary_sha256)?;
+    let value = snapshot.json_bound(&format!("{prefix}receipt.json"), Some(receipt_pin))?;
     let receipt: Receipt = serde_json::from_value(value)?;
     if receipt.schema != SCHEMA
         || receipt.stage != stage
@@ -289,13 +323,9 @@ pub(crate) fn verify(root: &Path, pin: &str, receipt_pin: &str, stage: &str) -> 
     {
         return Err("capture stage, mode or trusted source pin mismatch".into());
     }
-    let stdout = frozen
-        .snapshot
-        .raw_bound("worker.stdout", &receipt.stdout_sha256)?;
-    frozen
-        .snapshot
-        .raw_bound("worker.stderr", &receipt.stderr_sha256)?;
-    let mut check = check_output(std::str::from_utf8(&stdout)?, &frozen.manifest.catalog);
+    let stdout = snapshot.raw_bound(&format!("{prefix}worker.stdout"), &receipt.stdout_sha256)?;
+    snapshot.raw_bound(&format!("{prefix}worker.stderr"), &receipt.stderr_sha256)?;
+    let mut check = check_output(std::str::from_utf8(&stdout)?, &manifest.catalog);
     if receipt.outcome.exit_code != Some(0)
         || receipt.outcome.reason != "exited"
         || !receipt.outcome.reaped
@@ -306,8 +336,13 @@ pub(crate) fn verify(root: &Path, pin: &str, receipt_pin: &str, stage: &str) -> 
             .push("worker failed, timed out, was not reaped, or original inputs changed".into());
     }
     check.accepted = check.errors.is_empty();
-    frozen.snapshot.finish()?;
-    Ok(check)
+    Ok((check, manifest))
+}
+fn manifest_snapshot(snapshot: &mut Snapshot, prefix: &str, pin: &str) -> Result<Manifest> {
+    let value = snapshot.json_bound(&format!("{prefix}manifest.json"), Some(pin))?;
+    let manifest: Manifest = serde_json::from_value(value)?;
+    manifest.validate()?;
+    Ok(manifest)
 }
 pub(crate) fn replay(args: &Args) -> Result<bool> {
     let check = verify(
