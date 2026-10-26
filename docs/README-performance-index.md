@@ -6,6 +6,8 @@ published crate. Use `cargo xtask audit-json` to refresh the file inventory.
 
 ## Current Useful References
 
+- [Frozen input ownership by consumer](frozen-load-lifecycle-2026-10-27.md)
+
 - [Collector bound digest reuse](collector-digest-reuse-2026-10-27.md)
 
 - [Digest-only Snapshot binding with reusable scratch](snapshot-opaque-verification-2026-10-26.md)

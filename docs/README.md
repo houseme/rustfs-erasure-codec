@@ -38,6 +38,7 @@ This directory contains development documentation, design documents, benchmark r
 | [snapshot-streaming-revalidation-2026-10-26.md](snapshot-streaming-revalidation-2026-10-26.md) | Fixed-scratch original digest revalidation and streaming path-component checks with unchanged acceptance rules |
 | [snapshot-opaque-verification-2026-10-26.md](snapshot-opaque-verification-2026-10-26.md) | Digest-only initial binding and final verification share lazy Snapshot scratch and actual-byte budgets |
 | [collector-digest-reuse-2026-10-27.md](collector-digest-reuse-2026-10-27.md) | Reuse bound original digests for collector case/copy receipts while retaining exact bytes and final revalidation |
+| [frozen-load-lifecycle-2026-10-27.md](frozen-load-lifecycle-2026-10-27.md) | Shared strict frozen loader with full, binary-only and verification payloads released before final checks or execution |
 | [global-review-9.1.0-2026-10-22.md](global-review-9.1.0-2026-10-22.md) | Archived earlier architecture review and bounded incremental-update resources |
 | [drift-analysis-9.1.0-2026-10-22.md](drift-analysis-9.1.0-2026-10-22.md) | Current drift investigation, benchmark lifetime fixes and sparse incremental-update validation |
 | [README-performance-index.md](README-performance-index.md) | Performance document index |
