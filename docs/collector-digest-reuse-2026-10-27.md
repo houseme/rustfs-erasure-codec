@@ -57,3 +57,8 @@ performance_accepted 和 release_qualified 保持 false。
    未变 baseline、collector 实际监督开销与重复稳定性。
 3. 完整 ABBA、A2 漂移及逐布局门槛通过后，按生产并发和峰值预算评估 verify 分块及
    oversized GF16 cache；本地合成输入不授予这些策略的性能归因。
+
+## 冻结输入生命周期的执行进展
+
+上述本地后续项已完成，三个用途共用严格 manifest 解析及原件绑定；完整安装和
+消费后释放、四阶段功能采集等验证见[生命周期报告](frozen-load-lifecycle-2026-10-27.md)。

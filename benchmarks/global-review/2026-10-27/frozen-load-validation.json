@@ -1,0 +1,162 @@
+{
+  "schema": "frozen-load-validation-v1",
+  "source_commit": "57e58a68f3aa8ee864cb7bbc78f8a7c45a54669d",
+  "prior_head": "7e8ab6f8b34954bebe4b897545123bd02ab554f2",
+  "synthetic_collection": {
+    "fake_workers": 8,
+    "observations": 2784,
+    "raw_to_canonical_bindings": 8352,
+    "independent_reader_agreed": true,
+    "previous_case_and_copy_records_equal": true,
+    "previous_canonical_bytes_equal": true,
+    "capture_provenance_verified": false,
+    "performance_accepted": false
+  },
+  "functional_campaign": {
+    "stages": 4,
+    "cases": 1392,
+    "existing_frozen_worker_capsules_reused": true,
+    "latest_source_worker_rebuild": false,
+    "exact_capsule_copies": true,
+    "independent_reader_agreed": true,
+    "frozen_sources_unchanged": true,
+    "readonly_replay_passed": true,
+    "performance_accepted": false
+  },
+  "legacy_replays": [
+    {
+      "protocol": "collection",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "execution",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "statistics",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "functional",
+      "passed": true,
+      "originals_unchanged": true
+    }
+  ],
+  "formal_timing_run": false,
+  "rss_or_allocation_counts_measured": false,
+  "remote_resource_changes": false,
+  "pull_request": "https://github.com/houseme/rustfs-erasure-codec/pull/116",
+  "reviewed_main": "ec9211b66255c194ad0b79290ef27e2c01bb9607",
+  "comparison_capture_source_commit": "29122c7bc9935e9c1ab63be45c02ec8a6f624cc9",
+  "scope": "purpose-specific frozen original payloads and explicit release before final revalidation or functional worker execution; no codec runtime change",
+  "implementation_structure": {
+    "single_strict_manifest_loader": true,
+    "manifest_decoding": "same StrictJson and serde_json::from_slice over original bounded UTF-8 bytes as previous load; duplicate keys and UTF-16 remain refused",
+    "manifest_original_bytes_are_transient_unless_installing": true,
+    "payload_modes": [
+      {
+        "entrypoint": "load",
+        "result": "Frozen<CapsuleBytes>",
+        "owned_original_buffers": [
+          "manifest.json",
+          "source.tar.gz",
+          "binary"
+        ],
+        "consumers": [
+          "single capsule installation",
+          "campaign pair installation"
+        ]
+      },
+      {
+        "entrypoint": "load_binary",
+        "result": "Frozen<Vec<u8>>",
+        "owned_original_buffers": [
+          "binary"
+        ],
+        "consumers": [
+          "collector per-worker binary copy"
+        ]
+      },
+      {
+        "entrypoint": "load_verified",
+        "result": "Frozen<()>",
+        "owned_original_buffers": [],
+        "consumers": [
+          "freeze final validation",
+          "already installed functional capture"
+        ]
+      }
+    ],
+    "all_modes_bind_manifest_archive_and_binary": true,
+    "binary_only_archive_is_stream_verified": true,
+    "verification_only_archive_and_binary_are_stream_verified": true,
+    "release_order": "consume Frozen, drop payload and decoded manifest, then retain Snapshot for final revalidation or worker lifetime",
+    "functional_execution_retains_catalog_count_instead_of_decoded_manifest": true,
+    "private_snapshot_field_prevents_partial_move_of_snapshot_while_leaving_payload": true,
+    "digest_scratch_still_retained_by_snapshot": true,
+    "snapshot_path_type_member_scope_and_total_budget_guards_unchanged": true,
+    "worker_command_and_timing_gates_unchanged": true,
+    "no_runtime_mode_flags_or_optional_payloads": true,
+    "no_protocol_changes": true
+  },
+  "validation": {
+    "toolchain": "stable Rust 1.99.1",
+    "new_load_and_worker_contracts": 4,
+    "contracts": "all modes bind identical exact originals; strict manifest and member refusals; all original mutations refused after payload release; successful worker mutating archive leaves failed original-change receipt",
+    "existing_plan_bench_contracts_before_new_tests": 63,
+    "workspace_all_features": {
+      "passed": 1043,
+      "failed": 0,
+      "ignored": 43
+    },
+    "top_level_executables": 44,
+    "counting": "last summary per top-level executable; excludes self-spawned duplicates",
+    "strict_clippy": "workspace all-targets all-features -D warnings passed",
+    "format": "passed",
+    "diff_check": "passed",
+    "linux_test_cross_check": {
+      "target": "x86_64-unknown-linux-gnu",
+      "command": "cargo +stable check --offline --locked -p xtask --tests --target x86_64-unknown-linux-gnu",
+      "passed": true,
+      "linux_execution_performed": false
+    },
+    "json_audit": {
+      "files": 666,
+      "errors": []
+    },
+    "package_allowlist": {
+      "core_members": 71,
+      "wasm_members": 6,
+      "tool_test_evidence_excluded": true
+    },
+    "workspace_dependency_inheritance": "all 5 members passed",
+    "interpreter_surface_audit": "passed"
+  },
+  "provenance": {
+    "codec_source_files_unchanged": 64,
+    "root_manifest_lock_build_script_unchanged": true,
+    "snapshot_implementation_unchanged": true,
+    "functional_worker_identity": "reused existing frozen capsules without rebuilding or relabeling their source identity",
+    "independent_references": "complete original SHA-256, exact copied bytes, statistical arithmetic and functional stage-chain reader",
+    "raw_evidence": "private unit/build logs, full synthetic collection, four-stage functional capture, independent readers and unchanged legacy readbacks retained",
+    "public_boundary": "no private paths, binary digests, trusted pins or machine identity"
+  },
+  "performance_boundary": {
+    "formal_timing_run": false,
+    "allocator_calls_measured": false,
+    "rss_measured": false,
+    "throughput_or_latency_measured": false,
+    "real_linux_baseline_qualified": false,
+    "capture_provenance_verified": false,
+    "performance_accepted": false,
+    "release_qualified": false
+  },
+  "next_steps": [
+    "purpose-specific frozen loading is complete; continue deferring formal timing and remote resource changes as requested",
+    "confirm dedicated or explicitly authorized native Linux resources and complete unchanged baseline before formal timing",
+    "qualify actual collector supervision overhead and repeat stability; evaluate verify chunking or oversized GF16 cache only after ABBA/A2 drift and per-layout gates pass"
+  ]
+}

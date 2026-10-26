@@ -193,3 +193,6 @@ Classic shape 的有效索引延迟分配、有效/无输出/错误路径完整�
 
 原件摘要在 case/copy 两份记录中的复用、完整新旧目录对照和后续生命周期顺序见
 [Collector 摘要复用报告](collector-digest-reuse-2026-10-27.md)。
+
+冻结输入按完整安装、binary-only 和校验用途分配拥有权，及消费后释放的实现见
+[冻结输入生命周期报告](frozen-load-lifecycle-2026-10-27.md)。
