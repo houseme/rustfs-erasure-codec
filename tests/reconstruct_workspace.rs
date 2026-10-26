@@ -1457,3 +1457,185 @@ fn complete_required_targets_reuse_the_owned_shape_index_storage() {
         "complete required targets duplicate shape indices"
     );
 }
+
+#[test]
+fn shape_index_storage_is_exact_after_validation_and_bounded_on_errors() {
+    struct Case {
+        name: &'static str,
+        data: usize,
+        parity: usize,
+        missing: Vec<usize>,
+        bad_length: Option<usize>,
+    }
+    fn cases() -> Vec<Case> {
+        let mut cases = Vec::new();
+        for data in [4, 32, 33, 64, 65, 96] {
+            for (name, missing, bad_length) in [
+                ("present", vec![], None),
+                ("head", vec![0], None),
+                ("middle", vec![data / 2], None),
+                ("tail", vec![data + 3], None),
+                ("sparse", vec![0, data / 2, data + 1], None),
+                ("quorum", (0..5).collect(), None),
+                ("short", vec![0], Some(64)),
+                ("empty", vec![0], Some(0)),
+                ("quorum_short", (0..5).collect(), Some(64)),
+            ] {
+                cases.push(Case {
+                    name,
+                    data,
+                    parity: 4,
+                    missing,
+                    bad_length,
+                });
+            }
+        }
+        for (name, missing, bad_length) in [
+            ("wide_missing", (4..69).collect(), None),
+            (
+                "wide_mixed",
+                std::iter::once(0).chain(4..69).collect(),
+                None,
+            ),
+            ("wide_quorum", (0..101).collect(), None),
+            ("wide_short", (4..100).collect(), Some(64)),
+        ] {
+            cases.push(Case {
+                name,
+                data: 4,
+                parity: 97,
+                missing,
+                bad_length,
+            });
+        }
+        cases
+    }
+    fn expected_error(case: &Case) -> Option<Error> {
+        match case.bad_length {
+            Some(0) => Some(Error::EmptyShard),
+            Some(_) => Some(Error::IncorrectShardSize),
+            None if case.missing.len() > case.parity => Some(Error::TooFewShardsPresent),
+            None => None,
+        }
+    }
+    fn budget<F: Field>(case: &Case, full: bool, call: bool) -> Requests {
+        // Missing-index growth is intentionally unchanged. Valid inputs spill
+        // only after successful validation, directly to their final k width.
+        let mut result = Requests::default();
+        let mut capacity = 32;
+        while capacity < case.missing.len() {
+            capacity *= 2;
+            result.calls += 1;
+            result.bytes += capacity * std::mem::size_of::<usize>();
+        }
+        if expected_error(case).is_some() || case.missing.is_empty() {
+            return result;
+        }
+        if case.data > 32 {
+            result.calls += 1;
+            result.bytes += case.data * std::mem::size_of::<usize>();
+        }
+        if call && full {
+            let data = case.missing.iter().filter(|i| **i < case.data).count();
+            let parity = case.missing.len() - data;
+            let thin = std::mem::size_of::<&mut ShardSlot<Vec<F::Elem>>>();
+            let fat = std::mem::size_of::<&[F::Elem]>();
+            for (count, size) in [
+                (case.data, fat),
+                (data, thin),
+                (parity, thin),
+                (if parity > 0 { data } else { 0 }, fat),
+            ] {
+                if count > 32 {
+                    result.calls += 1;
+                    result.bytes += count * size;
+                }
+            }
+        }
+        result
+    }
+    fn exercise<F: Field>(field: &str) -> bool {
+        let mut bounded = true;
+        for case in cases() {
+            let codec = codec::<F>(case.data, case.parity, MatrixMode::Cauchy, false, true);
+            let expected = encoded(&codec, 65, 9281);
+            let mut initial = slots::<F>(&expected, &case.missing);
+            if let Some(len) = case.bad_length {
+                initial.last_mut().unwrap().as_inner_mut().truncate(len);
+            }
+            let required = vec![false; case.data + case.parity];
+            let error = expected_error(&case);
+            if error.is_none() {
+                codec.prepare_reconstruct_workspace(&initial).unwrap(); // Warm inverse cache.
+            }
+            for full in [true, false] {
+                let prepare_budget = budget::<F>(&case, full, false);
+                let call_budget = budget::<F>(&case, full, true);
+                for repetition in 0..3 {
+                    let (plan, prepare) = counted(|| {
+                        if full {
+                            codec.prepare_reconstruct_workspace(&initial)
+                        } else {
+                            codec.prepare_reconstruct_some_workspace(&initial, &required)
+                        }
+                    });
+                    match (plan, error) {
+                        (Ok(plan), None) => {
+                            let mut prepared = initial.clone();
+                            codec
+                                .reconstruct_with_workspace(&mut prepared, &plan)
+                                .unwrap();
+                            if full {
+                                check::<F>(&prepared, &expected);
+                            } else {
+                                assert_eq!(prepared, initial);
+                            }
+                        }
+                        (Err(actual), Some(expected)) => assert_eq!(actual, expected),
+                        _ => panic!("unexpected preparation result"),
+                    }
+                    let mut shards = initial.clone();
+                    let (result, call) = counted(|| {
+                        if full {
+                            codec.reconstruct(&mut shards)
+                        } else {
+                            codec.reconstruct_some(&mut shards, &required)
+                        }
+                    });
+                    assert_eq!(result, error.map_or(Ok(()), Err));
+                    if full && error.is_none() {
+                        check::<F>(&shards, &expected);
+                    } else {
+                        assert_eq!(shards, initial);
+                    }
+                    println!(
+                        "SHAPE_INDEX_RESOURCE field={field} case={} data={} parity={} missing={} full={full} repetition={repetition} prepare_calls={} prepare_bytes={} call_calls={} call_bytes={} prepare_budget_calls={} prepare_budget_bytes={} call_budget_calls={} call_budget_bytes={}",
+                        case.name,
+                        case.data,
+                        case.parity,
+                        case.missing.len(),
+                        prepare.calls,
+                        prepare.bytes,
+                        call.calls,
+                        call.bytes,
+                        prepare_budget.calls,
+                        prepare_budget.bytes,
+                        call_budget.calls,
+                        call_budget.bytes
+                    );
+                    bounded &= prepare.calls <= prepare_budget.calls
+                        && prepare.bytes <= prepare_budget.bytes
+                        && call.calls <= call_budget.calls
+                        && call.bytes <= call_budget.bytes;
+                }
+            }
+        }
+        bounded
+    }
+    let byte = exercise::<galois_8::Field>("gf8");
+    let tower = exercise::<galois_16::Field>("tower-gf16");
+    assert!(
+        byte && tower,
+        "shape index storage exceeds validated capacity"
+    );
+}

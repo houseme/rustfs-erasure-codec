@@ -10,6 +10,10 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+- Defer wide Classic survivor-index allocation until all lengths and the recovery
+  quorum pass, then reserve the exact data width. Retain the inline survivor
+  prefix and derive its suffix from owned erasures without rereading lengths.
+
 - Reuse the Classic plan's owned erasure indices when a required mask selects
   every missing shard. Build a separate target list only for a proper subset,
   preserving mask ownership, target order, validation and composed parity rows.
