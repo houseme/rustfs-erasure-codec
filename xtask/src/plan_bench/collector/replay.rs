@@ -67,13 +67,15 @@ pub(super) fn verify(root: &Path, plan_pin: &str, receipt_pin: &str) -> Result<C
             .errors
             .push("collected execution or statistics differ from the predeclared plan".into());
     }
+    let arguments = plan.args();
+    let arguments_value = serde_json::to_value(&arguments)?;
     for (index, step) in receipt.steps.iter().enumerate() {
         let repetition = index / 4 + 1;
         let stage = STAGES[index % 4];
         let prefix = format!("workers/{repetition:02}/{stage}");
         if usize::from(step.repetition) != repetition
             || step.stage != stage
-            || step.arguments != plan.args()
+            || step.arguments != arguments
         {
             check
                 .errors
@@ -86,7 +88,7 @@ pub(super) fn verify(root: &Path, plan_pin: &str, receipt_pin: &str) -> Result<C
             || start["repetition"] != repetition
             || start["stage"] != stage
             || start["binary_sha256"] != step.binary_sha256
-            || start["arguments"] != serde_json::to_value(plan.args())?
+            || start["arguments"] != arguments_value
         {
             check
                 .errors
