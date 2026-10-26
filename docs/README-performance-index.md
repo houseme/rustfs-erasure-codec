@@ -6,6 +6,8 @@ published crate. Use `cargo xtask audit-json` to refresh the file inventory.
 
 ## Current Useful References
 
+- [Collector streaming artifact scans](collector-streaming-scan-follow-up-2026-10-26.md)
+
 - [Collector native admission and stage budgets](collector-admission-follow-up-2026-10-26.md)
 
 - [Supervised plan statistical collector](plan-collector-follow-up-2026-10-26.md)
