@@ -80,7 +80,7 @@ fn prepare(source: &Path, output: &Path, pin: &str) -> Result<Plan> {
 }
 fn protected(root: &Path, plan: &Plan, pin: &str) -> Result<(Snapshot, Manifest, Manifest, Value)> {
     let mut snapshot = Snapshot::new(root)?;
-    snapshot.binary_bound("plan.json", pin)?;
+    snapshot.verify_binary("plan.json", pin)?;
     let a = frozen_snapshot(&mut snapshot, "corpus/sources/A/", &plan.baseline_sha256)?;
     let b = frozen_snapshot(&mut snapshot, "corpus/sources/B/", &plan.candidate_sha256)?;
     compatible(&a, &b)?;
@@ -147,7 +147,7 @@ fn collect(
     observer: &mut dyn FnMut(&str) -> Result<Value>,
     clock: &mut dyn FnMut() -> Result<u64>,
 ) -> Result<()> {
-    let (inputs, a, b, reference) = protected(root, plan, pin)?;
+    let (mut inputs, a, b, reference) = protected(root, plan, pin)?;
     observe(plan, &reference, &a.compiler, observer)?;
     let budget =
         super::window::Budget::new(plan.stage_seconds, plan.window_seconds, plan.gap_seconds)?;

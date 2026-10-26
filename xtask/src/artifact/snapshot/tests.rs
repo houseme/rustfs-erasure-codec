@@ -323,3 +323,68 @@ fn component_iteration_keeps_path_and_leaf_type_boundaries() {
     }
     assert_eq!(snapshot.finish().unwrap().len(), 1);
 }
+
+#[test]
+fn digest_only_binding_matches_owned_reads_and_reuses_lazy_scratch() {
+    let dir = Directory::new();
+    let bytes = vec![7_u8; VERIFY_BUFFER_LEN + 3];
+    fs::write(dir.0.join("opaque"), &bytes).unwrap();
+    fs::write(dir.0.join("next"), b"next").unwrap();
+    let mut snapshot = Snapshot::new(&dir.0).unwrap();
+    assert!(snapshot.verification_buffer.is_empty());
+    snapshot.verify_binary("opaque", &digest(&bytes)).unwrap();
+    assert_eq!(snapshot.total, bytes.len() as u64);
+    let buffer = snapshot.verification_buffer.as_ptr();
+    assert_eq!(snapshot.verification_buffer.len(), VERIFY_BUFFER_LEN);
+    snapshot.verify_raw("next", &digest(b"next")).unwrap();
+    snapshot.unchanged().unwrap();
+    assert_eq!(snapshot.verification_buffer.as_ptr(), buffer);
+    assert_eq!(snapshot.finish().unwrap().len(), 2);
+}
+#[test]
+fn digest_only_binding_preserves_empty_duplicate_pin_and_budget_refusals() {
+    let dir = Directory::new();
+    fs::write(dir.0.join("empty"), b"").unwrap();
+    fs::write(dir.0.join("data"), b"original").unwrap();
+    assert!(
+        Snapshot::new(&dir.0)
+            .unwrap()
+            .verify_binary("empty", &digest(b""))
+            .is_err()
+    );
+    let mut snapshot = Snapshot::new(&dir.0).unwrap();
+    snapshot.verify_raw("empty", &digest(b"")).unwrap();
+    assert!(snapshot.verify_raw("empty", &digest(b"")).is_err());
+    let mut snapshot = Snapshot::with_budget(&dir.0, 7).unwrap();
+    assert!(
+        snapshot
+            .verify_binary("data", &digest(b"original"))
+            .is_err()
+    );
+    assert_eq!(snapshot.total, 8);
+    assert!(snapshot.member_digest("data").is_none());
+    let mut snapshot = Snapshot::new(&dir.0).unwrap();
+    assert!(snapshot.verify_binary("data", &"0".repeat(64)).is_err());
+    assert_eq!(snapshot.total, 8);
+    assert!(snapshot.member_digest("data").is_none());
+}
+#[test]
+fn mixed_owned_and_digest_only_members_share_scope_and_final_mutation_checks() {
+    let dir = Directory::new();
+    fs::write(dir.0.join("json"), b"{}").unwrap();
+    fs::write(dir.0.join("raw"), b"raw").unwrap();
+    fs::write(dir.0.join("tail"), b"x").unwrap();
+    let mut snapshot = Snapshot::with_budget(&dir.0, 10).unwrap();
+    snapshot.json("json").unwrap();
+    snapshot.verify_binary("raw", &digest(b"raw")).unwrap();
+    assert!(
+        snapshot
+            .scoped(0, |s| s.verify_raw("tail", &digest(b"x")))
+            .is_err()
+    );
+    assert_eq!(snapshot.total, 6);
+    snapshot.verify_raw("tail", &digest(b"x")).unwrap();
+    assert_eq!(snapshot.total, 7);
+    fs::write(dir.0.join("raw"), b"changed").unwrap();
+    assert!(snapshot.finish().is_err());
+}

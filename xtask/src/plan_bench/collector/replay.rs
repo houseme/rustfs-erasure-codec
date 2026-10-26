@@ -81,7 +81,7 @@ pub(super) fn verify(root: &Path, plan_pin: &str, receipt_pin: &str) -> Result<C
                 .errors
                 .push("worker order or fixed arguments mismatch".into());
         }
-        snapshot.binary_bound(&format!("{prefix}/binary"), &step.binary_sha256)?;
+        snapshot.verify_binary(&format!("{prefix}/binary"), &step.binary_sha256)?;
         let start =
             snapshot.json_bound(&format!("{prefix}/start.json"), Some(&step.start_sha256))?;
         if start["plan_sha256"] != plan_pin
@@ -117,7 +117,7 @@ pub(super) fn verify(root: &Path, plan_pin: &str, receipt_pin: &str) -> Result<C
         ] {
             match pin {
                 Some(pin) => {
-                    snapshot.raw_bound(&format!("{prefix}/worker.{name}"), pin)?;
+                    snapshot.verify_raw(&format!("{prefix}/worker.{name}"), pin)?;
                 }
                 None => check
                     .errors
@@ -178,7 +178,7 @@ pub(super) fn verify(root: &Path, plan_pin: &str, receipt_pin: &str) -> Result<C
                         .errors
                         .push("canonical artifact differs from its worker original".into());
                 }
-                snapshot.binary_bound(&copy.original, &copy.sha256)?;
+                snapshot.verify_binary(&copy.original, &copy.sha256)?;
             }
             if seen.len() != source.catalog.len() * 3 {
                 check

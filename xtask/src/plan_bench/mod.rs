@@ -333,7 +333,7 @@ fn verify_snapshot(
         return Err("capture stage, mode or trusted source pin mismatch".into());
     }
     let stdout = snapshot.raw_bound(&format!("{prefix}worker.stdout"), &receipt.stdout_sha256)?;
-    snapshot.raw_bound(&format!("{prefix}worker.stderr"), &receipt.stderr_sha256)?;
+    snapshot.verify_raw(&format!("{prefix}worker.stderr"), &receipt.stderr_sha256)?;
     let mut check = check_output(std::str::from_utf8(&stdout)?, &manifest.catalog);
     if receipt.outcome.exit_code != Some(0)
         || receipt.outcome.reason != "exited"
@@ -349,8 +349,8 @@ fn verify_snapshot(
 }
 fn frozen_snapshot(snapshot: &mut Snapshot, prefix: &str, pin: &str) -> Result<Manifest> {
     let manifest = manifest_snapshot(snapshot, prefix, pin)?;
-    snapshot.binary_bound(&format!("{prefix}source.tar.gz"), &manifest.archive_sha256)?;
-    snapshot.binary_bound(&format!("{prefix}binary"), &manifest.binary_sha256)?;
+    snapshot.verify_binary(&format!("{prefix}source.tar.gz"), &manifest.archive_sha256)?;
+    snapshot.verify_binary(&format!("{prefix}binary"), &manifest.binary_sha256)?;
     Ok(manifest)
 }
 
