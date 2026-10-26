@@ -6,6 +6,8 @@ published crate. Use `cargo xtask audit-json` to refresh the file inventory.
 
 ## Current Useful References
 
+- [Supervised plan statistical collector](plan-collector-follow-up-2026-10-26.md)
+
 - [Plan execution bindings and resource preflight](plan-execution-follow-up-2026-10-26.md)
 
 - [Plan statistical input protocol](plan-statistical-inputs-follow-up-2026-10-26.md)
