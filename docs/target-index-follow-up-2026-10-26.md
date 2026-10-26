@@ -97,3 +97,9 @@ stable Rust 1.99.1 / macOS ARM64：
 生产瓶颈及大小/并发 scratch 预算；Leopard oversized 缓存取舍仍需生产线程/大小
 分布和峰值预算。本轮没有重新计时或宣称发布性能验收。
 本轮仅提交本地实现和证据，未 push、创建 PR、打 tag 或发布 crate。
+
+## 后续进展
+
+有效索引的校验后精确分配、无输出及非法输入资源对照见
+[Classic shape 索引跟进报告](shape-index-follow-up-2026-10-26.md)。
+上文保留完整目标索引复用时的源码身份和测量数据。

@@ -157,3 +157,6 @@ Classic 完整、数据与选择性计划复用之后的宽执行视图进展见
 
 Classic 计划构造中的完整 required 目标索引复用、准备/普通调用成本及后续容量检查见
 [Classic 完整目标索引跟进报告](target-index-follow-up-2026-10-26.md)。
+
+Classic shape 的有效索引延迟分配、有效/无输出/错误路径完整资源目录见
+[Classic shape 索引跟进报告](shape-index-follow-up-2026-10-26.md)。
