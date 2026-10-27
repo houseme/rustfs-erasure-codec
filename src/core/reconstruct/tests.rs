@@ -1,6 +1,118 @@
 use super::*;
 use crate::{CodecOptions, MatrixMode, galois_8, galois_16};
 
+#[cfg(feature = "std")]
+#[test]
+fn leopard_option_direct_rolls_back_after_decoder_error() {
+    let codec = galois_8::ReedSolomon::with_options(
+        4,
+        3,
+        CodecOptions::builder()
+            .codec_family(crate::CodecFamily::LeopardGF8)
+            .build(),
+    )
+    .unwrap();
+    let mut shards = vec![Some(vec![7; 128]); 7];
+    shards[0] = None;
+    shards[1] = None;
+    shards[4] = None;
+    let before = shards.clone();
+    let result = codec.reconstruct_leopard_option_direct_with(
+        &mut shards,
+        |index| index != 1,
+        |present, outputs, _| {
+            assert!(!present[0] && !present[1] && !present[4]);
+            assert!(outputs[1].is_empty());
+            outputs[0].fill(0xaa);
+            outputs[4].fill(0xbb);
+            Err(Error::IncorrectShardSize)
+        },
+    );
+    assert_eq!(result, Err(Error::IncorrectShardSize));
+    assert_eq!(shards, before);
+}
+
+#[cfg(all(feature = "std", panic = "unwind"))]
+#[test]
+fn leopard_option_direct_rolls_back_when_decoder_unwinds() {
+    let codec = galois_8::ReedSolomon::with_options(
+        4,
+        3,
+        CodecOptions::builder()
+            .codec_family(crate::CodecFamily::LeopardGF8)
+            .build(),
+    )
+    .unwrap();
+    let mut shards = vec![Some(vec![7; 128]); 7];
+    shards[0] = None;
+    shards[1] = None;
+    shards[4] = None;
+    let before = shards.clone();
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let _ = codec.reconstruct_leopard_option_direct_with(
+            &mut shards,
+            |index| index != 1,
+            |_, outputs, _| {
+                outputs[0].fill(0xaa);
+                outputs[4].fill(0xbb);
+                panic!("injected decoder panic");
+            },
+        );
+    }));
+    assert!(result.is_err());
+    assert_eq!(shards, before);
+}
+
+#[cfg(all(feature = "std", panic = "unwind"))]
+#[test]
+fn leopard_generic_preserves_missing_slot_bytes_when_decoder_fails_or_unwinds() {
+    #[cfg(target_endian = "little")]
+    let families = &[
+        crate::CodecFamily::LeopardGF8,
+        crate::CodecFamily::LeopardGF16,
+    ][..];
+    #[cfg(target_endian = "big")]
+    let families = &[crate::CodecFamily::LeopardGF8][..];
+    for &family in families {
+        let codec = galois_8::ReedSolomon::with_options(
+            4,
+            3,
+            CodecOptions::builder().codec_family(family).build(),
+        )
+        .unwrap();
+        let mut slots = vec![crate::ShardSlot::new_present(vec![7; 128]); 7];
+        slots[0] = crate::ShardSlot::new_missing(vec![0xa5; 128]);
+        slots[1] = crate::ShardSlot::new_missing(vec![0x5a; 128]);
+        slots[4] = crate::ShardSlot::new_missing(vec![0x3c; 128]);
+        let before = slots.clone();
+        let result = codec.reconstruct_leopard_impl(
+            &mut slots,
+            |index| index != 1,
+            |_, outputs, _, _, _| {
+                assert!(outputs[1].is_empty());
+                outputs[0].fill(0x11);
+                outputs[4].fill(0x22);
+                Err(Error::IncorrectShardSize)
+            },
+        );
+        assert_eq!(result, Err(Error::IncorrectShardSize));
+        assert_eq!(slots, before, "{family:?} returned error");
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _ = codec.reconstruct_leopard_impl(
+                &mut slots,
+                |index| index != 1,
+                |_, outputs, _, _, _| {
+                    outputs[0].fill(0x11);
+                    outputs[4].fill(0x22);
+                    panic!("injected decoder panic");
+                },
+            );
+        }));
+        assert!(result.is_err());
+        assert_eq!(slots, before, "{family:?} unwound");
+    }
+}
+
 fn matches_full_inverse<F: Field>(codec: &crate::ReedSolomon<F>, valid: &[usize]) {
     let n = codec.data_shard_count();
     let mut selected = crate::matrix::Matrix::<F>::new(n, n);

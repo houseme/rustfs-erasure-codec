@@ -13,6 +13,120 @@ use crate::errors::Error;
 use crate::{Field, ReconstructShard};
 
 #[cfg(feature = "std")]
+impl ReedSolomon<crate::galois_8::Field> {
+    // Concrete Vec destinations cannot reject initialization. Keep the generic
+    // ReconstructShard path unchanged, including its sequential publication
+    // behavior for fallible user-defined containers.
+    pub(crate) fn reconstruct_leopard_option_direct(
+        &self,
+        shards: &mut [Option<Vec<u8>>],
+        required: impl Fn(usize) -> bool,
+    ) -> Result<(), Error> {
+        self.reconstruct_leopard_option_direct_with(shards, required, |present, outputs, inputs| {
+            if self.is_leopard_gf8_family() {
+                super::leopard_gf8::reconstruct_with_tables(
+                    present,
+                    outputs,
+                    inputs,
+                    self.data_shard_count(),
+                    self.parity_shard_count(),
+                )
+            } else {
+                super::leopard::leopard_gf16_reconstruct(
+                    present,
+                    outputs,
+                    inputs,
+                    self.data_shard_count(),
+                    self.parity_shard_count(),
+                    self.options.max_parallel_jobs,
+                )
+            }
+        })
+    }
+
+    fn reconstruct_leopard_option_direct_with(
+        &self,
+        shards: &mut [Option<Vec<u8>>],
+        required: impl Fn(usize) -> bool,
+        decode: impl FnOnce(&[bool], &mut [&mut [u8]], &[Option<&[u8]>]) -> Result<(), Error>,
+    ) -> Result<(), Error> {
+        check_piece_count!(all => self, shards);
+        let mut shard_len = None;
+        let mut present_count = 0;
+        for bytes in shards.iter().flatten() {
+            let len = bytes.len();
+            if len == 0 {
+                return Err(Error::EmptyShard);
+            }
+            if !len.is_multiple_of(64) || shard_len.is_some_and(|prev| prev != len) {
+                return Err(Error::IncorrectShardSize);
+            }
+            shard_len = Some(len);
+            present_count += 1;
+        }
+        if present_count < self.data_shard_count() {
+            return Err(Error::TooFewShardsPresent);
+        }
+        if !shards
+            .iter()
+            .enumerate()
+            .any(|(i, shard)| shard.is_none() && required(i))
+        {
+            return Ok(());
+        }
+        let len = shard_len.ok_or(Error::TooFewShardsPresent)?;
+        let present: SmallVec<[bool; 32]> = shards.iter().map(Option::is_some).collect();
+        // Decode used to happen before any Option was published. Restore that
+        // state on both returned errors and unwinding, including partial writes.
+        struct Rollback<'a, R: Fn(usize) -> bool> {
+            shards: &'a mut [Option<Vec<u8>>],
+            present: &'a [bool],
+            required: &'a R,
+            committed: bool,
+        }
+        impl<R: Fn(usize) -> bool> Drop for Rollback<'_, R> {
+            fn drop(&mut self) {
+                if !self.committed {
+                    for (index, shard) in self.shards.iter_mut().enumerate() {
+                        if !self.present[index] && (self.required)(index) {
+                            *shard = None;
+                        }
+                    }
+                }
+            }
+        }
+        let mut rollback = Rollback {
+            shards,
+            present: &present,
+            required: &required,
+            committed: false,
+        };
+        for (index, shard) in rollback.shards.iter_mut().enumerate() {
+            if !present[index] && required(index) {
+                *shard = Some(vec![0; len]);
+            }
+        }
+        let mut inputs: SmallVec<[Option<&[u8]>; 32]> =
+            SmallVec::with_capacity(rollback.shards.len());
+        let mut outputs: SmallVec<[&mut [u8]; 32]> = SmallVec::with_capacity(rollback.shards.len());
+        for (index, shard) in rollback.shards.iter_mut().enumerate() {
+            if present[index] {
+                inputs.push(shard.as_deref());
+                outputs.push(&mut []);
+            } else {
+                inputs.push(None);
+                outputs.push(shard.as_deref_mut().unwrap_or(&mut []));
+            }
+        }
+        let result = decode(&present, &mut outputs, &inputs);
+        drop(outputs);
+        drop(inputs);
+        rollback.committed = result.is_ok();
+        result
+    }
+}
+
+#[cfg(feature = "std")]
 use std::sync::atomic::Ordering;
 
 #[cfg(not(feature = "std"))]
