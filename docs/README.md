@@ -11,6 +11,8 @@ This directory contains development documentation, design documents, benchmark r
 | [ec-formal-delivery-summary-2026-05-28.md](ec-formal-delivery-summary-2026-05-28.md) | Formal delivery handoff summary |
 | [ec-improvement-master-plan.md](ec-improvement-master-plan.md) | Master improvement plan (Chinese) |
 | [benchmark-methodology.md](benchmark-methodology.md) | How to run and interpret benchmarks |
+| [release-9.1.0-preparation-2026-10-27.md](release-9.1.0-preparation-2026-10-27.md) | Current release preparation, package verification and explicit remaining evidence/preflight gates |
+| [release-9.1.0-notes.md](release-9.1.0-notes.md) | Draft release notes, compatibility boundaries and performance scope |
 | [global-module-review-2026-10-26.md](global-module-review-2026-10-26.md) | Current module review, stream metadata consolidation, and validation limits |
 | [caller-workspace-follow-up-2026-10-26.md](caller-workspace-follow-up-2026-10-26.md) | Generic parallel workspace reuse, resource evidence, and follow-up status |
 | [scratch-sparse-follow-up-2026-10-26.md](scratch-sparse-follow-up-2026-10-26.md) | Inline fast verification scratch and sparse streaming parity outputs |

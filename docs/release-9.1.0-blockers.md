@@ -1,5 +1,12 @@
 # 9.1.0 publication blockers and completion criteria
 
+Preparation update (2026-10-27): merged main `6167745` has successful ordinary
+CI and the same complete tree as the locally validated `55bcf2b`. The
+[current preparation runbook](release-9.1.0-preparation-2026-10-27.md) consolidates
+9.1.0 notes and exact package verification. Controlled final performance evidence,
+an accepted data ref and final-main strict positive preflight remain pending.
+No timing, tag or registry upload has been performed in this preparation.
+
 Current performance result (2026-10-26): the original full attempt stops at
 85/126 A2 workers. The [independent A2 follow-up](independent-a2-followup-2026-10-26.md)
 records the separate complete rerun, exact archive/resource closure, all 126
