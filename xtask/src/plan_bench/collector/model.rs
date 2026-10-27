@@ -127,6 +127,47 @@ pub(super) struct Receipt {
     pub steps: Vec<Step>,
     pub error: Option<String>,
 }
+struct ExecutionAttempts<'a>(&'a [Step]);
+impl Serialize for ExecutionAttempts<'_> {
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.collect_seq(self.0.iter().filter_map(|step| step.execution.as_ref()))
+    }
+}
+// Preserve the original sorted Value encoding without cloning the ledger or plan.
+#[derive(Serialize)]
+pub(super) struct ExecutionEnvelope<'a> {
+    analyzer_sha256: &'a str,
+    attempts: ExecutionAttempts<'a>,
+    baseline_members: &'a BTreeMap<String, String>,
+    ended_ns: u64,
+    gap_seconds: u64,
+    renderer_sha256: &'a str,
+    samples_sha256: &'a Option<String>,
+    schema: &'static str,
+    session_sha256: &'a str,
+    stage_seconds: u64,
+    window_seconds: u64,
+}
+impl<'a> ExecutionEnvelope<'a> {
+    pub fn new(plan: &'a Plan, receipt: &'a Receipt, ended_ns: u64) -> Self {
+        Self {
+            analyzer_sha256: &plan.analyzer_sha256,
+            attempts: ExecutionAttempts(&receipt.steps),
+            baseline_members: &plan.baseline_members,
+            ended_ns,
+            gap_seconds: plan.gap_seconds,
+            renderer_sha256: &plan.renderer_sha256,
+            samples_sha256: &receipt.samples_sha256,
+            schema: "plan-bench-execution-inputs-v1",
+            session_sha256: &plan.session_sha256,
+            stage_seconds: plan.stage_seconds,
+            window_seconds: plan.window_seconds,
+        }
+    }
+}
 #[derive(Serialize)]
 pub(super) struct Check {
     pub accepted: bool,
