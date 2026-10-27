@@ -4,6 +4,7 @@ use crate::{abba::STAGES, sampling_contract};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::{
+    borrow::Cow,
     collections::{BTreeMap, BTreeSet},
     sync::atomic::{AtomicBool, Ordering},
     time::Instant,
@@ -15,7 +16,7 @@ pub(crate) use native::require_compiler;
 mod replay;
 #[cfg(all(test, unix))]
 pub(crate) mod tests;
-use model::{ArtifactCopy, Check, Plan, Receipt, SCHEMA, Step};
+use model::{ArtifactCopy, Check, ContextObservation, Plan, Receipt, SCHEMA, Step};
 pub(crate) use replay::replay;
 fn save(path: &Path, value: &impl Serialize) -> Result<String> {
     if let Some(p) = path.parent() {
@@ -122,18 +123,18 @@ fn command(directory: &Path, arguments: &[String], reference: &Value) -> Command
     }
     command
 }
-fn observe(
+fn observe<'a>(
     plan: &Plan,
-    reference: &Value,
+    reference: &'a Value,
     compiler: &str,
     observer: &mut dyn FnMut(&str) -> Result<Value>,
-) -> Result<Value> {
+) -> Result<Cow<'a, Value>> {
     let actual = if plan.origin == samples::Origin::Synthetic {
-        reference.clone()
+        Cow::Borrowed(reference)
     } else {
-        observer(compiler)?
+        Cow::Owned(observer(compiler)?)
     };
-    if actual != *reference {
+    if actual.as_ref() != reference {
         return Err("live resource context changed; refuse collection".into());
     }
     Ok(actual)
@@ -184,8 +185,13 @@ fn collect(
             let context_prefix = root.join(format!("contexts/{repetition:02}/{stage}"));
             let before_pin = save(
                 &context_prefix.join("before.json"),
-                &json!({"session_sha256":plan.session_sha256,"observed_ns":before_ns,"context":before_context}),
+                &ContextObservation {
+                    context: before_context.as_ref(),
+                    observed_ns: before_ns,
+                    session_sha256: &plan.session_sha256,
+                },
             )?;
+            drop(before_context);
             let started_ns = clock()?;
             let start_pin = save(
                 &directory.join("start.json"),
@@ -272,8 +278,13 @@ fn collect(
             let after_ns = clock()?;
             let after_pin = save(
                 &context_prefix.join("after.json"),
-                &json!({"session_sha256":plan.session_sha256,"observed_ns":after_ns,"context":after_context}),
+                &ContextObservation {
+                    context: after_context.as_ref(),
+                    observed_ns: after_ns,
+                    session_sha256: &plan.session_sha256,
+                },
             )?;
+            drop(after_context);
             let execution = json!({"repetition":repetition,"stage":stage,"manifest_sha256":plan.pin(index),"attempt_sha256":attempt_pin,"before_sha256":before_pin,"after_sha256":after_pin,"started_ns":started_ns,"ended_ns":ended_ns});
             step.execution = Some(execution.clone());
             executed.push(execution);

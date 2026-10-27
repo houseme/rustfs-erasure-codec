@@ -466,3 +466,81 @@ fn missing_ingestion_member_retains_null_pin_and_only_bound_partial_copies() {
     }
     assert!(!output.join("0000/sample.json").exists());
 }
+
+#[test]
+fn observation_synthetic_context_borrows_reference_without_calling_live_resources() {
+    let (source, _) = fixture("success");
+    let plan: Plan = artifact::read_json(&source.0.join("plan.json")).unwrap();
+    let reference = json!({"nested":{"policy":[1,"value",null]},"payload":"x".repeat(128 * 1024)});
+    let observed = observe(&plan, &reference, "compiler", &mut |_| {
+        panic!("synthetic observation must not request live resources")
+    })
+    .unwrap();
+    assert!(matches!(observed, Cow::Borrowed(_)));
+    assert!(std::ptr::eq(observed.as_ref(), &reference));
+}
+
+#[test]
+fn observation_recorded_context_is_fresh_owned_and_keeps_actual_number_encoding() {
+    let (source, _) = fixture("success");
+    let mut plan: Plan = artifact::read_json(&source.0.join("plan.json")).unwrap();
+    plan.origin = samples::Origin::Recorded;
+    let reference = json!({"value":0.0});
+    let actual = json!({"value":-0.0});
+    assert_eq!(reference, actual);
+    assert_ne!(
+        serde_json::to_vec(&reference).unwrap(),
+        serde_json::to_vec(&actual).unwrap()
+    );
+    let mut calls = 0;
+    let mut live = |compiler: &str| {
+        assert_eq!(compiler, "exact compiler");
+        calls += 1;
+        Ok(actual.clone())
+    };
+    for _ in 0..2 {
+        let observed = observe(&plan, &reference, "exact compiler", &mut live).unwrap();
+        assert!(matches!(observed, Cow::Owned(_)));
+        assert_eq!(
+            serde_json::to_vec(observed.as_ref()).unwrap(),
+            serde_json::to_vec(&actual).unwrap()
+        );
+    }
+    assert_eq!(calls, 2);
+    assert!(
+        observe(&plan, &reference, "compiler", &mut |_| Ok(
+            json!({"value":1.0})
+        ))
+        .is_err()
+    );
+    let error = observe(&plan, &reference, "compiler", &mut |_| {
+        Err("live failure".into())
+    })
+    .unwrap_err();
+    assert_eq!(error.to_string(), "live failure");
+}
+
+#[test]
+fn observation_journal_matches_original_pretty_bytes_and_write_once_pins() {
+    let root = Directory::new();
+    let session = "a".repeat(64);
+    let context =
+        json!({"unicode":"雪\r\n\"quoted\"","nested":[null,true,-0.0,{"z":2,"a":"first"}]});
+    for (index, time) in [0, 1, u64::MAX].into_iter().enumerate() {
+        let path = root.0.join(format!("context-{index}.json"));
+        let original = serde_json::to_vec_pretty(
+            &json!({"session_sha256":session,"observed_ns":time,"context":context}),
+        )
+        .unwrap();
+        let observation = ContextObservation {
+            context: &context,
+            observed_ns: time,
+            session_sha256: &session,
+        };
+        let pin = save(&path, &observation).unwrap();
+        assert_eq!(pin, digest(&original));
+        assert_eq!(fs::read(&path).unwrap(), original);
+        assert!(save(&path, &observation).is_err());
+        assert_eq!(fs::read(&path).unwrap(), original);
+    }
+}
