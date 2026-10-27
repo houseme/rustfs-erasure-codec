@@ -87,6 +87,13 @@ impl Plan {
         }
     }
 }
+// Match the alphabetic field order of the original Value journal encoding.
+#[derive(Serialize)]
+pub(super) struct ContextObservation<'a> {
+    pub context: &'a Value,
+    pub observed_ns: u64,
+    pub session_sha256: &'a str,
+}
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct ArtifactCopy {
