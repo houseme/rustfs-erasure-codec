@@ -19,18 +19,7 @@ pub(crate) struct Snapshot {
     members: BTreeMap<String, String>,
     verification_buffer: Vec<u8>,
 }
-pub(crate) fn hex(bytes: &[u8]) -> String {
-    const HEX: &[u8; 16] = b"0123456789abcdef";
-    let mut text = String::with_capacity(bytes.len() * 2);
-    for b in bytes {
-        text.push(HEX[(b >> 4) as usize] as char);
-        text.push(HEX[(b & 15) as usize] as char);
-    }
-    text
-}
-pub(crate) fn digest(bytes: &[u8]) -> String {
-    hex(Sha256::digest(bytes).as_slice())
-}
+pub(crate) use super::hashing::{digest, hex};
 pub(crate) fn universal_newlines(text: String) -> String {
     if text.contains('\r') {
         text.replace("\r\n", "\n").replace('\r', "\n")
