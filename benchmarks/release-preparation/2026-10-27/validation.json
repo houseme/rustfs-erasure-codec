@@ -1,0 +1,111 @@
+{
+  "schema": "release-preparation-validation-v1",
+  "version": "9.1.0",
+  "base_main": "6167745b3583bfe8a4f87827b7fedb13b5fce0d4",
+  "packaged_preparation_commit": "5f68261282e4932112fc8ca831b54688612e3e3a",
+  "scope": "release notes and changelog consolidation; actual package functional verification; no runtime or publication policy changes",
+  "ordinary_base_ci": {
+    "url": "https://github.com/houseme/rustfs-erasure-codec/actions/runs/40457944158",
+    "status": "success",
+    "implementation_inputs_equal_to_preparation": true
+  },
+  "base_workspace_validation": {
+    "source_commit": "55bcf2bae15e1700715e3c216076fcccc85a9257",
+    "full_tree_equal_to_base_main": true,
+    "passed": 1057,
+    "failed": 0,
+    "ignored": 43,
+    "fresh_workspace_rerun_for_doc_only_change": false
+  },
+  "versions": {
+    "core": "9.1.0",
+    "workspace_and_lock_match": true,
+    "validated_tag_spellings": [
+      "9.1.0",
+      "v9.1.0"
+    ],
+    "wasm_cargo_and_npm": "0.2.5"
+  },
+  "package": {
+    "dry_run_passed": true,
+    "export_package_passed": true,
+    "members": 71,
+    "codec_source_members": 64,
+    "all_shipped_source_bytes_and_original_manifest_match": true,
+    "clean_vcs_identity_verified": true,
+    "tooling_docs_evidence_and_changelog_excluded": true,
+    "archive_and_extracted_source_retained_privately": true
+  },
+  "extracted_crate_tests": {
+    "std": {
+      "passed": 404,
+      "failed": 0,
+      "ignored": 5
+    },
+    "no-std": {
+      "passed": 275,
+      "failed": 0,
+      "ignored": 0
+    },
+    "published_9_0_0_compatibility_cases": 200,
+    "candidate_from_actual_extracted_crate": true,
+    "formal_timing_run": false
+  },
+  "compatibility": {
+    "baseline_version": "9.0.0",
+    "baseline_from_actual_registry": true,
+    "baseline_vcs_commit": "9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6",
+    "candidate_from_actual_extracted_crate": true,
+    "unmodified_probe_source_files": 6,
+    "normal_non_fast_cases": 200,
+    "exact_parity_and_bidirectional_recovery": true,
+    "historical_tower_vectors": true,
+    "formal_performance_acceptance": false
+  },
+  "execution_context": {
+    "toolchain": "stable 1.99.1",
+    "host": "macOS ARM64",
+    "linux_native_execution_performed": false
+  },
+  "registry_state": {
+    "latest_at_check": "9.0.0",
+    "target_version_present": false,
+    "target_tag_present": false
+  },
+  "publication_metadata": {
+    "evidence_ref_configured": false,
+    "publish_secret_name_present": true,
+    "secret_values_read": false,
+    "actual_upload_permissions_tested": false
+  },
+  "remaining_gates": [
+    "merge preparation and pass final main CI",
+    "freeze final complete candidate tree, lockfile and harness",
+    "qualify complete native Linux baseline, ABBA and paired layouts",
+    "verify and push an accepted immutable evidence data commit",
+    "configure RSE_RELEASE_EVIDENCE_REF and pass strict final-main preflight",
+    "create matching tag and verify registry upload only after preceding gates"
+  ],
+  "source_boundary": {
+    "this_report_adds_documentation_after_the_packaged_commit": true,
+    "shipped_implementation_inputs_remain_equal": true,
+    "final_main_preflight_must_repackage_and_verify_its_own_head": true,
+    "no_old_capture_identity_relabelled": true
+  },
+  "formal_timing_run": false,
+  "performance_accepted": false,
+  "release_qualified": false,
+  "tag_created": false,
+  "registry_upload_performed": false,
+  "public_boundary": "no private paths, executable digests, credentials or machine identities; raw evidence retained privately",
+  "repository_audits": {
+    "json_files": 672,
+    "errors": [],
+    "core_package_members": 71,
+    "wasm_package_members": 6,
+    "workspace_dependency_members": 5,
+    "python_entrypoints": 0,
+    "format": "passed",
+    "diff_check": "passed"
+  }
+}
