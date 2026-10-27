@@ -272,7 +272,16 @@ fn collect(
             let unchanged = inputs.unchanged().is_ok()
                 && crate::fingerprint::file(&directory.join("binary"))
                     .is_ok_and(|hash| hash == manifest.binary_sha256);
-            let attempt = json!({"repetition":repetition,"stage":stage,"manifest_sha256":plan.pin(index),"outcome":outcome,"originals_unchanged":unchanged,"cases":cases});
+            let worker_passed =
+                outcome.exit_code == Some(0) && outcome.reason == "exited" && outcome.reaped;
+            let attempt = samples::Attempt {
+                cases,
+                manifest_sha256: plan.pin(index).into(),
+                originals_unchanged: unchanged,
+                outcome,
+                repetition: repetition as u8,
+                stage: stage.into(),
+            };
             let attempt_pin = digest(&serde_json::to_vec(&attempt)?);
             attempts.push(attempt);
             let after_context = observe(plan, &reference, &a.compiler, observer)?;
@@ -290,9 +299,7 @@ fn collect(
             step.execution = Some(execution);
             budget.check(previous, [before_ns, started_ns, ended_ns, after_ns])?;
             previous = after_ns;
-            if outcome.exit_code != Some(0)
-                || outcome.reason != "exited"
-                || !outcome.reaped
+            if !worker_passed
                 || !valid
                 || !unchanged
                 || case_error.is_some()

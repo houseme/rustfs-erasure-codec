@@ -55,10 +55,21 @@ impl Plan {
         for pin in self.baseline_members.values() {
             valid_digest(pin)?;
         }
-        samples::validate_configuration(self.document(Vec::new()))
+        self.document(Vec::new()).validate()
     }
-    pub fn document(&self, attempts: Vec<Value>) -> Value {
-        json!({"schema":"plan-bench-statistical-inputs-v1","origin":self.origin,"baseline_sha256":self.baseline_sha256,"candidate_sha256":self.candidate_sha256,"repetitions":self.repetitions,"minimum_samples":self.minimum_samples,"confidence_level":self.confidence_level,"max_ci_width":self.max_ci_width,"max_drift":self.max_drift,"attempts":attempts})
+    pub fn document(&self, attempts: Vec<samples::Attempt>) -> samples::Document {
+        samples::Document {
+            attempts,
+            baseline_sha256: self.baseline_sha256.clone(),
+            candidate_sha256: self.candidate_sha256.clone(),
+            confidence_level: self.confidence_level,
+            max_ci_width: self.max_ci_width,
+            max_drift: self.max_drift,
+            minimum_samples: self.minimum_samples,
+            origin: self.origin,
+            repetitions: self.repetitions,
+            schema: samples::SCHEMA.into(),
+        }
     }
     pub fn args(&self) -> Vec<String> {
         vec![
