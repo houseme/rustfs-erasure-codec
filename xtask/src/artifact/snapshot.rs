@@ -54,7 +54,7 @@ pub(crate) fn text_member(path: &Path, expected: &str) -> Result<String> {
     }
     Ok(universal_newlines(String::from_utf8(bytes)?))
 }
-const VERIFY_BUFFER_LEN: usize = 64 * 1024;
+const VERIFY_BUFFER_LEN: usize = super::hashing::BUFFER_LEN;
 fn digest_reader(reader: impl Read, limit: u64, buffer: &mut [u8]) -> Result<String> {
     Ok(digest_reader_counted(reader, limit, buffer)?.0)
 }
@@ -66,25 +66,15 @@ fn digest_reader_counted(
     if buffer.is_empty() {
         return Err("nonempty verification buffer required".into());
     }
-    let mut reader = reader.take(
+    let reader = reader.take(
         limit
             .checked_add(1)
             .ok_or("verification byte budget overflow")?,
     );
     let mut hash = Sha256::new();
-    let mut total = 0_u64;
-    loop {
-        let count = match reader.read(buffer) {
-            Ok(0) => break,
-            Ok(count) => count,
-            Err(e) if e.kind() == std::io::ErrorKind::Interrupted => continue,
-            Err(e) => return Err(e.into()),
-        };
-        total += count as u64;
-        if total > limit {
-            return Err("original member changed beyond byte budget".into());
-        }
-        hash.update(&buffer[..count]);
+    let total = super::hashing::update(reader, &mut hash, buffer)?;
+    if total > limit {
+        return Err("original member changed beyond byte budget".into());
     }
     Ok((hex(hash.finalize().as_slice()), total))
 }

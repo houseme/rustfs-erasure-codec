@@ -6,6 +6,7 @@ use std::{
     fmt,
     path::{Path, PathBuf},
 };
+pub(crate) mod hashing;
 pub(crate) mod python_json;
 pub(crate) mod snapshot;
 

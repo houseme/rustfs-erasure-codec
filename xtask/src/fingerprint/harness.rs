@@ -1,5 +1,5 @@
 //! Original harness identity, independent of the repository tool implementation.
-use super::{Digest, Path, Result, Sha256, artifact, fs};
+use super::{Digest, Path, Result, Sha256, artifact, update_file};
 use crate::diagnostics::source;
 const FILES: [&str; 5] = [
     "tests/benchmark_smoke.rs",
@@ -23,10 +23,11 @@ const DECLARATIONS: [&str; 11] = [
 ];
 pub(super) fn digest(root: &Path) -> Result<String> {
     let mut hash = Sha256::new();
+    let mut buffer = Vec::new();
     for name in FILES {
         hash.update(name.as_bytes());
         hash.update([0]);
-        hash.update(fs::read(root.join(name))?);
+        update_file(&root.join(name), &mut hash, &mut buffer)?;
         hash.update([0]);
     }
     let text = source::read(root.join("src/tests/mod.rs"))?;
@@ -40,6 +41,7 @@ pub(super) fn digest(root: &Path) -> Result<String> {
 mod tests {
     use super::*;
     use crate::artifact::snapshot::tests::Directory;
+    use std::fs;
     #[test]
     fn original_harness_bytes_and_first_block_selection_are_fresh_and_newline_compatible() {
         let directory = Directory::new();

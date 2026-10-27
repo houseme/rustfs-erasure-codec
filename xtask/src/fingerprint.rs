@@ -29,7 +29,15 @@ fn files(root: &Path, recursive: bool, extension: &str) -> Result<Vec<PathBuf>> 
     result.sort();
     Ok(result)
 }
-fn native_bytes(root: &Path, hasher: &mut Sha256) -> Result<()> {
+fn update_file(path: &Path, hash: &mut Sha256, buffer: &mut Vec<u8>) -> Result<()> {
+    let file = fs::File::open(path)?;
+    if buffer.is_empty() {
+        buffer.resize(artifact::hashing::BUFFER_LEN, 0);
+    }
+    artifact::hashing::update(file, hash, buffer)?;
+    Ok(())
+}
+fn native_bytes(root: &Path, hasher: &mut Sha256, buffer: &mut Vec<u8>) -> Result<()> {
     let mut paths = Vec::new();
     let legacy = root.join("scripts/native_tools.py");
     if legacy.is_file() {
@@ -50,7 +58,7 @@ fn native_bytes(root: &Path, hasher: &mut Sha256) -> Result<()> {
         let relative: PathBuf = path.strip_prefix(root)?.components().collect();
         hasher.update(relative.to_string_lossy().as_bytes());
         hasher.update([0]);
-        hasher.update(fs::read(path)?);
+        update_file(&path, hasher, buffer)?;
     }
     Ok(())
 }
@@ -67,6 +75,7 @@ pub(crate) fn sampling(root: &Path) -> Result<String> {
 }
 fn sampling_with(root: &Path, controller: &Path) -> Result<String> {
     let mut hash = Sha256::new();
+    let mut buffer = Vec::new();
     let mut paths = vec![controller.to_owned()];
     let templates = if controller.extension().is_some_and(|e| e == "rs") {
         root.join("scripts/release-sampling")
@@ -85,13 +94,15 @@ fn sampling_with(root: &Path, controller: &Path) -> Result<String> {
                 .as_bytes(),
         );
         hash.update([0]);
-        hash.update(fs::read(path)?);
+        update_file(&path, &mut hash, &mut buffer)?;
     }
-    native_bytes(root, &mut hash)?;
+    native_bytes(root, &mut hash, &mut buffer)?;
     Ok(artifact::snapshot::hex(hash.finalize().as_slice()))
 }
 pub(crate) fn file(path: &Path) -> Result<String> {
-    Ok(artifact::snapshot::digest(&fs::read(path)?))
+    let mut hash = Sha256::new();
+    update_file(path, &mut hash, &mut Vec::new())?;
+    Ok(artifact::snapshot::hex(hash.finalize().as_slice()))
 }
 
 #[derive(Deserialize)]
@@ -105,6 +116,7 @@ pub(crate) enum Kind {
 /// Read the current source bytes on every call; source identities are never cached.
 pub(crate) fn source(root: &Path, kind: Kind, controller: Option<&Path>) -> Result<String> {
     let mut hash = Sha256::new();
+    let mut buffer = Vec::new();
     match kind {
         Kind::Native => {}
         Kind::Sampling => {
@@ -121,12 +133,12 @@ pub(crate) fn source(root: &Path, kind: Kind, controller: Option<&Path>) -> Resu
             } else {
                 root.join("scripts/stream_view_audit.py")
             };
-            hash.update(fs::read(controller.unwrap_or(&default))?);
+            update_file(controller.unwrap_or(&default), &mut hash, &mut buffer)?;
             hash.update(crate::diagnostics::templates::native("views", root)?.as_bytes());
         }
         Kind::Harness => return harness::digest(root),
     }
-    native_bytes(root, &mut hash)?;
+    native_bytes(root, &mut hash, &mut buffer)?;
     Ok(artifact::snapshot::hex(hash.finalize().as_slice()))
 }
 /// Match the original sorted filename/NUL/normalized-text overlay byte stream.
@@ -145,6 +157,58 @@ pub(crate) fn overlay(files: &BTreeMap<String, String>, root: &Path) -> Result<S
 mod tests {
     use super::*;
     use crate::artifact::snapshot::tests::Directory;
+    #[test]
+    fn streamed_file_hashes_match_original_bytes_and_reuse_operation_scratch() {
+        let directory = Directory::new();
+        let path = directory.0.join("original");
+        let mut buffer = Vec::new();
+        assert!(update_file(&path, &mut Sha256::new(), &mut buffer).is_err());
+        assert!(buffer.is_empty());
+        let mut address = None;
+        for length in [0, 1, 65535, 65536, 65537, 3 * 65536 + 1] {
+            let bytes: Vec<_> = (0..length).map(|index| index as u8).collect();
+            fs::write(&path, &bytes).unwrap();
+            assert_eq!(file(&path).unwrap(), artifact::snapshot::digest(&bytes));
+            let mut hash = Sha256::new();
+            update_file(&path, &mut hash, &mut buffer).unwrap();
+            assert_eq!(hash.finalize(), Sha256::digest(&bytes));
+            assert_eq!(buffer.len(), artifact::hashing::BUFFER_LEN);
+            assert_eq!(*address.get_or_insert(buffer.as_ptr()), buffer.as_ptr());
+        }
+        assert!(file(&directory.0).is_err());
+    }
+    #[test]
+    fn unbounded_file_fingerprints_do_not_inherit_snapshot_member_limits() {
+        let directory = Directory::new();
+        let path = directory.0.join("large");
+        fs::File::create(&path)
+            .unwrap()
+            .set_len(artifact::snapshot::MEMBER_LIMIT + 1)
+            .unwrap();
+        let expected = artifact::snapshot::digest(&fs::read(&path).unwrap());
+        assert_eq!(file(&path).unwrap(), expected);
+        assert!(
+            artifact::snapshot::Snapshot::new(&directory.0)
+                .unwrap()
+                .verify_binary("large", &expected)
+                .is_err()
+        );
+    }
+    #[cfg(unix)]
+    #[test]
+    fn file_fingerprints_preserve_symlink_following_freshness_and_read_errors() {
+        use std::os::unix::fs::symlink;
+        let directory = Directory::new();
+        let path = directory.0.join("original");
+        let link = directory.0.join("link");
+        fs::write(&path, b"first").unwrap();
+        symlink("original", &link).unwrap();
+        assert_eq!(file(&link).unwrap(), artifact::snapshot::digest(b"first"));
+        fs::write(&path, b"changed").unwrap();
+        assert_eq!(file(&link).unwrap(), artifact::snapshot::digest(b"changed"));
+        fs::remove_file(path).unwrap();
+        assert!(file(&link).is_err());
+    }
     #[test]
     fn native_and_sampler_hashes_match_original_byte_streams_and_are_never_cached() {
         let directory = Directory::new();
