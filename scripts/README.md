@@ -49,6 +49,11 @@ source stamps, original-byte readers and frozen Rust replay.
 - `check_backend_consistency.sh`: forced backend consistency.
 - `run_galois_backend_abba.sh`: source-bound backend ABBA collection.
 - `collect_x86_simd_benchmarks.sh`, `archive_x86_simd_machine.sh`: machine reports.
+- `run-no-std-gf16-compat.sh {wasm|native} EXTRACTED_CANDIDATE_CRATE`: run the
+  pinned 9.0.0 and candidate GF16 probe without enabling either codec's `std`
+  feature. Both modes require Node.js for manifest generation. WASM also needs
+  the wasm target and matching wasm-bindgen CLI; native can use
+  `RSE_COMPAT_TARGET` and Cargo's target runner. Dependencies must be cached.
 - `run_small_file_benchmark_matrix.sh`: complete small-file matrices.
 - `serial-test-check.sh`, `run-full-benchmark.sh`: developer orchestration.
 - `write-ci-status.sh`: native CI journal with a fixed negative fallback.
