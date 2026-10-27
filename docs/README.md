@@ -41,6 +41,7 @@ This directory contains development documentation, design documents, benchmark r
 | [frozen-load-lifecycle-2026-10-27.md](frozen-load-lifecycle-2026-10-27.md) | Shared strict frozen loader with full, binary-only and verification payloads released before final checks or execution |
 | [fingerprint-streaming-2026-10-27.md](fingerprint-streaming-2026-10-27.md) | Shared streaming SHA input for file/source fingerprints and bounded Snapshot checks, with unchanged byte framing |
 | [collector-context-ownership-2026-10-27.md](collector-context-ownership-2026-10-27.md) | Borrow synthetic context, serialize journals from references and release live observations after immutable writes |
+| [collector-execution-ledger-2026-10-27.md](collector-execution-ledger-2026-10-27.md) | Borrow execution envelopes from the receipt-owned ledger, preserving exact bytes and partial-failure records |
 | [global-review-9.1.0-2026-10-22.md](global-review-9.1.0-2026-10-22.md) | Archived earlier architecture review and bounded incremental-update resources |
 | [drift-analysis-9.1.0-2026-10-22.md](drift-analysis-9.1.0-2026-10-22.md) | Current drift investigation, benchmark lifetime fixes and sparse incremental-update validation |
 | [README-performance-index.md](README-performance-index.md) | Performance document index |

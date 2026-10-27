@@ -1,0 +1,131 @@
+{
+  "schema": "ledger-borrow-validation-v1",
+  "source_commit": "8b99ea51a48a5cdb3b432ff8b52b560213b8f410",
+  "prior_head": "f8bc7707a246182ee5fb93bdd04db63db6e7c50a",
+  "synthetic_collection": {
+    "fake_workers": 8,
+    "observations": 2784,
+    "raw_to_canonical_bindings": 8352,
+    "independent_reader_agreed": true,
+    "previous_case_and_copy_records_equal": true,
+    "previous_canonical_bytes_equal": true,
+    "capture_provenance_verified": false,
+    "performance_accepted": false
+  },
+  "execution_envelope": {
+    "attempts": 8,
+    "matches_receipt_ledger": true,
+    "old_value_encoding_exact_bytes_agreed": true,
+    "timestamps_and_source_identity_retain_current_run": true
+  },
+  "source_work_inventory": {
+    "method": "source ownership/call-site inventory; no allocator instrumentation",
+    "independent_owned_execution_vec_removed": true,
+    "execution_record_deep_clones_removed_in_complete_capture": 8,
+    "temporary_owned_execution_envelope_value_removed": true,
+    "plan_metadata_is_borrowed": true,
+    "receipt_still_owns_each_execution_value": true,
+    "runtime_allocation_counts_measured": false
+  },
+  "legacy_replays": [
+    {
+      "protocol": "collection",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "execution",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "statistics",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "functional",
+      "passed": true,
+      "originals_unchanged": true
+    }
+  ],
+  "formal_timing_run": false,
+  "rss_or_allocation_counts_measured": false,
+  "remote_resource_changes": false,
+  "pull_request": "https://github.com/houseme/rustfs-erasure-codec/pull/117",
+  "reviewed_main": "07d543a5a402af21eb7248941b1524bd48868adf",
+  "comparison_capture_source_commit": "ad57e551b405c2f75c1422ebe444d9c85ce58bfb",
+  "scope": "derive the execution envelope from the receipt-owned execution ledger without a second record Vec or owned envelope Value",
+  "implementation_structure": {
+    "canonical_owner": "receipt.steps[*].execution",
+    "per_record_store": "move each constructed Value into the owning Step",
+    "attempt_view": "Serialize::collect_seq over borrowed present execution values in step order",
+    "temporary_reference_or_owned_attempt_vec": false,
+    "envelope_metadata": "borrow plan fields and the receipt sample pin; preserve original sorted field encoding",
+    "none_execution_omitted_but_present_values_retained": true,
+    "retains_completed_records_even_when_the_collection_is_refused": true,
+    "unfinished_record_with_worker_outcome_does_not_fabricate_an_execution_entry": true,
+    "receipt_and_statistical_attempt_ownership_retained": true,
+    "encoded_byte_vec_create_new_sync_and_pins_unchanged": true,
+    "clock_calls_refusal_gates_and_original_validation_unchanged": true,
+    "no_protocol_or_cache_changes": true
+  },
+  "validation": {
+    "toolchain": "stable Rust 1.99.1",
+    "new_byte_contracts": 1,
+    "envelope_state_and_sample_pin_combinations": 10,
+    "extended_existing_error_contracts": 2,
+    "contracts": "empty, complete, partial and explicit null values preserve old bytes; clock failure retains outcome without execution; post-worker deadline refusal retains the completed entry",
+    "workspace_all_features": {
+      "passed": 1051,
+      "failed": 0,
+      "ignored": 43
+    },
+    "top_level_executables": 44,
+    "counting": "last summary per top-level executable; excludes self-spawned duplicates",
+    "strict_clippy": "workspace all-targets all-features -D warnings passed",
+    "format": "passed",
+    "diff_check": "passed",
+    "linux_test_cross_check": {
+      "target": "x86_64-unknown-linux-gnu",
+      "command": "cargo +stable check --offline --locked -p xtask --tests --target x86_64-unknown-linux-gnu",
+      "passed": true,
+      "linux_execution_performed": false
+    },
+    "json_audit": {
+      "files": 669,
+      "errors": []
+    },
+    "package_allowlist": {
+      "core_members": 71,
+      "wasm_members": 6,
+      "tool_test_evidence_excluded": true
+    },
+    "workspace_dependency_inheritance": "all 5 members passed",
+    "interpreter_surface_audit": "passed"
+  },
+  "provenance": {
+    "codec_source_files_unchanged": 64,
+    "root_manifest_lock_build_script_unchanged": true,
+    "shared_hashing_fingerprint_frozen_loading_context_and_worker_protocol_unchanged": true,
+    "old_encoding_reference": "reconstruct the original owned Value envelope from plan, receipt and actual ending time; compare the complete serialized bytes",
+    "independent_binding_reference": "raw SHA-256, complete baseline/statistical arithmetic and receipt/context/execution chain reader",
+    "raw_evidence": "private unit/build logs, complete collection, independent old encoder and original-preserving historical replays retained",
+    "public_boundary": "no private paths, binary digests, trusted pins or machine identity"
+  },
+  "performance_boundary": {
+    "formal_timing_run": false,
+    "allocator_calls_measured": false,
+    "rss_measured": false,
+    "throughput_or_latency_measured": false,
+    "real_linux_baseline_qualified": false,
+    "capture_provenance_verified": false,
+    "performance_accepted": false,
+    "release_qualified": false
+  },
+  "next_steps": [
+    "continue deferring formal timing and remote resource changes as requested",
+    "confirm dedicated or explicitly authorized native Linux resources and complete unchanged baseline before timing",
+    "qualify collector supervision overhead and repeat stability; evaluate verify chunking or oversized GF16 cache only after ABBA/A2 drift and per-layout gates pass"
+  ]
+}

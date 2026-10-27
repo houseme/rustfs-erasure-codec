@@ -52,3 +52,8 @@ stable Rust 1.99.1 workspace all-features：1,050 项通过、43 项既有忽略
 验证 collector 监督开销和重复稳定性，完整 ABBA、A2 漂移与逐布局门槛通过后，再
 评估 verify 分块及 oversized GF16 cache。capture_provenance_verified、
 performance_accepted 和 release_qualified 保持 false，本轮未量化提速。
+
+## Execution 账本的后续收敛
+
+本页保留观测拥有权的验证。execution 的重复 Vec、逐条 clone 和临时 envelope
+进一步收敛为 receipt 单一账本，见[账本报告](collector-execution-ledger-2026-10-27.md)。

@@ -202,3 +202,6 @@ Classic shape 的有效索引延迟分配、有效/无输出/错误路径完整�
 
 资源观测借用、before/after journal 直接序列化及相同字段旧字节格式验证见
 [Collector context 拥有权报告](collector-context-ownership-2026-10-27.md)。
+
+execution envelope 从 receipt 单一账本借用生成、部分失败记录及旧字节格式验证见
+[Collector execution 账本报告](collector-execution-ledger-2026-10-27.md)。
