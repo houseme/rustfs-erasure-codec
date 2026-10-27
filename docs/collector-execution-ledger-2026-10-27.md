@@ -52,3 +52,8 @@ stable Rust 1.99.1 workspace all-features：1,051 项通过、43 项既有忽略
 baseline 就绪，验证 collector 监督开销、重复稳定性及完整 ABBA/A2 漂移和逐布局
 门槛后，再评估 verify 分块或 oversized GF16 cache。性能、正式采集与发布资格
 保持未授予，本轮没有量化提速。
+
+## 统计对象图的后续收敛
+
+本页保留 execution 账本的验证。统计采集进一步复用读取模型并移动 case/attempt
+数据，见[统计模型报告](statistical-model-ownership-2026-10-27.md)。

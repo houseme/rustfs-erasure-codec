@@ -6,6 +6,8 @@ published crate. Use `cargo xtask audit-json` to refresh the file inventory.
 
 ## Current Useful References
 
+- [Shared statistical model ownership](statistical-model-ownership-2026-10-27.md)
+
 - [Collector single execution ledger](collector-execution-ledger-2026-10-27.md)
 
 - [Collector observation and journal ownership](collector-context-ownership-2026-10-27.md)

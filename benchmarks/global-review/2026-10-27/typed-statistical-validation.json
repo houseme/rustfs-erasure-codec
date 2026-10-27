@@ -1,0 +1,142 @@
+{
+  "schema": "typed-statistical-validation-v1",
+  "source_commit": "105f3939c47f41428fdcce52a9292dfb8dbb58b7",
+  "prior_head": "104f4b3942b541d959a9ee75e7a6907b9bb67481",
+  "synthetic_collection": {
+    "fake_workers": 8,
+    "observations": 2784,
+    "raw_to_canonical_bindings": 8352,
+    "independent_reader_agreed": true,
+    "previous_case_and_copy_records_equal": true,
+    "previous_canonical_bytes_equal": true,
+    "capture_provenance_verified": false,
+    "performance_accepted": false
+  },
+  "statistical_document": {
+    "attempts": 8,
+    "case_entries": 2784,
+    "previous_statistical_document_exact_bytes_equal": true,
+    "canonical_attempt_pins_verified": true,
+    "new_execution_timestamps_retain_current_run": true
+  },
+  "source_work_inventory": {
+    "method": "source type/ownership inventory; no allocator instrumentation",
+    "producer_case_value_maps_replaced_with_typed_entries": 2784,
+    "case_vectors_move_into_attempts": true,
+    "intermediate_owned_attempt_values_removed": 8,
+    "intermediate_owned_document_value_removed": true,
+    "configuration_value_roundtrip_removed": true,
+    "schema_and_two_source_pin_strings_still_owned": true,
+    "raw_input_buffers_json_parsing_and_copy_receipts_remain": true,
+    "runtime_allocation_counts_measured": false
+  },
+  "legacy_replays": [
+    {
+      "protocol": "collection",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "execution",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "statistics",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "functional",
+      "passed": true,
+      "originals_unchanged": true
+    }
+  ],
+  "formal_timing_run": false,
+  "rss_or_allocation_counts_measured": false,
+  "remote_resource_changes": false,
+  "pull_request": "https://github.com/houseme/rustfs-erasure-codec/pull/117",
+  "reviewed_main": "07d543a5a402af21eb7248941b1524bd48868adf",
+  "comparison_capture_source_commit": "8b99ea51a48a5cdb3b432ff8b52b560213b8f410",
+  "scope": "share existing strict statistical Entry, Attempt and Document types across capture and replay; move case and attempt vectors into their owners without intermediate Value graphs",
+  "implementation_structure": {
+    "case_entry": "same strict reader Entry, with Option pins and original catalog index",
+    "attempt": "same strict reader Attempt; consumes the case vector and actual Outcome",
+    "document": "same strict reader Document; consumes the attempt vector",
+    "canonical_nested_outcome_order": [
+      "exit_code",
+      "reaped",
+      "reason"
+    ],
+    "standalone_outcome_order_unchanged": [
+      "exit_code",
+      "reason",
+      "reaped"
+    ],
+    "nested_outcome_encoder": "borrow fields directly in the existing canonical order, without an owned Value",
+    "raw_strict_json_and_deny_unknown_fields_retained": true,
+    "numeric_validation_body_retained": true,
+    "configuration_validation_and_comparison_use_typed_fields": true,
+    "worker_success_predicate_computed_before_outcome_move_but_refused_at_original_gate": true,
+    "missing_pin_fields_still_serialize_as_null": true,
+    "raw_member_parse_copy_snapshot_final_checks_and_failure_artifacts_retained": true,
+    "no_protocol_threshold_or_cache_changes": true
+  },
+  "validation": {
+    "toolchain": "stable Rust 1.99.1",
+    "new_contracts": 2,
+    "focused_plan_bench_contracts": 73,
+    "contracts": "legacy compact attempt pins, pretty attempt/document bytes and standalone outcome bytes; six configuration mismatches and eight numeric refusals",
+    "workspace_all_features": {
+      "passed": 1053,
+      "failed": 0,
+      "ignored": 43
+    },
+    "top_level_executables": 44,
+    "counting": "last summary per top-level executable; excludes self-spawned duplicates",
+    "strict_clippy": "workspace all-targets all-features -D warnings passed",
+    "format": "passed",
+    "diff_check": "passed",
+    "linux_test_cross_check": {
+      "target": "x86_64-unknown-linux-gnu",
+      "command": "cargo +stable check --offline --locked -p xtask --tests --target x86_64-unknown-linux-gnu",
+      "passed": true,
+      "linux_execution_performed": false
+    },
+    "json_audit": {
+      "files": 670,
+      "errors": []
+    },
+    "package_allowlist": {
+      "core_members": 71,
+      "wasm_members": 6,
+      "tool_test_evidence_excluded": true
+    },
+    "workspace_dependency_inheritance": "all 5 members passed",
+    "interpreter_surface_audit": "passed"
+  },
+  "provenance": {
+    "codec_source_files_unchanged": 64,
+    "root_manifest_lock_build_script_unchanged": true,
+    "shared_hashing_fingerprint_frozen_loading_and_worker_protocol_unchanged": true,
+    "old_encoding_reference": "previous Value-based capture statistical document compared as original complete file bytes; unit legacy encodings cover compact and pretty forms and incomplete pins",
+    "independent_binding_reference": "original raw SHA-256, complete baseline/statistical arithmetic and receipt/context/execution chain reader",
+    "raw_evidence": "private regression/build logs, complete capture, exact old-document comparison and unchanged historical replays retained",
+    "public_boundary": "no private paths, binary digests, trusted pins or machine identity"
+  },
+  "performance_boundary": {
+    "formal_timing_run": false,
+    "allocator_calls_measured": false,
+    "rss_measured": false,
+    "throughput_or_latency_measured": false,
+    "real_linux_baseline_qualified": false,
+    "capture_provenance_verified": false,
+    "performance_accepted": false,
+    "release_qualified": false
+  },
+  "next_steps": [
+    "continue deferring formal timing and remote resource changes as requested",
+    "confirm dedicated or explicitly authorized native Linux resources and complete unchanged baseline before timing",
+    "qualify collector supervision overhead and repeat stability; evaluate verify chunking or oversized GF16 cache only after ABBA/A2 drift and per-layout gates pass"
+  ]
+}
