@@ -10,6 +10,30 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
+## 9.1.0 (unreleased)
+
+### Release highlights
+
+- Add explicit encoding-format identity and preserve normal encoded bytes across
+  the published 9.0.0 compatibility catalog. Review the fast/custom/mixed-entry
+  compatibility boundary before upgrading stored codewords.
+- Add generic full/data/selected reconstruction workspaces and reusable parallel
+  verification scratch, while keeping per-operation mutable storage caller-owned.
+- Consolidate Classic recovery plans, matrix/row views and streaming buffer owners;
+  improve bounded Leopard FFT/decode work reuse and checked SIMD execution.
+- Correct fast single-parity consistency, custom-matrix cloning, stream validation,
+  Leopard split alignment, bounded joins and finite-field edge cases.
+- Return defined WASM errors for invalid counts, lengths and unsupported options,
+  with generated Node/Chromium integration covered by ordinary CI.
+- Strengthen repository-only capture, immutable raw bindings, replay and release
+  preflight. Allocation/work-count evidence does not establish a throughput gain.
+
+Release notes are prepared in [the 9.1.0 draft](docs/release-9.1.0-notes.md).
+Formal performance acceptance and strict positive preflight remain outstanding;
+this entry is not a publication date or release approval.
+
+### Detailed changes
+
 - Add repository-only frozen plan-benchmark build, functional stage capture and
   offline replay commands. Bind source/archive/binary/catalog inputs and raw
   logs to independent manifest/receipt pins, preserve failures and enforce
@@ -470,8 +494,6 @@ All notable changes to this project are documented in this file.
   data separate from formal performance evidence. Check both actual codec sources
   and zero observer allocation; retain the unobserved scratch/other-profile scope.
 
-## 9.1.0 (unreleased)
-
 ### Fixed
 - Fix formal worker placement in protocol 13: initialize codec and Rayon workers on the complete reservation, then pin only the measuring TID and check actual masks around every timer. Bind CPU, constructor budget and pool width across calibration/phases; make the caller inventory use the same preparation instead of controller-wide early pinning. Retain completed numeric observations with an invalid-affinity marker before aborting a post-timer failure. Preserve bounded, heap-free observation, original operation loops and all performance limits; require fresh evidence without claiming the residual service-time drift is solved.
 - Unify all 126 release workers around one prepared codec lifetime and mandatory API/output policy, masks, seed and source-preparation metadata. Preserve original per-iteration allocation/clone/I/O and recovery timers; use one seeded hotspot RNG with bounded consumption/state witnesses and reject cross-calibration/phase input mismatches. Check all 23 changed workers against both actual lockfiles, isolate generated build outputs per source, fetch the exact baseline tree from shallow CI checkouts, and require fresh protocol-12 evidence. Keep dynamic/internal geometry explicitly untracked and all performance limits unchanged.
@@ -545,7 +567,12 @@ All notable changes to this project are documented in this file.
 - Use the generated NEON encoder inside disjoint parallel jobs for 10+4 layouts with shards of at least 1 MiB and a 2-4 job budget. Other layouts, larger budgets, explicit backend overrides, and x86 keep their existing dispatch; broader activation awaits stable measurements.
 
 
-### Validation
+### Validation history
+
+The following observations keep their original source-specific scope and test
+counts. Current preparation and remaining gates are tracked in the
+[release checklist](docs/release-9.1.0-checklist.md).
+
 - Extend the existing recovery-path probe with six actual verification API scenarios at downstream-relevant layouts. Share retained input/reference storage, keep ordinary verification distinct from caller-buffer/workspace reuse, and require both valid data and corrupted parity-tail oracles. Report allocation requests separately from unqualified microtimings; assess Leopard owned-output publication without changing runtime recovery contracts.
 - Add an isolated fixed-count ShardSlot diagnostic with plain and instrumented fresh workers. Preserve original per-iteration clones, count bounded buffer layouts without observer heap storage, separate clone/reconstruction/drop diagnostic intervals, verify reconstruction storage identity and codeword endpoints, retain interrupted numerical journals, and explicitly prohibit release or candidate-performance approval from this diagnostic.
 - Prepare 9.1.0 with 502 workspace tests, 297 no_std tests and a shared executable comparing 200 full parity/roundtrip cases against published 9.0.0. Confirm the wide recovery and stream allocation budgets in optimized release builds, with 45 focused release regressions and matched direct-codec allocation controls for platform/debug portability. Keep prior drift-rejected campaigns and the lack of new throughput attribution explicit.
