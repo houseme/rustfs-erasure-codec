@@ -6,7 +6,7 @@ use smallvec::SmallVec;
 use crate::errors::Error;
 
 use super::ops::{
-    fft_dit2_16, fft_dit4_16, fwht16_mtrunc, fwht16_variable, ifft_dit2_16, ifft_dit4_16, mulgf16,
+    fft_dit2_16, fft_dit4_16, fwht16_mtrunc, fwht16_variable, ifft_dit2_16, ifft_dit4_16,
     slice_xor_u16,
 };
 use super::work::FlatWork16;
@@ -397,20 +397,15 @@ pub(crate) fn reconstruct_with_tables16_with_options(
                 fft_plan, tables, &driver,
             )?;
 
-            // Input conversion is complete; scaling can overwrite its scratch.
-            let out_scratch = &mut *scratch;
             // Step 5: scale each missing shard's transform by the inverse error locator
             // and write it straight into user byte layout at this chunk's byte range.
             for &(shard_idx, work_idx, inv_err) in &missing {
-                mulgf16(
-                    &mut out_scratch[..size],
+                super::fused::work_mul_to_user(
                     &work.lane(work_idx)[..size],
+                    &mut outputs[shard_idx][offset * 2..end * 2],
+                    &mut scratch[..size],
                     inv_err,
                     tables,
-                );
-                super::ops::work_u16_to_user_bytes(
-                    &out_scratch[..size],
-                    &mut outputs[shard_idx][offset * 2..end * 2],
                 );
             }
             offset = end;
@@ -448,13 +443,10 @@ fn compute_reconstruct_chunk(
         let work_idx = driver.m + i;
         if present[i] {
             let input = input_data[i].ok_or(Error::TooFewShardsPresent)?;
-            super::ops::user_bytes_to_work_u16_into(
+            super::fused::user_to_work_mul(
                 &input[offset * 2..end * 2],
-                &mut scratch[..size],
-            );
-            mulgf16(
                 &mut work.lane_mut(work_idx)[..size],
-                &scratch[..size],
+                &mut scratch[..size],
                 err_locs[work_idx],
                 tables,
             );
@@ -466,13 +458,10 @@ fn compute_reconstruct_chunk(
         let shard_idx = driver.data_shards + i;
         if present[shard_idx] {
             let input = input_data[shard_idx].ok_or(Error::TooFewShardsPresent)?;
-            super::ops::user_bytes_to_work_u16_into(
+            super::fused::user_to_work_mul(
                 &input[offset * 2..end * 2],
-                &mut scratch[..size],
-            );
-            mulgf16(
                 &mut work.lane_mut(i)[..size],
-                &scratch[..size],
+                &mut scratch[..size],
                 err_locs[i],
                 tables,
             );
@@ -565,18 +554,13 @@ fn reconstruct_chunks_parallel(
                         work, scratch, offset, end, size, present, input_data, err_locs, ifft_plan,
                         fft_plan, tables, driver,
                     )?;
-                    // Input conversion is complete; scaling can overwrite its scratch.
-                    let out_scratch = &mut *scratch;
                     for (k, &(_, work_idx, inv_err)) in missing.iter().enumerate() {
-                        mulgf16(
-                            &mut out_scratch[..size],
+                        super::fused::work_mul_to_user(
                             &work.lane(work_idx)[..size],
+                            &mut group_out[k][(offset - start) * 2..(end - start) * 2],
+                            &mut scratch[..size],
                             inv_err,
                             tables,
-                        );
-                        super::ops::work_u16_to_user_bytes(
-                            &out_scratch[..size],
-                            &mut group_out[k][(offset - start) * 2..(end - start) * 2],
                         );
                     }
                     offset = end;
