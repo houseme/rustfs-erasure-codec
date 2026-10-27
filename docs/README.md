@@ -43,6 +43,7 @@ This directory contains development documentation, design documents, benchmark r
 | [collector-context-ownership-2026-10-27.md](collector-context-ownership-2026-10-27.md) | Borrow synthetic context, serialize journals from references and release live observations after immutable writes |
 | [collector-execution-ledger-2026-10-27.md](collector-execution-ledger-2026-10-27.md) | Borrow execution envelopes from the receipt-owned ledger, preserving exact bytes and partial-failure records |
 | [statistical-model-ownership-2026-10-27.md](statistical-model-ownership-2026-10-27.md) | Shared strict statistical models and moved case/attempt ownership with unchanged canonical pins and file bytes |
+| [compact-json-hash-2026-10-27.md](compact-json-hash-2026-10-27.md) | Buffered in-memory SHA for compact JSON pins without complete encoding Vecs or file-publication changes |
 | [global-review-9.1.0-2026-10-22.md](global-review-9.1.0-2026-10-22.md) | Archived earlier architecture review and bounded incremental-update resources |
 | [drift-analysis-9.1.0-2026-10-22.md](drift-analysis-9.1.0-2026-10-22.md) | Current drift investigation, benchmark lifetime fixes and sparse incremental-update validation |
 | [README-performance-index.md](README-performance-index.md) | Performance document index |

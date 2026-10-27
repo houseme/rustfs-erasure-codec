@@ -1,0 +1,134 @@
+{
+  "schema": "compact-hash-validation-v1",
+  "source_commit": "24897c6da2d10eb839fae773f6089f6a53765d53",
+  "prior_head": "82a8d2a2151433304cdccf110d9f36c750af3f52",
+  "synthetic_collection": {
+    "fake_workers": 8,
+    "observations": 2784,
+    "raw_to_canonical_bindings": 8352,
+    "independent_reader_agreed": true,
+    "previous_case_and_copy_records_equal": true,
+    "previous_canonical_bytes_equal": true,
+    "capture_provenance_verified": false,
+    "performance_accepted": false
+  },
+  "compact_pins": {
+    "attempts": 8,
+    "writer_and_replay_pins_independently_verified": true,
+    "statistical_document_exact_previous_bytes_equal": true,
+    "configured_json_buffer_bytes": 8192,
+    "new_execution_timestamps_retain_current_run": true
+  },
+  "source_work_inventory": {
+    "method": "source call-site and streaming-contract evidence; no allocator instrumentation",
+    "hash_only_encoding_vec_removed_from": [
+      "collector attempt pin",
+      "statistical replay attempt pin",
+      "frozen build source catalog pin"
+    ],
+    "per_operation_buffer_still_allocates": true,
+    "metadata_graphs_parsing_pretty_publication_and_sorted_catalog_still_owned": true,
+    "runtime_allocation_counts_measured": false
+  },
+  "legacy_replays": [
+    {
+      "protocol": "collection",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "execution",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "statistics",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "functional",
+      "passed": true,
+      "originals_unchanged": true
+    }
+  ],
+  "formal_timing_run": false,
+  "rss_or_allocation_counts_measured": false,
+  "remote_resource_changes": false,
+  "pull_request": "https://github.com/houseme/rustfs-erasure-codec/pull/117",
+  "reviewed_main": "07d543a5a402af21eb7248941b1524bd48868adf",
+  "comparison_capture_source_commit": "105f3939c47f41428fdcce52a9292dfb8dbb58b7",
+  "scope": "stream hash-only compact JSON serialization into buffered in-memory SHA without a complete encoding Vec",
+  "implementation_structure": {
+    "helper": "artifact::hashing::compact_digest using the same serde_json compact serializer",
+    "json_buffer_configured_bytes": 8192,
+    "tail_explicitly_flushed_before_final_digest": true,
+    "serialization_or_flush_failure_returns_no_pin": true,
+    "each_call_owns_fresh_hash_state": true,
+    "digest_hex_and_raw_sha_helpers_centralized_with_snapshot_reexports": true,
+    "raw_sha_helper_bodies_and_file_read_loop_unchanged": true,
+    "complete_publication_buffers_create_new_sync_and_original_file_pins_retained": true,
+    "no_new_input_limit_sorting_normalization_or_protocol_changes": true,
+    "buffer_capacity_is_not_a_whole_process_memory_bound": true,
+    "small_payload_scratch_can_exceed_old_encoding_size": true
+  },
+  "validation": {
+    "toolchain": "stable Rust 1.99.1",
+    "new_contracts": 4,
+    "focused_hashing_contracts": 4,
+    "source_catalog_integration_contracts": 1,
+    "contracts": "legacy compact digest across buffer boundaries and numeric encodings; emits before serialization completes and flushes tail; serialization/flush failure and fresh next call; source catalog sorted bytes, freshness and symlink refusal",
+    "workspace_all_features": {
+      "passed": 1057,
+      "failed": 0,
+      "ignored": 43
+    },
+    "top_level_executables": 44,
+    "counting": "last summary per top-level executable; excludes self-spawned duplicates",
+    "strict_clippy": "workspace all-targets all-features -D warnings passed",
+    "format": "passed",
+    "diff_check": "passed",
+    "linux_test_cross_check": {
+      "target": "x86_64-unknown-linux-gnu",
+      "command": "cargo +stable check --offline --locked -p xtask --tests --target x86_64-unknown-linux-gnu",
+      "passed": true,
+      "linux_execution_performed": false
+    },
+    "json_audit": {
+      "files": 671,
+      "errors": []
+    },
+    "package_allowlist": {
+      "core_members": 71,
+      "wasm_members": 6,
+      "tool_test_evidence_excluded": true
+    },
+    "workspace_dependency_inheritance": "all 5 members passed",
+    "interpreter_surface_audit": "passed"
+  },
+  "provenance": {
+    "codec_source_files_unchanged": 64,
+    "root_manifest_lock_build_script_unchanged": true,
+    "statistical_models_frozen_loading_context_ledger_and_worker_protocol_unchanged": true,
+    "legacy_digest_reference": "SHA-256 over serde_json::to_vec output for identical values, including typed statistical attempts and source catalog tuples",
+    "streaming_reference": "test serializer progress observed at first downstream write; output compared to complete legacy bytes, including tail",
+    "independent_binding_reference": "original raw SHA-256, complete baseline/statistical arithmetic and receipt/context/execution chain reader",
+    "raw_evidence": "private regression/build logs, serialization observations, complete capture, exact document comparison and unchanged historical replays retained",
+    "public_boundary": "no private paths, binary digests, trusted pins or machine identity"
+  },
+  "performance_boundary": {
+    "formal_timing_run": false,
+    "allocator_calls_measured": false,
+    "rss_measured": false,
+    "throughput_or_latency_measured": false,
+    "real_linux_baseline_qualified": false,
+    "capture_provenance_verified": false,
+    "performance_accepted": false,
+    "release_qualified": false
+  },
+  "next_steps": [
+    "continue deferring formal timing and remote resource changes as requested",
+    "confirm dedicated or explicitly authorized native Linux resources and complete unchanged baseline before timing",
+    "qualify collector supervision overhead and repeat stability; evaluate verify chunking or oversized GF16 cache only after ABBA/A2 drift and per-layout gates pass"
+  ]
+}

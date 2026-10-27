@@ -59,3 +59,8 @@ stable Rust 1.99.1 workspace all-features：1,053 项通过、43 项既有忽略
 baseline 就绪，再验证 collector 监督开销、重复稳定性及完整 ABBA/A2 漂移和逐布局
 门槛，之后评估 verify 分块或 oversized GF16 cache。正式采集、性能与发布资格
 保持未授予，本轮没有量化提速。
+
+## 摘要编码的后续改进
+
+本页保留共享统计模型的验证。只用于 pin 的 compact 编码进一步改为流式摘要，
+见[Compact JSON 摘要报告](compact-json-hash-2026-10-27.md)。
