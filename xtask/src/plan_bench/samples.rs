@@ -17,13 +17,9 @@ pub(super) fn validate_raw(
     }
     Ok(distribution.mean_ns)
 }
-pub(super) fn validate_configuration(value: serde_json::Value) -> Result<()> {
-    let doc: Document = serde_json::from_value(value)?;
-    doc.validate()
-}
 #[cfg(test)]
 pub(crate) mod tests;
-const SCHEMA: &str = "plan-bench-statistical-inputs-v1";
+pub(super) const SCHEMA: &str = "plan-bench-statistical-inputs-v1";
 
 #[derive(Clone, Copy, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -31,37 +27,55 @@ pub(super) enum Origin {
     Synthetic,
     Recorded,
 }
-#[derive(Deserialize)]
+// Capture and replay share one model. Field order preserves sorted Value bytes.
+#[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-struct Document {
-    schema: String,
-    pub(super) origin: Origin,
-    baseline_sha256: String,
-    candidate_sha256: String,
-    repetitions: u8,
-    minimum_samples: usize,
-    confidence_level: f64,
-    max_ci_width: f64,
-    max_drift: f64,
-    attempts: Vec<Attempt>,
+pub(super) struct Document {
+    pub attempts: Vec<Attempt>,
+    pub baseline_sha256: String,
+    pub candidate_sha256: String,
+    pub confidence_level: f64,
+    pub max_ci_width: f64,
+    pub max_drift: f64,
+    pub minimum_samples: usize,
+    pub origin: Origin,
+    pub repetitions: u8,
+    pub schema: String,
 }
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-struct Attempt {
-    repetition: u8,
-    stage: String,
-    manifest_sha256: String,
-    outcome: Outcome,
-    originals_unchanged: bool,
-    cases: Vec<Entry>,
+pub(super) struct Attempt {
+    pub cases: Vec<Entry>,
+    pub manifest_sha256: String,
+    pub originals_unchanged: bool,
+    #[serde(serialize_with = "serialize_attempt_outcome")]
+    pub outcome: Outcome,
+    pub repetition: u8,
+    pub stage: String,
 }
-#[derive(Deserialize)]
+// The nested canonical pin sorted these keys via Value. Standalone outcome
+// journals keep Outcome's existing declaration order and must remain unchanged.
+fn serialize_attempt_outcome<S>(
+    outcome: &Outcome,
+    serializer: S,
+) -> std::result::Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    use serde::ser::SerializeStruct;
+    let mut record = serializer.serialize_struct("Outcome", 3)?;
+    record.serialize_field("exit_code", &outcome.exit_code)?;
+    record.serialize_field("reaped", &outcome.reaped)?;
+    record.serialize_field("reason", &outcome.reason)?;
+    record.end()
+}
+#[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-struct Entry {
-    case_index: usize,
-    benchmark_sha256: Option<String>,
-    sample_sha256: Option<String>,
-    estimates_sha256: Option<String>,
+pub(super) struct Entry {
+    pub benchmark_sha256: Option<String>,
+    pub case_index: usize,
+    pub estimates_sha256: Option<String>,
+    pub sample_sha256: Option<String>,
 }
 #[derive(Serialize)]
 pub(super) struct AttemptSummary {
@@ -108,7 +122,7 @@ pub(super) struct Report {
     pub(super) diagnostic_failures: Vec<String>,
 }
 impl Document {
-    fn validate(&self) -> Result<()> {
+    pub(super) fn validate(&self) -> Result<()> {
         valid_digest(&self.baseline_sha256)?;
         valid_digest(&self.candidate_sha256)?;
         if self.schema != SCHEMA
@@ -426,13 +440,13 @@ pub(crate) fn replay(args: &Args) -> Result<bool> {
 }
 
 impl Report {
-    pub(super) fn matches_configuration(&self, value: &serde_json::Value) -> bool {
-        value["origin"] == serde_json::to_value(self.origin).unwrap_or_default()
-            && value["repetitions"].as_u64() == Some(u64::from(self.repetitions))
-            && value["minimum_samples"].as_u64() == Some(self.minimum_samples as u64)
-            && value["confidence_level"].as_f64() == Some(self.confidence_level)
-            && value["max_ci_width"].as_f64() == Some(self.max_ci_width)
-            && value["max_drift"].as_f64() == Some(self.max_drift)
+    pub(super) fn matches_configuration(&self, document: &Document) -> bool {
+        document.origin == self.origin
+            && document.repetitions == self.repetitions
+            && document.minimum_samples == self.minimum_samples
+            && document.confidence_level == self.confidence_level
+            && document.max_ci_width == self.max_ci_width
+            && document.max_drift == self.max_drift
             && self
                 .observations
                 .iter()

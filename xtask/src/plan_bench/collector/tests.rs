@@ -432,7 +432,7 @@ fn ingestion_reuses_original_byte_pins_for_both_receipt_views_and_exact_copies()
         let value: Value = serde_json::from_slice(&original).unwrap();
         let hash = digest(&original);
         assert_ne!(hash, digest(&serde_json::to_vec(&value).unwrap()));
-        assert_eq!(result.cases[0][field], hash);
+        assert_eq!(serde_json::to_value(&result.cases[0]).unwrap()[field], hash);
         let copy = result
             .copies
             .iter()
@@ -464,7 +464,7 @@ fn missing_ingestion_member_retains_null_pin_and_only_bound_partial_copies() {
     let output = root.0.join("partial");
     let result = artifacts::collect(&root.0, &stage, &output, &manifest, &plan).unwrap();
     assert!(!result.valid && result.error.is_some());
-    assert!(result.cases[0]["sample_sha256"].is_null());
+    assert!(result.cases[0].sample_sha256.is_none());
     assert!(result.means[0].is_none());
     assert_eq!(result.copies.len(), 2);
     for copy in &result.copies {
@@ -614,5 +614,98 @@ fn execution_ledger_bytes_match_original_envelope_for_empty_complete_and_partial
             assert_eq!(encoded, original, "ledger state {index}");
             assert_eq!(digest(&encoded), digest(&original));
         }
+    }
+}
+
+#[test]
+fn typed_statistical_models_preserve_legacy_compact_pins_and_pretty_bytes() {
+    let (source, _) = fixture("success");
+    let mut plan: Plan = artifact::read_json(&source.0.join("plan.json")).unwrap();
+    plan.max_drift = -0.0;
+    let originals = [
+        json!({"repetition":1,"stage":"A1","manifest_sha256":plan.baseline_sha256,
+            "outcome":{"exit_code":null,"reason":"spawn_failed 雪","reaped":true},
+            "originals_unchanged":false,"cases":[{"case_index":0,"benchmark_sha256":null,"sample_sha256":null,"estimates_sha256":null}]}),
+        json!({"repetition":1,"stage":"B1","manifest_sha256":plan.candidate_sha256,
+            "outcome":{"exit_code":0,"reason":"exited","reaped":true},
+            "originals_unchanged":true,"cases":[{"case_index":0,"benchmark_sha256":"a".repeat(64),"sample_sha256":"b".repeat(64),"estimates_sha256":"c".repeat(64)}]}),
+    ];
+    for length in 0..=originals.len() {
+        let mut attempts = Vec::new();
+        for original in &originals[..length] {
+            let attempt: samples::Attempt = serde_json::from_value(original.clone()).unwrap();
+            let compact = serde_json::to_vec(&attempt).unwrap();
+            let expected = serde_json::to_vec(original).unwrap();
+            assert_eq!(compact, expected);
+            assert_eq!(digest(&compact), digest(&expected));
+            assert_eq!(
+                serde_json::to_vec_pretty(&attempt).unwrap(),
+                serde_json::to_vec_pretty(original).unwrap()
+            );
+            // The standalone outcome contract has a different, preserved order.
+            let outcome = &attempt.outcome;
+            let standalone = serde_json::to_vec(outcome).unwrap();
+            let old_standalone = format!(
+                "{{\"exit_code\":{},\"reason\":{},\"reaped\":{}}}",
+                serde_json::to_string(&outcome.exit_code).unwrap(),
+                serde_json::to_string(&outcome.reason).unwrap(),
+                outcome.reaped
+            );
+            assert_eq!(standalone, old_standalone.as_bytes());
+            attempts.push(attempt);
+        }
+        let old_document = json!({"schema":"plan-bench-statistical-inputs-v1","origin":plan.origin,
+            "baseline_sha256":plan.baseline_sha256,"candidate_sha256":plan.candidate_sha256,
+            "repetitions":plan.repetitions,"minimum_samples":plan.minimum_samples,
+            "confidence_level":plan.confidence_level,"max_ci_width":plan.max_ci_width,
+            "max_drift":plan.max_drift,"attempts":&originals[..length]});
+        let document = plan.document(attempts);
+        assert_eq!(
+            serde_json::to_vec(&document).unwrap(),
+            serde_json::to_vec(&old_document).unwrap()
+        );
+        let bytes = serde_json::to_vec_pretty(&document).unwrap();
+        assert_eq!(bytes, serde_json::to_vec_pretty(&old_document).unwrap());
+        let decoded: samples::Document = serde_json::from_slice(&bytes).unwrap();
+        decoded.validate().unwrap();
+        assert_eq!(decoded.attempts.len(), length);
+    }
+}
+
+#[test]
+fn typed_statistical_configuration_keeps_matching_and_numeric_refusals() {
+    let (source, pin) = samples::tests::fixture();
+    let mut snapshot = Snapshot::new(&source.0).unwrap();
+    let (report, _) = samples::bound(&mut snapshot, "", &pin).unwrap();
+    snapshot.finish().unwrap();
+    let load = || artifact::read_json::<samples::Document>(&source.0.join("samples.json")).unwrap();
+    assert!(report.matches_configuration(&load()));
+    for change in 0..6 {
+        let mut document = load();
+        match change {
+            0 => document.origin = samples::Origin::Recorded,
+            1 => document.repetitions = 1,
+            2 => document.minimum_samples = 11,
+            3 => document.confidence_level = 0.9,
+            4 => document.max_ci_width = 0.2,
+            5 => document.max_drift = 0.1,
+            _ => unreachable!(),
+        }
+        assert!(!report.matches_configuration(&document));
+    }
+    for change in 0..8 {
+        let mut document = load();
+        match change {
+            0 => document.repetitions = 0,
+            1 => document.repetitions = 10,
+            2 => document.minimum_samples = 9,
+            3 => document.minimum_samples = 100_001,
+            4 => document.confidence_level = 0.0,
+            5 => document.confidence_level = 1.0,
+            6 => document.max_ci_width = f64::NAN,
+            7 => document.max_drift = f64::INFINITY,
+            _ => unreachable!(),
+        }
+        assert!(document.validate().is_err());
     }
 }

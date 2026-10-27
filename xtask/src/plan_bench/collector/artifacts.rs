@@ -88,7 +88,7 @@ pub(super) fn metadata(root: &Path, max_entries: usize) -> Result<Vec<String>> {
     Ok(files)
 }
 pub(super) struct Produced {
-    pub cases: Vec<Value>,
+    pub cases: Vec<samples::Entry>,
     pub copies: Vec<ArtifactCopy>,
     pub valid: bool,
     pub means: Vec<Option<f64>>,
@@ -105,7 +105,14 @@ pub(super) fn collect(
     let files = metadata(&raw, manifest.catalog.len() * 64 + 128)?;
     let mut snapshot = Snapshot::new(&raw)?;
     let mut seen = BTreeSet::new();
-    let mut result:Vec<_>=(0..manifest.catalog.len()).map(|i|json!({"case_index":i,"benchmark_sha256":null,"sample_sha256":null,"estimates_sha256":null})).collect();
+    let mut result: Vec<_> = (0..manifest.catalog.len())
+        .map(|case_index| samples::Entry {
+            benchmark_sha256: None,
+            case_index,
+            estimates_sha256: None,
+            sample_sha256: None,
+        })
+        .collect();
     let mut errors = Vec::new();
     let mut copies = Vec::new();
     let mut means = vec![None; manifest.catalog.len()];
@@ -130,7 +137,7 @@ pub(super) fn collect(
         let hash = snapshot
             .member_digest(name)
             .ok_or("missing bound benchmark digest")?;
-        result[index]["benchmark_sha256"] = hash.into();
+        result[index].benchmark_sha256 = Some(hash.into());
         copies.push(ArtifactCopy {
             canonical: directory
                 .join("benchmark.json")
@@ -150,9 +157,10 @@ pub(super) fn collect(
             .strip_suffix("benchmark.json")
             .ok_or("invalid metadata member")?;
         let mut values = Vec::new();
-        for (member, field) in [
-            ("sample.json", "sample_sha256"),
-            ("estimates.json", "estimates_sha256"),
+        let entry = &mut result[index];
+        for (member, pin) in [
+            ("sample.json", &mut entry.sample_sha256),
+            ("estimates.json", &mut entry.estimates_sha256),
         ] {
             let name = format!("{prefix}{member}");
             match snapshot.original(&name) {
@@ -161,7 +169,7 @@ pub(super) fn collect(
                     let hash = snapshot
                         .member_digest(&name)
                         .ok_or("missing bound statistical digest")?;
-                    result[index][field] = hash.into();
+                    *pin = Some(hash.into());
                     copies.push(ArtifactCopy {
                         canonical: directory
                             .join(member)
