@@ -1,0 +1,132 @@
+{
+  "schema": "context-borrow-validation-v1",
+  "source_commit": "ad57e551b405c2f75c1422ebe444d9c85ce58bfb",
+  "prior_head": "cb17a889d150b9a453a0e1ec5f86596bd64eb8f2",
+  "synthetic_collection": {
+    "fake_workers": 8,
+    "observations": 2784,
+    "raw_to_canonical_bindings": 8352,
+    "independent_reader_agreed": true,
+    "previous_case_and_copy_records_equal": true,
+    "previous_canonical_bytes_equal": true,
+    "capture_provenance_verified": false,
+    "performance_accepted": false
+  },
+  "context_journals": {
+    "count": 16,
+    "old_value_encoding_exact_bytes_agreed": true,
+    "previous_context_and_session_values_equal": true,
+    "new_timestamps_retain_current_run_identity": true,
+    "independent_receipt_and_context_binding_reader_agreed": true
+  },
+  "source_work_inventory": {
+    "method": "source call-site inventory for one complete synthetic 8-worker collection; no allocator instrumentation",
+    "synthetic_reference_clone_calls_removed": 17,
+    "temporary_owned_journal_values_removed": 16,
+    "live_observer_calls_unchanged": true,
+    "actual_recorded_observation_retained_until_journal_write": true,
+    "before_observation_dropped_before_worker_start": true,
+    "runtime_clone_or_allocation_counts_measured": false
+  },
+  "legacy_replays": [
+    {
+      "protocol": "collection",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "execution",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "statistics",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "functional",
+      "passed": true,
+      "originals_unchanged": true
+    }
+  ],
+  "formal_timing_run": false,
+  "rss_or_allocation_counts_measured": false,
+  "remote_resource_changes": false,
+  "pull_request": "https://github.com/houseme/rustfs-erasure-codec/pull/117",
+  "reviewed_main": "07d543a5a402af21eb7248941b1524bd48868adf",
+  "comparison_capture_source_commit": "122a7ef91eb2da547b3bdfe0456b9f78962ced25",
+  "scope": "borrow synthetic resource context and serialize borrowed observation journals; release actual observations after immutable writes",
+  "implementation_structure": {
+    "synthetic_observation": "Cow::Borrowed of the immutable reference; no live resource request",
+    "recorded_observation": "Cow::Owned of each newly returned live Value; never substitute the reference after equality succeeds",
+    "comparison_and_observer_cadence_unchanged": true,
+    "actual_numeric_representation_retained": "equal +0.0 and -0.0 still serialize according to the actual observed Value",
+    "journal": "borrowed ContextObservation Serialize struct in original alphabetic field order",
+    "owned_intermediate_journal_value_removed": true,
+    "before_and_after_observations_dropped_after_journal_save": true,
+    "save_still_serializes_before_create_new_write_and_sync": true,
+    "journal_bytes_and_pins_unchanged_for_identical_field_values": true,
+    "baseline_reference_command_env_encoded_byte_vec_and_reports_still_owned": true,
+    "new_cache_or_runtime_policy": false,
+    "protocol_changes": false
+  },
+  "validation": {
+    "toolchain": "stable Rust 1.99.1",
+    "new_contracts": 3,
+    "focused_observation_filter_passed": 12,
+    "contracts": "borrowed synthetic pointer identity with live observer forbidden; fresh owned recorded values and failures including signed zero encoding; exact pretty bytes/pins and duplicate-write refusal",
+    "workspace_all_features": {
+      "passed": 1050,
+      "failed": 0,
+      "ignored": 43
+    },
+    "top_level_executables": 44,
+    "counting": "last summary per top-level executable; excludes self-spawned duplicates",
+    "strict_clippy": "workspace all-targets all-features -D warnings passed",
+    "format": "passed",
+    "diff_check": "passed",
+    "linux_test_cross_check": {
+      "target": "x86_64-unknown-linux-gnu",
+      "command": "cargo +stable check --offline --locked -p xtask --tests --target x86_64-unknown-linux-gnu",
+      "passed": true,
+      "linux_execution_performed": false
+    },
+    "json_audit": {
+      "files": 668,
+      "errors": []
+    },
+    "package_allowlist": {
+      "core_members": 71,
+      "wasm_members": 6,
+      "tool_test_evidence_excluded": true
+    },
+    "workspace_dependency_inheritance": "all 5 members passed",
+    "interpreter_surface_audit": "passed"
+  },
+  "provenance": {
+    "codec_source_files_unchanged": 64,
+    "root_manifest_lock_build_script_unchanged": true,
+    "shared_hashing_fingerprint_frozen_loading_and_worker_protocol_unchanged": true,
+    "journal_reference": "old serde_json::json Value construction and to_vec_pretty for identical fields; all 16 complete-run journals compared byte for byte",
+    "independent_binding_reference": "original raw SHA-256, complete baseline/statistical arithmetic and receipt/context-chain reader",
+    "recorded_observer_validation": "local injected observer tests only; no native Linux recorded collection",
+    "raw_evidence": "private tests/build logs, full synthetic collection, independent readers, private old-encoding probe and original-preserving historical readbacks retained",
+    "public_boundary": "no private paths, binary digests, trusted pins or machine identity"
+  },
+  "performance_boundary": {
+    "formal_timing_run": false,
+    "allocator_calls_measured": false,
+    "rss_measured": false,
+    "throughput_or_latency_measured": false,
+    "real_linux_baseline_qualified": false,
+    "capture_provenance_verified": false,
+    "performance_accepted": false,
+    "release_qualified": false
+  },
+  "next_steps": [
+    "continue deferring formal timing and remote resource changes as requested",
+    "confirm dedicated or explicitly authorized native Linux resources and complete unchanged baseline before timing",
+    "qualify collector supervision overhead and repeat stability; evaluate verify chunking or oversized GF16 cache only after ABBA/A2 drift and per-layout gates pass"
+  ]
+}

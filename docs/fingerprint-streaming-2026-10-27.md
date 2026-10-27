@@ -55,3 +55,8 @@ stable Rust 1.99.1 workspace all-features：1,047 项通过、43 项既有忽略
 baseline 就绪后，验证 collector 实际监督开销及重复稳定性，再依据完整 ABBA、A2
 漂移和逐布局门槛评估 verify 分块或 oversized GF16 cache。正式采集、性能及发布资格
 保持未授予，本轮没有量化提速。
+
+## Collector 观测拥有权跟进
+
+本页保留指纹读取的原验证。后续 context 借用、journal 序列化与真实观测释放见
+[观测拥有权报告](collector-context-ownership-2026-10-27.md)。

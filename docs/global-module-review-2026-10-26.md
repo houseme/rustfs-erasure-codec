@@ -199,3 +199,6 @@ Classic shape 的有效索引延迟分配、有效/无输出/错误路径完整�
 
 合并 PR #116 后的后置 binary/源码指纹流式化、共享读取边界与独立格式验证见
 [文件指纹流式报告](fingerprint-streaming-2026-10-27.md)。
+
+资源观测借用、before/after journal 直接序列化及相同字段旧字节格式验证见
+[Collector context 拥有权报告](collector-context-ownership-2026-10-27.md)。
