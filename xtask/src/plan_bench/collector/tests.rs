@@ -639,6 +639,10 @@ fn typed_statistical_models_preserve_legacy_compact_pins_and_pretty_bytes() {
             assert_eq!(compact, expected);
             assert_eq!(digest(&compact), digest(&expected));
             assert_eq!(
+                artifact::hashing::compact_digest(&attempt).unwrap(),
+                digest(&expected)
+            );
+            assert_eq!(
                 serde_json::to_vec_pretty(&attempt).unwrap(),
                 serde_json::to_vec_pretty(original).unwrap()
             );

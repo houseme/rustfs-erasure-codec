@@ -231,7 +231,7 @@ pub(super) fn bound(snapshot: &mut Snapshot, prefix: &str, pin: &str) -> Result<
         .as_array()
         .ok_or("missing statistical attempts")?
         .iter()
-        .map(|attempt| Ok(digest(&serde_json::to_vec(attempt)?)))
+        .map(artifact::hashing::compact_digest)
         .collect::<Result<Vec<_>>>()?;
     let mut document: Document = serde_json::from_value(wire)?;
     document.validate()?;

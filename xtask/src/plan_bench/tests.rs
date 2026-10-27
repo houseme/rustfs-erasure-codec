@@ -420,3 +420,35 @@ fn verified_functional_inputs_still_detect_a_worker_mutating_the_archive() {
         logs()
     );
 }
+
+#[test]
+fn source_hash_keeps_sorted_raw_members_freshness_and_symlink_refusal() {
+    let root = Directory::new();
+    let empty: Vec<(String, String)> = Vec::new();
+    assert_eq!(
+        source_hash(&root.0).unwrap(),
+        digest(&serde_json::to_vec(&empty).unwrap())
+    );
+    fs::create_dir(root.0.join("nested")).unwrap();
+    let inputs = [
+        ("empty", b"".as_slice()),
+        ("nested/a.rs", b"raw\r\n\xff"),
+        ("z.bin", b"last"),
+    ];
+    for (name, bytes) in inputs {
+        fs::write(root.0.join(name), bytes).unwrap();
+    }
+    let members: Vec<_> = inputs
+        .iter()
+        .map(|(name, bytes)| ((*name).to_owned(), digest(bytes)))
+        .collect();
+    let before = source_hash(&root.0).unwrap();
+    assert_eq!(before, digest(&serde_json::to_vec(&members).unwrap()));
+    fs::write(root.0.join("z.bin"), b"changed").unwrap();
+    assert_ne!(source_hash(&root.0).unwrap(), before);
+    #[cfg(unix)]
+    {
+        std::os::unix::fs::symlink("z.bin", root.0.join("link")).unwrap();
+        assert!(source_hash(&root.0).is_err());
+    }
+}

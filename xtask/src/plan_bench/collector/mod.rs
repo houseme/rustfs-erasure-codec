@@ -282,7 +282,7 @@ fn collect(
                 repetition: repetition as u8,
                 stage: stage.into(),
             };
-            let attempt_pin = digest(&serde_json::to_vec(&attempt)?);
+            let attempt_pin = artifact::hashing::compact_digest(&attempt)?;
             attempts.push(attempt);
             let after_context = observe(plan, &reference, &a.compiler, observer)?;
             let after_ns = clock()?;

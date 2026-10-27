@@ -133,7 +133,7 @@ pub(super) fn source_hash(root: &Path) -> Result<String> {
     let mut members = Vec::new();
     visit(root, root, &mut members)?;
     members.sort();
-    Ok(artifact::snapshot::digest(&serde_json::to_vec(&members)?))
+    artifact::hashing::compact_digest(&members)
 }
 pub(super) fn build_executable(log: &str, source: &Path, target: &Path) -> Result<PathBuf> {
     let source = fs::canonicalize(source)?;
