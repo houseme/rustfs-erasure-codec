@@ -205,3 +205,6 @@ Classic shape 的有效索引延迟分配、有效/无输出/错误路径完整�
 
 execution envelope 从 receipt 单一账本借用生成、部分失败记录及旧字节格式验证见
 [Collector execution 账本报告](collector-execution-ledger-2026-10-27.md)。
+
+统计 case/attempt/document 共用严格模型、移动拥有数据及旧 compact/pretty 编码验证见
+[统计模型拥有权报告](statistical-model-ownership-2026-10-27.md)。
