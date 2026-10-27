@@ -208,3 +208,6 @@ execution envelope 从 receipt 单一账本借用生成、部分失败记录及�
 
 统计 case/attempt/document 共用严格模型、移动拥有数据及旧 compact/pretty 编码验证见
 [统计模型拥有权报告](statistical-model-ownership-2026-10-27.md)。
+
+仅用于 pin 的 compact JSON 编码流式送入内存 SHA、旧摘要与发布语义验证见
+[Compact JSON 摘要报告](compact-json-hash-2026-10-27.md)。
