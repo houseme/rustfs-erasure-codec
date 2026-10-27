@@ -1,0 +1,153 @@
+{
+  "schema": "fingerprint-stream-validation-v1",
+  "source_commit": "122a7ef91eb2da547b3bdfe0456b9f78962ced25",
+  "prior_head": "07d543a5a402af21eb7248941b1524bd48868adf",
+  "synthetic_collection": {
+    "fake_workers": 8,
+    "observations": 2784,
+    "raw_to_canonical_bindings": 8352,
+    "independent_reader_agreed": true,
+    "previous_case_and_copy_records_equal": true,
+    "previous_canonical_bytes_equal": true,
+    "capture_provenance_verified": false,
+    "performance_accepted": false
+  },
+  "functional_campaign": {
+    "stages": 4,
+    "cases": 1392,
+    "existing_frozen_worker_capsules_reused": true,
+    "latest_source_worker_rebuild": false,
+    "exact_capsule_copies": true,
+    "independent_reader_agreed": true,
+    "frozen_sources_unchanged": true,
+    "readonly_replay_passed": true,
+    "performance_accepted": false
+  },
+  "legacy_replays": [
+    {
+      "protocol": "collection",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "execution",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "statistics",
+      "passed": true,
+      "originals_unchanged": true
+    },
+    {
+      "protocol": "functional",
+      "passed": true,
+      "originals_unchanged": true
+    }
+  ],
+  "formal_timing_run": false,
+  "rss_or_allocation_counts_measured": false,
+  "remote_resource_changes": false,
+  "pull_request": "https://github.com/houseme/rustfs-erasure-codec/pull/117",
+  "scope": "stream opaque file and framed source fingerprints with one shared SHA read loop; no codec runtime change",
+  "delivery_base": {
+    "main": "07d543a5a402af21eb7248941b1524bd48868adf",
+    "merged_pull_request": "https://github.com/houseme/rustfs-erasure-codec/pull/116",
+    "previous_delivered_head": "cf9180032ea08fdfd3c0ceecbf7f28d57beabf52",
+    "previous_delivery_and_main_trees_equal": true,
+    "merged_checks": {
+      "SUCCESS": 31,
+      "SKIPPED": 3
+    }
+  },
+  "independent_fingerprints": {
+    "source_commit": "122a7ef91eb2da547b3bdfe0456b9f78962ced25",
+    "production_fingerprint_variants": [
+      "native",
+      "sampling",
+      "views",
+      "harness"
+    ],
+    "independent_original_byte_references_agreed": true,
+    "native_domain_raw_files": 140,
+    "reader_helper_body_unmodified": true,
+    "independent_reader_cases": 4,
+    "empty_and_multichunk_inputs_checked": true,
+    "maximum_read_request_bytes": 65536,
+    "runtime_allocations_or_timing_measured": false
+  },
+  "implementation_structure": {
+    "shared_reader": "artifact::hashing::update; short reads and Interrupted retries; partial I/O errors propagate",
+    "verification_buffer_bytes": 65536,
+    "fingerprint_scratch": "one lazily allocated Vec per operation, reused across opaque inputs",
+    "snapshot_scratch_ownership_unchanged": true,
+    "snapshot_limit_plus_one_reader_and_count_check_retained": true,
+    "general_file_fingerprints_remain_unbounded_by_snapshot_limits": true,
+    "empty_files_and_symlink_following_retained_for_general_fingerprints": true,
+    "native_sampling_view_and_harness_filename_framing_unchanged": true,
+    "text_normalization_and_block_selection_unchanged": true,
+    "full_text_needed_for_templates_and_blocks_remains_owned": true,
+    "sorted_source_path_tables_and_hex_output_still_allocate": true,
+    "small_or_empty_file_scratch_may_exceed_previous_file_buffer": true,
+    "source_bytes_reread_on_every_call": true,
+    "no_caches_or_protocol_changes": true
+  },
+  "validation": {
+    "toolchain": "stable Rust 1.99.1",
+    "new_contracts": 4,
+    "focused_fingerprint_contracts": 6,
+    "focused_artifact_contracts": 19,
+    "workspace_all_features": {
+      "passed": 1047,
+      "failed": 0,
+      "ignored": 43
+    },
+    "top_level_executables": 44,
+    "counting": "last summary per top-level executable; excludes self-spawned duplicates",
+    "strict_clippy": "workspace all-targets all-features -D warnings passed",
+    "format": "passed",
+    "diff_check": "passed",
+    "linux_test_cross_check": {
+      "target": "x86_64-unknown-linux-gnu",
+      "command": "cargo +stable check --offline --locked -p xtask --tests --target x86_64-unknown-linux-gnu",
+      "passed": true,
+      "linux_execution_performed": false
+    },
+    "json_audit": {
+      "files": 667,
+      "errors": []
+    },
+    "package_allowlist": {
+      "core_members": 71,
+      "wasm_members": 6,
+      "tool_test_evidence_excluded": true
+    },
+    "workspace_dependency_inheritance": "all 5 members passed",
+    "interpreter_surface_audit": "passed"
+  },
+  "provenance": {
+    "codec_source_files_unchanged": 64,
+    "root_manifest_lock_build_script_unchanged": true,
+    "frozen_loader_and_command_protocol_unchanged": true,
+    "fingerprint_references": "independent SHA-256 over original raw source files with original ordered names/NUL framing and unchanged normalized template/block inputs",
+    "reader_wrapper": "unmodified committed shared update body, with result type alias and an external read-request observer",
+    "historical_capture_sources_not_relabelled": true,
+    "raw_evidence": "private tests/build logs, independent source references and reader observations, complete synthetic/functional captures and legacy readbacks retained",
+    "public_boundary": "no private paths, binary digests, trusted pins or machine identity"
+  },
+  "performance_boundary": {
+    "formal_timing_run": false,
+    "allocator_calls_measured": false,
+    "rss_measured": false,
+    "throughput_or_latency_measured": false,
+    "real_linux_baseline_qualified": false,
+    "capture_provenance_verified": false,
+    "performance_accepted": false,
+    "release_qualified": false
+  },
+  "next_steps": [
+    "continue deferring formal timing and remote resource changes as requested",
+    "confirm dedicated or explicitly authorized native Linux resources and complete unchanged baseline before timing",
+    "qualify collector supervision overhead and repeat stability; evaluate verify chunking or oversized GF16 cache only after ABBA/A2 drift and per-layout gates pass"
+  ]
+}

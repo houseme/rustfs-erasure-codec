@@ -73,3 +73,8 @@ performance_accepted、release_qualified 保持 false。
 保留资源，再验证完整未变 baseline、collector 实际监督开销及重复稳定性。
 完整 ABBA、A2 漂移与逐布局门槛通过后，再按生产并发及峰值预算评估 verify 分块
 和 oversized GF16 cache 策略。
+
+## 合并后的指纹读取跟进
+
+本页保留 `57e58a6` 的实现与验证。合并 #116 后，后置 binary 和源码指纹的文件
+缓冲进一步改为共享流式读取，见[指纹报告](fingerprint-streaming-2026-10-27.md)。
