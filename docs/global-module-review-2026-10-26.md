@@ -196,3 +196,6 @@ Classic shape 的有效索引延迟分配、有效/无输出/错误路径完整�
 
 冻结输入按完整安装、binary-only 和校验用途分配拥有权，及消费后释放的实现见
 [冻结输入生命周期报告](frozen-load-lifecycle-2026-10-27.md)。
+
+合并 PR #116 后的后置 binary/源码指纹流式化、共享读取边界与独立格式验证见
+[文件指纹流式报告](fingerprint-streaming-2026-10-27.md)。
