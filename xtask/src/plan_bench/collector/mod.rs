@@ -16,7 +16,9 @@ pub(crate) use native::require_compiler;
 mod replay;
 #[cfg(all(test, unix))]
 pub(crate) mod tests;
-use model::{ArtifactCopy, Check, ContextObservation, Plan, Receipt, SCHEMA, Step};
+use model::{
+    ArtifactCopy, Check, ContextObservation, ExecutionEnvelope, Plan, Receipt, SCHEMA, Step,
+};
 pub(crate) use replay::replay;
 fn save(path: &Path, value: &impl Serialize) -> Result<String> {
     if let Some(p) = path.parent() {
@@ -156,7 +158,6 @@ fn collect(
     let arguments = plan.args();
     let mut attempts = Vec::new();
     let mut means = vec![vec![[None; 4]; a.catalog.len()]; usize::from(plan.repetitions)];
-    let mut executed = Vec::new();
     let mut previous = 0;
     let result = (|| -> Result<()> {
         for index in 0..usize::from(plan.repetitions) * 4 {
@@ -286,8 +287,7 @@ fn collect(
             )?;
             drop(after_context);
             let execution = json!({"repetition":repetition,"stage":stage,"manifest_sha256":plan.pin(index),"attempt_sha256":attempt_pin,"before_sha256":before_pin,"after_sha256":after_pin,"started_ns":started_ns,"ended_ns":ended_ns});
-            step.execution = Some(execution.clone());
-            executed.push(execution);
+            step.execution = Some(execution);
             budget.check(previous, [before_ns, started_ns, ended_ns, after_ns])?;
             previous = after_ns;
             if outcome.exit_code != Some(0)
@@ -332,7 +332,7 @@ fn collect(
     let terminal = budget.finish(previous, ended_ns);
     receipt.execution_sha256 = Some(save(
         &root.join("execution.json"),
-        &json!({"schema":"plan-bench-execution-inputs-v1","session_sha256":plan.session_sha256,"samples_sha256":receipt.samples_sha256,"baseline_members":plan.baseline_members,"renderer_sha256":plan.renderer_sha256,"analyzer_sha256":plan.analyzer_sha256,"stage_seconds":plan.stage_seconds,"window_seconds":plan.window_seconds,"gap_seconds":plan.gap_seconds,"ended_ns":ended_ns,"attempts":executed}),
+        &ExecutionEnvelope::new(plan, receipt, ended_ns),
     )?);
     result?;
     terminal?;

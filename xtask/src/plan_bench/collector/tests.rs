@@ -303,6 +303,11 @@ fn post_worker_deadline_refusal_prevents_the_next_worker() {
     let (_, r) = receipt(&out);
     assert!(!r.completed);
     assert_eq!(r.steps.len(), 1);
+    let execution: Value = artifact::read_json(&out.join("execution.json")).unwrap();
+    assert_eq!(
+        execution["attempts"],
+        json!([r.steps[0].execution.as_ref().unwrap()])
+    );
     assert!(!out.join("workers/01/B1").exists());
     assert!(r.error.as_deref().unwrap().contains("deadline"));
 }
@@ -383,6 +388,9 @@ fn failed_clock_observation_still_preserves_the_owned_worker_outcome() {
     assert!(!r.completed);
     assert_eq!(r.steps.len(), 1);
     assert!(r.steps[0].outcome_sha256.is_some());
+    assert!(r.steps[0].execution.is_none());
+    let execution: Value = artifact::read_json(&out.join("execution.json")).unwrap();
+    assert_eq!(execution["attempts"], json!([]));
     let outcome: Outcome = artifact::read_json(&out.join("workers/01/A1/outcome.json")).unwrap();
     assert!(outcome.reaped);
     assert_eq!(outcome.exit_code, Some(0));
@@ -542,5 +550,69 @@ fn observation_journal_matches_original_pretty_bytes_and_write_once_pins() {
         assert_eq!(fs::read(&path).unwrap(), original);
         assert!(save(&path, &observation).is_err());
         assert_eq!(fs::read(&path).unwrap(), original);
+    }
+}
+
+#[test]
+fn execution_ledger_bytes_match_original_envelope_for_empty_complete_and_partial_states() {
+    let (source, _) = fixture("success");
+    let plan: Plan = artifact::read_json(&source.0.join("plan.json")).unwrap();
+    let first = json!({"stage":"A1","started_ns":1,"ended_ns":2,"metadata":{"z":-0.0,"a":"雪"}});
+    let second = json!({"stage":"B1","started_ns":3,"ended_ns":4});
+    let states = [
+        (Vec::new(), Vec::new()),
+        (vec![None], Vec::new()),
+        (
+            vec![Some(first.clone()), Some(second.clone())],
+            vec![first.clone(), second.clone()],
+        ),
+        (
+            vec![Some(first.clone()), None, Some(second.clone())],
+            vec![first, second],
+        ),
+        (vec![Some(Value::Null)], vec![Value::Null]),
+    ];
+    for (index, (entries, expected)) in states.into_iter().enumerate() {
+        let steps = entries
+            .into_iter()
+            .map(|execution| Step {
+                repetition: 1,
+                stage: "A1".into(),
+                binary_sha256: "a".repeat(64),
+                arguments: Vec::new(),
+                start_sha256: "b".repeat(64),
+                outcome_sha256: None,
+                stdout_sha256: None,
+                stderr_sha256: None,
+                execution,
+                copies: Vec::new(),
+            })
+            .collect();
+        let mut receipt = Receipt {
+            schema: SCHEMA.into(),
+            plan_sha256: "c".repeat(64),
+            controller_sha256: "d".repeat(64),
+            completed: false,
+            execution_sha256: None,
+            samples_sha256: None,
+            steps,
+            error: Some("partial".into()),
+        };
+        for pin in [None, Some("e".repeat(64))] {
+            receipt.samples_sha256 = pin;
+            let original = serde_json::to_vec_pretty(&json!({
+                "schema":"plan-bench-execution-inputs-v1","session_sha256":plan.session_sha256,
+                "samples_sha256":receipt.samples_sha256,"baseline_members":plan.baseline_members,
+                "renderer_sha256":plan.renderer_sha256,"analyzer_sha256":plan.analyzer_sha256,
+                "stage_seconds":plan.stage_seconds,"window_seconds":plan.window_seconds,
+                "gap_seconds":plan.gap_seconds,"ended_ns":u64::MAX,"attempts":expected,
+            }))
+            .unwrap();
+            let encoded =
+                serde_json::to_vec_pretty(&ExecutionEnvelope::new(&plan, &receipt, u64::MAX))
+                    .unwrap();
+            assert_eq!(encoded, original, "ledger state {index}");
+            assert_eq!(digest(&encoded), digest(&original));
+        }
     }
 }
