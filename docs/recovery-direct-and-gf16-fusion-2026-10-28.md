@@ -175,6 +175,14 @@ unwind tests, the all-features suite, `no_std`, packaged probes and x86
 SSSE3/AVX2 emulation checks also passed. The diagnostic outputs were local
 functional artifacts, not latency measurements.
 
+After the refactor was committed as `5e6c37e`, its clean 73-file crate archive
+recorded that exact revision and all 66 packaged Rust sources matched the
+checkout. The package allowlist and the existing shard-slot diagnostic passed.
+The archived crate also passed the 126-check `no_std` cross-version probe in
+Node/WASM, native AArch64 macOS and x86 QEMU. The last is emulated, and its
+cross-linker emitted the warning noted above. These checks do not establish a
+performance result or transfer release qualification to later revisions.
+
 The fused backends share `NibbleTables16` generation, but each keeps its own
 architecture-specific plane operations and final layout stores. There is still
 similar arithmetic in the existing multiply kernels; extracting common vector
