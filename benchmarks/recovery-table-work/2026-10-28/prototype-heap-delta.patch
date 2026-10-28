@@ -1,0 +1,18 @@
+--- a/src/core/leopard_gf16/fused.rs
++++ b/src/core/leopard_gf16/fused.rs
+@@ -41,13 +41,13 @@
+ 
+ #[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
+ pub(super) struct PreparedScales {
+-    entries: smallvec::SmallVec<[(u16, super::mul_simd::NibbleTables16); 32]>,
++    entries: std::vec::Vec<(u16, super::mul_simd::NibbleTables16)>,
+ }
+ #[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
+ impl PreparedScales {
+     pub(super) fn new(capacity: usize) -> Self {
+         Self {
+-            entries: smallvec::SmallVec::with_capacity(capacity),
++            entries: std::vec::Vec::with_capacity(capacity),
+         }
+     }
+     pub(super) fn add(&mut self, is_output: bool, log_m: u16, tables: &LeopardGf16Tables) {

@@ -1,0 +1,149 @@
+--- a/src/core/leopard_gf16/decode.rs
++++ b/src/core/leopard_gf16/decode.rs
+@@ -386,26 +386,100 @@
+     }
+ 
+     #[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
+-    let prepared = if shard_u16_len > driver.chunk_size && total_shards <= 32 {
+-        let mut prepared = super::fused::PreparedScales::new(total_shards);
+-        for (index, is_present) in present.iter().copied().enumerate() {
+-            if is_present {
+-                let work_idx = if index < data_shards {
+-                    driver.m + index
+-                } else {
+-                    index - data_shards
+-                };
+-                prepared.add(false, err_locs[work_idx], tables);
+-            }
+-        }
+-        for &(_, _, inverse) in &missing {
+-            prepared.add(true, inverse, tables);
+-        }
+-        Some(prepared)
+-    } else {
+-        None
+-    };
++    if shard_u16_len > driver.chunk_size && total_shards <= 32 {
++        return reconstruct_serial_prepared(
++            &driver,
++            present,
++            outputs,
++            input_data,
++            err_locs,
++            ifft_plan,
++            fft_plan,
++            tables,
++            &missing,
++            shard_u16_len,
++            chunk_cap,
++        );
++    }
++    reconstruct_serial_loop(
++        &driver,
++        present,
++        outputs,
++        input_data,
++        err_locs,
++        ifft_plan,
++        fft_plan,
++        tables,
++        &missing,
++        shard_u16_len,
++        chunk_cap,
++        #[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++        None,
++    )
++}
++
++#[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++#[inline(never)]
++#[allow(clippy::too_many_arguments)]
++fn reconstruct_serial_prepared(
++    driver: &LeopardGf16DecodeDriver,
++    present: &[bool],
++    outputs: &mut [&mut [u8]],
++    input_data: &[Option<&[u8]>],
++    err_locs: &[u16; ORDER16],
++    ifft_plan: &IfftDit16Plan,
++    fft_plan: &FftDit16Plan,
++    tables: &LeopardGf16Tables,
++    missing: &[(usize, usize, u16)],
++    shard_u16_len: usize,
++    chunk_cap: usize,
++) -> Result<(), Error> {
++    let mut prepared = super::fused::PreparedScales::new(present.len());
++    for (index, is_present) in present.iter().copied().enumerate() {
++        if is_present {
++            let work_idx = if index < driver.data_shards {
++                driver.m + index
++            } else {
++                index - driver.data_shards
++            };
++            prepared.add(false, err_locs[work_idx], tables);
++        }
++    }
++    for &(_, _, inverse) in missing {
++        prepared.add(true, inverse, tables);
++    }
++    reconstruct_serial_loop(
++        driver,
++        present,
++        outputs,
++        input_data,
++        err_locs,
++        ifft_plan,
++        fft_plan,
++        tables,
++        missing,
++        shard_u16_len,
++        chunk_cap,
++        Some(&prepared),
++    )
++}
+ 
++#[allow(clippy::too_many_arguments)]
++fn reconstruct_serial_loop(
++    driver: &LeopardGf16DecodeDriver,
++    present: &[bool],
++    outputs: &mut [&mut [u8]],
++    input_data: &[Option<&[u8]>],
++    err_locs: &[u16; ORDER16],
++    ifft_plan: &IfftDit16Plan,
++    fft_plan: &FftDit16Plan,
++    tables: &LeopardGf16Tables,
++    missing: &[(usize, usize, u16)],
++    shard_u16_len: usize,
++    chunk_cap: usize,
++    #[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++    prepared: Option<&super::fused::PreparedScales>,
++) -> Result<(), Error> {
+     with_decode_buffers(driver.n, chunk_cap, |buffers| {
+         let DecodeBuffers { work, scratch } = buffers;
+         let mut offset = 0usize;
+@@ -425,14 +499,14 @@
+                 ifft_plan,
+                 fft_plan,
+                 tables,
+-                &driver,
++                driver,
+                 #[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
+-                prepared.as_ref(),
++                prepared,
+             )?;
+ 
+             // Step 5: scale each missing shard's transform by the inverse error locator
+             // and write it straight into user byte layout at this chunk's byte range.
+-            for &(shard_idx, work_idx, inv_err) in &missing {
++            for &(shard_idx, work_idx, inv_err) in missing {
+                 #[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
+                 super::fused::work_mul_to_user_prepared(
+                     &work.lane(work_idx)[..size],
+@@ -440,7 +514,7 @@
+                     &mut scratch[..size],
+                     inv_err,
+                     tables,
+-                    prepared.as_ref(),
++                    prepared,
+                 );
+                 #[cfg(not(all(
+                     feature = "std",

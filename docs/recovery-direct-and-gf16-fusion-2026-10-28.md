@@ -196,7 +196,9 @@ regression for small shards and cold plans before adoption.
 A [test-only work-count diagnostic](../benchmarks/recovery-table-work/2026-10-28/)
 confirms that the observed table-construction count scales with chunk count for
 three serial AArch64 `10+4` recovery cases. The diagnostic is source-bound and
-does not measure CPU time, cache behavior or end-to-end performance.
+does not measure CPU time, cache behavior or end-to-end performance. Isolated
+per-call prototypes show both a potential reduction in table builds and storage
+tradeoffs; none is included in the production path or accepted as a speedup.
 
 ## Outstanding evidence
 

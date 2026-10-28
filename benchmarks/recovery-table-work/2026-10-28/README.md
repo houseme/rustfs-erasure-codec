@@ -62,3 +62,82 @@ account for active `Arc` plans surviving LRU eviction, avoid holding the cache
 mutex while preparing tables, retain fallback behavior for large shapes, and
 measure cold-plan and single-chunk costs. This is a design direction, not an
 implemented or accepted optimization.
+
+## Isolated per-call prototype
+
+`prototype-inline.patch` is an experimental overlay against the same `c97b8b6`
+source. It includes the work-count instrumentation and, only for serial
+little-endian AArch64 `std` recovery, prepares distinct multiplier tables once
+per call when the shard spans multiple chunks and the total shard count is at
+most 32. Other configurations retain the committed path. This is deliberately
+not production code: the threshold, linear table lookup and per-call lifetime
+are hypotheses rather than a selected design.
+
+The same three 1 MiB cases constructed 13, 8 and 3 tables respectively, while
+the 64 KiB cases remained at 13, 14 and 10. Full restored bytes were checked.
+The Option, Leopard recovery and GF16 decode-reuse integration tests passed in
+release mode, and 31 `no_std` GF16 library tests passed. They do not cover a
+native x86 implementation or make a latency claim.
+
+Two storage choices were examined with the same prototype:
+
+| Storage | 10+4, 1 MiB, four missing data shards: generic / Option requested allocation bytes | AArch64 release initial stack frame |
+| --- | --- | --- |
+| Committed baseline | 8,388,608 / 4,194,304 | 1,744 bytes |
+| Per-call heap vector | 8,390,428 / 4,196,124 | not assessed |
+| Inline 32-entry storage | 8,388,608 / 4,194,304 | 10,032 bytes |
+
+The heap-vector numbers increase each call by 1,820 requested bytes in this
+case. The inline version avoids that increase but adds 8,288 bytes to the
+initial `leopard_gf16_reconstruct` frame in the observed AArch64 release
+assembly, before the single- versus multi-chunk decision. Frame sizes are one
+compiler/target observation, not a portable guarantee or a timing result.
+The compiler was Rust 1.99.1 for `aarch64-apple-darwin`, default release
+profile, with `RUSTFLAGS` and `CARGO_ENCODED_RUSTFLAGS` unset. The allocation
+probe is process-wide, warmed, one-worker, and checks recovered bytes; its
+numbers are requested bytes rather than peak or retained memory.
+
+To reproduce, extract the commit as above and apply `prototype-inline.patch`
+instead of `instrumentation.patch`. Run the work-count test above and:
+
+```bash
+RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR="$scratch/target" \
+  cargo test --release --offline --locked -p rustfs-erasure-codec \
+  --manifest-path "$scratch/Cargo.toml" --test leopard_option_allocation -- --nocapture
+RUSTUP_TOOLCHAIN=stable CARGO_TARGET_DIR="$scratch/target" \
+  cargo rustc --release --offline --locked -p rustfs-erasure-codec \
+  --manifest-path "$scratch/Cargo.toml" --lib -- --emit=asm
+```
+
+Apply `prototype-heap-delta.patch` after the inline patch to reproduce the heap
+variant. Check the emitted `leopard_gf16_reconstruct` prologue against a
+separately compiled unmodified checkout with the same flags; generated code may
+vary by compiler and target. The first prototype's extra allocation and the
+second's unconditional larger frame are reasons to keep both out of the runtime
+until a bounded alternative and controlled performance evidence are available.
+
+## Isolating the large frame
+
+`prototype-split-delta.patch`, applied after `prototype-inline.patch`, moves
+the inline table storage into a separate non-inlined function called only for
+eligible serial multi-chunk recovery. The shared serial loop remains separate.
+The same work-count, allocation and targeted recovery regressions passed;
+31 `no_std` GF16 library tests and the all-features library Clippy check passed.
+The prototype still has no implementation for parallel cached execution or
+native x86 table reuse.
+
+With the same AArch64 compiler and release flags, the initial
+`leopard_gf16_reconstruct` frame was 1,680 bytes for this variant, versus
+1,744 bytes in the committed baseline. The separate prepared function had an
+8,624-byte initial frame and the shared serial-loop function had a 608-byte
+initial frame. These are individual function prologues, not a measured peak
+stack bound. They show that the large frame moved off the single-chunk branch;
+they do not establish the cost of the extra calls, branch, lookups, or complete
+stack chain.
+
+To reproduce, apply the inline patch and then the split delta to a fresh
+`c97b8b6` source extraction. Run the same work-count, allocation and assembly
+commands above. The codegen observation is compiler-specific; no timing has been
+collected. Retain the committed implementation until small/large shards, cache
+and memory bounds, concurrent and selective recovery, native architectures, and
+isolated ABBA evidence all support the tradeoff.
