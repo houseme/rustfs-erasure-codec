@@ -13,6 +13,7 @@ static ENABLED: AtomicBool = AtomicBool::new(false);
 static PEAK: AtomicUsize = AtomicUsize::new(0);
 static CALLS: AtomicUsize = AtomicUsize::new(0);
 static REQUESTED: AtomicUsize = AtomicUsize::new(0);
+static REQUESTS_OF_64K: AtomicUsize = AtomicUsize::new(0);
 
 struct Counter;
 #[global_allocator]
@@ -28,6 +29,9 @@ fn request(bytes: usize) {
     if ENABLED.load(SeqCst) {
         CALLS.fetch_add(1, SeqCst);
         REQUESTED.fetch_add(bytes, SeqCst);
+        if bytes == 64 * 1024 {
+            REQUESTS_OF_64K.fetch_add(1, SeqCst);
+        }
     }
 }
 // SAFETY: the original pointer/layout contracts are forwarded to System. Only
@@ -79,6 +83,7 @@ struct Sample {
     after: usize,
     calls: usize,
     requested: usize,
+    requests_of_64k: usize,
 }
 impl Sample {
     fn retained_delta(&self) -> i128 {
@@ -94,6 +99,7 @@ fn measure(run: impl FnOnce()) -> Sample {
     PEAK.store(before, SeqCst);
     CALLS.store(0, SeqCst);
     REQUESTED.store(0, SeqCst);
+    REQUESTS_OF_64K.store(0, SeqCst);
     struct Stop;
     impl Drop for Stop {
         fn drop(&mut self) {
@@ -110,6 +116,7 @@ fn measure(run: impl FnOnce()) -> Sample {
         after: LIVE.load(SeqCst),
         calls: CALLS.load(SeqCst),
         requested: REQUESTED.load(SeqCst),
+        requests_of_64k: REQUESTS_OF_64K.load(SeqCst),
     }
 }
 
@@ -159,18 +166,22 @@ struct Encoded {
 }
 impl Encoded {
     fn new(data: usize, parity: usize) -> Self {
+        Self::with_shape(data, parity, LEN, 1)
+    }
+
+    fn with_shape(data: usize, parity: usize, len: usize, jobs: usize) -> Self {
         let codec = ReedSolomon::with_options(
             data,
             parity,
             CodecOptions::builder()
                 .codec_family(CodecFamily::LeopardGF16)
-                .max_parallel_jobs(1)
+                .max_parallel_jobs(jobs)
                 .build(),
         )
         .unwrap();
         let mut shards: Vec<Vec<u8>> = (0..data + parity)
             .map(|row| {
-                (0..LEN)
+                (0..len)
                     .map(|offset| (row * 37 + offset * 19 + offset / 67) as u8)
                     .collect()
             })
@@ -355,4 +366,82 @@ fn alternating_cache_sizes_report_live_retention_and_concurrent_peaks() {
             assert!(valid, "cache retention or recovered payload differs");
         }
     }
+}
+
+#[test]
+fn broadcast_warms_every_worker_for_repeated_parallel_recovery() {
+    const CHILD: &str = "RSE_GF16_BROADCAST_WARM_CHILD";
+    if std::env::var_os(CHILD).is_none() {
+        let status = std::process::Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "broadcast_warms_every_worker_for_repeated_parallel_recovery",
+                "--test-threads=1",
+                "--nocapture",
+            ])
+            .env(CHILD, "1")
+            .status()
+            .unwrap();
+        assert!(status.success(), "isolated worker-warmup diagnostic failed");
+        return;
+    }
+
+    const WORKERS: usize = 4;
+    let small = Arc::new(Encoded::new(10, 4));
+    let large = Arc::new(Encoded::with_shape(10, 4, 1024 * 1024, 2));
+    // Populate the shared plan outside the pool. Its mutable TLS buffer belongs
+    // to this thread and is not a substitute for warming the pool workers.
+    assert!(Recovery::new(&small).recover());
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(WORKERS)
+        .build()
+        .unwrap();
+    let mut two_jobs = Recovery::new(&large);
+    let cold = measure(|| assert!(pool.install(|| two_jobs.recover())));
+    assert!(
+        cold.requests_of_64k >= 1,
+        "cold recovery did not request a 64 KiB buffer: {cold:?}"
+    );
+
+    let live_before = LIVE.load(SeqCst);
+    let mut warmed = pool.broadcast(|context| {
+        assert_eq!(context.num_threads(), WORKERS);
+        assert!(Recovery::new(&small).recover());
+        context.index()
+    });
+    warmed.sort_unstable();
+    assert_eq!(warmed, (0..WORKERS).collect::<Vec<_>>());
+    drop(warmed);
+    let live_after = LIVE.load(SeqCst);
+
+    let four_job_codec = ReedSolomon::with_options(
+        10,
+        4,
+        CodecOptions::builder()
+            .codec_family(CodecFamily::LeopardGF16)
+            .max_parallel_jobs(4)
+            .build(),
+    )
+    .unwrap();
+    let four_job_fixture = Arc::new(Encoded {
+        codec: four_job_codec,
+        shards: large.shards.clone(),
+    });
+    let mut four_jobs = Recovery::new(&four_job_fixture);
+    for (jobs, recovery) in [(2, &mut two_jobs), (4, &mut four_jobs)] {
+        for repetition in 0..8 {
+            let sample = measure(|| assert!(pool.install(|| recovery.recover())));
+            assert_eq!(
+                sample.requests_of_64k, 0,
+                "warm pool requested a 64 KiB allocation: jobs={jobs}, repetition={repetition}, sample={sample:?}"
+            );
+        }
+    }
+    println!(
+        "GF16_WORKER_WARMUP workers={WORKERS} cold_64k_requests={} cold_requested_bytes={} cold_live_delta={} broadcast_live_delta={} subsequent_calls=16",
+        cold.requests_of_64k,
+        cold.requested,
+        cold.retained_delta(),
+        live_after as i128 - live_before as i128
+    );
 }

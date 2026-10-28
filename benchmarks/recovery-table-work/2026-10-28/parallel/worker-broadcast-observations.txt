@@ -1,0 +1,23 @@
+Four-worker private Rayon pool; GF16 10+4, 1 MiB, one missing data shard.
+Each process performs a cold two-job recovery, broadcasts a 64 KiB serial warmup to all workers,
+then checks eight two-job and eight four-job recoveries for 64 KiB allocation requests.
+
+run 1: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16
+run 2: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16
+run 3: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16
+run 4: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16
+run 5: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16
+run 6: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16
+run 7: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16
+run 8: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16
+run 9: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16
+run 10: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16
+
+All 160 post-broadcast recoveries passed the byte and 64 KiB request assertions.
+Live deltas include all Rust-allocator activity and are not RSS or isolated cache size.
+No elapsed-time or release-performance claim is made.
+
+Offline x86 QEMU functional checks, one process per CPU configuration:
+AVX2 max: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277008 cold_live_delta=2228224 broadcast_live_delta=2228224 subsequent_calls=16
+No SSSE3/AVX2 qemu64: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277008 cold_live_delta=2228224 broadcast_live_delta=2228224 subsequent_calls=16
+Both passed recovered-byte and post-broadcast 64 KiB request assertions. QEMU is not native timing evidence.

@@ -134,6 +134,38 @@ from the prototype. It does show that this cache-miss pattern can occur without
 the prototype; it still cannot identify the cause of the earlier uninstrumented
 outlier.
 
+## Explicit worker warmup diagnostic
+
+The repository's `broadcast_warms_every_worker_for_repeated_parallel_recovery`
+test uses the committed runtime in a fresh process and a private four-worker
+Rayon pool. For GF16 `10+4`, it first recovers one missing 1 MiB data shard with
+two jobs, then uses Rayon broadcast to execute a serial 64 KiB recovery on every
+pool worker. It checks that each worker index participated. Eight subsequent
+two-job and eight four-job recoveries check every output byte and assert that
+no allocation request of exactly 64 KiB occurred during those calls.
+
+In ten independent AArch64 release-mode processes, the initial cold recovery
+made two 64 KiB requests, and all 160 post-broadcast recoveries made none. The
+[raw observations](worker-broadcast-observations.txt) retain every run. Each
+broadcast phase observed a process-wide live-allocation increase of 2,228,288
+bytes after two workers had already been used; that delta includes any other
+Rust-allocator activity and is neither RSS nor a precise isolated cache size.
+The 64 KiB bucket counts all allocations of that size, not a typed cache event.
+The same diagnostic also passed once under offline x86 QEMU with AVX2 and once
+without SSSE3/AVX2; both simulated outcomes are recorded in the same file.
+
+This establishes a repeatable warm-worker condition for this particular shape;
+it does not mean all workloads or cache states stay warm. Warming all workers
+also retains more memory than warming only the workers used by one recovery.
+It is a diagnostic choice, not a change to production caching, a default benchmark
+policy, a latency result, or a recommendation to prewarm without a memory budget.
+
+```bash
+RUSTUP_TOOLCHAIN=stable cargo test --release --offline --locked \
+  -p rustfs-erasure-codec --test leopard_cache_lifecycle \
+  broadcast_warms_every_worker_for_repeated_parallel_recovery -- --exact --nocapture
+```
+
 With Rust 1.99.1, AArch64 macOS and default release flags, the committed
 `leopard_gf16_reconstruct` initial frame was 1,744 bytes. In the in-place
 prototype it was 1,696 bytes; the serial and parallel prepared helpers had
