@@ -50,31 +50,9 @@ impl ReedSolomon<crate::galois_8::Field> {
         required: impl Fn(usize) -> bool,
         decode: impl FnOnce(&[bool], &mut [&mut [u8]], &[Option<&[u8]>]) -> Result<(), Error>,
     ) -> Result<(), Error> {
-        check_piece_count!(all => self, shards);
-        let mut shard_len = None;
-        let mut present_count = 0;
-        for bytes in shards.iter().flatten() {
-            let len = bytes.len();
-            if len == 0 {
-                return Err(Error::EmptyShard);
-            }
-            if !len.is_multiple_of(64) || shard_len.is_some_and(|prev| prev != len) {
-                return Err(Error::IncorrectShardSize);
-            }
-            shard_len = Some(len);
-            present_count += 1;
-        }
-        if present_count < self.data_shard_count() {
-            return Err(Error::TooFewShardsPresent);
-        }
-        if !shards
-            .iter()
-            .enumerate()
-            .any(|(i, shard)| shard.is_none() && required(i))
-        {
+        let Some(len) = self.validate_leopard_reconstruction(shards, &required)? else {
             return Ok(());
-        }
-        let len = shard_len.ok_or(Error::TooFewShardsPresent)?;
+        };
         let present: SmallVec<[bool; 32]> = shards.iter().map(Option::is_some).collect();
         // Decode used to happen before any Option was published. Restore that
         // state on both returned errors and unwinding, including partial writes.
@@ -716,21 +694,14 @@ impl<F: Field> ReedSolomon<F> {
         )
     }
 
-    /// Validate every present shard before initializing recovery destinations.
-    /// Missing, unrequested shards remain erasures in the FFT decoder but have
-    /// no output buffer, so only requested shards are allocated or published.
-    fn reconstruct_leopard_impl<T: ReconstructShard<F>>(
+    /// Validate both generic and concrete Option recovery with the same error
+    /// ordering before any destination is initialized or modified.
+    #[inline]
+    fn validate_leopard_reconstruction<T: ReconstructShard<F>>(
         &self,
         slices: &mut [T],
-        required: impl Fn(usize) -> bool,
-        reconstruct_fn: impl FnOnce(
-            &[bool],
-            &mut [&mut [u8]],
-            &[Option<&[u8]>],
-            usize,
-            usize,
-        ) -> Result<(), Error>,
-    ) -> Result<(), Error> {
+        required: &impl Fn(usize) -> bool,
+    ) -> Result<Option<usize>, Error> {
         check_piece_count!(all => self, slices);
 
         let mut shard_len = None;
@@ -766,9 +737,29 @@ impl<F: Field> ReedSolomon<F> {
             return Err(Error::TooFewShardsPresent);
         }
         if !has_required_missing {
-            return Ok(());
+            return Ok(None);
         }
-        let shard_len = shard_len.ok_or(Error::TooFewShardsPresent)?;
+        Ok(Some(shard_len.ok_or(Error::TooFewShardsPresent)?))
+    }
+
+    /// Validate every present shard before initializing recovery destinations.
+    /// Missing, unrequested shards remain erasures in the FFT decoder but have
+    /// no output buffer, so only requested shards are allocated or published.
+    fn reconstruct_leopard_impl<T: ReconstructShard<F>>(
+        &self,
+        slices: &mut [T],
+        required: impl Fn(usize) -> bool,
+        reconstruct_fn: impl FnOnce(
+            &[bool],
+            &mut [&mut [u8]],
+            &[Option<&[u8]>],
+            usize,
+            usize,
+        ) -> Result<(), Error>,
+    ) -> Result<(), Error> {
+        let Some(shard_len) = self.validate_leopard_reconstruction(slices, &required)? else {
+            return Ok(());
+        };
 
         let mut present: SmallVec<[bool; 32]> = SmallVec::with_capacity(slices.len());
         let mut input_data: SmallVec<[Option<&[u8]>; 32]> = SmallVec::with_capacity(slices.len());

@@ -1,5 +1,5 @@
 #![cfg(feature = "std")]
-use rustfs_erasure_codec::{CodecFamily, CodecOptions, galois_8::ReedSolomon};
+use rustfs_erasure_codec::{CodecFamily, CodecOptions, Error, galois_8::ReedSolomon};
 
 #[cfg(target_endian = "little")]
 const FAMILIES: &[CodecFamily] = &[CodecFamily::LeopardGF8, CodecFamily::LeopardGF16];
@@ -86,6 +86,51 @@ fn option_entrypoints_preserve_invalid_input_errors_and_state() {
                 codec.reconstruct_opt(&mut optimized)
             );
             assert_eq!(generic, optimized);
+        }
+    }
+}
+
+#[test]
+fn option_validation_preserves_error_precedence_and_noop_checks() {
+    for &family in FAMILIES {
+        let codec =
+            ReedSolomon::with_options(4, 3, CodecOptions::builder().codec_family(family).build())
+                .unwrap();
+        for (first_len, second_len, insufficient, expected) in [
+            (0, 63, false, Error::EmptyShard),
+            (63, 0, false, Error::IncorrectShardSize),
+            (0, 128, true, Error::EmptyShard),
+            (128, 128, true, Error::TooFewShardsPresent),
+        ] {
+            let mut before = vec![Some(vec![7; 128]); 7];
+            before[0] = None;
+            before[1] = Some(vec![1; first_len]);
+            before[2] = Some(vec![2; second_len]);
+            if insufficient {
+                before[3..].fill(None);
+            }
+            for optimized in [false, true] {
+                for mode in 0..3 {
+                    let mut shards = before.clone();
+                    let result = match (optimized, mode) {
+                        (false, 0) => codec.reconstruct(&mut shards),
+                        (true, 0) => codec.reconstruct_opt(&mut shards),
+                        (false, 1) => codec.reconstruct_data(&mut shards),
+                        (true, 1) => codec.reconstruct_data_opt(&mut shards),
+                        (false, _) => codec.reconstruct_some(&mut shards, &[false; 7]),
+                        (true, _) => codec.reconstruct_some_opt(&mut shards, &[false; 7]),
+                    };
+                    assert_eq!(
+                        result,
+                        Err(expected),
+                        "{family:?} mode={mode} optimized={optimized}"
+                    );
+                    assert_eq!(
+                        shards, before,
+                        "{family:?} mode={mode} optimized={optimized}"
+                    );
+                }
+            }
         }
     }
 }

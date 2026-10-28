@@ -153,6 +153,38 @@ and source/lock provenance separately when the result is used as evidence.
 Native mode defaults to the Rust host target; set `RSE_COMPAT_TARGET` and the
 corresponding Cargo target runner for cross-target execution.
 
+## Post-commit validation and structural follow-up
+
+The clean `3727d40` commit was packaged and verified with its own clean VCS
+identity; all 66 packaged Rust sources matched the checkout. The all-features
+suite, `no_std` library suite, 9.0.0 Option cross-version test and 126-check
+WASM, native AArch64 and emulated x86 `no_std` package probes passed against
+that committed source. This is functional evidence for `3727d40`, not formal
+performance acceptance for a later tree.
+
+The subsequent validation refactor removes the parallel Option-only validator
+and reuses the generic validator before either path initializes destinations.
+The generic loop and its error ordering are retained; `Option<Vec<u8>>` uses the
+same checks and no longer needs a separate scan for requested missing shards.
+A paired diagnostic built the `3727d40` package and the candidate source in
+separate directories with identical dependency locks. For both Leopard families,
+it compared the complete result and every shard byte across 46,080 cases:
+all seven-shard missing masks, five API/mask choices, and one or two malformed
+present lengths. Outputs matched byte-for-byte. Dedicated error-precedence and
+unwind tests, the all-features suite, `no_std`, packaged probes and x86
+SSSE3/AVX2 emulation checks also passed. The diagnostic outputs were local
+functional artifacts, not latency measurements.
+
+The fused backends share `NibbleTables16` generation, but each keeps its own
+architecture-specific plane operations and final layout stores. There is still
+similar arithmetic in the existing multiply kernels; extracting common vector
+helpers should be assessed with generated-code checks and controlled benchmarks
+before changing those hot paths. The decoder's error-locator values are fixed
+across chunks, while non-identity fused calls rebuild nibble tables per shard
+and chunk. Reuse is a possible follow-up, not a measured bottleneck: any design
+must bound per-plan memory, handle cache eviction and concurrency, and prove no
+regression for small shards and cold plans before adoption.
+
 ## Outstanding evidence
 
 The generic container path is not fused. No latency or throughput claim follows
