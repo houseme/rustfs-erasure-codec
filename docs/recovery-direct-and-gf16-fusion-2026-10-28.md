@@ -209,7 +209,9 @@ miss was also observed without the prototype. These traces do not prove the
 cause of the earlier uninstrumented event or establish comparative miss rates.
 An additional private-pool diagnostic verifies an explicit all-worker warmup
 for one GF16 shape and records its observed live-allocation tradeoff; it does
-not change the production cache or establish a default warmup policy.
+not change the production cache or establish a default warmup policy. Its
+oversized-recovery negative control demonstrates that the observed warm state
+must be re-established after the existing worker-local cache is discarded.
 
 ## Outstanding evidence
 

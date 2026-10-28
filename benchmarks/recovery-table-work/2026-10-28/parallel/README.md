@@ -160,6 +160,17 @@ also retains more memory than warming only the workers used by one recovery.
 It is a diagnostic choice, not a change to production caching, a default benchmark
 policy, a latency result, or a recommendation to prewarm without a memory budget.
 
+The diagnostic was then extended with a negative control: every worker executes
+an oversized `40+16` recovery, which exercises the existing policy of discarding
+the smaller retained workspace. In ten further AArch64 release-mode processes,
+each subsequent two-job recovery observed two 64 KiB requests; after explicitly
+warming every worker again, each four-job recovery observed none. All recovered
+bytes and presence states passed. The [eviction observations](worker-eviction-observations.txt)
+retain the ten rows. These are allocation-size buckets, not direct cache-hit
+counters or a general guarantee for other scheduling, sizes or workloads. One
+offline x86 QEMU run with AVX2 and one without SSSE3/AVX2 also passed the same
+functional checks; they are not native x86 performance evidence.
+
 ```bash
 RUSTUP_TOOLCHAIN=stable cargo test --release --offline --locked \
   -p rustfs-erasure-codec --test leopard_cache_lifecycle \

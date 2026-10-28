@@ -387,6 +387,16 @@ fn broadcast_warms_every_worker_for_repeated_parallel_recovery() {
     }
 
     const WORKERS: usize = 4;
+    fn exercise_every_worker(pool: &rayon::ThreadPool, fixture: &Arc<Encoded>) {
+        let mut completed = pool.broadcast(|context| {
+            assert_eq!(context.num_threads(), WORKERS);
+            assert!(Recovery::new(fixture).recover());
+            context.index()
+        });
+        completed.sort_unstable();
+        assert_eq!(completed, (0..WORKERS).collect::<Vec<_>>());
+    }
+
     let small = Arc::new(Encoded::new(10, 4));
     let large = Arc::new(Encoded::with_shape(10, 4, 1024 * 1024, 2));
     // Populate the shared plan outside the pool. Its mutable TLS buffer belongs
@@ -404,14 +414,7 @@ fn broadcast_warms_every_worker_for_repeated_parallel_recovery() {
     );
 
     let live_before = LIVE.load(SeqCst);
-    let mut warmed = pool.broadcast(|context| {
-        assert_eq!(context.num_threads(), WORKERS);
-        assert!(Recovery::new(&small).recover());
-        context.index()
-    });
-    warmed.sort_unstable();
-    assert_eq!(warmed, (0..WORKERS).collect::<Vec<_>>());
-    drop(warmed);
+    exercise_every_worker(&pool, &small);
     let live_after = LIVE.load(SeqCst);
 
     let four_job_codec = ReedSolomon::with_options(
@@ -437,11 +440,30 @@ fn broadcast_warms_every_worker_for_repeated_parallel_recovery() {
             );
         }
     }
+
+    // Each oversized serial recovery discards the smaller worker-local buffer
+    // under the existing 4 MiB retention policy. Rewarming is required before
+    // the no-64-KiB-request observation applies again.
+    let oversized = Arc::new(Encoded::new(40, 16));
+    exercise_every_worker(&pool, &oversized);
+    let after_eviction = measure(|| assert!(pool.install(|| two_jobs.recover())));
+    assert!(
+        after_eviction.requests_of_64k >= 1,
+        "oversized recovery did not expose a cold worker workspace: {after_eviction:?}"
+    );
+    exercise_every_worker(&pool, &small);
+    let after_rewarm = measure(|| assert!(pool.install(|| four_jobs.recover())));
+    assert_eq!(
+        after_rewarm.requests_of_64k, 0,
+        "worker rewarm did not restore the warm condition: {after_rewarm:?}"
+    );
     println!(
-        "GF16_WORKER_WARMUP workers={WORKERS} cold_64k_requests={} cold_requested_bytes={} cold_live_delta={} broadcast_live_delta={} subsequent_calls=16",
+        "GF16_WORKER_WARMUP workers={WORKERS} cold_64k_requests={} cold_requested_bytes={} cold_live_delta={} broadcast_live_delta={} subsequent_calls=16 after_eviction_64k_requests={} after_rewarm_64k_requests={}",
         cold.requests_of_64k,
         cold.requested,
         cold.retained_delta(),
-        live_after as i128 - live_before as i128
+        live_after as i128 - live_before as i128,
+        after_eviction.requests_of_64k,
+        after_rewarm.requests_of_64k
     );
 }

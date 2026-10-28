@@ -1,0 +1,23 @@
+Four-worker private Rayon pool; GF16 10+4, 1 MiB, one missing data shard.
+Each run warms all workers, tests 16 recoveries, executes oversized 40+16 recovery on every worker,
+then checks a recovery after eviction and another after all workers are rewarmed.
+
+run 1: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16 after_eviction_64k_requests=2 after_rewarm_64k_requests=0
+run 2: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16 after_eviction_64k_requests=2 after_rewarm_64k_requests=0
+run 3: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16 after_eviction_64k_requests=2 after_rewarm_64k_requests=0
+run 4: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16 after_eviction_64k_requests=2 after_rewarm_64k_requests=0
+run 5: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16 after_eviction_64k_requests=2 after_rewarm_64k_requests=0
+run 6: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16 after_eviction_64k_requests=2 after_rewarm_64k_requests=0
+run 7: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16 after_eviction_64k_requests=2 after_rewarm_64k_requests=0
+run 8: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16 after_eviction_64k_requests=2 after_rewarm_64k_requests=0
+run 9: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16 after_eviction_64k_requests=2 after_rewarm_64k_requests=0
+run 10: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277120 cold_live_delta=2228336 broadcast_live_delta=2228288 subsequent_calls=16 after_eviction_64k_requests=2 after_rewarm_64k_requests=0
+
+All recovered bytes passed. The bucket counts every 64 KiB allocation request, not a typed cache event.
+Live deltas include all Rust-allocator activity, not RSS or isolated cache size.
+No elapsed-time or release-performance claim is made.
+
+Offline x86 QEMU functional checks, one process per CPU configuration:
+AVX2 max: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277008 cold_live_delta=2228224 broadcast_live_delta=2228224 subsequent_calls=16 after_eviction_64k_requests=2 after_rewarm_64k_requests=0
+No SSSE3/AVX2 qemu64: GF16_WORKER_WARMUP workers=4 cold_64k_requests=2 cold_requested_bytes=3277008 cold_live_delta=2228224 broadcast_live_delta=2228224 subsequent_calls=16 after_eviction_64k_requests=2 after_rewarm_64k_requests=0
+Both passed recovered-byte, eviction and rewarm assertions. QEMU is not native timing evidence.
