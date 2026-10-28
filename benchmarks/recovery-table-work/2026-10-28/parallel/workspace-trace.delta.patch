@@ -1,0 +1,132 @@
+--- a/src/core/leopard_gf16/decode.rs
++++ b/src/core/leopard_gf16/decode.rs
+@@ -30,6 +30,19 @@
+         <= MAX_CACHED_DECODE_BYTES
+ }
+ 
++#[cfg(feature = "std")]
++pub(crate) static PROBE_WORKSPACE_NEW: core::sync::atomic::AtomicUsize =
++    core::sync::atomic::AtomicUsize::new(0);
++#[cfg(feature = "std")]
++pub(crate) static PROBE_WORKSPACE_EMPTY: core::sync::atomic::AtomicUsize =
++    core::sync::atomic::AtomicUsize::new(0);
++#[cfg(feature = "std")]
++pub(crate) static PROBE_WORKSPACE_INCOMPATIBLE: core::sync::atomic::AtomicUsize =
++    core::sync::atomic::AtomicUsize::new(0);
++#[cfg(feature = "std")]
++pub(crate) static PROBE_WORKSPACE_REUSED: core::sync::atomic::AtomicUsize =
++    core::sync::atomic::AtomicUsize::new(0);
++
+ struct DecodeBuffers {
+     work: FlatWork16,
+     // Conversion/FFT and output scaling run sequentially on the same chunk.
+@@ -38,6 +51,8 @@
+ 
+ impl DecodeBuffers {
+     fn new(lanes: usize, chunk_len: usize) -> Self {
++        #[cfg(feature = "std")]
++        PROBE_WORKSPACE_NEW.fetch_add(1, core::sync::atomic::Ordering::SeqCst);
+         Self {
+             work: FlatWork16::new(lanes, chunk_len),
+             scratch: alloc::vec![0; chunk_len],
+@@ -70,11 +85,19 @@
+     #[cfg(feature = "std")]
+     let cacheable = cacheable_decode_size(lanes, chunk_len);
+     #[cfg(feature = "std")]
+-    let mut buffers = DECODE_BUFFER_CACHE.with(|cache| {
+-        cache
+-            .take()
+-            .filter(|buffers| buffers.work.can_reuse(lanes, chunk_len))
+-            .unwrap_or_else(|| DecodeBuffers::new(lanes, chunk_len))
++    let mut buffers = DECODE_BUFFER_CACHE.with(|cache| match cache.take() {
++        Some(buffers) if buffers.work.can_reuse(lanes, chunk_len) => {
++            PROBE_WORKSPACE_REUSED.fetch_add(1, core::sync::atomic::Ordering::SeqCst);
++            buffers
++        }
++        Some(_) => {
++            PROBE_WORKSPACE_INCOMPATIBLE.fetch_add(1, core::sync::atomic::Ordering::SeqCst);
++            DecodeBuffers::new(lanes, chunk_len)
++        }
++        None => {
++            PROBE_WORKSPACE_EMPTY.fetch_add(1, core::sync::atomic::Ordering::SeqCst);
++            DecodeBuffers::new(lanes, chunk_len)
++        }
+     });
+     #[cfg(not(feature = "std"))]
+     let mut buffers = DecodeBuffers::new(lanes, chunk_len);
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -392,4 +392,42 @@
+             Err(Err(Error::IncorrectShardSize))
+         }
+     }
++}
++
++#[cfg(feature = "std")]
++#[doc(hidden)]
++pub fn __probe_workspace_reset() {
++    use crate::core::leopard_gf16::decode::{
++        PROBE_WORKSPACE_EMPTY, PROBE_WORKSPACE_INCOMPATIBLE, PROBE_WORKSPACE_NEW,
++        PROBE_WORKSPACE_REUSED,
++    };
++    use ::core::sync::atomic::Ordering;
++    for value in [
++        &PROBE_WORKSPACE_NEW,
++        &PROBE_WORKSPACE_EMPTY,
++        &PROBE_WORKSPACE_INCOMPATIBLE,
++        &PROBE_WORKSPACE_REUSED,
++    ] {
++        value.store(0, Ordering::SeqCst);
++    }
++}
++#[cfg(feature = "std")]
++#[doc(hidden)]
++pub fn __probe_workspace_new() -> usize {
++    crate::core::leopard_gf16::decode::PROBE_WORKSPACE_NEW
++        .load(::core::sync::atomic::Ordering::SeqCst)
+ }
++
++#[cfg(feature = "std")]
++#[doc(hidden)]
++pub fn __probe_workspace_reasons() -> (usize, usize, usize) {
++    use crate::core::leopard_gf16::decode::{
++        PROBE_WORKSPACE_EMPTY, PROBE_WORKSPACE_INCOMPATIBLE, PROBE_WORKSPACE_REUSED,
++    };
++    use ::core::sync::atomic::Ordering;
++    (
++        PROBE_WORKSPACE_EMPTY.load(Ordering::SeqCst),
++        PROBE_WORKSPACE_INCOMPATIBLE.load(Ordering::SeqCst),
++        PROBE_WORKSPACE_REUSED.load(Ordering::SeqCst),
++    )
++}
+--- a/tests/leopard_option_allocation.rs
++++ b/tests/leopard_option_allocation.rs
+@@ -66,12 +66,18 @@
+             codec.reconstruct_opt(&mut input()).unwrap();
+             let mut old = input();
+             BYTES.store(0, Ordering::Relaxed);
++            rustfs_erasure_codec::__probe_workspace_reset();
+             codec.reconstruct(&mut old).unwrap();
+             let old_bytes = BYTES.load(Ordering::Relaxed);
++            let old_workspaces = rustfs_erasure_codec::__probe_workspace_new();
++            let old_reasons = rustfs_erasure_codec::__probe_workspace_reasons();
+             let mut new = input();
+             BYTES.store(0, Ordering::Relaxed);
++            rustfs_erasure_codec::__probe_workspace_reset();
+             codec.reconstruct_opt(&mut new).unwrap();
+             let new_bytes = BYTES.load(Ordering::Relaxed);
++            let new_workspaces = rustfs_erasure_codec::__probe_workspace_new();
++            let new_reasons = rustfs_erasure_codec::__probe_workspace_reasons();
+             assert!(
+                 old.iter()
+                     .zip(&original)
+@@ -83,8 +89,7 @@
+                 "{family:?} {data}+{parity} len={len} old={old_bytes} new={new_bytes}"
+             );
+             println!(
+-                "{family:?} {data}+{parity} len={len} missing={missing_data}+{missing_parity} generic={old_bytes} optimized={new_bytes} reduced={}",
+-                old_bytes - new_bytes
++                "{family:?} {data}+{parity} len={len} missing={missing_data}+{missing_parity} generic={old_bytes} optimized={new_bytes} generic_new_workspaces={old_workspaces} optimized_new_workspaces={new_workspaces} generic_reasons={old_reasons:?} optimized_reasons={new_reasons:?}"
+             );
+         }
+     }

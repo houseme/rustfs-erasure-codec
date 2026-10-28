@@ -1,0 +1,27 @@
+Instrumented in-place prototype: 21 independent processes, four Rayon threads, two-job limit.
+Reason tuples are (empty cache, incompatible cached buffer, reused buffer).
+
+run 1: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+run 2: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+run 3: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+run 4: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+run 5: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+run 6: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+run 7: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+run 8: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+run 9: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+run 10: LeopardGF16 10+4 len=1048576 missing=4+0 generic=9503024 optimized=4194608 generic_new_workspaces=1 optimized_new_workspaces=0 generic_reasons=(1, 0, 1) optimized_reasons=(0, 0, 2)
+run 11: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+run 12: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+run 13: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+run 14: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+run 15: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+run 16: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+run 17: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+run 18: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+run 19: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+run 20: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+run 21: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 generic_new_workspaces=0 optimized_new_workspaces=0 generic_reasons=(0, 0, 2) optimized_reasons=(0, 0, 2)
+
+All runs recovered the original bytes. The counters modify the isolated test binary and can perturb scheduling.
+This is functional resource evidence; it is not latency or release evidence.

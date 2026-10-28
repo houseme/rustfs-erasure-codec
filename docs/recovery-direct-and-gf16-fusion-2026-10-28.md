@@ -201,7 +201,9 @@ per-call prototypes show both a potential reduction in table builds and storage
 tradeoffs; none is included in the production path or accepted as a speedup.
 The [parallel prototype follow-up](../benchmarks/recovery-table-work/2026-10-28/parallel/)
 also records an instrumentation-isolation failure and an unresolved workspace
-allocation outlier rather than treating them as performance evidence.
+allocation outlier rather than treating them as performance evidence. A later
+instrumented run reproduced the same allocation delta with an empty thread-local
+workspace cache; it cannot prove the cause of the earlier uninstrumented event.
 
 ## Outstanding evidence
 

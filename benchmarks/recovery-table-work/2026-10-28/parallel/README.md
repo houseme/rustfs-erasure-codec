@@ -76,6 +76,31 @@ so the cause is unresolved. `prototype-before-inplace.patch` retains that earlie
 source, including its original unscoped test instrumentation. The outlier is
 not evidence of either a performance improvement or a confirmed regression.
 
+## Tracing the workspace outlier
+
+`workspace-trace.delta.patch` adds test-only diagnostic exports and rewrites the
+isolated prototype's workspace-cache acquisition into equivalent `empty`,
+`incompatible` and `reused` branches, with atomic counters. It also captures
+the number of new `DecodeBuffers` instances separately for the generic and
+Option calls. None of this instrumentation is production code; the extra atomic
+operations can change scheduling and are not suitable for timing.
+
+In 21 independent instrumented processes using the same four-thread/two-job
+fixture, 20 generic and all 21 Option observations reused two workspaces. One
+generic observation instead recorded one empty thread-local cache, one reused
+workspace and one new workspace. Its requested bytes were 9,503,024 rather than
+8,388,912: the 1,114,112-byte difference equals 16 work lanes plus one scratch
+lane at 64 KiB each. The Option call in that process reused two workspaces and
+requested 4,194,608 bytes. Every recovery returned the original bytes. The
+[trace transcript](cache-trace-observations.txt) retains all 21 observations.
+
+This reproduces the earlier numeric outlier with a directly observed empty
+cache and new workspace, but it does not prove the cause of the earlier
+uninstrumented observation or why that worker cache was empty. Incompatible
+cached buffers were not observed in these 21 runs. These counts describe only
+the tested shape and scheduling; they neither establish a latency regression
+nor justify changing the production cache.
+
 With Rust 1.99.1, AArch64 macOS and default release flags, the committed
 `leopard_gf16_reconstruct` initial frame was 1,744 bytes. In the in-place
 prototype it was 1,696 bytes; the serial and parallel prepared helpers had
@@ -112,6 +137,13 @@ to each extraction and run `RAYON_NUM_THREADS=4 cargo test --release --offline
 earlier storage variant; do not apply both to one checkout. Retain all outcomes,
 including cold-workspace differences. Confirm one work-count test ran rather
 than treating zero selected tests as evidence.
+
+To reproduce the workspace trace, apply `prototype.patch`, then
+`allocation-two-jobs.patch`, then `workspace-trace.delta.patch` to a fresh
+source extraction. Run the two-job allocation command in 21 separate processes
+and preserve every outcome. Scheduling is nondeterministic; an outlier is not
+guaranteed to recur. A test failure or a different cache-reason combination is
+evidence to investigate, not a result to discard.
 
 The next candidate needs a bounded cache and stack review, native architecture
 coverage, failure/concurrency tests, and controlled resource-isolated baseline
