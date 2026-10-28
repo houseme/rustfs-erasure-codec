@@ -141,3 +141,15 @@ commands above. The codegen observation is compiler-specific; no timing has been
 collected. Retain the committed implementation until small/large shards, cache
 and memory bounds, concurrent and selective recovery, native architectures, and
 isolated ABBA evidence all support the tradeoff.
+
+`prototype-split-concurrent.patch` is a self-contained version of the split
+overlay plus a separate concurrency test. On AArch64, twelve concurrent serial
+recoveries each alternated data-only, parity-only and combined requests for the
+same erasure pattern; every requested and unrequested shard matched its expected
+state and bytes. A second test covered the prototype's 32/33-total-shard
+eligibility boundary with a short final chunk. Both passed in release mode.
+These checks do not exercise table reuse in the parallel decoder, where this
+prototype intentionally retains the committed implementation, nor do they
+establish a speedup. Apply this single overlay directly to a fresh `c97b8b6`
+extraction and run `cargo test --release --test leopard_prepared_scales_concurrent`
+to repeat those two tests.
