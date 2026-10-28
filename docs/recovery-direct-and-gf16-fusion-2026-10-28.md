@@ -213,6 +213,38 @@ not change the production cache or establish a default warmup policy. Its
 oversized-recovery negative control demonstrates that the observed warm state
 must be re-established after the existing worker-local cache is discarded.
 
+The comparison harness also offers an opt-in worker-warm mode for controlled
+experiments. For each selected GF16 1 MiB case, it broadcasts a serial 64 KiB
+recovery to every global Rayon worker once, verifies the restored bytes and
+worker identities, then enters Criterion's measured loop. The other GF16
+64 KiB and GF8 cases remain ordinary preflight controls. The mode uses the
+distinct `leopard_recovery_comparison_all_workers_warm` group; the default
+group and its 96 case IDs are unchanged. Criterion's filter and `--list` do
+not cause the broadcast for unselected cases. Each completed broadcast emits
+an `RSE_GF16_WORKER_WARMUP` marker outside the measured loop.
+
+For example, a functional smoke check with four workers is:
+
+```bash
+RSE_LEOPARD_WARM_ALL_WORKERS=1 \
+RAYON_NUM_THREADS=4 \
+RSE_LEOPARD_WARM_MAX_RETAINED_BYTES=16777216 \
+cargo +stable bench --offline --locked --bench leopard_recovery_comparison -- \
+  --test 'option_opt/gf16/10x4/1048576/missing4'
+```
+
+The explicit budget must cover four MiB per worker, matching the current
+decoder's retained GF16 buffer limit; a smaller budget is rejected before
+warming. This is a bound for those retained worker buffers under the current
+codec policy, not a bound on total memory, temporary fixtures, the caller's
+cache or other allocations. When comparing revisions, check that each codec's
+cache policy satisfies that assumption, and use the same harness, worker count,
+budget and group on both sides. An oversized recovery can evict a warmed cache;
+the one-time broadcast does not guarantee its continued presence in the face
+of unrelated work. Reserve process resources separately and record the actual
+configuration and worker-warm markers. This mode is an experimental workload,
+not a change to production warmup or a substitute for the ABBA and A2 gates.
+
 ## Outstanding evidence
 
 The generic container path is not fused. No latency or throughput claim follows
