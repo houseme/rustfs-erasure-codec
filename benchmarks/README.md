@@ -7,6 +7,10 @@ New runs write under ignored `target/`; archive them only with source, workload,
 environment and raw-observation provenance. A saved JSON file or a successful
 syntax audit does not by itself qualify a performance claim.
 
+The [GF16 recovery table work-count diagnostic](recovery-table-work/2026-10-28/)
+contains a source-bound test-only patch and functional counts; it contains no
+timing or release-acceptance evidence.
+
 The current JSON inventory contains **570 benchmark files**:
 
 | Directory | JSON files | Contents |

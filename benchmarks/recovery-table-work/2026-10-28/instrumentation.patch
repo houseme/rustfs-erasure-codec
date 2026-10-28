@@ -1,0 +1,136 @@
+--- a/src/core/leopard_gf16/fused.rs
++++ b/src/core/leopard_gf16/fused.rs
+@@ -2,6 +2,42 @@
+ //! Other targets retain the established conversion and multiplication paths.
+ 
+ use super::{LeopardGf16Tables, MODULUS16, ops};
++
++#[cfg(all(
++    test,
++    feature = "std",
++    target_arch = "aarch64",
++    target_endian = "little"
++))]
++#[derive(Default)]
++struct WorkCounts {
++    input: std::collections::BTreeMap<u16, usize>,
++    output: std::collections::BTreeMap<u16, usize>,
++}
++#[cfg(all(
++    test,
++    feature = "std",
++    target_arch = "aarch64",
++    target_endian = "little"
++))]
++std::thread_local! { static PROBE_TABLE_BUILDS: std::cell::RefCell<WorkCounts> = std::cell::RefCell::new(WorkCounts::default()); }
++#[cfg(all(
++    test,
++    feature = "std",
++    target_arch = "aarch64",
++    target_endian = "little"
++))]
++fn record_table_build(is_output: bool, log_m: u16) {
++    PROBE_TABLE_BUILDS.with(|counts| {
++        let mut counts = counts.borrow_mut();
++        let side = if is_output {
++            &mut counts.output
++        } else {
++            &mut counts.input
++        };
++        *side.entry(log_m).or_default() += 1;
++    });
++}
+ 
+ pub(super) fn user_to_work_mul(
+     user: &[u8],
+@@ -35,6 +71,8 @@
+     }
+     #[cfg(all(target_arch = "aarch64", target_endian = "little"))]
+     {
++        #[cfg(all(test, feature = "std"))]
++        record_table_build(false, log_m);
+         let nibble =
+             super::mul_simd::NibbleTables16::build(log_m, &tables.log_lut, &tables.exp_lut);
+         // SAFETY: NEON is aarch64 baseline; both slices cover the same number
+@@ -85,6 +123,8 @@
+     }
+     #[cfg(all(target_arch = "aarch64", target_endian = "little"))]
+     {
++        #[cfg(all(test, feature = "std"))]
++        record_table_build(true, log_m);
+         let nibble =
+             super::mul_simd::NibbleTables16::build(log_m, &tables.log_lut, &tables.exp_lut);
+         // SAFETY: NEON is aarch64 baseline; both slices cover the same number
+@@ -494,3 +534,72 @@
+         }
+     }
+ }
++
++#[cfg(all(
++    test,
++    feature = "std",
++    target_arch = "aarch64",
++    target_endian = "little"
++))]
++mod table_work_probe {
++    use super::{PROBE_TABLE_BUILDS, WorkCounts};
++    use crate::{CodecFamily, CodecOptions, galois_8::ReedSolomon};
++    fn observe(len: usize, missing: &[usize]) -> WorkCounts {
++        let codec = ReedSolomon::with_options(
++            10,
++            4,
++            CodecOptions::builder()
++                .codec_family(CodecFamily::LeopardGF16)
++                .max_parallel_jobs(1)
++                .build(),
++        )
++        .unwrap();
++        let mut original: Vec<Vec<u8>> = (0..14)
++            .map(|i| (0..len).map(|j| (i * 31 + j * 17 + j / 11) as u8).collect())
++            .collect();
++        codec.encode(&mut original).unwrap();
++        let mut shards: Vec<_> = original.iter().cloned().map(Some).collect();
++        for &i in missing {
++            shards[i] = None;
++        }
++        PROBE_TABLE_BUILDS.with(|counts| *counts.borrow_mut() = WorkCounts::default());
++        codec.reconstruct(&mut shards).unwrap();
++        let counts = PROBE_TABLE_BUILDS.with(|counts| core::mem::take(&mut *counts.borrow_mut()));
++        assert!(
++            shards
++                .iter()
++                .zip(&original)
++                .all(|(actual, expected)| actual.as_ref() == Some(expected))
++        );
++        counts
++    }
++    #[test]
++    fn compare_table_build_work_across_chunk_counts() {
++        for missing in [&[0][..], &[0, 10][..], &[0, 1, 2, 3][..]] {
++            let small = observe(65_536, missing);
++            let large = observe(1_048_576, missing);
++            for (short, long) in [(&small.input, &large.input), (&small.output, &large.output)] {
++                assert_eq!(short.len(), long.len());
++                for (log_m, count) in short {
++                    assert_eq!(long.get(log_m), Some(&(count * 16)));
++                }
++            }
++            let union = small
++                .input
++                .keys()
++                .chain(small.output.keys())
++                .copied()
++                .collect::<std::collections::BTreeSet<_>>()
++                .len();
++            std::println!(
++                "shape=10+4 missing={missing:?} small_input={} small_output={} large_input={} large_output={} input_unique={} output_unique={} union_unique={union}",
++                small.input.values().sum::<usize>(),
++                small.output.values().sum::<usize>(),
++                large.input.values().sum::<usize>(),
++                large.output.values().sum::<usize>(),
++                small.input.len(),
++                small.output.len()
++            );
++        }
++    }
++}

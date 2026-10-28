@@ -29,7 +29,7 @@ Little-endian AArch64 fuses GF16 decode Step 1 and Step 5 layout conversion and
 fixed-multiplier calculation using baseline NEON. Standard-library x86_64 uses
 fused AVX2 or SSSE3 when detected. Non-NEON `no_std` targets use portable
 scalar fusion; other standard-library targets retain the previous implementation.
-The identity multiplier uses the existing layout conversions. Scratch remains
+The `MODULUS16` identity sentinel uses the existing layout conversions. Scratch remains
 necessary for FFT operations and for the fallback.
 
 ## Compatibility evidence
@@ -188,10 +188,15 @@ architecture-specific plane operations and final layout stores. There is still
 similar arithmetic in the existing multiply kernels; extracting common vector
 helpers should be assessed with generated-code checks and controlled benchmarks
 before changing those hot paths. The decoder's error-locator values are fixed
-across chunks, while non-identity fused calls rebuild nibble tables per shard
-and chunk. Reuse is a possible follow-up, not a measured bottleneck: any design
+across chunks, while fused calls outside the `MODULUS16` fast path rebuild
+nibble tables per shard and chunk. Reuse is a possible follow-up, not a measured bottleneck: any design
 must bound per-plan memory, handle cache eviction and concurrency, and prove no
 regression for small shards and cold plans before adoption.
+
+A [test-only work-count diagnostic](../benchmarks/recovery-table-work/2026-10-28/)
+confirms that the observed table-construction count scales with chunk count for
+three serial AArch64 `10+4` recovery cases. The diagnostic is source-bound and
+does not measure CPU time, cache behavior or end-to-end performance.
 
 ## Outstanding evidence
 
