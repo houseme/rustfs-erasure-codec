@@ -101,6 +101,39 @@ cached buffers were not observed in these 21 runs. These counts describe only
 the tested shape and scheduling; they neither establish a latency regression
 nor justify changing the production cache.
 
+`workspace-worker-trace.patch` is a separate self-contained overlay that also
+records Rayon worker-index bitmaps for both warmups and measured calls. In 51
+independent processes, 50 generic calls and all 51 Option calls reused both
+workspaces. In one generic call, the
+two warmups used bitmap `5` (workers 0 and 2); the measured generic call used
+bitmap `3` (workers 0 and 1), and worker 1's cache was empty. That call built
+one workspace and requested the same additional 1,114,112 bytes. The subsequent
+Option call reused both workspaces. All 51 runs recovered the original bytes;
+the complete compact rows are in [worker-trace observations](worker-trace-observations.txt).
+
+This shows that the worker with the empty cache was not included in the two
+recorded warmups for that shape. Pool indices are not OS thread identities, and
+the atomic instrumentation can affect scheduling; neither this observation nor
+its equality in size proves the cause of an earlier uninstrumented run. A
+different worker schedule and cache state are valid outcomes, not failures to
+discard or timing evidence.
+
+The same worker-index instrumentation was then applied to the committed
+baseline without the table-reuse prototype. In another 51 independent
+processes, 50 generic calls and all 51 Option calls reused two workspaces. One
+generic call again saw an empty cache on worker 1 after both warmups used
+workers 0 and 2, and requested the same extra 1,114,112 bytes. All recovered
+bytes matched. The [baseline observations](baseline-worker-trace-observations.txt)
+retain every row, and `workspace-worker-baseline.patch` reproduces the tested
+baseline instrumentation in isolation.
+
+The baseline and prototype series were sequential, instrumented functional
+samples, not a randomized or isolated performance experiment. Observing one
+miss in each does not establish equal miss rates or exclude a scheduling effect
+from the prototype. It does show that this cache-miss pattern can occur without
+the prototype; it still cannot identify the cause of the earlier uninstrumented
+outlier.
+
 With Rust 1.99.1, AArch64 macOS and default release flags, the committed
 `leopard_gf16_reconstruct` initial frame was 1,744 bytes. In the in-place
 prototype it was 1,696 bytes; the serial and parallel prepared helpers had
@@ -144,6 +177,13 @@ source extraction. Run the two-job allocation command in 21 separate processes
 and preserve every outcome. Scheduling is nondeterministic; an outlier is not
 guaranteed to recur. A test failure or a different cache-reason combination is
 evidence to investigate, not a result to discard.
+
+For the independent worker-index trace, apply only
+`workspace-worker-trace.patch` to a fresh extraction and run the same two-job
+allocation test in separate processes. Its worker bitmaps reserve bit 63 for an
+unindexed caller or an index of at least 63; the recorded runs used only bits 0–3.
+Apply only `workspace-worker-baseline.patch` to a separate fresh extraction for
+the corresponding baseline trace.
 
 The next candidate needs a bounded cache and stack review, native architecture
 coverage, failure/concurrency tests, and controlled resource-isolated baseline

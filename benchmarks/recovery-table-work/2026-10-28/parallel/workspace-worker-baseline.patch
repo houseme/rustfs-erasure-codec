@@ -1,0 +1,197 @@
+--- a/src/core/leopard_gf16/decode.rs
++++ b/src/core/leopard_gf16/decode.rs
+@@ -30,6 +30,28 @@
+         <= MAX_CACHED_DECODE_BYTES
+ }
+ 
++#[cfg(feature = "std")]
++pub(crate) static PROBE_WORKSPACE_NEW: core::sync::atomic::AtomicUsize =
++    core::sync::atomic::AtomicUsize::new(0);
++#[cfg(feature = "std")]
++pub(crate) static PROBE_WORKSPACE_EMPTY: core::sync::atomic::AtomicUsize =
++    core::sync::atomic::AtomicUsize::new(0);
++#[cfg(feature = "std")]
++pub(crate) static PROBE_WORKSPACE_INCOMPATIBLE: core::sync::atomic::AtomicUsize =
++    core::sync::atomic::AtomicUsize::new(0);
++#[cfg(feature = "std")]
++pub(crate) static PROBE_WORKSPACE_REUSED: core::sync::atomic::AtomicUsize =
++    core::sync::atomic::AtomicUsize::new(0);
++#[cfg(feature = "std")]
++pub(crate) static PROBE_WORKSPACE_USED_MASK: core::sync::atomic::AtomicU64 =
++    core::sync::atomic::AtomicU64::new(0);
++#[cfg(feature = "std")]
++pub(crate) static PROBE_WORKSPACE_EMPTY_MASK: core::sync::atomic::AtomicU64 =
++    core::sync::atomic::AtomicU64::new(0);
++#[cfg(feature = "std")]
++pub(crate) static PROBE_WORKSPACE_INCOMPATIBLE_MASK: core::sync::atomic::AtomicU64 =
++    core::sync::atomic::AtomicU64::new(0);
++
+ struct DecodeBuffers {
+     work: FlatWork16,
+     // Conversion/FFT and output scaling run sequentially on the same chunk.
+@@ -38,6 +60,8 @@
+ 
+ impl DecodeBuffers {
+     fn new(lanes: usize, chunk_len: usize) -> Self {
++        #[cfg(feature = "std")]
++        PROBE_WORKSPACE_NEW.fetch_add(1, core::sync::atomic::Ordering::SeqCst);
+         Self {
+             work: FlatWork16::new(lanes, chunk_len),
+             scratch: alloc::vec![0; chunk_len],
+@@ -71,10 +95,29 @@
+     let cacheable = cacheable_decode_size(lanes, chunk_len);
+     #[cfg(feature = "std")]
+     let mut buffers = DECODE_BUFFER_CACHE.with(|cache| {
+-        cache
+-            .take()
+-            .filter(|buffers| buffers.work.can_reuse(lanes, chunk_len))
+-            .unwrap_or_else(|| DecodeBuffers::new(lanes, chunk_len))
++        let worker_bit = 1u64
++            << rayon::current_thread_index()
++                .filter(|&i| i < 63)
++                .unwrap_or(63);
++        PROBE_WORKSPACE_USED_MASK.fetch_or(worker_bit, core::sync::atomic::Ordering::SeqCst);
++        match cache.take() {
++            Some(buffers) if buffers.work.can_reuse(lanes, chunk_len) => {
++                PROBE_WORKSPACE_REUSED.fetch_add(1, core::sync::atomic::Ordering::SeqCst);
++                buffers
++            }
++            Some(_) => {
++                PROBE_WORKSPACE_INCOMPATIBLE.fetch_add(1, core::sync::atomic::Ordering::SeqCst);
++                PROBE_WORKSPACE_INCOMPATIBLE_MASK
++                    .fetch_or(worker_bit, core::sync::atomic::Ordering::SeqCst);
++                DecodeBuffers::new(lanes, chunk_len)
++            }
++            None => {
++                PROBE_WORKSPACE_EMPTY.fetch_add(1, core::sync::atomic::Ordering::SeqCst);
++                PROBE_WORKSPACE_EMPTY_MASK
++                    .fetch_or(worker_bit, core::sync::atomic::Ordering::SeqCst);
++                DecodeBuffers::new(lanes, chunk_len)
++            }
++        }
+     });
+     #[cfg(not(feature = "std"))]
+     let mut buffers = DecodeBuffers::new(lanes, chunk_len);
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -392,4 +392,66 @@
+             Err(Err(Error::IncorrectShardSize))
+         }
+     }
++}
++
++#[cfg(feature = "std")]
++#[doc(hidden)]
++pub fn __probe_workspace_reset() {
++    use crate::core::leopard_gf16::decode::{
++        PROBE_WORKSPACE_EMPTY, PROBE_WORKSPACE_INCOMPATIBLE, PROBE_WORKSPACE_NEW,
++        PROBE_WORKSPACE_REUSED,
++    };
++    use ::core::sync::atomic::Ordering;
++    for value in [
++        &PROBE_WORKSPACE_NEW,
++        &PROBE_WORKSPACE_EMPTY,
++        &PROBE_WORKSPACE_INCOMPATIBLE,
++        &PROBE_WORKSPACE_REUSED,
++    ] {
++        value.store(0, Ordering::SeqCst);
++    }
++    use crate::core::leopard_gf16::decode::{
++        PROBE_WORKSPACE_EMPTY_MASK, PROBE_WORKSPACE_INCOMPATIBLE_MASK, PROBE_WORKSPACE_USED_MASK,
++    };
++    for value in [
++        &PROBE_WORKSPACE_USED_MASK,
++        &PROBE_WORKSPACE_EMPTY_MASK,
++        &PROBE_WORKSPACE_INCOMPATIBLE_MASK,
++    ] {
++        value.store(0, Ordering::SeqCst);
++    }
++}
++#[cfg(feature = "std")]
++#[doc(hidden)]
++pub fn __probe_workspace_new() -> usize {
++    crate::core::leopard_gf16::decode::PROBE_WORKSPACE_NEW
++        .load(::core::sync::atomic::Ordering::SeqCst)
+ }
++
++#[cfg(feature = "std")]
++#[doc(hidden)]
++pub fn __probe_workspace_reasons() -> (usize, usize, usize) {
++    use crate::core::leopard_gf16::decode::{
++        PROBE_WORKSPACE_EMPTY, PROBE_WORKSPACE_INCOMPATIBLE, PROBE_WORKSPACE_REUSED,
++    };
++    use ::core::sync::atomic::Ordering;
++    (
++        PROBE_WORKSPACE_EMPTY.load(Ordering::SeqCst),
++        PROBE_WORKSPACE_INCOMPATIBLE.load(Ordering::SeqCst),
++        PROBE_WORKSPACE_REUSED.load(Ordering::SeqCst),
++    )
++}
++
++#[cfg(feature = "std")]
++#[doc(hidden)]
++pub fn __probe_workspace_workers() -> (u64, u64, u64) {
++    use crate::core::leopard_gf16::decode::{
++        PROBE_WORKSPACE_EMPTY_MASK, PROBE_WORKSPACE_INCOMPATIBLE_MASK, PROBE_WORKSPACE_USED_MASK,
++    };
++    use ::core::sync::atomic::Ordering;
++    (
++        PROBE_WORKSPACE_USED_MASK.load(Ordering::SeqCst),
++        PROBE_WORKSPACE_EMPTY_MASK.load(Ordering::SeqCst),
++        PROBE_WORKSPACE_INCOMPATIBLE_MASK.load(Ordering::SeqCst),
++    )
++}
+--- a/tests/leopard_option_allocation.rs
++++ b/tests/leopard_option_allocation.rs
+@@ -46,7 +46,7 @@
+                 parity,
+                 CodecOptions::builder()
+                     .codec_family(family)
+-                    .max_parallel_jobs(1)
++                    .max_parallel_jobs(2)
+                     .build(),
+             )
+             .unwrap();
+@@ -62,29 +62,36 @@
+                 }
+                 shards
+             };
++            rustfs_erasure_codec::__probe_workspace_reset();
+             codec.reconstruct(&mut input()).unwrap();
++            let warm_generic = rustfs_erasure_codec::__probe_workspace_workers();
++            rustfs_erasure_codec::__probe_workspace_reset();
+             codec.reconstruct_opt(&mut input()).unwrap();
++            let warm_opt = rustfs_erasure_codec::__probe_workspace_workers();
+             let mut old = input();
+             BYTES.store(0, Ordering::Relaxed);
++            rustfs_erasure_codec::__probe_workspace_reset();
+             codec.reconstruct(&mut old).unwrap();
+             let old_bytes = BYTES.load(Ordering::Relaxed);
++            let old_workspaces = rustfs_erasure_codec::__probe_workspace_new();
++            let old_reasons = rustfs_erasure_codec::__probe_workspace_reasons();
++            let old_workers = rustfs_erasure_codec::__probe_workspace_workers();
+             let mut new = input();
+             BYTES.store(0, Ordering::Relaxed);
++            rustfs_erasure_codec::__probe_workspace_reset();
+             codec.reconstruct_opt(&mut new).unwrap();
+             let new_bytes = BYTES.load(Ordering::Relaxed);
++            let new_workspaces = rustfs_erasure_codec::__probe_workspace_new();
++            let new_reasons = rustfs_erasure_codec::__probe_workspace_reasons();
++            let new_workers = rustfs_erasure_codec::__probe_workspace_workers();
+             assert!(
+                 old.iter()
+                     .zip(&original)
+                     .all(|(actual, expected)| actual.as_ref() == Some(expected))
+             );
+             assert_eq!(old, new);
+-            assert!(
+-                old_bytes >= new_bytes + (missing_data + missing_parity) * len,
+-                "{family:?} {data}+{parity} len={len} old={old_bytes} new={new_bytes}"
+-            );
+             println!(
+-                "{family:?} {data}+{parity} len={len} missing={missing_data}+{missing_parity} generic={old_bytes} optimized={new_bytes} reduced={}",
+-                old_bytes - new_bytes
++                "{family:?} {data}+{parity} len={len} missing={missing_data}+{missing_parity} generic={old_bytes} optimized={new_bytes} generic_new_workspaces={old_workspaces} optimized_new_workspaces={new_workspaces} generic_reasons={old_reasons:?} optimized_reasons={new_reasons:?} warm_generic={warm_generic:?} warm_opt={warm_opt:?} generic_workers={old_workers:?} optimized_workers={new_workers:?}"
+             );
+         }
+     }

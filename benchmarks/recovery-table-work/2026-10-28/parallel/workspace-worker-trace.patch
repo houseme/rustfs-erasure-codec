@@ -1,0 +1,754 @@
+--- a/src/core/leopard_gf16/fused.rs
++++ b/src/core/leopard_gf16/fused.rs
+@@ -3,6 +3,145 @@
+ 
+ use super::{LeopardGf16Tables, MODULUS16, ops};
+ 
++#[cfg(all(
++    test,
++    feature = "std",
++    target_arch = "aarch64",
++    target_endian = "little"
++))]
++#[derive(Default)]
++struct WorkCounts {
++    input: std::collections::BTreeMap<u16, usize>,
++    output: std::collections::BTreeMap<u16, usize>,
++}
++#[cfg(all(
++    test,
++    feature = "std",
++    target_arch = "aarch64",
++    target_endian = "little"
++))]
++static PROBE_TABLE_BUILDS: std::sync::OnceLock<std::sync::Mutex<WorkCounts>> =
++    std::sync::OnceLock::new();
++#[cfg(all(
++    test,
++    feature = "std",
++    target_arch = "aarch64",
++    target_endian = "little"
++))]
++fn probe_counts() -> &'static std::sync::Mutex<WorkCounts> {
++    PROBE_TABLE_BUILDS.get_or_init(|| std::sync::Mutex::new(WorkCounts::default()))
++}
++#[cfg(all(
++    test,
++    feature = "std",
++    target_arch = "aarch64",
++    target_endian = "little"
++))]
++std::thread_local! { static PROBE_THREAD: core::cell::Cell<bool> = const { core::cell::Cell::new(false) }; }
++#[cfg(all(
++    test,
++    feature = "std",
++    target_arch = "aarch64",
++    target_endian = "little"
++))]
++fn enable_probe_for_this_thread() {
++    PROBE_THREAD.with(|enabled| enabled.set(true));
++}
++#[cfg(all(
++    test,
++    feature = "std",
++    target_arch = "aarch64",
++    target_endian = "little"
++))]
++fn record_table_build(is_output: bool, log_m: u16) {
++    if !PROBE_THREAD.with(|enabled| enabled.get()) {
++        return;
++    }
++    let mut counts = probe_counts().lock().unwrap();
++    let side = if is_output {
++        &mut counts.output
++    } else {
++        &mut counts.input
++    };
++    *side.entry(log_m).or_default() += 1;
++}
++
++#[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++pub(super) struct PreparedScales {
++    entries: smallvec::SmallVec<[(u16, super::mul_simd::NibbleTables16); 32]>,
++}
++#[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++impl PreparedScales {
++    pub(super) fn new(capacity: usize) -> Self {
++        assert!(capacity <= 32);
++        Self {
++            entries: smallvec::SmallVec::new(),
++        }
++    }
++    pub(super) fn add(&mut self, is_output: bool, log_m: u16, tables: &LeopardGf16Tables) {
++        if log_m == MODULUS16 as u16 || self.entries.iter().any(|(value, _)| *value == log_m) {
++            return;
++        }
++        assert!(self.entries.len() < 32);
++        #[cfg(test)]
++        record_table_build(is_output, log_m);
++        #[cfg(not(test))]
++        let _ = is_output;
++        self.entries.push((
++            log_m,
++            super::mul_simd::NibbleTables16::build(log_m, &tables.log_lut, &tables.exp_lut),
++        ));
++    }
++    fn find(&self, log_m: u16) -> Option<&super::mul_simd::NibbleTables16> {
++        self.entries
++            .iter()
++            .find(|(value, _)| *value == log_m)
++            .map(|(_, table)| table)
++    }
++}
++#[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++pub(super) fn user_to_work_mul_prepared(
++    user: &[u8],
++    out: &mut [u16],
++    scratch: &mut [u16],
++    log_m: u16,
++    tables: &LeopardGf16Tables,
++    prepared: Option<&PreparedScales>,
++) {
++    if let Some(table) = prepared.and_then(|p| p.find(log_m)) {
++        assert_eq!(user.len(), out.len() * 2);
++        assert!(user.len().is_multiple_of(64));
++        assert_eq!(scratch.len(), out.len());
++        // SAFETY: AArch64 has NEON, and the caller supplies disjoint complete blocks.
++        unsafe {
++            neon::user_to_work(user, out, table);
++        }
++    } else {
++        user_to_work_mul(user, out, scratch, log_m, tables);
++    }
++}
++#[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++pub(super) fn work_mul_to_user_prepared(
++    work: &[u16],
++    user: &mut [u8],
++    scratch: &mut [u16],
++    log_m: u16,
++    tables: &LeopardGf16Tables,
++    prepared: Option<&PreparedScales>,
++) {
++    if let Some(table) = prepared.and_then(|p| p.find(log_m)) {
++        assert_eq!(user.len(), work.len() * 2);
++        assert!(user.len().is_multiple_of(64));
++        assert_eq!(scratch.len(), work.len());
++        // SAFETY: AArch64 has NEON, and the caller supplies disjoint complete blocks.
++        unsafe {
++            neon::work_to_user(work, user, table);
++        }
++    } else {
++        work_mul_to_user(work, user, scratch, log_m, tables);
++    }
++}
++
+ pub(super) fn user_to_work_mul(
+     user: &[u8],
+     out: &mut [u16],
+@@ -35,6 +174,8 @@
+     }
+     #[cfg(all(target_arch = "aarch64", target_endian = "little"))]
+     {
++        #[cfg(all(test, feature = "std"))]
++        record_table_build(false, log_m);
+         let nibble =
+             super::mul_simd::NibbleTables16::build(log_m, &tables.log_lut, &tables.exp_lut);
+         // SAFETY: NEON is aarch64 baseline; both slices cover the same number
+@@ -85,6 +226,8 @@
+     }
+     #[cfg(all(target_arch = "aarch64", target_endian = "little"))]
+     {
++        #[cfg(all(test, feature = "std"))]
++        record_table_build(true, log_m);
+         let nibble =
+             super::mul_simd::NibbleTables16::build(log_m, &tables.log_lut, &tables.exp_lut);
+         // SAFETY: NEON is aarch64 baseline; both slices cover the same number
+@@ -491,6 +634,68 @@
+                 &expected_user,
+                 "SSSE3 output, log={log_m}"
+             );
++        }
++    }
++}
++
++#[cfg(all(
++    test,
++    feature = "std",
++    target_arch = "aarch64",
++    target_endian = "little"
++))]
++mod table_work_probe {
++    use super::{WorkCounts, probe_counts};
++    use crate::{CodecFamily, CodecOptions, galois_8::ReedSolomon};
++    fn observe(len: usize, missing: &[usize], jobs: usize) -> WorkCounts {
++        let codec = ReedSolomon::with_options(
++            10,
++            4,
++            CodecOptions::builder()
++                .codec_family(CodecFamily::LeopardGF16)
++                .max_parallel_jobs(jobs)
++                .build(),
++        )
++        .unwrap();
++        let mut original: Vec<Vec<u8>> = (0..14)
++            .map(|i| (0..len).map(|j| (i * 31 + j * 17 + j / 11) as u8).collect())
++            .collect();
++        codec.encode(&mut original).unwrap();
++        let mut shards: Vec<_> = original.iter().cloned().map(Some).collect();
++        for &i in missing {
++            shards[i] = None;
+         }
++        *probe_counts().lock().unwrap() = WorkCounts::default();
++        codec.reconstruct(&mut shards).unwrap();
++        let counts = core::mem::take(&mut *probe_counts().lock().unwrap());
++        assert!(
++            shards
++                .iter()
++                .zip(&original)
++                .all(|(actual, expected)| actual.as_ref() == Some(expected))
++        );
++        counts
+     }
++    #[test]
++    fn compare_parallel_table_work() {
++        let pool = rayon::ThreadPoolBuilder::new()
++            .num_threads(4)
++            .start_handler(|_| super::enable_probe_for_this_thread())
++            .build()
++            .unwrap();
++        pool.install(|| {
++            for jobs in [1, 2, 4] {
++                for missing in [&[0, 10][..], &[0, 1, 2, 3][..]] {
++                    let small = observe(65_536, missing, jobs);
++                    let large = observe(1_048_576, missing, jobs);
++                    let small_keys = small.input.keys().chain(small.output.keys()).copied().collect::<std::collections::BTreeSet<_>>();
++                    let large_keys = large.input.keys().chain(large.output.keys()).copied().collect::<std::collections::BTreeSet<_>>();
++                    assert_eq!(small_keys, large_keys);
++                    assert_eq!(large.input.values().sum::<usize>() + large.output.values().sum::<usize>(), small_keys.len());
++                    let union = small.input.keys().chain(small.output.keys()).copied().collect::<std::collections::BTreeSet<_>>().len();
++                    std::println!("jobs={jobs} missing={missing:?} small_input={} small_output={} large_input={} large_output={} union_unique={union}", small.input.values().sum::<usize>(), small.output.values().sum::<usize>(), large.input.values().sum::<usize>(), large.output.values().sum::<usize>());
++                }
++            }
++        });
++    }
+ }
+--- a/src/core/leopard_gf16/decode.rs
++++ b/src/core/leopard_gf16/decode.rs
+@@ -30,6 +30,28 @@
+         <= MAX_CACHED_DECODE_BYTES
+ }
+ 
++#[cfg(feature = "std")]
++pub(crate) static PROBE_WORKSPACE_NEW: core::sync::atomic::AtomicUsize =
++    core::sync::atomic::AtomicUsize::new(0);
++#[cfg(feature = "std")]
++pub(crate) static PROBE_WORKSPACE_EMPTY: core::sync::atomic::AtomicUsize =
++    core::sync::atomic::AtomicUsize::new(0);
++#[cfg(feature = "std")]
++pub(crate) static PROBE_WORKSPACE_INCOMPATIBLE: core::sync::atomic::AtomicUsize =
++    core::sync::atomic::AtomicUsize::new(0);
++#[cfg(feature = "std")]
++pub(crate) static PROBE_WORKSPACE_REUSED: core::sync::atomic::AtomicUsize =
++    core::sync::atomic::AtomicUsize::new(0);
++#[cfg(feature = "std")]
++pub(crate) static PROBE_WORKSPACE_USED_MASK: core::sync::atomic::AtomicU64 =
++    core::sync::atomic::AtomicU64::new(0);
++#[cfg(feature = "std")]
++pub(crate) static PROBE_WORKSPACE_EMPTY_MASK: core::sync::atomic::AtomicU64 =
++    core::sync::atomic::AtomicU64::new(0);
++#[cfg(feature = "std")]
++pub(crate) static PROBE_WORKSPACE_INCOMPATIBLE_MASK: core::sync::atomic::AtomicU64 =
++    core::sync::atomic::AtomicU64::new(0);
++
+ struct DecodeBuffers {
+     work: FlatWork16,
+     // Conversion/FFT and output scaling run sequentially on the same chunk.
+@@ -38,6 +60,8 @@
+ 
+ impl DecodeBuffers {
+     fn new(lanes: usize, chunk_len: usize) -> Self {
++        #[cfg(feature = "std")]
++        PROBE_WORKSPACE_NEW.fetch_add(1, core::sync::atomic::Ordering::SeqCst);
+         Self {
+             work: FlatWork16::new(lanes, chunk_len),
+             scratch: alloc::vec![0; chunk_len],
+@@ -71,10 +95,29 @@
+     let cacheable = cacheable_decode_size(lanes, chunk_len);
+     #[cfg(feature = "std")]
+     let mut buffers = DECODE_BUFFER_CACHE.with(|cache| {
+-        cache
+-            .take()
+-            .filter(|buffers| buffers.work.can_reuse(lanes, chunk_len))
+-            .unwrap_or_else(|| DecodeBuffers::new(lanes, chunk_len))
++        let worker_bit = 1u64
++            << rayon::current_thread_index()
++                .filter(|&i| i < 63)
++                .unwrap_or(63);
++        PROBE_WORKSPACE_USED_MASK.fetch_or(worker_bit, core::sync::atomic::Ordering::SeqCst);
++        match cache.take() {
++            Some(buffers) if buffers.work.can_reuse(lanes, chunk_len) => {
++                PROBE_WORKSPACE_REUSED.fetch_add(1, core::sync::atomic::Ordering::SeqCst);
++                buffers
++            }
++            Some(_) => {
++                PROBE_WORKSPACE_INCOMPATIBLE.fetch_add(1, core::sync::atomic::Ordering::SeqCst);
++                PROBE_WORKSPACE_INCOMPATIBLE_MASK
++                    .fetch_or(worker_bit, core::sync::atomic::Ordering::SeqCst);
++                DecodeBuffers::new(lanes, chunk_len)
++            }
++            None => {
++                PROBE_WORKSPACE_EMPTY.fetch_add(1, core::sync::atomic::Ordering::SeqCst);
++                PROBE_WORKSPACE_EMPTY_MASK
++                    .fetch_or(worker_bit, core::sync::atomic::Ordering::SeqCst);
++                DecodeBuffers::new(lanes, chunk_len)
++            }
++        }
+     });
+     #[cfg(not(feature = "std"))]
+     let mut buffers = DecodeBuffers::new(lanes, chunk_len);
+@@ -369,6 +412,23 @@
+     // (<= 64 KiB) and `no_std` take the serial path, reusing one set of buffers.
+     #[cfg(feature = "std")]
+     if max_parallel_jobs != 1 && shard_u16_len.div_ceil(driver.chunk_size) >= 2 {
++        #[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++        if total_shards <= 32 {
++            return reconstruct_parallel_prepared(
++                &driver,
++                present,
++                outputs,
++                input_data,
++                err_locs,
++                ifft_plan,
++                fft_plan,
++                tables,
++                &missing,
++                shard_u16_len,
++                chunk_cap,
++                max_parallel_jobs,
++            );
++        }
+         return reconstruct_chunks_parallel(
+             &driver,
+             present,
+@@ -382,9 +442,155 @@
+             shard_u16_len,
+             chunk_cap,
+             max_parallel_jobs,
++            #[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++            None,
++        );
++    }
++
++    #[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++    if shard_u16_len > driver.chunk_size && total_shards <= 32 {
++        return reconstruct_serial_prepared(
++            &driver,
++            present,
++            outputs,
++            input_data,
++            err_locs,
++            ifft_plan,
++            fft_plan,
++            tables,
++            &missing,
++            shard_u16_len,
++            chunk_cap,
+         );
+     }
++    reconstruct_serial_loop(
++        &driver,
++        present,
++        outputs,
++        input_data,
++        err_locs,
++        ifft_plan,
++        fft_plan,
++        tables,
++        &missing,
++        shard_u16_len,
++        chunk_cap,
++        #[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++        None,
++    )
++}
++
++#[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++#[inline]
++fn prepare_scales(
++    prepared: &mut super::fused::PreparedScales,
++    driver: &LeopardGf16DecodeDriver,
++    present: &[bool],
++    err_locs: &[u16; ORDER16],
++    tables: &LeopardGf16Tables,
++    missing: &[(usize, usize, u16)],
++) {
++    for (index, is_present) in present.iter().copied().enumerate() {
++        if is_present {
++            let work_idx = if index < driver.data_shards {
++                driver.m + index
++            } else {
++                index - driver.data_shards
++            };
++            prepared.add(false, err_locs[work_idx], tables);
++        }
++    }
++    for &(_, _, inverse) in missing {
++        prepared.add(true, inverse, tables);
++    }
++}
++
++#[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++#[inline(never)]
++#[allow(clippy::too_many_arguments)]
++fn reconstruct_parallel_prepared(
++    driver: &LeopardGf16DecodeDriver,
++    present: &[bool],
++    outputs: &mut [&mut [u8]],
++    input_data: &[Option<&[u8]>],
++    err_locs: &[u16; ORDER16],
++    ifft_plan: &IfftDit16Plan,
++    fft_plan: &FftDit16Plan,
++    tables: &LeopardGf16Tables,
++    missing: &[(usize, usize, u16)],
++    shard_u16_len: usize,
++    chunk_cap: usize,
++    max_parallel_jobs: usize,
++) -> Result<(), Error> {
++    let mut prepared = super::fused::PreparedScales::new(present.len());
++    prepare_scales(&mut prepared, driver, present, err_locs, tables, missing);
++    reconstruct_chunks_parallel(
++        driver,
++        present,
++        outputs,
++        input_data,
++        err_locs,
++        ifft_plan,
++        fft_plan,
++        tables,
++        missing,
++        shard_u16_len,
++        chunk_cap,
++        max_parallel_jobs,
++        Some(&prepared),
++    )
++}
+ 
++#[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++#[inline(never)]
++#[allow(clippy::too_many_arguments)]
++fn reconstruct_serial_prepared(
++    driver: &LeopardGf16DecodeDriver,
++    present: &[bool],
++    outputs: &mut [&mut [u8]],
++    input_data: &[Option<&[u8]>],
++    err_locs: &[u16; ORDER16],
++    ifft_plan: &IfftDit16Plan,
++    fft_plan: &FftDit16Plan,
++    tables: &LeopardGf16Tables,
++    missing: &[(usize, usize, u16)],
++    shard_u16_len: usize,
++    chunk_cap: usize,
++) -> Result<(), Error> {
++    let mut prepared = super::fused::PreparedScales::new(present.len());
++    prepare_scales(&mut prepared, driver, present, err_locs, tables, missing);
++    reconstruct_serial_loop(
++        driver,
++        present,
++        outputs,
++        input_data,
++        err_locs,
++        ifft_plan,
++        fft_plan,
++        tables,
++        missing,
++        shard_u16_len,
++        chunk_cap,
++        Some(&prepared),
++    )
++}
++
++#[allow(clippy::too_many_arguments)]
++fn reconstruct_serial_loop(
++    driver: &LeopardGf16DecodeDriver,
++    present: &[bool],
++    outputs: &mut [&mut [u8]],
++    input_data: &[Option<&[u8]>],
++    err_locs: &[u16; ORDER16],
++    ifft_plan: &IfftDit16Plan,
++    fft_plan: &FftDit16Plan,
++    tables: &LeopardGf16Tables,
++    missing: &[(usize, usize, u16)],
++    shard_u16_len: usize,
++    chunk_cap: usize,
++    #[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++    prepared: Option<&super::fused::PreparedScales>,
++) -> Result<(), Error> {
+     with_decode_buffers(driver.n, chunk_cap, |buffers| {
+         let DecodeBuffers { work, scratch } = buffers;
+         let mut offset = 0usize;
+@@ -393,13 +599,39 @@
+             let size = end - offset;
+ 
+             compute_reconstruct_chunk(
+-                work, scratch, offset, end, size, present, input_data, err_locs, ifft_plan,
+-                fft_plan, tables, &driver,
++                work,
++                scratch,
++                offset,
++                end,
++                size,
++                present,
++                input_data,
++                err_locs,
++                ifft_plan,
++                fft_plan,
++                tables,
++                driver,
++                #[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++                prepared,
+             )?;
+ 
+             // Step 5: scale each missing shard's transform by the inverse error locator
+             // and write it straight into user byte layout at this chunk's byte range.
+-            for &(shard_idx, work_idx, inv_err) in &missing {
++            for &(shard_idx, work_idx, inv_err) in missing {
++                #[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++                super::fused::work_mul_to_user_prepared(
++                    &work.lane(work_idx)[..size],
++                    &mut outputs[shard_idx][offset * 2..end * 2],
++                    &mut scratch[..size],
++                    inv_err,
++                    tables,
++                    prepared,
++                );
++                #[cfg(not(all(
++                    feature = "std",
++                    target_arch = "aarch64",
++                    target_endian = "little"
++                )))]
+                 super::fused::work_mul_to_user(
+                     &work.lane(work_idx)[..size],
+                     &mut outputs[shard_idx][offset * 2..end * 2],
+@@ -432,6 +664,8 @@
+     fft_plan: &FftDit16Plan,
+     tables: &LeopardGf16Tables,
+     driver: &LeopardGf16DecodeDriver,
++    #[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++    prepared: Option<&super::fused::PreparedScales>,
+ ) -> Result<(), Error> {
+     if scratch.len() < size {
+         scratch.resize(size, 0);
+@@ -443,6 +677,16 @@
+         let work_idx = driver.m + i;
+         if present[i] {
+             let input = input_data[i].ok_or(Error::TooFewShardsPresent)?;
++            #[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++            super::fused::user_to_work_mul_prepared(
++                &input[offset * 2..end * 2],
++                &mut work.lane_mut(work_idx)[..size],
++                &mut scratch[..size],
++                err_locs[work_idx],
++                tables,
++                prepared,
++            );
++            #[cfg(not(all(feature = "std", target_arch = "aarch64", target_endian = "little")))]
+             super::fused::user_to_work_mul(
+                 &input[offset * 2..end * 2],
+                 &mut work.lane_mut(work_idx)[..size],
+@@ -458,6 +702,16 @@
+         let shard_idx = driver.data_shards + i;
+         if present[shard_idx] {
+             let input = input_data[shard_idx].ok_or(Error::TooFewShardsPresent)?;
++            #[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++            super::fused::user_to_work_mul_prepared(
++                &input[offset * 2..end * 2],
++                &mut work.lane_mut(i)[..size],
++                &mut scratch[..size],
++                err_locs[i],
++                tables,
++                prepared,
++            );
++            #[cfg(not(all(feature = "std", target_arch = "aarch64", target_endian = "little")))]
+             super::fused::user_to_work_mul(
+                 &input[offset * 2..end * 2],
+                 &mut work.lane_mut(i)[..size],
+@@ -505,6 +759,8 @@
+     shard_u16_len: usize,
+     chunk_cap: usize,
+     max_parallel_jobs: usize,
++    #[cfg(all(feature = "std", target_arch = "aarch64", target_endian = "little"))]
++    prepared: Option<&super::fused::PreparedScales>,
+ ) -> Result<(), Error> {
+     use rayon::prelude::*;
+ 
+@@ -551,10 +807,44 @@
+                     let end = (offset + driver.chunk_size).min(*group_end);
+                     let size = end - offset;
+                     compute_reconstruct_chunk(
+-                        work, scratch, offset, end, size, present, input_data, err_locs, ifft_plan,
+-                        fft_plan, tables, driver,
++                        work,
++                        scratch,
++                        offset,
++                        end,
++                        size,
++                        present,
++                        input_data,
++                        err_locs,
++                        ifft_plan,
++                        fft_plan,
++                        tables,
++                        driver,
++                        #[cfg(all(
++                            feature = "std",
++                            target_arch = "aarch64",
++                            target_endian = "little"
++                        ))]
++                        prepared,
+                     )?;
+                     for (k, &(_, work_idx, inv_err)) in missing.iter().enumerate() {
++                        #[cfg(all(
++                            feature = "std",
++                            target_arch = "aarch64",
++                            target_endian = "little"
++                        ))]
++                        super::fused::work_mul_to_user_prepared(
++                            &work.lane(work_idx)[..size],
++                            &mut group_out[k][(offset - start) * 2..(end - start) * 2],
++                            &mut scratch[..size],
++                            inv_err,
++                            tables,
++                            prepared,
++                        );
++                        #[cfg(not(all(
++                            feature = "std",
++                            target_arch = "aarch64",
++                            target_endian = "little"
++                        )))]
+                         super::fused::work_mul_to_user(
+                             &work.lane(work_idx)[..size],
+                             &mut group_out[k][(offset - start) * 2..(end - start) * 2],
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -392,4 +392,66 @@
+             Err(Err(Error::IncorrectShardSize))
+         }
+     }
++}
++
++#[cfg(feature = "std")]
++#[doc(hidden)]
++pub fn __probe_workspace_reset() {
++    use crate::core::leopard_gf16::decode::{
++        PROBE_WORKSPACE_EMPTY, PROBE_WORKSPACE_INCOMPATIBLE, PROBE_WORKSPACE_NEW,
++        PROBE_WORKSPACE_REUSED,
++    };
++    use ::core::sync::atomic::Ordering;
++    for value in [
++        &PROBE_WORKSPACE_NEW,
++        &PROBE_WORKSPACE_EMPTY,
++        &PROBE_WORKSPACE_INCOMPATIBLE,
++        &PROBE_WORKSPACE_REUSED,
++    ] {
++        value.store(0, Ordering::SeqCst);
++    }
++    use crate::core::leopard_gf16::decode::{
++        PROBE_WORKSPACE_EMPTY_MASK, PROBE_WORKSPACE_INCOMPATIBLE_MASK, PROBE_WORKSPACE_USED_MASK,
++    };
++    for value in [
++        &PROBE_WORKSPACE_USED_MASK,
++        &PROBE_WORKSPACE_EMPTY_MASK,
++        &PROBE_WORKSPACE_INCOMPATIBLE_MASK,
++    ] {
++        value.store(0, Ordering::SeqCst);
++    }
++}
++#[cfg(feature = "std")]
++#[doc(hidden)]
++pub fn __probe_workspace_new() -> usize {
++    crate::core::leopard_gf16::decode::PROBE_WORKSPACE_NEW
++        .load(::core::sync::atomic::Ordering::SeqCst)
+ }
++
++#[cfg(feature = "std")]
++#[doc(hidden)]
++pub fn __probe_workspace_reasons() -> (usize, usize, usize) {
++    use crate::core::leopard_gf16::decode::{
++        PROBE_WORKSPACE_EMPTY, PROBE_WORKSPACE_INCOMPATIBLE, PROBE_WORKSPACE_REUSED,
++    };
++    use ::core::sync::atomic::Ordering;
++    (
++        PROBE_WORKSPACE_EMPTY.load(Ordering::SeqCst),
++        PROBE_WORKSPACE_INCOMPATIBLE.load(Ordering::SeqCst),
++        PROBE_WORKSPACE_REUSED.load(Ordering::SeqCst),
++    )
++}
++
++#[cfg(feature = "std")]
++#[doc(hidden)]
++pub fn __probe_workspace_workers() -> (u64, u64, u64) {
++    use crate::core::leopard_gf16::decode::{
++        PROBE_WORKSPACE_EMPTY_MASK, PROBE_WORKSPACE_INCOMPATIBLE_MASK, PROBE_WORKSPACE_USED_MASK,
++    };
++    use ::core::sync::atomic::Ordering;
++    (
++        PROBE_WORKSPACE_USED_MASK.load(Ordering::SeqCst),
++        PROBE_WORKSPACE_EMPTY_MASK.load(Ordering::SeqCst),
++        PROBE_WORKSPACE_INCOMPATIBLE_MASK.load(Ordering::SeqCst),
++    )
++}
+--- a/tests/leopard_option_allocation.rs
++++ b/tests/leopard_option_allocation.rs
+@@ -46,7 +46,7 @@
+                 parity,
+                 CodecOptions::builder()
+                     .codec_family(family)
+-                    .max_parallel_jobs(1)
++                    .max_parallel_jobs(2)
+                     .build(),
+             )
+             .unwrap();
+@@ -62,29 +62,36 @@
+                 }
+                 shards
+             };
++            rustfs_erasure_codec::__probe_workspace_reset();
+             codec.reconstruct(&mut input()).unwrap();
++            let warm_generic = rustfs_erasure_codec::__probe_workspace_workers();
++            rustfs_erasure_codec::__probe_workspace_reset();
+             codec.reconstruct_opt(&mut input()).unwrap();
++            let warm_opt = rustfs_erasure_codec::__probe_workspace_workers();
+             let mut old = input();
+             BYTES.store(0, Ordering::Relaxed);
++            rustfs_erasure_codec::__probe_workspace_reset();
+             codec.reconstruct(&mut old).unwrap();
+             let old_bytes = BYTES.load(Ordering::Relaxed);
++            let old_workspaces = rustfs_erasure_codec::__probe_workspace_new();
++            let old_reasons = rustfs_erasure_codec::__probe_workspace_reasons();
++            let old_workers = rustfs_erasure_codec::__probe_workspace_workers();
+             let mut new = input();
+             BYTES.store(0, Ordering::Relaxed);
++            rustfs_erasure_codec::__probe_workspace_reset();
+             codec.reconstruct_opt(&mut new).unwrap();
+             let new_bytes = BYTES.load(Ordering::Relaxed);
++            let new_workspaces = rustfs_erasure_codec::__probe_workspace_new();
++            let new_reasons = rustfs_erasure_codec::__probe_workspace_reasons();
++            let new_workers = rustfs_erasure_codec::__probe_workspace_workers();
+             assert!(
+                 old.iter()
+                     .zip(&original)
+                     .all(|(actual, expected)| actual.as_ref() == Some(expected))
+             );
+             assert_eq!(old, new);
+-            assert!(
+-                old_bytes >= new_bytes + (missing_data + missing_parity) * len,
+-                "{family:?} {data}+{parity} len={len} old={old_bytes} new={new_bytes}"
+-            );
+             println!(
+-                "{family:?} {data}+{parity} len={len} missing={missing_data}+{missing_parity} generic={old_bytes} optimized={new_bytes} reduced={}",
+-                old_bytes - new_bytes
++                "{family:?} {data}+{parity} len={len} missing={missing_data}+{missing_parity} generic={old_bytes} optimized={new_bytes} generic_new_workspaces={old_workspaces} optimized_new_workspaces={new_workspaces} generic_reasons={old_reasons:?} optimized_reasons={new_reasons:?} warm_generic={warm_generic:?} warm_opt={warm_opt:?} generic_workers={old_workers:?} optimized_workers={new_workers:?}"
+             );
+         }
+     }

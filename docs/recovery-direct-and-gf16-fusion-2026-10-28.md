@@ -203,7 +203,10 @@ The [parallel prototype follow-up](../benchmarks/recovery-table-work/2026-10-28/
 also records an instrumentation-isolation failure and an unresolved workspace
 allocation outlier rather than treating them as performance evidence. A later
 instrumented run reproduced the same allocation delta with an empty thread-local
-workspace cache; it cannot prove the cause of the earlier uninstrumented event.
+workspace cache; another trace found that the worker in one reproduced event
+was not among that shape's two recorded warmups. The same instrumented cache
+miss was also observed without the prototype. These traces do not prove the
+cause of the earlier uninstrumented event or establish comparative miss rates.
 
 ## Outstanding evidence
 
