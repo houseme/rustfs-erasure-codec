@@ -378,6 +378,12 @@ jobs:
       - name: Test std + simd
         run: cargo test --verbose --workspace --exclude rustfs-erasure-codec-fuzz --features simd-accel
 
+      - name: Report GF16 x86 SIMD kernel execution
+        if: matrix.toolchain == 'stable'
+        run: |
+          cargo test --locked -p rustfs-erasure-codec --features simd-accel --lib avx2_kernels_match -- --nocapture
+          cargo test --locked -p rustfs-erasure-codec --features simd-accel --lib ssse3_kernels_match -- --nocapture
+
   test-linux-aarch64:
     name: Test Linux ARM64 (${{ matrix.toolchain }})
     runs-on: ubuntu-24.04-arm
