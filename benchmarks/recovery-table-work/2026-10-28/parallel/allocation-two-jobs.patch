@@ -1,0 +1,11 @@
+--- a/tests/leopard_option_allocation.rs
++++ b/tests/leopard_option_allocation.rs
+@@ -46,7 +46,7 @@
+                 parity,
+                 CodecOptions::builder()
+                     .codec_family(family)
+-                    .max_parallel_jobs(1)
++                    .max_parallel_jobs(2)
+                     .build(),
+             )
+             .unwrap();

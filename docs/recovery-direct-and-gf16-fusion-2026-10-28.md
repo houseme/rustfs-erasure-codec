@@ -199,6 +199,9 @@ three serial AArch64 `10+4` recovery cases. The diagnostic is source-bound and
 does not measure CPU time, cache behavior or end-to-end performance. Isolated
 per-call prototypes show both a potential reduction in table builds and storage
 tradeoffs; none is included in the production path or accepted as a speedup.
+The [parallel prototype follow-up](../benchmarks/recovery-table-work/2026-10-28/parallel/)
+also records an instrumentation-isolation failure and an unresolved workspace
+allocation outlier rather than treating them as performance evidence.
 
 ## Outstanding evidence
 

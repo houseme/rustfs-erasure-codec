@@ -1,0 +1,37 @@
+baseline work-count rows:
+jobs=1 missing=[0, 10] small_input=12 small_output=2 large_input=192 large_output=32 union_unique=8
+jobs=1 missing=[0, 1, 2, 3] small_input=6 small_output=4 large_input=96 large_output=64 union_unique=3
+jobs=2 missing=[0, 10] small_input=12 small_output=2 large_input=192 large_output=32 union_unique=8
+jobs=2 missing=[0, 1, 2, 3] small_input=6 small_output=4 large_input=96 large_output=64 union_unique=3
+jobs=4 missing=[0, 10] small_input=12 small_output=2 large_input=192 large_output=32 union_unique=8
+jobs=4 missing=[0, 1, 2, 3] small_input=6 small_output=4 large_input=96 large_output=64 union_unique=3
+
+in-place prototype work-count rows:
+jobs=1 missing=[0, 10] small_input=12 small_output=2 large_input=7 large_output=1 union_unique=8
+jobs=1 missing=[0, 1, 2, 3] small_input=6 small_output=4 large_input=2 large_output=1 union_unique=3
+jobs=2 missing=[0, 10] small_input=12 small_output=2 large_input=7 large_output=1 union_unique=8
+jobs=2 missing=[0, 1, 2, 3] small_input=6 small_output=4 large_input=2 large_output=1 union_unique=3
+jobs=4 missing=[0, 10] small_input=12 small_output=2 large_input=7 large_output=1 union_unique=8
+jobs=4 missing=[0, 1, 2, 3] small_input=6 small_output=4 large_input=2 large_output=1 union_unique=3
+
+baseline allocation rows:
+run 1: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 reduced=4194304
+run 2: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 reduced=4194304
+run 3: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 reduced=4194304
+
+before-in-place prototype allocation rows:
+run 1: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 reduced=4194304
+run 2: LeopardGF16 10+4 len=1048576 missing=4+0 generic=9503024 optimized=4194608 reduced=5308416
+run 3: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 reduced=4194304
+
+in-place prototype allocation rows:
+run 1: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 reduced=4194304
+run 2: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 reduced=4194304
+run 3: LeopardGF16 10+4 len=1048576 missing=4+0 generic=8388912 optimized=4194608 reduced=4194304
+
+Diagnostic isolation failure:
+The unscoped global counter test failed under the parallel all-features suite with a multiplier-set equality assertion.
+The later dedicated-pool-scoped counter passed in the all-features suite (412 library tests passed, 5 ignored).
+The full original failure log is not embedded here; the earlier source is retained as prototype-before-inplace.patch.
+
+These are functional work and allocation counts, not latency or release evidence.

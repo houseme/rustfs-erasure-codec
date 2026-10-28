@@ -1,0 +1,159 @@
+--- a/src/core/leopard_gf16/fused.rs
++++ b/src/core/leopard_gf16/fused.rs
+@@ -3,6 +3,69 @@
+ 
+ use super::{LeopardGf16Tables, MODULUS16, ops};
+ 
++#[cfg(all(
++    test,
++    feature = "std",
++    target_arch = "aarch64",
++    target_endian = "little"
++))]
++#[derive(Default)]
++struct WorkCounts {
++    input: std::collections::BTreeMap<u16, usize>,
++    output: std::collections::BTreeMap<u16, usize>,
++}
++#[cfg(all(
++    test,
++    feature = "std",
++    target_arch = "aarch64",
++    target_endian = "little"
++))]
++static PROBE_TABLE_BUILDS: std::sync::OnceLock<std::sync::Mutex<WorkCounts>> =
++    std::sync::OnceLock::new();
++#[cfg(all(
++    test,
++    feature = "std",
++    target_arch = "aarch64",
++    target_endian = "little"
++))]
++fn probe_counts() -> &'static std::sync::Mutex<WorkCounts> {
++    PROBE_TABLE_BUILDS.get_or_init(|| std::sync::Mutex::new(WorkCounts::default()))
++}
++#[cfg(all(
++    test,
++    feature = "std",
++    target_arch = "aarch64",
++    target_endian = "little"
++))]
++std::thread_local! { static PROBE_THREAD: core::cell::Cell<bool> = const { core::cell::Cell::new(false) }; }
++#[cfg(all(
++    test,
++    feature = "std",
++    target_arch = "aarch64",
++    target_endian = "little"
++))]
++fn enable_probe_for_this_thread() {
++    PROBE_THREAD.with(|enabled| enabled.set(true));
++}
++#[cfg(all(
++    test,
++    feature = "std",
++    target_arch = "aarch64",
++    target_endian = "little"
++))]
++fn record_table_build(is_output: bool, log_m: u16) {
++    if !PROBE_THREAD.with(|enabled| enabled.get()) {
++        return;
++    }
++    let mut counts = probe_counts().lock().unwrap();
++    let side = if is_output {
++        &mut counts.output
++    } else {
++        &mut counts.input
++    };
++    *side.entry(log_m).or_default() += 1;
++}
++
+ pub(super) fn user_to_work_mul(
+     user: &[u8],
+     out: &mut [u16],
+@@ -35,6 +98,8 @@
+     }
+     #[cfg(all(target_arch = "aarch64", target_endian = "little"))]
+     {
++        #[cfg(all(test, feature = "std"))]
++        record_table_build(false, log_m);
+         let nibble =
+             super::mul_simd::NibbleTables16::build(log_m, &tables.log_lut, &tables.exp_lut);
+         // SAFETY: NEON is aarch64 baseline; both slices cover the same number
+@@ -85,6 +150,8 @@
+     }
+     #[cfg(all(target_arch = "aarch64", target_endian = "little"))]
+     {
++        #[cfg(all(test, feature = "std"))]
++        record_table_build(true, log_m);
+         let nibble =
+             super::mul_simd::NibbleTables16::build(log_m, &tables.log_lut, &tables.exp_lut);
+         // SAFETY: NEON is aarch64 baseline; both slices cover the same number
+@@ -491,6 +558,68 @@
+                 &expected_user,
+                 "SSSE3 output, log={log_m}"
+             );
++        }
++    }
++}
++
++#[cfg(all(
++    test,
++    feature = "std",
++    target_arch = "aarch64",
++    target_endian = "little"
++))]
++mod table_work_probe {
++    use super::{WorkCounts, probe_counts};
++    use crate::{CodecFamily, CodecOptions, galois_8::ReedSolomon};
++    fn observe(len: usize, missing: &[usize], jobs: usize) -> WorkCounts {
++        let codec = ReedSolomon::with_options(
++            10,
++            4,
++            CodecOptions::builder()
++                .codec_family(CodecFamily::LeopardGF16)
++                .max_parallel_jobs(jobs)
++                .build(),
++        )
++        .unwrap();
++        let mut original: Vec<Vec<u8>> = (0..14)
++            .map(|i| (0..len).map(|j| (i * 31 + j * 17 + j / 11) as u8).collect())
++            .collect();
++        codec.encode(&mut original).unwrap();
++        let mut shards: Vec<_> = original.iter().cloned().map(Some).collect();
++        for &i in missing {
++            shards[i] = None;
+         }
++        *probe_counts().lock().unwrap() = WorkCounts::default();
++        codec.reconstruct(&mut shards).unwrap();
++        let counts = core::mem::take(&mut *probe_counts().lock().unwrap());
++        assert!(
++            shards
++                .iter()
++                .zip(&original)
++                .all(|(actual, expected)| actual.as_ref() == Some(expected))
++        );
++        counts
+     }
++    #[test]
++    fn compare_parallel_table_work() {
++        let pool = rayon::ThreadPoolBuilder::new()
++            .num_threads(4)
++            .start_handler(|_| super::enable_probe_for_this_thread())
++            .build()
++            .unwrap();
++        pool.install(|| {
++            for jobs in [1, 2, 4] {
++                for missing in [&[0, 10][..], &[0, 1, 2, 3][..]] {
++                    let small = observe(65_536, missing, jobs);
++                    let large = observe(1_048_576, missing, jobs);
++                    for (short, long) in [(&small.input, &large.input), (&small.output, &large.output)] {
++                        assert_eq!(short.len(), long.len());
++                        for (log_m, count) in short { assert_eq!(long.get(log_m), Some(&(count * 16))); }
++                    }
++                    let union = small.input.keys().chain(small.output.keys()).copied().collect::<std::collections::BTreeSet<_>>().len();
++                    std::println!("jobs={jobs} missing={missing:?} small_input={} small_output={} large_input={} large_output={} union_unique={union}", small.input.values().sum::<usize>(), small.output.values().sum::<usize>(), large.input.values().sum::<usize>(), large.output.values().sum::<usize>());
++                }
++            }
++        });
++    }
+ }

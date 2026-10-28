@@ -153,3 +153,8 @@ prototype intentionally retains the committed implementation, nor do they
 establish a speedup. Apply this single overlay directly to a fresh `c97b8b6`
 extraction and run `cargo test --release --test leopard_prepared_scales_concurrent`
 to repeat those two tests.
+
+The separate [parallel follow-up](parallel/) extends the isolated prototype to
+share immutable prepared tables among chunks in one synchronous recovery. It
+retains the failed unscoped-counter run and the allocation outlier, alongside
+the bounded functional results; no prototype is accepted as runtime code.
