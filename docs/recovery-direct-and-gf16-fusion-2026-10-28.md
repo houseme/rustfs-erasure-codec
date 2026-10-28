@@ -153,6 +153,14 @@ and source/lock provenance separately when the result is used as evidence.
 Native mode defaults to the Rust host target; set `RSE_COMPAT_TARGET` and the
 corresponding Cargo target runner for cross-target execution.
 
+The native Linux x86-64 CI job for commit `91e59c9` completed successfully and
+reported `AVX2=true: kernels executed` for both AVX2 kernel tests and
+`SSSE3=true, AVX2=true` for the independent SSSE3 test. The
+[CI run](https://github.com/houseme/rustfs-erasure-codec/actions/runs/40627543213)
+also passed its other jobs, including the release-tooling check. This verifies
+functional execution on that runner; it does not measure performance or prove
+behavior on every x86 CPU.
+
 ## Post-commit validation and structural follow-up
 
 The clean `3727d40` commit was packaged and verified with its own clean VCS
@@ -250,6 +258,5 @@ not a change to production warmup or a substitute for the ABBA and A2 gates.
 The generic container path is not fused. No latency or throughput claim follows
 from these functional tests. Controlled, resource
 isolated baseline/candidate ABBA and a passing A2 baseline drift gate are needed
-before attributing a performance change; an actual x86 execution is required
-before making x86 runtime claims. These results do not satisfy the repository's
-release preflight or authorize a release.
+before attributing a performance change. These results do not satisfy the
+repository's release preflight or authorize a release.
