@@ -383,6 +383,7 @@ jobs:
         run: |
           cargo test --locked -p rustfs-erasure-codec --features simd-accel --lib avx2_kernels_match -- --nocapture
           cargo test --locked -p rustfs-erasure-codec --features simd-accel --lib ssse3_kernels_match -- --nocapture
+          cargo test --locked -p rustfs-erasure-codec --features simd-accel --lib butterfly_tests -- --nocapture
 
   test-linux-aarch64:
     name: Test Linux ARM64 (${{ matrix.toolchain }})

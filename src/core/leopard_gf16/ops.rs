@@ -378,6 +378,10 @@ pub(super) fn dit2_step16(
     if log_m == MODULUS16 as u16 {
         slice_xor_u16(src, dst);
     } else {
+        #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
+        if super::mul_simd::try_butterfly_avx2::<false>(dst, src, log_m, tables) {
+            return;
+        }
         mulgf16_xor(dst, src, log_m, tables);
         slice_xor_u16(src, dst);
     }
@@ -400,6 +404,10 @@ pub(super) fn dit2_step_inv16(
     if log_m == MODULUS16 as u16 {
         slice_xor_u16(src, dst);
     } else {
+        #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
+        if super::mul_simd::try_butterfly_avx2::<true>(dst, src, log_m, tables) {
+            return;
+        }
         slice_xor_u16(src, dst);
         mulgf16_xor(dst, src, log_m, tables);
     }
@@ -411,13 +419,7 @@ pub(super) fn dit2_step_inv16(
 /// When `log_m == MODULUS16`, Go uses `sliceXor(work[r], work[r+1])` which modifies
 /// the second argument: `y ^= x`.
 pub(super) fn fft_dit2_16(x: &mut [u16], y: &mut [u16], log_m: u16, tables: &LeopardGf16Tables) {
-    debug_assert_eq!(x.len(), y.len());
-    if log_m == MODULUS16 as u16 {
-        slice_xor_u16(y, x);
-    } else {
-        mulgf16_xor(x, y, log_m, tables);
-        slice_xor_u16(y, x);
-    }
+    dit2_step16(x, y, log_m, tables);
 }
 
 /// Inverse radix-2 IFFT butterfly: `y ^= x; x ^= mul(y, m)`.
@@ -426,13 +428,7 @@ pub(super) fn fft_dit2_16(x: &mut [u16], y: &mut [u16], log_m: u16, tables: &Leo
 /// When `log_m == MODULUS16`, Go uses `sliceXor(work[a], work[b])` which modifies
 /// the second argument only: `y ^= x`.
 pub(super) fn ifft_dit2_16(x: &mut [u16], y: &mut [u16], log_m: u16, tables: &LeopardGf16Tables) {
-    debug_assert_eq!(x.len(), y.len());
-    if log_m == MODULUS16 as u16 {
-        slice_xor_u16(y, x);
-    } else {
-        slice_xor_u16(y, x);
-        mulgf16_xor(x, y, log_m, tables);
-    }
+    dit2_step_inv16(x, y, log_m, tables);
 }
 
 /// Forward radix-4 butterfly.

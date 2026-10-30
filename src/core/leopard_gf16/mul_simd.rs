@@ -162,6 +162,24 @@ pub(super) fn should_use_simd(len: usize) -> bool {
     len >= SIMD_MIN_LEN && HAS_SIMD_KERNEL
 }
 
+#[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
+pub(super) fn try_butterfly_avx2<const INVERSE: bool>(
+    out: &mut [u16],
+    input: &mut [u16],
+    log_m: u16,
+    tables: &LeopardGf16Tables,
+) -> bool {
+    if out.len() != input.len() || input.len() < 32 || !is_x86_feature_detected!("avx2") {
+        return false;
+    }
+    let t = NibbleTables16::build(log_m, &tables.log_lut, &tables.exp_lut);
+    // SAFETY: AVX2 was detected; equal-length mutable slices are disjoint.
+    unsafe {
+        x86::butterfly_avx2::<INVERSE>(out, input, &t);
+    }
+    true
+}
+
 // ------------------------------------------------------------------ aarch64 --
 
 #[cfg(all(target_arch = "aarch64", target_endian = "little"))]
@@ -333,10 +351,37 @@ mod x86 {
         input: &[u16],
         t: &NibbleTables16,
     ) {
-        // SAFETY: runs under `#[target_feature(enable = "avx2")]`. Byte views of
-        // the u16 slices are in-bounds/aligned; each 256-bit load/store covers 32
-        // in-bounds bytes of the current 64-byte chunk; shuffles index the
-        // 16-byte tables (broadcast to both lanes) with masked 0..15 nibbles.
+        // SAFETY: input is read-only in this instantiation; slices are disjoint.
+        unsafe {
+            avx2_core::<XOR, false, false>(out, input.as_ptr().cast_mut(), input.len(), t);
+        }
+    }
+
+    #[target_feature(enable = "avx2")]
+    pub(super) unsafe fn butterfly_avx2<const INVERSE: bool>(
+        out: &mut [u16],
+        input: &mut [u16],
+        t: &NibbleTables16,
+    ) {
+        // SAFETY: both equal-sized mutable slices are disjoint and AVX2 is enabled.
+        unsafe {
+            avx2_core::<true, true, INVERSE>(out, input.as_mut_ptr(), input.len(), t);
+        }
+    }
+
+    // Both entry points share the same nibble multiplication; butterfly mode
+    // additionally updates the input lane before or after the multiply.
+    #[target_feature(enable = "avx2")]
+    unsafe fn avx2_core<const XOR: bool, const BUTTERFLY: bool, const INVERSE: bool>(
+        out: &mut [u16],
+        input: *mut u16,
+        n: usize,
+        t: &NibbleTables16,
+    ) {
+        // SAFETY: callers provide disjoint buffers of n elements and enable AVX2.
+        // The input pointer is writable only in butterfly mode. Each unaligned
+        // vector load/store stays inside a whole 32-element chunk; the tail is
+        // bounded by n, and nibble indices are masked to the table size.
         unsafe {
             let lo0 = bcast(t.lo[0].as_ptr());
             let lo1 = bcast(t.lo[1].as_ptr());
@@ -349,15 +394,34 @@ mod x86 {
             let mask: __m256i = _mm256_set1_epi8(0x0f);
             let mask_lo: __m256i = _mm256_srli_epi16::<8>(_mm256_set1_epi8(-1i8)); // 0x00FF
 
-            let n = input.len();
             let chunks = n / 32;
-            let in_ptr = input.as_ptr().cast::<u8>();
+            let in_ptr = input.cast::<u8>();
             let out_ptr = out.as_mut_ptr().cast::<u8>();
 
             for c in 0..chunks {
                 let off = c * 64; // 32 u16 = 64 bytes
-                let a = _mm256_loadu_si256(in_ptr.add(off).cast());
-                let b = _mm256_loadu_si256(in_ptr.add(off + 32).cast());
+                let y0 = _mm256_loadu_si256(in_ptr.add(off).cast());
+                let y1 = _mm256_loadu_si256(in_ptr.add(off + 32).cast());
+                let x0 = if XOR || BUTTERFLY {
+                    _mm256_loadu_si256(out_ptr.add(off).cast())
+                } else {
+                    y0
+                };
+                let x1 = if XOR || BUTTERFLY {
+                    _mm256_loadu_si256(out_ptr.add(off + 32).cast())
+                } else {
+                    y1
+                };
+                let a = if INVERSE {
+                    _mm256_xor_si256(y0, x0)
+                } else {
+                    y0
+                };
+                let b = if INVERSE {
+                    _mm256_xor_si256(y1, x1)
+                } else {
+                    y1
+                };
 
                 // packus is per-128-lane, so the planes come out lane-scrambled as
                 // [e0-7, e16-23, e8-15, e24-31]; permute 64-bit words 0,2,1,3 (0xD8)
@@ -392,19 +456,39 @@ mod x86 {
                 let r_hi = _mm256_unpackhi_epi8(out_lo, out_hi);
                 let mut o0 = _mm256_permute2x128_si256::<0x20>(r_lo, r_hi); // e0-15
                 let mut o1 = _mm256_permute2x128_si256::<0x31>(r_lo, r_hi); // e16-31
-                if XOR {
-                    o0 = _mm256_xor_si256(o0, _mm256_loadu_si256(out_ptr.add(off).cast()));
-                    o1 = _mm256_xor_si256(o1, _mm256_loadu_si256(out_ptr.add(off + 32).cast()));
+                if XOR || BUTTERFLY {
+                    o0 = _mm256_xor_si256(o0, x0);
+                    o1 = _mm256_xor_si256(o1, x1);
                 }
                 _mm256_storeu_si256(out_ptr.add(off).cast(), o0);
                 _mm256_storeu_si256(out_ptr.add(off + 32).cast(), o1);
+                if BUTTERFLY {
+                    let v0 = if INVERSE { a } else { _mm256_xor_si256(y0, o0) };
+                    let v1 = if INVERSE { b } else { _mm256_xor_si256(y1, o1) };
+                    _mm256_storeu_si256(in_ptr.add(off).cast(), v0);
+                    _mm256_storeu_si256(in_ptr.add(off + 32).cast(), v1);
+                }
             }
 
             let done = chunks * 32;
             if done < n {
-                // Reuse the SSSE3 kernel for the 16..31-element remainder, then a
-                // scalar tail — both use the same tables, so results are exact.
-                mulgf16_ssse3::<XOR>(&mut out[done..], &input[done..], t);
+                if BUTTERFLY {
+                    let tail = core::slice::from_raw_parts_mut(input.add(done), n - done);
+                    if INVERSE {
+                        for (x, y) in out[done..].iter().zip(tail.iter_mut()) {
+                            *y ^= *x;
+                        }
+                    }
+                    mulgf16_ssse3::<true>(&mut out[done..], tail, t);
+                    if !INVERSE {
+                        for (x, y) in out[done..].iter().zip(tail.iter_mut()) {
+                            *y ^= *x;
+                        }
+                    }
+                } else {
+                    let tail = core::slice::from_raw_parts(input.add(done), n - done);
+                    mulgf16_ssse3::<XOR>(&mut out[done..], tail, t);
+                }
             }
         }
     }
@@ -607,6 +691,102 @@ mod mul_simd_tests {
                     *w ^= mul_log16(v, log_m, &tables.log_lut, &tables.exp_lut);
                 }
                 assert_eq!(got_x, want_x, "ssse3 xor len={len} log_m={log_m}");
+            }
+        }
+    }
+}
+
+#[cfg(all(
+    test,
+    feature = "std",
+    target_arch = "x86_64",
+    target_endian = "little"
+))]
+mod butterfly_tests {
+    use super::super::{MODULUS16, init_leopard_gf16_tables, ops};
+    #[test]
+    fn fused_butterfly_matches_scalar_for_every_multiplier() {
+        if !std::is_x86_feature_detected!("avx2") {
+            std::println!("AVX2 unavailable: exhaustive butterfly test not executed");
+            return;
+        }
+        std::println!("AVX2=true: exhaustive butterfly test executed");
+        let tables = init_leopard_gf16_tables();
+        let x0: [u16; 32] = core::array::from_fn(|i| (i as u16).wrapping_mul(9127));
+        let y0: [u16; 32] = core::array::from_fn(|i| (i as u16).wrapping_mul(3571));
+        for log_m in 0..u16::MAX {
+            for inverse in [false, true] {
+                let mut x = x0;
+                let mut y = y0;
+                let mut expected_x = x0;
+                let mut expected_y = y0;
+                for i in 0..x.len() {
+                    if inverse {
+                        expected_y[i] ^= expected_x[i];
+                    }
+                    expected_x[i] ^=
+                        ops::mul_log16(expected_y[i], log_m, &tables.log_lut, &tables.exp_lut);
+                    if !inverse {
+                        expected_y[i] ^= expected_x[i];
+                    }
+                }
+                let executed = if inverse {
+                    super::try_butterfly_avx2::<true>(&mut x, &mut y, log_m, tables)
+                } else {
+                    super::try_butterfly_avx2::<false>(&mut x, &mut y, log_m, tables)
+                };
+                assert!(executed);
+                assert_eq!(x, expected_x, "x log={log_m} inverse={inverse}");
+                assert_eq!(y, expected_y, "y log={log_m} inverse={inverse}");
+            }
+        }
+    }
+
+    #[test]
+    fn fused_butterfly_matches_two_pass_reference() {
+        if !std::is_x86_feature_detected!("avx2") {
+            std::println!("AVX2 unavailable: butterfly kernel not executed");
+            return;
+        }
+        std::println!("AVX2=true: butterfly kernel executed");
+        let tables = init_leopard_gf16_tables();
+        let mut short = [7u16; 32];
+        let mut long = [9u16; 64];
+        assert!(!super::try_butterfly_avx2::<false>(
+            &mut short, &mut long, 1, tables
+        ));
+        assert_eq!(short, [7u16; 32]);
+        assert_eq!(long, [9u16; 64]);
+        for len in [0, 1, 15, 16, 31, 32, 33, 47, 63, 64, 65, 1024, 32768] {
+            for log_m in [0, 1, 31, 255, 1024, 32768, 65534, MODULUS16 as u16] {
+                let x0: Vec<u16> = (0..len + 2)
+                    .map(|i| ((i * 9127 + 113) & 65535) as u16)
+                    .collect();
+                let y0: Vec<u16> = (0..len + 2)
+                    .map(|i| ((i * 3571 + 987) & 65535) as u16)
+                    .collect();
+                for inverse in [false, true] {
+                    let mut x = x0.clone();
+                    let mut y = y0.clone();
+                    let mut ex = x0.clone();
+                    let mut ey = y0.clone();
+                    if log_m == MODULUS16 as u16 {
+                        ops::slice_xor_u16(&mut ey[1..len + 1], &ex[1..len + 1]);
+                    } else if inverse {
+                        ops::slice_xor_u16(&mut ey[1..len + 1], &ex[1..len + 1]);
+                        ops::mulgf16_xor(&mut ex[1..len + 1], &ey[1..len + 1], log_m, tables);
+                    } else {
+                        ops::mulgf16_xor(&mut ex[1..len + 1], &ey[1..len + 1], log_m, tables);
+                        ops::slice_xor_u16(&mut ey[1..len + 1], &ex[1..len + 1]);
+                    }
+                    if inverse {
+                        ops::dit2_step_inv16(&mut x[1..len + 1], &mut y[1..len + 1], log_m, tables);
+                    } else {
+                        ops::dit2_step16(&mut x[1..len + 1], &mut y[1..len + 1], log_m, tables);
+                    }
+                    assert_eq!(x, ex, "x len={len} log={log_m} inverse={inverse}");
+                    assert_eq!(y, ey, "y len={len} log={log_m} inverse={inverse}");
+                }
             }
         }
     }
