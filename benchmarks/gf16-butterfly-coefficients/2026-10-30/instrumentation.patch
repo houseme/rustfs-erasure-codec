@@ -1,0 +1,107 @@
+--- a/src/core/leopard_gf16/ops.rs
++++ b/src/core/leopard_gf16/ops.rs
+@@ -367,6 +367,25 @@
+ /// When `log_m == MODULUS16`, Go uses `sliceXor(work[a], work[c])` which modifies
+ /// the second argument: `src ^= dst`. The general path gives the same final result
+ /// via `dst ^= src*g^m; src ^= dst`, but the modulus shortcut must match exactly.
++#[cfg(all(test, feature = "std"))]
++static PROBE_ZERO: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
++#[cfg(all(test, feature = "std"))]
++static PROBE_SENTINEL: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
++#[cfg(all(test, feature = "std"))]
++static PROBE_OTHER: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
++#[cfg(all(test, feature = "std"))]
++fn probe_coefficient(log_m: u16) {
++    use std::sync::atomic::Ordering;
++    let count = if log_m == 0 {
++        &PROBE_ZERO
++    } else if log_m == MODULUS16 as u16 {
++        &PROBE_SENTINEL
++    } else {
++        &PROBE_OTHER
++    };
++    count.fetch_add(1, Ordering::Relaxed);
++}
++
+ #[inline]
+ pub(super) fn dit2_step16(
+     dst: &mut [u16],
+@@ -374,6 +393,8 @@
+     log_m: u16,
+     tables: &LeopardGf16Tables,
+ ) {
++    #[cfg(all(test, feature = "std"))]
++    probe_coefficient(log_m);
+     debug_assert_eq!(dst.len(), src.len());
+     if log_m == MODULUS16 as u16 {
+         slice_xor_u16(src, dst);
+@@ -400,6 +421,8 @@
+     log_m: u16,
+     tables: &LeopardGf16Tables,
+ ) {
++    #[cfg(all(test, feature = "std"))]
++    probe_coefficient(log_m);
+     debug_assert_eq!(dst.len(), src.len());
+     if log_m == MODULUS16 as u16 {
+         slice_xor_u16(src, dst);
+@@ -776,3 +799,60 @@
+         Some((first, second))
+     }
+ }
++
++#[cfg(all(test, feature = "std"))]
++mod coefficient_work_probe {
++    use super::{PROBE_OTHER, PROBE_SENTINEL, PROBE_ZERO};
++    use crate::{CodecFamily, CodecOptions, galois_8::ReedSolomon};
++    use std::sync::atomic::Ordering;
++    #[test]
++    fn observe_butterfly_multiplier_categories() {
++        let tables = super::super::init_leopard_gf16_tables();
++        let zeros: Vec<usize> = tables
++            .fft_skew
++            .iter()
++            .enumerate()
++            .filter_map(|(i, &v)| (v == 0).then_some(i))
++            .collect();
++        println!("SKEW zeros={} first={:?}", zeros.len(), zeros.first());
++        for (data, parity) in [(10, 4), (16, 8)] {
++            for size in [65536, 1048576] {
++                for missing in [1, 4] {
++                    let codec = ReedSolomon::with_options(
++                        data,
++                        parity,
++                        CodecOptions::builder()
++                            .codec_family(CodecFamily::LeopardGF16)
++                            .max_parallel_jobs(4)
++                            .build(),
++                    )
++                    .unwrap();
++                    let mut original: Vec<Vec<u8>> = (0..data + parity)
++                        .map(|i| (0..size).map(|j| (i * 31 + j * 17) as u8).collect())
++                        .collect();
++                    codec.encode(&mut original).unwrap();
++                    let mut shards: Vec<_> = original.iter().cloned().map(Some).collect();
++                    for s in &mut shards[..missing] {
++                        *s = None;
++                    }
++                    for c in [&PROBE_ZERO, &PROBE_SENTINEL, &PROBE_OTHER] {
++                        c.store(0, Ordering::Relaxed);
++                    }
++                    codec.reconstruct_opt(&mut shards).unwrap();
++                    assert!(
++                        shards
++                            .iter()
++                            .zip(&original)
++                            .all(|(x, y)| x.as_ref() == Some(y))
++                    );
++                    println!(
++                        "COEFF data={data} parity={parity} bytes={size} missing={missing} zero={} sentinel={} other={}",
++                        PROBE_ZERO.load(Ordering::Relaxed),
++                        PROBE_SENTINEL.load(Ordering::Relaxed),
++                        PROBE_OTHER.load(Ordering::Relaxed)
++                    );
++                }
++            }
++        }
++    }
++}
