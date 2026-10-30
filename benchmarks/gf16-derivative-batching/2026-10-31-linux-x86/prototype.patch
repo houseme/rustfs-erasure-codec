@@ -1,0 +1,163 @@
+--- a/src/core/leopard_gf16/decode.rs
++++ b/src/core/leopard_gf16/decode.rs
+@@ -675,6 +675,50 @@
+ }
+
+ fn compute_formal_derivative16(work: &mut FlatWork16, n: usize, size: usize) {
++    #[cfg(all(feature = "std", target_arch = "x86_64"))]
++    if n <= 32
++        && n.is_power_of_two()
++        && n <= work.lanes()
++        && size <= work.lane(0).len()
++        && size >= 16
++        && std::is_x86_feature_detected!("avx2")
++    {
++        work.with_lane_views(n, size, |lanes| {
++            for dst_idx in 0..n {
++                let (lower, higher) = lanes.split_at_mut(dst_idx + 1);
++                let dst = &mut *lower[dst_idx];
++                let mut sources: SmallVec<[&[u16]; 5]> = SmallVec::new();
++                let mut bit = 1usize;
++                while bit < n {
++                    if dst_idx & bit == 0 {
++                        let source = dst_idx | bit;
++                        sources.push(&*higher[source - dst_idx - 1]);
++                    }
++                    bit <<= 1;
++                }
++                // SAFETY: AVX2 is detected above; the work-buffer views are equal-sized and disjoint.
++                unsafe {
++                    match sources.len() {
++                        0 => (),
++                        1 => slice_xor_u16(dst, sources[0]),
++                        2 => derivative_xor_avx2(dst, [sources[0], sources[1]]),
++                        3 => derivative_xor_avx2(dst, [sources[0], sources[1], sources[2]]),
++                        4 => derivative_xor_avx2(
++                            dst,
++                            [sources[0], sources[1], sources[2], sources[3]],
++                        ),
++                        5 => derivative_xor_avx2(
++                            dst,
++                            [sources[0], sources[1], sources[2], sources[3], sources[4]],
++                        ),
++                        _ => unreachable!(),
++                    }
++                }
++            }
++        });
++        return;
++    }
++
+     for i in 1..n {
+         let width = ((i ^ (i - 1)) + 1) >> 1;
+         for j in 0..width {
+@@ -688,6 +732,30 @@
+                     slice_xor_u16(lo, hi);
+                 }
+             }
++        }
++    }
++}
++
++#[cfg(all(feature = "std", target_arch = "x86_64"))]
++#[target_feature(enable = "avx2")]
++unsafe fn derivative_xor_avx2<const N: usize>(dst: &mut [u16], sources: [&[u16]; N]) {
++    use core::arch::x86_64::{_mm256_loadu_si256, _mm256_storeu_si256, _mm256_xor_si256};
++    let chunks = dst.len() / 16;
++    // SAFETY: caller checked AVX2, all disjoint lane views have the same length,
++    // and each vector load/store remains within one complete 16-element chunk.
++    unsafe {
++        for chunk in 0..chunks {
++            let offset = chunk * 16;
++            let mut v = _mm256_loadu_si256(dst.as_ptr().add(offset).cast());
++            for source in sources {
++                v = _mm256_xor_si256(v, _mm256_loadu_si256(source.as_ptr().add(offset).cast()));
++            }
++            _mm256_storeu_si256(dst.as_mut_ptr().add(offset).cast(), v);
++        }
++    }
++    for i in chunks * 16..dst.len() {
++        for source in sources {
++            dst[i] ^= source[i];
+         }
+     }
+ }
+@@ -884,3 +952,78 @@
+         DECODE_BUFFER_CACHE.with(|cache| assert!(cache.borrow().is_none()));
+     }
+ }
++
++#[cfg(all(test, feature = "std", target_arch = "x86_64"))]
++mod derivative_batch_prototype_tests {
++    use super::{FlatWork16, compute_formal_derivative16};
++    #[test]
++    fn excessive_requested_lane_count_uses_checked_fallback() {
++        let lanes = 4usize;
++        let size = 64usize;
++        let mut work = FlatWork16::new(lanes, size);
++        let mut expected: Vec<Vec<u16>> = (0..lanes)
++            .map(|i| (0..size).map(|j| (i * 193 + j * 31) as u16).collect())
++            .collect();
++        for (i, lane) in expected.iter().enumerate() {
++            work.lane_mut(i).copy_from_slice(lane);
++        }
++        for i in 1usize..8 {
++            let width = ((i ^ (i - 1)) + 1) >> 1;
++            for j in 0..width {
++                let lo = i - width + j;
++                let hi = i + j;
++                if hi < lanes && lo < lanes {
++                    let (lower, upper) = expected.split_at_mut(hi);
++                    for (x, y) in lower[lo].iter_mut().zip(&upper[0]) {
++                        *x ^= *y;
++                    }
++                }
++            }
++        }
++        compute_formal_derivative16(&mut work, 8, size);
++        for (i, lane) in expected.iter().enumerate() {
++            assert_eq!(work.lane(i), lane);
++        }
++    }
++
++    #[test]
++    fn batched_derivative_matches_original_schedule() {
++        if !std::is_x86_feature_detected!("avx2") {
++            std::println!("AVX2 unavailable");
++            return;
++        }
++        std::println!("AVX2=true: batched derivative executed");
++        for n in [1, 2, 3, 4, 8, 16, 32, 33, 64] {
++            for size in [0, 1, 15, 16, 17, 31, 32, 33, 65, 1024] {
++                let mut work = FlatWork16::new(n, size + 3);
++                let mut reference: Vec<Vec<u16>> = (0..n)
++                    .map(|i| {
++                        (0..size + 3)
++                            .map(|j| ((i * 7919 + j * 3571 + 123) & 65535) as u16)
++                            .collect()
++                    })
++                    .collect();
++                for (i, v) in reference.iter().enumerate() {
++                    work.lane_mut(i).copy_from_slice(v);
++                }
++                for i in 1..n {
++                    let width = ((i ^ (i - 1)) + 1) >> 1;
++                    for j in 0..width {
++                        let lo = i - width + j;
++                        let hi = i + j;
++                        if hi < n && lo < n {
++                            let (before, after) = reference.split_at_mut(hi);
++                            for (a, b) in before[lo][..size].iter_mut().zip(&after[0][..size]) {
++                                *a ^= *b;
++                            }
++                        }
++                    }
++                }
++                compute_formal_derivative16(&mut work, n, size);
++                for (i, expected) in reference.iter().enumerate() {
++                    assert_eq!(work.lane(i), expected, "n={n} size={size} lane={i}");
++                }
++            }
++        }
++    }
++}
