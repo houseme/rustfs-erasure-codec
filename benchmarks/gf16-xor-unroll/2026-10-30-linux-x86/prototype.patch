@@ -1,0 +1,78 @@
+--- a/src/core/leopard_gf16/ops.rs
++++ b/src/core/leopard_gf16/ops.rs
+@@ -156,25 +156,33 @@
+ #[target_feature(enable = "avx2")]
+ unsafe fn slice_xor_u16_avx2(dst: &mut [u8], src: &[u8]) {
+     use core::arch::x86_64::{_mm256_loadu_si256, _mm256_storeu_si256, _mm256_xor_si256};
+-
+-    let (dst32, dst_tail) = dst.as_chunks_mut::<32>();
+-    let (src32, src_tail) = src.as_chunks::<32>();
+-
++    let (dst128, dst_tail) = dst.as_chunks_mut::<128>();
++    let (src128, src_tail) = src.as_chunks::<128>();
++    for (d, s) in dst128.iter_mut().zip(src128.iter()) {
++        // SAFETY: all four 32-byte vectors remain inside each 128-byte chunk.
++        unsafe {
++            for off in [0, 32, 64, 96] {
++                let a = _mm256_loadu_si256(d.as_ptr().add(off).cast());
++                let b = _mm256_loadu_si256(s.as_ptr().add(off).cast());
++                _mm256_storeu_si256(d.as_mut_ptr().add(off).cast(), _mm256_xor_si256(a, b));
++            }
++        }
++    }
++    let (dst32, dst_tail) = dst_tail.as_chunks_mut::<32>();
++    let (src32, src_tail) = src_tail.as_chunks::<32>();
+     for (d, s) in dst32.iter_mut().zip(src32.iter()) {
+-        // SAFETY: as_chunks::<32>() yields 32-byte src/dst arrays, so each unaligned 256-bit load/store touches exactly 32 valid in-bounds bytes.
+-        unsafe {
+-            let sv = _mm256_loadu_si256(s.as_ptr().cast());
+-            let dv = _mm256_loadu_si256(d.as_ptr().cast());
+-            _mm256_storeu_si256(d.as_mut_ptr().cast(), _mm256_xor_si256(dv, sv));
+-        }
+-    }
+-
++        // SAFETY: each vector remains inside the 32-byte chunk.
++        unsafe {
++            let a = _mm256_loadu_si256(d.as_ptr().cast());
++            let b = _mm256_loadu_si256(s.as_ptr().cast());
++            _mm256_storeu_si256(d.as_mut_ptr().cast(), _mm256_xor_si256(a, b));
++        }
++    }
+     for (d, s) in dst_tail.iter_mut().zip(src_tail.iter()) {
+         *d ^= *s;
+     }
+ }
+
+-/// NEON SIMD XOR for u16 slices (reinterpreted as bytes): 64 bytes per iteration.
+ #[cfg(target_arch = "aarch64")]
+ #[target_feature(enable = "neon")]
+ unsafe fn slice_xor_u16_neon(dst: &mut [u8], src: &[u8]) {
+@@ -776,3 +784,28 @@
+         Some((first, second))
+     }
+ }
++
++#[cfg(all(test, feature = "std", target_arch = "x86_64"))]
++mod xor_unroll_experiment_tests {
++    #[test]
++    fn avx2_xor_matches_scalar_across_chunk_boundaries() {
++        if !std::is_x86_feature_detected!("avx2") {
++            return;
++        }
++        for len in (0..=513).chain([1024, 32768]) {
++            let a: Vec<u16> = (0..len + 2)
++                .map(|i| (i as u16).wrapping_mul(9127))
++                .collect();
++            let b: Vec<u16> = (0..len + 2)
++                .map(|i| (i as u16).wrapping_mul(3571))
++                .collect();
++            let mut got = a.clone();
++            let mut expected = a.clone();
++            for i in 1..len + 1 {
++                expected[i] ^= b[i];
++            }
++            super::slice_xor_u16(&mut got[1..len + 1], &b[1..len + 1]);
++            assert_eq!(got, expected, "len={len}");
++        }
++    }
++}
