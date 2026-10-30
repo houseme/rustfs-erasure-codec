@@ -268,9 +268,8 @@ mod x86 {
         __m128i, __m256i, _mm_and_si128, _mm_loadu_si128, _mm_packus_epi16, _mm_set1_epi8,
         _mm_shuffle_epi8, _mm_srli_epi16, _mm_storeu_si128, _mm_unpackhi_epi8, _mm_unpacklo_epi8,
         _mm_xor_si128, _mm256_and_si256, _mm256_broadcastsi128_si256, _mm256_loadu_si256,
-        _mm256_packus_epi16, _mm256_permute2x128_si256, _mm256_permute4x64_epi64, _mm256_set1_epi8,
-        _mm256_shuffle_epi8, _mm256_srli_epi16, _mm256_storeu_si256, _mm256_unpackhi_epi8,
-        _mm256_unpacklo_epi8, _mm256_xor_si256,
+        _mm256_packus_epi16, _mm256_set1_epi8, _mm256_shuffle_epi8, _mm256_srli_epi16,
+        _mm256_storeu_si256, _mm256_unpackhi_epi8, _mm256_unpacklo_epi8, _mm256_xor_si256,
     };
 
     // ---- SSSE3: 16 u16 (32 bytes) per iteration, 128-bit lanes ----
@@ -423,17 +422,12 @@ mod x86 {
                     y1
                 };
 
-                // packus is per-128-lane, so the planes come out lane-scrambled as
-                // [e0-7, e16-23, e8-15, e24-31]; permute 64-bit words 0,2,1,3 (0xD8)
-                // to restore ascending order.
-                let plane_lo = _mm256_permute4x64_epi64::<0xD8>(_mm256_packus_epi16(
-                    _mm256_and_si256(a, mask_lo),
-                    _mm256_and_si256(b, mask_lo),
-                ));
-                let plane_hi = _mm256_permute4x64_epi64::<0xD8>(_mm256_packus_epi16(
-                    _mm256_srli_epi16::<8>(a),
-                    _mm256_srli_epi16::<8>(b),
-                ));
+                // Keep packus's per-128-bit lane order through nibble lookup.
+                // unpacklo/hi below then yield the original contiguous vectors.
+                let plane_lo =
+                    _mm256_packus_epi16(_mm256_and_si256(a, mask_lo), _mm256_and_si256(b, mask_lo));
+                let plane_hi =
+                    _mm256_packus_epi16(_mm256_srli_epi16::<8>(a), _mm256_srli_epi16::<8>(b));
 
                 let n0 = _mm256_and_si256(plane_lo, mask);
                 let n1 = _mm256_and_si256(_mm256_srli_epi16::<4>(plane_lo), mask);
@@ -449,13 +443,9 @@ mod x86 {
                     _mm256_xor_si256(_mm256_shuffle_epi8(hi2, n2), _mm256_shuffle_epi8(hi3, n3)),
                 );
 
-                // Re-interleave. unpack is per-128-lane:
-                //   r_lo = [e0-7 | e16-23], r_hi = [e8-15 | e24-31]
-                // recombine lanes into ascending [e0-15 | e16-31].
-                let r_lo = _mm256_unpacklo_epi8(out_lo, out_hi);
-                let r_hi = _mm256_unpackhi_epi8(out_lo, out_hi);
-                let mut o0 = _mm256_permute2x128_si256::<0x20>(r_lo, r_hi); // e0-15
-                let mut o1 = _mm256_permute2x128_si256::<0x31>(r_lo, r_hi); // e16-31
+                // unpacklo selects e0-7 and e8-15; unpackhi selects e16-31.
+                let mut o0 = _mm256_unpacklo_epi8(out_lo, out_hi);
+                let mut o1 = _mm256_unpackhi_epi8(out_lo, out_hi);
                 if XOR || BUTTERFLY {
                     o0 = _mm256_xor_si256(o0, x0);
                     o1 = _mm256_xor_si256(o1, x1);
@@ -787,6 +777,49 @@ mod butterfly_tests {
                     assert_eq!(x, ex, "x len={len} log={log_m} inverse={inverse}");
                     assert_eq!(y, ey, "y len={len} log={log_m} inverse={inverse}");
                 }
+            }
+        }
+    }
+}
+
+#[cfg(all(
+    test,
+    feature = "std",
+    target_arch = "x86_64",
+    target_endian = "little"
+))]
+mod lane_order_tests {
+    use super::super::{init_leopard_gf16_tables, ops};
+    #[test]
+    fn avx2_mul_and_xor_match_every_field_value() {
+        if !std::is_x86_feature_detected!("avx2") {
+            std::println!("AVX2 unavailable");
+            return;
+        }
+        std::println!("AVX2=true: lane-order kernel executed");
+        let tables = init_leopard_gf16_tables();
+        let input: Vec<u16> = (0..=u16::MAX).collect();
+        for log_m in [0, 1, 31, 1024, 32768, 65534] {
+            for xor in [false, true] {
+                let seed: Vec<u16> = (0..input.len())
+                    .map(|i| (i as u16).wrapping_mul(40503))
+                    .collect();
+                let mut actual = seed.clone();
+                let mut expected = seed;
+                for (out, &value) in expected.iter_mut().zip(&input) {
+                    let product = ops::mul_log16(value, log_m, &tables.log_lut, &tables.exp_lut);
+                    if xor {
+                        *out ^= product;
+                    } else {
+                        *out = product;
+                    }
+                }
+                if xor {
+                    super::mulgf16_simd::<true>(&mut actual, &input, log_m, tables);
+                } else {
+                    super::mulgf16_simd::<false>(&mut actual, &input, log_m, tables);
+                }
+                assert_eq!(actual, expected, "multiplier={log_m} xor={xor}");
             }
         }
     }
