@@ -253,6 +253,52 @@ of unrelated work. Reserve process resources separately and record the actual
 configuration and worker-warm markers. This mode is an experimental workload,
 not a change to production warmup or a substitute for the ABBA and A2 gates.
 
+## Recovery performance screen on native Linux x86-64
+
+On 2026-10-30 an exploratory A1/B1/B2/A2 run compared `6111b62` with
+`600d990` on an AMD EPYC 9V45 virtual machine. Both sides used the same
+comparison harness, identical lockfiles, Rust stable 1.99.1, `simd-accel`, and
+four Rayon workers. The baseline source copy received only the comparison
+benchmark and its manifest declaration. All 96 cases passed functional checks
+before timing. CPU 8–15 were reserved in an exclusive cgroup partition, with
+the other CPUs left for the host. The controller reported no competing heavy
+processes during its periodic checks, and the partition and shared reservation
+were released afterward. Physical-host isolation was not established.
+
+Each phase completed 96 cases with ten Criterion samples per case, a 0.2-second
+warmup and a 0.6-second requested measurement time. The
+[raw benchmark identities, estimates and samples](../benchmarks/recovery-direct-and-gf16-fusion/2026-10-30-linux-x86/measurements.json)
+retain all four phases. The figures below average the two Criterion **mean**
+estimates for each revision, calculate `(candidate / baseline - 1) * 100` for
+each case, and report the median and range across the eight cases for each row
+(two geometries and one through four missing shards). Negative values indicate
+lower elapsed time.
+
+| Family | Recovery entrypoint | Shard size | Median latency change | Range |
+| --- | --- | ---: | ---: | ---: |
+| GF8 | retained slots | 64 KiB | +0.56% | −3.72% to +3.10% |
+| GF8 | retained slots | 1 MiB | −0.47% | −4.43% to +3.61% |
+| GF8 | generic Option | 64 KiB | −0.74% | −4.12% to +9.82% |
+| GF8 | generic Option | 1 MiB | −1.46% | −2.33% to +7.61% |
+| GF8 | optimized Option | 64 KiB | −1.33% | −5.69% to +5.02% |
+| GF8 | optimized Option | 1 MiB | −6.90% | −8.13% to −4.36% |
+| GF16 | retained slots | 64 KiB | −9.92% | −13.34% to −7.06% |
+| GF16 | retained slots | 1 MiB | −8.31% | −12.83% to −5.14% |
+| GF16 | generic Option | 64 KiB | −9.88% | −12.51% to −3.21% |
+| GF16 | generic Option | 1 MiB | −7.62% | −11.50% to −5.34% |
+| GF16 | optimized Option | 64 KiB | −9.01% | −17.87% to −3.83% |
+| GF16 | optimized Option | 1 MiB | −22.59% | −28.90% to −21.38% |
+
+For example, GF16 optimized Option recovery of one 1 MiB missing shard changed
+from 1.610 ms to 1.145 ms for 10+4, and from 3.116 ms to 2.450 ms for 16+8.
+Those entries combine all changes between the two revisions, including the
+direct destination and fused kernels; they do not isolate either contribution.
+Generic and retained-slot entries preserve their staged publication semantics.
+The sampling was intentionally short and the user requested that drift not
+stop the run. A1/A2 differed by more than 5% in 13/96 cases and B1/B2 in 12/96;
+the table is therefore an exploratory screen, not a formal release qualification
+or a precise regression boundary. No cases were filtered out for those changes.
+
 ## Outstanding evidence
 
 The generic container path is not fused. No latency or throughput claim follows
