@@ -1,0 +1,175 @@
+--- a/src/core/leopard_gf16/ops.rs
++++ b/src/core/leopard_gf16/ops.rs
+@@ -431,6 +431,71 @@
+     dit2_step_inv16(x, y, log_m, tables);
+ }
+
++#[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
++fn try_radix4_sentinel<const INVERSE: bool>(
++    a: &mut [u16],
++    b: &mut [u16],
++    c: &mut [u16],
++    d: &mut [u16],
++    log_m23: u16,
++    tables: &LeopardGf16Tables,
++) -> bool {
++    if a.len() != b.len()
++        || a.len() != c.len()
++        || a.len() != d.len()
++        || a.len() < 32
++        || log_m23 == MODULUS16 as u16
++        || !is_x86_feature_detected!("avx2")
++    {
++        return false;
++    }
++    if INVERSE {
++        dit2_step_inv16(c, d, log_m23, tables);
++    }
++    // SAFETY: AVX2 was detected and the four equal-sized mutable lanes are disjoint.
++    unsafe {
++        xor_three_avx2::<INVERSE>(a, b, c, d);
++    }
++    if !INVERSE {
++        dit2_step16(c, d, log_m23, tables);
++    }
++    true
++}
++
++#[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
++#[target_feature(enable = "avx2")]
++unsafe fn xor_three_avx2<const INVERSE: bool>(
++    a: &[u16],
++    b: &mut [u16],
++    c: &mut [u16],
++    d: &mut [u16],
++) {
++    use core::arch::x86_64::{_mm256_loadu_si256, _mm256_storeu_si256, _mm256_xor_si256};
++    let chunks = a.len() / 16;
++    // SAFETY: callers supply four equal-sized disjoint lanes; each vector stays in a complete chunk.
++    unsafe {
++        for i in 0..chunks {
++            let off = i * 16;
++            let av = _mm256_loadu_si256(a.as_ptr().add(off).cast());
++            let bv = _mm256_loadu_si256(b.as_ptr().add(off).cast());
++            let cv = _mm256_loadu_si256(c.as_ptr().add(off).cast());
++            let dv = _mm256_loadu_si256(d.as_ptr().add(off).cast());
++            let bn = _mm256_xor_si256(bv, av);
++            let cn = _mm256_xor_si256(cv, av);
++            let dn = _mm256_xor_si256(dv, if INVERSE { bn } else { bv });
++            _mm256_storeu_si256(b.as_mut_ptr().add(off).cast(), bn);
++            _mm256_storeu_si256(c.as_mut_ptr().add(off).cast(), cn);
++            _mm256_storeu_si256(d.as_mut_ptr().add(off).cast(), dn);
++        }
++    }
++    for i in chunks * 16..a.len() {
++        let old_b = b[i];
++        b[i] ^= a[i];
++        c[i] ^= a[i];
++        d[i] ^= if INVERSE { b[i] } else { old_b };
++    }
++}
++
+ /// Forward radix-4 butterfly.
+ #[inline(always)]
+ #[allow(clippy::too_many_arguments)]
+@@ -444,6 +509,13 @@
+     log_m02: u16,
+     tables: &LeopardGf16Tables,
+ ) {
++    #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
++    if log_m01 == MODULUS16 as u16
++        && log_m02 == MODULUS16 as u16
++        && try_radix4_sentinel::<false>(a, b, c, d, log_m23, tables)
++    {
++        return;
++    }
+     debug_assert_eq!(a.len(), b.len());
+     debug_assert_eq!(a.len(), c.len());
+     debug_assert_eq!(a.len(), d.len());
+@@ -467,6 +539,13 @@
+     log_m02: u16,
+     tables: &LeopardGf16Tables,
+ ) {
++    #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
++    if log_m01 == MODULUS16 as u16
++        && log_m02 == MODULUS16 as u16
++        && try_radix4_sentinel::<true>(a, b, c, d, log_m23, tables)
++    {
++        return;
++    }
+     debug_assert_eq!(a.len(), b.len());
+     debug_assert_eq!(a.len(), c.len());
+     debug_assert_eq!(a.len(), d.len());
+@@ -776,3 +855,72 @@
+         Some((first, second))
+     }
+ }
++
++#[cfg(all(
++    test,
++    feature = "std",
++    target_arch = "x86_64",
++    target_endian = "little"
++))]
++mod radix4_sentinel_experiment_tests {
++    use super::*;
++    #[test]
++    fn sentinel_radix4_matches_pairwise_reference() {
++        if !std::is_x86_feature_detected!("avx2") {
++            std::println!("AVX2 unavailable");
++            return;
++        }
++        std::println!("AVX2=true: radix4 sentinel executed");
++        let tables = super::super::init_leopard_gf16_tables();
++        for len in [0, 1, 15, 16, 31, 32, 33, 47, 63, 64, 65, 1024, 32768] {
++            for m in [0, 1, 31, 1024, 32768, 65534, MODULUS16 as u16] {
++                for inverse in [false, true] {
++                    let initial: Vec<Vec<u16>> = (0..4)
++                        .map(|k| {
++                            (0..len + 2)
++                                .map(|i| ((i * 9127 + k * 137) & 65535) as u16)
++                                .collect()
++                        })
++                        .collect();
++                    let mut v = initial.clone();
++                    let mut expected = initial;
++                    let (a, rest) = expected.split_at_mut(1);
++                    let (b, rest) = rest.split_at_mut(1);
++                    let (c, d) = rest.split_at_mut(1);
++                    let (a, b, c, d) = (
++                        &mut a[0][1..len + 1],
++                        &mut b[0][1..len + 1],
++                        &mut c[0][1..len + 1],
++                        &mut d[0][1..len + 1],
++                    );
++                    if inverse {
++                        dit2_step_inv16(a, b, MODULUS16 as u16, tables);
++                        dit2_step_inv16(c, d, m, tables);
++                        dit2_step_inv16(b, d, MODULUS16 as u16, tables);
++                        dit2_step_inv16(a, c, MODULUS16 as u16, tables);
++                    } else {
++                        dit2_step16(a, c, MODULUS16 as u16, tables);
++                        dit2_step16(b, d, MODULUS16 as u16, tables);
++                        dit2_step16(a, b, MODULUS16 as u16, tables);
++                        dit2_step16(c, d, m, tables);
++                    }
++                    let (a, rest) = v.split_at_mut(1);
++                    let (b, rest) = rest.split_at_mut(1);
++                    let (c, d) = rest.split_at_mut(1);
++                    let (a, b, c, d) = (
++                        &mut a[0][1..len + 1],
++                        &mut b[0][1..len + 1],
++                        &mut c[0][1..len + 1],
++                        &mut d[0][1..len + 1],
++                    );
++                    if inverse {
++                        ifft_dit4_16(a, b, c, d, MODULUS16 as u16, m, MODULUS16 as u16, tables);
++                    } else {
++                        fft_dit4_16(a, b, c, d, MODULUS16 as u16, m, MODULUS16 as u16, tables);
++                    }
++                    assert_eq!(v, expected, "len={len} multiplier={m} inverse={inverse}");
++                }
++            }
++        }
++    }
++}

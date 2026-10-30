@@ -1,0 +1,17 @@
+SKEW zeros=0 first=None
+MASK data=10 parity=4 bytes=65536 missing=1 forward=[3, 0, 0, 0, 0, 5, 0, 0] inverse=[3, 0, 0, 0, 0, 5, 0, 0]
+COEFF data=10 parity=4 bytes=65536 missing=1 zero=0 sentinel=30 other=34
+MASK data=10 parity=4 bytes=65536 missing=4 forward=[3, 0, 0, 0, 0, 5, 0, 0] inverse=[3, 0, 0, 0, 0, 5, 0, 0]
+COEFF data=10 parity=4 bytes=65536 missing=4 zero=0 sentinel=30 other=34
+MASK data=10 parity=4 bytes=1048576 missing=1 forward=[48, 0, 0, 0, 0, 80, 0, 0] inverse=[48, 0, 0, 0, 0, 80, 0, 0]
+COEFF data=10 parity=4 bytes=1048576 missing=1 zero=0 sentinel=480 other=544
+MASK data=10 parity=4 bytes=1048576 missing=4 forward=[48, 0, 0, 0, 0, 80, 0, 0] inverse=[48, 0, 0, 0, 0, 80, 0, 0]
+COEFF data=10 parity=4 bytes=1048576 missing=4 zero=0 sentinel=480 other=544
+MASK data=16 parity=8 bytes=65536 missing=1 forward=[4, 0, 0, 0, 0, 10, 0, 0] inverse=[9, 0, 0, 0, 0, 5, 0, 0]
+COEFF data=16 parity=8 bytes=65536 missing=1 zero=0 sentinel=62 other=78
+MASK data=16 parity=8 bytes=65536 missing=4 forward=[4, 0, 0, 0, 0, 10, 0, 0] inverse=[9, 0, 0, 0, 0, 5, 0, 0]
+COEFF data=16 parity=8 bytes=65536 missing=4 zero=0 sentinel=62 other=78
+MASK data=16 parity=8 bytes=1048576 missing=1 forward=[64, 0, 0, 0, 0, 160, 0, 0] inverse=[144, 0, 0, 0, 0, 80, 0, 0]
+COEFF data=16 parity=8 bytes=1048576 missing=1 zero=0 sentinel=992 other=1248
+MASK data=16 parity=8 bytes=1048576 missing=4 forward=[64, 0, 0, 0, 0, 160, 0, 0] inverse=[144, 0, 0, 0, 0, 80, 0, 0]
+COEFF data=16 parity=8 bytes=1048576 missing=4 zero=0 sentinel=992 other=1248
