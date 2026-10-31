@@ -1,5 +1,6 @@
 //! Non-timing, baseline-only observation. No addresses are emitted.
 use std::hint::black_box;
+use std::io::Write as _;
 
 const ITERATIONS: usize = 1024;
 
@@ -177,8 +178,15 @@ fn main() {
                 .all(|(got, want)| got.as_deref() == Some(want.as_slice()))
         );
         println!(
-            "{{\"case\":\"{data}x{parity}/{len}/missing{missing}\",\"A1\":{a1},\"B1\":{b1},\"B2\":{b2},\"A2\":{a2}}}"
+            "{{\"case_id\":\"allocation_observation/{data}x{parity}/{len}/missing{missing}\",\"A1\":{a1},\"B1\":{b1},\"B2\":{b2},\"A2\":{a2}}}"
         );
+        std::io::stdout().flush().unwrap();
+        let mut acknowledgement = String::new();
+        if std::io::stdin().read_line(&mut acknowledgement).unwrap() == 0
+            || acknowledgement.trim() != "continue"
+        {
+            std::process::exit(2);
+        }
     }
 }
 

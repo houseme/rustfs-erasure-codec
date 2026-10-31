@@ -26,7 +26,20 @@ counter includes all process threads and the observer's own reads. This probe
 does not identify which allocation faulted, measure allocator latency or
 explain a previous candidate run. Its fixed iteration count also differs from
 the earlier timed phases, so its values cannot be used to accept or compare
-performance candidates.
+performance candidates. The probe flushes each complete case and waits for a
+`continue` acknowledgement, allowing a resource-monitoring parent to stop
+before the next case if the reserved window changes.
+
+`allocation-monitor.patch` applies to the archived
+`2026-11-01-affinity-diagnostic/run_streaming_latest.py` in commit `70898c1`.
+It retains the same resource monitor and per-case stopping behavior while
+validating non-timing case IDs, capacities, fault counts and address-transition
+counts. It refuses candidate binaries and labels a successful run as a
+resource/schema check with `performance_gate_passed: false`. It cannot accept a
+performance candidate. The generated monitor was reproduced from the patch;
+local synthetic tests covered malformed counts, candidate refusal and stopping
+before acknowledgement. A functional smoke test also confirmed that the
+probe waits between all cases and exits on an invalid acknowledgement.
 
 The fault parser and address-transition counter passed local unit tests. A
 separate Apple Silicon smoke variant used 16 iterations and synthetic zero

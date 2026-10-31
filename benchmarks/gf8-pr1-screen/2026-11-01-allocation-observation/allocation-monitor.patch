@@ -1,0 +1,119 @@
+--- a/run_streaming.py
++++ b/run_allocation.py
+@@ -18,9 +18,9 @@
+ STAGES = ("A1", "B1", "B2", "A2")
+ OFF_TARGET_CPUS = tuple(range(1, 8)) + (13, 14, 15)
+ EXPECTED_CASES = {
+-    "retained_recovery_row/10x4/1048576/missing0",
+-    "retained_recovery_row/10x4/1048577/missing3",
+-    "retained_recovery_row/4x2/1048576/missing0",
++    "allocation_observation/10x4/1048576/missing0",
++    "allocation_observation/10x4/1048577/missing3",
++    "allocation_observation/4x2/1048576/missing0",
+ }
+ 
+ 
+@@ -53,45 +53,22 @@
+ 
+ 
+ def evaluate(row, *, baseline):
+-    """Reject malformed samples before applying the prespecified 5% gates."""
+-    if row.get("case_id") not in EXPECTED_CASES:
+-        raise GateError("unexpected case")
+-    if type(row.get("jobs")) is not int or row["jobs"] != 4:
+-        raise GateError("unexpected parallel policy")
+-    if type(row.get("available_parallelism")) is not int or row["available_parallelism"] != 5:
+-        raise GateError("unexpected parallel policy")
+-    if type(row.get("chunk_len")) is not int or row["chunk_len"] <= 0:
+-        raise GateError("invalid chunk length")
+-    medians = {}
+-    for stage in STAGES:
+-        block = row.get(stage, {})
+-        if not isinstance(block, dict):
+-            raise GateError("invalid stage")
+-        samples = block.get("samples_ns", [])
+-        iterations = block.get("iterations", [])
+-        if not isinstance(samples, list) or not isinstance(iterations, list) or len(samples) != 3 or len(iterations) != 3:
+-            raise GateError("missing samples or iteration counts")
+-        try:
+-            invalid_sample = any(not isinstance(v, (int, float)) or isinstance(v, bool) or not math.isfinite(v) or v <= 0 for v in samples)
+-        except OverflowError:
+-            invalid_sample = True
+-        if invalid_sample:
+-            raise GateError("nonfinite or nonpositive sample")
+-        if any(not isinstance(v, int) or isinstance(v, bool) or v <= 0 for v in iterations):
+-            raise GateError("invalid iteration count")
+-        medians[stage] = statistics.median(samples)
+-    a = (medians["A2"] / medians["A1"] - 1) * 100
+-    b = (medians["B2"] / medians["B1"] - 1) * 100
+-    mean_a = medians["A1"] / 2 + medians["A2"] / 2
+-    mean_b = medians["B1"] / 2 + medians["B2"] / 2
+-    delta = (mean_b / mean_a - 1) * 100
+-    if not all(math.isfinite(v) for v in (a, b, delta)):
+-        raise GateError("nonfinite calculated result")
+-    if not (medians["A1"] * 0.95 <= medians["A2"] <= medians["A1"] * 1.05) or not (medians["B1"] * 0.95 <= medians["B2"] <= medians["B1"] * 1.05):
+-        raise GateError(f"phase drift exceeds 5%: A={a:.2f}% B={b:.2f}%")
+-    if baseline and not (mean_a * 0.95 <= mean_b <= mean_a * 1.05):
+-        raise GateError(f"same-source bias exceeds 5%: {delta:.2f}%")
+-    return a, b, delta
++    """Validate non-timing counts; no candidate or performance gate exists."""
++    if not baseline or row.get("case_id") not in EXPECTED_CASES:
++        raise GateError("unexpected non-timing case")
++    length = int(row["case_id"].split("/")[2])
++    keys = ("iterations", "same_address", "different_address", "capacity_min", "capacity_max", "minor_faults", "major_faults")
++    for index, stage in enumerate(STAGES):
++        block = row.get(stage)
++        if not isinstance(block, dict) or set(block) != set(keys):
++            raise GateError("invalid allocation observation")
++        if any(type(block[k]) is not int or not 0 <= block[k] < 2**64 for k in keys):
++            raise GateError("invalid observation count")
++        if block["iterations"] != 1024 or block["same_address"] + block["different_address"] != 1024 - (index == 0):
++            raise GateError("invalid address transition count")
++        if not length <= block["capacity_min"] <= block["capacity_max"]:
++            raise GateError("invalid recovered capacity")
++    return 0.0, 0.0, 0.0
+ 
+ 
+ def phase_level(row, first, second):
+@@ -177,6 +154,8 @@
+     parser.add_argument("--output-dir", required=True)
+     parser.add_argument("--source-label", required=True)
+     args = parser.parse_args()
++    if args.candidate_binary is not None:
++        parser.error("candidate binaries are not permitted in this non-timing observer")
+     output_dir = Path(args.output_dir)
+     output_dir.mkdir(parents=True, exist_ok=False)
+     stop = threading.Event()
+@@ -267,19 +246,7 @@
+                         current[0] = proc
+                     try:
+                         def accept(row, a, b, delta):
+-                            case = row["case_id"]
+-                            levels = (phase_level(row, "A1", "A2"), phase_level(row, "B1", "B2"))
+-                            if run == 1:
+-                                round_levels[phase][case] = levels
+-                                cross = ""
+-                            else:
+-                                previous = round_levels[phase][case]
+-                                cross_a = check_cross_round(previous[0], levels[0])
+-                                cross_b = check_cross_round(previous[1], levels[1])
+-                                cross = f" cross_A={cross_a:.2f}% cross_B={cross_b:.2f}%"
+-                            print(phase, run, case, f"A={a:.2f}% B={b:.2f}%{cross}", flush=True)
+-                            if not baseline:
+-                                candidate_results.append((run, case, delta))
++                            print(phase, run, row["case_id"], "non-timing case validated", flush=True)
+ 
+                         process_cases(
+                             proc, out, baseline=baseline, resource_invalid=bad.is_set, accept=accept
+@@ -299,9 +266,9 @@
+         thread.join()
+         if bad.is_set():
+             raise GateError("resource monitor rejected the run")
+-        summary = {"status": "pass", "source": args.source_label, "candidate_tested": args.candidate_binary is not None}
++        summary = {"status": "resource-and-schema-pass", "source": args.source_label, "measurement_kind": "non-timing-observation", "candidate_tested": False, "performance_gate_passed": False}
+         (output_dir / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+-        print("all requested gates passed", flush=True)
++        print("resource and schema checks passed; no performance gate was run", flush=True)
+         for run, case, delta in candidate_results:
+             print("candidate", run, case, f"latency_delta={delta:.2f}%", flush=True)
+     except (GateError, OSError, ValueError, KeyError, TypeError) as exc:
