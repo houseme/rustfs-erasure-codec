@@ -1,7 +1,8 @@
 # Byte-balanced output-group experiment
 
 This experiment is based on `f3c6ed647392c8c54d8393ba41adf0461f0f9428`.
-It is a test-only patch and is not enabled in production. It follows the
+It contains an experimental runtime change and a boundary test; it is not
+enabled in production. It follows the
 [earlier chunk-balanced experiment](../2026-11-01-balanced-scheduler/README.md).
 
 For one output of 1,048,576 GF8 elements, chunk length 209,664 and four jobs,
