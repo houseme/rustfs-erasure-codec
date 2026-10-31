@@ -1,5 +1,9 @@
 # Frozen-current retained-row baseline recheck
 
+Historical Python experiment scripts cited below are archived in commit
+`70898c1` and are not part of the current source tree. The recorded data and
+Rust probes remain available here.
+
 This snapshot is commit `7587132dec4f9bf6a8f55e6855144c6a2e7f8480` plus
 `worktree.patch` (SHA-256
 `3673518d13d7b70d977df1715e85e508144cf496f0e9d36f168b0ec76545aeaa`).

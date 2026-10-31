@@ -1,5 +1,9 @@
 # Retained-output recovery-row diagnostic
 
+Historical Python experiment scripts cited below are archived in commit
+`70898c1` and are not part of the current source tree. The recorded data and
+Rust probes remain available here.
+
 This is a temporary, non-production diagnostic for the previously observed
 parallel recovery drift. The baseline is commit
 `88e52de48e64d0f3299c4b472fbc69e207e59ab9` plus `baseline-source.patch`

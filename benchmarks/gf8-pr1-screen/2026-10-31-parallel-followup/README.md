@@ -1,5 +1,9 @@
 # GF8 follow-up: measurement diagnostics and parallel row candidate
 
+Historical Python experiment scripts cited below are archived in commit
+`70898c1` and are not part of the current source tree. The recorded data and
+Rust probes remain available here.
+
 The source baseline is the `fc6795c` worktree snapshot identified by
 [`../2026-10-31-followup/baseline-worktree.patch`](../2026-10-31-followup/baseline-worktree.patch).
 The previously rejected 6+2 A2-drift result remains invalid; this follow-up

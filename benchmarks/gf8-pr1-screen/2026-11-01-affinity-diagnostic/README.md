@@ -1,5 +1,9 @@
 # Fixed-worker baseline diagnostic
 
+Historical Python experiment scripts cited below are archived in commit
+`70898c1` and are not part of the current source tree. The recorded data and
+Rust probes remain available here.
+
 This baseline-only diagnostic continues the previously failed preflight in
 [`../2026-10-31-freeze-7587132/README.md`](../2026-10-31-freeze-7587132/README.md).
 The source snapshot is commit `7587132` plus the worktree patch saved there.

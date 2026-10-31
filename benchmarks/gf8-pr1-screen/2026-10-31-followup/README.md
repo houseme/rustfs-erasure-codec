@@ -1,5 +1,9 @@
 # GF8 PR 1 follow-up: 6+2 and bounded reconstruction
 
+Historical Python experiment scripts cited below are archived in commit
+`70898c1` and are not part of the current source tree. The recorded data and
+Rust probes remain available here.
+
 The baseline is commit `fc6795c02f014ed380273c002f46d582a0e9b8d3` plus
 `baseline-worktree.patch` (SHA-256
 `2f6b7c98ba4247be60e13b396157226c4ba80bf9dc894280451d0ebcc6e93e18`).

@@ -1,5 +1,9 @@
 # Baseline order and scheduling diagnostics
 
+Historical Python experiment scripts cited below are archived in commit
+`70898c1` and are not part of the current source tree. The recorded data and
+Rust probes remain available here.
+
 This is baseline-only follow-up to the rejected A2-drift preflight recorded in
 [`../2026-10-31-same-process/README.md`](../2026-10-31-same-process/README.md).
 No candidate performance comparison was run in this follow-up. The code

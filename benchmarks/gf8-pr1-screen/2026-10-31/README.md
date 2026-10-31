@@ -1,5 +1,9 @@
 # GF8 PR 1: 6+2 candidate screen
 
+Historical Python experiment scripts cited below are archived in commit
+`70898c1` and are not part of the current source tree. The recorded data and
+Rust probes remain available here.
+
 The candidate in `6x2-candidate.patch` adds the 6+2 generated shape and extends
 both architecture-specific scalar comparison tests. It is retained as an
 experiment, not applied to the production dispatcher. The integration regression
