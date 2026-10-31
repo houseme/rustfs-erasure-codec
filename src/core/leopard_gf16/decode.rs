@@ -155,6 +155,19 @@ pub(crate) fn build_leopard_gf16_decode_driver(
     })
 }
 
+#[cfg(all(target_arch = "aarch64", not(feature = "std")))]
+#[inline(always)]
+fn mul_locator_mod16(a: u16, b: u16) -> u16 {
+    let product = u32::from(a) * u32::from(b);
+    // 2^16 is 1 modulo 65535; the folded sum is at most 131069.
+    let folded = (product & 0xffff) + (product >> 16);
+    if folded >= 0xffff {
+        (folded - 0xffff) as u16
+    } else {
+        folded as u16
+    }
+}
+
 #[allow(clippy::needless_range_loop)]
 fn compute_error_locs16(
     missing_parity: &[usize],
@@ -179,6 +192,11 @@ fn compute_error_locs16(
 
     fwht16_mtrunc(&mut err_locs, ORDER16, driver.work_size);
 
+    #[cfg(all(target_arch = "aarch64", not(feature = "std")))]
+    for i in 0..super::ORDER16 {
+        err_locs[i] = mul_locator_mod16(err_locs[i], tables.log_walsh[i]);
+    }
+    #[cfg(any(not(target_arch = "aarch64"), feature = "std"))]
     for i in 0..super::ORDER16 {
         if err_locs[i] == 0 {
             continue;
@@ -866,6 +884,53 @@ mod decode_driver_boundary_tests {
     fn no_std_decode_workspace_does_not_allocate_conversion_scratch() {
         let buffers = super::DecodeBuffers::new(16, 32 * 1024);
         assert_eq!(buffers.scratch.capacity(), 0);
+    }
+
+    #[cfg(all(target_arch = "aarch64", not(feature = "std")))]
+    #[test]
+    fn locator_reduction_matches_division_for_all_inputs_at_edge_factors() {
+        for factor in [0u16, 1, 2, 3, 255, 256, 257, 32767, 32768, 65534, 65535] {
+            for value in 0..=u16::MAX {
+                let expected = ((u64::from(value) * u64::from(factor)) % 65535) as u16;
+                assert_eq!(super::mul_locator_mod16(value, factor), expected);
+            }
+        }
+    }
+
+    #[test]
+    fn error_locator_matches_wide_product_reference() {
+        use super::{MODULUS16, ORDER16};
+        let tables = super::init_leopard_gf16_tables();
+        for (data_count, parity_count, missing_data, missing_parity) in [
+            (10, 4, &[0, 3][..], &[10][..]),
+            (16, 8, &[1, 15][..], &[19, 23][..]),
+            (100, 27, &[0, 49, 99][..], &[100, 126][..]),
+            (65532, 4, &[0, 32767, 65531][..], &[65535][..]),
+        ] {
+            let driver =
+                super::build_leopard_gf16_decode_driver(data_count, parity_count, 64).unwrap();
+            let actual = super::compute_error_locs16(missing_parity, missing_data, &driver, tables);
+            let mut expected = super::alloc::vec![0u16; ORDER16];
+            for &i in missing_parity {
+                expected[i - data_count] = 1;
+            }
+            for value in &mut expected[parity_count..driver.m] {
+                *value = 1;
+            }
+            for &i in missing_data {
+                expected[driver.m + i] = 1;
+            }
+            super::fwht16_mtrunc(&mut expected, ORDER16, driver.work_size);
+            for (value, &factor) in expected.iter_mut().zip(tables.log_walsh.iter()) {
+                *value = ((u64::from(*value) * u64::from(factor)) % MODULUS16 as u64) as u16;
+            }
+            super::fwht16_variable(&mut expected);
+            assert_eq!(
+                actual.as_slice(),
+                expected.as_slice(),
+                "data={data_count}, parity={parity_count}"
+            );
+        }
     }
 
     #[test]
