@@ -1,0 +1,178 @@
+--- a/src/core/leopard_gf16/decode.rs
++++ b/src/core/leopard_gf16/decode.rs
+@@ -621,53 +621,35 @@
+     n: usize,
+     scratch: &mut [u16],
+ ) {
+-    if plan.initial_blocks.is_empty() {
+-        for idx in plan.mtrunc..plan.m {
+-            work.lane_mut(idx)[..size].fill(0);
+-        }
+-    } else {
+-        for block in &plan.initial_blocks {
+-            let available = core::cmp::min(plan.mtrunc.saturating_sub(block.r), 4);
+-            for slot_idx in (block.r + available)..(block.r + 4) {
+-                if slot_idx < n {
+-                    work.lane_mut(slot_idx)[..size].fill(0);
+-                }
+-            }
+-
+-            dit4_decode_at_16(
+-                false,
+-                work,
+-                size,
+-                block.r,
+-                block.dist,
+-                block.log_m01,
+-                block.log_m23,
+-                block.log_m02,
+-                tables,
+-                scratch,
+-            );
+-        }
+-
+-        for idx in plan.clear_start..plan.m {
+-            if idx < n {
+-                work.lane_mut(idx)[..size].fill(0);
+-            }
+-        }
+-
+-        for block in &plan.later_blocks {
+-            dit4_decode_at_16(
+-                false,
+-                work,
+-                size,
+-                block.r,
+-                block.dist,
+-                block.log_m01,
+-                block.log_m23,
+-                block.log_m02,
+-                tables,
+-                scratch,
+-            );
+-        }
++    // Input preparation already initializes every lane, including the
++    // truncated and padded suffix that the IFFT treats as zero.
++    for block in &plan.initial_blocks {
++        dit4_decode_at_16(
++            false,
++            work,
++            size,
++            block.r,
++            block.dist,
++            block.log_m01,
++            block.log_m23,
++            block.log_m02,
++            tables,
++            scratch,
++        );
++    }
++    for block in &plan.later_blocks {
++        dit4_decode_at_16(
++            false,
++            work,
++            size,
++            block.r,
++            block.dist,
++            block.log_m01,
++            block.log_m23,
++            block.log_m02,
++            tables,
++            scratch,
++        );
+     }
+
+     if let Some(stage) = plan.final_stage {
+@@ -934,6 +916,92 @@
+     }
+
+     #[test]
++    fn decode_reinitializes_stale_padding_before_it_is_read() {
++        use super::{Vec, alloc::vec};
++        let tables = super::init_leopard_gf16_tables();
++        for (data, parity) in [(1, 1), (2, 1), (3, 2), (10, 4), (16, 7), (16, 8)] {
++            for shard_size in [64usize, 192, 65536] {
++                let driver =
++                    super::build_leopard_gf16_decode_driver(data, parity, shard_size).unwrap();
++                let source: Vec<Vec<u8>> = (0..data + parity)
++                    .map(|i| (0..shard_size).map(|j| (i * 31 + j * 17) as u8).collect())
++                    .collect();
++                let mut patterns = vec![vec![0], vec![data - 1], vec![data + parity - 1]];
++                if parity >= 2 {
++                    patterns.push(vec![data - 1, data]);
++                }
++                for missing in patterns {
++                    let mut present = vec![true; data + parity];
++                    for &i in &missing {
++                        present[i] = false;
++                    }
++                    let missing_data: Vec<usize> =
++                        missing.iter().copied().filter(|&i| i < data).collect();
++                    let missing_parity: Vec<usize> =
++                        missing.iter().copied().filter(|&i| i >= data).collect();
++                    let inputs: Vec<Option<&[u8]>> = source
++                        .iter()
++                        .enumerate()
++                        .map(|(i, bytes)| present[i].then_some(bytes.as_slice()))
++                        .collect();
++                    let plan = super::build_decode_plan(
++                        &driver,
++                        &present,
++                        &missing_parity,
++                        &missing_data,
++                        tables,
++                    );
++                    let size = shard_size / 2;
++                    let mut clean = super::FlatWork16::new(driver.n, size);
++                    let mut stale = super::FlatWork16::new(driver.n, size);
++                    for i in 0..driver.n {
++                        stale.lane_mut(i).fill(0xa5a5);
++                    }
++                    let mut clean_scratch = Vec::new();
++                    let mut stale_scratch = Vec::new();
++                    super::compute_reconstruct_chunk(
++                        &mut clean,
++                        &mut clean_scratch,
++                        0,
++                        size,
++                        size,
++                        &present,
++                        &inputs,
++                        &plan.err_locs,
++                        &plan.ifft_plan,
++                        &plan.fft_plan,
++                        tables,
++                        &driver,
++                    )
++                    .unwrap();
++                    super::compute_reconstruct_chunk(
++                        &mut stale,
++                        &mut stale_scratch,
++                        0,
++                        size,
++                        size,
++                        &present,
++                        &inputs,
++                        &plan.err_locs,
++                        &plan.ifft_plan,
++                        &plan.fft_plan,
++                        tables,
++                        &driver,
++                    )
++                    .unwrap();
++                    for i in 0..driver.n {
++                        assert_eq!(
++                            clean.lane(i),
++                            stale.lane(i),
++                            "data={data}, parity={parity}, shard_size={shard_size}, missing={missing:?}, lane={i}"
++                        );
++                    }
++                }
++            }
++        }
++    }
++
++    #[test]
+     fn permits_the_full_field_transform_order() {
+         let driver =
+             super::build_leopard_gf16_decode_driver(super::super::ORDER16 - 4, 4, 64).unwrap();
