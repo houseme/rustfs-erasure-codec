@@ -1,0 +1,46 @@
+--- a/build.rs
++++ b/build.rs
+@@ -172,7 +172,7 @@
+     let mut f = File::create(&dest_path).unwrap();
+ 
+     // Common configurations from MinIO, Ceph, HDFS
+-    let configs: &[(usize, usize)] = &[(10, 4), (12, 4), (8, 3), (8, 4), (6, 3), (4, 2)];
++    let configs: &[(usize, usize)] = &[(10, 4), (12, 4), (8, 3), (8, 4), (6, 2), (6, 3), (4, 2)];
+ 
+     if target_arch == "x86_64" {
+         generate_encode_codegen_avx2(&mut f, configs);
+--- a/src/core/encode.rs
++++ b/src/core/encode.rs
+@@ -681,6 +681,10 @@
+         T: AsRef<[F::Elem]>,
+         U: AsMut<[F::Elem]>,
+     {
++        #[cfg(rse_x86_avx2)]
++        if (self.data_shard_count(), self.parity_shard_count()) == (6, 2) && shard_len < 4096 {
++            return None;
++        }
+         if !leopard::is_byte_field::<F>() || !crate::galois_8::generated_encode_allowed() {
+             return None;
+         }
+--- a/src/galois_8/aarch64/codegen.rs
++++ b/src/galois_8/aarch64/codegen.rs
+@@ -17,7 +17,7 @@
+ 
+     #[test]
+     fn generated_neon_matches_scalar_with_unaligned_tails_and_edge_coefficients() {
+-        for (data_count, parity_count) in [(10, 4), (12, 4), (8, 3), (8, 4), (6, 3), (4, 2)] {
++        for (data_count, parity_count) in [(10, 4), (12, 4), (8, 3), (8, 4), (6, 2), (6, 3), (4, 2)] {
+             let kernel = super::select_encode_kernel_neon(data_count, parity_count).unwrap();
+             let rows: Vec<Vec<u8>> = (0..parity_count)
+                 .map(|row| {
+--- a/src/galois_8/x86/codegen.rs
++++ b/src/galois_8/x86/codegen.rs
+@@ -94,7 +94,7 @@
+         if !std::is_x86_feature_detected!("avx2") {
+             return;
+         }
+-        for (data_count, parity_count) in [(4, 2), (6, 3), (8, 3), (8, 4), (10, 4), (12, 4)] {
++        for (data_count, parity_count) in [(4, 2), (6, 2), (6, 3), (8, 3), (8, 4), (10, 4), (12, 4)] {
+             let kernel = select_encode_kernel_avx2(data_count, parity_count).unwrap();
+             let rows: Vec<Vec<u8>> = (0..parity_count)
+                 .map(|row| {

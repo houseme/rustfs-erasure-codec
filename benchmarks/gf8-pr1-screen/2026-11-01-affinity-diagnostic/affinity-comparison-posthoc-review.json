@@ -1,0 +1,9 @@
+{
+  "status": "rejected",
+  "reason": "Guest effective cpuset changed from 0-15 to 0-7 during the second baseline round; the monitor terminated the probe.",
+  "candidate_attribution_allowed": false,
+  "candidate_was_run": false,
+  "original_runner_reason": "missing case",
+  "original_runner_monitor_error": "resource reservation, steal or throttle counter changed",
+  "note": "The original runner reported the secondary missing-case symptom; the current runner prioritizes the resource-monitor cause."
+}

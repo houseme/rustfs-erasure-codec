@@ -1,0 +1,120 @@
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -10,8 +10,8 @@
+ 
+ [workspace.dependencies]
+ cfg_aliases = "0.2.2"
+-codec_old = { package = "rustfs-erasure-codec", version = "=9.0.0", features = ["simd-accel"] }
+-codec_new = { package = "rustfs-erasure-codec", version = "=9.1.0", path = ".", features = ["simd-accel"] }
++codec_old = { package = "rustfs-erasure-codec", version = "=9.0.0", features = ["simd-avx2"] }
++codec_new = { package = "rustfs-erasure-codec", version = "=9.1.0", path = ".", features = ["simd-avx2"] }
+ criterion = { version = "0.8.2", features = ["html_reports"] }
+ ctrlc = { version = "3.5.2", features = ["termination"] }
+ csv = "1.4.0"
+--- a/src/galois_8/mod.rs
++++ b/src/galois_8/mod.rs
+@@ -223,3 +223,6 @@
+ 
+ #[cfg(test)]
+ mod tests;
++
++#[doc(hidden)]
++pub static COMPAT_PARALLEL_ROW_HITS: core::sync::atomic::AtomicUsize = core::sync::atomic::AtomicUsize::new(0);
+--- a/src/galois_8/x86/table_rows.rs
++++ b/src/galois_8/x86/table_rows.rs
+@@ -83,6 +83,7 @@
+         }
+         #[cfg(test)]
+         tests::EXECUTIONS.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
++        crate::galois_8::COMPAT_PARALLEL_ROW_HITS.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+         // SAFETY: the selected callback has the active backend ISA, and all
+         // input ranges cover the exclusive output chunk.
+         unsafe { (self.code)(row, inputs, output, start) };
+--- a/scripts/release-compatibility/src/main.rs
++++ b/scripts/release-compatibility/src/main.rs
+@@ -113,6 +113,18 @@
+     assert_eq!(old::six_plus_two(Some(&new_six_two)), new_six_two);
+     assert_eq!(new::six_plus_two(Some(&old_six_two)), old_six_two);
+     println!("12 6+2 cases: exact parity and cross-decoding passed in both directions");
++    assert_eq!(codec_old::galois_8::active_backend_name(), "rust-avx2");
++    assert_eq!(codec_new::galois_8::active_backend_name(), "rust-avx2");
++    let old_parallel = old::parallel_gf8(None);
++    codec_new::galois_8::COMPAT_PARALLEL_ROW_HITS.store(0, core::sync::atomic::Ordering::Relaxed);
++    let new_parallel = new::parallel_gf8(None);
++    assert_eq!(old_parallel.len(), 8);
++    assert_eq!(new_parallel, old_parallel, "parallel GF8 parity compatibility");
++    assert_eq!(old::parallel_gf8(Some(&new_parallel)), new_parallel);
++    assert_eq!(new::parallel_gf8(Some(&old_parallel)), old_parallel);
++    let hits = codec_new::galois_8::COMPAT_PARALLEL_ROW_HITS.load(core::sync::atomic::Ordering::Relaxed);
++    assert!(hits > 0, "parallel candidate kernel was not exercised");
++    println!("PARALLEL_ROW_INTEROP cases=8 generated_chunk_executions={hits}");
+     let args: Vec<_> = std::env::args_os().skip(1).collect();
+     if !args.is_empty() {
+         assert!(
+--- a/scripts/release-compatibility/src/probe.rs
++++ b/scripts/release-compatibility/src/probe.rs
+@@ -222,3 +222,64 @@
+     let decoded = run_with_peer(Some(peer));
+     assert_eq!(decoded, peer, "cross-version decoded parity");
+ }
++/// Temporary large parallel-recovery cross-version probe; not included in product code.
++pub(super) fn parallel_gf8(peer: Option<&[super::Snapshot]>) -> Vec<super::Snapshot> {
++    use rustfs_erasure_codec::galois_8::ReedSolomon;
++    let mut snapshots = Vec::new();
++    if let Some(peer) = peer {
++        assert_eq!(peer.len(), 8);
++    }
++    for (mode_index, mode) in [
++        MatrixMode::Vandermonde,
++        MatrixMode::Cauchy,
++        MatrixMode::JerasureLike,
++        MatrixMode::Custom,
++    ]
++    .into_iter()
++    .enumerate()
++    {
++        let options = CodecOptions::builder()
++            .matrix_mode(mode)
++            .max_parallel_jobs(4)
++            .build();
++        let codec = if mode == MatrixMode::Custom {
++            let reference = ReedSolomon::new(10, 4).unwrap();
++            let basis: Vec<Vec<u8>> = (0..10)
++                .map(|r| (0..10).map(|c| u8::from(r == c)).collect())
++                .collect();
++            let mut rows = vec![vec![0; 10]; 4];
++            reference.encode_sep(&basis, &mut rows).unwrap();
++            rows.reverse();
++            ReedSolomon::with_custom_matrix(10, 4, &rows, options).unwrap()
++        } else {
++            ReedSolomon::with_options(10, 4, options).unwrap()
++        };
++        for len in [1_048_576, 1_048_577] {
++            let id = format!("gf8/Classic/10+4/parallel-matrix{mode_index}/{len}");
++            let mut shards: Vec<Vec<u8>> = (0..14)
++                .map(|r| (0..len).map(|i| (r * 73 + i * 19 + i / 17) as u8).collect())
++                .collect();
++            codec.encode(&mut shards).unwrap();
++            if let Some(peer) = peer {
++                let reference = &peer[snapshots.len()];
++                assert_eq!(reference.id, id);
++                for (dst, src) in shards[10..].iter_mut().zip(&reference.parity) {
++                    dst.clone_from(src);
++                }
++            }
++            assert!(codec.verify(&shards).unwrap(), "verification: {id}");
++            let mut lost: Vec<Option<Vec<u8>>> = shards.iter().cloned().map(Some).collect();
++            lost[3] = None;
++            codec.reconstruct_data_opt(&mut lost).unwrap();
++            assert!(
++                lost.iter().zip(&shards).all(|(a, b)| a.as_ref() == Some(b)),
++                "recovery: {id}"
++            );
++            snapshots.push(super::Snapshot {
++                id,
++                parity: shards[10..].to_vec(),
++            });
++        }
++    }
++    snapshots
++}

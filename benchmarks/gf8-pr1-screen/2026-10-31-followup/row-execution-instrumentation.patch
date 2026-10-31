@@ -1,0 +1,44 @@
+--- a/src/galois_8/x86/table_rows.rs
++++ b/src/galois_8/x86/table_rows.rs
+@@ -93,6 +93,8 @@
+         {
+             return Err(Error::IncorrectShardSize);
+         }
++        #[cfg(test)]
++        tests::EXECUTIONS.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+         for start in (0..shard_len).step_by(chunk_len) {
+             let end = start.saturating_add(chunk_len).min(shard_len);
+             for (row, output) in rows.iter().zip(outputs.iter_mut()) {
+@@ -440,6 +442,32 @@
+     use super::*;
+     extern crate alloc;
+     use alloc::{vec, vec::Vec};
++    pub(super) static EXECUTIONS: core::sync::atomic::AtomicUsize = core::sync::atomic::AtomicUsize::new(0);
++
++    #[cfg(all(feature = "std", rse_x86_avx2))]
++    #[test]
++    fn optimized_recovery_reports_actual_row_execution() {
++        if !std::is_x86_feature_detected!("avx2") { return; }
++        const CHILD: &str = "RSE_ROW_OPT_INSTRUMENT_CHILD";
++        if std::env::var_os(CHILD).is_none() {
++            let status = std::process::Command::new(std::env::current_exe().unwrap()).args(["--exact", "galois_8::x86::table_rows::tests::optimized_recovery_reports_actual_row_execution", "--nocapture"]).env(CHILD, "1").env("RSE_BACKEND_OVERRIDE", "rust-avx2").status().unwrap();
++            assert!(status.success()); return;
++        }
++        let original_codec = crate::galois_8::ReedSolomon::new(10,4).unwrap();
++        let len=1024*1024;
++        let mut original: Vec<Vec<u8>> = (0..14).map(|r| (0..len).map(|i| (r*73+i*19+i/17) as u8).collect()).collect();
++        original_codec.encode(&mut original).unwrap();
++        for jobs in [1,4] {
++            let codec=crate::galois_8::ReedSolomon::with_options(10,4,crate::CodecOptions::builder().max_parallel_jobs(jobs).build()).unwrap();
++            let mut shards: Vec<Option<Vec<u8>>> = original.iter().cloned().map(Some).collect(); shards[0]=None;
++            EXECUTIONS.store(0, core::sync::atomic::Ordering::Relaxed);
++            codec.reconstruct_data_opt(&mut shards).unwrap();
++            let calls=EXECUTIONS.load(core::sync::atomic::Ordering::Relaxed);
++            assert_eq!(shards[0].as_ref().unwrap(),&original[0]);
++            println!("jobs={jobs} native_row_calls={calls}");
++            assert_eq!(calls>0,jobs==1);
++        }
++    }
+ 
+     fn compare(kernel: SelectedTableRowKernel, n: usize, p: usize, len: usize, chunk: usize) {
+         let data: Vec<Vec<u8>> = (0..n)

@@ -1,0 +1,552 @@
+--- a/build.rs
++++ b/build.rs
+@@ -176,6 +176,7 @@
+ 
+     if target_arch == "x86_64" {
+         generate_encode_codegen_avx2(&mut f, configs);
++        generate_encode_codegen_avx512(&mut f, &[(10, 4), (12, 4), (4, 2)]);
+     } else if target_arch == "aarch64" {
+         generate_encode_codegen_neon(&mut f, configs);
+     }
+@@ -212,7 +213,59 @@
+     writeln!(f, "}}").unwrap();
+     writeln!(f).unwrap();
+ 
++    writeln!(f, "#[cfg(all(").unwrap();
++    writeln!(f, "    feature = \"simd-avx2\",").unwrap();
++    writeln!(f, "    target_arch = \"x86_64\",").unwrap();
++    writeln!(f, "    not(target_env = \"msvc\"),").unwrap();
++    writeln!(
++        f,
++        "    not(any(target_os = \"android\", target_os = \"ios\"))"
++    )
++    .unwrap();
++    writeln!(f, "))]").unwrap();
+     generate_encode_selector(f, configs, "avx2");
++}
++
++fn generate_encode_codegen_avx512(f: &mut File, configs: &[(usize, usize)]) {
++    use std::io::Write;
++
++    writeln!(
++        f,
++        "// Auto-generated AVX-512BW encode functions for common configurations."
++    )
++    .unwrap();
++    writeln!(f, "#[cfg(all(").unwrap();
++    writeln!(f, "    feature = \"simd-avx512\",").unwrap();
++    writeln!(f, "    target_arch = \"x86_64\",").unwrap();
++    writeln!(f, "    not(target_env = \"msvc\"),").unwrap();
++    writeln!(
++        f,
++        "    not(any(target_os = \"android\", target_os = \"ios\"))"
++    )
++    .unwrap();
++    writeln!(f, "))]").unwrap();
++    writeln!(f, "mod avx512_impl {{").unwrap();
++    writeln!(f, "    use core::arch::x86_64::*;").unwrap();
++    writeln!(f).unwrap();
++
++    for &(d, p) in configs {
++        generate_encode_fn_avx512(f, d, p);
++    }
++
++    writeln!(f, "}}").unwrap();
++    writeln!(f).unwrap();
++
++    writeln!(f, "#[cfg(all(").unwrap();
++    writeln!(f, "    feature = \"simd-avx512\",").unwrap();
++    writeln!(f, "    target_arch = \"x86_64\",").unwrap();
++    writeln!(f, "    not(target_env = \"msvc\"),").unwrap();
++    writeln!(
++        f,
++        "    not(any(target_os = \"android\", target_os = \"ios\"))"
++    )
++    .unwrap();
++    writeln!(f, "))]").unwrap();
++    generate_encode_selector(f, configs, "avx512");
+ }
+ 
+ fn generate_encode_selector(f: &mut File, configs: &[(usize, usize)], isa: &str) {
+@@ -232,6 +285,16 @@
+         .unwrap();
+         writeln!(f, "    )").unwrap();
+         writeln!(f, "}}").unwrap();
++        writeln!(f, "#[cfg(all(").unwrap();
++        writeln!(f, "    feature = \"simd-avx2\",").unwrap();
++        writeln!(f, "    target_arch = \"x86_64\",").unwrap();
++        writeln!(f, "    not(target_env = \"msvc\"),").unwrap();
++        writeln!(
++            f,
++            "    not(any(target_os = \"android\", target_os = \"ios\"))"
++        )
++        .unwrap();
++        writeln!(f, "))]").unwrap();
+         writeln!(f, "fn select_encode_kernel_avx2_with_avx2_available(").unwrap();
+         writeln!(
+             f,
+@@ -244,6 +307,37 @@
+         )
+         .unwrap();
+         writeln!(f, "    if !avx2_available {{ return None; }}").unwrap();
++    } else if isa == "avx512" {
++        writeln!(f, "    select_encode_kernel_avx512_with_avx512_available(").unwrap();
++        writeln!(
++            f,
++            "        avx512_codegen_available(), data_shard_count, parity_shard_count,"
++        )
++        .unwrap();
++        writeln!(f, "    )").unwrap();
++        writeln!(f, "}}").unwrap();
++        writeln!(f, "#[cfg(all(").unwrap();
++        writeln!(f, "    feature = \"simd-avx512\",").unwrap();
++        writeln!(f, "    target_arch = \"x86_64\",").unwrap();
++        writeln!(f, "    not(target_env = \"msvc\"),").unwrap();
++        writeln!(
++            f,
++            "    not(any(target_os = \"android\", target_os = \"ios\"))"
++        )
++        .unwrap();
++        writeln!(f, "))]").unwrap();
++        writeln!(f, "fn select_encode_kernel_avx512_with_avx512_available(").unwrap();
++        writeln!(
++            f,
++            "    avx512_available: bool, data_shard_count: usize, parity_shard_count: usize,"
++        )
++        .unwrap();
++        writeln!(
++            f,
++            ") -> Option<crate::galois_8::codegen::SelectedEncodeKernel> {{"
++        )
++        .unwrap();
++        writeln!(f, "    if !avx512_available {{ return None; }}").unwrap();
+     }
+     writeln!(f, "    match (data_shard_count, parity_shard_count) {{").unwrap();
+     for &(d, p) in configs {
+@@ -437,6 +531,190 @@
+     )
+     .unwrap();
+     writeln!(f, "                offset += 32;").unwrap();
++    writeln!(f, "            }}").unwrap();
++
++    writeln!(f).unwrap();
++    writeln!(f, "            for i in bytes_done..shard_len {{").unwrap();
++    writeln!(f, "                let mut acc: u8 = 0;").unwrap();
++    for di in 0..d {
++        writeln!(f, "                acc ^= super::super::super::MUL_TABLE[parity_rows[{pi}][{di}] as usize][data[{di}][i] as usize];").unwrap();
++    }
++    writeln!(f, "                parity[{pi}][i] = acc;").unwrap();
++    writeln!(f, "            }}").unwrap();
++    writeln!(f, "        }}").unwrap();
++    writeln!(f, "    }}").unwrap();
++    writeln!(f).unwrap();
++}
++
++fn generate_encode_fn_avx512(f: &mut File, d: usize, p: usize) {
++    use std::io::Write;
++
++    writeln!(
++        f,
++        "    /// Specialized encode for {d} data + {p} parity shards using AVX-512BW."
++    )
++    .unwrap();
++    writeln!(f, "    ///").unwrap();
++    writeln!(f, "    /// # Safety").unwrap();
++    writeln!(f, "    ///").unwrap();
++    writeln!(
++        f,
++        "    /// Caller must ensure AVX512F and AVX512BW are available and all slices have length >= shard_len."
++    )
++    .unwrap();
++    writeln!(f, "    #[target_feature(enable = \"avx512f,avx512bw\")]").unwrap();
++    writeln!(f, "    pub(super) unsafe fn encode_{d}x{p}_avx512(").unwrap();
++    writeln!(f, "        parity_rows: &[&[u8]],").unwrap();
++    writeln!(f, "        data: &[&[u8]],").unwrap();
++    writeln!(f, "        parity: &mut [&mut [u8]],").unwrap();
++    writeln!(f, "        shard_len: usize,").unwrap();
++    writeln!(f, "    ) {{").unwrap();
++    writeln!(
++        f,
++        "        // SAFETY: this function's safety contract applies to each generated row kernel."
++    )
++    .unwrap();
++    writeln!(f, "        unsafe {{").unwrap();
++    for pi in 0..p {
++        writeln!(
++            f,
++            "            encode_{d}x{p}_parity_{pi}_avx512(parity_rows, data, parity, shard_len);"
++        )
++        .unwrap();
++    }
++    writeln!(f, "        }}").unwrap();
++    writeln!(f, "    }}").unwrap();
++    writeln!(f).unwrap();
++
++    for pi in 0..p {
++        generate_encode_parity_fn_avx512(f, d, p, pi);
++    }
++}
++
++fn generate_encode_parity_fn_avx512(f: &mut File, d: usize, p: usize, pi: usize) {
++    use std::io::Write;
++
++    writeln!(f, "    #[target_feature(enable = \"avx512f,avx512bw\")]").unwrap();
++    writeln!(f, "    unsafe fn encode_{d}x{p}_parity_{pi}_avx512(").unwrap();
++    writeln!(f, "        parity_rows: &[&[u8]],").unwrap();
++    writeln!(f, "        data: &[&[u8]],").unwrap();
++    writeln!(f, "        parity: &mut [&mut [u8]],").unwrap();
++    writeln!(f, "        shard_len: usize,").unwrap();
++    writeln!(f, "    ) {{").unwrap();
++    writeln!(
++        f,
++        "        // SAFETY: the parent dispatcher checked AVX-512BW availability and slice lengths."
++    )
++    .unwrap();
++    writeln!(f, "        unsafe {{").unwrap();
++    writeln!(
++        f,
++        "            let nibble_mask: __m512i = _mm512_set1_epi8(0x0f);"
++    )
++    .unwrap();
++    for di in 0..d {
++        writeln!(
++            f,
++            "            let (coef_low_{di}, coef_high_{di}): (__m512i, __m512i) = {{"
++        )
++        .unwrap();
++        writeln!(f, "                let c = parity_rows[{pi}][{di}];").unwrap();
++        writeln!(
++            f,
++            "                let (lh, hh) = super::super::load_table_halves(c);"
++        )
++        .unwrap();
++        writeln!(
++            f,
++            "                let low128: __m128i = _mm_loadu_si128(lh.as_ptr().cast());"
++        )
++        .unwrap();
++        writeln!(
++            f,
++            "                let high128: __m128i = _mm_loadu_si128(hh.as_ptr().cast());"
++        )
++        .unwrap();
++        writeln!(
++            f,
++            "                (_mm512_broadcast_i32x4(low128), _mm512_broadcast_i32x4(high128))"
++        )
++        .unwrap();
++        writeln!(f, "            }};").unwrap();
++    }
++    writeln!(f).unwrap();
++    writeln!(f, "            let bytes_done = shard_len & !63usize;").unwrap();
++    writeln!(f, "            let mut offset = 0usize;").unwrap();
++    writeln!(f, "            while offset < bytes_done {{").unwrap();
++    writeln!(
++        f,
++        "                let data_vec: __m512i = _mm512_loadu_si512(data[0][offset..].as_ptr().cast());"
++    )
++    .unwrap();
++    writeln!(
++        f,
++        "                let low = _mm512_and_si512(data_vec, nibble_mask);"
++    )
++    .unwrap();
++    writeln!(
++        f,
++        "                let high = _mm512_and_si512(_mm512_srli_epi64::<4>(data_vec), nibble_mask);"
++    )
++    .unwrap();
++    writeln!(
++        f,
++        "                let mut acc: __m512i = _mm512_xor_si512("
++    )
++    .unwrap();
++    writeln!(
++        f,
++        "                    _mm512_shuffle_epi8(coef_low_0, low),"
++    )
++    .unwrap();
++    writeln!(
++        f,
++        "                    _mm512_shuffle_epi8(coef_high_0, high),"
++    )
++    .unwrap();
++    writeln!(f, "                );").unwrap();
++    for di in 1..d {
++        writeln!(
++            f,
++            "                let data_vec: __m512i = _mm512_loadu_si512(data[{di}][offset..].as_ptr().cast());"
++        )
++        .unwrap();
++        writeln!(
++            f,
++            "                let low = _mm512_and_si512(data_vec, nibble_mask);"
++        )
++        .unwrap();
++        writeln!(
++            f,
++            "                let high = _mm512_and_si512(_mm512_srli_epi64::<4>(data_vec), nibble_mask);"
++        )
++        .unwrap();
++        writeln!(
++            f,
++            "                acc = _mm512_xor_si512(acc, _mm512_xor_si512("
++        )
++        .unwrap();
++        writeln!(
++            f,
++            "                    _mm512_shuffle_epi8(coef_low_{di}, low),"
++        )
++        .unwrap();
++        writeln!(
++            f,
++            "                    _mm512_shuffle_epi8(coef_high_{di}, high),"
++        )
++        .unwrap();
++        writeln!(f, "                ));").unwrap();
++    }
++    writeln!(
++        f,
++        "                _mm512_storeu_si512(parity[{pi}][offset..].as_mut_ptr().cast(), acc);"
++    )
++    .unwrap();
++    writeln!(f, "                offset += 64;").unwrap();
+     writeln!(f, "            }}").unwrap();
+ 
+     writeln!(f).unwrap();
+--- a/src/core/encode.rs
++++ b/src/core/encode.rs
+@@ -818,8 +818,8 @@
+         parity: &mut [U],
+     ) -> Result<(), Error> {
+         let shard_len = data[0].as_ref().len();
+-        if let Some(result) =
+-            self.try_native_encode(data, parity, shard_len, NativeEncodeExecution::Serial)
++        if (!cfg!(all(rse_x86_avx512, not(rse_x86_avx2))) || shard_len >= 32 * 1024)
++            && let Some(result) = self.try_native_encode(data, parity, shard_len, NativeEncodeExecution::Serial)
+         {
+             return result.map(|_| ());
+         }
+@@ -984,7 +984,8 @@
+ 
+         let shard_len = data[0].as_ref().len();
+         let decision = self.parallel_policy(shard_len, parity.len());
+-        if let Some(execution) = NativeEncodeExecution::for_parallel_decision(
++        if (!cfg!(all(rse_x86_avx512, not(rse_x86_avx2))) || shard_len >= 32 * 1024)
++            && let Some(execution) = NativeEncodeExecution::for_parallel_decision(
+             self.data_shard_count(),
+             self.parity_shard_count(),
+             shard_len,
+--- a/src/galois_8/codegen.rs
++++ b/src/galois_8/codegen.rs
+@@ -23,11 +23,20 @@
+     }
+ 
+     pub(crate) fn select(data_shards: usize, parity_shards: usize) -> Option<Self> {
++        #[cfg(rse_x86_avx512)]
++        if super::active_backend_id() == super::BackendId::RustAvx512
++            && let Some(kernel) =
++                super::x86::codegen::select_encode_kernel_avx512(data_shards, parity_shards)
++        {
++            return Some(kernel);
++        }
+         #[cfg(rse_x86_avx2)]
+         return super::x86::codegen::select_encode_kernel_avx2(data_shards, parity_shards);
++        #[cfg(all(not(rse_x86_avx2), rse_x86_avx512))]
++        return super::x86::codegen::select_encode_kernel_avx512(data_shards, parity_shards);
+         #[cfg(rse_aarch64_neon)]
+         return super::aarch64::codegen::select_encode_kernel_neon(data_shards, parity_shards);
+-        #[cfg(not(any(rse_x86_avx2, rse_aarch64_neon)))]
++        #[cfg(not(any(rse_x86_avx2, rse_x86_avx512, rse_aarch64_neon)))]
+         {
+             let _ = (data_shards, parity_shards);
+             None
+--- a/src/galois_8/x86/codegen.rs
++++ b/src/galois_8/x86/codegen.rs
+@@ -2,7 +2,7 @@
+ // The actual implementations are generated by build.rs into OUT_DIR/codegen_encode.rs.
+ 
+ #[cfg(all(
+-    feature = "simd-avx2",
++    any(feature = "simd-avx2", feature = "simd-avx512"),
+     target_arch = "x86_64",
+     not(target_env = "msvc"),
+     not(any(target_os = "android", target_os = "ios"))
+@@ -10,7 +10,7 @@
+ include!(concat!(env!("OUT_DIR"), "/codegen_encode.rs"));
+ 
+ #[inline]
+-#[cfg(all(feature = "std", target_arch = "x86_64", test))]
++#[cfg(all(feature = "simd-avx2", feature = "std", target_arch = "x86_64", test))]
+ fn avx2_codegen_available() -> bool {
+     FORCED_AVX2_CODEGEN_AVAILABILITY
+         .with(|availability| availability.get())
+@@ -18,34 +18,64 @@
+ }
+ 
+ #[inline]
+-#[cfg(all(feature = "std", target_arch = "x86_64", not(test)))]
++#[cfg(all(
++    feature = "simd-avx2",
++    feature = "std",
++    target_arch = "x86_64",
++    not(test)
++))]
+ fn avx2_codegen_available() -> bool {
+     avx2_codegen_available_for(std::is_x86_feature_detected!("avx2"))
+ }
+ 
+ #[inline]
+-#[cfg(all(feature = "std", not(target_arch = "x86_64")))]
++#[cfg(all(feature = "simd-avx2", feature = "std", not(target_arch = "x86_64")))]
+ fn avx2_codegen_available() -> bool {
+     false
+ }
+ 
+ #[inline]
+-#[cfg(not(feature = "std"))]
++#[cfg(all(feature = "simd-avx2", not(feature = "std")))]
+ fn avx2_codegen_available() -> bool {
+     avx2_codegen_available_for(cfg!(all(target_arch = "x86_64", target_feature = "avx2")))
+ }
+ 
+ #[inline]
++#[cfg(feature = "simd-avx2")]
+ fn avx2_codegen_available_for(avx2_available: bool) -> bool {
+     avx2_available
+ }
+ 
+-#[cfg(all(test, feature = "std", target_arch = "x86_64"))]
++#[inline]
++#[cfg(all(feature = "simd-avx512", feature = "std", target_arch = "x86_64"))]
++fn avx512_codegen_available() -> bool {
++    avx512_codegen_available_for(
++        std::is_x86_feature_detected!("avx512f") && std::is_x86_feature_detected!("avx512bw"),
++    )
++}
++
++#[inline]
++#[cfg(all(feature = "simd-avx512", not(feature = "std"), target_arch = "x86_64"))]
++fn avx512_codegen_available() -> bool {
++    avx512_codegen_available_for(cfg!(all(
++        target_arch = "x86_64",
++        target_feature = "avx512f",
++        target_feature = "avx512bw"
++    )))
++}
++
++#[inline]
++#[cfg(all(feature = "simd-avx512", target_arch = "x86_64"))]
++fn avx512_codegen_available_for(avx512_available: bool) -> bool {
++    avx512_available
++}
++
++#[cfg(all(test, feature = "simd-avx2", feature = "std", target_arch = "x86_64"))]
+ thread_local! {
+     static FORCED_AVX2_CODEGEN_AVAILABILITY: std::cell::Cell<Option<bool>> = const { std::cell::Cell::new(None) };
+ }
+ 
+-#[cfg(all(test, feature = "std", target_arch = "x86_64"))]
++#[cfg(all(test, feature = "simd-avx2", feature = "std", target_arch = "x86_64"))]
+ pub(crate) fn with_forced_avx2_codegen_availability<T>(
+     availability: bool,
+     callback: impl FnOnce() -> T,
+@@ -74,7 +104,7 @@
+ 
+ #[cfg(all(
+     test,
+-    feature = "simd-avx2",
++    any(feature = "simd-avx2", feature = "simd-avx512"),
+     target_arch = "x86_64",
+     not(target_env = "msvc"),
+     not(any(target_os = "android", target_os = "ios"))
+@@ -82,19 +112,21 @@
+ mod tests {
+     use super::*;
+ 
++    #[cfg(feature = "simd-avx2")]
+     #[test]
+     fn runtime_avx2_codegen_follows_runtime_availability() {
+         assert!(avx2_codegen_available_for(true));
+         assert!(!avx2_codegen_available_for(false));
+     }
+ 
+-    #[cfg(feature = "std")]
++    #[cfg(all(feature = "std", feature = "simd-avx2"))]
+     #[test]
+     fn generated_avx2_bytes_are_checked_even_when_auto_prefers_gfni() {
+         if !std::is_x86_feature_detected!("avx2") {
+             return;
+         }
+-        for (data_count, parity_count) in [(4, 2), (6, 3), (8, 3), (8, 4), (10, 4), (12, 4)] {
++        for (data_count, parity_count) in [(4, 2), (6, 3), (8, 3), (8, 4), (10, 4), (12, 4)]
++        {
+             let kernel = select_encode_kernel_avx2(data_count, parity_count).unwrap();
+             let rows: Vec<Vec<u8>> = (0..parity_count)
+                 .map(|row| {
+@@ -133,9 +165,64 @@
+         }
+     }
+ 
++    #[cfg(feature = "simd-avx2")]
+     #[test]
+     fn no_runtime_avx2_cannot_select_a_kernel() {
+         let selected = select_encode_kernel_avx2_with_avx2_available(false, 4, 2);
+         assert!(selected.is_none());
+     }
+-}
++
++    #[cfg(feature = "simd-avx512")]
++    #[test]
++    fn no_runtime_avx512_cannot_select_a_kernel() {
++        let selected = select_encode_kernel_avx512_with_avx512_available(false, 4, 2);
++        assert!(selected.is_none());
++    }
++
++    #[cfg(all(feature = "std", feature = "simd-avx512"))]
++    #[test]
++    fn generated_avx512_bytes_match_scalar_when_supported() {
++        if !(std::is_x86_feature_detected!("avx512f") && std::is_x86_feature_detected!("avx512bw"))
++        {
++            return;
++        }
++        for (data_count, parity_count) in [(4, 2), (10, 4), (12, 4)]
++        {
++            let kernel = select_encode_kernel_avx512(data_count, parity_count).unwrap();
++            let rows: Vec<Vec<u8>> = (0..parity_count)
++                .map(|row| {
++                    (0..data_count)
++                        .map(|input| match (row + input) % 4 {
++                            0 => 0,
++                            1 => 1,
++                            _ => (row * 17 + input * 11) as u8,
++                        })
++                        .collect()
++                })
++                .collect();
++            let row_views: Vec<&[u8]> = rows.iter().map(Vec::as_slice).collect();
++            for len in [1, 31, 32, 63, 64, 65, 65536] {
++                let data: Vec<Vec<u8>> = (0..data_count)
++                    .map(|input| (0..len).map(|i| (input * 41 + i * 13) as u8).collect())
++                    .collect();
++                let data_views: Vec<&[u8]> = data.iter().map(Vec::as_slice).collect();
++                let mut parity = vec![vec![0xa5; len]; parity_count];
++                let mut views: Vec<&mut [u8]> = parity.iter_mut().map(Vec::as_mut_slice).collect();
++                kernel
++                    .execute(&row_views, &data_views, &mut views, len)
++                    .unwrap();
++                for (row, output) in rows.iter().zip(&parity) {
++                    for (offset, &actual) in output.iter().enumerate() {
++                        let expected = row.iter().zip(&data).fold(0, |sum, (&c, input)| {
++                            sum ^ crate::galois_8::mul(c, input[offset])
++                        });
++                        assert_eq!(
++                            actual, expected,
++                            "avx512 shape {data_count}+{parity_count}, len {len}, offset {offset}"
++                        );
++                    }
++                }
++            }
++        }
++    }
++}

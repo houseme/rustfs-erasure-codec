@@ -1,0 +1,200 @@
+--- a/src/galois_8/x86/table_rows.rs
++++ b/src/galois_8/x86/table_rows.rs
+@@ -198,7 +198,7 @@
+ 
+     let nibble_mask: __m256i = _mm256_set1_epi8(0x0f);
+     let width = 32usize;
+-    let batch = width * 4;
++    let batch = width * 8;
+     let batched = output.len() / batch * batch;
+     let done = output.len() / width * width;
+ 
+@@ -208,58 +208,120 @@
+         let mut b = _mm256_setzero_si256();
+         let mut c = _mm256_setzero_si256();
+         let mut d = _mm256_setzero_si256();
+-        // SAFETY: `offset + 128 <= output.len()` and all inputs cover `start + offset + 128`.
++        let mut e = _mm256_setzero_si256();
++        let mut f = _mm256_setzero_si256();
++        let mut g = _mm256_setzero_si256();
++        let mut h = _mm256_setzero_si256();
++        // SAFETY: the 256-byte output tile and all input ranges are validated.
+         unsafe {
+             for plan in &terms[..general] {
+                 let low_tbl = _mm256_broadcastsi128_si256(_mm_loadu_si128(plan.low_tbl.cast()));
+                 let high_tbl = _mm256_broadcastsi128_si256(_mm_loadu_si128(plan.high_tbl.cast()));
+                 let input = plan.input.add(at);
+-
+-                let v0 = _mm256_loadu_si256(input.cast());
+-                let v1 = _mm256_loadu_si256(input.add(width).cast());
+-                let v2 = _mm256_loadu_si256(input.add(width * 2).cast());
+-                let v3 = _mm256_loadu_si256(input.add(width * 3).cast());
+-
+-                a = _mm256_xor_si256(
+-                    a,
+-                    _mm256_xor_si256(
+-                        _mm256_shuffle_epi8(low_tbl, _mm256_and_si256(v0, nibble_mask)),
+-                        _mm256_shuffle_epi8(
+-                            high_tbl,
+-                            _mm256_and_si256(_mm256_srli_epi64::<4>(v0), nibble_mask),
+-                        ),
+-                    ),
+-                );
+-                b = _mm256_xor_si256(
+-                    b,
+-                    _mm256_xor_si256(
+-                        _mm256_shuffle_epi8(low_tbl, _mm256_and_si256(v1, nibble_mask)),
+-                        _mm256_shuffle_epi8(
+-                            high_tbl,
+-                            _mm256_and_si256(_mm256_srli_epi64::<4>(v1), nibble_mask),
+-                        ),
+-                    ),
+-                );
+-                c = _mm256_xor_si256(
+-                    c,
+-                    _mm256_xor_si256(
+-                        _mm256_shuffle_epi8(low_tbl, _mm256_and_si256(v2, nibble_mask)),
+-                        _mm256_shuffle_epi8(
+-                            high_tbl,
+-                            _mm256_and_si256(_mm256_srli_epi64::<4>(v2), nibble_mask),
+-                        ),
+-                    ),
+-                );
+-                d = _mm256_xor_si256(
+-                    d,
+-                    _mm256_xor_si256(
+-                        _mm256_shuffle_epi8(low_tbl, _mm256_and_si256(v3, nibble_mask)),
+-                        _mm256_shuffle_epi8(
+-                            high_tbl,
+-                            _mm256_and_si256(_mm256_srli_epi64::<4>(v3), nibble_mask),
+-                        ),
+-                    ),
+-                );
++                {
++                    let value = _mm256_loadu_si256(input.cast());
++                    a = _mm256_xor_si256(
++                        a,
++                        _mm256_xor_si256(
++                            _mm256_shuffle_epi8(low_tbl, _mm256_and_si256(value, nibble_mask)),
++                            _mm256_shuffle_epi8(
++                                high_tbl,
++                                _mm256_and_si256(_mm256_srli_epi64::<4>(value), nibble_mask),
++                            ),
++                        ),
++                    );
++                }
++                {
++                    let value = _mm256_loadu_si256(input.add(width).cast());
++                    b = _mm256_xor_si256(
++                        b,
++                        _mm256_xor_si256(
++                            _mm256_shuffle_epi8(low_tbl, _mm256_and_si256(value, nibble_mask)),
++                            _mm256_shuffle_epi8(
++                                high_tbl,
++                                _mm256_and_si256(_mm256_srli_epi64::<4>(value), nibble_mask),
++                            ),
++                        ),
++                    );
++                }
++                {
++                    let value = _mm256_loadu_si256(input.add(width * 2).cast());
++                    c = _mm256_xor_si256(
++                        c,
++                        _mm256_xor_si256(
++                            _mm256_shuffle_epi8(low_tbl, _mm256_and_si256(value, nibble_mask)),
++                            _mm256_shuffle_epi8(
++                                high_tbl,
++                                _mm256_and_si256(_mm256_srli_epi64::<4>(value), nibble_mask),
++                            ),
++                        ),
++                    );
++                }
++                {
++                    let value = _mm256_loadu_si256(input.add(width * 3).cast());
++                    d = _mm256_xor_si256(
++                        d,
++                        _mm256_xor_si256(
++                            _mm256_shuffle_epi8(low_tbl, _mm256_and_si256(value, nibble_mask)),
++                            _mm256_shuffle_epi8(
++                                high_tbl,
++                                _mm256_and_si256(_mm256_srli_epi64::<4>(value), nibble_mask),
++                            ),
++                        ),
++                    );
++                }
++                {
++                    let value = _mm256_loadu_si256(input.add(width * 4).cast());
++                    e = _mm256_xor_si256(
++                        e,
++                        _mm256_xor_si256(
++                            _mm256_shuffle_epi8(low_tbl, _mm256_and_si256(value, nibble_mask)),
++                            _mm256_shuffle_epi8(
++                                high_tbl,
++                                _mm256_and_si256(_mm256_srli_epi64::<4>(value), nibble_mask),
++                            ),
++                        ),
++                    );
++                }
++                {
++                    let value = _mm256_loadu_si256(input.add(width * 5).cast());
++                    f = _mm256_xor_si256(
++                        f,
++                        _mm256_xor_si256(
++                            _mm256_shuffle_epi8(low_tbl, _mm256_and_si256(value, nibble_mask)),
++                            _mm256_shuffle_epi8(
++                                high_tbl,
++                                _mm256_and_si256(_mm256_srli_epi64::<4>(value), nibble_mask),
++                            ),
++                        ),
++                    );
++                }
++                {
++                    let value = _mm256_loadu_si256(input.add(width * 6).cast());
++                    g = _mm256_xor_si256(
++                        g,
++                        _mm256_xor_si256(
++                            _mm256_shuffle_epi8(low_tbl, _mm256_and_si256(value, nibble_mask)),
++                            _mm256_shuffle_epi8(
++                                high_tbl,
++                                _mm256_and_si256(_mm256_srli_epi64::<4>(value), nibble_mask),
++                            ),
++                        ),
++                    );
++                }
++                {
++                    let value = _mm256_loadu_si256(input.add(width * 7).cast());
++                    h = _mm256_xor_si256(
++                        h,
++                        _mm256_xor_si256(
++                            _mm256_shuffle_epi8(low_tbl, _mm256_and_si256(value, nibble_mask)),
++                            _mm256_shuffle_epi8(
++                                high_tbl,
++                                _mm256_and_si256(_mm256_srli_epi64::<4>(value), nibble_mask),
++                            ),
++                        ),
++                    );
++                }
+             }
+             for plan in &terms[general..count] {
+                 let input = plan.input.add(at);
+@@ -267,12 +329,20 @@
+                 b = _mm256_xor_si256(b, _mm256_loadu_si256(input.add(width).cast()));
+                 c = _mm256_xor_si256(c, _mm256_loadu_si256(input.add(width * 2).cast()));
+                 d = _mm256_xor_si256(d, _mm256_loadu_si256(input.add(width * 3).cast()));
++                e = _mm256_xor_si256(e, _mm256_loadu_si256(input.add(width * 4).cast()));
++                f = _mm256_xor_si256(f, _mm256_loadu_si256(input.add(width * 5).cast()));
++                g = _mm256_xor_si256(g, _mm256_loadu_si256(input.add(width * 6).cast()));
++                h = _mm256_xor_si256(h, _mm256_loadu_si256(input.add(width * 7).cast()));
+             }
+             let destination = output.as_mut_ptr().add(offset);
+             _mm256_storeu_si256(destination.cast(), a);
+             _mm256_storeu_si256(destination.add(width).cast(), b);
+             _mm256_storeu_si256(destination.add(width * 2).cast(), c);
+             _mm256_storeu_si256(destination.add(width * 3).cast(), d);
++            _mm256_storeu_si256(destination.add(width * 4).cast(), e);
++            _mm256_storeu_si256(destination.add(width * 5).cast(), f);
++            _mm256_storeu_si256(destination.add(width * 6).cast(), g);
++            _mm256_storeu_si256(destination.add(width * 7).cast(), h);
+         }
+     }
+ 

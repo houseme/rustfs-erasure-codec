@@ -1,0 +1,54 @@
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -10,8 +10,8 @@
+ 
+ [workspace.dependencies]
+ cfg_aliases = "0.2.2"
+-codec_old = { package = "rustfs-erasure-codec", version = "=9.0.0", features = ["simd-accel"] }
+-codec_new = { package = "rustfs-erasure-codec", version = "=9.1.0", path = ".", features = ["simd-accel"] }
++codec_old = { package = "rustfs-erasure-codec", version = "=9.0.0", features = ["simd-avx512"] }
++codec_new = { package = "rustfs-erasure-codec", version = "=9.1.0", path = ".", features = ["simd-avx512"] }
+ criterion = { version = "0.8.2", features = ["html_reports"] }
+ ctrlc = { version = "3.5.2", features = ["termination"] }
+ csv = "1.4.0"
+--- a/src/galois_8/mod.rs
++++ b/src/galois_8/mod.rs
+@@ -223,3 +223,6 @@
+ 
+ #[cfg(test)]
+ mod tests;
++
++#[doc(hidden)]
++pub static COMPAT_NATIVE_HITS: core::sync::atomic::AtomicUsize = core::sync::atomic::AtomicUsize::new(0);
+--- a/src/galois_8/codegen.rs
++++ b/src/galois_8/codegen.rs
+@@ -74,6 +74,7 @@
+         {
+             return Err(Error::IncorrectShardSize);
+         }
++        crate::galois_8::COMPAT_NATIVE_HITS.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+         (self.encode)(parity_rows, data, parity, shard_len);
+         Ok(())
+     }
+--- a/scripts/release-compatibility/src/main.rs
++++ b/scripts/release-compatibility/src/main.rs
+@@ -99,6 +99,9 @@
+     println!(
+         "200 configurations: exact parity and old/new cross-decoding passed in both directions"
+     );
++    assert_eq!(codec_old::galois_8::active_backend_name(), "rust-avx512");
++    assert_eq!(codec_new::galois_8::active_backend_name(), "rust-avx512");
++    codec_new::galois_8::COMPAT_NATIVE_HITS.store(0, core::sync::atomic::Ordering::Relaxed);
+     let old_large = old::large_gf8(None);
+     let new_large = new::large_gf8(None);
+     assert_eq!(old_large.len(), 36);
+@@ -106,6 +109,9 @@
+     assert_eq!(old::large_gf8(Some(&new_large)), new_large);
+     assert_eq!(new::large_gf8(Some(&old_large)), old_large);
+     println!("36 large GF8 cases: exact parity and cross-decoding passed in both directions");
++    let hits = codec_new::galois_8::COMPAT_NATIVE_HITS.load(core::sync::atomic::Ordering::Relaxed);
++    assert!(hits > 0, "new generated encoder was not exercised");
++    println!("AVX512_ONLY_INTEROP generated_kernel_executions={hits}");
+     let args: Vec<_> = std::env::args_os().skip(1).collect();
+     if !args.is_empty() {
+         assert!(

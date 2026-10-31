@@ -1,0 +1,21 @@
+{
+  "schema": "gf8-six-two-release-interop-v1",
+  "baseline_commit": "5dae9094e7d60d2ebdd1b98ca250c1be09b85a03",
+  "worktree_patch_sha256": "3673518d13d7b70d977df1715e85e508144cf496f0e9d36f168b0ec76545aeaa",
+  "candidate_patch_sha256": "9135681a04e41a2f6cd0e80a3e616047c29b22eab4b36f33a9cd4204545abde1",
+  "instrumentation_patch_sha256": "ea8e45ae30c54c499586043901b8e02b1382ebc46962537668687be52917c458",
+  "old_package": "rustfs-erasure-codec 9.0.0",
+  "new_package": "rustfs-erasure-codec 9.1.0 worktree plus temporary candidate",
+  "rustc": "1.99.1",
+  "target": "x86_64-unknown-linux-gnu",
+  "features_both_packages": ["std", "simd-avx2"],
+  "backend_both_packages": "rust-avx2",
+  "standard_configurations_passed": 200,
+  "large_gf8_configurations_passed": 36,
+  "six_plus_two_configurations_passed": 12,
+  "parity_exact": true,
+  "cross_decoding_both_directions": true,
+  "new_generated_kernel_executions_after_six_plus_two_reset": 32,
+  "instrumentation_scope": "temporary test snapshot only",
+  "performance_measurement": false
+}

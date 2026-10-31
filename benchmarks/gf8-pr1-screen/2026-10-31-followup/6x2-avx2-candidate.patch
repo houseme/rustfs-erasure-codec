@@ -1,0 +1,51 @@
+--- a/build.rs
++++ b/build.rs
+@@ -175,7 +175,9 @@
+     let configs: &[(usize, usize)] = &[(10, 4), (12, 4), (8, 3), (8, 4), (6, 3), (4, 2)];
+ 
+     if target_arch == "x86_64" {
+-        generate_encode_codegen_avx2(&mut f, configs);
++        let mut avx2_configs = configs.to_vec();
++        avx2_configs.push((6, 2));
++        generate_encode_codegen_avx2(&mut f, &avx2_configs);
+         generate_encode_codegen_avx512(&mut f, &[(10, 4), (12, 4), (4, 2)]);
+     } else if target_arch == "aarch64" {
+         generate_encode_codegen_neon(&mut f, configs);
+--- a/src/core/encode.rs
++++ b/src/core/encode.rs
+@@ -691,7 +691,7 @@
+             return None;
+         }
+         let kernel =
+-            SelectedEncodeKernel::select(self.data_shard_count(), self.parity_shard_count())?;
++            SelectedEncodeKernel::select(self.data_shard_count(), self.parity_shard_count(), shard_len)?;
+         let mut prepared = PreparedNativeEncode {
+             kernel,
+             execution,
+--- a/src/galois_8/codegen.rs
++++ b/src/galois_8/codegen.rs
+@@ -22,7 +22,12 @@
+         }
+     }
+ 
+-    pub(crate) fn select(data_shards: usize, parity_shards: usize) -> Option<Self> {
++    pub(crate) fn select(data_shards: usize, parity_shards: usize, shard_len: usize) -> Option<Self> {
++        #[cfg(rse_x86_avx2)]
++        if (data_shards, parity_shards) == (6, 2) && shard_len < 4096 {
++            return None;
++        }
++        let _ = shard_len;
+         #[cfg(rse_x86_avx512)]
+         if super::active_backend_id() == super::BackendId::RustAvx512
+             && let Some(kernel) =
+--- a/src/galois_8/x86/codegen.rs
++++ b/src/galois_8/x86/codegen.rs
+@@ -125,7 +125,7 @@
+         if !std::is_x86_feature_detected!("avx2") {
+             return;
+         }
+-        for (data_count, parity_count) in [(4, 2), (6, 3), (8, 3), (8, 4), (10, 4), (12, 4)] {
++        for (data_count, parity_count) in [(4, 2), (6, 2), (6, 3), (8, 3), (8, 4), (10, 4), (12, 4)] {
+             let kernel = select_encode_kernel_avx2(data_count, parity_count).unwrap();
+             let rows: Vec<Vec<u8>> = (0..parity_count)
+                 .map(|row| {

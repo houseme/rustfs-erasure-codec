@@ -1,0 +1,20 @@
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -73,6 +73,7 @@
+ license.workspace = true
+ 
+ [features]
++bench-internal-row = ["std"]
+ default = ["std"] # simd and metrics off by default
+ std = ["parking_lot", "rayon"]
+ # Fine-grained SIMD backends — enable per-architecture as needed.
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -393,3 +393,7 @@
+         }
+     }
+ }
++
++#[cfg(feature = "bench-internal-row")]
++#[doc(hidden)]
++pub mod diagnostic_row;

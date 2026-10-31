@@ -1,0 +1,74 @@
+--- a/src/diagnostic_row.rs
++++ b/src/diagnostic_row.rs
+@@ -35,3 +35,6 @@
+     let mut outputs = [output];
+     codec.code_some_slices_par_chunked_with_jobs(&rows[..], inputs, &mut outputs, chunk_len, jobs);
+ }
++
++#[doc(hidden)]
++pub static ROW_HITS: core::sync::atomic::AtomicUsize = core::sync::atomic::AtomicUsize::new(0);
+--- a/src/galois_8/x86/table_rows.rs
++++ b/src/galois_8/x86/table_rows.rs
+@@ -83,6 +83,8 @@
+         }
+         #[cfg(test)]
+         tests::EXECUTIONS.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
++        #[cfg(feature = "bench-internal-row")]
++        crate::diagnostic_row::ROW_HITS.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+         // SAFETY: the selected callback has the active backend ISA, and all
+         // input ranges cover the exclusive output chunk.
+         unsafe { (self.code)(row, inputs, output, start) };
+--- /dev/null
++++ b/tests/diagnostic_row_hits.rs
+@@ -0,0 +1,51 @@
++#![cfg(all(feature = "bench-internal-row", rse_x86_avx2))]
++use rustfs_erasure_codec::{CodecOptions, diagnostic_row, galois_8::ReedSolomon};
++use std::sync::atomic::Ordering;
++#[test]
++fn measured_bridge_invokes_candidate_only_for_supported_shape() {
++    if !std::is_x86_feature_detected!("avx2") {
++        return;
++    }
++    assert_eq!(
++        rustfs_erasure_codec::galois_8::active_backend_name(),
++        "rust-avx2"
++    );
++    for (data, parity, expected_hits) in [(10, 4, true), (4, 2, false)] {
++        let len = 1_048_576;
++        let codec = ReedSolomon::with_options(
++            data,
++            parity,
++            CodecOptions::builder().max_parallel_jobs(4).build(),
++        )
++        .unwrap();
++        let mut original: Vec<Vec<u8>> = (0..data + parity)
++            .map(|r| (0..len).map(|i| (r * 73 + i * 19 + i / 17) as u8).collect())
++            .collect();
++        codec.encode(&mut original).unwrap();
++        let mut shards: Vec<Option<Vec<u8>>> = original.iter().cloned().map(Some).collect();
++        shards[0] = None;
++        let (indices, row) = diagnostic_row::recovery_row(&codec, &mut shards).unwrap();
++        let inputs: Vec<&[u8]> = indices.iter().map(|&i| original[i].as_slice()).collect();
++        let available = std::thread::available_parallelism().unwrap().get();
++        let decision = codec
++            .reconstruct_stage_policies_for_bench(true)
++            .0
++            .decide(len, data, 1, available);
++        assert!(decision.use_parallel && decision.jobs == 4);
++        let mut output = vec![0; len];
++        diagnostic_row::ROW_HITS.store(0, Ordering::Relaxed);
++        diagnostic_row::run_row(
++            &codec,
++            &row,
++            &inputs,
++            &mut output,
++            decision.chunk_len,
++            decision.jobs,
++        );
++        assert_eq!(output, original[0]);
++        assert_eq!(
++            diagnostic_row::ROW_HITS.load(Ordering::Relaxed) > 0,
++            expected_hits
++        );
++    }
++}

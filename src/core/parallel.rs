@@ -390,6 +390,40 @@ mod tests {
     use super::*;
 
     #[test]
+    fn output_chunk_scheduler_covers_each_byte_once() {
+        for output_count in [1, 2, 4, 7] {
+            for shard_len in [0, 1, 63, 65, 4097] {
+                for chunk_len in [1, 64, 1024, 8192] {
+                    for jobs in [0, 1, 2, 4, 8] {
+                        let mut outputs = vec![vec![0u8; shard_len]; output_count];
+                        for_each_output_chunk(
+                            &mut outputs,
+                            shard_len,
+                            chunk_len,
+                            jobs,
+                            |row, start, chunk| {
+                                for (offset, byte) in chunk.iter_mut().enumerate() {
+                                    assert_eq!(*byte, 0, "output byte visited twice");
+                                    *byte = ((row * 13 + start + offset) % 254 + 1) as u8;
+                                }
+                            },
+                        );
+                        for (row, output) in outputs.iter().enumerate() {
+                            for (offset, &byte) in output.iter().enumerate() {
+                                assert_eq!(
+                                    byte,
+                                    ((row * 13 + offset) % 254 + 1) as u8,
+                                    "outputs={output_count}, len={shard_len}, chunk={chunk_len}, jobs={jobs}, row={row}, offset={offset}"
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
     fn cache_budget_uses_bytes_for_wider_field_elements() {
         let policy = ParallelPolicy {
             min_parallel_shard_bytes: 1,

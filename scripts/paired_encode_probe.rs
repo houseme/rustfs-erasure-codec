@@ -32,7 +32,7 @@ fn main() {
     );
     assert_eq!(base_codec::galois_8::active_backend_name(), "rust-neon");
     assert_eq!(next_codec::galois_8::active_backend_name(), "rust-neon");
-    for (data, parity) in [(10, 4), (12, 4), (8, 3), (8, 4), (6, 3), (4, 2)] {
+    for (data, parity) in [(10, 4), (12, 4), (8, 3), (8, 4), (6, 2), (6, 3), (4, 2)] {
         for len in [1024, 32768, 1048576] {
             let before = base_codec::galois_8::ReedSolomon::new(data, parity).unwrap();
             let after = next_codec::galois_8::ReedSolomon::new(data, parity).unwrap();

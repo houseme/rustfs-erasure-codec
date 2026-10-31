@@ -30,8 +30,8 @@ fn reference_parity(codec: &ReedSolomon, data: &[Vec<u8>], parity: usize) -> Vec
 }
 
 #[test]
-fn generated_shapes_match_incremental_reference_for_unaligned_slices_and_tails() {
-    for (data_count, parity_count) in [(10, 4), (12, 4), (8, 3), (8, 4), (6, 3), (4, 2)] {
+fn supported_and_fallback_shapes_match_incremental_reference_for_unaligned_slices_and_tails() {
+    for (data_count, parity_count) in [(10, 4), (12, 4), (8, 3), (8, 4), (6, 2), (6, 3), (4, 2)] {
         let codec = ReedSolomon::with_options(
             data_count,
             parity_count,

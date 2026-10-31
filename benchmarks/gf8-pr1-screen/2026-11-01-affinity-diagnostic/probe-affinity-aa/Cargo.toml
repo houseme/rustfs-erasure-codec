@@ -1,0 +1,9 @@
+[workspace]
+[package]
+name="rse-freeze-row-affinity-aa"
+version="0.1.0"
+edition="2024"
+[dependencies]
+base_codec={package="rustfs-erasure-codec",path="../base",default-features=false,features=["std","simd-avx2","bench-internal-row"]}
+next_codec={package="rustfs-erasure-codec",path="../same",default-features=false,features=["std","simd-avx2","bench-internal-row"]}
+rayon="=1.12.0"

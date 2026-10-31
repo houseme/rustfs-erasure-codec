@@ -1,0 +1,622 @@
+--- a/src/core/encode.rs
++++ b/src/core/encode.rs
+@@ -390,6 +390,68 @@
+             },
+             &mut SliceOutputs { shards: outputs },
+         );
++    }
++
++    #[cfg(any(rse_x86_avx2, rse_x86_avx512))]
++    #[inline(never)]
++    fn try_table_rows<T: AsRef<[F::Elem]>, U: AsMut<[F::Elem]>>(
++        kernel: crate::galois_8::x86::table_rows::SelectedTableRowKernel,
++        matrix_rows: &(impl MatrixRows<F::Elem> + ?Sized),
++        inputs: &[T],
++        outputs: &mut [U],
++        shard_len: usize,
++        chunk_len: usize,
++    ) -> bool {
++        let mut rows: SmallVec<[&[u8]; 4]> = SmallVec::new();
++        for index in 0..matrix_rows.len() {
++            let Some(bytes) = F::as_gf8_slice(matrix_rows.row(index)) else {
++                return false;
++            };
++            if bytes.len() != inputs.len() {
++                return false;
++            }
++            rows.push(bytes);
++        }
++        let Ok(mut views) = ByteShardViews::<[&[u8]; 16], [&mut [u8]; 4]>::prepare::<F, _, _>(
++            inputs, outputs, shard_len,
++        ) else {
++            return false;
++        };
++        kernel
++            .execute(&rows, &views.data, &mut views.parity, shard_len, chunk_len)
++            .is_ok()
++    }
++
++    #[cfg(any(rse_x86_avx2, rse_x86_avx512))]
++    fn try_table_outputs<T: AsRef<[F::Elem]>>(
++        kernel: crate::galois_8::x86::table_rows::SelectedTableRowKernel,
++        matrix_rows: &(impl MatrixRows<F::Elem> + ?Sized),
++        inputs: &[T],
++        outputs: &mut impl CodingOutputs<F::Elem>,
++        shard_len: usize,
++        chunk_len: usize,
++    ) -> bool {
++        if let Some(contiguous) = outputs.contiguous() {
++            Self::try_table_rows(
++                kernel,
++                matrix_rows,
++                inputs,
++                contiguous,
++                shard_len,
++                chunk_len,
++            )
++        } else {
++            let mut views: SmallVec<[&mut [F::Elem]; 4]> =
++                outputs.iter_mut().map(|output| output.as_mut()).collect();
++            Self::try_table_rows(
++                kernel,
++                matrix_rows,
++                inputs,
++                &mut views,
++                shard_len,
++                chunk_len,
++            )
++        }
+     }
+ 
+     #[cfg(rse_x86_gfni)]
+@@ -475,6 +537,38 @@
+                 let views: SmallVec<[&[F::Elem]; 32]> =
+                     inputs.iter().map(|input| input.as_ref()).collect();
+                 Self::try_gfni_outputs(kernel, matrix_rows, &views, outputs, shard_len, chunk_len)
++            };
++            if executed {
++                return;
++            }
++        }
++        #[cfg(any(rse_x86_avx2, rse_x86_avx512))]
++        if (self.data_shard_count(), self.parity_shard_count()) == (10, 4)
++            && outputs.len() == 1
++            && shard_len >= 1024 * 1024
++            && crate::galois_8::active_backend_id() == crate::galois_8::BackendId::RustAvx2
++            && inputs.len() == self.data_shard_count()
++            && matrix_rows.len() == outputs.len()
++            && F::ORDER == 256
++            && let Some(kernel) = crate::galois_8::x86::table_rows::SelectedTableRowKernel::select(
++                inputs.len(),
++                outputs.len(),
++                shard_len,
++            )
++        {
++            let executed = if let Some(contiguous) = inputs.contiguous() {
++                Self::try_table_outputs(
++                    kernel,
++                    matrix_rows,
++                    contiguous,
++                    outputs,
++                    shard_len,
++                    chunk_len,
++                )
++            } else {
++                let views: SmallVec<[&[F::Elem]; 16]> =
++                    inputs.iter().map(|input| input.as_ref()).collect();
++                Self::try_table_outputs(kernel, matrix_rows, &views, outputs, shard_len, chunk_len)
+             };
+             if executed {
+                 return;
+--- a/src/galois_8/x86/mod.rs
++++ b/src/galois_8/x86/mod.rs
+@@ -1,5 +1,7 @@
+ #[cfg(rse_x86_gfni)]
+ pub(crate) mod gfni_rows;
++#[cfg(any(rse_x86_avx2, rse_x86_avx512))]
++pub(crate) mod table_rows;
+ 
+ #[cfg(all(
+     feature = "simd-avx2",
+--- /dev/null
++++ b/src/galois_8/x86/table_rows.rs
+@@ -0,0 +1,499 @@
++//! Checked AVX2 and AVX-512BW split-table dot products for bounded Classic coding rows.
++//!
++//! When reconstructing missing data/parity shards (or encoding shapes outside the
++//! fixed codegen set) on CPUs using `RustAvx2` or `RustAvx512`, keeping four vector
++//! accumulators in `ymm`/`zmm` registers across all survivor inputs eliminates
++//! `d - 1` intermediate read-modify-write passes over the output buffer.
++
++#[cfg(any(rse_x86_avx2, rse_x86_avx512))]
++use core::arch::x86_64::_mm_loadu_si128;
++#[cfg(rse_x86_avx512)]
++use core::arch::x86_64::__m128i;
++#[cfg(rse_x86_avx2)]
++use core::arch::x86_64::{
++    __m256i, _mm256_and_si256, _mm256_broadcastsi128_si256, _mm256_loadu_si256, _mm256_set1_epi8,
++    _mm256_setzero_si256, _mm256_shuffle_epi8, _mm256_srli_epi64, _mm256_storeu_si256,
++    _mm256_xor_si256,
++};
++#[cfg(rse_x86_avx512)]
++use core::arch::x86_64::{
++    __m512i, _mm512_and_si512, _mm512_broadcast_i32x4, _mm512_loadu_si512, _mm512_set1_epi8,
++    _mm512_setzero_si512, _mm512_shuffle_epi8, _mm512_srli_epi64, _mm512_storeu_si512,
++    _mm512_xor_si512,
++};
++
++use super::super::{BackendId, active_backend_id};
++use crate::Error;
++
++type DotFn = unsafe fn(&[u8], &[&[u8]], &mut [u8], usize);
++
++/// Checked split-table multi-input row kernel for `RustAvx2` and `RustAvx512`.
++#[derive(Clone, Copy)]
++pub(crate) struct SelectedTableRowKernel {
++    code: DotFn,
++    width: usize,
++}
++
++impl SelectedTableRowKernel {
++    pub(crate) fn from_backend(backend: BackendId) -> Option<Self> {
++        match backend {
++            #[cfg(rse_x86_avx2)]
++            BackendId::RustAvx2 => Some(Self {
++                code: dot_table_avx2,
++                width: 32,
++            }),
++            #[cfg(rse_x86_avx512)]
++            BackendId::RustAvx512 => Some(Self {
++                code: dot_table_avx512,
++                width: 64,
++            }),
++            _ => None,
++        }
++    }
++
++    /// Select the active split-table row dot-product kernel for 4..=16 inputs
++    /// and 1..=4 outputs when the shard length covers at least one 4-vector batch.
++    pub(crate) fn select(inputs: usize, outputs: usize, shard_len: usize) -> Option<Self> {
++        if !(4..=16).contains(&inputs) || !(1..=4).contains(&outputs) || shard_len < 128 {
++            return None;
++        }
++        static SELECTED: spin::Once<Option<SelectedTableRowKernel>> = spin::Once::new();
++        SELECTED
++            .call_once(|| Self::from_backend(active_backend_id()))
++            .filter(|kernel| shard_len >= kernel.width * 4)
++    }
++
++    /// Validate all views before any output write and execute each chunk.
++    pub(crate) fn execute(
++        self,
++        rows: &[&[u8]],
++        inputs: &[&[u8]],
++        outputs: &mut [&mut [u8]],
++        shard_len: usize,
++        chunk_len: usize,
++    ) -> Result<(), Error> {
++        if inputs.len() < 4 {
++            return Err(Error::TooFewDataShards);
++        }
++        if inputs.len() > 16 {
++            return Err(Error::TooManyDataShards);
++        }
++        if outputs.is_empty() {
++            return Err(Error::TooFewParityShards);
++        }
++        if outputs.len() > 4 {
++            return Err(Error::TooManyParityShards);
++        }
++        if rows.len() != outputs.len() || rows.iter().any(|row| row.len() != inputs.len()) {
++            return Err(Error::InvalidCustomMatrix);
++        }
++        if chunk_len == 0
++            || inputs.iter().any(|v| v.len() != shard_len)
++            || outputs.iter().any(|v| v.len() != shard_len)
++        {
++            return Err(Error::IncorrectShardSize);
++        }
++        for start in (0..shard_len).step_by(chunk_len) {
++            let end = start.saturating_add(chunk_len).min(shard_len);
++            for (row, output) in rows.iter().zip(outputs.iter_mut()) {
++                // SAFETY: selection verified the active AVX2/AVX-512BW ISA;
++                // all input/output slice bounds cover `start..end`.
++                unsafe { (self.code)(row, inputs, &mut output[start..end], start) };
++            }
++        }
++        Ok(())
++    }
++}
++
++#[derive(Clone, Copy)]
++struct TableTerm {
++    input: *const u8,
++    low_tbl: *const u8,
++    high_tbl: *const u8,
++}
++
++fn scalar_tail(row: &[u8], inputs: &[&[u8]], output: &mut [u8], start: usize) {
++    let end = start + output.len();
++    output.fill(0);
++    for (&coefficient, input) in row.iter().zip(inputs) {
++        if coefficient == 0 {
++            continue;
++        }
++        for (byte, &inp) in output.iter_mut().zip(&input[start..end]) {
++            *byte ^= if coefficient == 1 {
++                inp
++            } else {
++                super::super::mul(coefficient, inp)
++            };
++        }
++    }
++}
++
++#[cfg(rse_x86_avx2)]
++/// # Safety
++/// Caller must ensure `avx2` is supported, `inputs` has 4..=16 slices covering
++/// `start..start + output.len()`, and `row.len() == inputs.len()`.
++#[target_feature(enable = "avx2")]
++unsafe fn dot_table_avx2(row: &[u8], inputs: &[&[u8]], output: &mut [u8], start: usize) {
++    let mut terms = [TableTerm {
++        input: core::ptr::null(),
++        low_tbl: core::ptr::null(),
++        high_tbl: core::ptr::null(),
++    }; 16];
++    let mut general = 0usize;
++    for (&coefficient, input) in row.iter().zip(inputs) {
++        if coefficient > 1 {
++            let (lh, hh) = super::load_table_halves(coefficient);
++            terms[general] = TableTerm {
++                input: input.as_ptr(),
++                low_tbl: lh.as_ptr(),
++                high_tbl: hh.as_ptr(),
++            };
++            general += 1;
++        }
++    }
++    let mut count = general;
++    for (&coefficient, input) in row.iter().zip(inputs) {
++        if coefficient == 1 {
++            terms[count] = TableTerm {
++                input: input.as_ptr(),
++                low_tbl: core::ptr::null(),
++                high_tbl: core::ptr::null(),
++            };
++            count += 1;
++        }
++    }
++    if count == 0 {
++        output.fill(0);
++        return;
++    }
++
++    let nibble_mask: __m256i = _mm256_set1_epi8(0x0f);
++    let width = 32usize;
++    let batch = width * 4;
++    let batched = output.len() / batch * batch;
++    let done = output.len() / width * width;
++
++    for offset in (0..batched).step_by(batch) {
++        let at = start + offset;
++        let mut a = _mm256_setzero_si256();
++        let mut b = _mm256_setzero_si256();
++        let mut c = _mm256_setzero_si256();
++        let mut d = _mm256_setzero_si256();
++        // SAFETY: `offset + 128 <= output.len()` and all inputs cover `start + offset + 128`.
++        unsafe {
++            for plan in &terms[..general] {
++                let low_tbl = _mm256_broadcastsi128_si256(_mm_loadu_si128(plan.low_tbl.cast()));
++                let high_tbl = _mm256_broadcastsi128_si256(_mm_loadu_si128(plan.high_tbl.cast()));
++                let input = plan.input.add(at);
++
++                let v0 = _mm256_loadu_si256(input.cast());
++                let v1 = _mm256_loadu_si256(input.add(width).cast());
++                let v2 = _mm256_loadu_si256(input.add(width * 2).cast());
++                let v3 = _mm256_loadu_si256(input.add(width * 3).cast());
++
++                a = _mm256_xor_si256(
++                    a,
++                    _mm256_xor_si256(
++                        _mm256_shuffle_epi8(low_tbl, _mm256_and_si256(v0, nibble_mask)),
++                        _mm256_shuffle_epi8(
++                            high_tbl,
++                            _mm256_and_si256(_mm256_srli_epi64::<4>(v0), nibble_mask),
++                        ),
++                    ),
++                );
++                b = _mm256_xor_si256(
++                    b,
++                    _mm256_xor_si256(
++                        _mm256_shuffle_epi8(low_tbl, _mm256_and_si256(v1, nibble_mask)),
++                        _mm256_shuffle_epi8(
++                            high_tbl,
++                            _mm256_and_si256(_mm256_srli_epi64::<4>(v1), nibble_mask),
++                        ),
++                    ),
++                );
++                c = _mm256_xor_si256(
++                    c,
++                    _mm256_xor_si256(
++                        _mm256_shuffle_epi8(low_tbl, _mm256_and_si256(v2, nibble_mask)),
++                        _mm256_shuffle_epi8(
++                            high_tbl,
++                            _mm256_and_si256(_mm256_srli_epi64::<4>(v2), nibble_mask),
++                        ),
++                    ),
++                );
++                d = _mm256_xor_si256(
++                    d,
++                    _mm256_xor_si256(
++                        _mm256_shuffle_epi8(low_tbl, _mm256_and_si256(v3, nibble_mask)),
++                        _mm256_shuffle_epi8(
++                            high_tbl,
++                            _mm256_and_si256(_mm256_srli_epi64::<4>(v3), nibble_mask),
++                        ),
++                    ),
++                );
++            }
++            for plan in &terms[general..count] {
++                let input = plan.input.add(at);
++                a = _mm256_xor_si256(a, _mm256_loadu_si256(input.cast()));
++                b = _mm256_xor_si256(b, _mm256_loadu_si256(input.add(width).cast()));
++                c = _mm256_xor_si256(c, _mm256_loadu_si256(input.add(width * 2).cast()));
++                d = _mm256_xor_si256(d, _mm256_loadu_si256(input.add(width * 3).cast()));
++            }
++            let destination = output.as_mut_ptr().add(offset);
++            _mm256_storeu_si256(destination.cast(), a);
++            _mm256_storeu_si256(destination.add(width).cast(), b);
++            _mm256_storeu_si256(destination.add(width * 2).cast(), c);
++            _mm256_storeu_si256(destination.add(width * 3).cast(), d);
++        }
++    }
++
++    for offset in (batched..done).step_by(width) {
++        let at = start + offset;
++        let mut sum = _mm256_setzero_si256();
++        // SAFETY: `offset + 32 <= output.len()` and all inputs cover `start + offset + 32`.
++        unsafe {
++            for plan in &terms[..general] {
++                let low_tbl = _mm256_broadcastsi128_si256(_mm_loadu_si128(plan.low_tbl.cast()));
++                let high_tbl = _mm256_broadcastsi128_si256(_mm_loadu_si128(plan.high_tbl.cast()));
++                let v = _mm256_loadu_si256(plan.input.add(at).cast());
++                sum = _mm256_xor_si256(
++                    sum,
++                    _mm256_xor_si256(
++                        _mm256_shuffle_epi8(low_tbl, _mm256_and_si256(v, nibble_mask)),
++                        _mm256_shuffle_epi8(
++                            high_tbl,
++                            _mm256_and_si256(_mm256_srli_epi64::<4>(v), nibble_mask),
++                        ),
++                    ),
++                );
++            }
++            for plan in &terms[general..count] {
++                sum = _mm256_xor_si256(sum, _mm256_loadu_si256(plan.input.add(at).cast()));
++            }
++            _mm256_storeu_si256(output.as_mut_ptr().add(offset).cast(), sum);
++        }
++    }
++
++    if done < output.len() {
++        scalar_tail(row, inputs, &mut output[done..], start + done);
++    }
++}
++
++#[cfg(rse_x86_avx512)]
++/// # Safety
++/// Caller must ensure `avx512f` and `avx512bw` are supported, `inputs` has 4..=16 slices
++/// covering `start..start + output.len()`, and `row.len() == inputs.len()`.
++#[target_feature(enable = "avx512f,avx512bw")]
++unsafe fn dot_table_avx512(row: &[u8], inputs: &[&[u8]], output: &mut [u8], start: usize) {
++    let mut terms = [TableTerm {
++        input: core::ptr::null(),
++        low_tbl: core::ptr::null(),
++        high_tbl: core::ptr::null(),
++    }; 16];
++    let mut general = 0usize;
++    for (&coefficient, input) in row.iter().zip(inputs) {
++        if coefficient > 1 {
++            let (lh, hh) = super::load_table_halves(coefficient);
++            terms[general] = TableTerm {
++                input: input.as_ptr(),
++                low_tbl: lh.as_ptr(),
++                high_tbl: hh.as_ptr(),
++            };
++            general += 1;
++        }
++    }
++    let mut count = general;
++    for (&coefficient, input) in row.iter().zip(inputs) {
++        if coefficient == 1 {
++            terms[count] = TableTerm {
++                input: input.as_ptr(),
++                low_tbl: core::ptr::null(),
++                high_tbl: core::ptr::null(),
++            };
++            count += 1;
++        }
++    }
++    if count == 0 {
++        output.fill(0);
++        return;
++    }
++
++    let nibble_mask: __m512i = _mm512_set1_epi8(0x0f);
++    let width = 64usize;
++    let batch = width * 4;
++    let batched = output.len() / batch * batch;
++    let done = output.len() / width * width;
++
++    for offset in (0..batched).step_by(batch) {
++        let at = start + offset;
++        let mut a = _mm512_setzero_si512();
++        let mut b = _mm512_setzero_si512();
++        let mut c = _mm512_setzero_si512();
++        let mut d = _mm512_setzero_si512();
++        // SAFETY: `offset + 256 <= output.len()` and all inputs cover `start + offset + 256`.
++        unsafe {
++            for plan in &terms[..general] {
++                let low128: __m128i = _mm_loadu_si128(plan.low_tbl.cast());
++                let high128: __m128i = _mm_loadu_si128(plan.high_tbl.cast());
++                let low_tbl = _mm512_broadcast_i32x4(low128);
++                let high_tbl = _mm512_broadcast_i32x4(high128);
++                let input = plan.input.add(at);
++
++                let v0 = _mm512_loadu_si512(input.cast());
++                let v1 = _mm512_loadu_si512(input.add(width).cast());
++                let v2 = _mm512_loadu_si512(input.add(width * 2).cast());
++                let v3 = _mm512_loadu_si512(input.add(width * 3).cast());
++
++                a = _mm512_xor_si512(
++                    a,
++                    _mm512_xor_si512(
++                        _mm512_shuffle_epi8(low_tbl, _mm512_and_si512(v0, nibble_mask)),
++                        _mm512_shuffle_epi8(
++                            high_tbl,
++                            _mm512_and_si512(_mm512_srli_epi64::<4>(v0), nibble_mask),
++                        ),
++                    ),
++                );
++                b = _mm512_xor_si512(
++                    b,
++                    _mm512_xor_si512(
++                        _mm512_shuffle_epi8(low_tbl, _mm512_and_si512(v1, nibble_mask)),
++                        _mm512_shuffle_epi8(
++                            high_tbl,
++                            _mm512_and_si512(_mm512_srli_epi64::<4>(v1), nibble_mask),
++                        ),
++                    ),
++                );
++                c = _mm512_xor_si512(
++                    c,
++                    _mm512_xor_si512(
++                        _mm512_shuffle_epi8(low_tbl, _mm512_and_si512(v2, nibble_mask)),
++                        _mm512_shuffle_epi8(
++                            high_tbl,
++                            _mm512_and_si512(_mm512_srli_epi64::<4>(v2), nibble_mask),
++                        ),
++                    ),
++                );
++                d = _mm512_xor_si512(
++                    d,
++                    _mm512_xor_si512(
++                        _mm512_shuffle_epi8(low_tbl, _mm512_and_si512(v3, nibble_mask)),
++                        _mm512_shuffle_epi8(
++                            high_tbl,
++                            _mm512_and_si512(_mm512_srli_epi64::<4>(v3), nibble_mask),
++                        ),
++                    ),
++                );
++            }
++            for plan in &terms[general..count] {
++                let input = plan.input.add(at);
++                a = _mm512_xor_si512(a, _mm512_loadu_si512(input.cast()));
++                b = _mm512_xor_si512(b, _mm512_loadu_si512(input.add(width).cast()));
++                c = _mm512_xor_si512(c, _mm512_loadu_si512(input.add(width * 2).cast()));
++                d = _mm512_xor_si512(d, _mm512_loadu_si512(input.add(width * 3).cast()));
++            }
++            let destination = output.as_mut_ptr().add(offset);
++            _mm512_storeu_si512(destination.cast(), a);
++            _mm512_storeu_si512(destination.add(width).cast(), b);
++            _mm512_storeu_si512(destination.add(width * 2).cast(), c);
++            _mm512_storeu_si512(destination.add(width * 3).cast(), d);
++        }
++    }
++
++    for offset in (batched..done).step_by(width) {
++        let at = start + offset;
++        let mut sum = _mm512_setzero_si512();
++        // SAFETY: `offset + 64 <= output.len()` and all inputs cover `start + offset + 64`.
++        unsafe {
++            for plan in &terms[..general] {
++                let low128: __m128i = _mm_loadu_si128(plan.low_tbl.cast());
++                let high128: __m128i = _mm_loadu_si128(plan.high_tbl.cast());
++                let low_tbl = _mm512_broadcast_i32x4(low128);
++                let high_tbl = _mm512_broadcast_i32x4(high128);
++                let v = _mm512_loadu_si512(plan.input.add(at).cast());
++                sum = _mm512_xor_si512(
++                    sum,
++                    _mm512_xor_si512(
++                        _mm512_shuffle_epi8(low_tbl, _mm512_and_si512(v, nibble_mask)),
++                        _mm512_shuffle_epi8(
++                            high_tbl,
++                            _mm512_and_si512(_mm512_srli_epi64::<4>(v), nibble_mask),
++                        ),
++                    ),
++                );
++            }
++            for plan in &terms[general..count] {
++                sum = _mm512_xor_si512(sum, _mm512_loadu_si512(plan.input.add(at).cast()));
++            }
++            _mm512_storeu_si512(output.as_mut_ptr().add(offset).cast(), sum);
++        }
++    }
++
++    if done < output.len() {
++        scalar_tail(row, inputs, &mut output[done..], start + done);
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    extern crate alloc;
++    use alloc::{vec, vec::Vec};
++
++    fn compare(kernel: SelectedTableRowKernel, n: usize, p: usize, len: usize, chunk: usize) {
++        let data: Vec<Vec<u8>> = (0..n)
++            .map(|j| (0..len).map(|i| (j * 73 + i * 109 + 17) as u8).collect())
++            .collect();
++        let inputs: Vec<&[u8]> = data.iter().map(Vec::as_slice).collect();
++        let rows: Vec<Vec<u8>> = (0..p)
++            .map(|j| {
++                (0..n)
++                    .map(|i| match (i + j) % 4 {
++                        0 => 0,
++                        1 => 1,
++                        _ => (i * 37 + j * 19 + 3) as u8,
++                    })
++                    .collect()
++            })
++            .collect();
++        let row_refs: Vec<&[u8]> = rows.iter().map(Vec::as_slice).collect();
++        let mut output = vec![vec![0xa5; len]; p];
++        let mut expected = vec![vec![0u8; len]; p];
++        for (row, out) in rows.iter().zip(&mut expected) {
++            for index in 0..len {
++                out[index] = row.iter().zip(&inputs).fold(0, |sum, (&c, data)| {
++                    sum ^ super::super::super::mul(c, data[index])
++                });
++            }
++        }
++        let mut views: Vec<&mut [u8]> = output.iter_mut().map(Vec::as_mut_slice).collect();
++        kernel
++            .execute(&row_refs, &inputs, &mut views, len, chunk)
++            .unwrap();
++        assert_eq!(output, expected, "n={n}, p={p}, len={len}, chunk={chunk}");
++    }
++
++    #[cfg(feature = "std")]
++    #[test]
++    fn table_rows_match_scalar_for_avx2_and_avx512() {
++        let avx2 = std::is_x86_feature_detected!("avx2");
++        let avx512 =
++            std::is_x86_feature_detected!("avx512f") && std::is_x86_feature_detected!("avx512bw");
++        for (supported, backend) in [(avx2, BackendId::RustAvx2), (avx512, BackendId::RustAvx512)] {
++            if !supported {
++                continue;
++            }
++            let Some(kernel) = SelectedTableRowKernel::from_backend(backend) else {
++                continue;
++            };
++            for n in [4, 6, 8, 12, 16] {
++                for p in [1, 2, 4] {
++                    for len in [0, 1, 31, 32, 33, 63, 64, 65, 128, 255, 256, 257, 1025] {
++                        compare(kernel, n, p, len, 256);
++                    }
++                }
++            }
++        }
++    }
++}

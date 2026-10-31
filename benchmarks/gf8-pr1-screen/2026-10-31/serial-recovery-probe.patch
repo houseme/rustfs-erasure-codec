@@ -1,0 +1,20 @@
+--- a/benches/recovery_paths.rs
++++ b/benches/recovery_paths.rs
+@@ -128,7 +128,7 @@
+             backend_override: std::env::var("RSE_BACKEND_OVERRIDE")
+                 .unwrap_or_else(|_| "auto".to_owned()),
+             available_parallelism: std::thread::available_parallelism().map_or(1, usize::from),
+-            rayon_threads: rayon::current_num_threads(),
++            rayon_threads: 0, // Serial-only diagnostic: do not initialize the global worker pool.
+         })
+     }
+ 
+@@ -800,7 +800,7 @@
+         completed += 1;
+     }
+     for (data, parity) in [(10, 4), (12, 4), (8, 3), (8, 4), (6, 3), (4, 2)] {
+-        for size in [1024, 32768, 1048576] {
++        for size in [1024, 8192, 32767, 32768, 32769, 65536, 1048576] {
+             let case = Case {
+                 operation: "encode.serial",
+                 data_shards: data,

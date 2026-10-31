@@ -1,0 +1,19 @@
+{
+  "schema": "gf8-release-interop-v1",
+  "baseline_commit": "88e52de48e64d0f3299c4b472fbc69e207e59ab9",
+  "worktree_patch_sha256": "4bf646031b7a4c22f943f5dc33861d14e80fc500c5961207d8b6749017c9f9c9",
+  "instrumentation_patch_sha256": "630e0c1bbfdd995a5dd473d49a8e669d06a0efde1e71d3b9d77e902e418c706e",
+  "old_package": "rustfs-erasure-codec 9.0.0",
+  "new_package": "rustfs-erasure-codec 9.1.0 worktree",
+  "rustc": "1.99.1",
+  "target": "x86_64-unknown-linux-gnu",
+  "features_both_packages": ["std", "simd-avx512"],
+  "backend_both_packages": "rust-avx512",
+  "standard_configurations_passed": 200,
+  "large_gf8_configurations_passed": 36,
+  "large_parity_exact": true,
+  "cross_decoding_both_directions": true,
+  "new_generated_kernel_executions": 96,
+  "instrumentation_scope": "temporary test snapshot only",
+  "performance_measurement": false
+}
