@@ -215,15 +215,7 @@ pub(super) fn try_butterfly_avx2<const INVERSE: bool>(
     // Only observe an already selected GF8 backend: GF16 must not initialize it
     // or repeatedly read its override.
     #[cfg(rse_x86_gfni)]
-    if is_x86_feature_detected!("gfni")
-        && matches!(
-            crate::galois_8::selected_backend_id(),
-            Some(
-                crate::galois_8::BackendId::RustGfniAvx2
-                    | crate::galois_8::BackendId::RustGfniAvx512
-            )
-        )
-    {
+    if gfni_backend_available() {
         // SAFETY: GFNI and AVX2 are detected and both lanes have equal lengths.
         unsafe {
             gfni_butterfly::run::<INVERSE>(out, input, log_m, tables);
@@ -244,6 +236,38 @@ pub(super) fn try_butterfly_avx2<const INVERSE: bool>(
     target_arch = "x86_64",
     target_endian = "little"
 ))]
+#[inline]
+fn gfni_backend_available() -> bool {
+    is_x86_feature_detected!("gfni")
+        && matches!(
+            crate::galois_8::selected_backend_id(),
+            Some(
+                crate::galois_8::BackendId::RustGfniAvx2
+                    | crate::galois_8::BackendId::RustGfniAvx512
+            )
+        )
+}
+
+#[cfg(all(
+    rse_x86_gfni,
+    feature = "std",
+    target_arch = "x86_64",
+    target_endian = "little"
+))]
+pub(super) fn gfni_layout_matrices(log_m: u16, tables: &LeopardGf16Tables) -> Option<[i64; 4]> {
+    if gfni_backend_available() {
+        Some(gfni_butterfly::matrices(log_m, tables))
+    } else {
+        None
+    }
+}
+
+#[cfg(all(
+    rse_x86_gfni,
+    feature = "std",
+    target_arch = "x86_64",
+    target_endian = "little"
+))]
 mod gfni_butterfly {
     use super::{LeopardGf16Tables, mul_log16};
     use core::arch::x86_64::*;
@@ -251,7 +275,7 @@ mod gfni_butterfly {
     const PACK: [u8; 16] = [0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15];
     // Multiplication by a fixed GF16 element is a linear map over GF(2).
     // Build its four 8x8 byte-plane matrices in the bit order used by GFNI.
-    fn matrices(log_m: u16, t: &LeopardGf16Tables) -> [i64; 4] {
+    pub(super) fn matrices(log_m: u16, t: &LeopardGf16Tables) -> [i64; 4] {
         let mut columns = [0u64; 4];
         for input_bit in 0..16 {
             let value = mul_log16(1u16 << input_bit, log_m, &t.log_lut, &t.exp_lut);

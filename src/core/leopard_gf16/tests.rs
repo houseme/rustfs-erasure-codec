@@ -780,3 +780,36 @@ fn test_gf16_reconstruct_unaligned_odd_offset_buffers() {
         "odd-offset reconstruct mismatch for shard 0"
     );
 }
+
+#[test]
+fn gfni_layout_affine_model_matches_scalar_for_all_basis_and_multipliers() {
+    fn affine(value: u8, matrix: u64) -> u8 {
+        let mut out = 0;
+        for bit in 0..8 {
+            let row = (matrix >> ((7 - bit) * 8)) as u8;
+            out |= (((row & value).count_ones() & 1) as u8) << bit;
+        }
+        out
+    }
+    let t = super::init_leopard_gf16_tables();
+    for log_m in 0..u16::MAX {
+        let mut matrices = [0u64; 4];
+        for bit in 0..16 {
+            let product = super::ops::mul_log16(1u16 << bit, log_m, &t.log_lut, &t.exp_lut);
+            for output_bit in 0..16 {
+                let slot = (output_bit / 8) * 2 + bit / 8;
+                matrices[slot] |=
+                    (((product >> output_bit) & 1) as u64) << ((7 - output_bit % 8) * 8 + bit % 8);
+            }
+        }
+        for bit in 0..16 {
+            let value = 1u16 << bit;
+            let lo = value as u8;
+            let hi = (value >> 8) as u8;
+            let got = u16::from(affine(lo, matrices[0]) ^ affine(hi, matrices[1]))
+                | (u16::from(affine(lo, matrices[2]) ^ affine(hi, matrices[3])) << 8);
+            let expected = super::ops::mul_log16(value, log_m, &t.log_lut, &t.exp_lut);
+            assert_eq!(got, expected, "log={log_m} bit={bit}");
+        }
+    }
+}

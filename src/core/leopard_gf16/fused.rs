@@ -3,6 +3,14 @@
 
 use super::{LeopardGf16Tables, MODULUS16, ops};
 
+#[cfg(all(
+    rse_x86_gfni,
+    feature = "std",
+    target_arch = "x86_64",
+    target_endian = "little"
+))]
+const GFNI_LAYOUT_MIN_BYTES: usize = 4096;
+
 pub(super) fn user_to_work_mul(
     user: &[u8],
     out: &mut [u16],
@@ -19,6 +27,14 @@ pub(super) fn user_to_work_mul(
     }
     #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
     if std::is_x86_feature_detected!("avx2") {
+        #[cfg(rse_x86_gfni)]
+        if user.len() >= GFNI_LAYOUT_MIN_BYTES
+            && let Some(matrices) = super::mul_simd::gfni_layout_matrices(log_m, tables)
+        {
+            // SAFETY: AVX2 and GFNI are detected; the validated slices are disjoint whole blocks.
+            unsafe { super::avx2::user_to_work_gfni(user, out, matrices) };
+            return;
+        }
         let nibble =
             super::mul_simd::NibbleTables16::build(log_m, &tables.log_lut, &tables.exp_lut);
         // SAFETY: AVX2 is detected and both slices cover complete, disjoint blocks.
@@ -69,6 +85,14 @@ pub(super) fn work_mul_to_user(
     }
     #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
     if std::is_x86_feature_detected!("avx2") {
+        #[cfg(rse_x86_gfni)]
+        if user.len() >= GFNI_LAYOUT_MIN_BYTES
+            && let Some(matrices) = super::mul_simd::gfni_layout_matrices(log_m, tables)
+        {
+            // SAFETY: AVX2 and GFNI are detected; the validated slices are disjoint whole blocks.
+            unsafe { super::avx2::work_to_user_gfni(work, user, matrices) };
+            return;
+        }
         let nibble =
             super::mul_simd::NibbleTables16::build(log_m, &tables.log_lut, &tables.exp_lut);
         // SAFETY: AVX2 is detected and both slices cover complete, disjoint blocks.
@@ -352,8 +376,15 @@ mod tests {
 
     #[test]
     fn fused_layout_multiply_matches_separate_operations() {
+        #[cfg(all(
+            rse_x86_gfni,
+            feature = "std",
+            target_arch = "x86_64",
+            target_endian = "little"
+        ))]
+        let _ = crate::galois_8::active_backend_id();
         let tables = init_leopard_gf16_tables();
-        for len in [0, 64, 128, 192, 32_768, 65_536, 65_600] {
+        for len in [0, 64, 128, 192, 4032, 4096, 4160, 32_768, 65_536, 65_600] {
             let bytes: Vec<u8> = (0..len + 1)
                 .map(|i| ((i * 29 + i / 7) % 256) as u8)
                 .collect();

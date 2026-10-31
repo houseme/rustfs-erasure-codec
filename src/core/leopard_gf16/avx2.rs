@@ -101,6 +101,81 @@ pub(super) unsafe fn work_to_user(work: &[u16], user: &mut [u8], table: &NibbleT
     }
 }
 
+#[cfg(rse_x86_gfni)]
+#[target_feature(enable = "gfni,avx2")]
+unsafe fn gfni_multiply(lo: __m256i, hi: __m256i, matrices: &[__m256i; 4]) -> (__m256i, __m256i) {
+    use core::arch::x86_64::_mm256_gf2p8affine_epi64_epi8;
+    let l = _mm256_xor_si256(
+        _mm256_gf2p8affine_epi64_epi8::<0>(lo, matrices[0]),
+        _mm256_gf2p8affine_epi64_epi8::<0>(hi, matrices[1]),
+    );
+    let h = _mm256_xor_si256(
+        _mm256_gf2p8affine_epi64_epi8::<0>(lo, matrices[2]),
+        _mm256_gf2p8affine_epi64_epi8::<0>(hi, matrices[3]),
+    );
+    (l, h)
+}
+
+#[cfg(rse_x86_gfni)]
+#[target_feature(enable = "gfni,avx2")]
+pub(super) unsafe fn user_to_work_gfni(user: &[u8], out: &mut [u16], matrices: [i64; 4]) {
+    use core::arch::x86_64::_mm256_set1_epi64x;
+    let m = [
+        _mm256_set1_epi64x(matrices[0]),
+        _mm256_set1_epi64x(matrices[1]),
+        _mm256_set1_epi64x(matrices[2]),
+        _mm256_set1_epi64x(matrices[3]),
+    ];
+    // SAFETY: caller supplies AVX2/GFNI and disjoint buffers of equal whole-block lengths.
+    unsafe {
+        let dst = out.as_mut_ptr().cast::<u8>();
+        for off in (0..user.len()).step_by(64) {
+            let lo = _mm256_loadu_si256(user.as_ptr().add(off).cast());
+            let hi = _mm256_loadu_si256(user.as_ptr().add(off + 32).cast());
+            let (lo, hi) = gfni_multiply(lo, hi, &m);
+            let a = _mm256_unpacklo_epi8(lo, hi);
+            let b = _mm256_unpackhi_epi8(lo, hi);
+            _mm256_storeu_si256(dst.add(off).cast(), _mm256_permute2x128_si256::<0x20>(a, b));
+            _mm256_storeu_si256(
+                dst.add(off + 32).cast(),
+                _mm256_permute2x128_si256::<0x31>(a, b),
+            );
+        }
+    }
+}
+
+#[cfg(rse_x86_gfni)]
+#[target_feature(enable = "gfni,avx2")]
+pub(super) unsafe fn work_to_user_gfni(work: &[u16], user: &mut [u8], matrices: [i64; 4]) {
+    use core::arch::x86_64::_mm256_set1_epi64x;
+    let m = [
+        _mm256_set1_epi64x(matrices[0]),
+        _mm256_set1_epi64x(matrices[1]),
+        _mm256_set1_epi64x(matrices[2]),
+        _mm256_set1_epi64x(matrices[3]),
+    ];
+    // SAFETY: caller supplies AVX2/GFNI and disjoint buffers of equal whole-block lengths.
+    unsafe {
+        let byte_mask = _mm256_srli_epi16::<8>(_mm256_set1_epi8(-1));
+        let src = work.as_ptr().cast::<u8>();
+        for off in (0..user.len()).step_by(64) {
+            let a = _mm256_loadu_si256(src.add(off).cast());
+            let b = _mm256_loadu_si256(src.add(off + 32).cast());
+            let lo = _mm256_permute4x64_epi64::<0xd8>(_mm256_packus_epi16(
+                _mm256_and_si256(a, byte_mask),
+                _mm256_and_si256(b, byte_mask),
+            ));
+            let hi = _mm256_permute4x64_epi64::<0xd8>(_mm256_packus_epi16(
+                _mm256_srli_epi16::<8>(a),
+                _mm256_srli_epi16::<8>(b),
+            ));
+            let (lo, hi) = gfni_multiply(lo, hi, &m);
+            _mm256_storeu_si256(user.as_mut_ptr().add(off).cast(), lo);
+            _mm256_storeu_si256(user.as_mut_ptr().add(off + 32).cast(), hi);
+        }
+    }
+}
+
 #[test]
 fn avx2_kernels_match_independent_reference() {
     extern crate alloc;
@@ -194,5 +269,90 @@ fn avx2_kernels_match_every_multiplier_and_boundaries() {
             &expected_user,
             "AVX2 boundary output, len={len}"
         );
+    }
+}
+
+#[cfg(all(test, rse_x86_gfni))]
+mod gfni_layout_tests {
+    extern crate alloc;
+    use super::super::{init_leopard_gf16_tables, ops};
+    use super::*;
+    use alloc::vec;
+    use alloc::vec::Vec;
+
+    fn enabled() -> bool {
+        if !std::is_x86_feature_detected!("avx2") || !std::is_x86_feature_detected!("gfni") {
+            return false;
+        }
+        let backend = crate::galois_8::active_backend_id();
+        std::println!("GFNI layout backend={backend:?}");
+        matches!(
+            backend,
+            crate::galois_8::BackendId::RustGfniAvx2 | crate::galois_8::BackendId::RustGfniAvx512
+        )
+    }
+
+    #[test]
+    fn gfni_layout_matches_scalar_for_every_multiplier() {
+        if !enabled() {
+            return;
+        }
+        let tables = init_leopard_gf16_tables();
+        let work: [u16; 32] =
+            core::array::from_fn(|i| (i as u16).wrapping_mul(8123).rotate_left((i % 16) as u32));
+        let mut user = [0u8; 66];
+        ops::work_u16_to_user_bytes(&work, &mut user[1..65]);
+        for log_m in 0..u16::MAX {
+            let matrices = super::super::mul_simd::gfni_layout_matrices(log_m, tables).unwrap();
+            let expected: Vec<u16> = work
+                .iter()
+                .map(|&v| ops::mul_log16(v, log_m, &tables.log_lut, &tables.exp_lut))
+                .collect();
+            let mut actual = [0xaaaau16; 34];
+            let mut output = [0xaau8; 66];
+            // SAFETY: feature detection succeeded; slices are disjoint whole blocks.
+            unsafe { user_to_work_gfni(&user[1..65], &mut actual[1..33], matrices) };
+            assert_eq!(&actual[1..33], expected.as_slice(), "input log={log_m}");
+            assert_eq!(actual[0], 0xaaaa);
+            assert_eq!(actual[33], 0xaaaa);
+            let mut expected_user = [0u8; 64];
+            ops::work_u16_to_user_bytes(&expected, &mut expected_user);
+            // SAFETY: feature detection succeeded; slices are disjoint whole blocks.
+            unsafe { work_to_user_gfni(&work, &mut output[1..65], matrices) };
+            assert_eq!(&output[1..65], &expected_user, "output log={log_m}");
+            assert_eq!(output[0], 0xaa);
+            assert_eq!(output[65], 0xaa);
+        }
+    }
+
+    #[test]
+    fn gfni_layout_matches_reference_for_all_values_and_boundaries() {
+        if !enabled() {
+            return;
+        }
+        let tables = init_leopard_gf16_tables();
+        let all: Vec<u16> = (0..=u16::MAX).collect();
+        for log_m in [0, 1, 31, 1024, 32768, 65534] {
+            let matrices = super::super::mul_simd::gfni_layout_matrices(log_m, tables).unwrap();
+            for len in [32usize, 64, 2016, 2048, 2080, 32768, 65536] {
+                let work = &all[..len];
+                let mut user = vec![0u8; len * 2 + 1];
+                ops::work_u16_to_user_bytes(work, &mut user[1..]);
+                let expected: Vec<u16> = work
+                    .iter()
+                    .map(|&v| ops::mul_log16(v, log_m, &tables.log_lut, &tables.exp_lut))
+                    .collect();
+                let mut actual = vec![0u16; len];
+                // SAFETY: feature detection succeeded; slices are disjoint whole blocks.
+                unsafe { user_to_work_gfni(&user[1..], &mut actual, matrices) };
+                assert_eq!(actual, expected, "input len={len} log={log_m}");
+                let mut expected_user = vec![0u8; len * 2];
+                ops::work_u16_to_user_bytes(&expected, &mut expected_user);
+                let mut output = vec![0u8; len * 2 + 1];
+                // SAFETY: feature detection succeeded; slices are disjoint whole blocks.
+                unsafe { work_to_user_gfni(work, &mut output[1..], matrices) };
+                assert_eq!(&output[1..], expected_user, "output len={len} log={log_m}");
+            }
+        }
     }
 }
