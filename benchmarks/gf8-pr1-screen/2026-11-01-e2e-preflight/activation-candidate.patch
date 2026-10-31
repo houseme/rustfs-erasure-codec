@@ -1,0 +1,19 @@
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -397,3 +397,6 @@
+ #[cfg(feature = "bench-internal-row")]
+ #[doc(hidden)]
+ pub mod diagnostic_row;
++
++#[doc(hidden)]
++pub static RSE_DIAGNOSTIC_GROUP_CALLS: ::core::sync::atomic::AtomicUsize = ::core::sync::atomic::AtomicUsize::new(0);
+--- a/src/core/parallel.rs
++++ b/src/core/parallel.rs
+@@ -245,6 +245,7 @@
+             .enumerate()
+             .for_each(|(row, output)| {
+                 let row_jobs = jobs / output_count + usize::from(row < jobs % output_count);
++                crate::RSE_DIAGNOSTIC_GROUP_CALLS.fetch_add(1, ::core::sync::atomic::Ordering::Relaxed);
+                 // Align job boundaries while balancing the bytes each job handles.
+                 let group_len = shard_len
+                     .div_ceil(row_jobs)
