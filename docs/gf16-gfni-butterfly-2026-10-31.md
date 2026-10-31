@@ -63,3 +63,7 @@ These short VM screens are workload- and machine-specific, and do not guarantee
 performance on every supported CPU. At the user's request, drift did not stop
 the runs. The benchmark's startup initialization is outside the measured
 recovery operations; compare each entrypoint with its own baseline.
+
+A subsequent [matrix-construction optimization](gf16-gfni-matrix-transpose-2026-10-31.md)
+removed the 8 KiB cutoff described above; the selection and compatibility
+constraints remain unchanged.
