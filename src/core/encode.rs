@@ -1261,6 +1261,49 @@ mod borrowed_row_tests {
     use super::*;
     use crate::{CodecOptions, MatrixMode};
 
+    // A non-native element width exercises generic fields without opting in to
+    // the built-in byte or tower-field dispatch paths.
+    struct ThreeByteField;
+
+    impl ThreeByteField {
+        fn wrap(value: u8) -> [u8; 3] {
+            [value, value.rotate_left(1), value.rotate_left(3)]
+        }
+    }
+
+    impl Field for ThreeByteField {
+        const ORDER: usize = 256;
+        type Elem = [u8; 3];
+
+        fn add(a: Self::Elem, b: Self::Elem) -> Self::Elem {
+            Self::wrap(crate::galois_8::Field::add(a[0], b[0]))
+        }
+
+        fn mul(a: Self::Elem, b: Self::Elem) -> Self::Elem {
+            Self::wrap(crate::galois_8::Field::mul(a[0], b[0]))
+        }
+
+        fn div(a: Self::Elem, b: Self::Elem) -> Self::Elem {
+            Self::wrap(crate::galois_8::Field::div(a[0], b[0]))
+        }
+
+        fn exp(value: Self::Elem, n: usize) -> Self::Elem {
+            Self::wrap(crate::galois_8::Field::exp(value[0], n))
+        }
+
+        fn zero() -> Self::Elem {
+            Self::wrap(crate::galois_8::Field::zero())
+        }
+
+        fn one() -> Self::Elem {
+            Self::wrap(crate::galois_8::Field::one())
+        }
+
+        fn nth_internal(n: usize) -> Self::Elem {
+            Self::wrap(crate::galois_8::Field::nth_internal(n))
+        }
+    }
+
     #[test]
     fn few_parallel_outputs_match_scalar_with_unaligned_slices_and_tails() {
         fn check<F: Field>()
@@ -1321,6 +1364,7 @@ mod borrowed_row_tests {
             .install(|| {
                 check::<crate::galois_8::Field>();
                 check::<crate::galois_16::Field>();
+                check::<ThreeByteField>();
             });
     }
 
