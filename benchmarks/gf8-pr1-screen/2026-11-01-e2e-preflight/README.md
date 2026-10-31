@@ -46,3 +46,19 @@ so the runner refused to start the baseline. A later observation saw CPUs 0–7
 and another baseline process; its identity at the first observation was not
 recorded. No codec timing or candidate result was produced. A single earlier
 controller ending therefore did not establish a stable exclusive window.
+
+## Rejected end-to-end candidate comparison
+
+A later reserved-window attempt used the current production source at
+`5703a27a6599c733e9ef53ebf36874a8a14ff199`. Both same-source baseline rounds
+passed the specified gates before the candidate ran. In the second candidate
+round, the 10+4 / 1 MiB + 1 / missing-data-3 case had +5.88% B-level
+cross-round drift; the gate rejected the complete comparison. The earlier
+cases and phases must not be used to claim a candidate gain or regression.
+
+`end-to-end-5703a27/` retains all original baseline, candidate and monitor
+records, including the recorded but unacknowledged failing case. The monitor
+observed CPUs 0–15, no named competitor and a maximum off-target busy streak
+of one across 803 observations. These measurements do not identify the cause
+of the drift or rule out short interference, caching, allocation or host
+effects. The candidate remains disabled.
