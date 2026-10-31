@@ -87,3 +87,9 @@ AArch64 all-features codec and no_std suites, the native AArch64 and WASM
 passed. The all-features workspace suite excluding the fuzz package passed,
 including 370 xtask tests; all-target all-feature Clippy and formatting passed.
 The x86 host had neither `cargo-fuzz` nor nightly installed, so fuzz was not run.
+
+After commit `e475fab`, `cargo package --no-verify` produced a 73-file crate
+archive whose recorded VCS revision was `e475fab`; all 66 packaged Rust source
+files matched the checkout. The extracted archive passed 126 no_std old/new
+checks on native AArch64 and WASM, and both the 126-check and 228-check boundary
+probes on native x86 with `+avx2`. No crate was published.
