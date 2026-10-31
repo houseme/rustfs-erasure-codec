@@ -76,6 +76,15 @@ impl NibbleTables16 {
         let mut hi = [[0u8; 16]; 4];
         for i in 0..4 {
             let shift = 4 * i as u32;
+            #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
+            {
+                let a = mul_log16(1 << shift, log_m, log_lut, exp_lut);
+                let b = mul_log16(2 << shift, log_m, log_lut, exp_lut);
+                let c = mul_log16(4 << shift, log_m, log_lut, exp_lut);
+                let d = mul_log16(8 << shift, log_m, log_lut, exp_lut);
+                fill_nibble_tables(&mut lo[i], &mut hi[i], a, b, c, d);
+            }
+            #[cfg(not(all(feature = "std", target_arch = "x86_64", target_endian = "little")))]
             for nib in 0u16..16 {
                 let v = mul_log16(nib << shift, log_m, log_lut, exp_lut);
                 lo[i][nib as usize] = v as u8;
@@ -83,6 +92,37 @@ impl NibbleTables16 {
             }
         }
         NibbleTables16 { lo, hi }
+    }
+}
+
+// Keep one shared expansion body: inlining it into every nibble position
+// substantially increases x86 code size and slows large GFNI recoveries.
+#[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
+#[inline(never)]
+fn fill_nibble_tables(lo: &mut [u8; 16], hi: &mut [u8; 16], a: u16, b: u16, c: u16, d: u16) {
+    let ab = a ^ b;
+    let cd = c ^ d;
+    let values = [
+        0,
+        a,
+        b,
+        ab,
+        c,
+        a ^ c,
+        b ^ c,
+        ab ^ c,
+        d,
+        a ^ d,
+        b ^ d,
+        ab ^ d,
+        cd,
+        a ^ cd,
+        b ^ cd,
+        ab ^ cd,
+    ];
+    for (nib, value) in values.into_iter().enumerate() {
+        lo[nib] = value as u8;
+        hi[nib] = (value >> 8) as u8;
     }
 }
 
@@ -673,6 +713,23 @@ mod mul_simd_tests {
         } else {
             let t = NibbleTables16::build(log_m, &tables.log_lut, &tables.exp_lut);
             mulgf16_tabled_scalar::<XOR>(out, input, &t);
+        }
+    }
+
+    #[test]
+    fn nibble_tables_match_direct_products_for_every_multiplier() {
+        let tables = build_tables16();
+        for log_m in 0..=u16::MAX {
+            let t = NibbleTables16::build(log_m, &tables.log_lut, &tables.exp_lut);
+            for i in 0..4 {
+                for nib in 0u16..16 {
+                    let expected =
+                        mul_log16(nib << (4 * i), log_m, &tables.log_lut, &tables.exp_lut);
+                    let actual =
+                        u16::from(t.lo[i][nib as usize]) | (u16::from(t.hi[i][nib as usize]) << 8);
+                    assert_eq!(actual, expected, "log={log_m} position={i} nibble={nib}");
+                }
+            }
         }
     }
 
