@@ -84,3 +84,9 @@ old/new probes, and the std 200-configuration bidirectional release probe
 passed. The all-features workspace suite, excluding the fuzz package, passed
 including 370 xtask tests, as did all-target all-feature Clippy and formatting.
 The x86 host did not have `cargo-fuzz` or a nightly toolchain; fuzz was not run.
+
+After commit `9bc151b`, `cargo package --no-verify` produced a 73-file crate
+archive whose recorded VCS revision was `9bc151b`; all 66 packaged Rust source
+files matched the checkout. The extracted archive passed the 126-check no_std
+old/new probe on native AArch64 and WASM, and both the 126-check and the
+114-check boundary probe on native x86 with `+avx2`. No crate was published.
