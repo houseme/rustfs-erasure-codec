@@ -81,3 +81,7 @@ used for a performance claim. The server was being used by another task, so no
 additional benchmark was started. The candidate remains unmerged until an idle
 host can validate performance, allocation behavior, old/new byte compatibility,
 and the complete feature matrix.
+
+A subsequent [basis-log follow-up](gf16-basis-log-followup-2026-10-31.md)
+completed the interrupted measurements and evaluated a constant alternative;
+neither candidate was promoted.

@@ -1,0 +1,37 @@
+--- a/src/core/leopard_gf16/mul_simd.rs
++++ b/src/core/leopard_gf16/mul_simd.rs
+@@ -249,12 +249,17 @@
+     use core::arch::x86_64::*;
+     const SPLIT: [u8; 16] = [0, 2, 4, 6, 8, 10, 12, 14, 1, 3, 5, 7, 9, 11, 13, 15];
+     const PACK: [u8; 16] = [0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15];
++    // Logs of the 16 basis vectors for the fixed Leopard GF16 field.
++    const BASIS_LOG: [u16; 16] = [
++        0, 21845, 17476, 56797, 7196, 55512, 9509, 52171, 31823, 54803, 64917, 61598, 39913, 30324,
++        47126, 26315,
++    ];
+     // Multiplication by a fixed GF16 element is a linear map over GF(2).
+     // Build its four 8x8 byte-plane matrices in the bit order used by GFNI.
+     fn matrices(log_m: u16, t: &LeopardGf16Tables) -> [i64; 4] {
+         let mut columns = [0u64; 4];
+-        for input_bit in 0..16 {
+-            let value = mul_log16(1u16 << input_bit, log_m, &t.log_lut, &t.exp_lut);
++        for (input_bit, &log_a) in BASIS_LOG.iter().enumerate() {
++            let value = t.exp_lut[super::super::ops::add_mod16(log_a, log_m) as usize];
+             let byte_shift = (input_bit % 8) * 8;
+             let group = input_bit / 8;
+             columns[group] |= u64::from(value & 0xff) << byte_shift;
+@@ -326,6 +331,14 @@
+         use super::{matrices, mul_log16};
+
+         #[test]
++        fn fixed_basis_logs_match_generated_field_tables() {
++            let tables = init_leopard_gf16_tables();
++            for (bit, &actual) in super::BASIS_LOG.iter().enumerate() {
++                assert_eq!(actual, tables.log_lut[1usize << bit], "bit={bit}");
++            }
++        }
++
++        #[test]
+         fn transposed_matrices_match_bitwise_reference_for_every_multiplier() {
+             let tables = init_leopard_gf16_tables();
+             for log_m in 0..u16::MAX {
