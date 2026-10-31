@@ -20,7 +20,10 @@ pub(super) fn user_to_work_mul(
 ) {
     assert_eq!(user.len(), out.len() * 2);
     assert!(user.len().is_multiple_of(64));
+    #[cfg(feature = "std")]
     assert_eq!(scratch.len(), out.len());
+    #[cfg(not(feature = "std"))]
+    let _ = &scratch;
     if log_m == MODULUS16 as u16 {
         ops::user_bytes_to_work_u16_into(user, out);
         return;
@@ -78,7 +81,10 @@ pub(super) fn work_mul_to_user(
 ) {
     assert_eq!(user.len(), work.len() * 2);
     assert!(user.len().is_multiple_of(64));
+    #[cfg(feature = "std")]
     assert_eq!(scratch.len(), work.len());
+    #[cfg(not(feature = "std"))]
+    let _ = &scratch;
     if log_m == MODULUS16 as u16 {
         ops::work_u16_to_user_bytes(work, user);
         return;
@@ -373,6 +379,24 @@ mod tests {
     use super::*;
     use alloc::vec;
     use alloc::vec::Vec;
+
+    #[cfg(not(feature = "std"))]
+    #[test]
+    fn no_std_fused_paths_accept_empty_scratch() {
+        let tables = init_leopard_gf16_tables();
+        let input = vec![7u8; 4096];
+        let mut work = vec![0u16; 2048];
+        let mut output = vec![0u8; 4096];
+        let mut scratch = [];
+        user_to_work_mul(&input, &mut work, &mut scratch, 12345, tables);
+        work_mul_to_user(&work, &mut output, &mut scratch, 12345, tables);
+        let mut expected = vec![0u16; 2048];
+        scalar_user_to_work_mul(&input, &mut expected, 12345, tables);
+        assert_eq!(work, expected);
+        let mut expected_output = vec![0u8; 4096];
+        scalar_work_mul_to_user(&expected, &mut expected_output, 12345, tables);
+        assert_eq!(output, expected_output);
+    }
 
     #[test]
     fn fused_layout_multiply_matches_separate_operations() {

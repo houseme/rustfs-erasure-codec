@@ -32,7 +32,8 @@ fn cacheable_decode_size(lanes: usize, chunk_len: usize) -> bool {
 
 struct DecodeBuffers {
     work: FlatWork16,
-    // Conversion/FFT and output scaling run sequentially on the same chunk.
+    // The std generic conversion fallback needs scratch. no_std conversion is
+    // fused, and the FFT routines do not use the scratch argument.
     scratch: Vec<u16>,
 }
 
@@ -40,7 +41,16 @@ impl DecodeBuffers {
     fn new(lanes: usize, chunk_len: usize) -> Self {
         Self {
             work: FlatWork16::new(lanes, chunk_len),
-            scratch: alloc::vec![0; chunk_len],
+            scratch: {
+                #[cfg(feature = "std")]
+                {
+                    alloc::vec![0; chunk_len]
+                }
+                #[cfg(not(feature = "std"))]
+                {
+                    Vec::new()
+                }
+            },
         }
     }
 
@@ -51,6 +61,20 @@ impl DecodeBuffers {
                 .capacity()
                 .saturating_mul(core::mem::size_of::<u16>()),
         )
+    }
+}
+
+// no_std conversion is fused, so its workspace is deliberately empty.
+#[inline(always)]
+fn conversion_scratch(scratch: &mut [u16], size: usize) -> &mut [u16] {
+    #[cfg(feature = "std")]
+    {
+        &mut scratch[..size]
+    }
+    #[cfg(not(feature = "std"))]
+    {
+        let _ = size;
+        scratch
     }
 }
 
@@ -403,7 +427,7 @@ pub(crate) fn reconstruct_with_tables16_with_options(
                 super::fused::work_mul_to_user(
                     &work.lane(work_idx)[..size],
                     &mut outputs[shard_idx][offset * 2..end * 2],
-                    &mut scratch[..size],
+                    conversion_scratch(scratch, size),
                     inv_err,
                     tables,
                 );
@@ -421,7 +445,7 @@ pub(crate) fn reconstruct_with_tables16_with_options(
 #[allow(clippy::too_many_arguments, clippy::needless_range_loop)]
 fn compute_reconstruct_chunk(
     work: &mut FlatWork16,
-    scratch: &mut Vec<u16>,
+    #[allow(clippy::ptr_arg)] scratch: &mut Vec<u16>,
     offset: usize,
     end: usize,
     size: usize,
@@ -433,6 +457,7 @@ fn compute_reconstruct_chunk(
     tables: &LeopardGf16Tables,
     driver: &LeopardGf16DecodeDriver,
 ) -> Result<(), Error> {
+    #[cfg(feature = "std")]
     if scratch.len() < size {
         scratch.resize(size, 0);
     }
@@ -446,7 +471,7 @@ fn compute_reconstruct_chunk(
             super::fused::user_to_work_mul(
                 &input[offset * 2..end * 2],
                 &mut work.lane_mut(work_idx)[..size],
-                &mut scratch[..size],
+                conversion_scratch(scratch, size),
                 err_locs[work_idx],
                 tables,
             );
@@ -461,7 +486,7 @@ fn compute_reconstruct_chunk(
             super::fused::user_to_work_mul(
                 &input[offset * 2..end * 2],
                 &mut work.lane_mut(i)[..size],
-                &mut scratch[..size],
+                conversion_scratch(scratch, size),
                 err_locs[i],
                 tables,
             );
@@ -836,6 +861,13 @@ fn dit4_decode_pairwise_16(
 
 #[cfg(test)]
 mod decode_driver_boundary_tests {
+    #[cfg(not(feature = "std"))]
+    #[test]
+    fn no_std_decode_workspace_does_not_allocate_conversion_scratch() {
+        let buffers = super::DecodeBuffers::new(16, 32 * 1024);
+        assert_eq!(buffers.scratch.capacity(), 0);
+    }
+
     #[test]
     fn permits_the_full_field_transform_order() {
         let driver =
