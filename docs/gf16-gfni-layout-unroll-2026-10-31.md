@@ -69,3 +69,6 @@ and [AVX2](../benchmarks/gf16-gfni-layout-unroll/2026-10-31-linux-x86/encode-avx
 encode controls showed 1 MiB medians of −1.59% and −1.34% respectively across
 two geometries. At the user's request, baseline drift did not stop these runs.
 These VM measurements are not a guarantee for other CPUs or workloads.
+
+A subsequent [GFNI-AVX512 evaluation](gf16-gfni512-layout-evaluation-2026-10-31.md)
+found no reliable end-to-end advantage and did not change production code.
