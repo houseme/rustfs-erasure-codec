@@ -1262,6 +1262,69 @@ mod borrowed_row_tests {
     use crate::{CodecOptions, MatrixMode};
 
     #[test]
+    fn few_parallel_outputs_match_scalar_with_unaligned_slices_and_tails() {
+        fn check<F: Field>()
+        where
+            F::Elem: Send + Sync,
+        {
+            for parity_count in [1, 2, 3] {
+                let codec = ReedSolomon::<F>::new(4, parity_count).unwrap();
+                let matrix = codec.encoding_format().matrix();
+                for len in [65, 129, 1009] {
+                    let data: Vec<Vec<F::Elem>> = (0..4)
+                        .map(|row| {
+                            (0..len)
+                                .map(|at| F::nth((row * 71 + at * 19 + 1) % F::ORDER))
+                                .collect()
+                        })
+                        .collect();
+                    let mut expected = vec![vec![F::zero(); len]; parity_count];
+                    for (row, output) in expected.iter_mut().enumerate() {
+                        let coefficients = matrix.get_row(4 + row);
+                        for (at, value) in output.iter_mut().enumerate() {
+                            for (column, input) in data.iter().enumerate() {
+                                *value = F::add(*value, F::mul(coefficients[column], input[at]));
+                            }
+                        }
+                    }
+                    for jobs in [1, 2, 3, 4, 8] {
+                        for chunk_len in [63, 64, 65, 257] {
+                            let mut guarded = vec![vec![F::one(); len + 2]; parity_count];
+                            let mut outputs: Vec<&mut [F::Elem]> =
+                                guarded.iter_mut().map(|row| &mut row[1..len + 1]).collect();
+                            codec.code_some_slices_par_chunked_with_jobs(
+                                &codec.get_parity_rows(),
+                                &data,
+                                &mut outputs,
+                                chunk_len,
+                                jobs,
+                            );
+                            for (row, output) in guarded.iter().enumerate() {
+                                assert_eq!(output[0], F::one());
+                                assert_eq!(output[len + 1], F::one());
+                                assert_eq!(
+                                    &output[1..len + 1],
+                                    expected[row],
+                                    "len={len}, chunk={chunk_len}, jobs={jobs}, row={row}"
+                                );
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        rayon::ThreadPoolBuilder::new()
+            .num_threads(4)
+            .build()
+            .unwrap()
+            .install(|| {
+                check::<crate::galois_8::Field>();
+                check::<crate::galois_16::Field>();
+            });
+    }
+
+    #[test]
     fn borrowed_ranges_and_decode_views_match_scalar_bytes_in_serial_and_parallel() {
         fn check<F: Field>()
         where
