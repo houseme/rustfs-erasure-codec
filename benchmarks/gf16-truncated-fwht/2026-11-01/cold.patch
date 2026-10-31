@@ -1,0 +1,64 @@
+--- a/src/core/leopard_gf16/ops.rs
++++ b/src/core/leopard_gf16/ops.rs
+@@ -294,6 +294,12 @@
+     while dist4 <= m {
+         let mut r = 0usize;
+         while r < mtrunc {
++            #[cfg(all(feature = "std", target_endian = "little", target_arch = "x86_64"))]
++            if dist >= 16 {
++                fwht16_mtrunc_wide(data, r, dist);
++                r += dist4;
++                continue;
++            }
+             let mut off = r;
+             for _ in 0..dist {
+                 let (t0, t1) = fwht2_alt16(data[off], data[off + dist]);
+@@ -315,6 +321,13 @@
+         dist = dist4;
+         dist4 <<= 2;
+     }
++}
++
++#[cfg(all(feature = "std", target_endian = "little", target_arch = "x86_64"))]
++#[cold]
++#[inline(never)]
++fn fwht16_mtrunc_wide(data: &mut [u16], r: usize, dist: usize) {
++    super::fwht_simd::radix4_block(data, r, dist);
+ }
+
+ /// Flexible-size FWHT for slices whose length is a power of 2 and <= ORDER16.
+--- a/src/core/leopard_gf16/tests.rs
++++ b/src/core/leopard_gf16/tests.rs
+@@ -813,3 +813,32 @@
+         }
+     }
+ }
++
++#[test]
++fn truncated_fwht_matches_scalar_at_all_block_boundaries() {
++    use super::ops::{fwht2_alt16_test, fwht16_mtrunc};
++    let input: Vec<u16> = (0..super::ORDER16)
++        .map(|i| (i as u16).wrapping_mul(40503).wrapping_add(12345))
++        .collect();
++    for m in [4usize, 16, 64, 256, 1024, 4096, 16384, 65536] {
++        for mtrunc in [0, 1, m / 2, m.saturating_sub(1), m] {
++            let mut expected = input.clone();
++            let mut dist = 1;
++            while dist * 4 <= m {
++                for r in (0..mtrunc).step_by(dist * 4) {
++                    for off in r..r + dist {
++                        let (a, b) = fwht2_alt16_test(expected[off], expected[off + dist]);
++                        let (c, d) =
++                            fwht2_alt16_test(expected[off + 2 * dist], expected[off + 3 * dist]);
++                        (expected[off], expected[off + 2 * dist]) = fwht2_alt16_test(a, c);
++                        (expected[off + dist], expected[off + 3 * dist]) = fwht2_alt16_test(b, d);
++                    }
++                }
++                dist *= 4;
++            }
++            let mut actual = input.clone();
++            fwht16_mtrunc(&mut actual, m, mtrunc);
++            assert_eq!(actual, expected, "m={m}, mtrunc={mtrunc}");
++        }
++    }
++}
