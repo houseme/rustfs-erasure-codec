@@ -1,0 +1,287 @@
+--- a/src/core/leopard_gf16/mul_simd.rs
++++ b/src/core/leopard_gf16/mul_simd.rs
+@@ -238,6 +238,50 @@
+     true
+ }
+
++#[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
++pub(super) fn try_butterfly_pair_avx2<const INVERSE: bool>(
++    a: &mut [u16],
++    c: &mut [u16],
++    b: &mut [u16],
++    d: &mut [u16],
++    log_m: u16,
++    tables: &LeopardGf16Tables,
++) -> bool {
++    if a.len() != c.len()
++        || b.len() != d.len()
++        || a.len() < 32
++        || b.len() < 32
++        || !is_x86_feature_detected!("avx2")
++    {
++        return false;
++    }
++    #[cfg(rse_x86_gfni)]
++    if is_x86_feature_detected!("gfni")
++        && matches!(
++            crate::galois_8::selected_backend_id(),
++            Some(
++                crate::galois_8::BackendId::RustGfniAvx2
++                    | crate::galois_8::BackendId::RustGfniAvx512
++            )
++        )
++    {
++        let matrices = gfni_butterfly::matrices(log_m, tables);
++        // SAFETY: both CPU features are detected; all mutable lanes are disjoint and pairwise equal-sized.
++        unsafe {
++            gfni_butterfly::run_precomputed::<INVERSE>(a, c, log_m, tables, matrices);
++            gfni_butterfly::run_precomputed::<INVERSE>(b, d, log_m, tables, matrices);
++        }
++        return true;
++    }
++    let t = NibbleTables16::build(log_m, &tables.log_lut, &tables.exp_lut);
++    // SAFETY: AVX2 is detected; all mutable lanes are disjoint and pairwise equal-sized.
++    unsafe {
++        x86::butterfly_avx2::<INVERSE>(a, c, &t);
++        x86::butterfly_avx2::<INVERSE>(b, d, &t);
++    }
++    true
++}
++
+ #[cfg(all(
+     rse_x86_gfni,
+     feature = "std",
+@@ -251,7 +295,7 @@
+     const PACK: [u8; 16] = [0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15];
+     // Multiplication by a fixed GF16 element is a linear map over GF(2).
+     // Build its four 8x8 byte-plane matrices in the bit order used by GFNI.
+-    fn matrices(log_m: u16, t: &LeopardGf16Tables) -> [i64; 4] {
++    pub(super) fn matrices(log_m: u16, t: &LeopardGf16Tables) -> [i64; 4] {
+         let mut columns = [0u64; 4];
+         for input_bit in 0..16 {
+             let value = mul_log16(1u16 << input_bit, log_m, &t.log_lut, &t.exp_lut);
+@@ -278,7 +322,20 @@
+         log_m: u16,
+         t: &LeopardGf16Tables,
+     ) {
+-        let [a, b, c, d] = matrices(log_m, t);
++        let matrices = matrices(log_m, t);
++        // SAFETY: the caller ensures disjoint equal-sized lanes and the required CPU features.
++        unsafe { run_precomputed::<INVERSE>(out, input, log_m, t, matrices) };
++    }
++
++    #[target_feature(enable = "gfni,avx2")]
++    pub(super) unsafe fn run_precomputed<const INVERSE: bool>(
++        out: &mut [u16],
++        input: &mut [u16],
++        log_m: u16,
++        t: &LeopardGf16Tables,
++        matrices: [i64; 4],
++    ) {
++        let [a, b, c, d] = matrices;
+         let diagonal = _mm256_set_epi64x(d, a, d, a);
+         let crossed = _mm256_set_epi64x(c, b, c, b);
+         // SAFETY: masks contain 16 bytes, and caller supplies disjoint equal lanes and CPU features.
+@@ -880,6 +937,54 @@
+ ))]
+ mod butterfly_tests {
+     use super::super::{MODULUS16, init_leopard_gf16_tables, ops};
++    #[test]
++    fn paired_butterfly_matches_scalar_for_every_multiplier() {
++        if !std::is_x86_feature_detected!("avx2") {
++            return;
++        }
++        std::println!("backend={:?}", crate::galois_8::active_backend_id());
++        let tables = init_leopard_gf16_tables();
++        for log_m in 0..u16::MAX {
++            for inverse in [false, true] {
++                let mut a = core::array::from_fn::<_, 32, _>(|i| (i as u16).wrapping_mul(9127));
++                let mut c = core::array::from_fn::<_, 32, _>(|i| (i as u16).wrapping_mul(3571));
++                let mut b = core::array::from_fn::<_, 32, _>(|i| (i as u16).wrapping_mul(8123));
++                let mut d = core::array::from_fn::<_, 32, _>(|i| (i as u16).wrapping_mul(1699));
++                let mut ea = a;
++                let mut ec = c;
++                let mut eb = b;
++                let mut ed = d;
++                for (x, y) in ea
++                    .iter_mut()
++                    .zip(ec.iter_mut())
++                    .chain(eb.iter_mut().zip(ed.iter_mut()))
++                {
++                    if inverse {
++                        *y ^= *x;
++                    }
++                    *x ^= ops::mul_log16(*y, log_m, &tables.log_lut, &tables.exp_lut);
++                    if !inverse {
++                        *y ^= *x;
++                    }
++                }
++                let ok = if inverse {
++                    super::try_butterfly_pair_avx2::<true>(
++                        &mut a, &mut c, &mut b, &mut d, log_m, tables,
++                    )
++                } else {
++                    super::try_butterfly_pair_avx2::<false>(
++                        &mut a, &mut c, &mut b, &mut d, log_m, tables,
++                    )
++                };
++                assert!(ok);
++                assert_eq!(a, ea);
++                assert_eq!(b, eb);
++                assert_eq!(c, ec);
++                assert_eq!(d, ed);
++            }
++        }
++    }
++
+     #[test]
+     fn fused_butterfly_matches_scalar_for_every_multiplier() {
+         if !std::is_x86_feature_detected!("avx2") {
+--- a/src/core/leopard_gf16/ops.rs
++++ b/src/core/leopard_gf16/ops.rs
+@@ -434,7 +434,7 @@
+ /// Forward radix-4 butterfly.
+ #[inline(always)]
+ #[allow(clippy::too_many_arguments)]
+-pub(super) fn fft_dit4_16(
++pub(super) fn fft_dit4_16<const PAIR: bool>(
+     a: &mut [u16],
+     b: &mut [u16],
+     c: &mut [u16],
+@@ -448,8 +448,16 @@
+     debug_assert_eq!(a.len(), c.len());
+     debug_assert_eq!(a.len(), d.len());
+
+-    dit2_step16(a, c, log_m02, tables);
+-    dit2_step16(b, d, log_m02, tables);
++    #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
++    let combined = PAIR
++        && log_m02 != MODULUS16 as u16
++        && super::mul_simd::try_butterfly_pair_avx2::<false>(a, c, b, d, log_m02, tables);
++    #[cfg(not(all(feature = "std", target_arch = "x86_64", target_endian = "little")))]
++    let combined = false;
++    if !combined {
++        dit2_step16(a, c, log_m02, tables);
++        dit2_step16(b, d, log_m02, tables);
++    }
+     dit2_step16(a, b, log_m01, tables);
+     dit2_step16(c, d, log_m23, tables);
+ }
+@@ -457,7 +465,7 @@
+ /// Inverse radix-4 butterfly.
+ #[inline(always)]
+ #[allow(clippy::too_many_arguments)]
+-pub(super) fn ifft_dit4_16(
++pub(super) fn ifft_dit4_16<const PAIR: bool>(
+     a: &mut [u16],
+     b: &mut [u16],
+     c: &mut [u16],
+@@ -473,8 +481,16 @@
+
+     dit2_step_inv16(a, b, log_m01, tables);
+     dit2_step_inv16(c, d, log_m23, tables);
+-    dit2_step_inv16(b, d, log_m02, tables);
+-    dit2_step_inv16(a, c, log_m02, tables);
++    #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
++    let combined = PAIR
++        && log_m02 != MODULUS16 as u16
++        && super::mul_simd::try_butterfly_pair_avx2::<true>(b, d, a, c, log_m02, tables);
++    #[cfg(not(all(feature = "std", target_arch = "x86_64", target_endian = "little")))]
++    let combined = false;
++    if !combined {
++        dit2_step_inv16(b, d, log_m02, tables);
++        dit2_step_inv16(a, c, log_m02, tables);
++    }
+ }
+
+ /// Convert user byte layout to Go's GF16 split layout for u16 processing.
+--- a/src/core/leopard_gf16/decode.rs
++++ b/src/core/leopard_gf16/decode.rs
+@@ -723,6 +723,30 @@
+     tables: &LeopardGf16Tables,
+     scratch: &mut [u16],
+ ) {
++    #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
++    if size <= 1024 {
++        return dit4_decode_at_impl_16::<true>(
++            forward, work, size, base, dist, log_m01, log_m23, log_m02, tables, scratch,
++        );
++    }
++    dit4_decode_at_impl_16::<false>(
++        forward, work, size, base, dist, log_m01, log_m23, log_m02, tables, scratch,
++    );
++}
++
++#[allow(clippy::too_many_arguments)]
++fn dit4_decode_at_impl_16<const PAIR: bool>(
++    forward: bool,
++    work: &mut FlatWork16,
++    size: usize,
++    base: usize,
++    dist: usize,
++    log_m01: u16,
++    log_m23: u16,
++    log_m02: u16,
++    tables: &LeopardGf16Tables,
++    scratch: &mut [u16],
++) {
+     for i in 0..dist {
+         let a = base + i;
+         let d = a + dist * 3;
+@@ -744,11 +768,11 @@
+             let c_ref = &mut (*ptr).lane_mut(c)[..size];
+             let d_ref = &mut (*ptr).lane_mut(d)[..size];
+             if forward {
+-                fft_dit4_16(
++                fft_dit4_16::<PAIR>(
+                     a_ref, b_ref, c_ref, d_ref, log_m01, log_m23, log_m02, tables,
+                 );
+             } else {
+-                ifft_dit4_16(
++                ifft_dit4_16::<PAIR>(
+                     a_ref, b_ref, c_ref, d_ref, log_m01, log_m23, log_m02, tables,
+                 );
+             }
+--- a/src/core/leopard_gf16/encode.rs
++++ b/src/core/leopard_gf16/encode.rs
+@@ -388,6 +388,26 @@
+     log_m02: u16,
+     tables: &LeopardGf16Tables,
+ ) {
++    #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
++    if work.first().is_some_and(|lane| lane.len() <= 1024) {
++        return dit4_at_impl_16::<true>(
++            forward, work, base, dist, log_m01, log_m23, log_m02, tables,
++        );
++    }
++    dit4_at_impl_16::<false>(forward, work, base, dist, log_m01, log_m23, log_m02, tables);
++}
++
++#[allow(clippy::too_many_arguments)]
++fn dit4_at_impl_16<const PAIR: bool>(
++    forward: bool,
++    work: &mut [&mut [u16]],
++    base: usize,
++    dist: usize,
++    log_m01: u16,
++    log_m23: u16,
++    log_m02: u16,
++    tables: &LeopardGf16Tables,
++) {
+     for i in 0..dist {
+         let a = base + i;
+         let b = a + dist;
+@@ -405,11 +425,11 @@
+                 (a_ref, b_ref, c_ref, d_ref)
+             };
+             if forward {
+-                fft_dit4_16(
++                fft_dit4_16::<PAIR>(
+                     a_ref, b_ref, c_ref, d_ref, log_m01, log_m23, log_m02, tables,
+                 );
+             } else {
+-                ifft_dit4_16(
++                ifft_dit4_16::<PAIR>(
+                     a_ref, b_ref, c_ref, d_ref, log_m01, log_m23, log_m02, tables,
+                 );
+             }

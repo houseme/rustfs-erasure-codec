@@ -1,0 +1,149 @@
+--- a/src/core/leopard_gf16/mul_simd.rs
++++ b/src/core/leopard_gf16/mul_simd.rs
+@@ -238,6 +238,44 @@
+     true
+ }
+
++#[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
++pub(super) fn try_butterfly_pair_avx2<const INVERSE: bool>(
++    a: &mut [u16],
++    c: &mut [u16],
++    b: &mut [u16],
++    d: &mut [u16],
++    log_m: u16,
++    tables: &LeopardGf16Tables,
++) -> bool {
++    if a.len() != c.len()
++        || b.len() != d.len()
++        || a.len() < 32
++        || b.len() < 32
++        || !is_x86_feature_detected!("avx2")
++    {
++        return false;
++    }
++    #[cfg(rse_x86_gfni)]
++    if is_x86_feature_detected!("gfni")
++        && matches!(
++            crate::galois_8::selected_backend_id(),
++            Some(
++                crate::galois_8::BackendId::RustGfniAvx2
++                    | crate::galois_8::BackendId::RustGfniAvx512
++            )
++        )
++    {
++        return false;
++    }
++    let t = NibbleTables16::build(log_m, &tables.log_lut, &tables.exp_lut);
++    // SAFETY: AVX2 is detected; mutable lanes are disjoint and pairwise equal-sized.
++    unsafe {
++        x86::butterfly_avx2::<INVERSE>(a, c, &t);
++        x86::butterfly_avx2::<INVERSE>(b, d, &t);
++    }
++    true
++}
++
+ #[cfg(all(
+     rse_x86_gfni,
+     feature = "std",
+@@ -881,6 +919,61 @@
+ mod butterfly_tests {
+     use super::super::{MODULUS16, init_leopard_gf16_tables, ops};
+     #[test]
++    fn paired_butterfly_matches_scalar_for_every_multiplier() {
++        if !std::is_x86_feature_detected!("avx2") {
++            return;
++        }
++        let backend = crate::galois_8::active_backend_id();
++        std::println!("backend={backend:?}");
++        if matches!(
++            backend,
++            crate::galois_8::BackendId::RustGfniAvx2 | crate::galois_8::BackendId::RustGfniAvx512
++        ) {
++            return;
++        }
++        let tables = init_leopard_gf16_tables();
++        for log_m in 0..u16::MAX {
++            for inverse in [false, true] {
++                let mut a = core::array::from_fn::<_, 32, _>(|i| (i as u16).wrapping_mul(9127));
++                let mut c = core::array::from_fn::<_, 32, _>(|i| (i as u16).wrapping_mul(3571));
++                let mut b = core::array::from_fn::<_, 32, _>(|i| (i as u16).wrapping_mul(8123));
++                let mut d = core::array::from_fn::<_, 32, _>(|i| (i as u16).wrapping_mul(1699));
++                let mut ea = a;
++                let mut ec = c;
++                let mut eb = b;
++                let mut ed = d;
++                for (x, y) in ea
++                    .iter_mut()
++                    .zip(ec.iter_mut())
++                    .chain(eb.iter_mut().zip(ed.iter_mut()))
++                {
++                    if inverse {
++                        *y ^= *x;
++                    }
++                    *x ^= ops::mul_log16(*y, log_m, &tables.log_lut, &tables.exp_lut);
++                    if !inverse {
++                        *y ^= *x;
++                    }
++                }
++                let ok = if inverse {
++                    super::try_butterfly_pair_avx2::<true>(
++                        &mut a, &mut c, &mut b, &mut d, log_m, tables,
++                    )
++                } else {
++                    super::try_butterfly_pair_avx2::<false>(
++                        &mut a, &mut c, &mut b, &mut d, log_m, tables,
++                    )
++                };
++                assert!(ok);
++                assert_eq!(a, ea);
++                assert_eq!(b, eb);
++                assert_eq!(c, ec);
++                assert_eq!(d, ed);
++            }
++        }
++    }
++
++    #[test]
+     fn fused_butterfly_matches_scalar_for_every_multiplier() {
+         if !std::is_x86_feature_detected!("avx2") {
+             std::println!("AVX2 unavailable: exhaustive butterfly test not executed");
+--- a/src/core/leopard_gf16/ops.rs
++++ b/src/core/leopard_gf16/ops.rs
+@@ -448,8 +448,16 @@
+     debug_assert_eq!(a.len(), c.len());
+     debug_assert_eq!(a.len(), d.len());
+
+-    dit2_step16(a, c, log_m02, tables);
+-    dit2_step16(b, d, log_m02, tables);
++    #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
++    let combined = a.len() <= 1024
++        && log_m02 != MODULUS16 as u16
++        && super::mul_simd::try_butterfly_pair_avx2::<false>(a, c, b, d, log_m02, tables);
++    #[cfg(not(all(feature = "std", target_arch = "x86_64", target_endian = "little")))]
++    let combined = false;
++    if !combined {
++        dit2_step16(a, c, log_m02, tables);
++        dit2_step16(b, d, log_m02, tables);
++    }
+     dit2_step16(a, b, log_m01, tables);
+     dit2_step16(c, d, log_m23, tables);
+ }
+@@ -473,8 +481,16 @@
+
+     dit2_step_inv16(a, b, log_m01, tables);
+     dit2_step_inv16(c, d, log_m23, tables);
+-    dit2_step_inv16(b, d, log_m02, tables);
+-    dit2_step_inv16(a, c, log_m02, tables);
++    #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
++    let combined = a.len() <= 1024
++        && log_m02 != MODULUS16 as u16
++        && super::mul_simd::try_butterfly_pair_avx2::<true>(b, d, a, c, log_m02, tables);
++    #[cfg(not(all(feature = "std", target_arch = "x86_64", target_endian = "little")))]
++    let combined = false;
++    if !combined {
++        dit2_step_inv16(b, d, log_m02, tables);
++        dit2_step_inv16(a, c, log_m02, tables);
++    }
+ }
+
+ /// Convert user byte layout to Go's GF16 split layout for u16 processing.

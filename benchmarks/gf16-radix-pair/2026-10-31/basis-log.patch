@@ -1,0 +1,54 @@
+--- a/src/core/leopard_gf16/mul_simd.rs
++++ b/src/core/leopard_gf16/mul_simd.rs
+@@ -253,8 +253,8 @@
+     // Build its four 8x8 byte-plane matrices in the bit order used by GFNI.
+     fn matrices(log_m: u16, t: &LeopardGf16Tables) -> [i64; 4] {
+         let mut columns = [0u64; 4];
+-        for input_bit in 0..16 {
+-            let value = mul_log16(1u16 << input_bit, log_m, &t.log_lut, &t.exp_lut);
++        for (input_bit, &log_a) in t.basis_log.iter().enumerate() {
++            let value = t.exp_lut[super::super::ops::add_mod16(log_a, log_m) as usize];
+             let byte_shift = (input_bit % 8) * 8;
+             let group = input_bit / 8;
+             columns[group] |= u64::from(value & 0xff) << byte_shift;
+--- a/src/core/leopard_gf16/tables.rs
++++ b/src/core/leopard_gf16/tables.rs
+@@ -10,8 +10,22 @@
+     let log_lut_ref = &*log_lut;
+     let exp_lut_ref = &*exp_lut;
+     let (fft_skew, log_walsh) = init_fft_skew16(log_lut_ref, exp_lut_ref);
++    #[cfg(all(
++        rse_x86_gfni,
++        feature = "std",
++        target_arch = "x86_64",
++        target_endian = "little"
++    ))]
++    let basis_log = core::array::from_fn(|bit| log_lut[1usize << bit]);
+
+     LeopardGf16Tables {
++        #[cfg(all(
++            rse_x86_gfni,
++            feature = "std",
++            target_arch = "x86_64",
++            target_endian = "little"
++        ))]
++        basis_log,
+         fft_skew,
+         log_walsh,
+         log_lut,
+--- a/src/core/leopard_gf16/mod.rs
++++ b/src/core/leopard_gf16/mod.rs
+@@ -28,6 +28,13 @@
+
+ #[derive(Debug)]
+ pub(crate) struct LeopardGf16Tables {
++    #[cfg(all(
++        rse_x86_gfni,
++        feature = "std",
++        target_arch = "x86_64",
++        target_endian = "little"
++    ))]
++    pub(crate) basis_log: [u16; BITWIDTH16],
+     pub(crate) log_lut: Box<[u16; ORDER16]>,
+     pub(crate) exp_lut: Box<[u16; ORDER16 * 2]>,
+     pub(crate) fft_skew: Box<[u16; MODULUS16]>,
