@@ -378,6 +378,17 @@ pub(super) fn dit2_step16(
     if log_m == MODULUS16 as u16 {
         slice_xor_u16(src, dst);
     } else {
+        #[cfg(all(
+            not(feature = "std"),
+            target_arch = "x86_64",
+            target_endian = "little",
+            target_feature = "avx2"
+        ))]
+        if dst.len() == src.len() && src.len() >= super::mul_simd::NOSTD_AVX2_BUTTERFLY_MIN_LEN {
+            // SAFETY: the target guarantees AVX2; the mutable slices are disjoint and equal length.
+            unsafe { super::mul_simd::butterfly_nostd_avx2::<false>(dst, src, log_m, tables) };
+            return;
+        }
         #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
         if super::mul_simd::try_butterfly_avx2::<false>(dst, src, log_m, tables) {
             return;
@@ -404,6 +415,17 @@ pub(super) fn dit2_step_inv16(
     if log_m == MODULUS16 as u16 {
         slice_xor_u16(src, dst);
     } else {
+        #[cfg(all(
+            not(feature = "std"),
+            target_arch = "x86_64",
+            target_endian = "little",
+            target_feature = "avx2"
+        ))]
+        if dst.len() == src.len() && src.len() >= super::mul_simd::NOSTD_AVX2_BUTTERFLY_MIN_LEN {
+            // SAFETY: the target guarantees AVX2; the mutable slices are disjoint and equal length.
+            unsafe { super::mul_simd::butterfly_nostd_avx2::<true>(dst, src, log_m, tables) };
+            return;
+        }
         #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
         if super::mul_simd::try_butterfly_avx2::<true>(dst, src, log_m, tables) {
             return;

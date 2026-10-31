@@ -214,6 +214,34 @@ pub(super) fn should_use_simd(len: usize) -> bool {
     len >= SIMD_MIN_LEN && HAS_SIMD_KERNEL
 }
 
+#[cfg(all(
+    not(feature = "std"),
+    target_arch = "x86_64",
+    target_endian = "little",
+    target_feature = "avx2"
+))]
+pub(super) const NOSTD_AVX2_BUTTERFLY_MIN_LEN: usize = 64; // u16 elements (128 bytes).
+
+#[cfg(all(
+    not(feature = "std"),
+    target_arch = "x86_64",
+    target_endian = "little",
+    target_feature = "avx2"
+))]
+/// # Safety
+/// The caller must provide equal-length, disjoint slices; AVX2 is enabled by cfg.
+#[inline(never)]
+pub(super) unsafe fn butterfly_nostd_avx2<const INVERSE: bool>(
+    out: &mut [u16],
+    input: &mut [u16],
+    log_m: u16,
+    tables: &LeopardGf16Tables,
+) {
+    let t = NibbleTables16::build(log_m, &tables.log_lut, &tables.exp_lut);
+    // SAFETY: AVX2 is enabled for the target and the caller checked equal-length disjoint slices.
+    unsafe { x86::butterfly_avx2::<INVERSE>(out, input, &t) };
+}
+
 #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
 pub(super) fn try_butterfly_avx2<const INVERSE: bool>(
     out: &mut [u16],
@@ -466,7 +494,11 @@ mod aarch64 {
 
 // ---------------------------------------------------------------------- x86 --
 
-#[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
+#[cfg(all(
+    target_arch = "x86_64",
+    target_endian = "little",
+    any(feature = "std", target_feature = "avx2")
+))]
 mod x86 {
     use super::{NibbleTables16, mulgf16_tabled_scalar};
     use core::arch::x86_64::{
@@ -549,6 +581,7 @@ mod x86 {
 
     // ---- AVX2: 32 u16 (64 bytes) per iteration, 256-bit lanes ----
 
+    #[cfg(feature = "std")]
     #[target_feature(enable = "avx2")]
     pub(super) unsafe fn mulgf16_avx2<const XOR: bool>(
         out: &mut [u16],
@@ -1183,6 +1216,98 @@ mod gfni_butterfly_tests {
                 }
                 assert_eq!(x, ex, "x log={log_m} inverse={inverse}");
                 assert_eq!(y, ey, "y log={log_m} inverse={inverse}");
+            }
+        }
+    }
+}
+
+#[cfg(all(
+    test,
+    not(feature = "std"),
+    target_arch = "x86_64",
+    target_endian = "little",
+    target_feature = "avx2"
+))]
+mod nostd_avx2_butterfly_tests {
+    extern crate alloc;
+    use super::super::{MODULUS16, init_leopard_gf16_tables, ops};
+    use alloc::{vec, vec::Vec};
+
+    #[test]
+    fn dispatch_matches_scalar_across_threshold_and_unaligned_tails() {
+        let tables = init_leopard_gf16_tables();
+        for len in [
+            0usize, 1, 31, 32, 63, 64, 65, 127, 128, 129, 255, 256, 257, 511, 512, 513, 4096,
+        ] {
+            for log_m in [0, 1, 31, 255, 1024, 32768, 65534, MODULUS16 as u16] {
+                for inverse in [false, true] {
+                    let mut x: Vec<u16> = (0..len + 2)
+                        .map(|i| (i as u16).wrapping_mul(9127))
+                        .collect();
+                    let mut y: Vec<u16> = (0..len + 2)
+                        .map(|i| (i as u16).wrapping_mul(3571))
+                        .collect();
+                    let mut ex = x.clone();
+                    let mut ey = y.clone();
+                    for i in 1..=len {
+                        if log_m == MODULUS16 as u16 {
+                            ey[i] ^= ex[i];
+                        } else {
+                            if inverse {
+                                ey[i] ^= ex[i];
+                            }
+                            ex[i] ^= ops::mul_log16(ey[i], log_m, &tables.log_lut, &tables.exp_lut);
+                            if !inverse {
+                                ey[i] ^= ex[i];
+                            }
+                        }
+                    }
+                    if inverse {
+                        ops::dit2_step_inv16(&mut x[1..len + 1], &mut y[1..len + 1], log_m, tables);
+                    } else {
+                        ops::dit2_step16(&mut x[1..len + 1], &mut y[1..len + 1], log_m, tables);
+                    }
+                    assert_eq!(x, ex, "x len={len}, log={log_m}, inverse={inverse}");
+                    assert_eq!(y, ey, "y len={len}, log={log_m}, inverse={inverse}");
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn vector_butterfly_matches_scalar_for_every_multiplier() {
+        let tables = init_leopard_gf16_tables();
+        let x0: Vec<u16> = (0..256).map(|i: u16| i.wrapping_mul(9127)).collect();
+        let y0: Vec<u16> = (0..256).map(|i: u16| i.wrapping_mul(3571)).collect();
+        let mut x = vec![0u16; 256];
+        let mut y = x.clone();
+        let mut ex = x.clone();
+        let mut ey = x.clone();
+        for log_m in 0..u16::MAX {
+            for inverse in [false, true] {
+                x.copy_from_slice(&x0);
+                y.copy_from_slice(&y0);
+                ex.copy_from_slice(&x0);
+                ey.copy_from_slice(&y0);
+                for i in 0..256 {
+                    if inverse {
+                        ey[i] ^= ex[i];
+                    }
+                    ex[i] ^= ops::mul_log16(ey[i], log_m, &tables.log_lut, &tables.exp_lut);
+                    if !inverse {
+                        ey[i] ^= ex[i];
+                    }
+                }
+                // SAFETY: this test is compiled only for AVX2 and the buffers are disjoint and equal length.
+                unsafe {
+                    if inverse {
+                        super::butterfly_nostd_avx2::<true>(&mut x, &mut y, log_m, tables);
+                    } else {
+                        super::butterfly_nostd_avx2::<false>(&mut x, &mut y, log_m, tables);
+                    }
+                }
+                assert_eq!(x, ex, "x log={log_m}, inverse={inverse}");
+                assert_eq!(y, ey, "y log={log_m}, inverse={inverse}");
             }
         }
     }
