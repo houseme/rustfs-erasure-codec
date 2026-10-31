@@ -1,0 +1,40 @@
+--- a/src/core/parallel.rs
++++ b/src/core/parallel.rs
+@@ -260,6 +260,8 @@
+                     let chunks = output.len().div_ceil(chunk_len);
+                     let jobs = jobs.min(chunks);
+                     if jobs <= 1 {
++                        #[cfg(test)]
++                        EXPERIMENTAL_LEAVES.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+                         for (index, chunk) in output.chunks_mut(chunk_len).enumerate() {
+                             process(row, start + index * chunk_len, chunk);
+                         }
+@@ -518,4 +520,28 @@
+         let decision = policy.decide(1024, 10, 4, 8);
+         assert!(!decision.use_parallel);
+     }
++}
++
++#[cfg(all(test, feature = "std"))]
++static EXPERIMENTAL_LEAVES: core::sync::atomic::AtomicUsize =
++    core::sync::atomic::AtomicUsize::new(0);
++
++#[cfg(all(test, feature = "std"))]
++#[test]
++fn experimental_balanced_four_groups_cover_tail() {
++    use core::sync::atomic::Ordering;
++    let len = 1_048_576;
++    let mut outputs = vec![vec![0u8; len]];
++    let pool = rayon::ThreadPoolBuilder::new()
++        .num_threads(4)
++        .build()
++        .unwrap();
++    EXPERIMENTAL_LEAVES.store(0, Ordering::Relaxed);
++    pool.install(|| {
++        for_each_output_chunk(&mut outputs, len, 209_664, 4, |_, _, chunk: &mut [u8]| {
++            chunk.fill(7)
++        })
++    });
++    assert_eq!(EXPERIMENTAL_LEAVES.load(Ordering::Relaxed), 4);
++    assert!(outputs[0].iter().all(|&byte| byte == 7));
+ }

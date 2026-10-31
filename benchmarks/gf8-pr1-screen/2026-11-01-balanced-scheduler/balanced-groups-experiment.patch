@@ -1,0 +1,64 @@
+--- a/src/core/parallel.rs
++++ b/src/core/parallel.rs
+@@ -246,18 +246,50 @@
+             .enumerate()
+             .for_each(|(row, output)| {
+                 let row_jobs = jobs / output_count + usize::from(row < jobs % output_count);
+-                let chunks_per_job = chunk_count.div_ceil(row_jobs);
+-                let group_len = chunks_per_job.saturating_mul(chunk_len).min(shard_len);
+-                output
+-                    .as_mut()
+-                    .par_chunks_mut(group_len)
+-                    .enumerate()
+-                    .for_each(|(group_index, group)| {
+-                        for (chunk_index, chunk) in group.chunks_mut(chunk_len).enumerate() {
+-                            let start = group_index * group_len + chunk_index * chunk_len;
+-                            process(row, start, chunk);
++                fn balanced_groups<E, C>(
++                    output: &mut [E],
++                    row: usize,
++                    start: usize,
++                    chunk_len: usize,
++                    jobs: usize,
++                    process: &C,
++                ) where
++                    E: Send,
++                    C: Fn(usize, usize, &mut [E]) + Send + Sync,
++                {
++                    let chunks = output.len().div_ceil(chunk_len);
++                    let jobs = jobs.min(chunks);
++                    if jobs <= 1 {
++                        for (index, chunk) in output.chunks_mut(chunk_len).enumerate() {
++                            process(row, start + index * chunk_len, chunk);
+                         }
+-                    });
++                    } else {
++                        let split = (chunks / 2) * chunk_len;
++                        let (left, right) = output.split_at_mut(split);
++                        let left_jobs = jobs / 2;
++                        rayon::join(
++                            || balanced_groups(left, row, start, chunk_len, left_jobs, process),
++                            || {
++                                balanced_groups(
++                                    right,
++                                    row,
++                                    start + split,
++                                    chunk_len,
++                                    jobs - left_jobs,
++                                    process,
++                                )
++                            },
++                        );
++                    }
++                }
++                balanced_groups(
++                    output.as_mut(),
++                    row,
++                    0,
++                    chunk_len,
++                    row_jobs.min(chunk_count),
++                    &process,
++                );
+             });
+     }
+ }
