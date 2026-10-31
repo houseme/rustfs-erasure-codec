@@ -52,6 +52,19 @@ pub(super) fn user_to_work_mul(
         unsafe { x86::user_to_work(user, out, &nibble) };
         return;
     }
+    #[cfg(all(
+        not(feature = "std"),
+        target_arch = "x86_64",
+        target_endian = "little",
+        target_feature = "avx2"
+    ))]
+    {
+        if user.len() >= NOSTD_AVX2_MIN_BYTES {
+            user_to_work_nostd_avx2(user, out, log_m, tables);
+        } else {
+            scalar_user_to_work_mul(user, out, log_m, tables);
+        }
+    }
     #[cfg(all(target_arch = "aarch64", target_endian = "little"))]
     {
         let nibble =
@@ -62,7 +75,14 @@ pub(super) fn user_to_work_mul(
     }
     #[cfg(not(all(target_arch = "aarch64", target_endian = "little")))]
     {
-        #[cfg(not(feature = "std"))]
+        #[cfg(all(
+            not(feature = "std"),
+            not(all(
+                target_arch = "x86_64",
+                target_endian = "little",
+                target_feature = "avx2"
+            ))
+        ))]
         scalar_user_to_work_mul(user, out, log_m, tables);
         #[cfg(feature = "std")]
         {
@@ -113,6 +133,19 @@ pub(super) fn work_mul_to_user(
         unsafe { x86::work_to_user(work, user, &nibble) };
         return;
     }
+    #[cfg(all(
+        not(feature = "std"),
+        target_arch = "x86_64",
+        target_endian = "little",
+        target_feature = "avx2"
+    ))]
+    {
+        if user.len() >= NOSTD_AVX2_MIN_BYTES {
+            work_to_user_nostd_avx2(work, user, log_m, tables);
+        } else {
+            scalar_work_mul_to_user(work, user, log_m, tables);
+        }
+    }
     #[cfg(all(target_arch = "aarch64", target_endian = "little"))]
     {
         let nibble =
@@ -123,7 +156,14 @@ pub(super) fn work_mul_to_user(
     }
     #[cfg(not(all(target_arch = "aarch64", target_endian = "little")))]
     {
-        #[cfg(not(feature = "std"))]
+        #[cfg(all(
+            not(feature = "std"),
+            not(all(
+                target_arch = "x86_64",
+                target_endian = "little",
+                target_feature = "avx2"
+            ))
+        ))]
         scalar_work_mul_to_user(work, user, log_m, tables);
         #[cfg(feature = "std")]
         {
@@ -133,8 +173,42 @@ pub(super) fn work_mul_to_user(
     }
 }
 
-// The non-NEON no_std path uses the same log/exp multiplication as the prior
-// scalar implementation while processing each split-layout block once.
+#[cfg(all(
+    not(feature = "std"),
+    target_arch = "x86_64",
+    target_endian = "little",
+    target_feature = "avx2"
+))]
+const NOSTD_AVX2_MIN_BYTES: usize = 512; // Shorter blocks avoid table setup.
+
+#[cfg(all(
+    not(feature = "std"),
+    target_arch = "x86_64",
+    target_endian = "little",
+    target_feature = "avx2"
+))]
+#[inline(never)]
+fn user_to_work_nostd_avx2(user: &[u8], out: &mut [u16], log_m: u16, tables: &LeopardGf16Tables) {
+    let nibble = super::mul_simd::NibbleTables16::build(log_m, &tables.log_lut, &tables.exp_lut);
+    // SAFETY: AVX2 is enabled for the target and the slices contain complete disjoint blocks.
+    unsafe { super::avx2::user_to_work(user, out, &nibble) };
+}
+
+#[cfg(all(
+    not(feature = "std"),
+    target_arch = "x86_64",
+    target_endian = "little",
+    target_feature = "avx2"
+))]
+#[inline(never)]
+fn work_to_user_nostd_avx2(work: &[u16], user: &mut [u8], log_m: u16, tables: &LeopardGf16Tables) {
+    let nibble = super::mul_simd::NibbleTables16::build(log_m, &tables.log_lut, &tables.exp_lut);
+    // SAFETY: AVX2 is enabled for the target and the slices contain complete disjoint blocks.
+    unsafe { super::avx2::work_to_user(work, user, &nibble) };
+}
+
+// The no_std scalar fallback uses the same log/exp multiplication as before
+// while processing each split-layout block once.
 #[cfg(any(
     test,
     all(
@@ -408,7 +482,9 @@ mod tests {
         ))]
         let _ = crate::galois_8::active_backend_id();
         let tables = init_leopard_gf16_tables();
-        for len in [0, 64, 128, 192, 4032, 4096, 4160, 32_768, 65_536, 65_600] {
+        for len in [
+            0, 64, 128, 192, 448, 512, 576, 4032, 4096, 4160, 32_768, 65_536, 65_600,
+        ] {
             let bytes: Vec<u8> = (0..len + 1)
                 .map(|i| ((i * 29 + i / 7) % 256) as u8)
                 .collect();

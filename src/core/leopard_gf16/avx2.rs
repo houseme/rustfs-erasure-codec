@@ -101,7 +101,7 @@ pub(super) unsafe fn work_to_user(work: &[u16], user: &mut [u8], table: &NibbleT
     }
 }
 
-#[cfg(rse_x86_gfni)]
+#[cfg(all(feature = "std", rse_x86_gfni))]
 #[target_feature(enable = "gfni,avx2")]
 unsafe fn gfni_multiply(lo: __m256i, hi: __m256i, matrices: &[__m256i; 4]) -> (__m256i, __m256i) {
     use core::arch::x86_64::_mm256_gf2p8affine_epi64_epi8;
@@ -116,7 +116,7 @@ unsafe fn gfni_multiply(lo: __m256i, hi: __m256i, matrices: &[__m256i; 4]) -> (_
     (l, h)
 }
 
-#[cfg(rse_x86_gfni)]
+#[cfg(all(feature = "std", rse_x86_gfni))]
 #[target_feature(enable = "gfni,avx2")]
 pub(super) unsafe fn user_to_work_gfni(user: &[u8], out: &mut [u16], matrices: [i64; 4]) {
     use core::arch::x86_64::_mm256_set1_epi64x;
@@ -141,7 +141,7 @@ pub(super) unsafe fn user_to_work_gfni(user: &[u8], out: &mut [u16], matrices: [
     }
 }
 
-#[cfg(rse_x86_gfni)]
+#[cfg(all(feature = "std", rse_x86_gfni))]
 #[target_feature(enable = "gfni,avx2")]
 pub(super) unsafe fn work_to_user_gfni(work: &[u16], user: &mut [u8], matrices: [i64; 4]) {
     use core::arch::x86_64::_mm256_set1_epi64x;
@@ -167,7 +167,7 @@ pub(super) unsafe fn work_to_user_gfni(work: &[u16], user: &mut [u8], matrices: 
     }
 }
 
-#[cfg(rse_x86_gfni)]
+#[cfg(all(feature = "std", rse_x86_gfni))]
 #[inline]
 #[target_feature(enable = "gfni,avx2")]
 unsafe fn user_to_work_gfni_block(src: *const u8, dst: *mut u8, m: &[__m256i; 4]) {
@@ -183,7 +183,7 @@ unsafe fn user_to_work_gfni_block(src: *const u8, dst: *mut u8, m: &[__m256i; 4]
     }
 }
 
-#[cfg(rse_x86_gfni)]
+#[cfg(all(feature = "std", rse_x86_gfni))]
 #[inline]
 #[target_feature(enable = "gfni,avx2")]
 unsafe fn work_to_user_gfni_block(
@@ -216,11 +216,14 @@ fn avx2_kernels_match_independent_reference() {
     use super::{init_leopard_gf16_tables, ops};
     use alloc::vec;
     use alloc::vec::Vec;
-    if !std::is_x86_feature_detected!("avx2") {
-        std::println!("AVX2 unavailable: kernels were not executed");
-        return;
+    #[cfg(feature = "std")]
+    {
+        if !std::is_x86_feature_detected!("avx2") {
+            std::println!("AVX2 unavailable: kernels were not executed");
+            return;
+        }
+        std::println!("AVX2=true: kernels executed");
     }
-    std::println!("AVX2=true: kernels executed");
     let tables = init_leopard_gf16_tables();
     let work: Vec<u16> = (0..=u16::MAX).collect();
     let mut user = vec![0; work.len() * 2 + 1];
@@ -252,11 +255,14 @@ fn avx2_kernels_match_every_multiplier_and_boundaries() {
     use super::{init_leopard_gf16_tables, ops};
     use alloc::vec;
     use alloc::vec::Vec;
-    if !std::is_x86_feature_detected!("avx2") {
-        std::println!("AVX2 unavailable: kernels were not executed");
-        return;
+    #[cfg(feature = "std")]
+    {
+        if !std::is_x86_feature_detected!("avx2") {
+            std::println!("AVX2 unavailable: kernels were not executed");
+            return;
+        }
+        std::println!("AVX2=true: kernels executed");
     }
-    std::println!("AVX2=true: kernels executed");
     let tables = init_leopard_gf16_tables();
     let mut work = [0u16; 32];
     for (i, value) in work.iter_mut().enumerate() {
@@ -306,7 +312,7 @@ fn avx2_kernels_match_every_multiplier_and_boundaries() {
     }
 }
 
-#[cfg(all(test, rse_x86_gfni))]
+#[cfg(all(test, feature = "std", rse_x86_gfni))]
 mod gfni_layout_tests {
     extern crate alloc;
     use super::super::{init_leopard_gf16_tables, ops};

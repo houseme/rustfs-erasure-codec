@@ -6,7 +6,11 @@ use spin::Once;
 
 use crate::errors::Error;
 
-#[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
+#[cfg(all(
+    target_arch = "x86_64",
+    target_endian = "little",
+    any(feature = "std", target_feature = "avx2")
+))]
 mod avx2;
 pub(crate) mod decode;
 mod driver;
