@@ -1,0 +1,57 @@
+--- a/src/core/parallel.rs
++++ b/src/core/parallel.rs
+@@ -207,6 +207,26 @@
+ /// there are fewer outputs than jobs, apportion the budget across outputs;
+ /// otherwise group outputs. Neither path creates a pool or allocates tasks.
+ #[cfg(feature = "std")]
++
++// Diagnostic-only: cache-line separated group counts, one array per crate copy.
++#[repr(align(64))]
++struct DiagnosticCount(core::sync::atomic::AtomicU64);
++static DIAGNOSTIC_GROUPS: [DiagnosticCount; 4] = [const {
++    DiagnosticCount(core::sync::atomic::AtomicU64::new(0))
++}; 4];
++pub(crate) fn diagnostic_reset() {
++    for count in &DIAGNOSTIC_GROUPS {
++        count.0.store(0, core::sync::atomic::Ordering::Relaxed);
++    }
++}
++pub(crate) fn diagnostic_counts() -> [u64; 4] {
++    core::array::from_fn(|i| DIAGNOSTIC_GROUPS[i].0.load(core::sync::atomic::Ordering::Relaxed))
++}
++fn diagnostic_group() {
++    let index = rayon::current_thread_index().expect("diagnostic must run in Rayon pool");
++    DIAGNOSTIC_GROUPS[index].0.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
++}
++
+ pub(crate) fn for_each_output_chunk<E, U, C>(
+     outputs: &mut [U],
+     shard_len: usize,
+@@ -253,6 +273,7 @@
+                     .par_chunks_mut(group_len)
+                     .enumerate()
+                     .for_each(|(group_index, group)| {
++                        diagnostic_group();
+                         for (chunk_index, chunk) in group.chunks_mut(chunk_len).enumerate() {
+                             let start = group_index * group_len + chunk_index * chunk_len;
+                             process(row, start, chunk);
+--- a/src/core/mod.rs
++++ b/src/core/mod.rs
+@@ -11,7 +11,7 @@
+ mod metrics;
+ mod options;
+ #[cfg(feature = "std")]
+-mod parallel;
++pub(crate) mod parallel;
+ mod reconstruct;
+ mod recovery_plan;
+ mod shard_by_shard;
+--- a/src/diagnostic_row.rs
++++ b/src/diagnostic_row.rs
+@@ -35,3 +35,6 @@
+     let mut outputs = [output];
+     codec.code_some_slices_par_chunked_with_jobs(&rows[..], inputs, &mut outputs, chunk_len, jobs);
+ }
++
++pub fn reset_groups() { crate::core::parallel::diagnostic_reset(); }
++pub fn groups() -> [u64; 4] { crate::core::parallel::diagnostic_counts() }
