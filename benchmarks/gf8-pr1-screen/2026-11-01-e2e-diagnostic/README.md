@@ -33,10 +33,34 @@ then use the strict end-to-end runner with **no candidate binary**. Refresh both
 copies from one immutable current revision, preserve the minimal temporary
 package-version difference, and require the existing resource, within-round,
 same-source and cross-round gates. A build planned against commit `099758a` was
-refused before it started because a competing workload was present. No native
-diagnostic results have been obtained.
+refused before it started because a competing workload was present.
 
 Page-fault and scheduler accounting cannot reveal CPU frequency, cache state,
 brief interference, or prove a cause for a different candidate run. Even a
 stable instrumented baseline would be a diagnostic observation, not evidence
 that the experimental scheduler is ready for production.
+
+## Native baseline diagnosis
+
+The probe was rebuilt against `d22199f373d9f11ea93fc3dfab6da6f680277913`,
+and the parser test passed on native x86 Linux. Both linked codec copies used
+the same source apart from the temporary package version. No candidate binary
+was supplied. `e2e-sched-d22199f/` retains the results and resource monitor.
+
+The first round completed all three cases. In the second round, the 10+4,
+1 MiB, missing-data-0 baseline had +6.87% A1-to-A2 median drift. The runner
+rejected the preflight and did not start the last case. Across 337 monitor
+observations, CPUs remained 0–15, no named competitor was seen, and the
+maximum off-target busy streak was one observation. These checks cannot
+exclude brief interference or unobservable host effects.
+
+For the failing case, A1 and A2 had zero recorded process minor or major page
+faults; aggregate runnable wait was approximately 70.9 and 71.6 ns per
+operation, respectively. Aggregate execution time across the caller and four
+workers was approximately 298 and 320 microseconds per operation, including
+warmup, timed work and spinning. The intervening B1 phase recorded 255 minor
+faults and no major faults; B2 recorded none. These are process-wide counts,
+not allocation ownership. The observations do not establish whether the
+faults, scheduling, cache state, frequency or another factor caused the drift.
+No candidate ran, and the earlier rejected candidate comparison remains
+invalid.
