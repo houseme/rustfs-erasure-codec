@@ -1,0 +1,15 @@
+--- a/run_streaming.py
++++ b/run_end_to_end.py
+@@ -18,9 +18,9 @@
+ STAGES = ("A1", "B1", "B2", "A2")
+ OFF_TARGET_CPUS = tuple(range(1, 8)) + (13, 14, 15)
+ EXPECTED_CASES = {
+-    "retained_recovery_row/10x4/1048576/missing0",
+-    "retained_recovery_row/10x4/1048577/missing3",
+-    "retained_recovery_row/4x2/1048576/missing0",
++    "end_to_end_recovery/10x4/1048576/missing0",
++    "end_to_end_recovery/10x4/1048577/missing3",
++    "end_to_end_recovery/4x2/1048576/missing0",
+ }
+ 
+ 
