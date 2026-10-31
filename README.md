@@ -280,6 +280,10 @@ inference and in-memory output behavior. See the [completion audit and example](
 
 ## Runtime Backend Control
 
+For x86-64 `no_std` builds, compiling with `-C target-feature=+avx2` enables
+AVX2 acceleration for Leopard GF16 recovery. Such binaries require a CPU that
+supports AVX2.
+
 Environment variables:
 
 - `RSE_BACKEND_OVERRIDE`
