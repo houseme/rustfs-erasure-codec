@@ -11,8 +11,12 @@ observation. It links two copies of the same codec source and runs the same
 three `reconstruct_data_opt` shapes with four Rayon workers. Each of four
 phases performs 1,024 reconstructions, explicitly drops the missing Option
 buffer before recovery, and checks every shard against the original after the
-phase. It counts consecutive recovered-buffer address equality, capacity
-ranges and process-wide minor/major faults. It emits counts only, never actual
+phase. The temporary baseline instrumentation from the
+[activation check](../2026-11-01-e2e-preflight/README.md) must be applied to
+both copies; its counters are reset and checked in each phase to confirm that
+the fewer-outputs scheduler branch ran. The probe counts consecutive
+recovered-buffer address equality, capacity ranges and process-wide minor/major
+faults. It emits counts only, never actual
 addresses, and records no timing. The first phase has one fewer address
 comparison because there is no previous buffer; later phases include the
 transition from the preceding phase.
@@ -31,4 +35,5 @@ structural checks. This is functional harness validation only. The native
 observation has not run: the test machine was executing another workload and
 its effective CPU set was restricted. Use fresh same-source snapshots, the
 existing temporary bridge and manifest, and a reserved quiet test window for a
-native baseline-only run. Never treat the output as candidate acceptance.
+native baseline-only run. The temporary branch counters change the executable
+and add overhead. Never treat the output as candidate acceptance.

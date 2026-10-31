@@ -100,6 +100,7 @@ fn main() {
         drop(next_encoded);
         let mut shards: Vec<Option<Vec<u8>>> = original.iter().cloned().map(Some).collect();
         let mut previous = None;
+        base_codec::RSE_DIAGNOSTIC_GROUP_CALLS.store(0, std::sync::atomic::Ordering::Relaxed);
         let a1 = phase(
             || {
                 shards[missing] = None;
@@ -110,11 +111,15 @@ fn main() {
             &mut previous,
         );
         assert!(
+            base_codec::RSE_DIAGNOSTIC_GROUP_CALLS.load(std::sync::atomic::Ordering::Relaxed) > 0
+        );
+        assert!(
             shards
                 .iter()
                 .zip(&original)
                 .all(|(got, want)| got.as_deref() == Some(want.as_slice()))
         );
+        next_codec::RSE_DIAGNOSTIC_GROUP_CALLS.store(0, std::sync::atomic::Ordering::Relaxed);
         let b1 = phase(
             || {
                 shards[missing] = None;
@@ -125,11 +130,15 @@ fn main() {
             &mut previous,
         );
         assert!(
+            next_codec::RSE_DIAGNOSTIC_GROUP_CALLS.load(std::sync::atomic::Ordering::Relaxed) > 0
+        );
+        assert!(
             shards
                 .iter()
                 .zip(&original)
                 .all(|(got, want)| got.as_deref() == Some(want.as_slice()))
         );
+        next_codec::RSE_DIAGNOSTIC_GROUP_CALLS.store(0, std::sync::atomic::Ordering::Relaxed);
         let b2 = phase(
             || {
                 shards[missing] = None;
@@ -140,11 +149,15 @@ fn main() {
             &mut previous,
         );
         assert!(
+            next_codec::RSE_DIAGNOSTIC_GROUP_CALLS.load(std::sync::atomic::Ordering::Relaxed) > 0
+        );
+        assert!(
             shards
                 .iter()
                 .zip(&original)
                 .all(|(got, want)| got.as_deref() == Some(want.as_slice()))
         );
+        base_codec::RSE_DIAGNOSTIC_GROUP_CALLS.store(0, std::sync::atomic::Ordering::Relaxed);
         let a2 = phase(
             || {
                 shards[missing] = None;
@@ -153,6 +166,9 @@ fn main() {
                 (value.as_ptr() as usize, value.capacity())
             },
             &mut previous,
+        );
+        assert!(
+            base_codec::RSE_DIAGNOSTIC_GROUP_CALLS.load(std::sync::atomic::Ordering::Relaxed) > 0
         );
         assert!(
             shards
