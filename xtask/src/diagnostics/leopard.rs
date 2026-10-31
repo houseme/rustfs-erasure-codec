@@ -92,7 +92,8 @@ fn gf16(text: &str) -> Result<String> {
         r" +&work\.lane\(work_idx\)\[\.\.size\],\n",
         r" +&mut (?:outputs\[shard_idx\]\[offset \* 2\.\.end \* 2\]|",
         r"group_out\[k\]\[\(offset - start\) \* 2\.\.\(end - start\) \* 2\]),\n",
-        r" +&mut scratch\[\.\.size\],\n +inv_err,\n +tables,\n +\);",
+        r" +(?:&mut scratch\[\.\.size\]|conversion_scratch\(scratch, size\)),\n",
+        r" +inv_err,\n +tables,\n +\);",
     ))?;
     let (separate_output, fused_output) = match (
         separate.captures_iter(text).count(),
@@ -244,6 +245,22 @@ mod tests {
         let observed = gf16(&current).unwrap();
         assert!(!observed.contains("buffers.out_scratch"));
         assert_eq!(observed.matches("span(\"leopard_out_scratch\"").count(), 2);
+        // Current serial code uses the no-std-aware helper while the parallel
+        // std-only path still uses a direct slice. Older snapshots use direct
+        // slices in both paths; both shapes must remain observable.
+        let previous_fused = current.replacen(
+            "conversion_scratch(scratch, size),\n                    inv_err,",
+            "&mut scratch[..size],\n                    inv_err,",
+            1,
+        );
+        assert_ne!(previous_fused, current);
+        assert_eq!(
+            gf16(&previous_fused)
+                .unwrap()
+                .matches("span(\"leopard_out_scratch\"")
+                .count(),
+            2
+        );
         assert_eq!(
             observed
                 .matches(
@@ -280,7 +297,7 @@ mod tests {
         let observed = gf16(&separate).unwrap();
         assert!(observed.contains("buffers.out_scratch"));
         assert_eq!(observed.matches("span(\"leopard_out_scratch\"").count(), 4);
-        for source in [&current, &legacy, &separate] {
+        for source in [&current, &previous_fused, &legacy, &separate] {
             let observed = gf16(source).unwrap();
             let original: Vec<_> = observed
                 .lines()
@@ -300,7 +317,8 @@ mod tests {
             );
         }
         for invalid in [
-            current.replacen("&mut scratch[..size],\n                    inv_err,", "&mut other[..size],\n                    inv_err,", 1),
+            current.replacen("conversion_scratch(scratch, size),\n                    inv_err,", "conversion_scratch(other, size),\n                    inv_err,", 1),
+            current.replacen("&mut scratch[..size],\n                            inv_err,", "&mut other[..size],\n                            inv_err,", 1),
             current.replacen("for &(shard_idx, work_idx, inv_err) in &missing {", &format!("{alias}\n            for &(shard_idx, work_idx, inv_err) in &missing {{"), 1),
             legacy.replace(alias, "let out_scratch = unknown();"),
             legacy.replacen(alias, &format!("{alias}\n            {alias}"), 1),
