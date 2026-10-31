@@ -128,18 +128,15 @@ pub(super) unsafe fn user_to_work_gfni(user: &[u8], out: &mut [u16], matrices: [
     ];
     // SAFETY: caller supplies AVX2/GFNI and disjoint buffers of equal whole-block lengths.
     unsafe {
+        let src = user.as_ptr();
         let dst = out.as_mut_ptr().cast::<u8>();
-        for off in (0..user.len()).step_by(64) {
-            let lo = _mm256_loadu_si256(user.as_ptr().add(off).cast());
-            let hi = _mm256_loadu_si256(user.as_ptr().add(off + 32).cast());
-            let (lo, hi) = gfni_multiply(lo, hi, &m);
-            let a = _mm256_unpacklo_epi8(lo, hi);
-            let b = _mm256_unpackhi_epi8(lo, hi);
-            _mm256_storeu_si256(dst.add(off).cast(), _mm256_permute2x128_si256::<0x20>(a, b));
-            _mm256_storeu_si256(
-                dst.add(off + 32).cast(),
-                _mm256_permute2x128_si256::<0x31>(a, b),
-            );
+        let full = user.len() / 128 * 128;
+        for off in (0..full).step_by(128) {
+            user_to_work_gfni_block(src.add(off), dst.add(off), &m);
+            user_to_work_gfni_block(src.add(off + 64), dst.add(off + 64), &m);
+        }
+        if full != user.len() {
+            user_to_work_gfni_block(src.add(full), dst.add(full), &m);
         }
     }
 }
@@ -158,21 +155,58 @@ pub(super) unsafe fn work_to_user_gfni(work: &[u16], user: &mut [u8], matrices: 
     unsafe {
         let byte_mask = _mm256_srli_epi16::<8>(_mm256_set1_epi8(-1));
         let src = work.as_ptr().cast::<u8>();
-        for off in (0..user.len()).step_by(64) {
-            let a = _mm256_loadu_si256(src.add(off).cast());
-            let b = _mm256_loadu_si256(src.add(off + 32).cast());
-            let lo = _mm256_permute4x64_epi64::<0xd8>(_mm256_packus_epi16(
-                _mm256_and_si256(a, byte_mask),
-                _mm256_and_si256(b, byte_mask),
-            ));
-            let hi = _mm256_permute4x64_epi64::<0xd8>(_mm256_packus_epi16(
-                _mm256_srli_epi16::<8>(a),
-                _mm256_srli_epi16::<8>(b),
-            ));
-            let (lo, hi) = gfni_multiply(lo, hi, &m);
-            _mm256_storeu_si256(user.as_mut_ptr().add(off).cast(), lo);
-            _mm256_storeu_si256(user.as_mut_ptr().add(off + 32).cast(), hi);
+        let dst = user.as_mut_ptr();
+        let full = user.len() / 128 * 128;
+        for off in (0..full).step_by(128) {
+            work_to_user_gfni_block(src.add(off), dst.add(off), &m, byte_mask);
+            work_to_user_gfni_block(src.add(off + 64), dst.add(off + 64), &m, byte_mask);
         }
+        if full != user.len() {
+            work_to_user_gfni_block(src.add(full), dst.add(full), &m, byte_mask);
+        }
+    }
+}
+
+#[cfg(rse_x86_gfni)]
+#[inline]
+#[target_feature(enable = "gfni,avx2")]
+unsafe fn user_to_work_gfni_block(src: *const u8, dst: *mut u8, m: &[__m256i; 4]) {
+    // SAFETY: the caller supplies disjoint valid 64-byte blocks and required features.
+    unsafe {
+        let lo = _mm256_loadu_si256(src.cast());
+        let hi = _mm256_loadu_si256(src.add(32).cast());
+        let (lo, hi) = gfni_multiply(lo, hi, m);
+        let a = _mm256_unpacklo_epi8(lo, hi);
+        let b = _mm256_unpackhi_epi8(lo, hi);
+        _mm256_storeu_si256(dst.cast(), _mm256_permute2x128_si256::<0x20>(a, b));
+        _mm256_storeu_si256(dst.add(32).cast(), _mm256_permute2x128_si256::<0x31>(a, b));
+    }
+}
+
+#[cfg(rse_x86_gfni)]
+#[inline]
+#[target_feature(enable = "gfni,avx2")]
+unsafe fn work_to_user_gfni_block(
+    src: *const u8,
+    dst: *mut u8,
+    m: &[__m256i; 4],
+    byte_mask: __m256i,
+) {
+    // SAFETY: the caller supplies disjoint valid 64-byte blocks and required features.
+    unsafe {
+        let a = _mm256_loadu_si256(src.cast());
+        let b = _mm256_loadu_si256(src.add(32).cast());
+        let lo = _mm256_permute4x64_epi64::<0xd8>(_mm256_packus_epi16(
+            _mm256_and_si256(a, byte_mask),
+            _mm256_and_si256(b, byte_mask),
+        ));
+        let hi = _mm256_permute4x64_epi64::<0xd8>(_mm256_packus_epi16(
+            _mm256_srli_epi16::<8>(a),
+            _mm256_srli_epi16::<8>(b),
+        ));
+        let (lo, hi) = gfni_multiply(lo, hi, m);
+        _mm256_storeu_si256(dst.cast(), lo);
+        _mm256_storeu_si256(dst.add(32).cast(), hi);
     }
 }
 
