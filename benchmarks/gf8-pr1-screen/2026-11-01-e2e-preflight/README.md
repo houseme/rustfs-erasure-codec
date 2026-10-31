@@ -35,3 +35,14 @@ preflight and, only if it passes, the candidate rounds on a quiet reserved
 machine, with fresh snapshots of the then-current revision. Further GF8 and
 GF16, small-size and job-budget coverage remains necessary before a shared
 scheduler change can be enabled.
+
+## Refreshed preflight
+
+After the previously observed competing controller ended, another attempt
+refreshed and rebuilt both probe binaries from commit
+`23dd294141507e6a1b15adb371bc8e74de2a82c7`. The first monitor observation in
+`end-to-end-23dd294/` reported CPUs 0–15 but an active named competing process,
+so the runner refused to start the baseline. A later observation saw CPUs 0–7
+and another baseline process; its identity at the first observation was not
+recorded. No codec timing or candidate result was produced. A single earlier
+controller ending therefore did not establish a stable exclusive window.
