@@ -202,6 +202,11 @@ pub fn active_backend_id() -> BackendId {
     backend::active_backend().id
 }
 
+#[cfg(all(rse_x86_gfni, feature = "std"))]
+pub(crate) fn selected_backend_id() -> Option<BackendId> {
+    backend::selected_backend_id()
+}
+
 pub(crate) fn generated_encode_allowed() -> bool {
     backend::generated_encode_allowed()
 }

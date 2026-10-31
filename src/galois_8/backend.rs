@@ -499,6 +499,12 @@ pub(super) fn runtime_override_backend_id_for_test() -> Option<BackendId> {
     runtime_override_backend().map(|backend| backend.id)
 }
 
+// Observe the selected backend without initializing the global GF8 backend.
+#[cfg(all(rse_x86_gfni, feature = "std"))]
+pub(super) fn selected_backend_id() -> Option<BackendId> {
+    ACTIVE_BACKEND.get().map(|backend| backend.id)
+}
+
 #[cfg(rse_rust_simd)]
 pub(super) fn active_backend() -> &'static GaloisBackend {
     ACTIVE_BACKEND.call_once(runtime_select_backend)
@@ -512,6 +518,64 @@ pub(super) fn active_backend() -> &'static GaloisBackend {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(all(rse_x86_gfni, feature = "std"))]
+    #[test]
+    fn gf16_recovery_does_not_initialize_gf8_backend() {
+        const CHILD: &str = "RSE_GF16_BACKEND_SELECTION_TEST_CHILD";
+        if std::env::var_os(CHILD).is_some() {
+            use crate::{CodecFamily, CodecOptions, galois_8::ReedSolomon};
+            assert!(ACTIVE_BACKEND.get().is_none());
+            let codec = ReedSolomon::with_options(
+                10,
+                4,
+                CodecOptions::builder()
+                    .codec_family(CodecFamily::LeopardGF16)
+                    .max_parallel_jobs(1)
+                    .build(),
+            )
+            .unwrap();
+            let mut original: Vec<Vec<u8>> = (0..14)
+                .map(|i| (0..8192).map(|j| (i * 31 + j * 17) as u8).collect())
+                .collect();
+            codec.encode(&mut original).unwrap();
+            assert!(
+                ACTIVE_BACKEND.get().is_none(),
+                "GF16 encode initialized the GF8 backend"
+            );
+            let mut shards: Vec<_> = original.iter().cloned().map(Some).collect();
+            shards[0] = None;
+            codec.reconstruct_opt(&mut shards).unwrap();
+            assert!(
+                shards
+                    .iter()
+                    .zip(&original)
+                    .all(|(x, y)| x.as_ref() == Some(y))
+            );
+            assert!(
+                ACTIVE_BACKEND.get().is_none(),
+                "GF16 recovery initialized the GF8 backend"
+            );
+            assert_eq!(selected_backend_id(), None);
+            let selected = active_backend().id;
+            assert_eq!(selected_backend_id(), Some(selected));
+            std::println!("GF16 recovery left GF8 backend uninitialized: {selected:?}");
+            return;
+        }
+        for backend in ["scalar", "rust-avx2", "rust-gfni-avx2"] {
+            let status = std::process::Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    "galois_8::backend::tests::gf16_recovery_does_not_initialize_gf8_backend",
+                    "--nocapture",
+                ])
+                .env(CHILD, "1")
+                .env("RSE_BACKEND_OVERRIDE", backend)
+                .status()
+                .unwrap();
+            assert!(status.success(), "child backend={backend}");
+        }
+    }
 
     #[test]
     fn test_backend_ids_are_stable() {

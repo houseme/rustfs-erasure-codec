@@ -172,12 +172,107 @@ pub(super) fn try_butterfly_avx2<const INVERSE: bool>(
     if out.len() != input.len() || input.len() < 32 || !is_x86_feature_detected!("avx2") {
         return false;
     }
+    // Short lanes do not amortize matrix construction. Only observe an already
+    // selected GF8 backend: GF16 must not initialize it or repeatedly read its override.
+    #[cfg(rse_x86_gfni)]
+    if input.len() >= 4096
+        && is_x86_feature_detected!("gfni")
+        && matches!(
+            crate::galois_8::selected_backend_id(),
+            Some(
+                crate::galois_8::BackendId::RustGfniAvx2
+                    | crate::galois_8::BackendId::RustGfniAvx512
+            )
+        )
+    {
+        // SAFETY: GFNI and AVX2 are detected and both lanes have equal lengths.
+        unsafe {
+            gfni_butterfly::run::<INVERSE>(out, input, log_m, tables);
+        }
+        return true;
+    }
     let t = NibbleTables16::build(log_m, &tables.log_lut, &tables.exp_lut);
     // SAFETY: AVX2 was detected; equal-length mutable slices are disjoint.
     unsafe {
         x86::butterfly_avx2::<INVERSE>(out, input, &t);
     }
     true
+}
+
+#[cfg(all(
+    rse_x86_gfni,
+    feature = "std",
+    target_arch = "x86_64",
+    target_endian = "little"
+))]
+mod gfni_butterfly {
+    use super::{LeopardGf16Tables, mul_log16};
+    use core::arch::x86_64::*;
+    const SPLIT: [u8; 16] = [0, 2, 4, 6, 8, 10, 12, 14, 1, 3, 5, 7, 9, 11, 13, 15];
+    const PACK: [u8; 16] = [0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15];
+    // Multiplication by a fixed GF16 element is a linear map over GF(2).
+    // Build its four 8x8 byte-plane matrices in the bit order used by GFNI.
+    fn matrices(log_m: u16, t: &LeopardGf16Tables) -> [i64; 4] {
+        let mut matrices = [0u64; 4];
+        for input_bit in 0..16 {
+            let value = mul_log16(1u16 << input_bit, log_m, &t.log_lut, &t.exp_lut);
+            for output_bit in 0..16 {
+                let matrix = (output_bit / 8) * 2 + input_bit / 8;
+                matrices[matrix] |= (((value >> output_bit) & 1) as u64)
+                    << ((7 - output_bit % 8) * 8 + input_bit % 8);
+            }
+        }
+        matrices.map(|v| v as i64)
+    }
+    #[target_feature(enable = "gfni,avx2")]
+    pub(super) unsafe fn run<const INVERSE: bool>(
+        out: &mut [u16],
+        input: &mut [u16],
+        log_m: u16,
+        t: &LeopardGf16Tables,
+    ) {
+        let [a, b, c, d] = matrices(log_m, t);
+        let diagonal = _mm256_set_epi64x(d, a, d, a);
+        let crossed = _mm256_set_epi64x(c, b, c, b);
+        // SAFETY: masks contain 16 bytes, and caller supplies disjoint equal lanes and CPU features.
+        unsafe {
+            let split = _mm256_broadcastsi128_si256(_mm_loadu_si128(SPLIT.as_ptr().cast()));
+            let pack = _mm256_broadcastsi128_si256(_mm_loadu_si128(PACK.as_ptr().cast()));
+            for chunk in 0..input.len() / 16 {
+                let offset = chunk * 16;
+                let x = _mm256_loadu_si256(out.as_ptr().add(offset).cast());
+                let y = _mm256_loadu_si256(input.as_ptr().add(offset).cast());
+                let value = if INVERSE { _mm256_xor_si256(x, y) } else { y };
+                let planes = _mm256_shuffle_epi8(value, split);
+                let other = _mm256_shuffle_epi32::<0x4e>(planes);
+                let product = _mm256_shuffle_epi8(
+                    _mm256_xor_si256(
+                        _mm256_gf2p8affine_epi64_epi8::<0>(planes, diagonal),
+                        _mm256_gf2p8affine_epi64_epi8::<0>(other, crossed),
+                    ),
+                    pack,
+                );
+                let x_new = _mm256_xor_si256(x, product);
+                let y_new = if INVERSE {
+                    value
+                } else {
+                    _mm256_xor_si256(y, x_new)
+                };
+                _mm256_storeu_si256(out.as_mut_ptr().add(offset).cast(), x_new);
+                _mm256_storeu_si256(input.as_mut_ptr().add(offset).cast(), y_new);
+            }
+        }
+        let done = input.len() / 16 * 16;
+        for (x, y) in out[done..].iter_mut().zip(input[done..].iter_mut()) {
+            if INVERSE {
+                *y ^= *x;
+            }
+            *x ^= mul_log16(*y, log_m, &t.log_lut, &t.exp_lut);
+            if !INVERSE {
+                *y ^= *x;
+            }
+        }
+    }
 }
 
 // ------------------------------------------------------------------ aarch64 --
@@ -747,7 +842,9 @@ mod butterfly_tests {
         ));
         assert_eq!(short, [7u16; 32]);
         assert_eq!(long, [9u16; 64]);
-        for len in [0, 1, 15, 16, 31, 32, 33, 47, 63, 64, 65, 1024, 32768] {
+        for len in [
+            0, 1, 15, 16, 31, 32, 33, 47, 63, 64, 65, 1024, 4095, 4096, 4097, 32768,
+        ] {
             for log_m in [0, 1, 31, 255, 1024, 32768, 65534, MODULUS16 as u16] {
                 let x0: Vec<u16> = (0..len + 2)
                     .map(|i| ((i * 9127 + 113) & 65535) as u16)
@@ -820,6 +917,145 @@ mod lane_order_tests {
                     super::mulgf16_simd::<false>(&mut actual, &input, log_m, tables);
                 }
                 assert_eq!(actual, expected, "multiplier={log_m} xor={xor}");
+            }
+        }
+    }
+}
+
+#[cfg(all(
+    test,
+    rse_x86_gfni,
+    feature = "std",
+    target_arch = "x86_64",
+    target_endian = "little"
+))]
+mod gfni_butterfly_tests {
+    use super::super::{init_leopard_gf16_tables, ops};
+    #[test]
+    fn gfni_butterfly_handles_unaligned_tails_without_overwriting_guards() {
+        if !std::is_x86_feature_detected!("gfni") || !std::is_x86_feature_detected!("avx2") {
+            std::println!("GFNI unavailable");
+            return;
+        }
+        let tables = init_leopard_gf16_tables();
+        for len in [0, 1, 15, 16, 17, 31, 32, 33, 4095, 4096, 4097] {
+            for inverse in [false, true] {
+                let mut x: Vec<u16> = (0..len + 2)
+                    .map(|i| (i as u16).wrapping_mul(9127))
+                    .collect();
+                let mut y: Vec<u16> = (0..len + 2)
+                    .map(|i| (i as u16).wrapping_mul(3571))
+                    .collect();
+                let mut expected_x = x.clone();
+                let mut expected_y = y.clone();
+                for (a, b) in expected_x[1..len + 1]
+                    .iter_mut()
+                    .zip(expected_y[1..len + 1].iter_mut())
+                {
+                    if inverse {
+                        *b ^= *a;
+                    }
+                    *a ^= ops::mul_log16(*b, 1024, &tables.log_lut, &tables.exp_lut);
+                    if !inverse {
+                        *b ^= *a;
+                    }
+                }
+                // SAFETY: features were detected and the equal-sized lanes are disjoint.
+                unsafe {
+                    if inverse {
+                        super::gfni_butterfly::run::<true>(
+                            &mut x[1..len + 1],
+                            &mut y[1..len + 1],
+                            1024,
+                            tables,
+                        );
+                    } else {
+                        super::gfni_butterfly::run::<false>(
+                            &mut x[1..len + 1],
+                            &mut y[1..len + 1],
+                            1024,
+                            tables,
+                        );
+                    }
+                }
+                assert_eq!(x, expected_x, "x len={len} inverse={inverse}");
+                assert_eq!(y, expected_y, "y len={len} inverse={inverse}");
+            }
+        }
+    }
+
+    #[test]
+    fn gfni_butterfly_matches_scalar_for_every_multiplier_and_basis_vector() {
+        if !std::is_x86_feature_detected!("gfni") || !std::is_x86_feature_detected!("avx2") {
+            std::println!("GFNI unavailable");
+            return;
+        }
+        let tables = init_leopard_gf16_tables();
+        for log_m in 0..u16::MAX {
+            for inverse in [false, true] {
+                let mut x = [0x5a5au16; 16];
+                let mut y = core::array::from_fn::<_, 16, _>(|i| {
+                    (1u16 << i) ^ if inverse { 0x5a5a } else { 0 }
+                });
+                let mut expected_x = x;
+                let mut expected_y = y;
+                for (a, b) in expected_x.iter_mut().zip(expected_y.iter_mut()) {
+                    if inverse {
+                        *b ^= *a;
+                    }
+                    *a ^= ops::mul_log16(*b, log_m, &tables.log_lut, &tables.exp_lut);
+                    if !inverse {
+                        *b ^= *a;
+                    }
+                }
+                // SAFETY: features were detected and the equal-sized lanes are disjoint.
+                unsafe {
+                    if inverse {
+                        super::gfni_butterfly::run::<true>(&mut x, &mut y, log_m, tables);
+                    } else {
+                        super::gfni_butterfly::run::<false>(&mut x, &mut y, log_m, tables);
+                    }
+                }
+                assert_eq!(x, expected_x, "x log={log_m} inverse={inverse}");
+                assert_eq!(y, expected_y, "y log={log_m} inverse={inverse}");
+            }
+        }
+    }
+
+    #[test]
+    fn gfni_butterfly_matches_scalar_for_every_field_value() {
+        if !std::is_x86_feature_detected!("gfni") || !std::is_x86_feature_detected!("avx2") {
+            std::println!("GFNI unavailable");
+            return;
+        }
+        std::println!("GFNI=true AVX2=true: GFNI butterfly executed");
+        let tables = init_leopard_gf16_tables();
+        let initial: Vec<u16> = (0..=u16::MAX).collect();
+        for log_m in [0, 1, 31, 1024, 32768, 65534] {
+            for inverse in [false, true] {
+                let mut x: Vec<u16> = initial.iter().map(|v| v.wrapping_mul(40503)).collect();
+                let mut y = initial.clone();
+                let mut ex = x.clone();
+                let mut ey = y.clone();
+                for (a, b) in ex.iter_mut().zip(ey.iter_mut()) {
+                    if inverse {
+                        *b ^= *a;
+                    }
+                    *a ^= ops::mul_log16(*b, log_m, &tables.log_lut, &tables.exp_lut);
+                    if !inverse {
+                        *b ^= *a;
+                    }
+                }
+                // SAFETY: feature detection succeeded and mutable lanes are disjoint and equal sized.
+                unsafe {
+                    if inverse {
+                        super::gfni_butterfly::run::<true>(&mut x, &mut y, log_m, tables)
+                    } else {
+                        super::gfni_butterfly::run::<false>(&mut x, &mut y, log_m, tables)
+                    }
+                }
+                assert_eq!(x, ex, "x log={log_m} inverse={inverse}");
+                assert_eq!(y, ey, "y log={log_m} inverse={inverse}");
             }
         }
     }
