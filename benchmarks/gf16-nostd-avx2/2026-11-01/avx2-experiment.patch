@@ -1,0 +1,87 @@
+--- a/src/core/leopard_gf16/fwht_simd.rs
++++ b/src/core/leopard_gf16/fwht_simd.rs
+@@ -30,13 +30,21 @@
+ pub(super) fn radix4_block(data: &mut [u16], r: usize, dist: usize) {
+     #[cfg(all(target_arch = "x86_64", target_endian = "little"))]
+     {
+-        // AVX2 is chosen by runtime detection, which is `std`-only; under
+-        // `no_std` this arm is compiled out and we fall through to the SSE2
+-        // baseline path below (still SIMD, just 128-bit).
++        // std detects AVX2 at runtime; no_std can use it when the target
++        // explicitly enables AVX2 at compile time.
+         #[cfg(feature = "std")]
+         if dist >= 16 && std::is_x86_feature_detected!("avx2") {
+             // SAFETY: AVX2 confirmed; `dist >= 16` makes the four stride-`dist`
+             // 16-lane windows disjoint and in bounds within `[r, r+4*dist)`.
++            unsafe {
++                x86::radix4_avx2(data, r, dist);
++            }
++            return;
++        }
++        #[cfg(all(not(feature = "std"), target_feature = "avx2"))]
++        if dist >= 16 {
++            // SAFETY: AVX2 is enabled for the whole target, and the stride
++            // makes all 16-lane windows disjoint and in bounds.
+             unsafe {
+                 x86::radix4_avx2(data, r, dist);
+             }
+@@ -68,11 +76,18 @@
+ pub(super) fn radix2_block(data: &mut [u16], r: usize, dist: usize) {
+     #[cfg(all(target_arch = "x86_64", target_endian = "little"))]
+     {
+-        // `std`-only runtime AVX2 detection; see `radix4_block`. `no_std` falls
+-        // through to the SSE2 baseline path below.
+         #[cfg(feature = "std")]
+         if dist >= 16 && std::is_x86_feature_detected!("avx2") {
+             // SAFETY: see `radix4_block`; two stride-`dist` 16-lane windows.
++            unsafe {
++                x86::radix2_avx2(data, r, dist);
++            }
++            return;
++        }
++        #[cfg(all(not(feature = "std"), target_feature = "avx2"))]
++        if dist >= 16 {
++            // SAFETY: AVX2 is enabled for the whole target, and the stride
++            // makes all 16-lane windows disjoint and in bounds.
+             unsafe {
+                 x86::radix2_avx2(data, r, dist);
+             }
+@@ -129,9 +144,8 @@
+     use core::arch::x86_64::*;
+
+     // 256-bit AVX2 (16 u16/lane) modular add/sub. AVX2 is dispatched via
+-    // runtime detection, which is `std`-only, so the whole AVX2 path is gated on
+-    // `feature = "std"` to avoid dead code (and a build break) under `no_std`.
+-    #[cfg(feature = "std")]
++    // runtime detection with std, or a compile-time target guarantee in no_std.
++    #[cfg(any(feature = "std", target_feature = "avx2"))]
+     #[target_feature(enable = "avx2")]
+     unsafe fn add_mod_avx2(a: __m256i, b: __m256i, bias: __m256i) -> __m256i {
+         // Pure register arithmetic; the AVX2 intrinsics are safe under the
+@@ -141,7 +155,7 @@
+         let mask = _mm256_cmpgt_epi16(_mm256_xor_si256(a, bias), _mm256_xor_si256(s, bias));
+         _mm256_sub_epi16(s, mask)
+     }
+-    #[cfg(feature = "std")]
++    #[cfg(any(feature = "std", target_feature = "avx2"))]
+     #[target_feature(enable = "avx2")]
+     unsafe fn sub_mod_avx2(a: __m256i, b: __m256i, bias: __m256i) -> __m256i {
+         // Pure register arithmetic; safe under the enabled target feature.
+@@ -151,7 +165,7 @@
+         _mm256_add_epi16(d, mask)
+     }
+
+-    #[cfg(feature = "std")]
++    #[cfg(any(feature = "std", target_feature = "avx2"))]
+     #[target_feature(enable = "avx2")]
+     pub(super) unsafe fn radix4_avx2(data: &mut [u16], r: usize, dist: usize) {
+         // SAFETY: caller guarantees `dist >= 16`, so the four windows at `off`,
+@@ -189,7 +203,7 @@
+         }
+     }
+
+-    #[cfg(feature = "std")]
++    #[cfg(any(feature = "std", target_feature = "avx2"))]
+     #[target_feature(enable = "avx2")]
+     pub(super) unsafe fn radix2_avx2(data: &mut [u16], r: usize, dist: usize) {
+         // SAFETY: `dist >= 16` -> two disjoint 16-lane windows, in bounds.
