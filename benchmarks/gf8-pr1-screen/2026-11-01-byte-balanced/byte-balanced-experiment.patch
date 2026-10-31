@@ -1,0 +1,69 @@
+--- a/src/core/parallel.rs
++++ b/src/core/parallel.rs
+@@ -240,14 +240,17 @@
+                 }
+             });
+     } else {
+-        let chunk_count = shard_len.div_ceil(chunk_len);
+         outputs
+             .par_iter_mut()
+             .enumerate()
+             .for_each(|(row, output)| {
+                 let row_jobs = jobs / output_count + usize::from(row < jobs % output_count);
+-                let chunks_per_job = chunk_count.div_ceil(row_jobs);
+-                let group_len = chunks_per_job.saturating_mul(chunk_len).min(shard_len);
++                // Align job boundaries while balancing the bytes each job handles.
++                let group_len = shard_len
++                    .div_ceil(row_jobs)
++                    .checked_next_multiple_of(64)
++                    .unwrap_or(shard_len)
++                    .min(shard_len);
+                 output
+                     .as_mut()
+                     .par_chunks_mut(group_len)
+@@ -388,6 +391,45 @@
+ #[cfg(all(test, feature = "std"))]
+ mod tests {
+     use super::*;
++
++    #[test]
++    fn experimental_job_ranges_preserve_offsets_for_byte_and_wide_elements() {
++        use std::sync::Mutex;
++        for wide in [false, true] {
++            let calls = Mutex::new(Vec::new());
++            let len = 1_048_576;
++            if wide {
++                let mut outputs = vec![vec![[0u8; 2]; len]];
++                for_each_output_chunk(&mut outputs, len, 209_664, 4, |_, start, chunk| {
++                    calls.lock().unwrap().push((start, chunk.len()));
++                    for (i, item) in chunk.iter_mut().enumerate() {
++                        *item = ((start + i) as u16).to_le_bytes();
++                    }
++                });
++                assert!(
++                    outputs[0]
++                        .iter()
++                        .enumerate()
++                        .all(|(i, &v)| v == (i as u16).to_le_bytes())
++                );
++            } else {
++                let mut outputs = vec![vec![0u8; len]];
++                for_each_output_chunk(&mut outputs, len, 209_664, 4, |_, start, chunk| {
++                    calls.lock().unwrap().push((start, chunk.len()));
++                    for (i, item) in chunk.iter_mut().enumerate() {
++                        *item = (start + i) as u8;
++                    }
++                });
++                assert!(outputs[0].iter().enumerate().all(|(i, &v)| v == i as u8));
++            }
++            let mut calls = calls.into_inner().unwrap();
++            calls.sort_unstable();
++            let expected: Vec<_> = (0..4)
++                .flat_map(|i| [(i * 262_144, 209_664), (i * 262_144 + 209_664, 52_480)])
++                .collect();
++            assert_eq!(calls, expected);
++        }
++    }
+ 
+     #[test]
+     fn output_chunk_scheduler_covers_each_byte_once() {
