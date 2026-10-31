@@ -44,9 +44,27 @@ probe waits between all cases and exits on an invalid acknowledgement.
 The fault parser and address-transition counter passed local unit tests. A
 separate Apple Silicon smoke variant used 16 iterations and synthetic zero
 fault counters; all three recovery cases and twelve JSON phase records passed
-structural checks. This is functional harness validation only. The native
-observation has not run: the test machine was executing another workload and
-its effective CPU set was restricted. Use fresh same-source snapshots, the
-existing temporary bridge and manifest, and a reserved quiet test window for a
-native baseline-only run. The temporary branch counters change the executable
-and add overhead. Never treat the output as candidate acceptance.
+structural checks. This is functional harness validation only. The first native
+build attempt was deferred while another workload restricted the CPU set.
+The temporary branch counters change the executable and add overhead. Never
+treat the output as candidate acceptance.
+
+## Native non-timing observation
+
+The probe was built from committed snapshot
+`f61bf9612a2f411b56a197ed6789b54423f98080` using two baseline copies with the
+temporary bridge, branch counters and package-version distinction. Native x86
+Linux passed both parser/transition unit tests. The monitor then completed two
+non-timing rounds over all three cases. `allocation-f61bf96/` retains the
+original records: resource and schema checks passed, and the summary
+explicitly records that no candidate or performance gate was run. Across 12
+monitor observations, CPUs remained 0–15, no named competitor was seen and the
+off-target busy streak was zero. Shorter interference is not excluded.
+
+In both rounds, every consecutive virtual-address comparison within each case
+matched; recovered capacities equaled the requested lengths. The first A1
+phase of the 4+2 case recorded 256 process-wide minor faults in each round;
+all later phases recorded zero minor faults, and all phases recorded zero major
+faults. No addresses were saved. This shows only what the instrumented process
+observed in this short run: it does not establish allocator ownership,
+physical-page retention or the cause of the earlier performance drift.
