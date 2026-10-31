@@ -14,6 +14,10 @@ use super::{
     ReedSolomon, leopard,
 };
 
+// AVX-512-only generated kernels need enough data to amortize preparation.
+// Keep smaller shards on the existing streaming path.
+const AVX512_CODEGEN_MIN_SHARD_BYTES: usize = 32 * 1024;
+
 /// Borrow contiguous or planned survivor inputs in coefficient-column order.
 trait CodingInputs<E> {
     type Shard: AsRef<[E]>;
@@ -669,7 +673,9 @@ impl<F: Field> ReedSolomon<F> {
     /// only the result keeps inline metadata out of the caller's return slot.
     /// Unsupported or inconsistent Field views still use the generic Classic
     /// path; execution errors never fall back after parity has been modified.
-    #[inline]
+    // Keep native preparation out of the small-shard path on AVX-512-only builds.
+    #[cfg_attr(all(rse_x86_avx512, not(rse_x86_avx2)), inline(never))]
+    #[cfg_attr(not(all(rse_x86_avx512, not(rse_x86_avx2))), inline)]
     fn try_native_encode<T, U>(
         &self,
         data: &[T],
@@ -818,8 +824,10 @@ impl<F: Field> ReedSolomon<F> {
         parity: &mut [U],
     ) -> Result<(), Error> {
         let shard_len = data[0].as_ref().len();
-        if let Some(result) =
-            self.try_native_encode(data, parity, shard_len, NativeEncodeExecution::Serial)
+        if (!cfg!(all(rse_x86_avx512, not(rse_x86_avx2)))
+            || shard_len >= AVX512_CODEGEN_MIN_SHARD_BYTES)
+            && let Some(result) =
+                self.try_native_encode(data, parity, shard_len, NativeEncodeExecution::Serial)
         {
             return result.map(|_| ());
         }
@@ -984,12 +992,15 @@ impl<F: Field> ReedSolomon<F> {
 
         let shard_len = data[0].as_ref().len();
         let decision = self.parallel_policy(shard_len, parity.len());
-        if let Some(execution) = NativeEncodeExecution::for_parallel_decision(
-            self.data_shard_count(),
-            self.parity_shard_count(),
-            shard_len,
-            decision,
-        ) && let Some(result) = self.try_native_encode(data, parity, shard_len, execution)
+        if (!cfg!(all(rse_x86_avx512, not(rse_x86_avx2)))
+            || shard_len >= AVX512_CODEGEN_MIN_SHARD_BYTES)
+            && let Some(execution) = NativeEncodeExecution::for_parallel_decision(
+                self.data_shard_count(),
+                self.parity_shard_count(),
+                shard_len,
+                decision,
+            )
+            && let Some(result) = self.try_native_encode(data, parity, shard_len, execution)
         {
             let chunk_len = result?;
             if decision.use_parallel {

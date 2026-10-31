@@ -149,7 +149,9 @@ mod tests {
     use alloc::vec;
 
     use super::*;
-    use crate::galois_8::{mul_slice_scalar_for_test, mul_slice_xor_scalar_for_test, x86};
+    #[cfg(feature = "simd-avx2")]
+    use crate::galois_8::x86;
+    use crate::galois_8::{mul_slice_scalar_for_test, mul_slice_xor_scalar_for_test};
     use crate::tests::fill_random;
     use rand;
 
@@ -201,6 +203,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "simd-avx2")]
     #[test]
     fn avx512_matches_avx2_mul_slice() {
         if !(std::is_x86_feature_detected!("avx512f") && std::is_x86_feature_detected!("avx512bw"))

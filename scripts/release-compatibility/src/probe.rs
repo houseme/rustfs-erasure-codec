@@ -124,6 +124,99 @@ fn run_with_peer(peer: Option<&[super::Snapshot]>) -> Vec<super::Snapshot> {
 
 pub(super) fn run() -> Vec<super::Snapshot> { run_with_peer(None) }
 
+/// Compare the byte format around the generated AVX-512 activation boundary.
+pub(super) fn large_gf8(peer: Option<&[super::Snapshot]>) -> Vec<super::Snapshot> {
+    gf8_boundaries(peer, &[(4, 2), (10, 4), (12, 4)], &[32_767, 32_768, 32_769])
+}
+
+/// Preserve 6+2 compatibility around the candidate AVX2 dispatch boundary.
+pub(super) fn six_plus_two(peer: Option<&[super::Snapshot]>) -> Vec<super::Snapshot> {
+    gf8_boundaries(peer, &[(6, 2)], &[4_095, 4_096, 4_097])
+}
+
+fn gf8_boundaries(
+    peer: Option<&[super::Snapshot]>,
+    shapes: &[(usize, usize)],
+    lengths: &[usize],
+) -> Vec<super::Snapshot> {
+    use rustfs_erasure_codec::galois_8::ReedSolomon;
+
+    let mut snapshots = Vec::new();
+    if let Some(peer) = peer {
+        assert_eq!(peer.len(), shapes.len() * 4 * lengths.len());
+    }
+    for &(data_count, parity_count) in shapes {
+        for (mode_index, mode) in [
+            MatrixMode::Vandermonde,
+            MatrixMode::Cauchy,
+            MatrixMode::JerasureLike,
+            MatrixMode::Custom,
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            let options = CodecOptions::builder()
+                .matrix_mode(mode)
+                .fast_one_parity(false)
+                .max_parallel_jobs(1)
+                .build();
+            let codec = if mode == MatrixMode::Custom {
+                let reference = ReedSolomon::new(data_count, parity_count).unwrap();
+                let basis: Vec<Vec<u8>> = (0..data_count)
+                    .map(|row| {
+                        (0..data_count)
+                            .map(|column| u8::from(row == column))
+                            .collect()
+                    })
+                    .collect();
+                let mut rows = vec![vec![0; data_count]; parity_count];
+                reference.encode_sep(&basis, &mut rows).unwrap();
+                rows.reverse();
+                ReedSolomon::with_custom_matrix(data_count, parity_count, &rows, options).unwrap()
+            } else {
+                ReedSolomon::with_options(data_count, parity_count, options).unwrap()
+            };
+            for &len in lengths {
+                let id =
+                    format!("gf8/Classic/{data_count}+{parity_count}/matrix{mode_index}/{len}");
+                let mut shards: Vec<Vec<u8>> = (0..data_count + parity_count)
+                    .map(|row| {
+                        (0..len)
+                            .map(|offset| (row * 73 + offset * 19 + offset / 17) as u8)
+                            .collect()
+                    })
+                    .collect();
+                codec.encode(&mut shards).unwrap();
+                if let Some(peer) = peer {
+                    let reference = &peer[snapshots.len()];
+                    assert_eq!(reference.id, id, "cross-version case ordering");
+                    for (destination, bytes) in
+                        shards[data_count..].iter_mut().zip(&reference.parity)
+                    {
+                        destination.clone_from(bytes);
+                    }
+                }
+                assert!(codec.verify(&shards).unwrap(), "verification: {id}");
+                let mut lost: Vec<_> = shards.iter().cloned().map(Some).collect();
+                lost[data_count / 2] = None;
+                lost[data_count + parity_count - 1] = None;
+                codec.reconstruct(&mut lost).unwrap();
+                assert!(
+                    lost.iter()
+                        .zip(&shards)
+                        .all(|(actual, expected)| actual.as_ref() == Some(expected)),
+                    "roundtrip: {id}"
+                );
+                snapshots.push(super::Snapshot {
+                    id,
+                    parity: shards[data_count..].to_vec(),
+                });
+            }
+        }
+    }
+    snapshots
+}
+
 pub(super) fn cross_decode(peer: &[super::Snapshot]) {
     assert_eq!(peer.len(), 200);
     let decoded = run_with_peer(Some(peer));

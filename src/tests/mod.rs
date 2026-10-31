@@ -1283,8 +1283,8 @@ fn test_empty_aligned_shard_constructors_preserve_alignment() {
 
     for (index, shard) in shards.iter_mut().enumerate() {
         assert!(shard.is_empty(), "empty constructor {index}");
-        assert_eq!(shard.as_ref(), &[]);
-        assert_eq!(shard.as_mut(), &mut []);
+        assert_eq!(shard.as_ref(), &[] as &[u8]);
+        assert_eq!(shard.as_mut(), &mut [] as &mut [u8]);
         assert_eq!(
             (shard.as_ptr() as usize) % galois_8::SHARD_ALIGNMENT,
             0,

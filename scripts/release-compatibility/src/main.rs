@@ -99,6 +99,20 @@ fn main() {
     println!(
         "200 configurations: exact parity and old/new cross-decoding passed in both directions"
     );
+    let old_large = old::large_gf8(None);
+    let new_large = new::large_gf8(None);
+    assert_eq!(old_large.len(), 36);
+    assert_eq!(new_large, old_large, "large GF8 parity compatibility");
+    assert_eq!(old::large_gf8(Some(&new_large)), new_large);
+    assert_eq!(new::large_gf8(Some(&old_large)), old_large);
+    println!("36 large GF8 cases: exact parity and cross-decoding passed in both directions");
+    let old_six_two = old::six_plus_two(None);
+    let new_six_two = new::six_plus_two(None);
+    assert_eq!(old_six_two.len(), 12);
+    assert_eq!(new_six_two, old_six_two, "6+2 parity compatibility");
+    assert_eq!(old::six_plus_two(Some(&new_six_two)), new_six_two);
+    assert_eq!(new::six_plus_two(Some(&old_six_two)), old_six_two);
+    println!("12 6+2 cases: exact parity and cross-decoding passed in both directions");
     let args: Vec<_> = std::env::args_os().skip(1).collect();
     if !args.is_empty() {
         assert!(

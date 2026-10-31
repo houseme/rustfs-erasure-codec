@@ -23,11 +23,20 @@ impl SelectedEncodeKernel {
     }
 
     pub(crate) fn select(data_shards: usize, parity_shards: usize) -> Option<Self> {
+        #[cfg(rse_x86_avx512)]
+        if super::active_backend_id() == super::BackendId::RustAvx512
+            && let Some(kernel) =
+                super::x86::codegen::select_encode_kernel_avx512(data_shards, parity_shards)
+        {
+            return Some(kernel);
+        }
         #[cfg(rse_x86_avx2)]
         return super::x86::codegen::select_encode_kernel_avx2(data_shards, parity_shards);
+        #[cfg(all(not(rse_x86_avx2), rse_x86_avx512))]
+        return super::x86::codegen::select_encode_kernel_avx512(data_shards, parity_shards);
         #[cfg(rse_aarch64_neon)]
         return super::aarch64::codegen::select_encode_kernel_neon(data_shards, parity_shards);
-        #[cfg(not(any(rse_x86_avx2, rse_aarch64_neon)))]
+        #[cfg(not(any(rse_x86_avx2, rse_x86_avx512, rse_aarch64_neon)))]
         {
             let _ = (data_shards, parity_shards);
             None

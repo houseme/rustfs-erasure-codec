@@ -32,6 +32,16 @@ tower-field arithmetic vectors. Addition, multiplication, division and inverse-X
 results run on both 9.0.0 and 9.1.0, using the existing GF(256) generator and
 extension polynomial; the obsolete Sage executable has been removed.
 
+It additionally checks 36 Classic GF8 cases around the 32 KiB shard boundary:
+three generated-code shapes, four matrix modes including a valid custom matrix,
+and lengths 32767, 32768 and 32769. Complete parity must match between versions,
+and both versions must verify and reconstruct shards encoded by the other.
+The workspace's normal `simd-accel` features may select GFNI or AVX2, so this
+functional probe alone does not prove an AVX-512-only generated path ran.
+Another 12 cases check 6+2 at 4095, 4096 and 4097 bytes with the same four
+matrix modes and bidirectional recovery. The currently unmerged 6+2 AVX2
+candidate requires a separate instrumented build to prove its path ran.
+
 The optional resource report extends the original 15-case catalog with 30
 incremental-update cases: GF8/tower GF16, four lengths, zero/one/two changed shards,
 and a 33-parity boundary case for each field/change count. One existing command
