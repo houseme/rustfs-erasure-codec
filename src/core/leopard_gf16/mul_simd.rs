@@ -172,11 +172,10 @@ pub(super) fn try_butterfly_avx2<const INVERSE: bool>(
     if out.len() != input.len() || input.len() < 32 || !is_x86_feature_detected!("avx2") {
         return false;
     }
-    // Short lanes do not amortize matrix construction. Only observe an already
-    // selected GF8 backend: GF16 must not initialize it or repeatedly read its override.
+    // Only observe an already selected GF8 backend: GF16 must not initialize it
+    // or repeatedly read its override.
     #[cfg(rse_x86_gfni)]
-    if input.len() >= 4096
-        && is_x86_feature_detected!("gfni")
+    if is_x86_feature_detected!("gfni")
         && matches!(
             crate::galois_8::selected_backend_id(),
             Some(
@@ -213,16 +212,24 @@ mod gfni_butterfly {
     // Multiplication by a fixed GF16 element is a linear map over GF(2).
     // Build its four 8x8 byte-plane matrices in the bit order used by GFNI.
     fn matrices(log_m: u16, t: &LeopardGf16Tables) -> [i64; 4] {
-        let mut matrices = [0u64; 4];
+        let mut columns = [0u64; 4];
         for input_bit in 0..16 {
             let value = mul_log16(1u16 << input_bit, log_m, &t.log_lut, &t.exp_lut);
-            for output_bit in 0..16 {
-                let matrix = (output_bit / 8) * 2 + input_bit / 8;
-                matrices[matrix] |= (((value >> output_bit) & 1) as u64)
-                    << ((7 - output_bit % 8) * 8 + input_bit % 8);
-            }
+            let byte_shift = (input_bit % 8) * 8;
+            let group = input_bit / 8;
+            columns[group] |= u64::from(value & 0xff) << byte_shift;
+            columns[group + 2] |= u64::from(value >> 8) << byte_shift;
         }
-        matrices.map(|v| v as i64)
+        columns.map(|mut x| {
+            // Transpose the 8x8 bits in three swaps, then reverse GFNI row order.
+            let t = (x ^ (x >> 7)) & 0x00aa_00aa_00aa_00aa;
+            x ^= t ^ (t << 7);
+            let t = (x ^ (x >> 14)) & 0x0000_cccc_0000_cccc;
+            x ^= t ^ (t << 14);
+            let t = (x ^ (x >> 28)) & 0x0000_0000_f0f0_f0f0;
+            x ^= t ^ (t << 28);
+            x.swap_bytes() as i64
+        })
     }
     #[target_feature(enable = "gfni,avx2")]
     pub(super) unsafe fn run<const INVERSE: bool>(
@@ -270,6 +277,33 @@ mod gfni_butterfly {
             *x ^= mul_log16(*y, log_m, &t.log_lut, &t.exp_lut);
             if !INVERSE {
                 *y ^= *x;
+            }
+        }
+    }
+    #[cfg(test)]
+    mod tests {
+        use super::super::super::init_leopard_gf16_tables;
+        use super::{matrices, mul_log16};
+
+        #[test]
+        fn transposed_matrices_match_bitwise_reference_for_every_multiplier() {
+            let tables = init_leopard_gf16_tables();
+            for log_m in 0..u16::MAX {
+                let mut expected = [0u64; 4];
+                for input_bit in 0..16 {
+                    let value =
+                        mul_log16(1u16 << input_bit, log_m, &tables.log_lut, &tables.exp_lut);
+                    for output_bit in 0..16 {
+                        let index = (output_bit / 8) * 2 + input_bit / 8;
+                        expected[index] |= (((value >> output_bit) & 1) as u64)
+                            << ((7 - output_bit % 8) * 8 + input_bit % 8);
+                    }
+                }
+                assert_eq!(
+                    matrices(log_m, tables),
+                    expected.map(|value| value as i64),
+                    "log={log_m}"
+                );
             }
         }
     }
