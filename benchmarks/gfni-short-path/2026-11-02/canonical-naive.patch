@@ -1,0 +1,44 @@
+--- a/src/core/leopard_gf16/mul_simd.rs
++++ b/src/core/leopard_gf16/mul_simd.rs
+@@ -316,6 +316,7 @@
+     // Fixed per-thread budget; zero keys denote empty slots.
+     const MATRIX_CACHE_SLOTS: usize = 64;
+     struct MatrixCache {
++        canonical: std::cell::Cell<*const LeopardGf16Tables>,
+         keys: [std::cell::Cell<u32>; MATRIX_CACHE_SLOTS],
+         values: [std::cell::Cell<[i64; 4]>; MATRIX_CACHE_SLOTS],
+     }
+@@ -323,6 +324,7 @@
+     thread_local! {
+         static MATRIX_CACHE: MatrixCache = const {
+             MatrixCache {
++                canonical: std::cell::Cell::new(core::ptr::null()),
+                 keys: [const { std::cell::Cell::new(0) }; MATRIX_CACHE_SLOTS],
+                 values: [const { std::cell::Cell::new([0; 4]) }; MATRIX_CACHE_SLOTS],
+             }
+@@ -330,14 +332,18 @@
+     }
+ 
+     pub(super) fn cached_matrices(log_m: u16, t: &LeopardGf16Tables) -> [i64; 4] {
+-        // Only the immutable canonical tables may populate the persistent cache.
+-        if !core::ptr::eq(t, super::super::init_leopard_gf16_tables()) {
+-            return matrices(log_m, t);
+-        }
+-        // Mix coefficient bits before selecting a slot; zero remains the empty key.
+-        let index = (usize::from(log_m).wrapping_mul(0x9e37) >> 10) & (MATRIX_CACHE_SLOTS - 1);
+-        let key = u32::from(log_m) + 1;
+         MATRIX_CACHE.with(|cache| {
++            let ptr = core::ptr::from_ref(t);
++            if cache.canonical.get() != ptr {
++                // Only the immutable canonical tables may populate the persistent cache.
++                if !core::ptr::eq(t, super::super::init_leopard_gf16_tables()) {
++                    return matrices(log_m, t);
++                }
++                cache.canonical.set(ptr);
++            }
++            // Mix coefficient bits before selecting a slot; zero remains the empty key.
++            let index = (usize::from(log_m).wrapping_mul(0x9e37) >> 10) & (MATRIX_CACHE_SLOTS - 1);
++            let key = u32::from(log_m) + 1;
+             if cache.keys[index].get() == key {
+                 return cache.values[index].get();
+             }

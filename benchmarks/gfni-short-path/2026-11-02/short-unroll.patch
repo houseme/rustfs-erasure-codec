@@ -1,0 +1,46 @@
+--- a/src/core/leopard_gf16/mul_simd.rs
++++ b/src/core/leopard_gf16/mul_simd.rs
+@@ -406,21 +406,28 @@
+                 _mm256_storeu_si256(out.as_mut_ptr().add(offset).cast(), x_new);
+                 _mm256_storeu_si256(input.as_mut_ptr().add(offset).cast(), y_new);
+             };
+-            let mut chunk = 0;
+-            // Keep short lanes on the single-block path; unroll larger lanes.
+-            if count < 4 {
+-                while chunk < count {
+-                    process(chunk * 16);
+-                    chunk += 1;
+-                }
+-            } else {
+-                while chunk + 1 < count {
+-                    process(chunk * 16);
+-                    process((chunk + 1) * 16);
+-                    chunk += 2;
+-                }
+-                if chunk < count {
+-                    process(chunk * 16);
++            match count {
++                0 => {}
++                1 => process(0),
++                2 => {
++                    process(0);
++                    process(16);
++                }
++                3 => {
++                    process(0);
++                    process(16);
++                    process(32);
++                }
++                _ => {
++                    let mut chunk = 0;
++                    while chunk + 1 < count {
++                        process(chunk * 16);
++                        process((chunk + 1) * 16);
++                        chunk += 2;
++                    }
++                    if chunk < count {
++                        process(chunk * 16);
++                    }
+                 }
+             }
+         }

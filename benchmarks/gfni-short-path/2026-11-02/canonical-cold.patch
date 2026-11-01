@@ -1,0 +1,61 @@
+--- a/src/core/leopard_gf16/mul_simd.rs
++++ b/src/core/leopard_gf16/mul_simd.rs
+@@ -316,6 +316,7 @@
+     // Fixed per-thread budget; zero keys denote empty slots.
+     const MATRIX_CACHE_SLOTS: usize = 64;
+     struct MatrixCache {
++        canonical: std::cell::Cell<*const LeopardGf16Tables>,
+         keys: [std::cell::Cell<u32>; MATRIX_CACHE_SLOTS],
+         values: [std::cell::Cell<[i64; 4]>; MATRIX_CACHE_SLOTS],
+     }
+@@ -323,28 +324,36 @@
+     thread_local! {
+         static MATRIX_CACHE: MatrixCache = const {
+             MatrixCache {
++                canonical: std::cell::Cell::new(core::ptr::null()),
+                 keys: [const { std::cell::Cell::new(0) }; MATRIX_CACHE_SLOTS],
+                 values: [const { std::cell::Cell::new([0; 4]) }; MATRIX_CACHE_SLOTS],
+             }
+         };
+     }
+ 
++    #[cold]
++    #[inline(never)]
++    fn fill_cache(cache: &MatrixCache, log_m: u16, t: &LeopardGf16Tables) -> [i64; 4] {
++        let value = matrices(log_m, t);
++        if core::ptr::eq(t, super::super::init_leopard_gf16_tables()) {
++            let index = (usize::from(log_m).wrapping_mul(0x9e37) >> 10) & (MATRIX_CACHE_SLOTS - 1);
++            cache.values[index].set(value);
++            cache.keys[index].set(u32::from(log_m) + 1);
++            cache.canonical.set(core::ptr::from_ref(t));
++        }
++        value
++    }
++
+     pub(super) fn cached_matrices(log_m: u16, t: &LeopardGf16Tables) -> [i64; 4] {
+-        // Only the immutable canonical tables may populate the persistent cache.
+-        if !core::ptr::eq(t, super::super::init_leopard_gf16_tables()) {
+-            return matrices(log_m, t);
+-        }
+-        // Mix coefficient bits before selecting a slot; zero remains the empty key.
+-        let index = (usize::from(log_m).wrapping_mul(0x9e37) >> 10) & (MATRIX_CACHE_SLOTS - 1);
+-        let key = u32::from(log_m) + 1;
+         MATRIX_CACHE.with(|cache| {
+-            if cache.keys[index].get() == key {
+-                return cache.values[index].get();
+-            }
+-            let value = matrices(log_m, t);
+-            cache.values[index].set(value);
+-            cache.keys[index].set(key);
+-            value
++            if cache.canonical.get() == core::ptr::from_ref(t) {
++                let index =
++                    (usize::from(log_m).wrapping_mul(0x9e37) >> 10) & (MATRIX_CACHE_SLOTS - 1);
++                if cache.keys[index].get() == u32::from(log_m) + 1 {
++                    return cache.values[index].get();
++                }
++            }
++            fill_cache(cache, log_m, t)
+         })
+     }
+     // Multiplication by a fixed GF16 element is a linear map over GF(2).

@@ -1,0 +1,578 @@
+{
+  "canonical_naive": {
+    "A1": {
+      "samples": "3K of event 'cpu-clock'",
+      "top_symbols": [
+        {
+          "percent": 30.0,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<true>"
+        },
+        {
+          "percent": 13.65,
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::encode_leopard_sep_inner::<alloc::vec::Vec<u8>,"
+        },
+        {
+          "percent": 6.09,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::ifft_dit_encoder16_with_plan::<&[u8]>"
+        },
+        {
+          "percent": 5.85,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::encode_with_tables16::<&[u8],"
+        },
+        {
+          "percent": 4.81,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<false>"
+        },
+        {
+          "percent": 4.63,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::try_butterfly_avx2::<true>"
+        },
+        {
+          "percent": 3.11,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::user_bytes_to_work_bytes_ssse3"
+        },
+        {
+          "percent": 2.77,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::slice_xor_u16_avx2"
+        },
+        {
+          "percent": 2.59,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::dit2_step_inv16"
+        },
+        {
+          "percent": 2.53,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::dit4_at_16"
+        },
+        {
+          "percent": 2.38,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::work_bytes_to_user_bytes_ssse3"
+        },
+        {
+          "percent": 2.01,
+          "symbol": "0x00000000001a1653"
+        },
+        {
+          "percent": 1.8,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::ifft_dit2_16"
+        },
+        {
+          "percent": 1.55,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::dit2_step16"
+        },
+        {
+          "percent": 1.49,
+          "symbol": "<std::thread::local::LocalKey<core::cell::RefCell<core::option::Option<rustfs_erasure_codec::core::leopard_gf16::work::FlatWork16>>>>::with::<rustfs_erasure_codec::core::leopard_gf16::encode::cache_encode_work::{closure#0},"
+        },
+        {
+          "percent": 1.34,
+          "symbol": "<std::thread::local::LocalKey<core::cell::RefCell<core::option::Option<rustfs_erasure_codec::core::leopard_gf16::encode::EncodePlans>>>>::with::<rustfs_erasure_codec::core::leopard_gf16::encode::encode_with_tables16<&[u8],"
+        },
+        {
+          "percent": 1.28,
+          "symbol": "<smallvec::SmallVec<[&mut"
+        },
+        {
+          "percent": 1.16,
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::encode::<&mut"
+        },
+        {
+          "percent": 1.01,
+          "symbol": "0x00000000001a1640"
+        }
+      ]
+    },
+    "A2": {
+      "samples": "2K of event 'cpu-clock'",
+      "top_symbols": [
+        {
+          "percent": 21.18,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<true>"
+        },
+        {
+          "percent": 16.8,
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::encode_leopard_sep_inner::<alloc::vec::Vec<u8>,"
+        },
+        {
+          "percent": 6.68,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::ifft_dit_encoder16_with_plan::<&[u8]>"
+        },
+        {
+          "percent": 5.41,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::encode_with_tables16::<&[u8],"
+        },
+        {
+          "percent": 5.2,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::try_butterfly_avx2::<true>"
+        },
+        {
+          "percent": 4.95,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<false>"
+        },
+        {
+          "percent": 3.54,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::dit4_at_16"
+        },
+        {
+          "percent": 3.43,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::user_bytes_to_work_bytes_ssse3"
+        },
+        {
+          "percent": 3.11,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::slice_xor_u16_avx2"
+        },
+        {
+          "percent": 2.72,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::dit2_step_inv16"
+        },
+        {
+          "percent": 2.51,
+          "symbol": "0x00000000001a1653"
+        },
+        {
+          "percent": 2.48,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::work_bytes_to_user_bytes_ssse3"
+        },
+        {
+          "percent": 1.56,
+          "symbol": "<std::thread::local::LocalKey<core::cell::RefCell<core::option::Option<rustfs_erasure_codec::core::leopard_gf16::work::FlatWork16>>>>::with::<rustfs_erasure_codec::core::leopard_gf16::encode::cache_encode_work::{closure#0},"
+        },
+        {
+          "percent": 1.52,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::ifft_dit2_16"
+        },
+        {
+          "percent": 1.45,
+          "symbol": "<smallvec::SmallVec<[&mut"
+        },
+        {
+          "percent": 1.45,
+          "symbol": "<std::thread::local::LocalKey<core::cell::RefCell<core::option::Option<rustfs_erasure_codec::core::leopard_gf16::encode::EncodePlans>>>>::with::<rustfs_erasure_codec::core::leopard_gf16::encode::encode_with_tables16<&[u8],"
+        },
+        {
+          "percent": 1.34,
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::encode::<&mut"
+        },
+        {
+          "percent": 1.34,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::dit2_step16"
+        },
+        {
+          "percent": 1.24,
+          "symbol": "0x00000000001a1640"
+        },
+        {
+          "percent": 1.2,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::work_u16_to_user_bytes"
+        }
+      ]
+    },
+    "B1": {
+      "samples": "2K of event 'cpu-clock'",
+      "top_symbols": [
+        {
+          "percent": 28.16,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<true>"
+        },
+        {
+          "percent": 14.54,
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::encode_leopard_sep_inner::<alloc::vec::Vec<u8>,"
+        },
+        {
+          "percent": 6.0,
+          "symbol": "<std::thread::local::LocalKey<rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::MatrixCache>>::with::<rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::cached_matrices::{closure#0},"
+        },
+        {
+          "percent": 5.56,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<false>"
+        },
+        {
+          "percent": 4.95,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::ifft_dit_encoder16_with_plan::<&[u8]>"
+        },
+        {
+          "percent": 4.27,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::encode_with_tables16::<&[u8],"
+        },
+        {
+          "percent": 4.0,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::try_butterfly_avx2::<true>"
+        },
+        {
+          "percent": 2.37,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::dit4_at_16"
+        },
+        {
+          "percent": 2.34,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::user_bytes_to_work_bytes_ssse3"
+        },
+        {
+          "percent": 2.3,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::dit2_step_inv16"
+        },
+        {
+          "percent": 2.13,
+          "symbol": "0x00000000001a1653"
+        },
+        {
+          "percent": 1.97,
+          "symbol": "<rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::MATRIX_CACHE::{K#0}::{closure#1}"
+        },
+        {
+          "percent": 1.8,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::work_bytes_to_user_bytes_ssse3"
+        },
+        {
+          "percent": 1.69,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::slice_xor_u16_avx2"
+        },
+        {
+          "percent": 1.56,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::dit2_step16"
+        },
+        {
+          "percent": 1.39,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::ifft_dit2_16"
+        },
+        {
+          "percent": 1.08,
+          "symbol": "<std::thread::local::LocalKey<core::cell::RefCell<core::option::Option<rustfs_erasure_codec::core::leopard_gf16::work::FlatWork16>>>>::with::<rustfs_erasure_codec::core::leopard_gf16::encode::cache_encode_work::{closure#0},"
+        }
+      ]
+    },
+    "B2": {
+      "samples": "2K of event 'cpu-clock'",
+      "top_symbols": [
+        {
+          "percent": 27.88,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<true>"
+        },
+        {
+          "percent": 12.15,
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::encode_leopard_sep_inner::<alloc::vec::Vec<u8>,"
+        },
+        {
+          "percent": 7.92,
+          "symbol": "<std::thread::local::LocalKey<rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::MatrixCache>>::with::<rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::cached_matrices::{closure#0},"
+        },
+        {
+          "percent": 5.77,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<false>"
+        },
+        {
+          "percent": 5.15,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::ifft_dit_encoder16_with_plan::<&[u8]>"
+        },
+        {
+          "percent": 4.47,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::encode_with_tables16::<&[u8],"
+        },
+        {
+          "percent": 3.99,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::try_butterfly_avx2::<true>"
+        },
+        {
+          "percent": 2.87,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::user_bytes_to_work_bytes_ssse3"
+        },
+        {
+          "percent": 2.63,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::dit4_at_16"
+        },
+        {
+          "percent": 2.49,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::slice_xor_u16_avx2"
+        },
+        {
+          "percent": 2.35,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::dit2_step_inv16"
+        },
+        {
+          "percent": 2.25,
+          "symbol": "0x00000000001a1653"
+        },
+        {
+          "percent": 1.95,
+          "symbol": "<rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::MATRIX_CACHE::{K#0}::{closure#1}"
+        },
+        {
+          "percent": 1.74,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::work_bytes_to_user_bytes_ssse3"
+        },
+        {
+          "percent": 1.4,
+          "symbol": "<std::thread::local::LocalKey<core::cell::RefCell<core::option::Option<rustfs_erasure_codec::core::leopard_gf16::work::FlatWork16>>>>::with::<rustfs_erasure_codec::core::leopard_gf16::encode::cache_encode_work::{closure#0},"
+        },
+        {
+          "percent": 1.3,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::ifft_dit2_16"
+        },
+        {
+          "percent": 1.13,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::dit2_step16"
+        },
+        {
+          "percent": 1.09,
+          "symbol": "<std::thread::local::LocalKey<core::cell::RefCell<core::option::Option<rustfs_erasure_codec::core::leopard_gf16::encode::EncodePlans>>>>::with::<rustfs_erasure_codec::core::leopard_gf16::encode::encode_with_tables16<&[u8],"
+        }
+      ]
+    }
+  },
+  "current_cache": {
+    "A1": {
+      "samples": "2K of event 'cpu-clock'",
+      "top_symbols": [
+        {
+          "percent": 57.59,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::matrices"
+        },
+        {
+          "percent": 11.18,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<true>"
+        },
+        {
+          "percent": 6.54,
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::encode_leopard_sep_inner::<alloc::vec::Vec<u8>,"
+        },
+        {
+          "percent": 2.85,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<false>"
+        },
+        {
+          "percent": 2.24,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::ifft_dit_encoder16_with_plan::<&[u8]>"
+        },
+        {
+          "percent": 2.17,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::try_butterfly_avx2::<true>"
+        },
+        {
+          "percent": 1.69,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::encode_with_tables16::<&[u8],"
+        },
+        {
+          "percent": 1.69,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::user_bytes_to_work_bytes_ssse3"
+        },
+        {
+          "percent": 1.12,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::dit2_step_inv16"
+        }
+      ]
+    },
+    "A2": {
+      "samples": "2K of event 'cpu-clock'",
+      "top_symbols": [
+        {
+          "percent": 59.78,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::matrices"
+        },
+        {
+          "percent": 12.24,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<true>"
+        },
+        {
+          "percent": 5.35,
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::encode_leopard_sep_inner::<alloc::vec::Vec<u8>,"
+        },
+        {
+          "percent": 2.86,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::ifft_dit_encoder16_with_plan::<&[u8]>"
+        },
+        {
+          "percent": 2.28,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<false>"
+        },
+        {
+          "percent": 1.7,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::encode_with_tables16::<&[u8],"
+        },
+        {
+          "percent": 1.33,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::try_butterfly_avx2::<true>"
+        },
+        {
+          "percent": 1.33,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::user_bytes_to_work_bytes_ssse3"
+        },
+        {
+          "percent": 1.23,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::dit4_at_16"
+        },
+        {
+          "percent": 1.09,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::dit2_step_inv16"
+        }
+      ]
+    },
+    "B1": {
+      "samples": "2K of event 'cpu-clock'",
+      "top_symbols": [
+        {
+          "percent": 19.63,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<true>"
+        },
+        {
+          "percent": 10.72,
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::encode_leopard_sep_inner::<alloc::vec::Vec<u8>,"
+        },
+        {
+          "percent": 7.54,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<false>"
+        },
+        {
+          "percent": 7.15,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::ifft_dit_encoder16_with_plan::<&[u8]>"
+        },
+        {
+          "percent": 5.3,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::encode_with_tables16::<&[u8],"
+        },
+        {
+          "percent": 5.16,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::try_butterfly_avx2::<true>"
+        },
+        {
+          "percent": 4.66,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::user_bytes_to_work_bytes_ssse3"
+        },
+        {
+          "percent": 3.54,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::dit4_at_16"
+        },
+        {
+          "percent": 3.36,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::slice_xor_u16_avx2"
+        },
+        {
+          "percent": 3.32,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::dit2_step_inv16"
+        },
+        {
+          "percent": 3.18,
+          "symbol": "0x00000000001a1653"
+        },
+        {
+          "percent": 2.45,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::work_bytes_to_user_bytes_ssse3"
+        },
+        {
+          "percent": 2.2,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::ifft_dit2_16"
+        },
+        {
+          "percent": 2.13,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::dit2_step16"
+        },
+        {
+          "percent": 1.55,
+          "symbol": "<smallvec::SmallVec<[&mut"
+        },
+        {
+          "percent": 1.55,
+          "symbol": "<std::thread::local::LocalKey<core::cell::RefCell<core::option::Option<rustfs_erasure_codec::core::leopard_gf16::encode::EncodePlans>>>>::with::<rustfs_erasure_codec::core::leopard_gf16::encode::encode_with_tables16<&[u8],"
+        },
+        {
+          "percent": 1.37,
+          "symbol": "<std::thread::local::LocalKey<core::cell::RefCell<core::option::Option<rustfs_erasure_codec::core::leopard_gf16::work::FlatWork16>>>>::with::<rustfs_erasure_codec::core::leopard_gf16::encode::cache_encode_work::{closure#0},"
+        },
+        {
+          "percent": 1.26,
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::encode::<&mut"
+        },
+        {
+          "percent": 1.26,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::try_butterfly_avx2::<false>"
+        },
+        {
+          "percent": 1.26,
+          "symbol": "0x00000000001a179a"
+        },
+        {
+          "percent": 1.23,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::work_u16_to_user_bytes"
+        }
+      ]
+    },
+    "B2": {
+      "samples": "3K of event 'cpu-clock'",
+      "top_symbols": [
+        {
+          "percent": 20.1,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<true>"
+        },
+        {
+          "percent": 14.62,
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::encode_leopard_sep_inner::<alloc::vec::Vec<u8>,"
+        },
+        {
+          "percent": 7.05,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::ifft_dit_encoder16_with_plan::<&[u8]>"
+        },
+        {
+          "percent": 5.73,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::try_butterfly_avx2::<true>"
+        },
+        {
+          "percent": 5.35,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::encode_with_tables16::<&[u8],"
+        },
+        {
+          "percent": 4.61,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<false>"
+        },
+        {
+          "percent": 3.9,
+          "symbol": "0x00000000001a1653"
+        },
+        {
+          "percent": 3.64,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::user_bytes_to_work_bytes_ssse3"
+        },
+        {
+          "percent": 3.35,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::encode::dit4_at_16"
+        },
+        {
+          "percent": 3.03,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::slice_xor_u16_avx2"
+        },
+        {
+          "percent": 2.71,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::dit2_step_inv16"
+        },
+        {
+          "percent": 2.64,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::work_bytes_to_user_bytes_ssse3"
+        },
+        {
+          "percent": 2.16,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::ifft_dit2_16"
+        },
+        {
+          "percent": 1.9,
+          "symbol": "<smallvec::SmallVec<[&mut"
+        },
+        {
+          "percent": 1.84,
+          "symbol": "<std::thread::local::LocalKey<core::cell::RefCell<core::option::Option<rustfs_erasure_codec::core::leopard_gf16::work::FlatWork16>>>>::with::<rustfs_erasure_codec::core::leopard_gf16::encode::cache_encode_work::{closure#0},"
+        },
+        {
+          "percent": 1.67,
+          "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::dit2_step16"
+        },
+        {
+          "percent": 1.58,
+          "symbol": "<std::thread::local::LocalKey<core::cell::RefCell<core::option::Option<rustfs_erasure_codec::core::leopard_gf16::encode::EncodePlans>>>>::with::<rustfs_erasure_codec::core::leopard_gf16::encode::encode_with_tables16<&[u8],"
+        },
+        {
+          "percent": 1.16,
+          "symbol": "<rustfs_erasure_codec::core::ReedSolomon<rustfs_erasure_codec::galois_8::Field>>::encode::<&mut"
+        },
+        {
+          "percent": 1.13,
+          "symbol": "0x00000000001a1644"
+        }
+      ]
+    }
+  }
+}
