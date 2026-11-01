@@ -84,6 +84,24 @@ fn deterministic_fill_u8(slice: &mut [u8], seed: u64) {
     }
 }
 
+fn deterministic_corrupt_u8(shard: &mut [u8], original: &[u8], seed: u64) {
+    deterministic_fill_u8(shard, seed);
+    if shard == original {
+        shard[0] ^= 1;
+    }
+}
+
+#[test]
+fn deterministic_corruption_changes_a_matching_one_byte_shard() {
+    let seed = qc_seed(&[1, 12, 1, 1, 3]);
+    let mut replacement = [0u8];
+    deterministic_fill_u8(&mut replacement, seed ^ 0x2000);
+    assert_eq!(replacement, [54]);
+    let mut shard = [54u8];
+    deterministic_corrupt_u8(&mut shard, &[54], seed ^ 0x2000);
+    assert_ne!(shard, [54]);
+}
+
 /// Normalize quickcheck-generated (data, parity) into valid shard counts.
 /// Capped at 16 total shards to keep matrix operations fast in fuzz testing.
 fn qc_params(data: usize, parity: usize) -> (usize, usize) {
@@ -4504,7 +4522,7 @@ quickcheck! {
 
         // corrupt shards
         for (i, &p) in corrupt_pos_s.iter().enumerate() {
-            deterministic_fill_u8(&mut shards[p], seed ^ 0x2000 ^ i as u64);
+            deterministic_corrupt_u8(&mut shards[p], &expect[p], seed ^ 0x2000 ^ i as u64);
         }
 
         ({
@@ -4549,7 +4567,7 @@ quickcheck! {
 
         // corrupt shards
         for (i, &p) in corrupt_pos_s.iter().enumerate() {
-            deterministic_fill_u8(&mut shards[p], seed ^ 0x2000 ^ i as u64);
+            deterministic_corrupt_u8(&mut shards[p], &expect[p], seed ^ 0x2000 ^ i as u64);
         }
 
         r.verify(&expect).unwrap()

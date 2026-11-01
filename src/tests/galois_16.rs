@@ -101,6 +101,22 @@ fn correct_field_order_restriction() {
     assert!(ReedSolomon::new(1, ORDER - 1).is_ok());
 }
 
+fn deterministic_corrupt_u16x2(shard: &mut [[u8; 2]], original: &[[u8; 2]], seed: u64) {
+    deterministic_fill_u16x2(shard, seed);
+    if shard == original {
+        shard[0][0] ^= 1;
+    }
+}
+
+#[test]
+fn deterministic_corruption_changes_a_matching_field_element() {
+    let mut original = [[0u8; 2]];
+    deterministic_fill_u16x2(&mut original, 42);
+    let mut shard = original;
+    deterministic_corrupt_u16x2(&mut shard, &original, 42);
+    assert_ne!(shard, original);
+}
+
 quickcheck! {
     fn qc_encode_verify_reconstruct_verify(data: usize,
                                            parity: usize,
@@ -228,7 +244,7 @@ quickcheck! {
 
         // corrupt shards
         for (i, &p) in corrupt_pos_s.iter().enumerate() {
-            deterministic_fill_u16x2(&mut shards[p], seed ^ 0x2000 ^ i as u64);
+            deterministic_corrupt_u16x2(&mut shards[p], &expect[p], seed ^ 0x2000 ^ i as u64);
         }
 
         ({
@@ -273,7 +289,7 @@ quickcheck! {
 
         // corrupt shards
         for (i, &p) in corrupt_pos_s.iter().enumerate() {
-            deterministic_fill_u16x2(&mut shards[p], seed ^ 0x2000 ^ i as u64);
+            deterministic_corrupt_u16x2(&mut shards[p], &expect[p], seed ^ 0x2000 ^ i as u64);
         }
 
         r.verify(&expect).unwrap()
