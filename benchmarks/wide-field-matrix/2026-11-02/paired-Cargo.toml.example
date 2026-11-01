@@ -1,0 +1,11 @@
+[workspace]
+[package]
+name = "rse-wide-matrix-paired"
+version = "0.1.0"
+edition = "2024"
+[dependencies]
+base_codec = { package = "rustfs-erasure-codec", path = "../base", default-features = false, features = ["std", "simd-accel"] }
+next_codec = { package = "rustfs-erasure-codec", path = "../same", default-features = false, features = ["std", "simd-accel"] }
+rayon = "=1.12.0"
+[features]
+candidate = ["next_codec/experimental-matrix-inline512"]

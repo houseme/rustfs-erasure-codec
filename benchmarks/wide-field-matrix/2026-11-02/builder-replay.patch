@@ -1,0 +1,57 @@
+--- a/src/matrix.rs
++++ b/src/matrix.rs
+@@ -196,0 +197,44 @@
++                }
++            }
++        }
++        Ok(result)
++    }
++
++    /// Build a systematic Vandermonde product while retaining the inverse in
++    /// the right half of its augmented elimination workspace.
++    #[cfg(feature = "experimental-matrix-inline512")]
++    pub(crate) fn systematic_from_vandermonde(&self) -> Result<Matrix<F>, Error> {
++        let n = self.col_count;
++        if self.row_count < n {
++            return Err(Error::IncompatibleDimensions);
++        }
++        // These matrices spill under the 512-element policy. Preserve their
++        // observable Clone calls for custom Copy elements, without allocating.
++        #[allow(clippy::clone_on_copy)]
++        fn replay_heap_fill<E: Copy + Clone>(value: E, len: usize) {
++            for _ in 1..len {
++                let _ = value.clone();
++            }
++        }
++        replay_heap_fill(F::zero(), n * n);
++        let mut work = Self::new(n, n * 2);
++        for row in 0..n {
++            let start = row * work.col_count;
++            work.data[start..start + n].copy_from_slice(self.get_row(row));
++            acc!(work, row, n + row) = F::one();
++        }
++        work.gaussian_elim()?;
++        replay_heap_fill(F::zero(), n * n);
++        let mut result = Self::new(self.row_count, n);
++        let byte_rows = F::as_gf8_slice(&[]).is_some();
++        for row in 0..self.row_count {
++            let start = row * n;
++            let output = &mut result.data[start..start + n];
++            for (inner, &coefficient) in self.get_row(row).iter().enumerate() {
++                if coefficient != F::zero() {
++                    Self::add_scaled_slice(
++                        coefficient,
++                        &work.get_row(inner)[n..],
++                        output,
++                        byte_rows,
++                    );
+--- a/src/core/codec.rs
++++ b/src/core/codec.rs
+@@ -69,0 +70,7 @@
++        #[cfg(feature = "experimental-matrix-inline512")]
++        if core::mem::size_of::<F::Elem>() != 0 && data_shards.saturating_mul(data_shards) > 512 {
++            return vandermonde
++                .systematic_from_vandermonde()
++                .map_err(|_| Error::InvalidCustomMatrix);
++        }
++

@@ -59,6 +59,14 @@ rustfs-erasure-codec = { version = "9.1.0", features = ["simd-neon"] }   # aarch
 rustfs-erasure-codec = { version = "9.1.0", features = ["experimental-small-update"] }
 ```
 
+默认关闭的 `experimental-matrix-inline512` 功能将矩阵内联存储限制为 512 个字段元素。
+它可能减少宽自定义字段的栈占用，但某些宽矩阵会增加堆分配；该功能不保证特定栈大小，
+性能验证仍在进行。
+
+```toml
+rustfs-erasure-codec = { version = "9.1.0", features = ["experimental-matrix-inline512"] }
+```
+
 可选功能 `experimental-pr1-kernels` 为 AVX2、AVX-512 和 NEON 构建加入 6+2 生成编码，
 为 AVX-512 增加 6+3、8+3、8+4 形状，并为 Classic 恢复加入有界的 AVX2/AVX-512
 表驱动行内核；需要同时启用对应 SIMD 功能。表驱动行仅用于已取得稳定切片的串行恢复，

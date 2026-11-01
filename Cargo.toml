@@ -93,6 +93,8 @@ benchmark-metrics = []
 experimental-small-update = []
 # Opt in to PR #1 generated 6+2 and bounded x86 table-row kernels.
 experimental-pr1-kernels = []
+# Reduce generic matrix inline storage while wider-layout costs are evaluated.
+experimental-matrix-inline512 = []
 
 [dependencies]
 # `log2()` impl for `no_std`

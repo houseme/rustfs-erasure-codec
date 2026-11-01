@@ -1,0 +1,23 @@
+base:
+CHECK_OK matrix_create/gf8/4x2 backend=rust-neon
+CHECK_OK matrix_create/gf16/4x2 backend=rust-neon
+CHECK_OK matrix_create/gf8/6x2 backend=rust-neon
+CHECK_OK matrix_create/gf16/6x2 backend=rust-neon
+CHECK_OK matrix_create/gf8/10x4 backend=rust-neon
+CHECK_OK matrix_create/gf16/10x4 backend=rust-neon
+CHECK_OK matrix_create/gf8/16x8 backend=rust-neon
+CHECK_OK matrix_create/gf16/16x8 backend=rust-neon
+CHECK_OK matrix_create/gf8/32x16 backend=rust-neon
+CHECK_OK matrix_create/gf16/32x16 backend=rust-neon
+
+candidate:
+CHECK_OK matrix_create/gf8/4x2 backend=rust-neon
+CHECK_OK matrix_create/gf16/4x2 backend=rust-neon
+CHECK_OK matrix_create/gf8/6x2 backend=rust-neon
+CHECK_OK matrix_create/gf16/6x2 backend=rust-neon
+CHECK_OK matrix_create/gf8/10x4 backend=rust-neon
+CHECK_OK matrix_create/gf16/10x4 backend=rust-neon
+CHECK_OK matrix_create/gf8/16x8 backend=rust-neon
+CHECK_OK matrix_create/gf16/16x8 backend=rust-neon
+CHECK_OK matrix_create/gf8/32x16 backend=rust-neon
+CHECK_OK matrix_create/gf16/32x16 backend=rust-neon

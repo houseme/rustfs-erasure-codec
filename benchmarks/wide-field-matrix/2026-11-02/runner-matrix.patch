@@ -1,0 +1,20 @@
+--- a/run_streaming.py
++++ b/run_streaming.py
+@@ -21,3 +21,3 @@
+-    f"small_verify/{data}x{parity}/{length}"
+-    for data, parity in ((4, 2), (10, 4))
+-    for length in (1024, 2048, 2049, 4096, 4097)
++    f"matrix_create/{field}/{data}x{parity}"
++    for field in ("gf8", "gf16")
++    for data, parity in ((4, 2), (6, 2), (10, 4), (16, 8), (32, 16))
+@@ -94,0 +95,6 @@
++
++
++def check_backend(row, expected):
++    """Fail closed if a stage silently selected a different backend."""
++    if not expected or row.get("backend") != expected:
++        raise GateError("unexpected or missing backend")
+@@ -187,0 +194 @@
++    parser.add_argument("--expected-backend", required=True)
+@@ -279,0 +287 @@
++                            check_backend(row, args.expected_backend)

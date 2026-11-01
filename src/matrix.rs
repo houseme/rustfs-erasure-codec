@@ -39,9 +39,12 @@ pub fn flatten<T>(m: Vec<Vec<T>>) -> Vec<T> {
 pub struct Matrix<F: Field> {
     row_count: usize,
     col_count: usize,
-    // Row-major flattened storage. The inline SmallVec capacity keeps matrices
-    // up to 32x32 on the stack before spilling to the heap.
+    // Row-major storage; the opt-in variant limits inline storage for wide
+    // field elements at the cost of spilling more matrix shapes to the heap.
+    #[cfg(not(feature = "experimental-matrix-inline512"))]
     data: SmallVec<[F::Elem; 1024]>,
+    #[cfg(feature = "experimental-matrix-inline512")]
+    data: SmallVec<[F::Elem; 512]>,
 }
 
 /// Static row access for either borrowed matrix ranges or existing decode views.
@@ -417,6 +420,21 @@ mod tests {
 
     use super::{Error, Matrix};
     use crate::galois_8;
+
+    #[test]
+    fn matrix_inline_capacity_matches_the_selected_feature() {
+        let limit = if cfg!(feature = "experimental-matrix-inline512") {
+            512
+        } else {
+            1024
+        };
+        let inline = Matrix::<galois_8::Field>::new(1, limit);
+        let spilled = Matrix::<galois_8::Field>::new(1, limit + 1);
+        assert!(!inline.data.spilled());
+        assert!(spilled.data.spilled());
+        assert_eq!(inline.get_row(0), vec![0; limit]);
+        assert_eq!(spilled.get_row(0), vec![0; limit + 1]);
+    }
 
     #[test]
     fn borrowed_row_ranges_preserve_length_coefficients_and_row_identity() {
