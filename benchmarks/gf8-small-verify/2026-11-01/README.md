@@ -240,3 +240,44 @@ disposable source copy, install `candidate-dispatch-test.rs` as
 `-p rustfs-erasure-codec --test candidate_dispatch`. Set
 `RSE_TEST_EXPECT_BACKEND` to the stated backend to assert selection. The
 counter patch is test-only.
+
+## Thread scheduling and fault diagnostic
+
+`single_sched_probe.rs` extends the baseline-only, same-function probe with
+calling-thread Linux `schedstat` and fault counters sampled outside each timed
+stage. Each stage includes a one-second warmup and three 300 ms samples;
+`thread_sched` contains running nanoseconds, runnable-wait nanoseconds and
+schedule count. Faults are minor and major counts from `/proc/thread-self/stat`.
+The counter intervals include snapshot overhead and warmup, not just the timed
+samples; they are diagnostics, not precise per-operation accounting. The parse
+test passed locally and natively, and the probe compiled for Linux x86.
+
+The reserved VM run was **rejected and stopped during the first round** after
+five 4+2 cases, when the resource monitor reported a named competing process.
+The monitor recorded 221 observations: the CPU set remained 0–15; one
+observation detected a process matching the existing benchmark/build name
+filter; maximum off-target busy streak was one; the monitored throttle and
+CPU 8–12 steal counters did not change. The filter did not record which process
+matched. No second round or candidate ran. `sched-9e78/baseline-1.jsonl` keeps
+the five complete diagnostic cases, and `monitor-redacted.jsonl` retains every
+resource-gate observation with relative time and counter deltas rather than raw
+host counters. `monitor-summary.json` summarizes the same data.
+
+Across those 20 stages, wall intervals were about 1.9 seconds each, the
+calling-thread runnable-wait deltas were 57,137–268,517 ns, and individual
+stages reported at most four minor and zero major faults. These observations
+are confined to the interrupted first round: they do not explain the earlier
+-16.28% cross-round drift, establish stable baselines, quantify host effects,
+or support a candidate performance conclusion. The entire campaign remains
+invalid under the resource gate.
+
+The probe source and locked manifest are retained in `single_sched_probe.rs` and
+`sched-9e78/`. Its two dependencies came from an `e009ee7` source archive; the
+second differed only in temporary package-version metadata. The runner's
+`9e78f6b` label refers to the then-current repository revision: `src/`,
+`build.rs`, `Cargo.toml`, and `Cargo.lock` were identical between those two
+commits, but the source archive was not a full `9e78f6b` checkout. Both A and B
+called one non-inlined `common_verify` function and the baseline codec. The
+selected backend was `rust-gfni-avx512`. The archived streaming runner was
+reconstructed from commit `70898c1` using `cross-arm-gate.patch` followed by
+`runner-small-cases.patch`, and matched the runner used for this diagnostic.
