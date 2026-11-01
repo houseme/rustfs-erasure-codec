@@ -129,3 +129,29 @@ partial output, monitoring and failure summary. The remaining first-round cases,
 the entire second round and all candidate timing were not completed. Therefore
 this attempt cannot establish cross-round stability, identify the cause of the
 prior drift or support a performance conclusion.
+
+## Exact candidate dispatch boundaries
+
+`candidate-dispatch-test.rs` is a test artifact for the unapplied
+single-scratch candidate, not a production integration test. In a disposable
+copy of committed source `734530705d4665cc481d986d6d6d49805611fe8e`, it
+checks the test-only atomic counter separately for every call. The 216 cases
+cover GF8, GF16 and a three-byte custom field, four matrix modes, 4+2 around
+2,048 elements, 10+4 around 1,024 elements, 4+1 with and without fast parity,
+and the 4,096/4,097 per-row boundary. It verifies that only the intended
+ordinary `verify` calls enter the experiment, caller-buffer verification does
+not, corruption of every shard is detected, and a later invalid shard length
+is rejected before entering the candidate path or changing inputs.
+
+On Apple Silicon, release tests passed with default features and separately
+with `--no-default-features`, selecting `-p rustfs-erasure-codec` explicitly to
+avoid enabling `std` through other workspace packages. The counter is
+instrumentation, so these runs provide no timing evidence. Native x86 execution
+and stable performance acceptance remain outstanding.
+
+To reproduce on a clean disposable copy, apply `candidate-single-scratch.patch`,
+then apply only the `src/lib.rs` and `src/core/verify.rs` parts of
+`candidate-interop-counter.patch` with `git apply --include`; copy
+`candidate-dispatch-test.rs` to `tests/candidate_dispatch.rs` and run
+`cargo test --release -p rustfs-erasure-codec --test candidate_dispatch`,
+repeating with `--no-default-features`. Do not ship the counter.
