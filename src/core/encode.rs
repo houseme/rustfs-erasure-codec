@@ -1088,7 +1088,6 @@ impl<F: Field> ReedSolomon<F> {
                 // Grow only for the active changed range and reuse its capacity.
                 // Clear also excludes stale elements when the next chunk is short.
                 delta.clear();
-                delta.reserve_exact(old.len());
                 delta.extend(old.iter().zip(new).map(|(&old, &new)| F::add(old, new)));
                 let start = chunk_index * chunk_len;
                 let end = start + delta.len();
