@@ -1,0 +1,21 @@
+[workspace]
+
+[package]
+name = "rse-sparse-locator-fuzz"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "=0.4.13"
+codec_old = { package = "rustfs-erasure-codec", version = "=9.0.0", default-features = false }
+codec_new = { package = "rustfs-erasure-codec", path = "../../../..", version = "=9.1.0", default-features = false }
+
+[[bin]]
+name = "sparse_cross"
+path = "fuzz_targets/sparse_cross.rs"
+test = false
+bench = false
