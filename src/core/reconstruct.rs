@@ -188,6 +188,9 @@ impl<F: Field> ReedSolomon<F> {
         self.runtime_profile_metrics
             .record_parallel_policy(decision);
         if !decision.use_parallel {
+            #[cfg(feature = "experimental-pr1-kernels")]
+            self.code_reconstruction_slices(matrix_rows, inputs, outputs);
+            #[cfg(not(feature = "experimental-pr1-kernels"))]
             self.code_some_slices_chunked(matrix_rows, inputs, outputs);
             return;
         }
@@ -232,6 +235,9 @@ impl<F: Field> ReedSolomon<F> {
         plan: &ClassicReconstructPlan<F>,
     ) -> Result<(), Error> {
         self.execute_classic_option_plan_bulk(shards, plan, |_, rows, inputs, outputs| {
+            #[cfg(feature = "experimental-pr1-kernels")]
+            self.code_reconstruction_slices(rows, inputs, outputs);
+            #[cfg(not(feature = "experimental-pr1-kernels"))]
             self.code_some_slices(rows, inputs, outputs);
         })
     }
@@ -272,6 +278,9 @@ impl<F: Field> ReedSolomon<F> {
         if output.len() != shard_len {
             return Err(Error::IncorrectShardSize);
         }
+        #[cfg(feature = "experimental-pr1-kernels")]
+        self.code_reconstruction_slices(&[row], inputs, &mut [&mut *output]);
+        #[cfg(not(feature = "experimental-pr1-kernels"))]
         self.code_some_slices(&[row], inputs, &mut [&mut *output]);
         Ok(output)
     }

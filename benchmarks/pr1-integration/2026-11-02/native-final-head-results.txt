@@ -1,0 +1,21 @@
+table
+test galois_8::x86::table_rows::tests::malformed_views_are_rejected_before_outputs_are_modified ... ok
+test galois_8::x86::table_rows::tests::reconstruction_selects_available_table_backend ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 465 filtered out; finished in 0.00s
+test galois_8::x86::table_rows::tests::reconstruction_selects_available_table_backend ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 465 filtered out; finished in 0.00s
+test galois_8::x86::table_rows::tests::reconstruction_selects_available_table_backend ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 465 filtered out; finished in 0.00s
+test galois_8::x86::table_rows::tests::table_rows_match_scalar_for_avx2_and_avx512 ... ok
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 463 filtered out; finished in 0.01s
+codegen-avx2
+test galois_8::x86::codegen::tests::generated_avx2_bytes_are_checked_even_when_auto_prefers_gfni ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 465 filtered out; finished in 0.01s
+codegen-avx512
+test galois_8::x86::codegen::tests::generated_avx512_bytes_match_scalar_when_supported ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 465 filtered out; finished in 0.01s
+six-two
+test six_plus_two_matches_reference_for_builtin_and_custom_matrices ... ok
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+small-update
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s

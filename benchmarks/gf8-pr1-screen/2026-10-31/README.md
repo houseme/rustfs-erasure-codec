@@ -1,5 +1,11 @@
 # GF8 PR 1: 6+2 candidate screen
 
+The 6+2 generated encoders and bounded AVX2/AVX-512 table-row kernels were
+subsequently integrated behind the default-off `experimental-pr1-kernels`
+feature. Table rows are restricted to serial reconstruction using stable
+slice views. Historical statements below describe their status at the time of
+measurement. Native performance acceptance remains outstanding.
+
 Historical Python experiment scripts cited below are archived in commit
 `70898c1` and are not part of the current source tree. The recorded data and
 Rust probes remain available here.

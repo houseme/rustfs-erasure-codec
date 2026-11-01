@@ -89,6 +89,10 @@ simd-vsx = []
 # Backwards-compatible umbrella: enables all SIMD backends.
 simd-accel = ["simd-neon", "simd-ssse3", "simd-avx2", "simd-avx512", "simd-gfni", "simd-vsx"]
 benchmark-metrics = []
+# Opt in while small-update latency is being validated across platforms.
+experimental-small-update = []
+# Opt in to PR #1 generated 6+2 and bounded x86 table-row kernels.
+experimental-pr1-kernels = []
 
 [dependencies]
 # `log2()` impl for `no_std`

@@ -1,0 +1,163 @@
+__RNvMNtNtCsbST7tTuLxO2_20rustfs_erasure_codec4core5codecINtB4_11ReedSolomonNtCsfMpMTX9KtOh_22rse_small_update_stack9WideFieldE25build_matrix_with_optionsB1c_:
+
+Lfunc_begin0:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception0
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	x9, sp, #512, lsl #12
+LBB0_1:
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	cmp	sp, x9
+	b.ne	LBB0_1
+	sub	sp, sp, #368
+	mov	x26, x8
+	ldrb	w8, [x2, #18]
+	cbz	w8, LBB0_5
+	mov	w8, #3586
+LBB0_4:
+	strh	w8, [x26]
+	b	LBB0_49
+LBB0_5:
+	mov	x21, x1
+	add	x28, sp, #448, lsl #12
+	add	x28, x28, #312
+	add	x8, sp, #448, lsl #12
+	add	x8, x8, #320
+	add	x19, x8, #64, lsl #12
+	ldrb	w8, [x2, #19]
+	add	x9, x0, #1
+	cmp	x1, x9
+	cset	w9, eq
+	and	w9, w9, w8
+	ldrb	w8, [x2, #17]
+	.p2align	6, , 4
+	cmp	w8, #3
+	csel	w9, wzr, w9, eq
+	str	x0, [sp, #136]
+	tbz	w9, #0, LBB0_11
+	mul	x20, x21, x0
+	cmp	x20, #1025
+	b.lo	LBB0_19
+	lsl	x22, x20, #8
+	and	x8, x20, #0xff00000000000000
+	cmp	x22, #0
+	ccmp	x8, #0, #0, pl
+	b.eq	LBB0_37
+	mov	x23, #0
+LBB0_10:
+	mov	x0, x23
+	mov	x1, x22
+	bl	__RNvNtCs8Hh7wWMBHrQ_5alloc7raw_vec12handle_error
+LBB0_11:
+	add	x27, sp, #320, lsl #12
+	add	x27, x27, #288
+	cmp	w8, #1
+	b.gt	LBB0_23
+	cbnz	w8, LBB0_32
+	str	x26, [sp, #48]
+	add	x8, sp, #64, lsl #12
+
+_construct_wide:
+
+Lfunc_begin3:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception3
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	x9, sp, #128, lsl #12
+LBB7_1:
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	cmp	sp, x9
+	b.ne	LBB7_1
+	sub	sp, sp, #288
+	mov	x19, x8
+	mov	w8, #256
+	sturh	w8, [sp, #27]
+	mov	w8, #128
+	stp	x8, xzr, [sp, #8]
+	add	x21, sp, #32
+	stur	wzr, [sp, #23]
+	add	x8, sp, #32
+	add	x2, sp, #8
+	mov	w0, #4
+	mov	w1, #6
+	bl	__RNvMNtNtCsbST7tTuLxO2_20rustfs_erasure_codec4core5codecINtB4_11ReedSolomonNtCsfMpMTX9KtOh_22rse_small_update_stack9WideFieldE25build_matrix_with_optionsB1c_
+	ldrb	w26, [sp, #32]
+	ldrb	w25, [sp, #33]
+	cmp	w26, #2
+	b.ne	LBB7_4
+	strb	w25, [x19]
+	mov	w8, #2
+	strb	w8, [x19, #257]
+	b	LBB7_11
+LBB7_4:
+	sub	x27, x29, #112
+	add	x20, x21, #64, lsl #12
+	ldur	x8, [sp, #34]
+	str	x8, [x27]
+	ldp	x8, x23, [sp, #40]
+	stur	x8, [x27, #6]
+	add	x0, sp, #64, lsl #12
+	add	x0, x0, #272
+	add	x1, x21, #24
+	mov	w2, #262128
+	bl	_memcpy
+	ldp	x24, x28, [x20, #8]
+	ldr	x20, [x20, #24]
+Ltmp42:
+	add	x8, sp, #32
+	bl	__RNvXNtNtCsbST7tTuLxO2_20rustfs_erasure_codec4core8parallelNtB2_14ParallelPolicyNtNtCs3bJEMBXHbwl_4core7default7Default7default
+Ltmp43:
+Ltmp44:
+	add	x8, sp, #64, lsl #12
+	add	x8, x8, #232
+	add	x0, sp, #32
+	bl	__RNvMs_NtNtCsbST7tTuLxO2_20rustfs_erasure_codec4core8parallelNtB4_14ParallelPolicy18with_env_overrides
+Ltmp45:
+Ltmp46:
+	add	x8, sp, #64, lsl #12

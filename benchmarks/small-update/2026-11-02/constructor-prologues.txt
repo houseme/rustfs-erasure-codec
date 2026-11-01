@@ -1,0 +1,311 @@
+## aarch64-apple-darwin ctor-base
+_construct_wide:
+
+Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception2
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	x9, sp, #512, lsl #12
+LBB6_1:
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	cmp	sp, x9
+	b.ne	LBB6_1
+	sub	sp, sp, #336
+	mov	x26, x8
+	add	x28, sp, #128, lsl #12
+	add	x28, x28, #160
+	add	x8, sp, #64, lsl #12
+	add	x8, x8, #128
+	add	x27, x8, #64, lsl #12
+	add	x0, sp, #64, lsl #12
+	add	x0, x0, #128
+	bl	__RNvMs2_NtCsbST7tTuLxO2_20rustfs_erasure_codec6matrixINtB5_6MatrixNtCsfMpMTX9KtOh_22rse_small_update_stack9WideFieldE11vandermondeB13_
+Ltmp6:
+	add	x0, sp, #128, lsl #12
+	add	x0, x0, #160
+	add	x1, sp, #64, lsl #12
+	add	x1, x1, #128
+	mov	x2, #0
+	mov	w3, #4
+	mov	w4, #4
+	bl	__RNvMs2_NtCsbST7tTuLxO2_20rustfs_erasure_codec6matrixINtB5_6MatrixNtCsfMpMTX9KtOh_22rse_small_update_stack9WideFieldE10sub_matrixB13_
+Ltmp7:
+	add	x20, x28, #64, lsl #12
+	ldp	x9, x8, [x20, #16]
+	cmp	x9, x8
+	b.ne	LBB6_80
+	add	x19, sp, #448, lsl #12
+	add	x19, x19, #280
+	lsl	x24, x9, #1
+	mul	x21, x24, x9
+	cmp	x21, #1025
+	str	x9, [sp, #40]
+	b.lo	LBB6_8
+	lsl	x23, x21, #8
+	and	x8, x21, #0xff00000000000000
+	cmp	x23, #0
+	ccmp	x8, #0, #0, pl
+	b.eq	LBB6_10
+	mov	x24, #0
+LBB6_7:
+Ltmp43:
+	mov	x0, x24
+	mov	x1, x23
+	bl	__RNvNtCs8Hh7wWMBHrQ_5alloc7raw_vec12handle_error
+
+## aarch64-apple-darwin ctor
+_construct_wide:
+
+Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception2
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	x9, sp, #512, lsl #12
+LBB6_1:
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	cmp	sp, x9
+	b.ne	LBB6_1
+	sub	sp, sp, #336
+	mov	x26, x8
+	add	x28, sp, #128, lsl #12
+	add	x28, x28, #160
+	add	x8, sp, #64, lsl #12
+	add	x8, x8, #128
+	add	x27, x8, #64, lsl #12
+	add	x0, sp, #64, lsl #12
+	add	x0, x0, #128
+	bl	__RNvMs2_NtCsbST7tTuLxO2_20rustfs_erasure_codec6matrixINtB5_6MatrixNtCsfMpMTX9KtOh_22rse_small_update_stack9WideFieldE11vandermondeB13_
+Ltmp6:
+	add	x0, sp, #128, lsl #12
+	add	x0, x0, #160
+	add	x1, sp, #64, lsl #12
+	add	x1, x1, #128
+	mov	x2, #0
+	mov	w3, #4
+	mov	w4, #4
+	bl	__RNvMs2_NtCsbST7tTuLxO2_20rustfs_erasure_codec6matrixINtB5_6MatrixNtCsfMpMTX9KtOh_22rse_small_update_stack9WideFieldE10sub_matrixB13_
+Ltmp7:
+	add	x20, x28, #64, lsl #12
+	ldp	x9, x8, [x20, #16]
+	cmp	x9, x8
+	b.ne	LBB6_80
+	add	x19, sp, #448, lsl #12
+	add	x19, x19, #280
+	lsl	x24, x9, #1
+	mul	x21, x24, x9
+	cmp	x21, #1025
+	str	x9, [sp, #40]
+	b.lo	LBB6_8
+	lsl	x23, x21, #8
+	and	x8, x21, #0xff00000000000000
+	cmp	x23, #0
+	ccmp	x8, #0, #0, pl
+	b.eq	LBB6_10
+	mov	x24, #0
+LBB6_7:
+Ltmp43:
+	mov	x0, x24
+	mov	x1, x23
+	bl	__RNvNtCs8Hh7wWMBHrQ_5alloc7raw_vec12handle_error
+
+## x86_64-unknown-linux-gnu ctor-base
+construct_wide:
+
+.Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception2
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	movq	%rsp, %r11
+	subq	$2097152, %r11
+	.cfi_def_cfa_register %r11
+	.cfi_adjust_cfa_offset 2097152
+.LBB6_1:
+	subq	$4096, %rsp
+	movq	$0, (%rsp)
+	cmpq	%r11, %rsp
+	jne	.LBB6_1
+	subq	$312, %rsp
+	.cfi_def_cfa_register %rsp
+	.cfi_def_cfa_offset 2097520
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	%rdi, 112(%rsp)
+	leaq	524504(%rsp), %rbx
+	movq	%rbx, %rdi
+	callq	_RNvMs2_NtCs15a03e3Uw7C_20rustfs_erasure_codec6matrixINtB5_6MatrixNtCslj71iByS4KR_22rse_small_update_stack9WideFieldE11vandermondeB13_
+.Ltmp6:
+	leaq	786680(%rsp), %rdi
+	movl	$4, %ecx
+	movl	$4, %r8d
+	movq	%rbx, %rsi
+	xorl	%edx, %edx
+	callq	_RNvMs2_NtCs15a03e3Uw7C_20rustfs_erasure_codec6matrixINtB5_6MatrixNtCslj71iByS4KR_22rse_small_update_stack9WideFieldE10sub_matrixB13_
+.Ltmp7:
+	movq	1048840(%rsp), %r15
+	cmpq	1048848(%rsp), %r15
+	jne	.LBB6_134
+	leaq	(%r15,%r15), %r12
+	movq	%r12, 80(%rsp)
+	imulq	%r15, %r12
+	cmpq	$1025, %r12
+	movq	%r15, 16(%rsp)
+	jb	.LBB6_8
+	movq	%r12, %r14
+	shlq	$8, %r14
+	movq	%r12, %rax
+	shrq	$56, %rax
+	setne	%al
+	testq	%r14, %r14
+	sets	%cl
+	orb	%al, %cl
+	je	.LBB6_10
+	xorl	%r15d, %r15d
+.LBB6_7:
+.Ltmp43:
+	movq	%r15, %rdi
+	movq	%r14, %rsi
+	callq	*_RNvNtCsgFX3jaOk65H_5alloc7raw_vec12handle_error@GOTPCREL(%rip)
+.Ltmp44:
+	jmp	.LBB6_249
+.LBB6_8:
+	testq	%r12, %r12
+
+## x86_64-unknown-linux-gnu ctor
+construct_wide:
+
+.Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception2
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	movq	%rsp, %r11
+	subq	$2097152, %r11
+	.cfi_def_cfa_register %r11
+	.cfi_adjust_cfa_offset 2097152
+.LBB6_1:
+	subq	$4096, %rsp
+	movq	$0, (%rsp)
+	cmpq	%r11, %rsp
+	jne	.LBB6_1
+	subq	$312, %rsp
+	.cfi_def_cfa_register %rsp
+	.cfi_def_cfa_offset 2097520
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	%rdi, 112(%rsp)
+	leaq	524504(%rsp), %rbx
+	movq	%rbx, %rdi
+	callq	_RNvMs2_NtCs15a03e3Uw7C_20rustfs_erasure_codec6matrixINtB5_6MatrixNtCslj71iByS4KR_22rse_small_update_stack9WideFieldE11vandermondeB13_
+.Ltmp6:
+	leaq	786680(%rsp), %rdi
+	movl	$4, %ecx
+	movl	$4, %r8d
+	movq	%rbx, %rsi
+	xorl	%edx, %edx
+	callq	_RNvMs2_NtCs15a03e3Uw7C_20rustfs_erasure_codec6matrixINtB5_6MatrixNtCslj71iByS4KR_22rse_small_update_stack9WideFieldE10sub_matrixB13_
+.Ltmp7:
+	movq	1048840(%rsp), %r15
+	cmpq	1048848(%rsp), %r15
+	jne	.LBB6_134
+	leaq	(%r15,%r15), %r12
+	movq	%r12, 80(%rsp)
+	imulq	%r15, %r12
+	cmpq	$1025, %r12
+	movq	%r15, 16(%rsp)
+	jb	.LBB6_8
+	movq	%r12, %r14
+	shlq	$8, %r14
+	movq	%r12, %rax
+	shrq	$56, %rax
+	setne	%al
+	testq	%r14, %r14
+	sets	%cl
+	orb	%al, %cl
+	je	.LBB6_10
+	xorl	%r15d, %r15d
+.LBB6_7:
+.Ltmp43:
+	movq	%r15, %rdi
+	movq	%r14, %rsi
+	callq	*_RNvNtCsgFX3jaOk65H_5alloc7raw_vec12handle_error@GOTPCREL(%rip)
+.Ltmp44:
+	jmp	.LBB6_249
+.LBB6_8:
+	testq	%r12, %r12

@@ -206,10 +206,9 @@ fn check_requests<F: Field>() {
         let (result, requests) = counted(|| codec.update(&refs, &changes, &mut parity));
         result.unwrap();
         assert_eq!(parity, expected);
-        assert_eq!(requests.calls, 1, "len={len}, {requests:?}");
-        assert_eq!(
-            requests.bytes,
-            scratch_elements * size_of::<F::Elem>(),
+        assert!(requests.calls <= 1, "len={len}, {requests:?}");
+        assert!(
+            requests.bytes <= scratch_elements * size_of::<F::Elem>(),
             "len={len}, {requests:?}"
         );
     }
@@ -323,11 +322,11 @@ fn wide_parity_updates_do_not_allocate_row_metadata() {
         let (result, requests) = counted(|| codec.update(&refs, &changes, &mut parity));
         result.unwrap();
         assert_eq!(parity, expected, "parity={parity_count}");
-        assert_eq!(
-            requests.calls, 1,
+        assert!(
+            requests.calls <= 1,
             "only delta storage is needed: {requests:?}"
         );
-        assert_eq!(requests.bytes, 65, "parity={parity_count}, {requests:?}");
+        assert!(requests.bytes <= 65, "parity={parity_count}, {requests:?}");
     }
 }
 

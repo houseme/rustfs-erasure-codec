@@ -125,7 +125,16 @@ mod tests {
         if !std::is_x86_feature_detected!("avx2") {
             return;
         }
-        for (data_count, parity_count) in [(4, 2), (6, 3), (8, 3), (8, 4), (10, 4), (12, 4)] {
+        for (data_count, parity_count) in [
+            (4, 2),
+            (6, 3),
+            (8, 3),
+            (8, 4),
+            (10, 4),
+            (12, 4),
+            #[cfg(feature = "experimental-pr1-kernels")]
+            (6, 2),
+        ] {
             let kernel = select_encode_kernel_avx2(data_count, parity_count).unwrap();
             let rows: Vec<Vec<u8>> = (0..parity_count)
                 .map(|row| {
@@ -185,7 +194,19 @@ mod tests {
         {
             return;
         }
-        for (data_count, parity_count) in [(4, 2), (10, 4), (12, 4)] {
+        for (data_count, parity_count) in [
+            (4, 2),
+            (10, 4),
+            (12, 4),
+            #[cfg(feature = "experimental-pr1-kernels")]
+            (6, 2),
+            #[cfg(feature = "experimental-pr1-kernels")]
+            (6, 3),
+            #[cfg(feature = "experimental-pr1-kernels")]
+            (8, 3),
+            #[cfg(feature = "experimental-pr1-kernels")]
+            (8, 4),
+        ] {
             let kernel = select_encode_kernel_avx512(data_count, parity_count).unwrap();
             let rows: Vec<Vec<u8>> = (0..parity_count)
                 .map(|row| {

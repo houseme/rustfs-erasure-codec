@@ -55,6 +55,26 @@ rustfs-erasure-codec = { version = "9.1.0", features = ["simd-neon"] }   # aarch
 
 Runtime dispatch is guarded. Unsupported ISAs fall back to scalar execution.
 
+The opt-in `experimental-small-update` feature uses inline delta scratch for
+Classic incremental updates of shards up to 256 field elements when each
+element occupies at most three bytes. Other updates keep the existing path.
+It is disabled by default while native performance validation is pending.
+
+```toml
+rustfs-erasure-codec = { version = "9.1.0", features = ["experimental-small-update"] }
+```
+
+The opt-in `experimental-pr1-kernels` feature adds generated 6+2 encoding for
+AVX2, AVX-512 and NEON builds, additional 6+3 / 8+3 / 8+4 AVX-512 shapes,
+and bounded AVX2/AVX-512 table-row kernels for Classic reconstruction. Enable
+a matching SIMD feature as well. Table rows are used only on serial recovery
+after stable shard views are prepared; existing parallel and backend dispatch
+remain in place. Native performance acceptance is still pending.
+
+```toml
+rustfs-erasure-codec = { version = "9.1.0", features = ["simd-avx2", "experimental-pr1-kernels"] }
+```
+
 ## Quick Start
 
 ```rust

@@ -1,6 +1,11 @@
 # Small incremental-update scratch investigation
 
-This is an **unapplied experiment**, not an accepted optimization. Allocation,
+The isolated variant was subsequently integrated behind the default-off
+`experimental-small-update` feature. The observations below describe its
+historical pre-integration evaluation; native performance acceptance remains
+outstanding.
+
+This documents the **pre-integration experiments**, not performance acceptance. Allocation,
 view, stack and compatibility comparisons used committed base
 `09b7e5847693411fd8a063d9b071417941733d17` in disposable copies. The paired
 probe's check-only run used a `9e78f6b` archive whose `src/`, `build.rs`, root
@@ -129,3 +134,44 @@ for the latter. Do not
 use the instrumented resource build for latency. The stack probe has its own
 `stack-Cargo.toml.example` and `stack-Cargo.lock`; arrange a sibling `codec`
 source copy, and use `RUST_MIN_STACK=16777216` for its runtime test.
+
+## Follow-up: wide-field constructor stack
+
+A subsequent release-code inspection used `constructor-probe.rs` to call the
+constructor for the same valid 256-byte custom element. The emitted wrapper's
+static frame was 2,097,584 bytes on AArch64 Darwin and 2,097,512 bytes on
+x86-64 Linux cross-compilation (saved registers included; x86 return address
+excluded), both before the isolated update feature and with its candidate
+applied. `constructor-prologues.txt` retains the compiler output. The wrapper
+calls matrix construction routines, and `Matrix<F>` contains a
+`SmallVec<[F::Elem; 1024]>`: for this element type the inline array alone holds
+262,144 bytes. Multiple matrix values and return slots in the constructor are
+therefore a concrete contributor to large stack frames in this build. The
+wrapper figure excludes callees and does not measure the full runtime peak;
+compiler and build options can change the result. No generic matrix storage
+change is included without separate compatibility and performance validation.
+
+A follow-up added `#[inline(never)]` to `build_matrix_with_options` in a
+disposable copy (`constructor-noinline.patch`). The default-stack wide-field
+test still aborted. The emitted AArch64 wrapper frame fell to 524,672 bytes,
+but the now-outlined matrix-builder frame was 2,097,616 bytes on its own;
+`constructor-noinline-prologues.txt` retains both prologues. This experiment
+only moves substantial stack use to a callee and does not fix the observed
+failure. It was not applied to production code.
+
+## Integrated feature follow-up
+
+`experimental-small-update` now exposes the isolated candidate as a
+default-off feature. Native AVX2 and AVX-512 `std` and `no_std` functional
+tests passed; the exact validation scope is recorded in
+[the integration report](../../../docs/pr1-small-update-integration-2026-11-02.md).
+The first native same-source timing preflight failed at 4+2 / 4,096 elements:
+A/B same-source bias was +6.13%, above the 5% limit. No candidate timing ran.
+The four baseline cases, redacted monitor records and diagnostic comparison are
+in `integrated-feature-run/`. `single-probe.rs` is a same-function baseline diagnostic. It stopped at
+10+4 / 256 elements with +7.42% same-source bias, and is retained in
+`single-function-run/`. `shared-buffer-probe.rs` also shares the parity
+buffer between arms; it stopped after five cases when resource monitoring
+detected a competitor, before reaching the 10+4 / 256 case. Its partial data
+is in `shared-buffer-run/`. These changed call structures are diagnostic only;
+neither run establishes the cause or relaxes the original failed gate.

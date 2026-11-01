@@ -2,6 +2,12 @@
 pub(crate) mod gfni_rows;
 
 #[cfg(all(
+    feature = "experimental-pr1-kernels",
+    any(rse_x86_avx2, rse_x86_avx512)
+))]
+pub(crate) mod table_rows;
+
+#[cfg(all(
     feature = "simd-avx2",
     target_arch = "x86_64",
     not(target_env = "msvc"),

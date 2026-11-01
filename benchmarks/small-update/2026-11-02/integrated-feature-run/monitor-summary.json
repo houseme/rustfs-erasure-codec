@@ -1,0 +1,44 @@
+{
+  "observations": 149,
+  "cpu_sets": [
+    "0-15"
+  ],
+  "named_process_observations": 0,
+  "maximum_off_target_busy_streak": 0,
+  "throttle_count_delta": 0,
+  "target_steal_ticks_delta": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "completed_cases": 4,
+  "candidate_timed": false,
+  "case_diagnostics": [
+    {
+      "case_id": "small_update/4x2/64/changed",
+      "a_drift_percent": -0.103121884775359,
+      "b_drift_percent": 0.38337118084394994,
+      "same_source_bias_percent": 0.7137542324903823
+    },
+    {
+      "case_id": "small_update/4x2/256/changed",
+      "a_drift_percent": -0.2522368789366958,
+      "b_drift_percent": -0.3425422489067742,
+      "same_source_bias_percent": -0.7910330486262884
+    },
+    {
+      "case_id": "small_update/4x2/257/changed",
+      "a_drift_percent": -0.4996132213253901,
+      "b_drift_percent": 0.5068613286556944,
+      "same_source_bias_percent": -1.2197782940699842
+    },
+    {
+      "case_id": "small_update/4x2/4096/changed",
+      "a_drift_percent": -0.055705879367451416,
+      "b_drift_percent": -0.003330803508538871,
+      "same_source_bias_percent": 6.132163598438511
+    }
+  ]
+}

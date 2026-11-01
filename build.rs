@@ -172,13 +172,18 @@ fn generate_encode_codegen() {
     let mut f = File::create(&dest_path).unwrap();
 
     // Common configurations from MinIO, Ceph, HDFS
-    let configs: &[(usize, usize)] = &[(10, 4), (12, 4), (8, 3), (8, 4), (6, 3), (4, 2)];
+    let mut configs = vec![(10, 4), (12, 4), (8, 3), (8, 4), (6, 3), (4, 2)];
+    let mut avx512_configs = vec![(10, 4), (12, 4), (4, 2)];
+    if cfg!(feature = "experimental-pr1-kernels") {
+        configs.push((6, 2));
+        avx512_configs.extend([(8, 3), (8, 4), (6, 3), (6, 2)]);
+    }
 
     if target_arch == "x86_64" {
-        generate_encode_codegen_avx2(&mut f, configs);
-        generate_encode_codegen_avx512(&mut f, &[(10, 4), (12, 4), (4, 2)]);
+        generate_encode_codegen_avx2(&mut f, &configs);
+        generate_encode_codegen_avx512(&mut f, &avx512_configs);
     } else if target_arch == "aarch64" {
-        generate_encode_codegen_neon(&mut f, configs);
+        generate_encode_codegen_neon(&mut f, &configs);
     }
 }
 

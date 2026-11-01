@@ -17,7 +17,16 @@ mod tests {
 
     #[test]
     fn generated_neon_matches_scalar_with_unaligned_tails_and_edge_coefficients() {
-        for (data_count, parity_count) in [(10, 4), (12, 4), (8, 3), (8, 4), (6, 3), (4, 2)] {
+        for (data_count, parity_count) in [
+            (10, 4),
+            (12, 4),
+            (8, 3),
+            (8, 4),
+            (6, 3),
+            (4, 2),
+            #[cfg(feature = "experimental-pr1-kernels")]
+            (6, 2),
+        ] {
             let kernel = super::select_encode_kernel_neon(data_count, parity_count).unwrap();
             let rows: Vec<Vec<u8>> = (0..parity_count)
                 .map(|row| {

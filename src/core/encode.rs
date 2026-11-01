@@ -345,6 +345,53 @@ impl<F: Field> ReedSolomon<F> {
             .is_ok()
     }
 
+    /// Use table rows only after reconstruction has obtained stable slice views.
+    #[cfg(feature = "experimental-pr1-kernels")]
+    #[inline]
+    pub(crate) fn code_reconstruction_slices(
+        &self,
+        matrix_rows: &(impl MatrixRows<F::Elem> + ?Sized),
+        inputs: &[&[F::Elem]],
+        outputs: &mut [&mut [F::Elem]],
+    ) {
+        #[cfg(all(
+            feature = "experimental-pr1-kernels",
+            any(rse_x86_avx2, rse_x86_avx512)
+        ))]
+        {
+            let shard_len = inputs.first().map_or(0, |input| input.len());
+            if inputs.len() == self.data_shard_count()
+                && matrix_rows.len() == outputs.len()
+                && F::ORDER == 256
+                && let Some(kernel) =
+                    crate::galois_8::x86::table_rows::SelectedTableRowKernel::select(
+                        inputs.len(),
+                        outputs.len(),
+                        shard_len,
+                    )
+                && Self::try_table_rows(
+                    kernel,
+                    matrix_rows,
+                    inputs,
+                    outputs,
+                    shard_len,
+                    self.code_chunk_len(shard_len),
+                )
+            {
+                #[cfg(feature = "std")]
+                self.runtime_profile_metrics.record_code_some(
+                    false,
+                    shard_len,
+                    inputs.len(),
+                    outputs.len(),
+                    self.code_chunk_len(shard_len),
+                );
+                return;
+            }
+        }
+        self.code_some_slices(matrix_rows, inputs, outputs);
+    }
+
     pub(crate) fn code_some_slices_chunked<T: AsRef<[F::Elem]>, U: AsMut<[F::Elem]>>(
         &self,
         matrix_rows: &(impl MatrixRows<F::Elem> + ?Sized),
@@ -394,6 +441,39 @@ impl<F: Field> ReedSolomon<F> {
             },
             &mut SliceOutputs { shards: outputs },
         );
+    }
+
+    #[cfg(all(
+        feature = "experimental-pr1-kernels",
+        any(rse_x86_avx2, rse_x86_avx512)
+    ))]
+    #[inline(never)]
+    fn try_table_rows<T: AsRef<[F::Elem]>, U: AsMut<[F::Elem]>>(
+        kernel: crate::galois_8::x86::table_rows::SelectedTableRowKernel,
+        matrix_rows: &(impl MatrixRows<F::Elem> + ?Sized),
+        inputs: &[T],
+        outputs: &mut [U],
+        shard_len: usize,
+        chunk_len: usize,
+    ) -> bool {
+        let mut rows: SmallVec<[&[u8]; 4]> = SmallVec::new();
+        for index in 0..matrix_rows.len() {
+            let Some(bytes) = F::as_gf8_slice(matrix_rows.row(index)) else {
+                return false;
+            };
+            if bytes.len() != inputs.len() {
+                return false;
+            }
+            rows.push(bytes);
+        }
+        let Ok(mut views) = ByteShardViews::<[&[u8]; 16], [&mut [u8]; 4]>::prepare::<F, _, _>(
+            inputs, outputs, shard_len,
+        ) else {
+            return false;
+        };
+        kernel
+            .execute(&rows, &views.data, &mut views.parity, shard_len, chunk_len)
+            .is_ok()
     }
 
     #[cfg(rse_x86_gfni)]
@@ -690,6 +770,12 @@ impl<F: Field> ReedSolomon<F> {
         if !leopard::is_byte_field::<F>() || !crate::galois_8::generated_encode_allowed() {
             return None;
         }
+        // Keep the experimental 6+2 shape off short shards while its
+        // generated-kernel preparation cost is being evaluated.
+        #[cfg(feature = "experimental-pr1-kernels")]
+        if (self.data_shard_count(), self.parity_shard_count()) == (6, 2) && shard_len < 4096 {
+            return None;
+        }
         let kernel =
             SelectedEncodeKernel::select(self.data_shard_count(), self.parity_shard_count())?;
         let mut prepared = PreparedNativeEncode {
@@ -936,6 +1022,13 @@ impl<F: Field> ReedSolomon<F> {
 
         let matrix = self.encoding_format().matrix();
         let chunk_len = self.code_chunk_len(shard_len);
+        // Keep the inline scratch in a separate frame and limit its element
+        // size so custom fields and larger shards retain the existing path.
+        #[cfg(feature = "experimental-small-update")]
+        if shard_len <= 256 && core::mem::size_of::<F::Elem>() <= 3 {
+            self.update_small_delta(old_data, new_data, parity, chunk_len);
+            return Ok(());
+        }
         let mut delta = Vec::new();
 
         for (i_data, (old, new)) in old_data.iter().zip(new_data).enumerate() {
@@ -964,6 +1057,47 @@ impl<F: Field> ReedSolomon<F> {
         }
 
         Ok(())
+    }
+
+    #[cfg(feature = "experimental-small-update")]
+    #[inline(never)]
+    fn update_small_delta<T, U>(
+        &self,
+        old_data: &[T],
+        new_data: &[Option<T>],
+        parity: &mut [U],
+        chunk_len: usize,
+    ) where
+        T: AsRef<[F::Elem]>,
+        U: AsRef<[F::Elem]> + AsMut<[F::Elem]>,
+    {
+        let matrix = self.encoding_format().matrix();
+        let mut delta: SmallVec<[F::Elem; 256]> = SmallVec::new();
+
+        for (i_data, (old, new)) in old_data.iter().zip(new_data).enumerate() {
+            let Some(new) = new else { continue };
+            for (chunk_index, (old, new)) in old
+                .as_ref()
+                .chunks(chunk_len)
+                .zip(new.as_ref().chunks(chunk_len))
+                .enumerate()
+            {
+                if old == new {
+                    continue;
+                }
+                // Grow only for the active changed range and reuse its capacity.
+                // Clear also excludes stale elements when the next chunk is short.
+                delta.clear();
+                delta.reserve_exact(old.len());
+                delta.extend(old.iter().zip(new).map(|(&old, &new)| F::add(old, new)));
+                let start = chunk_index * chunk_len;
+                let end = start + delta.len();
+                for (row, output) in parity.iter_mut().enumerate() {
+                    let coefficient = matrix.get(self.data_shard_count() + row, i_data);
+                    F::mul_slice_add(coefficient, &delta, &mut output.as_mut()[start..end]);
+                }
+            }
+        }
     }
 
     /// Parallel version of [`encode_sep`](Self::encode_sep).

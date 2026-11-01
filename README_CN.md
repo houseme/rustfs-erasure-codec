@@ -51,6 +51,23 @@ rustfs-erasure-codec = { version = "9.1.0", features = ["simd-neon"] }   # aarch
 # rustfs-erasure-codec = { version = "9.1.0", features = ["simd-vsx"] }   # powerpc64
 ```
 
+可选功能 `experimental-small-update` 为 Classic 增量更新提供小块内联差值缓冲区：
+每分片不超过 256 个字段元素且每个元素不超过 3 字节时使用，其他情况沿用原路径。
+该功能默认关闭，原生性能验证仍在进行。
+
+```toml
+rustfs-erasure-codec = { version = "9.1.0", features = ["experimental-small-update"] }
+```
+
+可选功能 `experimental-pr1-kernels` 为 AVX2、AVX-512 和 NEON 构建加入 6+2 生成编码，
+为 AVX-512 增加 6+3、8+3、8+4 形状，并为 Classic 恢复加入有界的 AVX2/AVX-512
+表驱动行内核；需要同时启用对应 SIMD 功能。表驱动行仅用于已取得稳定切片的串行恢复，
+现有并行调度和后端选择保持不变；原生性能验收仍未完成。
+
+```toml
+rustfs-erasure-codec = { version = "9.1.0", features = ["simd-avx2", "experimental-pr1-kernels"] }
+```
+
 运行时后端分发带有保护；目标 CPU 不支持的 ISA 会安全回退到标量路径。
 
 ## 快速开始
