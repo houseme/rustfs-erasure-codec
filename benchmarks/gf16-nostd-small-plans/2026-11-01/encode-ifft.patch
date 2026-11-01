@@ -1,0 +1,63 @@
+--- a/src/core/leopard_gf16/mod.rs
++++ b/src/core/leopard_gf16/mod.rs
+@@ -4,0 +5,2 @@
++#[cfg(not(feature = "std"))]
++use smallvec::SmallVec;
+@@ -76 +78 @@
+-pub(crate) struct IfftDit16Plan {
++struct IfftDit16Plan<B = Vec<Stage4Block>> {
+@@ -79,2 +81,2 @@
+-    initial_blocks: Vec<Stage4Block>,
+-    later_blocks: Vec<Stage4Block>,
++    initial_blocks: B,
++    later_blocks: B,
+@@ -83,0 +86,6 @@
++
++#[cfg(feature = "std")]
++type EncodeStage4Blocks = Vec<Stage4Block>;
++#[cfg(not(feature = "std"))]
++type EncodeStage4Blocks = SmallVec<[Stage4Block; 2]>;
++type EncodeIfftDit16Plan = IfftDit16Plan<EncodeStage4Blocks>;
+@@ -209,3 +217,3 @@
+-fn build_ifft_dit16_plan(mtrunc: usize, m: usize, skew_lut: &[u16]) -> IfftDit16Plan {
+-    let mut initial_blocks = Vec::new();
+-    let mut later_blocks = Vec::new();
++fn build_ifft_dit16_plan(mtrunc: usize, m: usize, skew_lut: &[u16]) -> EncodeIfftDit16Plan {
++    let mut initial_blocks = EncodeStage4Blocks::new();
++    let mut later_blocks = EncodeStage4Blocks::new();
+--- a/src/core/leopard_gf16/encode.rs
++++ b/src/core/leopard_gf16/encode.rs
+@@ -2,0 +3 @@
++#[cfg(feature = "std")]
+@@ -3,0 +5,2 @@
++#[cfg(not(feature = "std"))]
++use smallvec::SmallVec;
+@@ -15 +18 @@
+-    FftDit16Plan, IfftDit16Plan, LeopardGf16EncodeDriver, LeopardGf16Tables, build_fft_dit16_plan,
++    FftDit16Plan, EncodeIfftDit16Plan, LeopardGf16EncodeDriver, LeopardGf16Tables, build_fft_dit16_plan,
+@@ -29,0 +33,5 @@
++#[cfg(feature = "std")]
++type LaterIfftPlans = Vec<EncodeIfftDit16Plan>;
++#[cfg(not(feature = "std"))]
++type LaterIfftPlans = SmallVec<[EncodeIfftDit16Plan; 1]>;
++
+@@ -35 +43 @@
+-    first_ifft_plan: IfftDit16Plan,
++    first_ifft_plan: EncodeIfftDit16Plan,
+@@ -37,2 +45,2 @@
+-    later_ifft_plans: Vec<IfftDit16Plan>,
+-    remainder_ifft_plan: Option<IfftDit16Plan>,
++    later_ifft_plans: LaterIfftPlans,
++    remainder_ifft_plan: Option<EncodeIfftDit16Plan>,
+@@ -51 +59 @@
+-        let mut later_ifft_plans = Vec::new();
++        let mut later_ifft_plans = LaterIfftPlans::new();
+@@ -87 +95 @@
+-        fn ifft_bytes(plan: &IfftDit16Plan) -> usize {
++        fn ifft_bytes(plan: &EncodeIfftDit16Plan) -> usize {
+@@ -94 +102 @@
+-            + self.later_ifft_plans.capacity() * core::mem::size_of::<IfftDit16Plan>()
++            + self.later_ifft_plans.capacity() * core::mem::size_of::<EncodeIfftDit16Plan>()
+@@ -296 +304 @@
+-    plan: &IfftDit16Plan,
++    plan: &EncodeIfftDit16Plan,

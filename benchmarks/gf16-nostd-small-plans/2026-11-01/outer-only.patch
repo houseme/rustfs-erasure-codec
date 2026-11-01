@@ -1,0 +1,19 @@
+--- a/src/core/leopard_gf16/encode.rs
++++ b/src/core/leopard_gf16/encode.rs
+@@ -2,0 +3 @@
++#[cfg(feature = "std")]
+@@ -3,0 +5,2 @@
++#[cfg(not(feature = "std"))]
++use smallvec::SmallVec;
+@@ -28,0 +32,5 @@
++
++#[cfg(feature = "std")]
++type LaterIfftPlans = Vec<IfftDit16Plan>;
++#[cfg(not(feature = "std"))]
++type LaterIfftPlans = SmallVec<[IfftDit16Plan; 1]>;
+@@ -37 +45 @@
+-    later_ifft_plans: Vec<IfftDit16Plan>,
++    later_ifft_plans: LaterIfftPlans,
+@@ -51 +59 @@
+-        let mut later_ifft_plans = Vec::new();
++        let mut later_ifft_plans = LaterIfftPlans::new();

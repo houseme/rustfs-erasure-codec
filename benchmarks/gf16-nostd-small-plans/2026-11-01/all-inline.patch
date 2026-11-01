@@ -1,0 +1,74 @@
+--- a/src/core/leopard_gf16/mod.rs
++++ b/src/core/leopard_gf16/mod.rs
+@@ -3,0 +4 @@
++#[cfg(any(feature = "std", test))]
+@@ -4,0 +6,2 @@
++#[cfg(not(feature = "std"))]
++use smallvec::SmallVec;
+@@ -67,0 +71,9 @@
++#[cfg(feature = "std")]
++type Stage4Blocks = Vec<Stage4Block>;
++#[cfg(not(feature = "std"))]
++type Stage4Blocks = SmallVec<[Stage4Block; 2]>;
++#[cfg(feature = "std")]
++type Stage2Blocks = Vec<Stage2Block>;
++#[cfg(not(feature = "std"))]
++type Stage2Blocks = SmallVec<[Stage2Block; 4]>;
++
+@@ -71,2 +83,2 @@
+-    stage4_blocks: Vec<Stage4Block>,
+-    final_stage: Vec<Stage2Block>,
++    stage4_blocks: Stage4Blocks,
++    final_stage: Stage2Blocks,
+@@ -79,2 +91,2 @@
+-    initial_blocks: Vec<Stage4Block>,
+-    later_blocks: Vec<Stage4Block>,
++    initial_blocks: Stage4Blocks,
++    later_blocks: Stage4Blocks,
+@@ -100 +112 @@
+-    let mut stage4_blocks = Vec::new();
++    let mut stage4_blocks = Stage4Blocks::new();
+@@ -121 +133 @@
+-        let mut blocks = Vec::new();
++        let mut blocks = Stage2Blocks::new();
+@@ -133 +145 @@
+-        Vec::new()
++        Stage2Blocks::new()
+@@ -164 +176 @@
+-    let mut stage4_blocks = Vec::new();
++    let mut stage4_blocks = Stage4Blocks::new();
+@@ -187 +199 @@
+-        let mut blocks = Vec::new();
++        let mut blocks = Stage2Blocks::new();
+@@ -199 +211 @@
+-        Vec::new()
++        Stage2Blocks::new()
+@@ -210,2 +222,2 @@
+-    let mut initial_blocks = Vec::new();
+-    let mut later_blocks = Vec::new();
++    let mut initial_blocks = Stage4Blocks::new();
++    let mut later_blocks = Stage4Blocks::new();
+@@ -291,2 +303,2 @@
+-    let mut initial_blocks = Vec::new();
+-    let mut later_blocks = Vec::new();
++    let mut initial_blocks = Stage4Blocks::new();
++    let mut later_blocks = Stage4Blocks::new();
+--- a/src/core/leopard_gf16/encode.rs
++++ b/src/core/leopard_gf16/encode.rs
+@@ -2,0 +3 @@
++#[cfg(any(feature = "std", test))]
+@@ -3,0 +5,2 @@
++#[cfg(not(feature = "std"))]
++use smallvec::SmallVec;
+@@ -28,0 +32,5 @@
++
++#[cfg(feature = "std")]
++type LaterIfftPlans = Vec<IfftDit16Plan>;
++#[cfg(not(feature = "std"))]
++type LaterIfftPlans = SmallVec<[IfftDit16Plan; 1]>;
+@@ -37 +45 @@
+-    later_ifft_plans: Vec<IfftDit16Plan>,
++    later_ifft_plans: LaterIfftPlans,
+@@ -51 +59 @@
+-        let mut later_ifft_plans = Vec::new();
++        let mut later_ifft_plans = LaterIfftPlans::new();

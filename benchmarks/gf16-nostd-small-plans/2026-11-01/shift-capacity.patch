@@ -1,0 +1,7 @@
+--- a/src/core/leopard_gf16/encode.rs
++++ b/src/core/leopard_gf16/encode.rs
+@@ -50,0 +51 @@
++        #[cfg(feature = "std")]
+@@ -51,0 +53,2 @@
++        #[cfg(not(feature = "std"))]
++        let mut later_ifft_plans = Vec::with_capacity(data_shards.saturating_sub(driver.m) >> driver.m.trailing_zeros());
