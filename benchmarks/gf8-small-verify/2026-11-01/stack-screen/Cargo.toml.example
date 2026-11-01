@@ -1,0 +1,9 @@
+[package]
+name = "rse-verify-stack-screen"
+version = "0.0.0"
+edition = "2024"
+[workspace]
+[dependencies]
+codec = { package = "rustfs-erasure-codec", path = "../codec", default-features = false }
+[features]
+default = ["codec/std"]

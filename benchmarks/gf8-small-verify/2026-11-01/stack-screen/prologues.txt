@@ -1,0 +1,3097 @@
+## aarch64-apple-darwin std base gf8
+_rse_stack_gf8:
+
+Lfunc_begin3:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception3
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #688
+	add	x26, sp, #1, lsl #12
+	add	x26, x26, #664
+	ldp	x19, x24, [x0, #8]
+	add	x8, x24, x19
+	cmp	x2, x8
+	b.lo	LBB24_205
+	b.hi	LBB24_206
+	cbz	x2, LBB24_228
+	mov	x25, x1
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB24_207
+	mov	x27, x0
+	ldr	x23, [x25, #8]
+	mov	x8, x25
+	ands	x9, x2, #0x3
+	b.eq	LBB24_8
+
+## aarch64-apple-darwin std base gf16
+_rse_stack_gf16:
+
+Lfunc_begin1:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception1
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #688
+	add	x25, sp, #2, lsl #12
+	add	x25, x25, #664
+	ldp	x26, x22, [x0, #8]
+	add	x8, x22, x26
+	cmp	x2, x8
+	b.lo	LBB22_178
+	b.hi	LBB22_179
+	cbz	x2, LBB22_198
+	mov	x28, x1
+	ldr	x27, [x1, #16]
+	cbz	x27, LBB22_180
+	ldr	x23, [x28, #8]
+
+## aarch64-apple-darwin std base gf24
+_rse_stack_gf24:
+
+Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception2
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	x9, sp, #6, lsl #12
+LBB23_1:
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	cmp	sp, x9
+	b.ne	LBB23_1
+	sub	sp, sp, #656
+	add	x26, sp, #3, lsl #12
+	add	x26, x26, #632
+	ldp	x8, x27, [x0, #8]
+	stp	x8, x0, [sp, #24]
+	add	x8, x27, x8
+	cmp	x2, x8
+	b.lo	LBB23_174
+	b.hi	LBB23_175
+	cbz	x2, LBB23_194
+	ldr	x19, [x1, #16]
+	cbz	x19, LBB23_176
+	ldr	x23, [x1, #8]
+	mov	x8, x1
+	ands	x9, x2, #0x3
+
+## aarch64-apple-darwin std two gf8
+_rse_stack_gf8:
+
+Lfunc_begin7:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception7
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #672
+	ldp	x24, x22, [x0, #8]
+	add	x8, x22, x24
+	cmp	x2, x8
+	b.lo	LBB40_90
+	b.hi	LBB40_91
+	mov	x26, x2
+	cbz	x2, LBB40_101
+	mov	x23, x1
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB40_92
+	mov	x25, x0
+	ldr	x11, [x23, #8]
+	mov	x8, x23
+	ands	x9, x26, #0x3
+	b.eq	LBB40_8
+	mov	x8, x23
+LBB40_6:
+	ldr	x10, [x8, #16]
+
+## aarch64-apple-darwin std two gf16
+_rse_stack_gf16:
+
+Lfunc_begin5:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception5
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #672
+	ldp	x22, x27, [x0, #8]
+	add	x8, x27, x22
+	cmp	x2, x8
+	b.lo	LBB38_64
+	b.hi	LBB38_65
+	mov	x24, x2
+	cbz	x2, LBB38_70
+	mov	x26, x1
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB38_66
+	mov	x28, x0
+	ldr	x8, [x26, #8]
+	str	x8, [sp, #24]
+	mov	x8, x26
+	ands	x9, x24, #0x3
+	b.eq	LBB38_8
+
+## aarch64-apple-darwin std two gf24
+_rse_stack_gf24:
+
+Lfunc_begin6:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception6
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #640
+	ldp	x22, x19, [x0, #8]
+	add	x8, x19, x22
+	cmp	x2, x8
+	b.lo	LBB39_64
+	b.hi	LBB39_65
+	mov	x24, x2
+	cbz	x2, LBB39_72
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB39_66
+	mov	x21, x0
+	mov	x8, x1
+	ands	x9, x24, #0x3
+	b.eq	LBB39_8
+	mov	x8, x1
+
+## aarch64-apple-darwin std candidate gf8
+_rse_stack_gf8:
+
+Lfunc_begin4:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception4
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp], #-176
+	add	x11, sp, #1, lsl #12
+	add	x11, x11, #152
+	ldp	x21, x26, [x0, #8]
+	add	x8, x26, x21
+	cmp	x2, x8
+	b.lo	LBB34_126
+	b.hi	LBB34_127
+	mov	x24, x2
+	cbz	x2, LBB34_142
+	mov	x22, x1
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB34_128
+	mov	x27, x0
+	ldr	x19, [x22, #8]
+	mov	x8, x22
+	ands	x9, x24, #0x3
+	b.eq	LBB34_8
+
+## aarch64-apple-darwin std candidate gf16
+_rse_stack_gf16:
+
+Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception2
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp], #-160
+	add	x11, sp, #2, lsl #12
+	add	x11, x11, #136
+	ldp	x8, x26, [x0, #8]
+	str	x8, [sp, #88]
+	add	x8, x26, x8
+	cmp	x2, x8
+	b.lo	LBB32_100
+	b.hi	LBB32_101
+	mov	x23, x2
+	cbz	x2, LBB32_111
+	mov	x24, x1
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB32_102
+
+## aarch64-apple-darwin std candidate gf24
+_rse_stack_gf24:
+
+Lfunc_begin3:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception3
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	x9, sp, #6, lsl #12
+LBB33_1:
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	cmp	sp, x9
+	b.ne	LBB33_1
+	sub	sp, sp, #128
+	add	x26, sp, #3, lsl #12
+	add	x26, x26, #104
+	ldp	x21, x19, [x0, #8]
+	str	x0, [sp, #48]
+	add	x8, x19, x21
+	cmp	x2, x8
+	b.lo	LBB33_103
+	b.hi	LBB33_104
+	mov	x23, x2
+	cbz	x2, LBB33_116
+	mov	x28, x1
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB33_105
+	mov	x8, x28
+
+## aarch64-apple-darwin std new gf8
+_rse_stack_gf8:
+
+Lfunc_begin4:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception4
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #688
+	mov	x22, x1
+	ldp	x1, x25, [x0, #8]
+	add	x8, x25, x1
+	cmp	x2, x8
+	b.lo	LBB34_116
+	b.hi	LBB34_117
+	mov	x24, x2
+	cbz	x2, LBB34_131
+	ldr	x20, [x22, #16]
+	cbz	x20, LBB34_118
+	ldr	x11, [x22, #8]
+	mov	x8, x22
+	ands	x9, x24, #0x3
+	b.eq	LBB34_8
+	mov	x8, x22
+LBB34_6:
+	ldr	x10, [x8, #16]
+	cmp	x10, x20
+
+## aarch64-apple-darwin std new gf16
+_rse_stack_gf16:
+
+Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception2
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #672
+	mov	x24, x1
+	ldp	x1, x25, [x0, #8]
+	add	x8, x25, x1
+	cmp	x2, x8
+	b.lo	LBB32_91
+	b.hi	LBB32_92
+	mov	x23, x2
+	cbz	x2, LBB32_100
+	ldr	x20, [x24, #16]
+	cbz	x20, LBB32_93
+	mov	x27, x0
+	ldr	x8, [x24, #8]
+	str	x8, [sp, #24]
+	mov	x8, x24
+	ands	x9, x23, #0x3
+	b.eq	LBB32_8
+
+## aarch64-apple-darwin std new gf24
+_rse_stack_gf24:
+
+Lfunc_begin3:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception3
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #640
+	ldp	x28, x19, [x0, #8]
+	str	x0, [sp, #48]
+	add	x8, x19, x28
+	cmp	x2, x8
+	b.lo	LBB33_92
+	b.hi	LBB33_93
+	mov	x23, x2
+	cbz	x2, LBB33_103
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB33_94
+	mov	x8, x1
+	ands	x9, x23, #0x3
+	b.eq	LBB33_8
+	mov	x8, x1
+
+## aarch64-apple-darwin std exact gf8
+_rse_stack_gf8:
+
+Lfunc_begin4:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception4
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #688
+	ldp	x19, x26, [x0, #8]
+	add	x8, x26, x19
+	cmp	x2, x8
+	b.lo	LBB38_126
+	b.hi	LBB38_127
+	mov	x24, x2
+	cbz	x2, LBB38_141
+	mov	x22, x1
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB38_128
+	mov	x27, x0
+	ldr	x11, [x22, #8]
+	mov	x8, x22
+	ands	x9, x24, #0x3
+	b.eq	LBB38_8
+	mov	x8, x22
+LBB38_6:
+	ldr	x10, [x8, #16]
+
+## aarch64-apple-darwin std exact gf16
+_rse_stack_gf16:
+
+Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception2
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #672
+	ldp	x8, x26, [x0, #8]
+	str	x8, [sp, #88]
+	add	x8, x26, x8
+	cmp	x2, x8
+	b.lo	LBB36_100
+	b.hi	LBB36_101
+	mov	x23, x2
+	cbz	x2, LBB36_109
+	mov	x24, x1
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB36_102
+	mov	x27, x0
+	ldr	x8, [x24, #8]
+	str	x8, [sp, #32]
+	mov	x8, x24
+	ands	x9, x23, #0x3
+
+## aarch64-apple-darwin std exact gf24
+_rse_stack_gf24:
+
+Lfunc_begin3:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception3
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #640
+	ldp	x21, x19, [x0, #8]
+	str	x0, [sp, #48]
+	add	x8, x19, x21
+	cmp	x2, x8
+	b.lo	LBB37_101
+	b.hi	LBB37_102
+	mov	x23, x2
+	cbz	x2, LBB37_112
+	mov	x28, x1
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB37_103
+	mov	x8, x28
+	ands	x9, x23, #0x3
+	b.eq	LBB37_8
+
+## aarch64-apple-darwin nostd base gf8
+_rse_stack_gf8:
+
+Lfunc_begin3:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception3
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #688
+	add	x26, sp, #1, lsl #12
+	add	x26, x26, #664
+	ldp	x19, x24, [x0, #8]
+	add	x8, x24, x19
+	cmp	x2, x8
+	b.lo	LBB24_204
+	b.hi	LBB24_205
+	cbz	x2, LBB24_227
+	mov	x25, x1
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB24_206
+	mov	x27, x0
+	ldr	x23, [x25, #8]
+	mov	x8, x25
+	ands	x9, x2, #0x3
+	b.eq	LBB24_8
+
+## aarch64-apple-darwin nostd base gf16
+_rse_stack_gf16:
+
+Lfunc_begin1:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception1
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #688
+	add	x25, sp, #2, lsl #12
+	add	x25, x25, #664
+	ldp	x26, x22, [x0, #8]
+	add	x8, x22, x26
+	cmp	x2, x8
+	b.lo	LBB22_178
+	b.hi	LBB22_179
+	cbz	x2, LBB22_198
+	mov	x28, x1
+	ldr	x27, [x1, #16]
+	cbz	x27, LBB22_180
+	ldr	x23, [x28, #8]
+
+## aarch64-apple-darwin nostd base gf24
+_rse_stack_gf24:
+
+Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception2
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	x9, sp, #6, lsl #12
+LBB23_1:
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	cmp	sp, x9
+	b.ne	LBB23_1
+	sub	sp, sp, #656
+	add	x26, sp, #3, lsl #12
+	add	x26, x26, #632
+	ldp	x8, x27, [x0, #8]
+	stp	x8, x0, [sp, #24]
+	add	x8, x27, x8
+	cmp	x2, x8
+	b.lo	LBB23_174
+	b.hi	LBB23_175
+	cbz	x2, LBB23_194
+	ldr	x19, [x1, #16]
+	cbz	x19, LBB23_176
+	ldr	x23, [x1, #8]
+	mov	x8, x1
+	ands	x9, x2, #0x3
+
+## aarch64-apple-darwin nostd two gf8
+_rse_stack_gf8:
+
+Lfunc_begin7:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception7
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #672
+	ldp	x24, x22, [x0, #8]
+	add	x8, x22, x24
+	cmp	x2, x8
+	b.lo	LBB40_90
+	b.hi	LBB40_91
+	mov	x26, x2
+	cbz	x2, LBB40_101
+	mov	x23, x1
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB40_92
+	mov	x25, x0
+	ldr	x11, [x23, #8]
+	mov	x8, x23
+	ands	x9, x26, #0x3
+	b.eq	LBB40_8
+	mov	x8, x23
+LBB40_6:
+	ldr	x10, [x8, #16]
+
+## aarch64-apple-darwin nostd two gf16
+_rse_stack_gf16:
+
+Lfunc_begin5:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception5
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #672
+	ldp	x22, x27, [x0, #8]
+	add	x8, x27, x22
+	cmp	x2, x8
+	b.lo	LBB38_64
+	b.hi	LBB38_65
+	mov	x24, x2
+	cbz	x2, LBB38_70
+	mov	x26, x1
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB38_66
+	mov	x28, x0
+	ldr	x8, [x26, #8]
+	str	x8, [sp, #24]
+	mov	x8, x26
+	ands	x9, x24, #0x3
+	b.eq	LBB38_8
+
+## aarch64-apple-darwin nostd two gf24
+_rse_stack_gf24:
+
+Lfunc_begin6:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception6
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #640
+	ldp	x22, x19, [x0, #8]
+	add	x8, x19, x22
+	cmp	x2, x8
+	b.lo	LBB39_64
+	b.hi	LBB39_65
+	mov	x24, x2
+	cbz	x2, LBB39_72
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB39_66
+	mov	x21, x0
+	mov	x8, x1
+	ands	x9, x24, #0x3
+	b.eq	LBB39_8
+	mov	x8, x1
+
+## aarch64-apple-darwin nostd candidate gf8
+_rse_stack_gf8:
+
+Lfunc_begin4:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception4
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp], #-176
+	add	x11, sp, #1, lsl #12
+	add	x11, x11, #152
+	ldp	x21, x26, [x0, #8]
+	add	x8, x26, x21
+	cmp	x2, x8
+	b.lo	LBB34_126
+	b.hi	LBB34_127
+	mov	x24, x2
+	cbz	x2, LBB34_142
+	mov	x22, x1
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB34_128
+	mov	x27, x0
+	ldr	x19, [x22, #8]
+	mov	x8, x22
+	ands	x9, x24, #0x3
+	b.eq	LBB34_8
+
+## aarch64-apple-darwin nostd candidate gf16
+_rse_stack_gf16:
+
+Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception2
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp], #-160
+	add	x11, sp, #2, lsl #12
+	add	x11, x11, #136
+	ldp	x8, x26, [x0, #8]
+	str	x8, [sp, #88]
+	add	x8, x26, x8
+	cmp	x2, x8
+	b.lo	LBB32_100
+	b.hi	LBB32_101
+	mov	x23, x2
+	cbz	x2, LBB32_111
+	mov	x24, x1
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB32_102
+
+## aarch64-apple-darwin nostd candidate gf24
+_rse_stack_gf24:
+
+Lfunc_begin3:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception3
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	x9, sp, #6, lsl #12
+LBB33_1:
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	cmp	sp, x9
+	b.ne	LBB33_1
+	sub	sp, sp, #128
+	add	x26, sp, #3, lsl #12
+	add	x26, x26, #104
+	ldp	x21, x19, [x0, #8]
+	str	x0, [sp, #48]
+	add	x8, x19, x21
+	cmp	x2, x8
+	b.lo	LBB33_103
+	b.hi	LBB33_104
+	mov	x23, x2
+	cbz	x2, LBB33_116
+	mov	x28, x1
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB33_105
+	mov	x8, x28
+
+## aarch64-apple-darwin nostd exact gf8
+_rse_stack_gf8:
+
+Lfunc_begin4:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception4
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #688
+	ldp	x19, x26, [x0, #8]
+	add	x8, x26, x19
+	cmp	x2, x8
+	b.lo	LBB38_126
+	b.hi	LBB38_127
+	mov	x24, x2
+	cbz	x2, LBB38_141
+	mov	x22, x1
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB38_128
+	mov	x27, x0
+	ldr	x11, [x22, #8]
+	mov	x8, x22
+	ands	x9, x24, #0x3
+	b.eq	LBB38_8
+	mov	x8, x22
+LBB38_6:
+	ldr	x10, [x8, #16]
+
+## aarch64-apple-darwin nostd exact gf16
+_rse_stack_gf16:
+
+Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception2
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #672
+	ldp	x8, x26, [x0, #8]
+	str	x8, [sp, #88]
+	add	x8, x26, x8
+	cmp	x2, x8
+	b.lo	LBB36_100
+	b.hi	LBB36_101
+	mov	x23, x2
+	cbz	x2, LBB36_109
+	mov	x24, x1
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB36_102
+	mov	x27, x0
+	ldr	x8, [x24, #8]
+	str	x8, [sp, #32]
+	mov	x8, x24
+	ands	x9, x23, #0x3
+
+## aarch64-apple-darwin nostd exact gf24
+_rse_stack_gf24:
+
+Lfunc_begin3:
+	.cfi_startproc
+	.cfi_personality 155, _rust_eh_personality
+	.cfi_lsda 16, Lexception3
+	stp	x28, x27, [sp, #-96]!
+	.cfi_def_cfa_offset 96
+	stp	x26, x25, [sp, #16]
+	stp	x24, x23, [sp, #32]
+	stp	x22, x21, [sp, #48]
+	stp	x20, x19, [sp, #64]
+	stp	x29, x30, [sp, #80]
+	add	x29, sp, #80
+	.cfi_def_cfa w29, 16
+	.cfi_offset w30, -8
+	.cfi_offset w29, -16
+	.cfi_offset w19, -24
+	.cfi_offset w20, -32
+	.cfi_offset w21, -40
+	.cfi_offset w22, -48
+	.cfi_offset w23, -56
+	.cfi_offset w24, -64
+	.cfi_offset w25, -72
+	.cfi_offset w26, -80
+	.cfi_offset w27, -88
+	.cfi_offset w28, -96
+	.cfi_remember_state
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #1, lsl #12
+	ldr	xzr, [sp]
+	sub	sp, sp, #640
+	ldp	x21, x19, [x0, #8]
+	str	x0, [sp, #48]
+	add	x8, x19, x21
+	cmp	x2, x8
+	b.lo	LBB37_101
+	b.hi	LBB37_102
+	mov	x23, x2
+	cbz	x2, LBB37_112
+	mov	x28, x1
+	ldr	x20, [x1, #16]
+	cbz	x20, LBB37_103
+	mov	x8, x28
+	ands	x9, x23, #0x3
+	b.eq	LBB37_8
+
+## x86_64-unknown-linux-gnu std base gf8
+rse_stack_gf8:
+
+.Lfunc_begin3:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception3
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$712, %rsp
+	.cfi_def_cfa_offset 8960
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %rbx
+	movq	16(%rdi), %rbp
+	leaq	(%rbx,%rbp), %rax
+	cmpq	%rax, %rdx
+	jb	.LBB26_219
+	ja	.LBB26_220
+	testq	%rdx, %rdx
+	je	.LBB26_240
+	movq	16(%rsi), %r8
+	testq	%r8, %r8
+	je	.LBB26_221
+	movq	8(%rsi), %r14
+	leaq	(,%rdx,8), %rax
+	leaq	(%rax,%rax,2), %rax
+	xorl	%ecx, %ecx
+	.p2align	4
+.LBB26_5:
+
+## x86_64-unknown-linux-gnu std base gf16
+rse_stack_gf16:
+
+.Lfunc_begin1:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception1
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$728, %rsp
+	.cfi_def_cfa_offset 17168
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %rbx
+	movq	16(%rdi), %rbp
+	leaq	(%rbx,%rbp), %rax
+	cmpq	%rax, %rdx
+	jb	.LBB24_189
+	ja	.LBB24_190
+	testq	%rdx, %rdx
+	je	.LBB24_208
+	movq	%rsi, %r12
+	movq	16(%rsi), %rsi
+	testq	%rsi, %rsi
+
+## x86_64-unknown-linux-gnu std base gf24
+rse_stack_gf24:
+
+.Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception2
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$680, %rsp
+	.cfi_def_cfa_offset 25312
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %rbp
+	movq	16(%rdi), %r13
+	movq	%r13, %rax
+	addq	%rbp, %rax
+	cmpq	%rax, %rdx
+
+## x86_64-unknown-linux-gnu std two gf8
+rse_stack_gf8:
+
+.Lfunc_begin7:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception7
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$696, %rsp
+	.cfi_def_cfa_offset 4848
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %r13
+	movq	16(%rdi), %rbp
+	movq	%rbp, %rax
+	addq	%r13, %rax
+	cmpq	%rax, %rdx
+	jb	.LBB42_100
+	ja	.LBB42_101
+	testq	%rdx, %rdx
+	je	.LBB42_111
+	movq	%rsi, %rbx
+	movq	16(%rsi), %r15
+	testq	%r15, %r15
+	je	.LBB42_102
+	movq	8(%rbx), %rsi
+	leaq	(,%rdx,8), %rax
+	leaq	(%rax,%rax,2), %rax
+	leaq	(%rbx,%rax), %r14
+	xorl	%ecx, %ecx
+	.p2align	4
+.LBB42_5:
+
+## x86_64-unknown-linux-gnu std two gf16
+rse_stack_gf16:
+
+.Lfunc_begin5:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception5
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$696, %rsp
+	.cfi_def_cfa_offset 8944
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %r13
+	movq	%rdi, 40(%rsp)
+	movq	16(%rdi), %rbp
+	movq	%rbp, %rax
+	addq	%r13, %rax
+	cmpq	%rax, %rdx
+	jb	.LBB40_72
+	ja	.LBB40_73
+	movq	%rdx, %r15
+	testq	%rdx, %rdx
+	je	.LBB40_78
+	movq	%rsi, %r12
+	movq	16(%rsi), %r14
+	testq	%r14, %r14
+	je	.LBB40_74
+	movq	8(%r12), %rax
+	movq	%rax, 56(%rsp)
+
+## x86_64-unknown-linux-gnu std two gf24
+rse_stack_gf24:
+
+.Lfunc_begin6:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception6
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$664, %rsp
+	.cfi_def_cfa_offset 13008
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %rcx
+	movq	%rdi, 32(%rsp)
+	movq	16(%rdi), %rbp
+	leaq	(%rcx,%rbp), %rax
+	cmpq	%rax, %rdx
+	jb	.LBB41_66
+	ja	.LBB41_67
+	movq	%rdx, %r15
+	movq	%rcx, 16(%rsp)
+	testq	%rdx, %rdx
+	je	.LBB41_74
+	movq	%rsi, %r12
+	movq	16(%rsi), %r14
+	testq	%r14, %r14
+
+## x86_64-unknown-linux-gnu std two outlined
+_RNvMsc_CsixcxxmyE1x6_8smallvecINtB5_8SmallVecAAhj2_j1000_E13with_capacityCsl7mHmXrbnns_23rse_verify_stack_screen:
+
+.Lfunc_begin1:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception1
+	pushq	%rbx
+	.cfi_def_cfa_offset 16
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$16, %rsp
+	.cfi_def_cfa_offset 8224
+	.cfi_offset %rbx, -16
+	movq	%rdi, %rbx
+	movq	$0, 8200(%rsp)
+	movb	$0, (%rsp)
+	cmpq	$4097, %rsi
+	jb	.LBB18_10
+.Ltmp27:
+	movq	%rsp, %rdi
+	callq	_RNvMsc_CsixcxxmyE1x6_8smallvecINtB5_8SmallVecAAhj2_j1000_E8try_growCsl7mHmXrbnns_23rse_verify_stack_screen
+.Ltmp28:
+	cmpq	$-1, %rax
+	jne	.LBB18_3
+.LBB18_10:
+	movq	%rsp, %rsi
+	movl	$8208, %edx
+	movq	%rbx, %rdi
+	callq	*memcpy@GOTPCREL(%rip)
+	addq	$8208, %rsp
+	.cfi_def_cfa_offset 16
+	popq	%rbx
+	.cfi_def_cfa_offset 8
+	retq
+.LBB18_3:
+	.cfi_def_cfa_offset 8224
+	testq	%rax, %rax
+
+## x86_64-unknown-linux-gnu std two outlined
+_RNvMsc_CsixcxxmyE1x6_8smallvecINtB5_8SmallVecAAhj3_j1000_E13with_capacityCsl7mHmXrbnns_23rse_verify_stack_screen:
+
+.Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception2
+	pushq	%rbx
+	.cfi_def_cfa_offset 16
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$16, %rsp
+	.cfi_def_cfa_offset 12320
+	.cfi_offset %rbx, -16
+	movq	%rdi, %rbx
+	movq	$0, 12296(%rsp)
+	movb	$0, (%rsp)
+	cmpq	$4097, %rsi
+	jb	.LBB21_10
+.Ltmp34:
+	movq	%rsp, %rdi
+	callq	_RNvMsc_CsixcxxmyE1x6_8smallvecINtB5_8SmallVecAAhj3_j1000_E8try_growCsl7mHmXrbnns_23rse_verify_stack_screen
+.Ltmp35:
+	cmpq	$-1, %rax
+	jne	.LBB21_3
+.LBB21_10:
+	movq	%rsp, %rsi
+	movl	$12304, %edx
+	movq	%rbx, %rdi
+	callq	*memcpy@GOTPCREL(%rip)
+	addq	$12304, %rsp
+	.cfi_def_cfa_offset 16
+	popq	%rbx
+	.cfi_def_cfa_offset 8
+	retq
+
+## x86_64-unknown-linux-gnu std two outlined
+_RNvMsc_CsixcxxmyE1x6_8smallvecINtB5_8SmallVecAQSAhj2_j20_E13with_capacityCsl7mHmXrbnns_23rse_verify_stack_screen:
+
+.Lfunc_begin3:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception3
+	pushq	%rbx
+	.cfi_def_cfa_offset 16
+	subq	$528, %rsp
+	.cfi_def_cfa_offset 544
+	.cfi_offset %rbx, -16
+	movq	%rdi, %rbx
+	movq	$0, 520(%rsp)
+	movq	$0, (%rsp)
+	cmpq	$33, %rsi
+	jb	.LBB24_10
+.Ltmp41:
+	movq	%rsp, %rdi
+	callq	_RNvMsc_CsixcxxmyE1x6_8smallvecINtB5_8SmallVecAQSAhj2_j20_E8try_growCsl7mHmXrbnns_23rse_verify_stack_screen
+.Ltmp42:
+	cmpq	$-1, %rax
+	jne	.LBB24_3
+.LBB24_10:
+	movq	%rsp, %rsi
+	movl	$528, %edx
+	movq	%rbx, %rdi
+	callq	*memcpy@GOTPCREL(%rip)
+	addq	$528, %rsp
+	.cfi_def_cfa_offset 16
+	popq	%rbx
+	.cfi_def_cfa_offset 8
+	retq
+.LBB24_3:
+	.cfi_def_cfa_offset 544
+	testq	%rax, %rax
+	jne	.LBB24_4
+.Ltmp43:
+	leaq	.Lanon.ab853eb9fab6ec5990a6cb6c2c5836d3.2(%rip), %rdi
+	leaq	.Lanon.ab853eb9fab6ec5990a6cb6c2c5836d3.3(%rip), %rdx
+	movl	$17, %esi
+	callq	*_RNvNtCskADBYZwJmSU_4core9panicking5panic@GOTPCREL(%rip)
+
+## x86_64-unknown-linux-gnu std two outlined
+_RNvMsc_CsixcxxmyE1x6_8smallvecINtB5_8SmallVecAhj1000_E13with_capacityCsl7mHmXrbnns_23rse_verify_stack_screen:
+
+.Lfunc_begin4:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception4
+	pushq	%rbx
+	.cfi_def_cfa_offset 16
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$16, %rsp
+	.cfi_def_cfa_offset 4128
+	.cfi_offset %rbx, -16
+	movq	%rdi, %rbx
+	movq	$0, 4104(%rsp)
+	movb	$0, (%rsp)
+	cmpq	$4097, %rsi
+	jb	.LBB27_10
+.Ltmp48:
+	movq	%rsp, %rdi
+	callq	_RNvMsc_CsixcxxmyE1x6_8smallvecINtB5_8SmallVecAhj1000_E8try_growCsl7mHmXrbnns_23rse_verify_stack_screen
+.Ltmp49:
+	cmpq	$-1, %rax
+	jne	.LBB27_3
+.LBB27_10:
+	movq	%rsp, %rsi
+	movl	$4112, %edx
+	movq	%rbx, %rdi
+	callq	*memcpy@GOTPCREL(%rip)
+	addq	$4112, %rsp
+	.cfi_def_cfa_offset 16
+	popq	%rbx
+	.cfi_def_cfa_offset 8
+	retq
+.LBB27_3:
+	.cfi_def_cfa_offset 4128
+	testq	%rax, %rax
+	je	.LBB27_9
+.Ltmp52:
+	movq	%rax, %rdi
+
+## x86_64-unknown-linux-gnu std candidate gf8
+rse_stack_gf8:
+
+.Lfunc_begin4:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception4
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$200, %rsp
+	.cfi_def_cfa_offset 8448
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	%rsi, %rbx
+	movq	8(%rdi), %rsi
+	movq	16(%rdi), %rbp
+	leaq	(%rsi,%rbp), %rax
+	cmpq	%rax, %rdx
+	jb	.LBB36_135
+	ja	.LBB36_136
+	movq	%rdx, %r13
+	testq	%rdx, %rdx
+	je	.LBB36_150
+	movq	16(%rbx), %r15
+	testq	%r15, %r15
+	je	.LBB36_137
+	movq	8(%rbx), %r14
+	leaq	(,%r13,8), %rax
+	leaq	(%rax,%rax,2), %rax
+	leaq	(%rbx,%rax), %rcx
+
+## x86_64-unknown-linux-gnu std candidate gf16
+rse_stack_gf16:
+
+.Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception2
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$200, %rsp
+	.cfi_def_cfa_offset 16640
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %r14
+	movq	%rdi, 40(%rsp)
+	movq	16(%rdi), %rbx
+	leaq	(%rbx,%r14), %rax
+	cmpq	%rax, %rdx
+	jb	.LBB34_105
+	ja	.LBB34_106
+	movq	%rdx, %r13
+	testq	%rdx, %rdx
+	je	.LBB34_115
+	movq	%rsi, %r12
+
+## x86_64-unknown-linux-gnu std candidate gf24
+rse_stack_gf24:
+
+.Lfunc_begin3:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception3
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$168, %rsp
+	.cfi_def_cfa_offset 24800
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %rax
+	movq	%rdi, 32(%rsp)
+	movq	16(%rdi), %r15
+	movq	%rax, 16(%rsp)
+	addq	%r15, %rax
+
+## x86_64-unknown-linux-gnu std new gf8
+rse_stack_gf8:
+
+.Lfunc_begin4:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception4
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$696, %rsp
+	.cfi_def_cfa_offset 4848
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %rax
+	movq	16(%rdi), %r13
+	movq	%rax, 24(%rsp)
+	addq	%r13, %rax
+	cmpq	%rax, %rdx
+	jb	.LBB36_126
+	ja	.LBB36_127
+	movq	%rdx, %rbp
+	testq	%rdx, %rdx
+	je	.LBB36_141
+	movq	%rsi, %rbx
+	movq	16(%rsi), %r15
+	testq	%r15, %r15
+	je	.LBB36_128
+	movq	8(%rbx), %rdx
+	leaq	(,%rbp,8), %rax
+	leaq	(%rax,%rax,2), %rax
+	leaq	(%rbx,%rax), %rcx
+	movq	%rcx, 112(%rsp)
+	xorl	%ecx, %ecx
+
+## x86_64-unknown-linux-gnu std new gf16
+rse_stack_gf16:
+
+.Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception2
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$712, %rsp
+	.cfi_def_cfa_offset 8960
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %rax
+	movq	16(%rdi), %r13
+	movq	%rax, 32(%rsp)
+	addq	%r13, %rax
+	cmpq	%rax, %rdx
+	jb	.LBB34_96
+	ja	.LBB34_97
+	movq	%rdx, %rbp
+	testq	%rdx, %rdx
+	je	.LBB34_104
+	movq	%rsi, %r12
+	movq	16(%rsi), %rdx
+	testq	%rdx, %rdx
+	je	.LBB34_98
+	movq	8(%r12), %rax
+	movq	%rax, 64(%rsp)
+	leaq	(,%rbp,8), %rax
+
+## x86_64-unknown-linux-gnu std new gf24
+rse_stack_gf24:
+
+.Lfunc_begin3:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception3
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$664, %rsp
+	.cfi_def_cfa_offset 13008
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %rax
+	movq	%rdi, 32(%rsp)
+	movq	16(%rdi), %rbp
+	movq	%rax, 8(%rsp)
+	addq	%rbp, %rax
+	cmpq	%rax, %rdx
+	jb	.LBB35_88
+	ja	.LBB35_89
+	movq	%rdx, %r12
+	testq	%rdx, %rdx
+	je	.LBB35_98
+	movq	16(%rsi), %r14
+	testq	%r14, %r14
+	je	.LBB35_90
+
+## x86_64-unknown-linux-gnu std exact gf8
+rse_stack_gf8:
+
+.Lfunc_begin4:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception4
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$712, %rsp
+	.cfi_def_cfa_offset 4864
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %rax
+	movq	16(%rdi), %rbp
+	movq	%rax, 24(%rsp)
+	addq	%rbp, %rax
+	cmpq	%rax, %rdx
+	jb	.LBB40_137
+	ja	.LBB40_138
+	testq	%rdx, %rdx
+	je	.LBB40_151
+	movq	%rsi, %rbx
+	movq	16(%rsi), %r15
+	testq	%r15, %r15
+	je	.LBB40_139
+	movq	8(%rbx), %rsi
+	leaq	(,%rdx,8), %rax
+	leaq	(%rax,%rax,2), %rax
+	leaq	(%rbx,%rax), %rcx
+	movq	%rcx, 136(%rsp)
+	xorl	%ecx, %ecx
+	.p2align	4
+
+## x86_64-unknown-linux-gnu std exact gf16
+rse_stack_gf16:
+
+.Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception2
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$712, %rsp
+	.cfi_def_cfa_offset 8960
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	%rsi, %r8
+	movq	8(%rdi), %rsi
+	movq	%rdi, 32(%rsp)
+	movq	16(%rdi), %rbx
+	leaq	(%rbx,%rsi), %rax
+	cmpq	%rax, %rdx
+	jb	.LBB38_108
+	ja	.LBB38_109
+	movq	%rdx, %r14
+	testq	%rdx, %rdx
+	je	.LBB38_116
+	movq	16(%r8), %rdx
+	testq	%rdx, %rdx
+	je	.LBB38_110
+	movq	8(%r8), %rax
+	movq	%rax, 72(%rsp)
+	leaq	(,%r14,8), %rax
+
+## x86_64-unknown-linux-gnu std exact gf24
+rse_stack_gf24:
+
+.Lfunc_begin3:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception3
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$680, %rsp
+	.cfi_def_cfa_offset 13024
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %rax
+	movq	%rdi, 32(%rsp)
+	movq	16(%rdi), %r15
+	movq	%rax, 16(%rsp)
+	addq	%r15, %rax
+	cmpq	%rax, %rdx
+	jb	.LBB39_99
+	ja	.LBB39_100
+	testq	%rdx, %rdx
+	je	.LBB39_109
+	movq	%rsi, %r12
+	movq	16(%rsi), %r14
+	testq	%r14, %r14
+	je	.LBB39_101
+
+## x86_64-unknown-linux-gnu nostd base gf8
+rse_stack_gf8:
+
+.Lfunc_begin3:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception3
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$712, %rsp
+	.cfi_def_cfa_offset 8960
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %rbx
+	movq	16(%rdi), %rbp
+	leaq	(%rbx,%rbp), %rax
+	cmpq	%rax, %rdx
+	jb	.LBB24_218
+	ja	.LBB24_219
+	testq	%rdx, %rdx
+	je	.LBB24_236
+	movq	%rsi, %r12
+	movq	16(%rsi), %rsi
+	testq	%rsi, %rsi
+	je	.LBB24_220
+	movq	8(%r12), %r15
+	leaq	(,%rdx,8), %rax
+	leaq	(%rax,%rax,2), %rax
+	xorl	%ecx, %ecx
+	.p2align	4
+
+## x86_64-unknown-linux-gnu nostd base gf16
+rse_stack_gf16:
+
+.Lfunc_begin1:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception1
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$728, %rsp
+	.cfi_def_cfa_offset 17168
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %rbx
+	movq	16(%rdi), %rbp
+	leaq	(%rbx,%rbp), %rax
+	cmpq	%rax, %rdx
+	jb	.LBB22_189
+	ja	.LBB22_190
+	testq	%rdx, %rdx
+	je	.LBB22_208
+	movq	%rsi, %r12
+	movq	16(%rsi), %rsi
+	testq	%rsi, %rsi
+
+## x86_64-unknown-linux-gnu nostd base gf24
+rse_stack_gf24:
+
+.Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception2
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$680, %rsp
+	.cfi_def_cfa_offset 25312
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %rbp
+	movq	16(%rdi), %r13
+	movq	%r13, %rax
+	addq	%rbp, %rax
+	cmpq	%rax, %rdx
+
+## x86_64-unknown-linux-gnu nostd two gf8
+rse_stack_gf8:
+
+.Lfunc_begin7:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception7
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$696, %rsp
+	.cfi_def_cfa_offset 4848
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %r13
+	movq	16(%rdi), %rbp
+	movq	%rbp, %rax
+	addq	%r13, %rax
+	cmpq	%rax, %rdx
+	jb	.LBB40_100
+	ja	.LBB40_101
+	testq	%rdx, %rdx
+	je	.LBB40_111
+	movq	%rsi, %rbx
+	movq	16(%rsi), %r15
+	testq	%r15, %r15
+	je	.LBB40_102
+	movq	8(%rbx), %rsi
+	leaq	(,%rdx,8), %rax
+	leaq	(%rax,%rax,2), %rax
+	leaq	(%rbx,%rax), %r14
+	xorl	%ecx, %ecx
+	.p2align	4
+.LBB40_5:
+
+## x86_64-unknown-linux-gnu nostd two gf16
+rse_stack_gf16:
+
+.Lfunc_begin5:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception5
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$696, %rsp
+	.cfi_def_cfa_offset 8944
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %r13
+	movq	%rdi, 40(%rsp)
+	movq	16(%rdi), %rbp
+	movq	%rbp, %rax
+	addq	%r13, %rax
+	cmpq	%rax, %rdx
+	jb	.LBB38_72
+	ja	.LBB38_73
+	movq	%rdx, %r15
+	testq	%rdx, %rdx
+	je	.LBB38_78
+	movq	%rsi, %r12
+	movq	16(%rsi), %r14
+	testq	%r14, %r14
+	je	.LBB38_74
+	movq	8(%r12), %rax
+	movq	%rax, 56(%rsp)
+
+## x86_64-unknown-linux-gnu nostd two gf24
+rse_stack_gf24:
+
+.Lfunc_begin6:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception6
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$664, %rsp
+	.cfi_def_cfa_offset 13008
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %rcx
+	movq	%rdi, 32(%rsp)
+	movq	16(%rdi), %rbp
+	leaq	(%rcx,%rbp), %rax
+	cmpq	%rax, %rdx
+	jb	.LBB39_66
+	ja	.LBB39_67
+	movq	%rdx, %r15
+	movq	%rcx, 16(%rsp)
+	testq	%rdx, %rdx
+	je	.LBB39_74
+	movq	%rsi, %r12
+	movq	16(%rsi), %r14
+	testq	%r14, %r14
+
+## x86_64-unknown-linux-gnu nostd two outlined
+_RNvMsc_CsixcxxmyE1x6_8smallvecINtB5_8SmallVecAAhj2_j1000_E13with_capacityCscqCCp12hZ5G_23rse_verify_stack_screen:
+
+.Lfunc_begin1:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception1
+	pushq	%rbx
+	.cfi_def_cfa_offset 16
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$16, %rsp
+	.cfi_def_cfa_offset 8224
+	.cfi_offset %rbx, -16
+	movq	%rdi, %rbx
+	movq	$0, 8200(%rsp)
+	movb	$0, (%rsp)
+	cmpq	$4097, %rsi
+	jb	.LBB16_10
+.Ltmp27:
+	movq	%rsp, %rdi
+	callq	_RNvMsc_CsixcxxmyE1x6_8smallvecINtB5_8SmallVecAAhj2_j1000_E8try_growCscqCCp12hZ5G_23rse_verify_stack_screen
+.Ltmp28:
+	cmpq	$-1, %rax
+	jne	.LBB16_3
+.LBB16_10:
+	movq	%rsp, %rsi
+	movl	$8208, %edx
+	movq	%rbx, %rdi
+	callq	*memcpy@GOTPCREL(%rip)
+	addq	$8208, %rsp
+	.cfi_def_cfa_offset 16
+	popq	%rbx
+	.cfi_def_cfa_offset 8
+	retq
+.LBB16_3:
+	.cfi_def_cfa_offset 8224
+	testq	%rax, %rax
+
+## x86_64-unknown-linux-gnu nostd two outlined
+_RNvMsc_CsixcxxmyE1x6_8smallvecINtB5_8SmallVecAAhj3_j1000_E13with_capacityCscqCCp12hZ5G_23rse_verify_stack_screen:
+
+.Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception2
+	pushq	%rbx
+	.cfi_def_cfa_offset 16
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$16, %rsp
+	.cfi_def_cfa_offset 12320
+	.cfi_offset %rbx, -16
+	movq	%rdi, %rbx
+	movq	$0, 12296(%rsp)
+	movb	$0, (%rsp)
+	cmpq	$4097, %rsi
+	jb	.LBB19_10
+.Ltmp34:
+	movq	%rsp, %rdi
+	callq	_RNvMsc_CsixcxxmyE1x6_8smallvecINtB5_8SmallVecAAhj3_j1000_E8try_growCscqCCp12hZ5G_23rse_verify_stack_screen
+.Ltmp35:
+	cmpq	$-1, %rax
+	jne	.LBB19_3
+.LBB19_10:
+	movq	%rsp, %rsi
+	movl	$12304, %edx
+	movq	%rbx, %rdi
+	callq	*memcpy@GOTPCREL(%rip)
+	addq	$12304, %rsp
+	.cfi_def_cfa_offset 16
+	popq	%rbx
+	.cfi_def_cfa_offset 8
+	retq
+
+## x86_64-unknown-linux-gnu nostd two outlined
+_RNvMsc_CsixcxxmyE1x6_8smallvecINtB5_8SmallVecAQSAhj2_j20_E13with_capacityCscqCCp12hZ5G_23rse_verify_stack_screen:
+
+.Lfunc_begin3:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception3
+	pushq	%rbx
+	.cfi_def_cfa_offset 16
+	subq	$528, %rsp
+	.cfi_def_cfa_offset 544
+	.cfi_offset %rbx, -16
+	movq	%rdi, %rbx
+	movq	$0, 520(%rsp)
+	movq	$0, (%rsp)
+	cmpq	$33, %rsi
+	jb	.LBB22_10
+.Ltmp41:
+	movq	%rsp, %rdi
+	callq	_RNvMsc_CsixcxxmyE1x6_8smallvecINtB5_8SmallVecAQSAhj2_j20_E8try_growCscqCCp12hZ5G_23rse_verify_stack_screen
+.Ltmp42:
+	cmpq	$-1, %rax
+	jne	.LBB22_3
+.LBB22_10:
+	movq	%rsp, %rsi
+	movl	$528, %edx
+	movq	%rbx, %rdi
+	callq	*memcpy@GOTPCREL(%rip)
+	addq	$528, %rsp
+	.cfi_def_cfa_offset 16
+	popq	%rbx
+	.cfi_def_cfa_offset 8
+	retq
+.LBB22_3:
+	.cfi_def_cfa_offset 544
+	testq	%rax, %rax
+	jne	.LBB22_4
+.Ltmp43:
+	leaq	.Lanon.e195445818414907f9e8710488100848.2(%rip), %rdi
+	leaq	.Lanon.e195445818414907f9e8710488100848.3(%rip), %rdx
+	movl	$17, %esi
+	callq	*_RNvNtCskADBYZwJmSU_4core9panicking5panic@GOTPCREL(%rip)
+
+## x86_64-unknown-linux-gnu nostd two outlined
+_RNvMsc_CsixcxxmyE1x6_8smallvecINtB5_8SmallVecAhj1000_E13with_capacityCscqCCp12hZ5G_23rse_verify_stack_screen:
+
+.Lfunc_begin4:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception4
+	pushq	%rbx
+	.cfi_def_cfa_offset 16
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$16, %rsp
+	.cfi_def_cfa_offset 4128
+	.cfi_offset %rbx, -16
+	movq	%rdi, %rbx
+	movq	$0, 4104(%rsp)
+	movb	$0, (%rsp)
+	cmpq	$4097, %rsi
+	jb	.LBB25_10
+.Ltmp48:
+	movq	%rsp, %rdi
+	callq	_RNvMsc_CsixcxxmyE1x6_8smallvecINtB5_8SmallVecAhj1000_E8try_growCscqCCp12hZ5G_23rse_verify_stack_screen
+.Ltmp49:
+	cmpq	$-1, %rax
+	jne	.LBB25_3
+.LBB25_10:
+	movq	%rsp, %rsi
+	movl	$4112, %edx
+	movq	%rbx, %rdi
+	callq	*memcpy@GOTPCREL(%rip)
+	addq	$4112, %rsp
+	.cfi_def_cfa_offset 16
+	popq	%rbx
+	.cfi_def_cfa_offset 8
+	retq
+.LBB25_3:
+	.cfi_def_cfa_offset 4128
+	testq	%rax, %rax
+	je	.LBB25_9
+.Ltmp52:
+	movq	%rax, %rdi
+
+## x86_64-unknown-linux-gnu nostd candidate gf8
+rse_stack_gf8:
+
+.Lfunc_begin4:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception4
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$200, %rsp
+	.cfi_def_cfa_offset 8448
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	%rsi, %rbx
+	movq	8(%rdi), %rsi
+	movq	16(%rdi), %rbp
+	leaq	(%rsi,%rbp), %rax
+	cmpq	%rax, %rdx
+	jb	.LBB34_135
+	ja	.LBB34_136
+	movq	%rdx, %r13
+	testq	%rdx, %rdx
+	je	.LBB34_150
+	movq	16(%rbx), %r15
+	testq	%r15, %r15
+	je	.LBB34_137
+	movq	8(%rbx), %r14
+	leaq	(,%r13,8), %rax
+	leaq	(%rax,%rax,2), %rax
+	leaq	(%rbx,%rax), %rcx
+
+## x86_64-unknown-linux-gnu nostd candidate gf16
+rse_stack_gf16:
+
+.Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception2
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$200, %rsp
+	.cfi_def_cfa_offset 16640
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %r14
+	movq	%rdi, 40(%rsp)
+	movq	16(%rdi), %rbx
+	leaq	(%rbx,%r14), %rax
+	cmpq	%rax, %rdx
+	jb	.LBB32_105
+	ja	.LBB32_106
+	movq	%rdx, %r13
+	testq	%rdx, %rdx
+	je	.LBB32_115
+	movq	%rsi, %r12
+
+## x86_64-unknown-linux-gnu nostd candidate gf24
+rse_stack_gf24:
+
+.Lfunc_begin3:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception3
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$168, %rsp
+	.cfi_def_cfa_offset 24800
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %rax
+	movq	%rdi, 32(%rsp)
+	movq	16(%rdi), %r15
+	movq	%rax, 16(%rsp)
+	addq	%r15, %rax
+
+## x86_64-unknown-linux-gnu nostd exact gf8
+rse_stack_gf8:
+
+.Lfunc_begin4:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception4
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$712, %rsp
+	.cfi_def_cfa_offset 4864
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %rax
+	movq	16(%rdi), %rbp
+	movq	%rax, 24(%rsp)
+	addq	%rbp, %rax
+	cmpq	%rax, %rdx
+	jb	.LBB38_137
+	ja	.LBB38_138
+	testq	%rdx, %rdx
+	je	.LBB38_151
+	movq	%rsi, %rbx
+	movq	16(%rsi), %r15
+	testq	%r15, %r15
+	je	.LBB38_139
+	movq	8(%rbx), %rsi
+	leaq	(,%rdx,8), %rax
+	leaq	(%rax,%rax,2), %rax
+	leaq	(%rbx,%rax), %rcx
+	movq	%rcx, 136(%rsp)
+	xorl	%ecx, %ecx
+	.p2align	4
+
+## x86_64-unknown-linux-gnu nostd exact gf16
+rse_stack_gf16:
+
+.Lfunc_begin2:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception2
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$712, %rsp
+	.cfi_def_cfa_offset 8960
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	%rsi, %r8
+	movq	8(%rdi), %rsi
+	movq	%rdi, 32(%rsp)
+	movq	16(%rdi), %rbx
+	leaq	(%rbx,%rsi), %rax
+	cmpq	%rax, %rdx
+	jb	.LBB36_108
+	ja	.LBB36_109
+	movq	%rdx, %r14
+	testq	%rdx, %rdx
+	je	.LBB36_116
+	movq	16(%r8), %rdx
+	testq	%rdx, %rdx
+	je	.LBB36_110
+	movq	8(%r8), %rax
+	movq	%rax, 72(%rsp)
+	leaq	(,%r14,8), %rax
+
+## x86_64-unknown-linux-gnu nostd exact gf24
+rse_stack_gf24:
+
+.Lfunc_begin3:
+	.cfi_startproc
+	.cfi_personality 155, DW.ref.rust_eh_personality
+	.cfi_lsda 27, .Lexception3
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	pushq	%r15
+	.cfi_def_cfa_offset 24
+	pushq	%r14
+	.cfi_def_cfa_offset 32
+	pushq	%r13
+	.cfi_def_cfa_offset 40
+	pushq	%r12
+	.cfi_def_cfa_offset 48
+	pushq	%rbx
+	.cfi_def_cfa_offset 56
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$4096, %rsp
+	.cfi_adjust_cfa_offset 4096
+	movq	$0, (%rsp)
+	subq	$680, %rsp
+	.cfi_def_cfa_offset 13024
+	.cfi_offset %rbx, -56
+	.cfi_offset %r12, -48
+	.cfi_offset %r13, -40
+	.cfi_offset %r14, -32
+	.cfi_offset %r15, -24
+	.cfi_offset %rbp, -16
+	movq	8(%rdi), %rax
+	movq	%rdi, 32(%rsp)
+	movq	16(%rdi), %r15
+	movq	%rax, 16(%rsp)
+	addq	%r15, %rax
+	cmpq	%rax, %rdx
+	jb	.LBB37_99
+	ja	.LBB37_100
+	testq	%rdx, %rdx
+	je	.LBB37_109
+	movq	%rsi, %r12
+	movq	16(%rsi), %r14
+	testq	%r14, %r14
+	je	.LBB37_101

@@ -155,3 +155,88 @@ then apply only the `src/lib.rs` and `src/core/verify.rs` parts of
 `candidate-dispatch-test.rs` to `tests/candidate_dispatch.rs` and run
 `cargo test --release -p rustfs-erasure-codec --test candidate_dispatch`,
 repeating with `--no-default-features`. Do not ship the counter.
+
+## Scratch allocation and stack code generation
+
+A source-level assumption that a single `SmallVec` would reduce stack usage did
+not hold in the tested compiler output. `stack-screen/` contains the isolated
+probe, lockfile, compiler version, assembly prologues and allocation
+observations. The exact source base was `e009ee74f4c0f35568bc38ac2b0d1338573c75c7`;
+all variants used the same source path, Rust 1.99.1 release optimization and
+no explicit SIMD features. The Apple target was compiled locally and the Linux
+x86 target was cross-compiled. Default features and the codec's
+`--no-default-features` produced identical figures for the four variants shown below.
+
+The table is **only the emitted wrapper's static stack frame**, including saved
+registers and excluding the x86 return address. The wrapper monomorphizes
+ordinary `verify` for a `Vec`-of-`Vec` caller. It does not include its callers,
+outlined callees, dynamic stack, other monomorphizations or runtime peak use.
+Sizes in bytes, GF8 / tower GF16 / custom 3-byte field:
+
+| Variant | AArch64 Darwin | x86-64 Linux cross-compiled |
+| --- | --- | --- |
+| Current baseline | 8,976 / 17,168 / 25,328 | 8,952 / 17,160 / 25,304 |
+| Two syntactic scratch values (`candidate.patch`) | 4,864 / 8,960 / 13,024 | 4,840 / 8,936 / 13,000 |
+| Single `with_capacity` (`candidate-single-scratch.patch`) | 8,464 / 16,640 / 24,800 | 8,440 / 16,632 / 24,792 |
+| Single `new` plus exact reservation (`candidate-single-exact.patch`) | 4,880 / 8,960 / 13,024 | 4,856 / 8,952 / 13,016 |
+
+The two-scratch wrapper's smaller figure is not necessarily a smaller call
+chain: for example, its outlined x86 `SmallVec::with_capacity` functions have
+additional 4,120 / 8,216 / 12,312-byte frames. Other calls may also add stack.
+Do not infer peak stack or latency from this table; compiler versions, features,
+link-time optimization and callers can change code generation.
+
+A naive single-`SmallVec::new()` prototype is retained as
+`candidate-single-new.patch` for reproducibility, but **rejected**: with 4+1
+fast parity at 4,097 elements it requested 8,192 bytes for GF8 and 16,384 for
+GF16, versus 4,097 and 8,194 for the existing parallel path. The
+`fast_single_parity_verification_reuses_the_classic_inline_scratch_budget`
+resource test failed as intended. Three repeated allocation observations are in
+`stack-screen/resource-observations.txt`; request sizes are not latency or RSS.
+
+The exact-reservation experiment reserves only when the selected capacity
+exceeds the inline limit. On Apple Silicon its same resource test passed with
+4,097/8,194-byte requests, all nine `parallel_verify_workspace` tests passed,
+and instrumented dispatch tests passed in default and no-default-features
+builds. The uninstrumented variant also passed the no-default-features small
+verification test and published 9.0.0 compatibility probe (200 general, 36
+large GF8, 12 6+2 and 32 small-verification cases). The instrumentation is not
+included in either candidate patch. These are functional and resource checks;
+the exact-reservation variant is **unapplied and not performance accepted**.
+Native x86 stack high-water measurement, end-to-end timing and stable
+baseline A/B/B/A remain outstanding.
+
+To reproduce code generation, create sibling `codec` and `probe` directories,
+check out or archive the stated source into `codec`, copy `stack-screen/probe.rs`
+to `probe/src/lib.rs`, and copy `Cargo.toml.example` and `Cargo.lock` into
+`probe` as `Cargo.toml` and `Cargo.lock`. For each variant use an independent
+target directory, applying at most one patch to the same `codec` source path.
+Run `cargo +stable rustc --offline --locked --release --manifest-path
+probe/Cargo.toml --target <target> --lib -- --emit=asm`; repeat with
+`--no-default-features` before `--lib`. The probe deliberately leaves the codec's
+SIMD features disabled. Results depend on the installed toolchain and target.
+
+### Native x86 candidate dispatch
+
+On the reserved x86 Linux VM, the instrumented exact-reservation candidate
+passed the 216-case dispatch test with `std simd-avx2` and `std simd-avx512`;
+the test asserted the active backend names `rust-avx2` and `rust-avx512`. It
+also passed separately with `--no-default-features --features simd-avx2` and
+`--no-default-features --features simd-avx512`, compiled respectively with
+`-C target-feature=+avx2` and `-C target-feature=+avx512f,+avx512bw`. In both
+no-std cases the ordinary GF8 backend is `scalar-rust`, as the current
+`auto_select_backend` specifies. These cases do not establish that a generated
+SIMD encode kernel executed. The initial no-std AVX2 attempt incorrectly
+expected `rust-avx2` and failed that test assertion before running the cases;
+the rerun corrected the expectation to match the existing dispatch policy.
+
+The native test used Rust 1.99.1, one pinned vCPU and the same source base; the
+resource check stopped the run if the effective CPU set changed or a named
+competing benchmark appeared. No timing was collected. The concise test
+output is in `stack-screen/native-dispatch-results.txt`. To reproduce, apply
+`candidate-single-exact.patch` and then `candidate-exact-counter.patch` to a
+disposable source copy, install `candidate-dispatch-test.rs` as
+`tests/candidate_dispatch.rs`, and run the feature configurations above with
+`-p rustfs-erasure-codec --test candidate_dispatch`. Set
+`RSE_TEST_EXPECT_BACKEND` to the stated backend to assert selection. The
+counter patch is test-only.

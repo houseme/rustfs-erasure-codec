@@ -1,0 +1,19 @@
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -393,3 +393,6 @@
+         }
+     }
+ }
++
++#[doc(hidden)]
++pub static RSE_EXPERIMENT_VERIFY_HITS: ::core::sync::atomic::AtomicUsize = ::core::sync::atomic::AtomicUsize::new(0);
+--- a/src/core/verify.rs
++++ b/src/core/verify.rs
+@@ -96,6 +96,7 @@
+         }
+         scratch.resize(capacity, F::zero());
+         if one_row_at_a_time {
++            crate::RSE_EXPERIMENT_VERIFY_HITS.fetch_add(1, ::core::sync::atomic::Ordering::Relaxed);
+             use crate::matrix::MatrixRows;
+             let rows = self.get_parity_rows();
+             for (index, actual) in to_check.iter().enumerate() {

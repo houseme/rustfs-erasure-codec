@@ -1,0 +1,12 @@
+std-avx2
+test candidate_dispatch_and_error_order_at_both_scratch_boundaries ... NATIVE_BACKEND=rust-avx2
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+std-avx512
+test candidate_dispatch_and_error_order_at_both_scratch_boundaries ... NATIVE_BACKEND=rust-avx512
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+nostd-avx2
+test candidate_dispatch_and_error_order_at_both_scratch_boundaries ... NATIVE_BACKEND=scalar-rust
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+nostd-avx512
+test candidate_dispatch_and_error_order_at_both_scratch_boundaries ... NATIVE_BACKEND=scalar-rust
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s

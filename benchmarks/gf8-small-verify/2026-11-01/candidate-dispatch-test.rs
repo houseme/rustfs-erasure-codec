@@ -142,6 +142,11 @@ fn check<F: Field>() {
 // One test prevents other test threads from altering the process-wide counter.
 #[test]
 fn candidate_dispatch_and_error_order_at_both_scratch_boundaries() {
+    let selected = rustfs_erasure_codec::galois_8::active_backend_name();
+    println!("NATIVE_BACKEND={selected}");
+    if let Ok(expected) = std::env::var("RSE_TEST_EXPECT_BACKEND") {
+        assert_eq!(selected, expected);
+    }
     check::<rustfs_erasure_codec::galois_8::Field>();
     check::<rustfs_erasure_codec::galois_16::Field>();
     check::<ThreeByteField>();
