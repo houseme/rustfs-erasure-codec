@@ -111,3 +111,21 @@ observations the effective CPU set changed from 0–15 to 0–7 and a named
 competitor was seen in one observation. `no-aslr-738fe71/` retains the empty
 baseline output and original monitor/summary. No candidate ran and the attempt
 provides no evidence about whether address randomization caused earlier drift.
+
+## Refreshed address-randomization control
+
+A baseline-only address-randomization diagnostic was rebuilt from committed
+source `bdd9a0df43a64fde35571d30158efd03903de45a`, including the newer GF16
+runtime changes. The same non-inlined verification function was used for A and
+B; the probe ran with `setarch x86_64 -R`, so this is not a production-default
+performance acceptance run.
+
+The runner completed six cases in the first round, then stopped when its
+resource monitor detected an active named competing process. Across 230
+observations the effective CPU set remained 0–15, the named-process check was
+active once and the maximum off-target busy streak was one. The monitor did not
+record the competitor's identity. `no-aslr-bdd9a0d/` retains the original
+partial output, monitoring and failure summary. The remaining first-round cases,
+the entire second round and all candidate timing were not completed. Therefore
+this attempt cannot establish cross-round stability, identify the cause of the
+prior drift or support a performance conclusion.
