@@ -9,6 +9,10 @@ publish = false
 [package.metadata]
 cargo-fuzz = true
 
+[features]
+std = ["codec_old/std", "codec_new/std"]
+std-simd = ["std", "codec_old/simd-accel", "codec_new/simd-accel"]
+
 [dependencies]
 libfuzzer-sys = "=0.4.13"
 codec_old = { package = "rustfs-erasure-codec", version = "=9.0.0", default-features = false }

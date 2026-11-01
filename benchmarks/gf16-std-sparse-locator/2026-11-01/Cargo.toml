@@ -1,0 +1,17 @@
+[workspace]
+
+[package]
+name = "rse-std-gf16-compat-probe"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[lib]
+path = "../../gf16-nostd-sparse-locator/2026-11-01/src/lib.rs"
+
+[features]
+simd-accel = ["codec_old/simd-accel", "codec_new/simd-accel"]
+
+[dependencies]
+codec_old = { package = "rustfs-erasure-codec", version = "=9.0.0", default-features = false, features = ["std"] }
+codec_new = { package = "rustfs-erasure-codec", path = "../../..", version = "=9.1.0", default-features = false, features = ["std"] }
