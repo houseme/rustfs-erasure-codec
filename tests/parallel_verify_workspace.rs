@@ -176,6 +176,23 @@ fn invalid_inputs_do_not_resize_or_overwrite_the_workspace() {
 }
 
 #[test]
+fn small_verify_validates_late_lengths_before_reporting_corruption() {
+    fn check<F: Field>() {
+        let codec = ReedSolomon::<F>::new(4, 2).unwrap();
+        for len in [2048, 2049, 4096, 4097] {
+            let mut shards = encoded(&codec, len);
+            shards[4][0] = F::add(shards[4][0], F::one());
+            shards[5].pop();
+            let before = shards.clone();
+            assert_eq!(codec.verify(&shards), Err(Error::IncorrectShardSize));
+            assert_eq!(shards, before);
+        }
+    }
+    check::<rustfs_erasure_codec::galois_8::Field>();
+    check::<rustfs_erasure_codec::galois_16::Field>();
+}
+
+#[test]
 fn workspace_follows_the_existing_parallel_and_leopard_dispatch() {
     let pool = rayon::ThreadPoolBuilder::new()
         .num_threads(2)

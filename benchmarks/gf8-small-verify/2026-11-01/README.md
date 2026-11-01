@@ -64,3 +64,13 @@ This does not show whether the bias is resolved. Before considering adoption,
 use a stable, provenance-matched comparison and validate both ordinary and
 parallel verification, custom fields, stack usage, feature combinations and
 small-size regressions. The original same-source gate must not be weakened.
+
+## Refreshed same-function control
+
+A later baseline-only attempt rebuilt both copies from committed source
+`a76dd2ef66bd2392847c8ff0fc449f7df50e2ae7` and retained the same non-inlined
+common function. Its native binary again contained one matching symbol. The
+first resource-monitor observation reported CPUs 0–15 but an active named
+competitor, so the runner refused to start. `continuation-a76/results/`
+contains the one observation and failure summary; no baseline or candidate
+case was recorded. The 2,049-element bias therefore remains unexplained.
