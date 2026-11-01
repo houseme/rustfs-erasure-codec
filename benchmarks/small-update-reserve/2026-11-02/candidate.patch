@@ -1,0 +1,8 @@
+--- a/src/core/encode.rs
++++ b/src/core/encode.rs
+@@ -1089,5 +1089,4 @@
+                 // Clear also excludes stale elements when the next chunk is short.
+                 delta.clear();
+-                delta.reserve_exact(old.len());
+                 delta.extend(old.iter().zip(new).map(|(&old, &new)| F::add(old, new)));
+                 let start = chunk_index * chunk_len;
