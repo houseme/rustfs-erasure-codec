@@ -1,0 +1,84 @@
+--- a/src/core/leopard_gf16/fused.rs
++++ b/src/core/leopard_gf16/fused.rs
+@@ -31,9 +31,13 @@
+     #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
+     if std::is_x86_feature_detected!("avx2") {
+         #[cfg(rse_x86_gfni)]
+-        if user.len() >= GFNI_LAYOUT_MIN_BYTES
+-            && let Some(matrices) = super::mul_simd::gfni_layout_matrices(log_m, tables)
+-        {
++        if let Some(matrices) = if user.len() >= GFNI_LAYOUT_MIN_BYTES {
++            super::mul_simd::gfni_layout_matrices(log_m, tables)
++        } else if user.len() >= 64 {
++            super::mul_simd::gfni_layout_matrices_if_cached(log_m, tables)
++        } else {
++            None
++        } {
+             // SAFETY: AVX2 and GFNI are detected; the validated slices are disjoint whole blocks.
+             unsafe { super::avx2::user_to_work_gfni(user, out, matrices) };
+             return;
+@@ -112,9 +116,13 @@
+     #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
+     if std::is_x86_feature_detected!("avx2") {
+         #[cfg(rse_x86_gfni)]
+-        if user.len() >= GFNI_LAYOUT_MIN_BYTES
+-            && let Some(matrices) = super::mul_simd::gfni_layout_matrices(log_m, tables)
+-        {
++        if let Some(matrices) = if user.len() >= GFNI_LAYOUT_MIN_BYTES {
++            super::mul_simd::gfni_layout_matrices(log_m, tables)
++        } else if user.len() >= 64 {
++            super::mul_simd::gfni_layout_matrices_if_cached(log_m, tables)
++        } else {
++            None
++        } {
+             // SAFETY: AVX2 and GFNI are detected; the validated slices are disjoint whole blocks.
+             unsafe { super::avx2::work_to_user_gfni(work, user, matrices) };
+             return;
+--- a/src/core/leopard_gf16/mul_simd.rs
++++ b/src/core/leopard_gf16/mul_simd.rs
+@@ -308,6 +308,23 @@
+     target_arch = "x86_64",
+     target_endian = "little"
+ ))]
++pub(super) fn gfni_layout_matrices_if_cached(
++    log_m: u16,
++    tables: &LeopardGf16Tables,
++) -> Option<[i64; 4]> {
++    if gfni_backend_available() {
++        gfni_butterfly::lookup_matrices(log_m, tables)
++    } else {
++        None
++    }
++}
++
++#[cfg(all(
++    rse_x86_gfni,
++    feature = "std",
++    target_arch = "x86_64",
++    target_endian = "little"
++))]
+ mod gfni_butterfly {
+     use super::{LeopardGf16Tables, mul_log16};
+     use core::arch::x86_64::*;
+@@ -327,6 +344,21 @@
+                 values: [const { std::cell::Cell::new([0; 4]) }; MATRIX_CACHE_SLOTS],
+             }
+         };
++    }
++
++    pub(super) fn lookup_matrices(log_m: u16, t: &LeopardGf16Tables) -> Option<[i64; 4]> {
++        if !core::ptr::eq(t, super::super::init_leopard_gf16_tables()) {
++            return None;
++        }
++        let index = (usize::from(log_m).wrapping_mul(0x9e37) >> 10) & (MATRIX_CACHE_SLOTS - 1);
++        let key = u32::from(log_m) + 1;
++        MATRIX_CACHE.with(|cache| {
++            if cache.keys[index].get() == key {
++                Some(cache.values[index].get())
++            } else {
++                None
++            }
++        })
+     }
+ 
+     pub(super) fn cached_matrices(log_m: u16, t: &LeopardGf16Tables) -> [i64; 4] {

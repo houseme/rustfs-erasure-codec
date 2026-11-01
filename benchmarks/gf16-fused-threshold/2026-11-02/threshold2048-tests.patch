@@ -1,0 +1,122 @@
+--- a/src/core/leopard_gf16/fused.rs
++++ b/src/core/leopard_gf16/fused.rs
+@@ -9,7 +9,7 @@
+     target_arch = "x86_64",
+     target_endian = "little"
+ ))]
+-const GFNI_LAYOUT_MIN_BYTES: usize = 4096;
++const GFNI_LAYOUT_MIN_BYTES: usize = 2048;
+ 
+ pub(super) fn user_to_work_mul(
+     user: &[u8],
+@@ -483,7 +483,8 @@
+         let _ = crate::galois_8::active_backend_id();
+         let tables = init_leopard_gf16_tables();
+         for len in [
+-            0, 64, 128, 192, 448, 512, 576, 4032, 4096, 4160, 32_768, 65_536, 65_600,
++            0, 64, 128, 192, 448, 512, 576, 960, 1024, 1088, 1984, 2048, 2112, 4032, 4096, 4160,
++            32_768, 65_536, 65_600,
+         ] {
+             let bytes: Vec<u8> = (0..len + 1)
+                 .map(|i| ((i * 29 + i / 7) % 256) as u8)
+@@ -512,6 +513,47 @@
+                     &expected_bytes,
+                     "step 5: len={len}, log={log_m}"
+                 );
++            }
++        }
++    }
++
++    #[cfg(feature = "std")]
++    #[test]
++    fn recovery_crosses_the_gfni_layout_boundary_in_a_final_chunk() {
++        use crate::{CodecFamily, CodecOptions, ShardSlot, galois_8::ReedSolomon};
++        #[cfg(all(rse_x86_gfni, target_arch = "x86_64", target_endian = "little"))]
++        let _ = crate::galois_8::active_backend_id();
++        for jobs in [1, 0] {
++            let codec = ReedSolomon::with_options(
++                10,
++                4,
++                CodecOptions::builder()
++                    .codec_family(CodecFamily::LeopardGF16)
++                    .max_parallel_jobs(jobs)
++                    .build(),
++            )
++            .unwrap();
++            for tail in [1984usize, 2048, 2112] {
++                let size = 65_536 + tail;
++                let mut source: Vec<Vec<u8>> = (0..14)
++                    .map(|i| (0..size).map(|j| (i * 31 + j * 17) as u8).collect())
++                    .collect();
++                codec.encode(&mut source).unwrap();
++                for missing in [[0usize, 10], [1, 2]] {
++                    let mut shards: Vec<_> =
++                        source.iter().cloned().map(ShardSlot::new_present).collect();
++                    for i in missing {
++                        shards[i].mark_missing();
++                    }
++                    codec.reconstruct(&mut shards).unwrap();
++                    assert!(
++                        shards
++                            .iter()
++                            .zip(&source)
++                            .all(|(s, x)| s.is_present() && s.as_inner() == x),
++                        "jobs={jobs} tail={tail} missing={missing:?}"
++                    );
++                }
+             }
+         }
+     }
+--- a/src/galois_8/backend.rs
++++ b/src/galois_8/backend.rs
+@@ -535,27 +535,29 @@
+                     .build(),
+             )
+             .unwrap();
+-            let mut original: Vec<Vec<u8>> = (0..14)
+-                .map(|i| (0..8192).map(|j| (i * 31 + j * 17) as u8).collect())
+-                .collect();
+-            codec.encode(&mut original).unwrap();
+-            assert!(
+-                ACTIVE_BACKEND.get().is_none(),
+-                "GF16 encode initialized the GF8 backend"
+-            );
+-            let mut shards: Vec<_> = original.iter().cloned().map(Some).collect();
+-            shards[0] = None;
+-            codec.reconstruct_opt(&mut shards).unwrap();
+-            assert!(
+-                shards
+-                    .iter()
+-                    .zip(&original)
+-                    .all(|(x, y)| x.as_ref() == Some(y))
+-            );
+-            assert!(
+-                ACTIVE_BACKEND.get().is_none(),
+-                "GF16 recovery initialized the GF8 backend"
+-            );
++            for shard_size in [1024, 2048, 8192] {
++                let mut original: Vec<Vec<u8>> = (0..14)
++                    .map(|i| (0..shard_size).map(|j| (i * 31 + j * 17) as u8).collect())
++                    .collect();
++                codec.encode(&mut original).unwrap();
++                assert!(
++                    ACTIVE_BACKEND.get().is_none(),
++                    "GF16 encode initialized the GF8 backend"
++                );
++                let mut shards: Vec<_> = original.iter().cloned().map(Some).collect();
++                shards[0] = None;
++                codec.reconstruct_opt(&mut shards).unwrap();
++                assert!(
++                    shards
++                        .iter()
++                        .zip(&original)
++                        .all(|(x, y)| x.as_ref() == Some(y))
++                );
++                assert!(
++                    ACTIVE_BACKEND.get().is_none(),
++                    "GF16 recovery initialized the GF8 backend"
++                );
++            }
+             assert_eq!(selected_backend_id(), None);
+             let selected = active_backend().id;
+             assert_eq!(selected_backend_id(), Some(selected));

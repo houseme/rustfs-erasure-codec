@@ -1,0 +1,59 @@
+--- a/src/core/leopard_gf16/mul_simd.rs
++++ b/src/core/leopard_gf16/mul_simd.rs
+@@ -61,9 +61,26 @@
+ ///
+ /// `lo[i][nib]` / `hi[i][nib]` are the low / high byte of
+ /// `mul_log16(nib << 4i, log_m)`.
++#[derive(Clone, Copy)]
+ pub(super) struct NibbleTables16 {
+     pub(super) lo: [[u8; 16]; 4],
+     pub(super) hi: [[u8; 16]; 4],
++}
++
++#[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
++struct NibbleCache {
++    keys: [std::cell::Cell<u32>; 32],
++    values: [std::cell::Cell<NibbleTables16>; 32],
++}
++
++#[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
++thread_local! {
++    static NIBBLE_CACHE: NibbleCache = const {
++        NibbleCache {
++            keys: [const { std::cell::Cell::new(0) }; 32],
++            values: [const { std::cell::Cell::new(NibbleTables16 { lo: [[0; 16]; 4], hi: [[0; 16]; 4] }) }; 32],
++        }
++    };
+ }
+ 
+ impl NibbleTables16 {
+@@ -72,6 +89,29 @@
+         log_lut: &[u16; ORDER16],
+         exp_lut: &[u16; ORDER16 * 2],
+     ) -> Self {
++        #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
++        {
++            let canonical = super::init_leopard_gf16_tables();
++            if core::ptr::eq(log_lut, canonical.log_lut.as_ref())
++                && core::ptr::eq(exp_lut, canonical.exp_lut.as_ref())
++            {
++                let index = (usize::from(log_m).wrapping_mul(0x9e37) >> 10) & 31;
++                let key = u32::from(log_m) + 1;
++                return NIBBLE_CACHE.with(|cache| {
++                    if cache.keys[index].get() == key {
++                        return cache.values[index].get();
++                    }
++                    let value = Self::build_uncached(log_m, log_lut, exp_lut);
++                    cache.values[index].set(value);
++                    cache.keys[index].set(key);
++                    value
++                });
++            }
++        }
++        Self::build_uncached(log_m, log_lut, exp_lut)
++    }
++
++    fn build_uncached(log_m: u16, log_lut: &[u16; ORDER16], exp_lut: &[u16; ORDER16 * 2]) -> Self {
+         let mut lo = [[0u8; 16]; 4];
+         let mut hi = [[0u8; 16]; 4];
+         for i in 0..4 {

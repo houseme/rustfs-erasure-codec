@@ -1,0 +1,21 @@
+--- a/src/core/leopard_gf16/mul_simd.rs
++++ b/src/core/leopard_gf16/mul_simd.rs
+@@ -278,14 +278,10 @@
+ ))]
+ #[inline]
+ fn gfni_backend_available() -> bool {
+-    is_x86_feature_detected!("gfni")
+-        && matches!(
+-            crate::galois_8::selected_backend_id(),
+-            Some(
+-                crate::galois_8::BackendId::RustGfniAvx2
+-                    | crate::galois_8::BackendId::RustGfniAvx512
+-            )
+-        )
++    matches!(
++        crate::galois_8::selected_backend_id(),
++        Some(crate::galois_8::BackendId::RustGfniAvx2 | crate::galois_8::BackendId::RustGfniAvx512)
++    ) && is_x86_feature_detected!("gfni")
+ }
+ 
+ #[cfg(all(

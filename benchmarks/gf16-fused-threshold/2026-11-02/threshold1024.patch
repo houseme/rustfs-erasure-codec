@@ -1,0 +1,11 @@
+--- a/src/core/leopard_gf16/fused.rs
++++ b/src/core/leopard_gf16/fused.rs
+@@ -9,7 +9,7 @@
+     target_arch = "x86_64",
+     target_endian = "little"
+ ))]
+-const GFNI_LAYOUT_MIN_BYTES: usize = 4096;
++const GFNI_LAYOUT_MIN_BYTES: usize = 1024;
+ 
+ pub(super) fn user_to_work_mul(
+     user: &[u8],

@@ -1,0 +1,11 @@
+--- a/src/core/leopard_gf16/fused.rs
++++ b/src/core/leopard_gf16/fused.rs
+@@ -31,7 +31,7 @@
+     #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
+     if std::is_x86_feature_detected!("avx2") {
+         #[cfg(rse_x86_gfni)]
+-        if user.len() >= GFNI_LAYOUT_MIN_BYTES
++        if user.len() >= 64
+             && let Some(matrices) = super::mul_simd::gfni_layout_matrices(log_m, tables)
+         {
+             // SAFETY: AVX2 and GFNI are detected; the validated slices are disjoint whole blocks.
