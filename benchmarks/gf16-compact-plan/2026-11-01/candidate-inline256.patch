@@ -1,0 +1,125 @@
+diff --git a/src/core/leopard_gf16/decode.rs b/src/core/leopard_gf16/decode.rs
+index d343441..004daa2 100644
+--- a/src/core/leopard_gf16/decode.rs
++++ b/src/core/leopard_gf16/decode.rs
+@@ -210,6 +210,11 @@ fn compute_error_locs16(
+     err_locs
+ }
+ 
++#[cfg(feature = "std")]
++type ErrorLocations = [u16];
++#[cfg(not(feature = "std"))]
++type ErrorLocations = [u16; ORDER16];
++
+ /// The erasure-pattern-dependent part of a GF(2^16) Leopard decode: the error
+ /// locator (two full-length FWHTs + a point-wise multiply, the fixed per-call
+ /// cost that dominates small-shard reconstructs) and the IFFT/FFT schedules.
+@@ -221,6 +226,9 @@ fn compute_error_locs16(
+ /// and erasure pattern (e.g. a degraded array recovering many objects behind the
+ /// same missing disks), which is what [`decode_plan_for`] does.
+ pub(crate) struct LeopardGf16DecodePlan {
++    #[cfg(feature = "std")]
++    err_locs: SmallVec<[u16; 256]>,
++    #[cfg(not(feature = "std"))]
+     err_locs: [u16; super::ORDER16],
+     input_count: usize,
+     ifft_plan: IfftDit16Plan,
+@@ -302,7 +310,8 @@ fn build_decode_plan(
+                 // Both zero encodings mean identity. Use the sentinel for
+                 // present inputs to select direct conversion, and retain zero
+                 // for missing outputs so inverse scaling selects it as well.
+-                let mut locs = [0u16; ORDER16];
++                let mut locs = SmallVec::<[u16; 256]>::new();
++                locs.resize(driver.work_size, 0);
+                 fill_sparse_error_locs16(
+                     &mut locs[..driver.work_size],
+                     missing_parity,
+@@ -332,7 +341,15 @@ fn build_decode_plan(
+                 sparse_error_locs16(missing_parity, missing_data, driver, tables)
+             }
+         } else {
+-            compute_error_locs16(missing_parity, missing_data, driver, tables)
++            #[cfg(feature = "std")]
++            {
++                let full = compute_error_locs16(missing_parity, missing_data, driver, tables);
++                SmallVec::from_slice(&full[..driver.work_size])
++            }
++            #[cfg(not(feature = "std"))]
++            {
++                compute_error_locs16(missing_parity, missing_data, driver, tables)
++            }
+         };
+ 
+     // input_count = m + last-present-data-index + 1 (matches Go's inputCount).
+@@ -372,8 +389,8 @@ fn decode_plan_for(
+     use std::sync::OnceLock;
+ 
+     type Key = (usize, usize, SmallVec<[bool; 256]>);
+-    // Bound the entry count, not total bytes: each error locator alone is
+-    // 128 KiB, with additional shape-dependent FFT schedules and an owned key.
++    // Bound the entry count, not total bytes: larger locators and FFT schedules
++    // can allocate based on the shard configuration.
+     // A handful of erasure patterns per configuration is typical.
+     const CACHE_CAPACITY: usize = 16;
+     static CACHE: OnceLock<Mutex<LruCache<Key, Arc<LeopardGf16DecodePlan>>>> = OnceLock::new();
+@@ -480,6 +497,9 @@ pub(crate) fn reconstruct_with_tables16_with_options(
+     let plan = decode_plan_for(&driver, present, &missing_parity, &missing_data, tables);
+     #[cfg(not(feature = "std"))]
+     let plan = build_decode_plan(&driver, present, &missing_parity, &missing_data, tables);
++    #[cfg(feature = "std")]
++    let err_locs = plan.err_locs.as_slice();
++    #[cfg(not(feature = "std"))]
+     let err_locs = &plan.err_locs;
+     let ifft_plan = &plan.ifft_plan;
+     let fft_plan = &plan.fft_plan;
+@@ -568,7 +588,7 @@ fn compute_reconstruct_chunk(
+     size: usize,
+     present: &[bool],
+     input_data: &[Option<&[u8]>],
+-    err_locs: &[u16; ORDER16],
++    err_locs: &ErrorLocations,
+     ifft_plan: &IfftDit16Plan,
+     fft_plan: &FftDit16Plan,
+     tables: &LeopardGf16Tables,
+@@ -639,7 +659,7 @@ fn reconstruct_chunks_parallel(
+     present: &[bool],
+     outputs: &mut [&mut [u8]],
+     input_data: &[Option<&[u8]>],
+-    err_locs: &[u16; ORDER16],
++    err_locs: &ErrorLocations,
+     ifft_plan: &IfftDit16Plan,
+     fft_plan: &FftDit16Plan,
+     tables: &LeopardGf16Tables,
+@@ -1166,12 +1186,27 @@ mod sparse_locator_tests {
+                     "data={data}, parity={parity}, missing={missing}, i={i}"
+                 );
+             }
+-            let terms = missing + driver.m - parity;
+-            if driver.work_size <= SPARSE_LOCATOR_MAX_WORK_SIZE && terms <= SPARSE_LOCATOR_MAX_TERMS
++            #[cfg(feature = "std")]
+             {
+-                assert!(plan.err_locs[driver.work_size..].iter().all(|&v| v == 0));
+-            } else {
+-                assert_eq!(plan.err_locs.as_slice(), expected.as_slice());
++                assert_eq!(plan.err_locs.len(), driver.work_size);
++                assert_eq!(plan.err_locs.spilled(), driver.work_size > 256);
++                let terms = missing + driver.m - parity;
++                if driver.work_size > SPARSE_LOCATOR_MAX_WORK_SIZE
++                    || terms > SPARSE_LOCATOR_MAX_TERMS
++                {
++                    assert_eq!(plan.err_locs.as_slice(), &expected[..driver.work_size]);
++                }
++            }
++            #[cfg(not(feature = "std"))]
++            {
++                let terms = missing + driver.m - parity;
++                if driver.work_size <= SPARSE_LOCATOR_MAX_WORK_SIZE
++                    && terms <= SPARSE_LOCATOR_MAX_TERMS
++                {
++                    assert!(plan.err_locs[driver.work_size..].iter().all(|&v| v == 0));
++                } else {
++                    assert_eq!(plan.err_locs.as_slice(), expected.as_slice());
++                }
+             }
+         }
+     }
