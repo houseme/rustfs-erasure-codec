@@ -1,0 +1,56 @@
+--- a/src/core/leopard_gf16/ops.rs
++++ b/src/core/leopard_gf16/ops.rs
+@@ -391,6 +391,26 @@
+         }
+         #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
+         if super::mul_simd::try_butterfly_avx2::<false>(dst, src, log_m, tables) {
++            return;
++        }
++        #[cfg(all(not(feature = "std"), target_arch = "x86_64", target_endian = "little", target_feature = "avx2"))]
++        if dst.len() == src.len() && src.len() < super::mul_simd::NOSTD_AVX2_BUTTERFLY_MIN_LEN {
++            let (dst_chunks, dst_tail) = dst.as_chunks_mut::<4>();
++            let (src_chunks, src_tail) = src.as_chunks_mut::<4>();
++            for (d, s) in dst_chunks.iter_mut().zip(src_chunks.iter_mut()) {
++                d[0] ^= mul_log16(s[0], log_m, &tables.log_lut, &tables.exp_lut);
++                d[1] ^= mul_log16(s[1], log_m, &tables.log_lut, &tables.exp_lut);
++                d[2] ^= mul_log16(s[2], log_m, &tables.log_lut, &tables.exp_lut);
++                d[3] ^= mul_log16(s[3], log_m, &tables.log_lut, &tables.exp_lut);
++                s[0] ^= d[0];
++                s[1] ^= d[1];
++                s[2] ^= d[2];
++                s[3] ^= d[3];
++            }
++            for (d, s) in dst_tail.iter_mut().zip(src_tail.iter_mut()) {
++                *d ^= mul_log16(*s, log_m, &tables.log_lut, &tables.exp_lut);
++                *s ^= *d;
++            }
+             return;
+         }
+         mulgf16_xor(dst, src, log_m, tables);
+@@ -428,6 +448,26 @@
+         }
+         #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
+         if super::mul_simd::try_butterfly_avx2::<true>(dst, src, log_m, tables) {
++            return;
++        }
++        #[cfg(all(not(feature = "std"), target_arch = "x86_64", target_endian = "little", target_feature = "avx2"))]
++        if dst.len() == src.len() && src.len() < super::mul_simd::NOSTD_AVX2_BUTTERFLY_MIN_LEN {
++            let (dst_chunks, dst_tail) = dst.as_chunks_mut::<4>();
++            let (src_chunks, src_tail) = src.as_chunks_mut::<4>();
++            for (d, s) in dst_chunks.iter_mut().zip(src_chunks.iter_mut()) {
++                s[0] ^= d[0];
++                s[1] ^= d[1];
++                s[2] ^= d[2];
++                s[3] ^= d[3];
++                d[0] ^= mul_log16(s[0], log_m, &tables.log_lut, &tables.exp_lut);
++                d[1] ^= mul_log16(s[1], log_m, &tables.log_lut, &tables.exp_lut);
++                d[2] ^= mul_log16(s[2], log_m, &tables.log_lut, &tables.exp_lut);
++                d[3] ^= mul_log16(s[3], log_m, &tables.log_lut, &tables.exp_lut);
++            }
++            for (d, s) in dst_tail.iter_mut().zip(src_tail.iter_mut()) {
++                *s ^= *d;
++                *d ^= mul_log16(*s, log_m, &tables.log_lut, &tables.exp_lut);
++            }
+             return;
+         }
+         slice_xor_u16(src, dst);

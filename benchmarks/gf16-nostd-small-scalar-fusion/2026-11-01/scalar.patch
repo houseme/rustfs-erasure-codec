@@ -1,0 +1,32 @@
+--- a/src/core/leopard_gf16/ops.rs
++++ b/src/core/leopard_gf16/ops.rs
+@@ -391,6 +391,14 @@
+         }
+         #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
+         if super::mul_simd::try_butterfly_avx2::<false>(dst, src, log_m, tables) {
++            return;
++        }
++        #[cfg(all(not(feature = "std"), target_arch = "x86_64", target_endian = "little", target_feature = "avx2"))]
++        if dst.len() == src.len() && src.len() < super::mul_simd::NOSTD_AVX2_BUTTERFLY_MIN_LEN {
++            for (d, s) in dst.iter_mut().zip(src.iter_mut()) {
++                *d ^= mul_log16(*s, log_m, &tables.log_lut, &tables.exp_lut);
++                *s ^= *d;
++            }
+             return;
+         }
+         mulgf16_xor(dst, src, log_m, tables);
+@@ -428,6 +436,14 @@
+         }
+         #[cfg(all(feature = "std", target_arch = "x86_64", target_endian = "little"))]
+         if super::mul_simd::try_butterfly_avx2::<true>(dst, src, log_m, tables) {
++            return;
++        }
++        #[cfg(all(not(feature = "std"), target_arch = "x86_64", target_endian = "little", target_feature = "avx2"))]
++        if dst.len() == src.len() && src.len() < super::mul_simd::NOSTD_AVX2_BUTTERFLY_MIN_LEN {
++            for (d, s) in dst.iter_mut().zip(src.iter_mut()) {
++                *s ^= *d;
++                *d ^= mul_log16(*s, log_m, &tables.log_lut, &tables.exp_lut);
++            }
+             return;
+         }
+         slice_xor_u16(src, dst);
