@@ -116,6 +116,29 @@ fn test_leopard_gf16_mulgf16_basic() {
 }
 
 #[test]
+fn xor_preserves_guards_across_short_lane_boundaries() {
+    for len in [0, 1, 15, 16, 31, 32, 33, 63, 64, 65, 129] {
+        for offset in [0, 1, 3, 7] {
+            let source: Vec<u16> = (0..len + offset + 8)
+                .map(|i| (i as u16).wrapping_mul(7919))
+                .collect();
+            let mut actual: Vec<u16> = (0..len + offset + 8)
+                .map(|i| (i as u16).wrapping_mul(9127))
+                .collect();
+            let mut expected = actual.clone();
+            for i in offset..offset + len {
+                expected[i] ^= source[i];
+            }
+            slice_xor_u16(
+                &mut actual[offset..offset + len],
+                &source[offset..offset + len],
+            );
+            assert_eq!(actual, expected, "len={len} offset={offset}");
+        }
+    }
+}
+
+#[test]
 fn test_leopard_gf16_slice_xor_u16() {
     let a = vec![0x1234u16, 0x5678, 0x9ABC, 0xDEF0];
     let mut b = vec![0xFFFFu16, 0x0000, 0x1234, 0x5678];

@@ -118,6 +118,17 @@ pub(super) fn mulgf16_xor(out: &mut [u16], input: &[u16], log_m: u16, tables: &L
 #[allow(clippy::needless_return)]
 pub(super) fn slice_xor_u16(dst: &mut [u16], src: &[u16]) {
     debug_assert_eq!(dst.len(), src.len());
+    // A 32-element lane covers 64 bytes; avoid SIMD dispatch there.
+    #[cfg(all(feature = "std", target_arch = "x86_64"))]
+    if let (Ok(dst), Ok(src)) = (
+        <&mut [u16; 32]>::try_from(&mut *dst),
+        <&[u16; 32]>::try_from(src),
+    ) {
+        for i in 0..32 {
+            dst[i] ^= src[i];
+        }
+        return;
+    }
     // SAFETY: u16 XOR is identical to u8 XOR at the byte level (endian-independent).
     // Reinterpret as u8 slices to leverage SIMD byte-XOR implementations.
     let byte_len = dst.len() * 2;
