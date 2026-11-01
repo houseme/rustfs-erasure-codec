@@ -67,6 +67,16 @@ impl<F: Field> ReedSolomon<F> {
     ) -> Result<Matrix<F>, Error> {
         let vandermonde = Matrix::vandermonde(total_shards, data_shards);
 
+        #[cfg(feature = "experimental-matrix-builder")]
+        if core::mem::size_of::<F::Elem>() != 0
+            && F::supports_matrix_workspace_reuse()
+            && data_shards.saturating_mul(data_shards) > 512
+        {
+            return vandermonde
+                .systematic_from_vandermonde()
+                .map_err(|_| Error::InvalidCustomMatrix);
+        }
+
         let top = vandermonde.sub_matrix(0, 0, data_shards, data_shards);
         let top_inverted = top.invert().map_err(|_| Error::InvalidCustomMatrix)?;
 

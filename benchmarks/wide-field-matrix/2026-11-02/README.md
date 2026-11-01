@@ -121,6 +121,21 @@ backend mismatches, phase drift, same-source bias and cross-round drift.
 setup. Native timing still requires a new stable preflight and complete A/B/B/A
 before either speedup or regression can be attributed.
 
+## Built-in-field workspace reuse follow-up
+
+A separate, default-off `experimental-matrix-builder` feature now integrates
+workspace reuse only for fields that explicitly declare the omitted
+`zero`/`Clone` operations free of observable side effects. Built-in GF8 and
+GF16 opt in; custom `Field` implementations return `false` by default and
+retain the original builder. The historical broad prototypes below remain
+unapplied. Native performance acceptance remains outstanding.
+
+The original allocation probe used an absolute allocation-count limit. An
+x86 Linux run exposed additional codec setup allocations and failed
+that limit before exercising the later cases. The integrated regression test
+instead compares the Vandermonde constructor with a same-size Cauchy control
+in the same process, leaving platform-dependent setup costs outside the bound.
+
 ## Wide-layout construction prototype
 
 The 32+16 allocation increase was traced to the materialized top square and

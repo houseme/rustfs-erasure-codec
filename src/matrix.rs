@@ -200,6 +200,40 @@ impl<F: Field> Matrix<F> {
         Ok(result)
     }
 
+    /// Build a systematic Vandermonde product while retaining the inverse in
+    /// the right half of its augmented elimination workspace.
+    #[cfg(feature = "experimental-matrix-builder")]
+    pub(crate) fn systematic_from_vandermonde(&self) -> Result<Matrix<F>, Error> {
+        let n = self.col_count;
+        if self.row_count < n {
+            return Err(Error::IncompatibleDimensions);
+        }
+        let mut work = Self::new(n, n * 2);
+        for row in 0..n {
+            let start = row * work.col_count;
+            work.data[start..start + n].copy_from_slice(self.get_row(row));
+            acc!(work, row, n + row) = F::one();
+        }
+        work.gaussian_elim()?;
+        let mut result = Self::new(self.row_count, n);
+        let byte_rows = F::as_gf8_slice(&[]).is_some();
+        for row in 0..self.row_count {
+            let start = row * n;
+            let output = &mut result.data[start..start + n];
+            for (inner, &coefficient) in self.get_row(row).iter().enumerate() {
+                if coefficient != F::zero() {
+                    Self::add_scaled_slice(
+                        coefficient,
+                        &work.get_row(inner)[n..],
+                        output,
+                        byte_rows,
+                    );
+                }
+            }
+        }
+        Ok(result)
+    }
+
     pub fn augment(&self, rhs: &Matrix<F>) -> Result<Matrix<F>, Error> {
         if self.row_count != rhs.row_count {
             return Err(Error::IncompatibleDimensions);

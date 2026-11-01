@@ -95,6 +95,8 @@ experimental-small-update = []
 experimental-pr1-kernels = []
 # Reduce generic matrix inline storage while wider-layout costs are evaluated.
 experimental-matrix-inline512 = []
+# Reuse Vandermonde inversion workspace for explicitly compatible fields.
+experimental-matrix-builder = ["experimental-matrix-inline512"]
 
 [dependencies]
 # `log2()` impl for `no_std`

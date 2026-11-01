@@ -19,6 +19,11 @@ impl crate::Field for Field {
 
     type Elem = [u8; 2];
 
+    #[cfg(feature = "experimental-matrix-builder")]
+    fn supports_matrix_workspace_reuse() -> bool {
+        true
+    }
+
     fn stable_format() -> Option<(&'static str, usize)> {
         Some(("rustfs.gf16.tower-11d-x2-02x-80.ax-ac.v1", 2))
     }

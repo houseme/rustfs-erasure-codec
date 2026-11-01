@@ -67,6 +67,11 @@ rustfs-erasure-codec = { version = "9.1.0", features = ["experimental-small-upda
 rustfs-erasure-codec = { version = "9.1.0", features = ["experimental-matrix-inline512"] }
 ```
 
+`experimental-matrix-builder` 进一步为较大的 Vandermonde 矩阵复用求逆工作区，并自动
+启用 `experimental-matrix-inline512`。内置 GF8/GF16 支持该路径；自定义字段默认仍使用
+原构造流程，只有明确实现 `Field::supports_matrix_workspace_reuse` 才会参与。该功能
+默认关闭，尚未完成原生性能验收。
+
 可选功能 `experimental-pr1-kernels` 为 AVX2、AVX-512 和 NEON 构建加入 6+2 生成编码，
 为 AVX-512 增加 6+3、8+3、8+4 形状，并为 Classic 恢复加入有界的 AVX2/AVX-512
 表驱动行内核；需要同时启用对应 SIMD 功能。表驱动行仅用于已取得稳定切片的串行恢复，

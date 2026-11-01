@@ -65,6 +65,11 @@ impl crate::Field for Field {
     const ORDER: usize = 256;
     type Elem = u8;
 
+    #[cfg(feature = "experimental-matrix-builder")]
+    fn supports_matrix_workspace_reuse() -> bool {
+        true
+    }
+
     fn stable_format() -> Option<(&'static str, usize)> {
         Some(("rustfs.gf8.poly-11d.u8.v1", 1))
     }

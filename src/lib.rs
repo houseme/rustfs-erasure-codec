@@ -100,6 +100,17 @@ pub trait Field: Sized {
     /// The representational type of the field.
     type Elem: Default + Clone + Copy + PartialEq + ::core::fmt::Debug;
 
+    /// Allow the experimental Vandermonde builder to omit temporary matrices.
+    ///
+    /// The default is `false`, preserving the existing construction path for
+    /// custom fields. Return `true` only if `zero()` and `Elem::clone()` have
+    /// no externally observable side effects: the optimized builder may call
+    /// them fewer times. This does not change the encoded format.
+    #[cfg(feature = "experimental-matrix-builder")]
+    fn supports_matrix_workspace_reuse() -> bool {
+        false
+    }
+
     /// Stable algebra and element-layout identifier, plus its fixed byte width.
     ///
     /// The default opts out of cross-process format identity. An implementation

@@ -74,6 +74,13 @@ ongoing.
 rustfs-erasure-codec = { version = "9.1.0", features = ["experimental-matrix-inline512"] }
 ```
 
+`experimental-matrix-builder` additionally reuses the inversion workspace for
+large Vandermonde matrices and enables `experimental-matrix-inline512`. The
+built-in GF8/GF16 fields support this path; custom fields retain the previous
+builder unless they explicitly opt in through
+`Field::supports_matrix_workspace_reuse`. This feature is disabled by default
+and has not passed native performance acceptance.
+
 The opt-in `experimental-pr1-kernels` feature adds generated 6+2 encoding for
 AVX2, AVX-512 and NEON builds, additional 6+3 / 8+3 / 8+4 AVX-512 shapes,
 and bounded AVX2/AVX-512 table-row kernels for Classic reconstruction. Enable

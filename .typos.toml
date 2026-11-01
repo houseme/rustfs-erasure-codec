@@ -3,6 +3,8 @@
 extend-ignore-re = [
     '"git_revision"\s*:\s*"[0-9a-f]{7,40}"',
     '(?m)^index [0-9a-f]{7,40}\.\.[0-9a-f]{7,40}(?: [0-9]{6})?$',
+    # Exact hexadecimal witnesses in the field-operation diagnostics.
+    'sequence=[0-9a-f]{16}\b',
 ]
 
 [default.extend-words]
