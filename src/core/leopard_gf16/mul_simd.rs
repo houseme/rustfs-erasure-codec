@@ -349,8 +349,8 @@ mod gfni_butterfly {
         unsafe {
             let split = _mm256_broadcastsi128_si256(_mm_loadu_si128(SPLIT.as_ptr().cast()));
             let pack = _mm256_broadcastsi128_si256(_mm_loadu_si128(PACK.as_ptr().cast()));
-            for chunk in 0..input.len() / 16 {
-                let offset = chunk * 16;
+            let count = input.len() / 16;
+            let mut process = |offset: usize| {
                 let x = _mm256_loadu_si256(out.as_ptr().add(offset).cast());
                 let y = _mm256_loadu_si256(input.as_ptr().add(offset).cast());
                 let value = if INVERSE { _mm256_xor_si256(x, y) } else { y };
@@ -371,6 +371,23 @@ mod gfni_butterfly {
                 };
                 _mm256_storeu_si256(out.as_mut_ptr().add(offset).cast(), x_new);
                 _mm256_storeu_si256(input.as_mut_ptr().add(offset).cast(), y_new);
+            };
+            let mut chunk = 0;
+            // Keep short lanes on the single-block path; unroll larger lanes.
+            if count < 4 {
+                while chunk < count {
+                    process(chunk * 16);
+                    chunk += 1;
+                }
+            } else {
+                while chunk + 1 < count {
+                    process(chunk * 16);
+                    process((chunk + 1) * 16);
+                    chunk += 2;
+                }
+                if chunk < count {
+                    process(chunk * 16);
+                }
             }
         }
         let done = input.len() / 16 * 16;
@@ -1098,7 +1115,9 @@ mod gfni_butterfly_tests {
             return;
         }
         let tables = init_leopard_gf16_tables();
-        for len in [0, 1, 15, 16, 17, 31, 32, 33, 4095, 4096, 4097] {
+        for len in [
+            0, 1, 15, 16, 17, 31, 32, 33, 47, 48, 49, 63, 64, 65, 4095, 4096, 4097,
+        ] {
             for inverse in [false, true] {
                 let mut x: Vec<u16> = (0..len + 2)
                     .map(|i| (i as u16).wrapping_mul(9127))
