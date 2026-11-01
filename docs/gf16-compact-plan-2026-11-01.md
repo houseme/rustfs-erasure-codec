@@ -13,7 +13,9 @@ API were unchanged.
 **Decision: rejected.** A repeatable large-shard encoding regression outweighs
 the small-shard recovery gain. The candidate is preserved as a
 [patch](../benchmarks/gf16-compact-plan/2026-11-01/candidate-inline256.patch);
-production code remains unchanged.
+production code remains unchanged at this experiment. The later
+[follow-up](gf16-compact-plan-followup-2026-11-02.md) investigates the encoding
+regression and evaluates a revised candidate.
 
 The candidate threshold tests compared every used value against the full-transform
 oracle, checked the exact representation in the full-transform fallback, and asserted both

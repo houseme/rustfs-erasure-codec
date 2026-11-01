@@ -1,0 +1,134 @@
+{
+  "A1": {
+    "samples": "2K of event 'cpu-clock'",
+    "top_symbols": [
+      {
+        "percent": 23.92,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::slice_xor_u16_avx2"
+      },
+      {
+        "percent": 19.19,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::x86::butterfly_avx2::<true>"
+      },
+      {
+        "percent": 17.25,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::x86::butterfly_avx2::<false>"
+      },
+      {
+        "percent": 9.31,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::avx2::user_to_work"
+      },
+      {
+        "percent": 2.79,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::avx2::work_to_user"
+      },
+      {
+        "percent": 2.68,
+        "symbol": "do_user_addr_fault"
+      },
+      {
+        "percent": 2.27,
+        "symbol": "_raw_spin_unlock_irqrestore"
+      },
+      {
+        "percent": 2.09,
+        "symbol": "0x00000000001a1efa"
+      }
+    ]
+  },
+  "A2": {
+    "samples": "2K of event 'cpu-clock'",
+    "top_symbols": [
+      {
+        "percent": 24.4,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::slice_xor_u16_avx2"
+      },
+      {
+        "percent": 19.29,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::x86::butterfly_avx2::<true>"
+      },
+      {
+        "percent": 17.29,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::x86::butterfly_avx2::<false>"
+      },
+      {
+        "percent": 9.14,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::avx2::user_to_work"
+      },
+      {
+        "percent": 2.78,
+        "symbol": "do_user_addr_fault"
+      },
+      {
+        "percent": 2.44,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::avx2::work_to_user"
+      },
+      {
+        "percent": 2.14,
+        "symbol": "0x00000000001a1efa"
+      }
+    ]
+  },
+  "B1": {
+    "samples": "2K of event 'cpu-clock'",
+    "top_symbols": [
+      {
+        "percent": 23.67,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::slice_xor_u16_avx2"
+      },
+      {
+        "percent": 19.02,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::x86::butterfly_avx2::<false>"
+      },
+      {
+        "percent": 18.61,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::x86::butterfly_avx2::<true>"
+      },
+      {
+        "percent": 10.99,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::avx2::user_to_work"
+      },
+      {
+        "percent": 3.19,
+        "symbol": "do_user_addr_fault"
+      },
+      {
+        "percent": 2.13,
+        "symbol": "_raw_spin_unlock_irqrestore"
+      }
+    ]
+  },
+  "B2": {
+    "samples": "2K of event 'cpu-clock'",
+    "top_symbols": [
+      {
+        "percent": 24.86,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::slice_xor_u16_avx2"
+      },
+      {
+        "percent": 17.93,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::x86::butterfly_avx2::<false>"
+      },
+      {
+        "percent": 17.93,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::x86::butterfly_avx2::<true>"
+      },
+      {
+        "percent": 9.47,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::avx2::user_to_work"
+      },
+      {
+        "percent": 3.09,
+        "symbol": "do_user_addr_fault"
+      },
+      {
+        "percent": 2.25,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::avx2::work_to_user"
+      },
+      {
+        "percent": 2.14,
+        "symbol": "0x00000000001a1efa"
+      }
+    ]
+  }
+}

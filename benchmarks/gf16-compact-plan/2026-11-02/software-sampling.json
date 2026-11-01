@@ -1,0 +1,102 @@
+{
+  "A1": {
+    "samples": "1K of event 'cpu-clock'",
+    "top_symbols": [
+      {
+        "percent": 36.42,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<true>"
+      },
+      {
+        "percent": 25.72,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::user_bytes_to_work_bytes_ssse3"
+      },
+      {
+        "percent": 16.38,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::slice_xor_u16_avx2"
+      },
+      {
+        "percent": 11.06,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::work_bytes_to_user_bytes_ssse3"
+      },
+      {
+        "percent": 3.45,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<false>"
+      }
+    ]
+  },
+  "A2": {
+    "samples": "1K of event 'cpu-clock'",
+    "top_symbols": [
+      {
+        "percent": 33.8,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<true>"
+      },
+      {
+        "percent": 27.37,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::user_bytes_to_work_bytes_ssse3"
+      },
+      {
+        "percent": 15.84,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::slice_xor_u16_avx2"
+      },
+      {
+        "percent": 11.6,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::work_bytes_to_user_bytes_ssse3"
+      },
+      {
+        "percent": 3.75,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<false>"
+      }
+    ]
+  },
+  "B1": {
+    "samples": "1K of event 'cpu-clock'",
+    "top_symbols": [
+      {
+        "percent": 45.73,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<true>"
+      },
+      {
+        "percent": 21.46,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::user_bytes_to_work_bytes_ssse3"
+      },
+      {
+        "percent": 12.58,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::slice_xor_u16_avx2"
+      },
+      {
+        "percent": 9.84,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::work_bytes_to_user_bytes_ssse3"
+      },
+      {
+        "percent": 4.24,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<false>"
+      }
+    ]
+  },
+  "B2": {
+    "samples": "1K of event 'cpu-clock'",
+    "top_symbols": [
+      {
+        "percent": 45.55,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<true>"
+      },
+      {
+        "percent": 21.96,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::user_bytes_to_work_bytes_ssse3"
+      },
+      {
+        "percent": 12.45,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::slice_xor_u16_avx2"
+      },
+      {
+        "percent": 9.03,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::ops::work_bytes_to_user_bytes_ssse3"
+      },
+      {
+        "percent": 4.24,
+        "symbol": "rustfs_erasure_codec::core::leopard_gf16::mul_simd::gfni_butterfly::run::<false>"
+      }
+    ]
+  }
+}
