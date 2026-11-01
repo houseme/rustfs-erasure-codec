@@ -526,6 +526,12 @@ pub(super) fn user_bytes_to_work_bytes(src: &[u8], dst: &mut [u8]) {
             }
         }
     }
+    #[cfg(all(not(feature = "std"), target_arch = "x86_64", target_feature = "avx2"))]
+    if src.len() == dst.len() && src.len().is_multiple_of(64) {
+        // SAFETY: the AVX2 target enables SSSE3; the buffers cover equal whole blocks.
+        unsafe { user_bytes_to_work_bytes_ssse3(src, dst) };
+        return;
+    }
     #[cfg(target_arch = "aarch64")]
     {
         // SAFETY: NEON is guaranteed on aarch64, so calling the #[target_feature(enable="neon")] fn is sound; src/dst are equal-length, 64-byte-multiple slices.
@@ -616,6 +622,12 @@ pub(super) fn work_bytes_to_user_bytes(src: &[u8], dst: &mut [u8]) {
                 return;
             }
         }
+    }
+    #[cfg(all(not(feature = "std"), target_arch = "x86_64", target_feature = "avx2"))]
+    if src.len() == dst.len() && src.len().is_multiple_of(64) {
+        // SAFETY: the AVX2 target enables SSSE3; the buffers cover equal whole blocks.
+        unsafe { work_bytes_to_user_bytes_ssse3(src, dst) };
+        return;
     }
     #[cfg(target_arch = "aarch64")]
     {
@@ -796,5 +808,47 @@ pub(super) fn get_pair_mut_16<T>(slice: &mut [T], i: usize, j: usize) -> Option<
         Some((second, first))
     } else {
         Some((first, second))
+    }
+}
+
+#[cfg(test)]
+mod layout_conversion_dispatch_tests {
+    use super::*;
+
+    #[test]
+    fn conversion_matches_scalar_for_offsets_and_whole_blocks() {
+        for len in [0usize, 64, 128, 192, 512, 4096] {
+            for offset in 0..32 {
+                let work_offset = (offset * 7 + 3) % 32;
+                let restored_offset = 31 - offset;
+                let source: Vec<u8> = (0..len + 64)
+                    .map(|i| i.wrapping_mul(37).wrapping_add(i / 7) as u8)
+                    .collect();
+                let source = &source[offset..offset + len];
+                let mut expected = vec![0u8; len];
+                user_bytes_to_work_bytes_scalar(source, &mut expected);
+                let mut work = vec![0xA5u8; len + 64];
+                user_bytes_to_work_bytes(source, &mut work[work_offset..work_offset + len]);
+                assert_eq!(
+                    &work[work_offset..work_offset + len],
+                    expected,
+                    "input len={len} offset={offset}"
+                );
+                assert!(work[..work_offset].iter().all(|&b| b == 0xA5));
+                assert!(work[work_offset + len..].iter().all(|&b| b == 0xA5));
+                let mut restored = vec![0x5Au8; len + 64];
+                work_bytes_to_user_bytes(
+                    &work[work_offset..work_offset + len],
+                    &mut restored[restored_offset..restored_offset + len],
+                );
+                assert_eq!(
+                    &restored[restored_offset..restored_offset + len],
+                    source,
+                    "output len={len} offset={offset}"
+                );
+                assert!(restored[..restored_offset].iter().all(|&b| b == 0x5A));
+                assert!(restored[restored_offset + len..].iter().all(|&b| b == 0x5A));
+            }
+        }
     }
 }
