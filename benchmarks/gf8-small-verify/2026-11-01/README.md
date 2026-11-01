@@ -36,6 +36,13 @@ The counter observed 208 candidate-path entries during the new version's
 initial small-case pass; it is test-only and makes no performance claim. The
 counter patch assumes the expanded compatibility probe is already present.
 
+`tests/small_verify_nostd.rs` additionally checks GF8 and GF16 with no
+default features across four matrix modes and 2,048/2,049/4,096/4,097-element
+boundaries, including corruption and late length errors. Both current code and
+the instrumented single-scratch candidate passed locally on Apple Silicon.
+The test also cross-compiled for x86 Linux with AVX2 and AVX-512 feature
+selections; cross-compilation does not establish native execution.
+
 For native x86, `paired_probe.rs` uses the automatic SIMD backend, one visible
 CPU and one Rayon thread. It shares valid and corrupted input buffers, checks
 both codec copies, and tests 4+2 and 10+4 at 1,024, 2,048, 2,049, 4,096 and
