@@ -51,3 +51,41 @@ with `no_std +avx2`, including existing multiplier and boundary checks. This was
 an early performance screen, not a complete compatibility validation. Recovery
 performance and old/new codec compatibility were not measured for these
 rejected candidates.
+
+## Follow-up: generated code and inlining controls
+
+Release-binary disassembly revealed a concrete code-generation change: in the
+baseline, the compiler inlined the radix-2 wrapper and butterfly dispatch into
+`fft_dit16_with_plan`; both original fusion candidates instead called an
+out-of-line `fft_dit2_16` from that loop. The one-element loop also emits a
+serial log-table lookup followed by an exp-table lookup for each element. The
+original multiply-XOR source processes four elements per iteration; the
+four-element fusion candidate above still regressed. These observations alone
+cannot quantify the cost of each effect.
+
+Three follow-up candidates were tested with the same release settings,
+A1/B1/B2/A2 protocol, and isolated guest CPU partition as above. The
+[force-inline candidate](../benchmarks/gf16-nostd-small-scalar-fusion/2026-11-01/scalar-force-inline.patch)
+forces the butterfly functions inline; the outer radix-2 wrapper nevertheless
+remained out of line. The [outlined candidate](../benchmarks/gf16-nostd-small-scalar-fusion/2026-11-01/outlined.patch)
+moves the one-element loop to a separate helper; its radix-2 wrapper also
+remained out of line. The [outlined and wrapper-inlined candidate](../benchmarks/gf16-nostd-small-scalar-fusion/2026-11-01/outlined-inline-wrappers.patch)
+forces that wrapper inline for the tested target: disassembly confirms that its
+FFT caller no longer calls `fft_dit2_16`. These follow-up patches have zero
+context and can be checked with `git apply --unidiff-zero --check`.
+
+| Candidate | 64 B, 10+4 | 64 B, 16+8 | 1 MiB, 10+4 | 1 MiB, 16+8 |
+| --- | ---: | ---: | ---: | ---: |
+| Force butterfly inline | +12.70% | +28.09% | −1.59% | −2.54% |
+| Outline the loop | +18.78% | +26.31% | −0.69% | +1.10% |
+| Outline loop, inline wrapper | +21.87% | +25.78% | +3.29% | +1.76% |
+
+Each value compares a candidate against its own baseline; the separate runs do
+not directly compare candidates. Baseline drift for these cases ranged from
+−1.46% to +3.08%; see the [stage estimates](../benchmarks/gf16-nostd-small-scalar-fusion/2026-11-01/inline-analysis-estimates.json)
+for individual values. Restoring wrapper inlining did not remove the small-size
+regression, so the extra wrapper call cannot by itself explain it. The runs do
+not establish the exact contribution of instruction layout, lookup latency,
+branching, or other effects. Hardware cycle and instruction counters were not
+available in this VM. Each candidate passed the same 51 GF16-filtered tests;
+none underwent full compatibility testing or was merged.

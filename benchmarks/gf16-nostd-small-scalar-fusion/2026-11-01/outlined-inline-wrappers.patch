@@ -1,0 +1,33 @@
+--- a/src/core/leopard_gf16/ops.rs
++++ b/src/core/leopard_gf16/ops.rs
+@@ -361,0 +362,14 @@
++}
++
++#[cfg(all(not(feature = "std"), target_arch = "x86_64", target_endian = "little", target_feature = "avx2"))]
++#[inline(never)]
++fn scalar_small_butterfly<const INVERSE: bool>(dst: &mut [u16], src: &mut [u16], log_m: u16, tables: &LeopardGf16Tables) {
++    for (d, s) in dst.iter_mut().zip(src.iter_mut()) {
++        if INVERSE {
++            *s ^= *d;
++        }
++        *d ^= mul_log16(*s, log_m, &tables.log_lut, &tables.exp_lut);
++        if !INVERSE {
++            *s ^= *d;
++        }
++    }
+@@ -395,0 +410,5 @@
++        #[cfg(all(not(feature = "std"), target_arch = "x86_64", target_endian = "little", target_feature = "avx2"))]
++        if dst.len() == src.len() && src.len() < super::mul_simd::NOSTD_AVX2_BUTTERFLY_MIN_LEN {
++            scalar_small_butterfly::<false>(dst, src, log_m, tables);
++            return;
++        }
+@@ -430,0 +450,5 @@
++            return;
++        }
++        #[cfg(all(not(feature = "std"), target_arch = "x86_64", target_endian = "little", target_feature = "avx2"))]
++        if dst.len() == src.len() && src.len() < super::mul_simd::NOSTD_AVX2_BUTTERFLY_MIN_LEN {
++            scalar_small_butterfly::<true>(dst, src, log_m, tables);
+@@ -442,0 +467 @@
++#[cfg_attr(all(not(feature = "std"), target_arch = "x86_64", target_endian = "little", target_feature = "avx2"), inline(always))]
+@@ -451,0 +477 @@
++#[cfg_attr(all(not(feature = "std"), target_arch = "x86_64", target_endian = "little", target_feature = "avx2"), inline(always))]
