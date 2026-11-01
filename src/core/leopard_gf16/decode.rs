@@ -227,6 +227,47 @@ pub(crate) struct LeopardGf16DecodePlan {
     fft_plan: FftDit16Plan,
 }
 
+#[cfg(not(feature = "std"))]
+const SPARSE_LOCATOR_MAX_WORK_SIZE: usize = 256;
+#[cfg(not(feature = "std"))]
+const SPARSE_LOCATOR_MAX_TERMS: usize = 16;
+
+// The locator is an XOR convolution of the erasure indicator with the log
+// table. The Walsh transform is its own inverse up to a factor of 65,536,
+// which is 1 modulo 65,535. For small erasure sets, sum the relevant log-table
+// entries directly instead of performing two full transforms.
+//
+// Only indices below work_size are used by recovery. The table value at zero
+// and the transform may represent modular zero as 65,535; normalizing it to 0
+// is equivalent for the GF16 scaling operations that consume these values.
+#[cfg(not(feature = "std"))]
+fn sparse_error_locs16(
+    missing_parity: &[usize],
+    missing_data: &[usize],
+    driver: &LeopardGf16DecodeDriver,
+    tables: &LeopardGf16Tables,
+) -> [u16; ORDER16] {
+    debug_assert!(
+        missing_parity.len() + missing_data.len() + (driver.m - driver.parity_shards)
+            <= SPARSE_LOCATOR_MAX_TERMS
+    );
+    let mut locs = [0u16; ORDER16];
+    for (i, out) in locs[..driver.work_size].iter_mut().enumerate() {
+        let mut sum = 0u32;
+        for &shard_idx in missing_parity {
+            sum += u32::from(tables.log_lut[i ^ (shard_idx - driver.data_shards)]);
+        }
+        for pos in driver.parity_shards..driver.m {
+            sum += u32::from(tables.log_lut[i ^ pos]);
+        }
+        for &shard_idx in missing_data {
+            sum += u32::from(tables.log_lut[i ^ (driver.m + shard_idx)]);
+        }
+        *out = (sum % MODULUS16 as u32) as u16;
+    }
+    locs
+}
+
 fn build_decode_plan(
     driver: &LeopardGf16DecodeDriver,
     present: &[bool],
@@ -234,7 +275,18 @@ fn build_decode_plan(
     missing_data: &[usize],
     tables: &LeopardGf16Tables,
 ) -> LeopardGf16DecodePlan {
+    #[cfg(feature = "std")]
     let err_locs = compute_error_locs16(missing_parity, missing_data, driver, tables);
+    // Cap direct work at 256 * 16 table lookups, including padded parity.
+    #[cfg(not(feature = "std"))]
+    let terms = missing_parity.len() + missing_data.len() + (driver.m - driver.parity_shards);
+    #[cfg(not(feature = "std"))]
+    let err_locs =
+        if driver.work_size <= SPARSE_LOCATOR_MAX_WORK_SIZE && terms <= SPARSE_LOCATOR_MAX_TERMS {
+            sparse_error_locs16(missing_parity, missing_data, driver, tables)
+        } else {
+            compute_error_locs16(missing_parity, missing_data, driver, tables)
+        };
 
     // input_count = m + last-present-data-index + 1 (matches Go's inputCount).
     let mut input_count = driver.m;
@@ -979,5 +1031,130 @@ mod decode_buffer_tests {
             assert!(buffers.retained_bytes() > MAX_CACHED_DECODE_BYTES);
         });
         DECODE_BUFFER_CACHE.with(|cache| assert!(cache.borrow().is_none()));
+    }
+}
+
+#[cfg(all(test, not(feature = "std")))]
+mod sparse_locator_tests {
+    use super::*;
+    use crate::{CodecFamily, CodecOptions, galois_8::ReedSolomon};
+    use alloc::{vec, vec::Vec};
+
+    #[test]
+    fn sparse_locator_matches_full_transform_for_varied_erasures() {
+        let tables = init_leopard_gf16_tables();
+        for (data, parity) in [
+            (1usize, 1usize),
+            (4, 2),
+            (10, 4),
+            (16, 8),
+            (20, 3),
+            (63, 5),
+            (150, 3),
+            (250, 3),
+        ] {
+            let driver = build_leopard_gf16_decode_driver(data, parity, 64).unwrap();
+            for seed in 0..12usize {
+                let missing = 1 + seed % parity.min(4);
+                let mut positions: Vec<usize> = (0..data + parity).collect();
+                for j in 0..missing {
+                    let pick =
+                        j + (seed.wrapping_mul(7919).wrapping_add(j * 101)) % (positions.len() - j);
+                    positions.swap(j, pick);
+                }
+                let mut missing_data = vec![];
+                let mut missing_parity = vec![];
+                for &idx in &positions[..missing] {
+                    if idx < data {
+                        missing_data.push(idx);
+                    } else {
+                        missing_parity.push(idx);
+                    }
+                }
+                let got = sparse_error_locs16(&missing_parity, &missing_data, &driver, tables);
+                let expected =
+                    compute_error_locs16(&missing_parity, &missing_data, &driver, tables);
+                for i in 0..driver.work_size {
+                    assert_eq!(
+                        u32::from(got[i]) % MODULUS16 as u32,
+                        u32::from(expected[i]) % MODULUS16 as u32,
+                        "data={data}, parity={parity}, seed={seed}, i={i}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn plan_selector_preserves_values_at_thresholds() {
+        let tables = init_leopard_gf16_tables();
+        for (data, parity, missing) in [
+            (224usize, 17usize, 1usize),
+            (224, 17, 2),
+            (225, 17, 1),
+            (32, 16, 16),
+            (248, 8, 8),
+        ] {
+            let driver = build_leopard_gf16_decode_driver(data, parity, 64).unwrap();
+            let missing_data: Vec<usize> = (0..missing).map(|i| i * 3 % data).collect();
+            let missing_parity: Vec<usize> = vec![];
+            let mut present = vec![true; data + parity];
+            for &i in &missing_data {
+                present[i] = false;
+            }
+            let plan = build_decode_plan(&driver, &present, &missing_parity, &missing_data, tables);
+            let expected = compute_error_locs16(&missing_parity, &missing_data, &driver, tables);
+            for i in 0..driver.work_size {
+                assert_eq!(
+                    u32::from(plan.err_locs[i]) % MODULUS16 as u32,
+                    u32::from(expected[i]) % MODULUS16 as u32,
+                    "data={data}, parity={parity}, missing={missing}, i={i}"
+                );
+            }
+            let terms = missing + driver.m - parity;
+            if driver.work_size <= SPARSE_LOCATOR_MAX_WORK_SIZE && terms <= SPARSE_LOCATOR_MAX_TERMS
+            {
+                assert!(plan.err_locs[driver.work_size..].iter().all(|&v| v == 0));
+            } else {
+                assert_eq!(plan.err_locs.as_slice(), expected.as_slice());
+            }
+        }
+    }
+
+    #[test]
+    fn canonical_zero_preserves_recovered_parity() {
+        let tables = init_leopard_gf16_tables();
+        let driver = build_leopard_gf16_decode_driver(224, 32, 64).unwrap();
+        let codec = ReedSolomon::with_options(
+            224,
+            32,
+            CodecOptions::builder()
+                .codec_family(CodecFamily::LeopardGF16)
+                .max_parallel_jobs(1)
+                .build(),
+        )
+        .unwrap();
+        let mut shards: Vec<Vec<u8>> = (0..256)
+            .map(|i| (0..64).map(|j| (i * 31 + j * 17 + j / 11) as u8).collect())
+            .collect();
+        codec.encode(&mut shards).unwrap();
+        // Index zero is respectively missing and present in these cases, so
+        // output inverse scaling and present-input scaling both exercise the
+        // alternative representation of zero.
+        for missing_parity in [[224usize, 225], [226, 227]] {
+            let full = compute_error_locs16(&missing_parity, &[], &driver, tables);
+            let sparse = sparse_error_locs16(&missing_parity, &[], &driver, tables);
+            assert_eq!(full[0], MODULUS16 as u16);
+            assert_eq!(sparse[0], 0);
+            let mut missing: Vec<Option<Vec<u8>>> = shards.iter().cloned().map(Some).collect();
+            for idx in missing_parity {
+                missing[idx] = None;
+            }
+            codec.reconstruct(&mut missing).unwrap();
+            assert_eq!(
+                missing,
+                shards.iter().cloned().map(Some).collect::<Vec<_>>()
+            );
+        }
     }
 }
