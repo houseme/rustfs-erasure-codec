@@ -5,8 +5,10 @@ a 65,536-element Walsh–Hadamard convolution. The transform cost dominates
 small-shard recovery even when only a few shards are missing. The plan builder
 now uses direct sparse evaluation when its work size is at most 256 and the
 number of erased plus padded parity positions is at most 16. The original full
-transform remains the fallback; std builds retain their existing plan path.
-Public APIs, target publication behavior and shard bytes are unchanged.
+transform remains the fallback. At this change, std builds retained their
+existing plan path; the [std follow-up](gf16-std-sparse-locator-2026-11-01.md)
+extends the same bounded calculation to std cache misses. Public APIs, target
+publication behavior and shard bytes are unchanged.
 
 ## Calculation and bounds
 
@@ -133,4 +135,6 @@ CARGO_NET_OFFLINE=true RUSTUP_TOOLCHAIN=nightly cargo fuzz run \
   -- -max_total_time=30 -artifact_prefix=/tmp/rse-sparse-artifacts/
 ```
 
-Both probes depend on the old and current codecs with default features disabled.
+By default both probes depend on the old and current codecs with default
+features disabled. The later [std follow-up](gf16-std-sparse-locator-2026-11-01.md)
+adds an optional `std-simd` fuzz feature without changing the default.
