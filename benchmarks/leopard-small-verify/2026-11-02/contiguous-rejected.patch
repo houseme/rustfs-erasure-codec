@@ -1,0 +1,37 @@
+--- a/src/core/verify.rs
++++ b/src/core/verify.rs
+@@ -9,6 +9,9 @@
+ use crate::errors::Error;
+ 
+ use super::{ReedSolomon, VERIFY_INLINE_SCRATCH_ELEMS, VerifyWorkspace};
++
++const LEOPARD_VERIFY_INLINE_ELEMENTS: usize = 512;
++const LEOPARD_VERIFY_INLINE_SHARDS: usize = 8;
+ 
+ impl<F: Field> ReedSolomon<F> {
+     fn check_classic_parity<T, U>(
+@@ -60,6 +63,24 @@
+     /// Verify Leopard parity shards by re-encoding and comparing.
+     fn verify_leopard<T: AsRef<[F::Elem]>>(&self, slices: &[T]) -> Result<bool, Error> {
+         let slice_len = slices[0].as_ref().len();
++        let count = self.parity_shard_count();
++        // A safe AsRef implementation may return an empty view after the outer
++        // validation; keep that case on the existing path (chunks_mut forbids zero).
++        if core::mem::size_of::<F::Elem>() == 1
++            && count <= LEOPARD_VERIFY_INLINE_SHARDS
++            && slice_len != 0
++            && let Some(total) = count.checked_mul(slice_len)
++            && total <= LEOPARD_VERIFY_INLINE_ELEMENTS
++        {
++            let mut scratch: SmallVec<[F::Elem; LEOPARD_VERIFY_INLINE_ELEMENTS]> = SmallVec::new();
++            // Match the old path's one zero() call per parity shard.
++            for _ in 0..count {
++                scratch.extend(core::iter::repeat_n(F::zero(), slice_len));
++            }
++            let mut parity: SmallVec<[&mut [F::Elem]; LEOPARD_VERIFY_INLINE_SHARDS]> =
++                scratch.chunks_mut(slice_len).collect();
++            return self.verify_leopard_with_buffer(slices, &mut parity);
++        }
+         let mut parity_bufs: Vec<Vec<F::Elem>> = (0..self.parity_shard_count())
+             .map(|_| vec![F::zero(); slice_len])
+             .collect();

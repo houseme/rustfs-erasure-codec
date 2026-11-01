@@ -1,0 +1,11 @@
+--- a/src/core/verify.rs
++++ b/src/core/verify.rs
+@@ -60,7 +60,7 @@
+     /// Verify Leopard parity shards by re-encoding and comparing.
+     fn verify_leopard<T: AsRef<[F::Elem]>>(&self, slices: &[T]) -> Result<bool, Error> {
+         let slice_len = slices[0].as_ref().len();
+-        let mut parity_bufs: Vec<Vec<F::Elem>> = (0..self.parity_shard_count())
++        let mut parity_bufs: SmallVec<[Vec<F::Elem>; 8]> = (0..self.parity_shard_count())
+             .map(|_| vec![F::zero(); slice_len])
+             .collect();
+         self.verify_leopard_with_buffer(slices, &mut parity_bufs)

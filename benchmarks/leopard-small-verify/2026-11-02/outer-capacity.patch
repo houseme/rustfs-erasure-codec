@@ -1,0 +1,13 @@
+--- a/src/core/verify.rs
++++ b/src/core/verify.rs
+@@ -61,7 +61,7 @@
+     fn verify_leopard<T: AsRef<[F::Elem]>>(&self, slices: &[T]) -> Result<bool, Error> {
+         let slice_len = slices[0].as_ref().len();
+-        let mut parity_bufs: Vec<Vec<F::Elem>> = (0..self.parity_shard_count())
+-            .map(|_| vec![F::zero(); slice_len])
+-            .collect();
++        let parity_count = self.parity_shard_count();
++        let mut parity_bufs: SmallVec<[Vec<F::Elem>; 8]> = SmallVec::with_capacity(parity_count);
++        parity_bufs.extend((0..parity_count).map(|_| vec![F::zero(); slice_len]));
+         self.verify_leopard_with_buffer(slices, &mut parity_bufs)
+     }
