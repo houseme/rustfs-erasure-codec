@@ -1,0 +1,34 @@
+--- a/src/core/verify.rs
++++ b/src/core/verify.rs
+@@ -82,9 +82,29 @@
+         let to_check = &slices[self.data_shard_count()..];
+ 
+         let scratch_len = self.parity_shard_count() * slice_len;
++        let one_row_at_a_time =
++            slice_len <= VERIFY_INLINE_SCRATCH_ELEMS && scratch_len > VERIFY_INLINE_SCRATCH_ELEMS;
++        let capacity = if one_row_at_a_time {
++            slice_len
++        } else {
++            scratch_len
++        };
+         let mut scratch: SmallVec<[F::Elem; VERIFY_INLINE_SCRATCH_ELEMS]> =
+-            SmallVec::with_capacity(scratch_len);
+-        scratch.resize(scratch_len, F::zero());
++            SmallVec::with_capacity(capacity);
++        scratch.resize(capacity, F::zero());
++        if one_row_at_a_time {
++            use crate::matrix::MatrixRows;
++            let rows = self.get_parity_rows();
++            for (index, actual) in to_check.iter().enumerate() {
++                let row = [rows.row(index)];
++                let mut output = [scratch.as_mut_slice()];
++                self.code_some_slices(&row, data, &mut output);
++                if scratch.as_slice() != actual.as_ref() {
++                    return Ok(false);
++                }
++            }
++            return Ok(true);
++        }
+         let mut buffer_views: SmallVec<[&mut [F::Elem]; 32]> =
+             SmallVec::with_capacity(self.parity_shard_count());
+         buffer_views.extend(scratch.chunks_mut(slice_len));

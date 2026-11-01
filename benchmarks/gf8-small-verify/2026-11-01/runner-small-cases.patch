@@ -1,0 +1,59 @@
+--- a/run_streaming.py
++++ b/run_streaming.py
+@@ -16,11 +16,11 @@
+ import time
+ 
+ STAGES = ("A1", "B1", "B2", "A2")
+-OFF_TARGET_CPUS = tuple(range(1, 8)) + (13, 14, 15)
++OFF_TARGET_CPUS = tuple(range(1, 8)) + tuple(range(9, 16))
+ EXPECTED_CASES = {
+-    "retained_recovery_row/10x4/1048576/missing0",
+-    "retained_recovery_row/10x4/1048577/missing3",
+-    "retained_recovery_row/4x2/1048576/missing0",
++    f"small_verify/{data}x{parity}/{length}"
++    for data, parity in ((4, 2), (10, 4))
++    for length in (1024, 2048, 2049, 4096, 4097)
+ }
+ 
+ 
+@@ -47,8 +47,8 @@
+         busy += ticks - delta[3] - delta[4]
+     if total <= 0:
+         raise GateError("empty CPU counter interval")
+-    # Across ten off-target CPUs, 5% aggregate equals half a busy CPU.
+-    loaded = busy * 20 >= total
++    # Across fourteen off-target CPUs, 1/28 aggregate equals half a busy CPU.
++    loaded = busy * 28 >= total
+     return busy / total, streak + 1 if loaded else 0
+ 
+ 
+@@ -56,9 +56,9 @@
+     """Reject malformed samples before applying the prespecified 5% gates."""
+     if row.get("case_id") not in EXPECTED_CASES:
+         raise GateError("unexpected case")
+-    if type(row.get("jobs")) is not int or row["jobs"] != 4:
++    if type(row.get("jobs")) is not int or row["jobs"] != 1:
+         raise GateError("unexpected parallel policy")
+-    if type(row.get("available_parallelism")) is not int or row["available_parallelism"] != 5:
++    if type(row.get("available_parallelism")) is not int or row["available_parallelism"] != 1:
+         raise GateError("unexpected parallel policy")
+     if type(row.get("chunk_len")) is not int or row["chunk_len"] <= 0:
+         raise GateError("invalid chunk length")
+@@ -251,7 +251,7 @@
+     for key in list(env):
+         if key.startswith(("RSE_", "RS_")):
+             env.pop(key)
+-    env.update(RAYON_NUM_THREADS="4", RSE_DIAG_EXPECT_BACKEND="rust-avx2")
++    env.update(RAYON_NUM_THREADS="1")
+     thread = threading.Thread(target=monitor)
+     thread.start()
+     candidate_results = []
+@@ -273,7 +273,7 @@
+                     with lock:
+                         if bad.is_set():
+                             raise GateError("resource monitor rejected the run")
+-                        proc = subprocess.Popen(["taskset", "-c", "8-12", binary], env=env, text=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, bufsize=1)
++                        proc = subprocess.Popen(["taskset", "-c", "8", binary], env=env, text=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, bufsize=1)
+                         current[0] = proc
+                     try:
+                         def accept(row, a, b, delta):

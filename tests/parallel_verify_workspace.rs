@@ -305,6 +305,100 @@ fn repeated_workspace_verification_matches_caller_buffer_allocation_cost() {
 }
 
 #[test]
+fn small_classic_verify_keeps_reusable_scratch_and_corruption_contracts() {
+    struct ThreeByteField;
+    impl ThreeByteField {
+        fn wrap(value: u8) -> [u8; 3] {
+            [value, value.rotate_left(1), value.rotate_left(3)]
+        }
+    }
+    impl Field for ThreeByteField {
+        const ORDER: usize = 256;
+        type Elem = [u8; 3];
+
+        fn add(a: Self::Elem, b: Self::Elem) -> Self::Elem {
+            Self::wrap(rustfs_erasure_codec::galois_8::Field::add(a[0], b[0]))
+        }
+        fn mul(a: Self::Elem, b: Self::Elem) -> Self::Elem {
+            Self::wrap(rustfs_erasure_codec::galois_8::Field::mul(a[0], b[0]))
+        }
+        fn div(a: Self::Elem, b: Self::Elem) -> Self::Elem {
+            Self::wrap(rustfs_erasure_codec::galois_8::Field::div(a[0], b[0]))
+        }
+        fn exp(value: Self::Elem, n: usize) -> Self::Elem {
+            Self::wrap(rustfs_erasure_codec::galois_8::Field::exp(value[0], n))
+        }
+        fn zero() -> Self::Elem {
+            Self::wrap(rustfs_erasure_codec::galois_8::Field::zero())
+        }
+        fn one() -> Self::Elem {
+            Self::wrap(rustfs_erasure_codec::galois_8::Field::one())
+        }
+        fn nth_internal(n: usize) -> Self::Elem {
+            Self::wrap(rustfs_erasure_codec::galois_8::Field::nth_internal(n))
+        }
+    }
+
+    fn check<F: Field>() {
+        for mode in [
+            MatrixMode::Vandermonde,
+            MatrixMode::Cauchy,
+            MatrixMode::JerasureLike,
+            MatrixMode::Custom,
+        ] {
+            let options = CodecOptions::builder().matrix_mode(mode).build();
+            let codec = if mode == MatrixMode::Custom {
+                let reference = ReedSolomon::<F>::new(4, 2).unwrap();
+                let rows: Vec<_> = (4..6)
+                    .map(|row| {
+                        reference
+                            .encoding_format()
+                            .matrix_row(row)
+                            .unwrap()
+                            .to_vec()
+                    })
+                    .collect();
+                ReedSolomon::<F>::with_custom_matrix(4, 2, &rows, options).unwrap()
+            } else {
+                ReedSolomon::<F>::with_options(4, 2, options).unwrap()
+            };
+            for len in [2047, 2048, 2049, 4096] {
+                let mut shards = encoded(&codec, len);
+                let mut scratch = vec![vec![F::zero(); len]; 2];
+                assert!(codec.verify(&shards).unwrap());
+                assert!(codec.verify_with_buffer(&shards, &mut scratch).unwrap());
+
+                let (valid, ordinary) = measure(|| codec.verify(&shards));
+                assert!(valid.unwrap());
+                let (valid, reusable) = measure(|| codec.verify_with_buffer(&shards, &mut scratch));
+                assert!(valid.unwrap());
+                assert_eq!(reusable, (0, 0), "reusable buffer at length {len}");
+                println!(
+                    "SMALL_VERIFY_RESOURCE field_order={} mode={mode:?} elements={len} ordinary_calls={} ordinary_bytes={} reusable_calls={} reusable_bytes={}",
+                    F::ORDER,
+                    ordinary.0,
+                    ordinary.1,
+                    reusable.0,
+                    reusable.1
+                );
+
+                for row in [4, 5] {
+                    for offset in [0, len - 1] {
+                        shards[row][offset] = F::add(shards[row][offset], F::one());
+                        assert!(!codec.verify(&shards).unwrap());
+                        assert!(!codec.verify_with_buffer(&shards, &mut scratch).unwrap());
+                        shards[row][offset] = F::add(shards[row][offset], F::one());
+                    }
+                }
+            }
+        }
+    }
+    check::<rustfs_erasure_codec::galois_8::Field>();
+    check::<rustfs_erasure_codec::galois_16::Field>();
+    check::<ThreeByteField>();
+}
+
+#[test]
 fn fast_single_parity_verification_reuses_the_classic_inline_scratch_budget() {
     fn check<F: Field>() -> bool
     where
