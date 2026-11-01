@@ -1,0 +1,37 @@
+--- a/run_streaming.py
++++ b/run_streaming.py
+@@ -113,6 +113,15 @@
+     if not first * 0.95 <= second <= first * 1.05:
+         raise GateError(f"cross-round drift exceeds 5%: {(second / first - 1) * 100:.2f}%")
+     return (second / first - 1) * 100
++
++
++def check_preflight_levels(references, case, level):
++    """Require both validated preflight A levels to match a candidate A level."""
++    levels = references.get(case)
++    if not isinstance(levels, list) or len(levels) != 2:
++        raise GateError("missing validated preflight levels")
++    for reference in levels:
++        check_cross_round(reference, level)
+ 
+ 
+ def stop_process(proc):
+@@ -247,6 +256,7 @@
+     thread.start()
+     candidate_results = []
+     round_levels = {"baseline": {}, "candidate": {}}
++    preflight_a_levels = {}
+     phase = "baseline"
+     try:
+         if not ready.wait(timeout=5) or bad.is_set():
+@@ -277,6 +287,10 @@
+                                 cross_a = check_cross_round(previous[0], levels[0])
+                                 cross_b = check_cross_round(previous[1], levels[1])
+                                 cross = f" cross_A={cross_a:.2f}% cross_B={cross_b:.2f}%"
++                            if baseline:
++                                preflight_a_levels.setdefault(case, []).append(levels[0])
++                            else:
++                                check_preflight_levels(preflight_a_levels, case, levels[0])
+                             print(phase, run, case, f"A={a:.2f}% B={b:.2f}%{cross}", flush=True)
+                             if not baseline:
+                                 candidate_results.append((run, case, delta))
