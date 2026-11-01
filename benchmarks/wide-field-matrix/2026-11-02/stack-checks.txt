@@ -1,0 +1,5 @@
+Local Apple Silicon release test; RUST_MIN_STACK unset:
+1024-element baseline: the wide-field test aborted with stack overflow during codec construction.
+256-element prototype: the same wide-field test passed.
+512-element prototype: the same wide-field test passed.
+The tested field element occupies 256 bytes. These results do not measure runtime stack high-water.

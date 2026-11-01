@@ -1,0 +1,8 @@
+--- a/src/matrix.rs
++++ b/src/matrix.rs
+@@ -42,3 +42,2 @@
+-    // Row-major flattened storage. The inline SmallVec capacity keeps matrices
+-    // up to 32x32 on the stack before spilling to the heap.
+-    data: SmallVec<[F::Elem; 1024]>,
++    // Row-major flattened storage; up to 512 elements remain inline.
++    data: SmallVec<[F::Elem; 512]>,
