@@ -31,9 +31,14 @@ fn vector(name: &str, role: &str, stage: &str, indent: usize) -> String {
         " ".repeat(indent)
     )
 }
-fn locator(stage: &str) -> String {
+fn locator(stage: &str, borrowed: bool) -> String {
+    let (capacity, storage) = if borrowed {
+        ("None", "borrowed")
+    } else {
+        ("Some(err_locs.len())", "inline")
+    };
     format!(
-        "    {LIB}span(\"leopard_locator\",\"{stage}\",0,err_locs.as_ptr(),err_locs.len(),Some(err_locs.len()),\"inline\",true);\n"
+        "    {LIB}span(\"leopard_locator\",\"{stage}\",0,err_locs.as_ptr(),err_locs.len(),{capacity},\"{storage}\",true);\n"
     )
 }
 fn gf8(text: &str) -> Result<String> {
@@ -46,7 +51,7 @@ fn gf8(text: &str) -> Result<String> {
         let marker = "    let mut offset = 0usize;";
         edit.replace(
             marker,
-            &(locator("leased")
+            &(locator("leased", false)
                 + "    work.__rse_decode_view(\"leased\",0);\n"
                 + &vector("scratch", "leopard_scratch", "leased", 4)
                 + marker),
@@ -72,7 +77,7 @@ fn gf8(text: &str) -> Result<String> {
         edit.replace(
             marker,
             &("\n".to_owned()
-                + &locator("returned")
+                + &locator("returned", false)
                 + "    work.__rse_decode_view(\"returned\",0);\n"
                 + &vector("scratch", "leopard_scratch", "returned", 4)
                 + marker),
@@ -148,7 +153,7 @@ fn gf16(text: &str) -> Result<String> {
         let marker = "    // Step 1:";
         edit.replace(
             marker,
-            &(locator("chunk_ready")
+            &(locator("chunk_ready", true)
                 + "    work.__rse_decode_view(\"chunk_ready\",size);\n"
                 + &vector("scratch", "leopard_scratch", "chunk_ready", 4)
                 + marker),
@@ -158,7 +163,7 @@ fn gf16(text: &str) -> Result<String> {
         edit.replace(
             marker,
             &("\n".to_owned()
-                + &locator("chunk_coded")
+                + &locator("chunk_coded", true)
                 + "    work.__rse_decode_view(\"chunk_coded\",size);\n"
                 + &vector("scratch", "leopard_scratch", "chunk_coded", 4)
                 + marker),
@@ -243,6 +248,10 @@ mod tests {
         let current = source::read(root.join(FILES[3])).unwrap();
         let alias = "let out_scratch = &mut *scratch;";
         let observed = gf16(&current).unwrap();
+        assert_eq!(
+            observed.matches("err_locs.len(),None,\"borrowed\"").count(),
+            2
+        );
         assert!(!observed.contains("buffers.out_scratch"));
         assert_eq!(observed.matches("span(\"leopard_out_scratch\"").count(), 2);
         // Current serial code uses the no-std-aware helper while the parallel

@@ -172,6 +172,40 @@ fn legacy_all_shard_decode_owners_are_distinct_from_missing_only_owners() {
 }
 
 #[test]
+fn leopard_locators_validate_current_borrowed_prefix_and_legacy_array() {
+    let case = "leopard_gf16:10:4:65600";
+    let current = Contract::parse("decoder", case, false).unwrap();
+    let legacy = Contract::parse("decoder", case, true).unwrap();
+    let fields = json!({"role":"leopard_locator","stage":"chunk_ready","index":0,
+        "len":14,"capacity":null,"element_size":2,"storage":"borrowed","occupied":true,"present":null});
+    current.internal(&internal(fields.clone())).unwrap();
+    assert!(legacy.internal(&internal(fields.clone())).is_err());
+    let mut old = fields.clone();
+    old["len"] = json!(65536);
+    legacy.internal(&internal(old.clone())).unwrap();
+    assert!(current.internal(&internal(old)).is_err());
+    for (key, value) in [
+        ("len", json!(13)),
+        ("capacity", json!(14)),
+        ("element_size", json!(1)),
+        ("storage", json!("inline")),
+        ("stage", json!("unknown")),
+        ("index", json!(1)),
+    ] {
+        let mut bad = fields.clone();
+        bad[key] = value;
+        assert!(current.internal(&internal(bad)).is_err(), "{key}");
+    }
+    let gf8 = Contract::parse("decoder", "leopard_gf8:10:4:65600", false).unwrap();
+    let mut gf8_fields = fields;
+    gf8_fields["len"] = json!(256);
+    gf8_fields["capacity"] = json!(256);
+    gf8_fields["element_size"] = json!(1);
+    gf8_fields["storage"] = json!("inline");
+    gf8.internal(&internal(gf8_fields)).unwrap();
+}
+
+#[test]
 fn leopard_gf16_public_bytes_and_internal_lanes_have_different_widths() {
     let contract = Contract::parse("decoder", "leopard_gf16:10:4:65600", false).unwrap();
     let mut fields = json!({"role":"matrix","capacity":100,"len":100,"element_size":1,"stage":"constructed","index":0,"present":null,"occupied":true,"storage":"heap"});

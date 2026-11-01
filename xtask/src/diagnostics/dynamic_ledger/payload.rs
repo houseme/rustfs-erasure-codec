@@ -65,6 +65,7 @@ struct Group {
 }
 pub(super) struct Contract {
     data: u64,
+    parity: u64,
     size: u64,
     width: u64,
     lane_width: u64,
@@ -177,6 +178,7 @@ impl Contract {
         }
         Ok(Self {
             data,
+            parity,
             size,
             width: supplement(case).map_or(1, |s| s.width),
             lane_width: supplement(case).map_or(1, |s| s.lane_width),
@@ -240,16 +242,31 @@ impl Contract {
                 return Err("non-work view contains lane metadata".into());
             }
             if role.starts_with("leopard_") {
-                if !self.leopard || v.present.is_some() || !v.occupied || v.capacity.is_none() {
+                if !self.leopard
+                    || v.present.is_some()
+                    || !v.occupied
+                    || v.capacity.is_none() && !(role == "leopard_locator" && self.lane_width == 2)
+                {
                     return Err("invalid internal decoder owner".into());
                 }
                 match role {
                     "leopard_locator" => {
-                        let length = if self.lane_width == 2 { 65536 } else { 256 };
+                        // GF16 chunk observers receive a borrowed locator slice;
+                        // the current std plan holds only the active prefix.
+                        let (length, capacity, storage) = if self.lane_width == 2 {
+                            let length = if self.legacy {
+                                65536
+                            } else {
+                                self.data + self.parity.next_power_of_two()
+                            };
+                            (length, None, "borrowed")
+                        } else {
+                            (256, Some(256), "inline")
+                        };
                         if v.len != length
-                            || v.capacity != Some(length)
+                            || v.capacity != capacity
                             || v.element_size != self.lane_width
-                            || v.storage != "inline"
+                            || v.storage != storage
                             || !matches!(
                                 v.stage.as_str(),
                                 "leased" | "returned" | "chunk_ready" | "chunk_coded"

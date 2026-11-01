@@ -8,3 +8,7 @@ extend-ignore-re = [
 [default.extend-words]
 seh = "seh"
 flate = "flate"
+
+[files]
+# Literal AArch64 disassembly contains the `ands` instruction mnemonic.
+extend-exclude = ["benchmarks/gf8-small-verify/2026-11-01/stack-screen/prologues.txt"]
