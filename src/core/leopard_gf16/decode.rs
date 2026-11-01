@@ -227,9 +227,7 @@ pub(crate) struct LeopardGf16DecodePlan {
     fft_plan: FftDit16Plan,
 }
 
-#[cfg(not(feature = "std"))]
 const SPARSE_LOCATOR_MAX_WORK_SIZE: usize = 256;
-#[cfg(not(feature = "std"))]
 const SPARSE_LOCATOR_MAX_TERMS: usize = 16;
 
 // The locator is an XOR convolution of the erasure indicator with the log
@@ -240,7 +238,9 @@ const SPARSE_LOCATOR_MAX_TERMS: usize = 16;
 // Only indices below work_size are used by recovery. The table value at zero
 // and the transform may represent modular zero as 65,535; normalizing it to 0
 // is equivalent for the GF16 scaling operations that consume these values.
-#[cfg(not(feature = "std"))]
+// In std this is used only while building a cache-miss plan. Keep it out of
+// the cache lookup body to avoid expanding frequently executed dispatch code.
+#[cfg_attr(feature = "std", inline(never))]
 fn sparse_error_locs16(
     missing_parity: &[usize],
     missing_data: &[usize],
@@ -275,15 +275,37 @@ fn build_decode_plan(
     missing_data: &[usize],
     tables: &LeopardGf16Tables,
 ) -> LeopardGf16DecodePlan {
-    #[cfg(feature = "std")]
-    let err_locs = compute_error_locs16(missing_parity, missing_data, driver, tables);
     // Cap direct work at 256 * 16 table lookups, including padded parity.
-    #[cfg(not(feature = "std"))]
     let terms = missing_parity.len() + missing_data.len() + (driver.m - driver.parity_shards);
-    #[cfg(not(feature = "std"))]
     let err_locs =
         if driver.work_size <= SPARSE_LOCATOR_MAX_WORK_SIZE && terms <= SPARSE_LOCATOR_MAX_TERMS {
-            sparse_error_locs16(missing_parity, missing_data, driver, tables)
+            #[cfg(feature = "std")]
+            {
+                // Both zero encodings mean identity. Use the sentinel for
+                // present inputs to select direct conversion, and retain zero
+                // for missing outputs so inverse scaling selects it as well.
+                let mut locs = sparse_error_locs16(missing_parity, missing_data, driver, tables);
+                for (i, &is_present) in present.iter().take(driver.data_shards).enumerate() {
+                    if is_present && locs[driver.m + i] == 0 {
+                        locs[driver.m + i] = MODULUS16 as u16;
+                    }
+                }
+                for (i, &is_present) in present
+                    .iter()
+                    .skip(driver.data_shards)
+                    .take(driver.parity_shards)
+                    .enumerate()
+                {
+                    if is_present && locs[i] == 0 {
+                        locs[i] = MODULUS16 as u16;
+                    }
+                }
+                locs
+            }
+            #[cfg(not(feature = "std"))]
+            {
+                sparse_error_locs16(missing_parity, missing_data, driver, tables)
+            }
         } else {
             compute_error_locs16(missing_parity, missing_data, driver, tables)
         };
@@ -1034,7 +1056,7 @@ mod decode_buffer_tests {
     }
 }
 
-#[cfg(all(test, not(feature = "std")))]
+#[cfg(test)]
 mod sparse_locator_tests {
     use super::*;
     use crate::{CodecFamily, CodecOptions, galois_8::ReedSolomon};
@@ -1074,10 +1096,14 @@ mod sparse_locator_tests {
                 let got = sparse_error_locs16(&missing_parity, &missing_data, &driver, tables);
                 let expected =
                     compute_error_locs16(&missing_parity, &missing_data, &driver, tables);
-                for i in 0..driver.work_size {
+                for (i, (&actual, &reference)) in got[..driver.work_size]
+                    .iter()
+                    .zip(&expected[..driver.work_size])
+                    .enumerate()
+                {
                     assert_eq!(
-                        u32::from(got[i]) % MODULUS16 as u32,
-                        u32::from(expected[i]) % MODULUS16 as u32,
+                        u32::from(actual) % MODULUS16 as u32,
+                        u32::from(reference) % MODULUS16 as u32,
                         "data={data}, parity={parity}, seed={seed}, i={i}"
                     );
                 }
@@ -1104,10 +1130,14 @@ mod sparse_locator_tests {
             }
             let plan = build_decode_plan(&driver, &present, &missing_parity, &missing_data, tables);
             let expected = compute_error_locs16(&missing_parity, &missing_data, &driver, tables);
-            for i in 0..driver.work_size {
+            for (i, (&actual, &reference)) in plan.err_locs[..driver.work_size]
+                .iter()
+                .zip(&expected[..driver.work_size])
+                .enumerate()
+            {
                 assert_eq!(
-                    u32::from(plan.err_locs[i]) % MODULUS16 as u32,
-                    u32::from(expected[i]) % MODULUS16 as u32,
+                    u32::from(actual) % MODULUS16 as u32,
+                    u32::from(reference) % MODULUS16 as u32,
                     "data={data}, parity={parity}, missing={missing}, i={i}"
                 );
             }
@@ -1146,6 +1176,16 @@ mod sparse_locator_tests {
             let sparse = sparse_error_locs16(&missing_parity, &[], &driver, tables);
             assert_eq!(full[0], MODULUS16 as u16);
             assert_eq!(sparse[0], 0);
+            #[cfg(feature = "std")]
+            {
+                let mut present = vec![true; 256];
+                for &idx in &missing_parity {
+                    present[idx] = false;
+                }
+                let plan = build_decode_plan(&driver, &present, &missing_parity, &[], tables);
+                let expected = if present[224] { MODULUS16 as u16 } else { 0 };
+                assert_eq!(plan.err_locs[0], expected);
+            }
             let mut missing: Vec<Option<Vec<u8>>> = shards.iter().cloned().map(Some).collect();
             for idx in missing_parity {
                 missing[idx] = None;
@@ -1156,5 +1196,98 @@ mod sparse_locator_tests {
                 shards.iter().cloned().map(Some).collect::<Vec<_>>()
             );
         }
+    }
+}
+
+#[cfg(all(test, feature = "std"))]
+mod sparse_plan_concurrency_tests {
+    use crate::{CodecFamily, CodecOptions, ShardSlot, galois_8::ReedSolomon};
+    use std::sync::{Arc, Barrier};
+
+    #[test]
+    fn parallel_chunks_recover_exact_bytes_with_reused_sparse_plan() {
+        let pool = rayon::ThreadPoolBuilder::new()
+            .num_threads(4)
+            .build()
+            .unwrap();
+        pool.install(|| {
+            let codec = ReedSolomon::with_options(
+                10,
+                4,
+                CodecOptions::builder()
+                    .codec_family(CodecFamily::LeopardGF16)
+                    .max_parallel_jobs(4)
+                    .build(),
+            )
+            .unwrap();
+            let size = 65536 + 64;
+            let mut source: Vec<Vec<u8>> = (0..14)
+                .map(|i| {
+                    (0..size)
+                        .map(|j| (i * 31 + j * 17 + j / 11) as u8)
+                        .collect()
+                })
+                .collect();
+            codec.encode(&mut source).unwrap();
+            let mut slots: Vec<_> = source.iter().cloned().map(ShardSlot::new_present).collect();
+            for _ in 0..2 {
+                for slot in &mut slots[..4] {
+                    slot.mark_missing();
+                }
+                codec.reconstruct(&mut slots).unwrap();
+                assert!(
+                    slots
+                        .iter()
+                        .zip(&source)
+                        .all(|(slot, expected)| slot.is_present() && slot.as_inner() == expected)
+                );
+            }
+        });
+    }
+
+    #[test]
+    fn concurrent_cached_and_distinct_patterns_recover_exact_bytes() {
+        let codec = Arc::new(
+            ReedSolomon::with_options(
+                10,
+                4,
+                CodecOptions::builder()
+                    .codec_family(CodecFamily::LeopardGF16)
+                    .max_parallel_jobs(1)
+                    .build(),
+            )
+            .unwrap(),
+        );
+        let mut source: Vec<Vec<u8>> = (0..14)
+            .map(|i| (0..64).map(|j| (i * 31 + j * 17 + j / 11) as u8).collect())
+            .collect();
+        codec.encode(&mut source).unwrap();
+        let source = Arc::new(source);
+        let barrier = Arc::new(Barrier::new(24));
+        std::thread::scope(|scope| {
+            for worker in 0..24usize {
+                let codec = Arc::clone(&codec);
+                let source = Arc::clone(&source);
+                let barrier = Arc::clone(&barrier);
+                scope.spawn(move || {
+                    let mut slots: Vec<_> =
+                        source.iter().cloned().map(ShardSlot::new_present).collect();
+                    barrier.wait();
+                    for iteration in 0..4usize {
+                        if worker < 8 {
+                            slots[0].mark_missing();
+                        } else {
+                            let pattern = (worker - 8 + iteration * 7) % 40;
+                            slots[pattern % 10].mark_missing();
+                            slots[10 + pattern / 10].mark_missing();
+                        }
+                        codec.reconstruct(&mut slots).unwrap();
+                        assert!(slots.iter().zip(source.iter()).all(|(slot, expected)| {
+                            slot.is_present() && slot.as_inner() == expected
+                        }));
+                    }
+                });
+            }
+        });
     }
 }
