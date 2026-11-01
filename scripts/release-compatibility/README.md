@@ -42,6 +42,13 @@ Another 12 cases check 6+2 at 4095, 4096 and 4097 bytes with the same four
 matrix modes and bidirectional recovery. The currently unmerged 6+2 AVX2
 candidate requires a separate instrumented build to prove its path ran.
 
+Another 32 Classic 4+2 cases exercise ordinary and caller-buffer verification
+for GF8 and tower GF16 at 2047, 2048, 2049 and 4096 elements per shard, with
+all four matrix modes. Complete parity must match across releases; each
+version also verifies peer parity and rejects corruption at the first and last
+element of every data and parity shard. These functional checks do not measure
+latency or show which SIMD path ran.
+
 The optional resource report extends the original 15-case catalog with 30
 incremental-update cases: GF8/tower GF16, four lengths, zero/one/two changed shards,
 and a 33-parity boundary case for each field/change count. One existing command

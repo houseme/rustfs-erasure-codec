@@ -134,6 +134,109 @@ pub(super) fn six_plus_two(peer: Option<&[super::Snapshot]>) -> Vec<super::Snaps
     gf8_boundaries(peer, &[(6, 2)], &[4_095, 4_096, 4_097])
 }
 
+/// Exercise valid and corrupted Classic verification around the inline scratch boundary.
+pub(super) fn small_verify(peer: Option<&[super::Snapshot]>) -> Vec<super::Snapshot> {
+    fn field<F: Field>(
+        snapshots: &mut Vec<super::Snapshot>,
+        name: &str,
+        peer: Option<&[super::Snapshot]>,
+    ) where
+        F::Elem: super::ElementBytes,
+    {
+        for (mode_index, mode) in [
+            MatrixMode::Vandermonde,
+            MatrixMode::Cauchy,
+            MatrixMode::JerasureLike,
+            MatrixMode::Custom,
+        ]
+        .into_iter()
+        .enumerate()
+        {
+            let options = CodecOptions::builder()
+                .matrix_mode(mode)
+                .fast_one_parity(false)
+                .max_parallel_jobs(1)
+                .build();
+            let codec = if mode == MatrixMode::Custom {
+                let reference = ReedSolomon::<F>::new(4, 2).unwrap();
+                let basis: Vec<Vec<F::Elem>> = (0..4)
+                    .map(|i| {
+                        (0..4)
+                            .map(|j| if i == j { F::one() } else { F::zero() })
+                            .collect()
+                    })
+                    .collect();
+                let mut rows = vec![vec![F::zero(); 4]; 2];
+                reference.encode_sep(&basis, &mut rows).unwrap();
+                rows.reverse();
+                ReedSolomon::<F>::with_custom_matrix(4, 2, &rows, options).unwrap()
+            } else {
+                ReedSolomon::<F>::with_options(4, 2, options).unwrap()
+            };
+            for len in [2047, 2048, 2049, 4096] {
+                let id = format!("{name}/verify/4+2/matrix{mode_index}/{len}");
+                let mut shards: Vec<Vec<F::Elem>> = (0..6)
+                    .map(|row| {
+                        (0..len)
+                            .map(|offset| F::nth((row * 73 + offset * 19 + offset / 17) % F::ORDER))
+                            .collect()
+                    })
+                    .collect();
+                codec.encode(&mut shards).unwrap();
+                if let Some(peer) = peer {
+                    let reference = &peer[snapshots.len()];
+                    assert_eq!(reference.id, id);
+                    assert_eq!(reference.parity.len(), 2);
+                    for (destination, bytes) in shards[4..].iter_mut().zip(&reference.parity) {
+                        *destination = <F::Elem as super::ElementBytes>::from_bytes(bytes);
+                    }
+                }
+                let mut scratch = vec![vec![F::zero(); len]; 2];
+                assert!(codec.verify(&shards).unwrap(), "valid: {id}");
+                assert!(
+                    codec.verify_with_buffer(&shards, &mut scratch).unwrap(),
+                    "valid buffer: {id}"
+                );
+                for row in 0..6 {
+                    for offset in [0, len - 1] {
+                        shards[row][offset] = F::add(shards[row][offset], F::one());
+                        assert!(
+                            !codec.verify(&shards).unwrap(),
+                            "corruption: {id}, row={row}, offset={offset}"
+                        );
+                        assert!(
+                            !codec.verify_with_buffer(&shards, &mut scratch).unwrap(),
+                            "corruption buffer: {id}, row={row}, offset={offset}"
+                        );
+                        shards[row][offset] = F::add(shards[row][offset], F::one());
+                    }
+                }
+                snapshots.push(super::Snapshot {
+                    id,
+                    parity: shards[4..]
+                        .iter()
+                        .map(|shard| {
+                            let mut bytes =
+                                Vec::with_capacity(shard.len() * core::mem::size_of::<F::Elem>());
+                            for &element in shard {
+                                super::ElementBytes::append_bytes(element, &mut bytes);
+                            }
+                            bytes
+                        })
+                        .collect(),
+                });
+            }
+        }
+    }
+    if let Some(peer) = peer {
+        assert_eq!(peer.len(), 32);
+    }
+    let mut snapshots = Vec::with_capacity(32);
+    field::<rustfs_erasure_codec::galois_8::Field>(&mut snapshots, "gf8", peer);
+    field::<rustfs_erasure_codec::galois_16::Field>(&mut snapshots, "gf16", peer);
+    snapshots
+}
+
 fn gf8_boundaries(
     peer: Option<&[super::Snapshot]>,
     shapes: &[(usize, usize)],

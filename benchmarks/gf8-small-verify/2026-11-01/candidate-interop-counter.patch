@@ -1,0 +1,33 @@
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -393,3 +393,6 @@
+         }
+     }
+ }
++
++#[doc(hidden)]
++pub static RSE_EXPERIMENT_VERIFY_HITS: ::core::sync::atomic::AtomicUsize = ::core::sync::atomic::AtomicUsize::new(0);
+--- a/src/core/verify.rs
++++ b/src/core/verify.rs
+@@ -93,6 +93,7 @@
+             SmallVec::with_capacity(capacity);
+         scratch.resize(capacity, F::zero());
+         if one_row_at_a_time {
++            crate::RSE_EXPERIMENT_VERIFY_HITS.fetch_add(1, ::core::sync::atomic::Ordering::Relaxed);
+             use crate::matrix::MatrixRows;
+             let rows = self.get_parity_rows();
+             for (index, actual) in to_check.iter().enumerate() {
+--- a/scripts/release-compatibility/src/main.rs
++++ b/scripts/release-compatibility/src/main.rs
+@@ -114,7 +114,11 @@
+     assert_eq!(new::six_plus_two(Some(&old_six_two)), old_six_two);
+     println!("12 6+2 cases: exact parity and cross-decoding passed in both directions");
+     let old_small_verify = old::small_verify(None);
++    codec_new::RSE_EXPERIMENT_VERIFY_HITS.store(0, std::sync::atomic::Ordering::Relaxed);
+     let new_small_verify = new::small_verify(None);
++    let hits = codec_new::RSE_EXPERIMENT_VERIFY_HITS.load(std::sync::atomic::Ordering::Relaxed);
++    assert!(hits > 0, "experimental small verify path was not exercised");
++    println!("Experimental small verify path executed {hits} times");
+     assert_eq!(old_small_verify.len(), 32);
+     assert_eq!(
+         new_small_verify, old_small_verify,

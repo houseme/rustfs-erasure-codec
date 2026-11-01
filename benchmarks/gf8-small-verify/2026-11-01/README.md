@@ -28,6 +28,14 @@ Its local release integration suite passed all eight tests, including the
 expanded GF8/GF16/custom-field and matrix checks, and no-default-features build
 passed. Neither patch is active in production or accepted for performance.
 
+An additional disposable build applied `candidate-single-scratch.patch` and
+`candidate-interop-counter.patch`, together with the expanded release
+compatibility probe. On Apple Silicon, 32 GF8/GF16 small verification cases
+matched published 9.0.0 parity and rejected corruption in both directions.
+The counter observed 208 candidate-path entries during the new version's
+initial small-case pass; it is test-only and makes no performance claim. The
+counter patch assumes the expanded compatibility probe is already present.
+
 For native x86, `paired_probe.rs` uses the automatic SIMD backend, one visible
 CPU and one Rayon thread. It shares valid and corrupted input buffers, checks
 both codec copies, and tests 4+2 and 10+4 at 1,024, 2,048, 2,049, 4,096 and

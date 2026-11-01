@@ -113,6 +113,16 @@ fn main() {
     assert_eq!(old::six_plus_two(Some(&new_six_two)), new_six_two);
     assert_eq!(new::six_plus_two(Some(&old_six_two)), old_six_two);
     println!("12 6+2 cases: exact parity and cross-decoding passed in both directions");
+    let old_small_verify = old::small_verify(None);
+    let new_small_verify = new::small_verify(None);
+    assert_eq!(old_small_verify.len(), 32);
+    assert_eq!(
+        new_small_verify, old_small_verify,
+        "small verify parity compatibility"
+    );
+    assert_eq!(old::small_verify(Some(&new_small_verify)), new_small_verify);
+    assert_eq!(new::small_verify(Some(&old_small_verify)), old_small_verify);
+    println!("32 small GF8/GF16 cases: parity and corruption detection passed in both directions");
     let args: Vec<_> = std::env::args_os().skip(1).collect();
     if !args.is_empty() {
         assert!(
