@@ -81,3 +81,21 @@ first resource-monitor observation reported CPUs 0–15 but an active named
 competitor, so the runner refused to start. `continuation-a76/results/`
 contains the one observation and failure summary; no baseline or candidate
 case was recorded. The 2,049-element bias therefore remains unexplained.
+
+## Same-function baseline on refreshed source
+
+A later baseline-only attempt rebuilt the same non-inlined-function probe from
+committed source `616f5001a28873076a3eb91323b9775f0794cd8b`. The first round
+completed all ten cases. For 4+2 / 2,049 elements, its A/B level difference
+was approximately +0.01%, but the second round did not reach that case: its
+first 4+2 / 1,024-element case showed -16.28% A-level cross-round drift and the
+runner stopped. A post-hoc diagnostic of the recorded case also found -16.38%
+B-level drift. The whole two-round preflight is rejected and no candidate ran.
+
+`single-616f500/results-616f500/` preserves the original samples and monitor.
+Across 403 observations, CPUs remained 0–15, no named competitor was seen and
+the maximum off-target busy streak was one. This cannot exclude short
+interference or unobservable host effects. The within-round result and the
+prior dual-copy bias came from different builds and call structures; they do
+not establish the cause of the earlier bias or a stable setup. No performance
+conclusion or production activation follows.
