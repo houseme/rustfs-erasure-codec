@@ -1,0 +1,10 @@
+--- a/run_streaming.py
++++ b/run_streaming.py
+@@ -21 +21 @@
+-    f"small_verify/{data}x{parity}/{length}"
++    f"small_update/{data}x{parity}/{length}/changed"
+@@ -23,2 +23,2 @@
+-    for length in (1024, 2048, 2049, 4096, 4097)
+-}
++    for length in (64, 256, 257, 4096, 1_048_576)
++} | {"small_update/4x2/64/none", "small_update/4x1/64/fast"}

@@ -1,0 +1,50 @@
+--- a/src/core/encode.rs
++++ b/src/core/encode.rs
+@@ -938,0 +939,6 @@
++        // Keep the inline scratch in a separate frame and limit its element
++        // size so custom fields and larger shards retain the existing path.
++        if shard_len <= 256 && core::mem::size_of::<F::Elem>() <= 3 {
++            self.update_small_delta(old_data, new_data, parity, chunk_len);
++            return Ok(());
++        }
+@@ -966,0 +973,40 @@
++    }
++
++    #[inline(never)]
++    fn update_small_delta<T, U>(
++        &self,
++        old_data: &[T],
++        new_data: &[Option<T>],
++        parity: &mut [U],
++        chunk_len: usize,
++    ) where
++        T: AsRef<[F::Elem]>,
++        U: AsRef<[F::Elem]> + AsMut<[F::Elem]>,
++    {
++        let matrix = self.encoding_format().matrix();
++        let mut delta: SmallVec<[F::Elem; 256]> = SmallVec::new();
++
++        for (i_data, (old, new)) in old_data.iter().zip(new_data).enumerate() {
++            let Some(new) = new else { continue };
++            for (chunk_index, (old, new)) in old
++                .as_ref()
++                .chunks(chunk_len)
++                .zip(new.as_ref().chunks(chunk_len))
++                .enumerate()
++            {
++                if old == new {
++                    continue;
++                }
++                // Grow only for the active changed range and reuse its capacity.
++                // Clear also excludes stale elements when the next chunk is short.
++                delta.clear();
++                delta.reserve_exact(old.len());
++                delta.extend(old.iter().zip(new).map(|(&old, &new)| F::add(old, new)));
++                let start = chunk_index * chunk_len;
++                let end = start + delta.len();
++                for (row, output) in parity.iter_mut().enumerate() {
++                    let coefficient = matrix.get(self.data_shard_count() + row, i_data);
++                    F::mul_slice_add(coefficient, &delta, &mut output.as_mut()[start..end]);
++                }
++            }
++        }

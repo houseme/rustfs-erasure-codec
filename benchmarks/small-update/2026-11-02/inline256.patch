@@ -1,0 +1,7 @@
+--- a/src/core/encode.rs
++++ b/src/core/encode.rs
+@@ -3 +2,0 @@
+-use alloc::vec::Vec;
+@@ -939 +938 @@
+-        let mut delta = Vec::new();
++        let mut delta: SmallVec<[F::Elem; 256]> = SmallVec::new();

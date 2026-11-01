@@ -1,0 +1,27 @@
+baseline:
+CHECK_OK small_update/4x2/64/changed backend=rust-neon
+CHECK_OK small_update/4x2/256/changed backend=rust-neon
+CHECK_OK small_update/4x2/257/changed backend=rust-neon
+CHECK_OK small_update/4x2/4096/changed backend=rust-neon
+CHECK_OK small_update/4x2/1048576/changed backend=rust-neon
+CHECK_OK small_update/10x4/64/changed backend=rust-neon
+CHECK_OK small_update/10x4/256/changed backend=rust-neon
+CHECK_OK small_update/10x4/257/changed backend=rust-neon
+CHECK_OK small_update/10x4/4096/changed backend=rust-neon
+CHECK_OK small_update/10x4/1048576/changed backend=rust-neon
+CHECK_OK small_update/4x2/64/none backend=rust-neon
+CHECK_OK small_update/4x1/64/fast backend=rust-neon
+
+candidate:
+CHECK_OK small_update/4x2/64/changed backend=rust-neon
+CHECK_OK small_update/4x2/256/changed backend=rust-neon
+CHECK_OK small_update/4x2/257/changed backend=rust-neon
+CHECK_OK small_update/4x2/4096/changed backend=rust-neon
+CHECK_OK small_update/4x2/1048576/changed backend=rust-neon
+CHECK_OK small_update/10x4/64/changed backend=rust-neon
+CHECK_OK small_update/10x4/256/changed backend=rust-neon
+CHECK_OK small_update/10x4/257/changed backend=rust-neon
+CHECK_OK small_update/10x4/4096/changed backend=rust-neon
+CHECK_OK small_update/10x4/1048576/changed backend=rust-neon
+CHECK_OK small_update/4x2/64/none backend=rust-neon
+CHECK_OK small_update/4x1/64/fast backend=rust-neon
