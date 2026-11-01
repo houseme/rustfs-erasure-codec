@@ -296,7 +296,7 @@ fn gfni_backend_available() -> bool {
 ))]
 pub(super) fn gfni_layout_matrices(log_m: u16, tables: &LeopardGf16Tables) -> Option<[i64; 4]> {
     if gfni_backend_available() {
-        Some(gfni_butterfly::matrices(log_m, tables))
+        Some(gfni_butterfly::cached_matrices(log_m, tables))
     } else {
         None
     }
@@ -313,6 +313,40 @@ mod gfni_butterfly {
     use core::arch::x86_64::*;
     const SPLIT: [u8; 16] = [0, 2, 4, 6, 8, 10, 12, 14, 1, 3, 5, 7, 9, 11, 13, 15];
     const PACK: [u8; 16] = [0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7, 15];
+    // Fixed per-thread budget; zero keys denote empty slots.
+    const MATRIX_CACHE_SLOTS: usize = 64;
+    struct MatrixCache {
+        keys: [std::cell::Cell<u32>; MATRIX_CACHE_SLOTS],
+        values: [std::cell::Cell<[i64; 4]>; MATRIX_CACHE_SLOTS],
+    }
+
+    thread_local! {
+        static MATRIX_CACHE: MatrixCache = const {
+            MatrixCache {
+                keys: [const { std::cell::Cell::new(0) }; MATRIX_CACHE_SLOTS],
+                values: [const { std::cell::Cell::new([0; 4]) }; MATRIX_CACHE_SLOTS],
+            }
+        };
+    }
+
+    pub(super) fn cached_matrices(log_m: u16, t: &LeopardGf16Tables) -> [i64; 4] {
+        // Only the immutable canonical tables may populate the persistent cache.
+        if !core::ptr::eq(t, super::super::init_leopard_gf16_tables()) {
+            return matrices(log_m, t);
+        }
+        // Mix coefficient bits before selecting a slot; zero remains the empty key.
+        let index = (usize::from(log_m).wrapping_mul(0x9e37) >> 10) & (MATRIX_CACHE_SLOTS - 1);
+        let key = u32::from(log_m) + 1;
+        MATRIX_CACHE.with(|cache| {
+            if cache.keys[index].get() == key {
+                return cache.values[index].get();
+            }
+            let value = matrices(log_m, t);
+            cache.values[index].set(value);
+            cache.keys[index].set(key);
+            value
+        })
+    }
     // Multiplication by a fixed GF16 element is a linear map over GF(2).
     // Build its four 8x8 byte-plane matrices in the bit order used by GFNI.
     pub(super) fn matrices(log_m: u16, t: &LeopardGf16Tables) -> [i64; 4] {
@@ -342,7 +376,7 @@ mod gfni_butterfly {
         log_m: u16,
         t: &LeopardGf16Tables,
     ) {
-        let [a, b, c, d] = matrices(log_m, t);
+        let [a, b, c, d] = cached_matrices(log_m, t);
         let diagonal = _mm256_set_epi64x(d, a, d, a);
         let crossed = _mm256_set_epi64x(c, b, c, b);
         // SAFETY: masks contain 16 bytes, and caller supplies disjoint equal lanes and CPU features.
@@ -405,6 +439,42 @@ mod gfni_butterfly {
     mod tests {
         use super::super::super::init_leopard_gf16_tables;
         use super::{matrices, mul_log16};
+
+        #[test]
+        fn cached_matrices_match_oracle_across_collisions_and_table_instances() {
+            let tables = init_leopard_gf16_tables();
+            let first = 17u16;
+            let bucket = |v: u16| (usize::from(v).wrapping_mul(0x9e37) >> 10) & 63;
+            let collision = (0..=u16::MAX)
+                .find(|&v| v != first && bucket(v) == bucket(first))
+                .unwrap();
+            for log in [0, u16::MAX, first, collision, first, 1, collision] {
+                assert_eq!(super::cached_matrices(log, tables), matrices(log, tables));
+            }
+
+            let canonical = super::cached_matrices(42, tables);
+            let mut alternate = super::super::super::tables::build_tables16();
+            alternate.exp_lut[42] ^= 1;
+            let expected = matrices(42, &alternate);
+            assert_ne!(expected, canonical);
+            assert_eq!(super::cached_matrices(42, &alternate), expected);
+            assert_eq!(super::cached_matrices(42, tables), canonical);
+        }
+
+        #[test]
+        fn thread_local_matrices_match_oracle_concurrently() {
+            let tables = init_leopard_gf16_tables();
+            std::thread::scope(|scope| {
+                for worker in 0..8u16 {
+                    scope.spawn(move || {
+                        for i in 0..512u16 {
+                            let log = i.wrapping_mul(7919).wrapping_add(worker);
+                            assert_eq!(super::cached_matrices(log, tables), matrices(log, tables));
+                        }
+                    });
+                }
+            });
+        }
 
         #[test]
         fn transposed_matrices_match_bitwise_reference_for_every_multiplier() {
