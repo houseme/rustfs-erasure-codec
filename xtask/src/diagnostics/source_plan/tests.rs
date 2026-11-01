@@ -37,7 +37,7 @@ fn complete_plans_bind_generated_bytes_and_every_written_member() {
         (
             // Current production source, including every systematic decode branch.
             "dynamic",
-            "f14fc7d0c1365e6c1b318c42bc661fad89dfc6fa17fcad842184f62c569f387e",
+            "beb10b5922ac7a53465a756c8615bbebb85bded8ab5cfc94f74a9660223f9927",
         ),
     ] {
         let original = original(root, variant);

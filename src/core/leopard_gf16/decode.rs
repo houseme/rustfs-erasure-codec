@@ -241,18 +241,19 @@ const SPARSE_LOCATOR_MAX_TERMS: usize = 16;
 // In std this is used only while building a cache-miss plan. Keep it out of
 // the cache lookup body to avoid expanding frequently executed dispatch code.
 #[cfg_attr(feature = "std", inline(never))]
-fn sparse_error_locs16(
+fn fill_sparse_error_locs16(
+    locs: &mut [u16],
     missing_parity: &[usize],
     missing_data: &[usize],
     driver: &LeopardGf16DecodeDriver,
     tables: &LeopardGf16Tables,
-) -> [u16; ORDER16] {
+) {
+    debug_assert_eq!(locs.len(), driver.work_size);
     debug_assert!(
         missing_parity.len() + missing_data.len() + (driver.m - driver.parity_shards)
             <= SPARSE_LOCATOR_MAX_TERMS
     );
-    let mut locs = [0u16; ORDER16];
-    for (i, out) in locs[..driver.work_size].iter_mut().enumerate() {
+    for (i, out) in locs.iter_mut().enumerate() {
         let mut sum = 0u32;
         for &shard_idx in missing_parity {
             sum += u32::from(tables.log_lut[i ^ (shard_idx - driver.data_shards)]);
@@ -265,6 +266,23 @@ fn sparse_error_locs16(
         }
         *out = (sum % MODULUS16 as u32) as u16;
     }
+}
+
+#[cfg(any(test, not(feature = "std")))]
+fn sparse_error_locs16(
+    missing_parity: &[usize],
+    missing_data: &[usize],
+    driver: &LeopardGf16DecodeDriver,
+    tables: &LeopardGf16Tables,
+) -> [u16; ORDER16] {
+    let mut locs = [0u16; ORDER16];
+    fill_sparse_error_locs16(
+        &mut locs[..driver.work_size],
+        missing_parity,
+        missing_data,
+        driver,
+        tables,
+    );
     locs
 }
 
@@ -284,7 +302,14 @@ fn build_decode_plan(
                 // Both zero encodings mean identity. Use the sentinel for
                 // present inputs to select direct conversion, and retain zero
                 // for missing outputs so inverse scaling selects it as well.
-                let mut locs = sparse_error_locs16(missing_parity, missing_data, driver, tables);
+                let mut locs = [0u16; ORDER16];
+                fill_sparse_error_locs16(
+                    &mut locs[..driver.work_size],
+                    missing_parity,
+                    missing_data,
+                    driver,
+                    tables,
+                );
                 for (i, &is_present) in present.iter().take(driver.data_shards).enumerate() {
                     if is_present && locs[driver.m + i] == 0 {
                         locs[driver.m + i] = MODULUS16 as u16;
