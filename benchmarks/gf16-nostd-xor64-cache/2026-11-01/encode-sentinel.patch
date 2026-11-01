@@ -1,0 +1,76 @@
+--- a/src/core/leopard_gf16/encode.rs
++++ b/src/core/leopard_gf16/encode.rs
+@@ -406,0 +407,14 @@
++            #[cfg(all(not(feature = "std"), target_arch = "x86_64", target_feature = "avx2"))]
++            if forward
++                && log_m01 == super::MODULUS16 as u16
++                && log_m02 == super::MODULUS16 as u16
++                && a_ref.len() == 32
++                && b_ref.len() == 32
++                && c_ref.len() == 32
++                && d_ref.len() == 32
++            {
++                // SAFETY: the compile target guarantees AVX2; the four disjoint lanes each contain 64 bytes.
++                unsafe { fft_sentinel_xor_64(a_ref, b_ref, c_ref, d_ref) };
++                fft_dit2_16(c_ref, d_ref, log_m23, tables);
++                continue;
++            }
+@@ -417,0 +432,22 @@
++        }
++    }
++}
++
++#[cfg(all(not(feature = "std"), target_arch = "x86_64", target_feature = "avx2"))]
++#[inline(never)]
++unsafe fn fft_sentinel_xor_64(a: &[u16], b: &mut [u16], c: &mut [u16], d: &mut [u16]) {
++    use core::arch::x86_64::{_mm256_loadu_si256, _mm256_storeu_si256, _mm256_xor_si256};
++    // SAFETY: the caller guarantees four disjoint, 64-byte lanes and AVX2.
++    unsafe {
++        let a = a.as_ptr().cast::<core::arch::x86_64::__m256i>();
++        let b = b.as_mut_ptr().cast::<core::arch::x86_64::__m256i>();
++        let c = c.as_mut_ptr().cast::<core::arch::x86_64::__m256i>();
++        let d = d.as_mut_ptr().cast::<core::arch::x86_64::__m256i>();
++        for i in 0..2 {
++            let av = _mm256_loadu_si256(a.add(i));
++            let bv = _mm256_loadu_si256(b.add(i));
++            let cv = _mm256_loadu_si256(c.add(i));
++            let dv = _mm256_loadu_si256(d.add(i));
++            _mm256_storeu_si256(b.add(i), _mm256_xor_si256(bv, av));
++            _mm256_storeu_si256(c.add(i), _mm256_xor_si256(cv, av));
++            _mm256_storeu_si256(d.add(i), _mm256_xor_si256(dv, bv));
+@@ -567,0 +604,35 @@
++
++#[cfg(all(test, not(feature = "std"), target_arch = "x86_64", target_feature = "avx2"))]
++mod sentinel64_tests {
++    use super::*;
++    use alloc::vec::Vec;
++    #[test]
++    fn forward_sentinel64_matches_original_for_unaligned_lanes() {
++        let tables = init_leopard_gf16_tables();
++        for offset in 0..16 {
++            for m in [0u16, 1, 12345, 65534, super::super::MODULUS16 as u16] {
++                let initial: Vec<Vec<u16>> = (0..4).map(|k| {
++                    (0..64).map(|i| ((i * 7919 + k * 37) & 65535) as u16).collect()
++                }).collect();
++                let mut actual = initial.clone();
++                let mut expected = initial;
++                {
++                    let (a, rest) = expected.split_at_mut(1);
++                    let (b, rest) = rest.split_at_mut(1);
++                    let (c, d) = rest.split_at_mut(1);
++                    fft_dit4_16(&mut a[0][offset..offset + 32], &mut b[0][offset..offset + 32], &mut c[0][offset..offset + 32], &mut d[0][offset..offset + 32], super::super::MODULUS16 as u16, m, super::super::MODULUS16 as u16, tables);
++                }
++                {
++                    let (a, rest) = actual.split_at_mut(1);
++                    let (b, rest) = rest.split_at_mut(1);
++                    let (c, d) = rest.split_at_mut(1);
++                    let (a,b,c,d)=(&a[0][offset..offset+32],&mut b[0][offset..offset+32],&mut c[0][offset..offset+32],&mut d[0][offset..offset+32]);
++                    // SAFETY: this test executes only with target AVX2 and uses disjoint 32-element lanes.
++                    unsafe { fft_sentinel_xor_64(a,b,c,d) };
++                    fft_dit2_16(c,d,m,tables);
++                }
++                assert_eq!(actual, expected, "offset={offset}, m={m}");
++            }
++        }
++    }
++}

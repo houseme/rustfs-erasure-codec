@@ -1,0 +1,43 @@
+--- a/src/core/leopard_gf16/ops.rs
++++ b/src/core/leopard_gf16/ops.rs
+@@ -120,0 +121,15 @@
++    #[cfg(all(not(feature = "std"), target_arch = "x86_64", target_feature = "avx2"))]
++    if dst.len() == 32 && src.len() == 32 {
++        use core::arch::x86_64::{_mm256_loadu_si256, _mm256_storeu_si256, _mm256_xor_si256};
++        // SAFETY: AVX2 is a compile-time target feature; both non-overlapping
++        // slices contain 64 bytes, enough for the two unaligned accesses.
++        unsafe {
++            let d = dst.as_mut_ptr().cast();
++            let s = src.as_ptr().cast();
++            let a = _mm256_xor_si256(_mm256_loadu_si256(d), _mm256_loadu_si256(s));
++            let b = _mm256_xor_si256(_mm256_loadu_si256(d.add(1)), _mm256_loadu_si256(s.add(1)));
++            _mm256_storeu_si256(d, a);
++            _mm256_storeu_si256(d.add(1), b);
++        }
++        return;
++    }
+@@ -854,0 +870,24 @@
++
++#[cfg(test)]
++mod xor64_dispatch_tests {
++    use super::*;
++
++    #[test]
++    fn xor_matches_scalar_for_uneven_offsets_and_lengths() {
++        for len in [0usize, 1, 15, 16, 31, 32, 33, 64, 129] {
++            for offset in 0..16 {
++                let other_offset = (offset * 5 + 3) % 16;
++                let src: Vec<u16> = (0..len + 32)
++                    .map(|i| (i as u16).wrapping_mul(1073).wrapping_add(31))
++                    .collect();
++                let mut actual = vec![0xace1u16; len + 32];
++                let mut expected = actual.clone();
++                for (d, s) in expected[offset..offset + len].iter_mut().zip(&src[other_offset..other_offset + len]) {
++                    *d ^= *s;
++                }
++                slice_xor_u16(&mut actual[offset..offset + len], &src[other_offset..other_offset + len]);
++                assert_eq!(actual, expected, "len={len} offset={offset}");
++            }
++        }
++    }
++}

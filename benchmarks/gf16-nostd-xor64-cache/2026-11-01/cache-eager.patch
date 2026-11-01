@@ -1,0 +1,88 @@
+--- a/src/core/codec.rs
++++ b/src/core/codec.rs
+@@ -322,0 +323,2 @@
++            #[cfg(not(feature = "std"))]
++            gf16_encode_plans: spin::Once::new(),
+@@ -567,0 +570,2 @@
++            #[cfg(not(feature = "std"))]
++            gf16_encode_plans: spin::Once::new(),
+--- a/src/core/encode.rs
++++ b/src/core/encode.rs
+@@ -860 +860,6 @@
+-        self.encode_leopard_sep_inner(data, parity, leopard::leopard_gf16_encode)
++        #[cfg(feature = "std")]
++        return self.encode_leopard_sep_inner(data, parity, leopard::leopard_gf16_encode);
++        #[cfg(not(feature = "std"))]
++        self.encode_leopard_sep_inner(data, parity, |n, p, input, output| {
++            leopard::leopard_gf16_encode_cached(n, p, input, output, &self.gf16_encode_plans)
++        })
+@@ -868 +873 @@
+-        encode_fn: fn(usize, usize, &[&[u8]], &mut [&mut [u8]]) -> Result<(), Error>,
++        encode_fn: impl FnOnce(usize, usize, &[&[u8]], &mut [&mut [u8]]) -> Result<(), Error>,
+--- a/src/core/leopard.rs
++++ b/src/core/leopard.rs
+@@ -297,0 +298,12 @@
++#[cfg(not(feature = "std"))]
++pub(crate) fn leopard_gf16_encode_cached(
++    data_shards: usize,
++    parity_shards: usize,
++    data: &[&[u8]],
++    parity: &mut [&mut [u8]],
++    cache: &spin::Once<super::alloc::boxed::Box<super::leopard_gf16::encode::EncodePlans>>,
++) -> Result<(), Error> {
++    super::leopard_gf16::encode::encode_with_tables16_cached(data_shards, parity_shards, data, parity, cache)?;
++    Ok(())
++}
++
+--- a/src/core/leopard_gf16/encode.rs
++++ b/src/core/leopard_gf16/encode.rs
+@@ -27 +26,0 @@
+-#[cfg(feature = "std")]
+@@ -30 +29,2 @@
+-struct EncodePlans {
++#[derive(Debug)]
++pub(crate) struct EncodePlans {
+@@ -85 +84,0 @@
+-    #[cfg(feature = "std")]
+@@ -119,0 +119,15 @@
++) -> Result<LeopardGf16EncodeDriver, Error> {
++    encode_with_tables16_impl(data_shards, parity_shards, data, parity, #[cfg(not(feature = "std"))] None)
++}
++
++#[cfg(not(feature = "std"))]
++pub(crate) fn encode_with_tables16_cached<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
++    data_shards: usize, parity_shards: usize, data: &[T], parity: &mut [U],
++    cache: &spin::Once<alloc::boxed::Box<EncodePlans>>,
++) -> Result<LeopardGf16EncodeDriver, Error> {
++    encode_with_tables16_impl(data_shards, parity_shards, data, parity, Some(cache))
++}
++
++fn encode_with_tables16_impl<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
++    data_shards: usize, parity_shards: usize, data: &[T], parity: &mut [U],
++    #[cfg(not(feature = "std"))] cache: Option<&spin::Once<alloc::boxed::Box<EncodePlans>>>,
+@@ -161 +175,16 @@
+-    let plans = EncodePlans::new(data_shards, parity_shards, &driver, tables);
++    let mut local_plans = None;
++    #[cfg(not(feature = "std"))]
++    let plans = if let Some(cache) = cache {
++        if let Some(plans) = cache.get() {
++            plans.as_ref()
++        } else {
++            let candidate = EncodePlans::new(data_shards, parity_shards, &driver, tables);
++            if candidate.retained_bytes() <= MAX_CACHED_PLAN_BYTES {
++                cache.call_once(|| alloc::boxed::Box::new(candidate)).as_ref()
++            } else {
++                local_plans.insert(candidate)
++            }
++        }
++    } else {
++        local_plans.insert(EncodePlans::new(data_shards, parity_shards, &driver, tables))
++    };
+--- a/src/core/mod.rs
++++ b/src/core/mod.rs
+@@ -88,0 +89,2 @@
++    #[cfg(not(feature = "std"))]
++    gf16_encode_plans: spin::Once<alloc::boxed::Box<leopard_gf16::encode::EncodePlans>>,
+@@ -102,0 +105,2 @@
++            #[cfg(not(feature = "std"))]
++            gf16_encode_plans: spin::Once::new(),

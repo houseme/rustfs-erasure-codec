@@ -1,0 +1,25 @@
+--- a/src/core/leopard_gf16/encode.rs
++++ b/src/core/leopard_gf16/encode.rs
+@@ -262,0 +263,15 @@
++#[cfg(all(not(feature = "std"), target_arch = "x86_64", target_feature = "avx2"))]
++#[inline(always)]
++unsafe fn xor_encoding_lane_64(dst: &mut [u16], src: &[u16]) {
++    use core::arch::x86_64::{_mm256_loadu_si256, _mm256_storeu_si256, _mm256_xor_si256};
++    // SAFETY: the caller guarantees two valid nonoverlapping 64-byte lanes.
++    unsafe {
++        let d = dst.as_mut_ptr().cast();
++        let s = src.as_ptr().cast();
++        let a = _mm256_xor_si256(_mm256_loadu_si256(d), _mm256_loadu_si256(s));
++        let b = _mm256_xor_si256(_mm256_loadu_si256(d.add(1)), _mm256_loadu_si256(s.add(1)));
++        _mm256_storeu_si256(d, a);
++        _mm256_storeu_si256(d.add(1), b);
++    }
++}
++
+@@ -373,0 +389,6 @@
++                #[cfg(all(not(feature = "std"), target_arch = "x86_64", target_feature = "avx2"))]
++                if size == 32 && xor_dst[idx].len() == 32 && work[idx].len() == 32 {
++                    // SAFETY: AVX2 is enabled at compile time; the disjoint lanes contain 64 bytes each.
++                    unsafe { xor_encoding_lane_64(xor_dst[idx], work[idx]) };
++                    continue;
++                }
