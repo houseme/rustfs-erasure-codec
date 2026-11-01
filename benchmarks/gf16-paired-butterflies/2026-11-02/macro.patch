@@ -1,0 +1,209 @@
+--- a/src/core/leopard_gf16/ops.rs
++++ b/src/core/leopard_gf16/ops.rs
+@@ -481,8 +481,31 @@
+     debug_assert_eq!(a.len(), c.len());
+     debug_assert_eq!(a.len(), d.len());
+ 
+-    dit2_step16(a, c, log_m02, tables);
+-    dit2_step16(b, d, log_m02, tables);
++    let paired = {
++        #[cfg(all(
++            rse_x86_gfni,
++            feature = "std",
++            target_arch = "x86_64",
++            target_endian = "little"
++        ))]
++        {
++            log_m02 != MODULUS16 as u16
++                && super::mul_simd::try_butterfly_pair_gfni::<false>(a, c, b, d, log_m02, tables)
++        }
++        #[cfg(not(all(
++            rse_x86_gfni,
++            feature = "std",
++            target_arch = "x86_64",
++            target_endian = "little"
++        )))]
++        {
++            false
++        }
++    };
++    if !paired {
++        dit2_step16(a, c, log_m02, tables);
++        dit2_step16(b, d, log_m02, tables);
++    }
+     dit2_step16(a, b, log_m01, tables);
+     dit2_step16(c, d, log_m23, tables);
+ }
+@@ -506,8 +529,31 @@
+ 
+     dit2_step_inv16(a, b, log_m01, tables);
+     dit2_step_inv16(c, d, log_m23, tables);
+-    dit2_step_inv16(b, d, log_m02, tables);
+-    dit2_step_inv16(a, c, log_m02, tables);
++    let paired = {
++        #[cfg(all(
++            rse_x86_gfni,
++            feature = "std",
++            target_arch = "x86_64",
++            target_endian = "little"
++        ))]
++        {
++            log_m02 != MODULUS16 as u16
++                && super::mul_simd::try_butterfly_pair_gfni::<true>(b, d, a, c, log_m02, tables)
++        }
++        #[cfg(not(all(
++            rse_x86_gfni,
++            feature = "std",
++            target_arch = "x86_64",
++            target_endian = "little"
++        )))]
++        {
++            false
++        }
++    };
++    if !paired {
++        dit2_step_inv16(b, d, log_m02, tables);
++        dit2_step_inv16(a, c, log_m02, tables);
++    }
+ }
+ 
+ /// Convert user byte layout to Go's GF16 split layout for u16 processing.
+--- a/src/core/leopard_gf16/mul_simd.rs
++++ b/src/core/leopard_gf16/mul_simd.rs
+@@ -276,6 +276,34 @@
+     target_arch = "x86_64",
+     target_endian = "little"
+ ))]
++pub(super) fn try_butterfly_pair_gfni<const INVERSE: bool>(
++    a: &mut [u16],
++    b: &mut [u16],
++    c: &mut [u16],
++    d: &mut [u16],
++    log_m: u16,
++    tables: &LeopardGf16Tables,
++) -> bool {
++    if a.len() != b.len()
++        || a.len() != c.len()
++        || a.len() != d.len()
++        || a.len() < 32
++        || !is_x86_feature_detected!("avx2")
++        || !gfni_backend_available()
++    {
++        return false;
++    }
++    // SAFETY: runtime detection guarantees AVX2 and GFNI, and slices are equal and disjoint.
++    unsafe { gfni_butterfly::run_pair::<INVERSE>(a, b, c, d, log_m, tables) };
++    true
++}
++
++#[cfg(all(
++    rse_x86_gfni,
++    feature = "std",
++    target_arch = "x86_64",
++    target_endian = "little"
++))]
+ #[inline]
+ fn gfni_backend_available() -> bool {
+     is_x86_feature_detected!("gfni")
+@@ -369,14 +397,13 @@
+             x.swap_bytes() as i64
+         })
+     }
+-    #[target_feature(enable = "gfni,avx2")]
+-    pub(super) unsafe fn run<const INVERSE: bool>(
+-        out: &mut [u16],
+-        input: &mut [u16],
+-        log_m: u16,
+-        t: &LeopardGf16Tables,
+-    ) {
+-        let [a, b, c, d] = cached_matrices(log_m, t);
++    macro_rules! run_with_matrix {
++        ($out:expr, $input:expr, $log:expr, $tables:expr, $matrix:expr) => {{
++            let out = $out;
++            let input = $input;
++            let log_m = $log;
++            let t = $tables;
++            let [a, b, c, d] = $matrix;
+         let diagonal = _mm256_set_epi64x(d, a, d, a);
+         let crossed = _mm256_set_epi64x(c, b, c, b);
+         // SAFETY: masks contain 16 bytes, and caller supplies disjoint equal lanes and CPU features.
+@@ -434,11 +461,79 @@
+                 *y ^= *x;
+             }
+         }
++        }};
++    }
++    #[target_feature(enable = "gfni,avx2")]
++    pub(super) unsafe fn run<const INVERSE: bool>(
++        out: &mut [u16],
++        input: &mut [u16],
++        log_m: u16,
++        t: &LeopardGf16Tables,
++    ) {
++        let matrices = cached_matrices(log_m, t);
++        run_with_matrix!(out, input, log_m, t, matrices);
++    }
++    #[target_feature(enable = "gfni,avx2")]
++    pub(super) unsafe fn run_pair<const INVERSE: bool>(
++        a: &mut [u16],
++        b: &mut [u16],
++        c: &mut [u16],
++        d: &mut [u16],
++        log_m: u16,
++        t: &LeopardGf16Tables,
++    ) {
++        let matrices = cached_matrices(log_m, t);
++        run_with_matrix!(a, b, log_m, t, matrices);
++        run_with_matrix!(c, d, log_m, t, matrices);
+     }
+     #[cfg(test)]
+     mod tests {
+         use super::super::super::init_leopard_gf16_tables;
+         use super::{matrices, mul_log16};
++
++        #[test]
++        fn paired_butterflies_match_scalar_in_both_directions() {
++            if !std::is_x86_feature_detected!("avx2") || !std::is_x86_feature_detected!("gfni") {
++                return;
++            }
++            let tables = init_leopard_gf16_tables();
++            for len in [32usize, 33, 48, 64, 128] {
++                for log in [0u16, 1, 42, 32767, 65534] {
++                    for inverse in [false, true] {
++                        let mut x: Vec<u16> = (0..len * 4)
++                            .map(|i| ((i * 241 + i * i * 19) & 65535) as u16)
++                            .collect();
++                        let mut expected = x.clone();
++                        for (first, second) in [(0, 1), (2, 3)] {
++                            for i in 0..len {
++                                let a = first * len + i;
++                                let b = second * len + i;
++                                if inverse {
++                                    expected[b] ^= expected[a];
++                                }
++                                expected[a] ^=
++                                    mul_log16(expected[b], log, &tables.log_lut, &tables.exp_lut);
++                                if !inverse {
++                                    expected[b] ^= expected[a];
++                                }
++                            }
++                        }
++                        let (a, rest) = x.split_at_mut(len);
++                        let (b, rest) = rest.split_at_mut(len);
++                        let (c, d) = rest.split_at_mut(len);
++                        // SAFETY: the detected CPU has AVX2 and GFNI; slices are disjoint.
++                        unsafe {
++                            if inverse {
++                                super::run_pair::<true>(a, b, c, d, log, tables);
++                            } else {
++                                super::run_pair::<false>(a, b, c, d, log, tables);
++                            }
++                        }
++                        assert_eq!(x, expected, "len={len}, log={log}, inverse={inverse}");
++                    }
++                }
++            }
++        }
+ 
+         #[test]
+         fn cached_matrices_match_oracle_across_collisions_and_table_instances() {
