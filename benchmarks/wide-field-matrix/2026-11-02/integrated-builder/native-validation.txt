@@ -1,0 +1,18 @@
+Native validation of the integrated experimental matrix builder
+
+The x86 Linux test binaries were compiled for the codec package alone. The
+matrix-reference and allocation tests passed in all four configurations:
+std + simd-avx2, std + simd-avx512, no_std + simd-avx2, and no_std +
+simd-avx512. The no_std builds used the respective explicit target features.
+These tests establish correctness for those builds, not a performance result.
+
+The paired baseline and candidate check-only runs passed all GF8 and GF16
+fixtures, from 4+2 through 32+16, including byte-identical encoding and
+bidirectional recovery. Both reported the rust-gfni-avx512 backend.
+
+A guarded performance run stopped during its first same-source baseline:
+the CPU reservation changed from 0-15 to 0-7 when another workload started.
+The dual-baseline preflight did not finish and no candidate comparison was
+accepted. The partial measurements cannot support a speedup or regression
+claim. The feature remains disabled by default pending a clean preflight and
+complete A/B/B/A acceptance.
