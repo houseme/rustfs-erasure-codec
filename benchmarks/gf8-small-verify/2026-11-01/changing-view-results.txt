@@ -1,0 +1,6 @@
+Baseline: both regression cases passed.
+candidate.patch: exit 101; 2049-element view caused bounds panic.
+candidate-single-scratch.patch: exit 101; 2049-element view caused bounds panic.
+candidate-single-new.patch: exit 101; 2049-element view caused bounds panic.
+candidate-single-exact.patch: exit 101; 2049-element view caused bounds panic.
+candidate-captured-views.patch: shrinking fourth view passed; changing first view returned Ok(true), baseline Ok(false).

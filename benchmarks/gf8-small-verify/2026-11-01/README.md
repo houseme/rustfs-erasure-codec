@@ -1,5 +1,11 @@
 # Small-shard Classic verification investigation
 
+**Compatibility finding:** all four one-row candidate patches below can panic
+for a safe, changing `AsRef` implementation; they are rejected for production.
+The captured-view follow-up prevents the demonstrated panic but changes a
+separate observed result, so it is also an unapplied experiment. See
+[Changing input views](#changing-input-views) before using earlier findings.
+
 Sizes below are **per-shard elements**, not logical object bytes. The focused
 release test in `tests/parallel_verify_workspace.rs` observes allocations on
 the calling thread after warmup, checks valid parity and corruption in both
@@ -281,3 +287,44 @@ called one non-inlined `common_verify` function and the baseline codec. The
 selected backend was `rust-gfni-avx512`. The archived streaming runner was
 reconstructed from commit `70898c1` using `cross-arm-gate.patch` followed by
 `runner-small-cases.patch`, and matched the runner used for this diagnostic.
+
+## Changing input views
+
+The earlier candidate checks used stable `Vec`/slice views. The public serial
+`verify` accepts arbitrary `AsRef<[F::Elem]>`, whose returned view can change
+between safe calls. On the generic scalar path with 4+2 shards, a view of the
+fourth data shard was valid during validation and the first coding pass, then
+returned an empty slice. For 2,049 elements per shard, the current baseline
+returned `Ok(true)`, while all four one-row candidates (`candidate.patch`,
+`candidate-single-scratch.patch`, `candidate-single-new.patch`, and
+`candidate-single-exact.patch`) reread that input for the second parity row
+and panicked when indexing the empty view. The original code's success for
+this specific fixture does not imply that every changing `AsRef` view is safe
+in the current implementation.
+
+`tests/verify_changing_view.rs` keeps this regression case at 2,048, 2,049,
+4,096 and 4,097 elements; it passed locally in release builds with default
+features and with `--no-default-features`, both without SIMD features. It is
+restricted to that generic scalar configuration because other backends can
+obtain views in a different order. `changing-view-probe.rs` also includes a
+separate observation for a changing first data view. This second observation is
+not a public API promise about results for inconsistent input views.
+
+The unapplied `candidate-captured-views.patch` snapshots up to 32 checked data
+views, using the existing path for wider layouts. It passed the specific
+fourth-view panic reproduction and all nine existing workspace tests locally,
+but on the second diagnostic fixture it returned `Ok(true)` where the
+unchanged baseline returned `Ok(false)`. Capturing views changes their access
+order and is not established as an equivalent replacement. The prototype is
+therefore rejected under the current compatibility objective; no performance
+claim or production activation follows.
+
+`changing-view-results.txt` records controlled checks on source `764729f`,
+using stable Rust, release mode and `-p rustfs-erasure-codec
+--no-default-features`. To reproduce, copy `changing-view-probe.rs` into a
+disposable source checkout as `tests/verify_changing_view.rs`, test the
+baseline, then apply exactly one experimental patch and repeat the same test.
+The original four candidates' fourth-view case is expected to fail with a
+bounds panic. The captured-view prototype is expected to pass that case and
+fail the changing-first-view comparison. No candidate patch is applied to the
+production tree.
