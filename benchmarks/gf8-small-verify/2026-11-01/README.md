@@ -99,3 +99,15 @@ interference or unobservable host effects. The within-round result and the
 prior dual-copy bias came from different builds and call structures; they do
 not establish the cause of the earlier bias or a stable setup. No performance
 conclusion or production activation follows.
+
+## Address-randomization diagnostic interruption
+
+A later baseline-only diagnostic rebuilt the same-function probe from committed
+source `738fe71163eaab8f4df7b37a74242a386bb7232c` and launched it with
+`setarch x86_64 -R` for the probe process. This changes the execution
+configuration and cannot serve as production performance acceptance. The
+resource monitor rejected the run before the first case completed: among 40
+observations the effective CPU set changed from 0–15 to 0–7 and a named
+competitor was seen in one observation. `no-aslr-738fe71/` retains the empty
+baseline output and original monitor/summary. No candidate ran and the attempt
+provides no evidence about whether address randomization caused earlier drift.
