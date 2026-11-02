@@ -113,8 +113,9 @@ Windows x86-64 and WASM were cross-checked but not run natively. An all-`std`
 prototype with the same x86 staging algorithm completed 343,370 seeded
 `fuzz_codec_contracts` executions in 16 seconds without a reported failure.
 The [summary](../benchmarks/small-recovery-staging/2026-11-02/fuzz-summary.json)
-and [seed generator](../benchmarks/small-recovery-staging/2026-11-02/fuzz-seeds.py)
-are retained; this is a bounded smoke run, not exhaustive fuzzing of the final build.
+is retained. A later [Rust seed generator](../benchmarks/small-recovery-staging/2026-11-02/fuzz-seeds.rs)
+reconstructs the same 72-input catalog; it was not the generator used in that
+historical run. This is a bounded smoke run, not exhaustive fuzzing of the final build.
 
 The [stack probe](../benchmarks/small-recovery-staging/2026-11-02/stack-probe.rs)
 uses separate subprocesses to compare new threads. On native x86 with both
