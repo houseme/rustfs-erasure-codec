@@ -1,0 +1,806 @@
+{
+  "rust-avx2": {
+    "baseline": [
+      {
+        "data": 4,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 2,
+        "requested_bytes": 64,
+        "requests": 1,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 4,
+        "requested_bytes": 64,
+        "requests": 1,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 4,
+        "requested_bytes": 256,
+        "requests": 4,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 4,
+        "requested_bytes": 128,
+        "requests": 1,
+        "shard_bytes": 128
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 4,
+        "requested_bytes": 512,
+        "requests": 4,
+        "shard_bytes": 128
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 8,
+        "requested_bytes": 64,
+        "requests": 1,
+        "shard_bytes": 64
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 8,
+        "requested_bytes": 256,
+        "requests": 4,
+        "shard_bytes": 64
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 8,
+        "requested_bytes": 128,
+        "requests": 1,
+        "shard_bytes": 128
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 8,
+        "requested_bytes": 512,
+        "requests": 4,
+        "shard_bytes": 128
+      },
+      {
+        "data": 24,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 9,
+        "requested_bytes": 2441,
+        "requests": 5,
+        "shard_bytes": 64
+      },
+      {
+        "data": 24,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 9,
+        "requested_bytes": 2633,
+        "requests": 8,
+        "shard_bytes": 64
+      },
+      {
+        "data": 4,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 2,
+        "requested_bytes": 64,
+        "requests": 1,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 4,
+        "requested_bytes": 64,
+        "requests": 1,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 4,
+        "requested_bytes": 256,
+        "requests": 4,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 4,
+        "requested_bytes": 128,
+        "requests": 1,
+        "shard_bytes": 128
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 4,
+        "requested_bytes": 512,
+        "requests": 4,
+        "shard_bytes": 128
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 8,
+        "requested_bytes": 64,
+        "requests": 1,
+        "shard_bytes": 64
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 8,
+        "requested_bytes": 256,
+        "requests": 4,
+        "shard_bytes": 64
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 8,
+        "requested_bytes": 128,
+        "requests": 1,
+        "shard_bytes": 128
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 8,
+        "requested_bytes": 512,
+        "requests": 4,
+        "shard_bytes": 128
+      },
+      {
+        "data": 24,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 9,
+        "requested_bytes": 2441,
+        "requests": 5,
+        "shard_bytes": 64
+      },
+      {
+        "data": 24,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 9,
+        "requested_bytes": 2633,
+        "requests": 8,
+        "shard_bytes": 64
+      }
+    ],
+    "candidate": [
+      {
+        "data": 4,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 2,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 4,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 4,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 4,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 128
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 4,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 128
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 8,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 8,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 8,
+        "requested_bytes": 128,
+        "requests": 1,
+        "shard_bytes": 128
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 8,
+        "requested_bytes": 512,
+        "requests": 4,
+        "shard_bytes": 128
+      },
+      {
+        "data": 24,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 9,
+        "requested_bytes": 2441,
+        "requests": 5,
+        "shard_bytes": 64
+      },
+      {
+        "data": 24,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 9,
+        "requested_bytes": 2633,
+        "requests": 8,
+        "shard_bytes": 64
+      },
+      {
+        "data": 4,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 2,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 4,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 4,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 4,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 128
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 4,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 128
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 8,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 8,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 8,
+        "requested_bytes": 128,
+        "requests": 1,
+        "shard_bytes": 128
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 8,
+        "requested_bytes": 512,
+        "requests": 4,
+        "shard_bytes": 128
+      },
+      {
+        "data": 24,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 9,
+        "requested_bytes": 2441,
+        "requests": 5,
+        "shard_bytes": 64
+      },
+      {
+        "data": 24,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 9,
+        "requested_bytes": 2633,
+        "requests": 8,
+        "shard_bytes": 64
+      }
+    ]
+  },
+  "rust-gfni-avx2": {
+    "baseline": [
+      {
+        "data": 4,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 2,
+        "requested_bytes": 64,
+        "requests": 1,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 4,
+        "requested_bytes": 64,
+        "requests": 1,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 4,
+        "requested_bytes": 256,
+        "requests": 4,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 4,
+        "requested_bytes": 128,
+        "requests": 1,
+        "shard_bytes": 128
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 4,
+        "requested_bytes": 512,
+        "requests": 4,
+        "shard_bytes": 128
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 8,
+        "requested_bytes": 64,
+        "requests": 1,
+        "shard_bytes": 64
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 8,
+        "requested_bytes": 256,
+        "requests": 4,
+        "shard_bytes": 64
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 8,
+        "requested_bytes": 128,
+        "requests": 1,
+        "shard_bytes": 128
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 8,
+        "requested_bytes": 512,
+        "requests": 4,
+        "shard_bytes": 128
+      },
+      {
+        "data": 24,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 9,
+        "requested_bytes": 2441,
+        "requests": 5,
+        "shard_bytes": 64
+      },
+      {
+        "data": 24,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 9,
+        "requested_bytes": 2633,
+        "requests": 8,
+        "shard_bytes": 64
+      },
+      {
+        "data": 4,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 2,
+        "requested_bytes": 64,
+        "requests": 1,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 4,
+        "requested_bytes": 64,
+        "requests": 1,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 4,
+        "requested_bytes": 256,
+        "requests": 4,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 4,
+        "requested_bytes": 128,
+        "requests": 1,
+        "shard_bytes": 128
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 4,
+        "requested_bytes": 512,
+        "requests": 4,
+        "shard_bytes": 128
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 8,
+        "requested_bytes": 64,
+        "requests": 1,
+        "shard_bytes": 64
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 8,
+        "requested_bytes": 256,
+        "requests": 4,
+        "shard_bytes": 64
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 8,
+        "requested_bytes": 128,
+        "requests": 1,
+        "shard_bytes": 128
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 8,
+        "requested_bytes": 512,
+        "requests": 4,
+        "shard_bytes": 128
+      },
+      {
+        "data": 24,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 9,
+        "requested_bytes": 2441,
+        "requests": 5,
+        "shard_bytes": 64
+      },
+      {
+        "data": 24,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 9,
+        "requested_bytes": 2633,
+        "requests": 8,
+        "shard_bytes": 64
+      }
+    ],
+    "candidate": [
+      {
+        "data": 4,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 2,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 4,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 4,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 4,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 128
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 4,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 128
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 8,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 8,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 8,
+        "requested_bytes": 128,
+        "requests": 1,
+        "shard_bytes": 128
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 8,
+        "requested_bytes": 512,
+        "requests": 4,
+        "shard_bytes": 128
+      },
+      {
+        "data": 24,
+        "family": "LeopardGF8",
+        "missing": 1,
+        "parity": 9,
+        "requested_bytes": 2441,
+        "requests": 5,
+        "shard_bytes": 64
+      },
+      {
+        "data": 24,
+        "family": "LeopardGF8",
+        "missing": 4,
+        "parity": 9,
+        "requested_bytes": 2633,
+        "requests": 8,
+        "shard_bytes": 64
+      },
+      {
+        "data": 4,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 2,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 4,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 4,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 4,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 128
+      },
+      {
+        "data": 10,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 4,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 128
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 8,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 8,
+        "requested_bytes": 0,
+        "requests": 0,
+        "shard_bytes": 64
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 8,
+        "requested_bytes": 128,
+        "requests": 1,
+        "shard_bytes": 128
+      },
+      {
+        "data": 16,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 8,
+        "requested_bytes": 512,
+        "requests": 4,
+        "shard_bytes": 128
+      },
+      {
+        "data": 24,
+        "family": "LeopardGF16",
+        "missing": 1,
+        "parity": 9,
+        "requested_bytes": 2441,
+        "requests": 5,
+        "shard_bytes": 64
+      },
+      {
+        "data": 24,
+        "family": "LeopardGF16",
+        "missing": 4,
+        "parity": 9,
+        "requested_bytes": 2633,
+        "requests": 8,
+        "shard_bytes": 64
+      }
+    ]
+  }
+}

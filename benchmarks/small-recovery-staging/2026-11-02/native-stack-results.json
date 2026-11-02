@@ -1,0 +1,162 @@
+[
+  {
+    "backend": "rust-gfni-avx2",
+    "role": "baseline",
+    "family": "gf8",
+    "stack_bytes": 32768,
+    "exit": 0,
+    "stack_overflow": false
+  },
+  {
+    "backend": "rust-gfni-avx2",
+    "role": "baseline",
+    "family": "gf8",
+    "stack_bytes": 65536,
+    "exit": 0,
+    "stack_overflow": false
+  },
+  {
+    "backend": "rust-gfni-avx2",
+    "role": "baseline",
+    "family": "gf16",
+    "stack_bytes": 131072,
+    "exit": -6,
+    "stack_overflow": true
+  },
+  {
+    "backend": "rust-gfni-avx2",
+    "role": "baseline",
+    "family": "gf16",
+    "stack_bytes": 262144,
+    "exit": -6,
+    "stack_overflow": true
+  },
+  {
+    "backend": "rust-gfni-avx2",
+    "role": "baseline",
+    "family": "gf16",
+    "stack_bytes": 524288,
+    "exit": 0,
+    "stack_overflow": false
+  },
+  {
+    "backend": "rust-gfni-avx2",
+    "role": "candidate",
+    "family": "gf8",
+    "stack_bytes": 32768,
+    "exit": 0,
+    "stack_overflow": false
+  },
+  {
+    "backend": "rust-gfni-avx2",
+    "role": "candidate",
+    "family": "gf8",
+    "stack_bytes": 65536,
+    "exit": 0,
+    "stack_overflow": false
+  },
+  {
+    "backend": "rust-gfni-avx2",
+    "role": "candidate",
+    "family": "gf16",
+    "stack_bytes": 131072,
+    "exit": -6,
+    "stack_overflow": true
+  },
+  {
+    "backend": "rust-gfni-avx2",
+    "role": "candidate",
+    "family": "gf16",
+    "stack_bytes": 262144,
+    "exit": -6,
+    "stack_overflow": true
+  },
+  {
+    "backend": "rust-gfni-avx2",
+    "role": "candidate",
+    "family": "gf16",
+    "stack_bytes": 524288,
+    "exit": 0,
+    "stack_overflow": false
+  },
+  {
+    "backend": "rust-avx2",
+    "role": "baseline",
+    "family": "gf8",
+    "stack_bytes": 32768,
+    "exit": 0,
+    "stack_overflow": false
+  },
+  {
+    "backend": "rust-avx2",
+    "role": "baseline",
+    "family": "gf8",
+    "stack_bytes": 65536,
+    "exit": 0,
+    "stack_overflow": false
+  },
+  {
+    "backend": "rust-avx2",
+    "role": "baseline",
+    "family": "gf16",
+    "stack_bytes": 131072,
+    "exit": -6,
+    "stack_overflow": true
+  },
+  {
+    "backend": "rust-avx2",
+    "role": "baseline",
+    "family": "gf16",
+    "stack_bytes": 262144,
+    "exit": -6,
+    "stack_overflow": true
+  },
+  {
+    "backend": "rust-avx2",
+    "role": "baseline",
+    "family": "gf16",
+    "stack_bytes": 524288,
+    "exit": 0,
+    "stack_overflow": false
+  },
+  {
+    "backend": "rust-avx2",
+    "role": "candidate",
+    "family": "gf8",
+    "stack_bytes": 32768,
+    "exit": 0,
+    "stack_overflow": false
+  },
+  {
+    "backend": "rust-avx2",
+    "role": "candidate",
+    "family": "gf8",
+    "stack_bytes": 65536,
+    "exit": 0,
+    "stack_overflow": false
+  },
+  {
+    "backend": "rust-avx2",
+    "role": "candidate",
+    "family": "gf16",
+    "stack_bytes": 131072,
+    "exit": -6,
+    "stack_overflow": true
+  },
+  {
+    "backend": "rust-avx2",
+    "role": "candidate",
+    "family": "gf16",
+    "stack_bytes": 262144,
+    "exit": -6,
+    "stack_overflow": true
+  },
+  {
+    "backend": "rust-avx2",
+    "role": "candidate",
+    "family": "gf16",
+    "stack_bytes": 524288,
+    "exit": 0,
+    "stack_overflow": false
+  }
+]

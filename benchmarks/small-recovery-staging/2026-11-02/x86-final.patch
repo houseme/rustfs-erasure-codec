@@ -1,0 +1,120 @@
+--- a/src/core/reconstruct.rs
++++ b/src/core/reconstruct.rs
+@@ -13,0 +14,3 @@
++
++#[cfg(all(feature = "std", target_arch = "x86_64"))]
++const LEOPARD_INLINE_RECOVERY_BYTES: usize = 2048;
+@@ -772,0 +776,34 @@
++        self.reconstruct_leopard_staged(slices, &required, reconstruct_fn, shard_len)
++    }
++
++    #[cfg_attr(all(feature = "std", target_arch = "x86_64"), inline(never))]
++    #[cfg_attr(not(all(feature = "std", target_arch = "x86_64")), inline(always))]
++    fn reconstruct_leopard_staged<T: ReconstructShard<F>>(
++        &self,
++        slices: &mut [T],
++        required: &impl Fn(usize) -> bool,
++        reconstruct_fn: impl FnOnce(
++            &[bool],
++            &mut [&mut [u8]],
++            &[Option<&[u8]>],
++            usize,
++            usize,
++        ) -> Result<(), Error>,
++        shard_len: usize,
++    ) -> Result<(), Error> {
++        // Bound inline staging to std x86; other targets retain the
++        // existing heap-based staging path.
++        #[cfg(all(feature = "std", target_arch = "x86_64"))]
++        if slices.len() <= 32
++            && let Some(bytes) = slices.len().checked_mul(shard_len)
++            && bytes <= LEOPARD_INLINE_RECOVERY_BYTES
++        {
++            return self.reconstruct_leopard_small(
++                slices,
++                required,
++                reconstruct_fn,
++                shard_len,
++                bytes,
++            );
++        }
++
+@@ -827,0 +865,78 @@
++        }
++        Ok(())
++    }
++
++    #[cfg(all(feature = "std", target_arch = "x86_64"))]
++    #[inline(never)]
++    fn reconstruct_leopard_small<T: ReconstructShard<F>>(
++        &self,
++        slices: &mut [T],
++        required: &impl Fn(usize) -> bool,
++        reconstruct_fn: impl FnOnce(
++            &[bool],
++            &mut [&mut [u8]],
++            &[Option<&[u8]>],
++            usize,
++            usize,
++        ) -> Result<(), Error>,
++        shard_len: usize,
++        active_bytes: usize,
++    ) -> Result<(), Error> {
++        // These are private staging bytes, so errors and unwinds cannot modify
++        // the caller's missing slots before successful decoding.
++        let mut scratch = [0u8; LEOPARD_INLINE_RECOVERY_BYTES];
++        let mut present: SmallVec<[bool; 32]> = SmallVec::new();
++        let mut inputs: SmallVec<[Option<&[u8]>; 32]> = SmallVec::new();
++        let mut outputs: SmallVec<[&mut [u8]; 32]> = SmallVec::new();
++        let mut requested: SmallVec<[bool; 32]> = SmallVec::new();
++        for (index, (shard, output)) in slices
++            .iter_mut()
++            .zip(scratch[..active_bytes].chunks_exact_mut(shard_len))
++            .enumerate()
++        {
++            let data = shard.get();
++            present.push(data.is_some());
++            if let Some(data) = data {
++                let bytes = F::as_gf8_slice(data).ok_or(Error::UnsupportedCodecFamily)?;
++                if data.len() != shard_len || bytes.len() != shard_len {
++                    return Err(Error::IncorrectShardSize);
++                }
++                inputs.push(Some(bytes));
++                outputs.push(&mut []);
++                requested.push(false);
++            } else {
++                inputs.push(None);
++                let is_required = required(index);
++                outputs.push(if is_required { output } else { &mut [] });
++                requested.push(is_required);
++            }
++        }
++        reconstruct_fn(
++            &present,
++            &mut outputs,
++            &inputs,
++            self.data_shard_count(),
++            self.parity_shard_count(),
++        )?;
++        drop(outputs);
++        drop(inputs);
++        for ((shard, bytes), is_required) in slices
++            .iter_mut()
++            .zip(scratch[..active_bytes].chunks_exact(shard_len))
++            .zip(requested)
++        {
++            if !is_required {
++                continue;
++            }
++            let data = match shard.get_or_initialize(shard_len) {
++                Ok(data) | Err(Ok(data)) => data,
++                Err(Err(error)) => return Err(error),
++            };
++            if data.len() != shard_len {
++                return Err(Error::IncorrectShardSize);
++            }
++            let destination = F::as_gf8_slice_mut(data).ok_or(Error::UnsupportedCodecFamily)?;
++            if destination.len() != shard_len {
++                return Err(Error::IncorrectShardSize);
++            }
++            destination.copy_from_slice(bytes);
