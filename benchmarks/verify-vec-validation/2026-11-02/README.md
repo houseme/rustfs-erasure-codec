@@ -70,6 +70,18 @@ builds shard views and obtains matrix row byte views before each eligible
 encoding. A future concrete-field experiment must preserve the generic
 field/view rejection and fallback contracts before testing any metadata reuse.
 
+## Opt-in Rust benchmark smoke
+
+Commit `9f73161` adds the optional concrete-Vec workspace cases documented in
+the [benchmark methodology](../../../docs/benchmark-methodology.md). A release
+benchmark cross-compiled for x86 Linux ran all 16 cases on native x86 with
+`rust-avx2`, `rust-gfni-avx512`, and `scalar-rust` selected in separate
+processes. Each case checks valid and corrupted parity before and after its
+timed loop. These runs requested only 1 ms per sample and establish functional
+coverage, not latency or cross-backend performance. The copied executable could
+not query its original build checkout on Linux, so its emitted Git metadata was
+not used for source provenance.
+
 To reproduce the baseline, archive `241351e` into sibling `base` and `same`
 directories, change only the second package version to `9.1.0+diagnostic`, and
 copy `paired-probe.rs`, `Cargo.toml.example` and `Cargo.lock` to a sibling
