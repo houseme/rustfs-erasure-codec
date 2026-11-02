@@ -1,0 +1,50 @@
+--- a/src/core/verify.rs
++++ b/src/core/verify.rs
+@@ -235,3 +235,36 @@
+         self.verify_with_buffer_par(slices, &mut buffer_views)
+     }
+ }
++#[cfg(feature = "std")]
++impl ReedSolomon<crate::galois_8::Field> {
++    pub(crate) fn verify_vec_with_workspace_par(
++        &self,
++        slices: &[Vec<u8>],
++        workspace: &mut VerifyWorkspace<crate::galois_8::Field>,
++    ) -> Result<bool, Error> {
++        check_piece_count!(all => self, slices);
++        let shard_len = slices[0].len();
++        if shard_len == 0 {
++            return Err(Error::EmptyShard);
++        }
++        if slices.iter().any(|slice| slice.len() != shard_len) {
++            return Err(Error::IncorrectShardSize);
++        }
++        workspace.prepare(self, shard_len);
++        let buffer = workspace.as_mut_shards();
++        if self.is_leopard_gf8_family() || self.is_leopard_gf16_family() {
++            return self.verify_leopard_with_buffer(slices, buffer);
++        }
++        let data = &slices[..self.data_shard_count()];
++        let to_check = &slices[self.data_shard_count()..];
++        if self.fast_one_parity_enabled() {
++            self.encode_fast_one_parity(data, buffer);
++            return Ok(buffer[0] == to_check[0]);
++        }
++        self.encode_sep_par(data, buffer)?;
++        Ok(buffer
++            .iter()
++            .zip(to_check)
++            .all(|(expected, actual)| expected == actual))
++    }
++}
+--- a/src/galois_8/policy.rs
++++ b/src/galois_8/policy.rs
+@@ -427,7 +427,7 @@
+         slices: &[Vec<u8>],
+         workspace: &mut crate::VerifyWorkspace<crate::galois_8::Field>,
+     ) -> Result<bool, crate::Error> {
+-        self.verify_with_workspace_par(slices, workspace)
++        self.verify_vec_with_workspace_par(slices, workspace)
+     }
+ 
+     #[cfg(feature = "std")]
