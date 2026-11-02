@@ -991,6 +991,25 @@ cargo bench --bench recovery_paths --features "std simd-neon" \
   > target/recovery-gf16.jsonl
 ```
 
+The optional concrete-Vec workspace verification catalog is separate from the
+established default cases. Enable it explicitly and select its case prefix:
+
+```bash
+RSE_SMALL_VERIFY_VEC_BENCH=1 RSE_RECOVERY_CASE_FILTER=verify.small_vec \
+RSE_RECOVERY_SAMPLE_MS=100 RAYON_NUM_THREADS=1 \
+cargo bench -p rustfs-erasure-codec --bench recovery_paths --features simd-accel \
+  > target/small-vec-verify.jsonl
+```
+
+The 16 cases cover the parallel and optimized workspace entry points at 4+2
+and 10+4 with 64, 256 and 257 bytes per shard, plus 4+1/64-byte fast parity
+and 4+2/4096-byte controls. They pass concrete `Vec<u8>` shards, retain the
+workspace across calls, and check valid and corrupted parity outside timing.
+Each codec limits its parallel budget to one job; the environment setting in
+the example also bounds the Rayon pool. The opt-in preserves the existing
+default case catalog. These samples alone do not perform baseline drift or
+A/B/B/A acceptance checks.
+
 `RSE_RECOVERY_SAMPLE_MS` is a positive per-sample duration in milliseconds
 (default 100). `RSE_RECOVERY_CASE_FILTER` optionally selects a substring of the
 reported `case_id`; a filter matching no cases fails. Each case performs 20

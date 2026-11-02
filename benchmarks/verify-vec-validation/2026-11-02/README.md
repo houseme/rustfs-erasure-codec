@@ -51,6 +51,25 @@ Those are properties of this compiler build, not a performance explanation;
 the rest of the called code and the runtime environment were not controlled.
 The [observations](screen.txt) retain the failed screens.
 
+## Local call-stack screen
+
+A later non-isolated AArch64 sample of the same-source baseline used the
+tracked paired probe, stable Rust 1.99.1 and a 500 Hz main-thread sampler.
+It ended at the first 4+2/64 baseline gate with 10.10% same-source bias, so
+the trace is useful only for locating possible work, not comparing speed.
+Among 2,010 recorded leaf samples, symbol mapping grouped 606 in
+`try_native_encode`, 347 in `PreparedNativeEncode::execute`, 244 in the
+generated 4+2 NEON kernel, and 138 in the optimized verify entry point.
+Other samples include runtime, fixture setup and calls outside these groups.
+The profile includes warmup and initialization and is one local observation;
+these counts are not a production workload distribution or evidence for an
+x86 optimization. The raw local trace is not part of this repository.
+
+The source confirms why this deserves investigation: checked native preparation
+builds shard views and obtains matrix row byte views before each eligible
+encoding. A future concrete-field experiment must preserve the generic
+field/view rejection and fallback contracts before testing any metadata reuse.
+
 To reproduce the baseline, archive `241351e` into sibling `base` and `same`
 directories, change only the second package version to `9.1.0+diagnostic`, and
 copy `paired-probe.rs`, `Cargo.toml.example` and `Cargo.lock` to a sibling

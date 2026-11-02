@@ -439,9 +439,82 @@ fn verification_cases(config: &Config) -> usize {
     completed
 }
 
+// Explicitly opt in: the established recovery catalog and its release gates
+// must not gain cases or change their existing fixture identities.
+fn small_vec_verification_cases(config: &Config) -> usize {
+    if std::env::var("RSE_SMALL_VERIFY_VEC_BENCH").as_deref() != Ok("1") {
+        return 0;
+    }
+    let mut completed = 0;
+    for (data, parity, size) in [
+        (4, 2, 64),
+        (4, 2, 256),
+        (4, 2, 257),
+        (10, 4, 64),
+        (10, 4, 256),
+        (10, 4, 257),
+        (4, 1, 64),
+        (4, 2, 4096),
+    ] {
+        let cases = ["verify.small_vec_par", "verify.small_vec_opt"].map(|operation| Case {
+            operation,
+            data_shards: data,
+            parity_shards: parity,
+            shard_size: size,
+            missing_data_shards: 0,
+            missing_parity_shards: 0,
+            stream_block_size: None,
+        });
+        if !cases.iter().any(|case| config.includes(case)) {
+            continue;
+        }
+        let codec = ReedSolomon::with_options(
+            data,
+            parity,
+            CodecOptions::builder()
+                .fast_one_parity(parity == 1)
+                .max_parallel_jobs(1)
+                .build(),
+        )
+        .expect("construct small verification codec");
+        let source = fixture(&codec, size);
+        let mut corrupt = source.clone();
+        corrupt[data + parity - 1][size - 1] ^= 0x5a;
+        let mut workspace = VerifyWorkspace::new(&codec, size);
+        for case in cases {
+            if !config.includes(&case) {
+                continue;
+            }
+            let mut verify = |shards: &[Vec<u8>]| {
+                match case.operation {
+                    "verify.small_vec_par" => {
+                        codec.verify_with_workspace_par(shards, &mut workspace)
+                    }
+                    "verify.small_vec_opt" => {
+                        codec.verify_with_workspace_opt(shards, &mut workspace)
+                    }
+                    _ => unreachable!(),
+                }
+                .expect("small verification API")
+            };
+            assert!(verify(&source));
+            assert!(!verify(&corrupt));
+            let measurement = measure(config, || {
+                assert!(black_box(verify(black_box(&source))));
+            });
+            assert!(verify(&source));
+            assert!(!verify(&corrupt));
+            report(config, &case, measurement);
+            completed += 1;
+        }
+    }
+    completed
+}
+
 fn main() -> Result<(), String> {
     let config = Config::read()?;
     let mut completed = verification_cases(&config);
+    completed += small_vec_verification_cases(&config);
     for (family, operation) in [
         (CodecFamily::LeopardGF8, "gf8.reconstruct"),
         (CodecFamily::LeopardGF16, "gf16.reconstruct"),
