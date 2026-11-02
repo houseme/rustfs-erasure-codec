@@ -1,0 +1,44 @@
+{
+  "event": "cpu-clock",
+  "frequency_hz": 499,
+  "gf16_encoding_avx2": "No single function clearly accounted for the observed regression.",
+  "gf16_gfni_recovery_percent": {
+    "baseline_forward": [
+      6.85,
+      7.23
+    ],
+    "baseline_inverse": [
+      6.38,
+      6.6
+    ],
+    "initial_forward": [
+      10.89,
+      11.22
+    ],
+    "initial_inverse": [
+      10.93,
+      11.91
+    ]
+  },
+  "gf16_gfni_run_function_bytes": {
+    "baseline_forward": 827,
+    "baseline_inverse": 839,
+    "initial_forward": 635,
+    "initial_inverse": 647
+  },
+  "gf8_recovery_candidate_percent": {
+    "lut_xor_avx2_prebuilt": [
+      16.32,
+      14.9
+    ],
+    "slice_xor_avx2": [
+      21.43,
+      20.42
+    ],
+    "slice_xor_wrapper": [
+      6.97,
+      7.41
+    ]
+  },
+  "physical_host_isolation": "not verified"
+}

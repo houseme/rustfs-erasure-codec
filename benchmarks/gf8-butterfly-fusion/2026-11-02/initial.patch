@@ -1,0 +1,137 @@
+--- a/src/core/leopard_gf8/mod.rs
++++ b/src/core/leopard_gf8/mod.rs
+@@ -14,0 +15,3 @@
++
++#[cfg(all(feature = "std", target_arch = "x86_64"))]
++mod butterfly_avx2;
+--- a/src/core/leopard_gf8/ops.rs
++++ b/src/core/leopard_gf8/ops.rs
+@@ -476,0 +477,6 @@
++        #[cfg(all(feature = "std", target_arch = "x86_64"))]
++        if dst.len() == src.len() && dst.len() >= 64 && is_x86_feature_detected!("avx2") {
++            // SAFETY: the slices are disjoint and AVX2 is available.
++            unsafe { super::butterfly_avx2::apply::<false>(dst, src, low, high, lut) };
++            return;
++        }
+@@ -494,0 +501,6 @@
++        #[cfg(all(feature = "std", target_arch = "x86_64"))]
++        if dst.len() == src.len() && dst.len() >= 64 && is_x86_feature_detected!("avx2") {
++            // SAFETY: the slices are disjoint and AVX2 is available.
++            unsafe { super::butterfly_avx2::apply::<true>(dst, src, low, high, lut) };
++            return;
++        }
+@@ -726,0 +739,62 @@
++
++#[cfg(test)]
++mod butterfly_fusion_tests {
++    extern crate alloc;
++    use super::{dit2_step_inv_prebuilt, dit2_step_prebuilt};
++    use alloc::vec::Vec;
++
++    #[test]
++    fn butterfly_matches_scalar_reference_for_all_coefficients_and_tails() {
++        let tables = super::super::init_leopard_gf8_tables();
++        for log in 0u8..=u8::MAX {
++            let lut = &tables.mul_luts[log as usize];
++            for len in [0usize, 1, 31, 32, 63, 64, 65, 95, 96, 127, 128, 129, 256] {
++                for offset in [0usize, 1, 7, 15] {
++                    let original_x: Vec<u8> =
++                        (0..len + offset + 32).map(|i| (i * 37 + 5) as u8).collect();
++                    let original_y: Vec<u8> = (0..len + offset + 32)
++                        .map(|i| (i * 71 + 17) as u8)
++                        .collect();
++                    for inverse in [false, true] {
++                        let mut x = original_x.clone();
++                        let mut y = original_y.clone();
++                        let mut expected_x = x.clone();
++                        let mut expected_y = y.clone();
++                        for i in offset..offset + len {
++                            if log == u8::MAX {
++                                expected_y[i] ^= expected_x[i];
++                            } else if inverse {
++                                expected_y[i] ^= expected_x[i];
++                                expected_x[i] ^= lut.value[expected_y[i] as usize];
++                            } else {
++                                expected_x[i] ^= lut.value[expected_y[i] as usize];
++                                expected_y[i] ^= expected_x[i];
++                            }
++                        }
++                        let func = if inverse {
++                            dit2_step_inv_prebuilt
++                        } else {
++                            dit2_step_prebuilt
++                        };
++                        func(
++                            &mut x[offset..offset + len],
++                            &mut y[offset..offset + len],
++                            log,
++                            &lut.value,
++                            &lut.low,
++                            &lut.high,
++                        );
++                        assert_eq!(
++                            x, expected_x,
++                            "dst log={log} len={len} offset={offset} inverse={inverse}"
++                        );
++                        assert_eq!(
++                            y, expected_y,
++                            "src log={log} len={len} offset={offset} inverse={inverse}"
++                        );
++                    }
++                }
++            }
++        }
++    }
++}
+--- /dev/null
++++ b/src/core/leopard_gf8/butterfly_avx2.rs
+@@ -0,0 +1,49 @@
++#[target_feature(enable = "avx2")]
++pub(super) unsafe fn apply<const INVERSE: bool>(
++    dst: &mut [u8],
++    src: &mut [u8],
++    low: &[u8; 16],
++    high: &[u8; 16],
++    lut: &[u8; 256],
++) {
++    use core::arch::x86_64::{
++        _mm_loadu_si128, _mm256_and_si256, _mm256_broadcastsi128_si256, _mm256_loadu_si256,
++        _mm256_set1_epi8, _mm256_shuffle_epi8, _mm256_srli_epi64, _mm256_storeu_si256,
++        _mm256_xor_si256,
++    };
++    // SAFETY: both lookup tables contain sixteen bytes.
++    let low = _mm256_broadcastsi128_si256(unsafe { _mm_loadu_si128(low.as_ptr().cast()) });
++    let high = _mm256_broadcastsi128_si256(unsafe { _mm_loadu_si128(high.as_ptr().cast()) });
++    let mask = _mm256_set1_epi8(0x0f);
++    let (dst32, dst_tail) = dst.as_chunks_mut::<32>();
++    let (src32, src_tail) = src.as_chunks_mut::<32>();
++    for (dst, src) in dst32.iter_mut().zip(src32.iter_mut()) {
++        // SAFETY: both chunks are complete and non-overlapping.
++        let mut x = unsafe { _mm256_loadu_si256(dst.as_ptr().cast()) };
++        let mut y = unsafe { _mm256_loadu_si256(src.as_ptr().cast()) };
++        if INVERSE {
++            y = _mm256_xor_si256(y, x);
++        }
++        let lo = _mm256_and_si256(y, mask);
++        let hi = _mm256_and_si256(_mm256_srli_epi64::<4>(y), mask);
++        let product = _mm256_xor_si256(_mm256_shuffle_epi8(low, lo), _mm256_shuffle_epi8(high, hi));
++        x = _mm256_xor_si256(x, product);
++        if !INVERSE {
++            y = _mm256_xor_si256(y, x);
++        }
++        // SAFETY: each chunk contains 32 writable bytes.
++        unsafe {
++            _mm256_storeu_si256(dst.as_mut_ptr().cast(), x);
++            _mm256_storeu_si256(src.as_mut_ptr().cast(), y);
++        }
++    }
++    for (x, y) in dst_tail.iter_mut().zip(src_tail.iter_mut()) {
++        if INVERSE {
++            *y ^= *x;
++        }
++        *x ^= lut[*y as usize];
++        if !INVERSE {
++            *y ^= *x;
++        }
++    }
++}
