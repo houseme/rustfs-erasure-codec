@@ -1,0 +1,26 @@
+baseline work:
+SPARSE_WORK case=first delta_adds=256 multiplied_elements=512
+SPARSE_WORK case=middle delta_adds=256 multiplied_elements=512
+SPARSE_WORK case=last delta_adds=256 multiplied_elements=512
+SPARSE_WORK case=ends delta_adds=256 multiplied_elements=512
+SPARSE_WORK case=dense delta_adds=256 multiplied_elements=512
+SPARSE_WORK case=identical delta_adds=0 multiplied_elements=0
+
+revised work:
+SPARSE_WORK case=first delta_adds=1 multiplied_elements=2
+SPARSE_WORK case=middle delta_adds=1 multiplied_elements=2
+SPARSE_WORK case=last delta_adds=1 multiplied_elements=2
+SPARSE_WORK case=ends delta_adds=256 multiplied_elements=512
+SPARSE_WORK case=dense delta_adds=256 multiplied_elements=512
+SPARSE_WORK case=identical delta_adds=0 multiplied_elements=0
+
+baseline short view:
+SHRINKING_VIEW panicked=true result=None first_parity_byte=0
+
+initial short view:
+SHRINKING_VIEW panicked=false result=Some(Ok(())) first_parity_byte=27
+
+revised short view:
+SHRINKING_VIEW panicked=true result=None first_parity_byte=0
+
+revised view: 18 baseline observations match 18 candidate observations

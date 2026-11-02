@@ -1,0 +1,28 @@
+--- a/src/core/encode.rs
++++ b/src/core/encode.rs
+@@ -1082,18 +1082,18 @@
+                 .zip(new.as_ref().chunks(chunk_len))
+                 .enumerate()
+             {
+-                if old == new {
++                let Some(first) = old.iter().zip(new).position(|(a, b)| a != b) else {
+                     continue;
+-                }
+-                // Grow only for the active changed range and reuse its capacity.
+-                // Clear also excludes stale elements when the next chunk is short.
++                };
++                let last = old.iter().zip(new).rposition(|(a, b)| a != b).unwrap() + 1;
+                 delta.clear();
+-                delta.extend(old.iter().zip(new).map(|(&old, &new)| F::add(old, new)));
++                delta.extend(old[first..last].iter().zip(&new[first..last]).map(|(&old, &new)| F::add(old, new)));
+                 let start = chunk_index * chunk_len;
+-                let end = start + delta.len();
++                let end = start + old.len().min(new.len());
+                 for (row, output) in parity.iter_mut().enumerate() {
+                     let coefficient = matrix.get(self.data_shard_count() + row, i_data);
+-                    F::mul_slice_add(coefficient, &delta, &mut output.as_mut()[start..end]);
++                    let original_range = &mut output.as_mut()[start..end];
++                    F::mul_slice_add(coefficient, &delta, &mut original_range[first..last]);
+                 }
+             }
+         }
