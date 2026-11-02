@@ -94,3 +94,8 @@ Native acceptance requires a fresh reserved window, complete independent
 same-source preflights, cross-round checks and guarded A/B/B/A with both
 supported x86 backends. Dense, invalid, corrupted, Leopard and larger controls
 must remain covered. Do not use these local screens to enable the prototype.
+
+A subsequent [native initial screen](native-initial-screen.md) passed two
+same-source preflights for one small shape on two x86 backends. The broader
+catalog was interrupted before candidate timing; the single-shape result
+does not meet the acceptance scope above.
