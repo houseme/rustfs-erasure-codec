@@ -1,0 +1,51 @@
+--- a/src/core/leopard_gf8/ops.rs
++++ b/src/core/leopard_gf8/ops.rs
+@@ -151,0 +152,10 @@
++    #[cfg(all(feature = "std", target_arch = "x86_64"))]
++    if let (Ok(input), Ok(out)) = (
++        <&[u8; 64]>::try_from(input),
++        <&mut [u8; 64]>::try_from(&mut *out),
++    ) {
++        for i in 0..64 {
++            out[i] ^= input[i];
++        }
++        return;
++    }
+@@ -640,0 +651,37 @@
++
++#[cfg(test)]
++mod short_xor_tests {
++    extern crate alloc;
++    use super::slice_xor;
++    use alloc::vec::Vec;
++
++    #[test]
++    fn xor_matches_scalar_with_unchanged_guards_and_unaligned_views() {
++        for len in [0usize, 1, 15, 16, 31, 32, 63, 64, 65, 95, 96, 127, 128, 129] {
++            for src_offset in [0usize, 1, 7, 15] {
++                for dst_offset in [0usize, 1, 11, 31] {
++                    let source: Vec<u8> = (0..len + src_offset + 32)
++                        .map(|i| (i * 37 + i / 7) as u8)
++                        .collect();
++                    let before = source.clone();
++                    let mut destination: Vec<u8> = (0..len + dst_offset + 32)
++                        .map(|i| (i * 19 + i / 3) as u8)
++                        .collect();
++                    let mut expected = destination.clone();
++                    for i in 0..len {
++                        expected[dst_offset + i] ^= source[src_offset + i];
++                    }
++                    slice_xor(
++                        &source[src_offset..src_offset + len],
++                        &mut destination[dst_offset..dst_offset + len],
++                    );
++                    assert_eq!(
++                        destination, expected,
++                        "len={len} src={src_offset} dst={dst_offset}"
++                    );
++                    assert_eq!(source, before);
++                }
++            }
++        }
++    }
++}

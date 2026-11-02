@@ -1,0 +1,32 @@
+--- a/src/core/leopard_gf8/ops.rs
++++ b/src/core/leopard_gf8/ops.rs
+@@ -481,0 +482,3 @@
++#[cfg(test)]
++static ASSIGN_LOG_COUNTS: [core::sync::atomic::AtomicUsize; 256] = [const { core::sync::atomic::AtomicUsize::new(0) }; 256];
++
+@@ -483,0 +487,2 @@
++    #[cfg(test)]
++    ASSIGN_LOG_COUNTS[log_m as usize].fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+@@ -691,0 +697,22 @@
++
++    #[test]
++    fn report_assignment_logs() {
++        use core::sync::atomic::Ordering;
++        use crate::{CodecFamily, CodecOptions, ShardSlot, galois_8::ReedSolomon};
++        for (data, parity) in [(4usize, 2usize), (10, 4), (16, 8)] {
++            for missing in [1usize, 4] {
++                if missing > parity { continue; }
++                let codec=ReedSolomon::with_options(data,parity,CodecOptions::builder().codec_family(CodecFamily::LeopardGF8).max_parallel_jobs(1).build()).unwrap();
++                let mut source:Vec<Vec<u8>>=(0..data+parity).map(|i|(0..64).map(|j|(i*31+j*17) as u8).collect()).collect();
++                codec.encode(&mut source).unwrap();
++                let mut slots:Vec<_>=source.iter().cloned().map(ShardSlot::new_present).collect();
++                for x in &mut slots[..missing] { x.mark_missing(); }
++                for v in &super::ASSIGN_LOG_COUNTS {v.store(0,Ordering::Relaxed);}
++                codec.reconstruct(&mut slots).unwrap();
++                let total:usize=super::ASSIGN_LOG_COUNTS.iter().map(|c|c.load(Ordering::Relaxed)).sum();
++                let zero=super::ASSIGN_LOG_COUNTS[0].load(Ordering::Relaxed);
++                let modulus=super::ASSIGN_LOG_COUNTS[255].load(Ordering::Relaxed);
++                println!("ASSIGN_LOG {data} {parity} {missing} {total} {zero} {modulus}");
++            }
++        }
++    }

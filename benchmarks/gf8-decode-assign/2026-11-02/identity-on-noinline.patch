@@ -1,0 +1,18 @@
+--- a/src/core/leopard_gf8/ops.rs
++++ b/src/core/leopard_gf8/ops.rs
+@@ -487,0 +488,4 @@
++        if log_m == 0 || log_m == MODULUS8 as u8 {
++            out.copy_from_slice(input);
++            return;
++        }
+@@ -691,0 +696,10 @@
++
++    #[test]
++    fn assignment_identity_luts_match_identity_for_every_byte() {
++        let tables = super::super::init_leopard_gf8_tables();
++        for log in [0usize, 255] {
++            for value in 0u8..=u8::MAX {
++                assert_eq!(tables.mul_luts[log].value[value as usize], value);
++            }
++        }
++    }

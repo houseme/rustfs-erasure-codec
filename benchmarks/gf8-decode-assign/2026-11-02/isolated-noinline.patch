@@ -1,0 +1,130 @@
+--- a/src/core/leopard_gf8/ops.rs
++++ b/src/core/leopard_gf8/ops.rs
+@@ -394,0 +395,38 @@
++/// AVX2 nibble lookup for direct assignment, with the same prebuilt tables.
++#[cfg(all(feature = "std", target_arch = "x86_64"))]
++#[target_feature(enable = "avx2")]
++unsafe fn lut_assign_avx2_prebuilt(
++    dst: &mut [u8],
++    src: &[u8],
++    low: &[u8; 16],
++    high: &[u8; 16],
++    lut: &[u8; 256],
++) {
++    use core::arch::x86_64::{
++        _mm_loadu_si128, _mm256_and_si256, _mm256_broadcastsi128_si256, _mm256_loadu_si256,
++        _mm256_set1_epi8, _mm256_shuffle_epi8, _mm256_srli_epi64, _mm256_storeu_si256,
++        _mm256_xor_si256,
++    };
++    // SAFETY: both lookup tables contain 16 bytes.
++    let low_tbl = _mm256_broadcastsi128_si256(unsafe { _mm_loadu_si128(low.as_ptr().cast()) });
++    let high_tbl = _mm256_broadcastsi128_si256(unsafe { _mm_loadu_si128(high.as_ptr().cast()) });
++    let mask = _mm256_set1_epi8(0x0f);
++    let (src32, src_tail) = src.as_chunks::<32>();
++    let (dst32, dst_tail) = dst.as_chunks_mut::<32>();
++    for (source, destination) in src32.iter().zip(dst32.iter_mut()) {
++        // SAFETY: these are complete disjoint 32-byte chunks.
++        let value = unsafe { _mm256_loadu_si256(source.as_ptr().cast()) };
++        let lo = _mm256_and_si256(value, mask);
++        let hi = _mm256_and_si256(_mm256_srli_epi64::<4>(value), mask);
++        let product = _mm256_xor_si256(
++            _mm256_shuffle_epi8(low_tbl, lo),
++            _mm256_shuffle_epi8(high_tbl, hi),
++        );
++        // SAFETY: the destination chunk contains 32 writable bytes.
++        unsafe { _mm256_storeu_si256(destination.as_mut_ptr().cast(), product) };
++    }
++    for (d, s) in dst_tail.iter_mut().zip(src_tail.iter()) {
++        *d = lut[*s as usize];
++    }
++}
++
+@@ -443,0 +482 @@
++#[cfg_attr(all(feature = "std", target_arch = "x86_64"), inline(never))]
+@@ -446,0 +486,6 @@
++    #[cfg(all(feature = "std", target_arch = "x86_64"))]
++    if input.len() == out.len() && input.len() >= 64 && is_x86_feature_detected!("avx2") {
++        // SAFETY: AVX2 was detected; both slices are equal length and disjoint.
++        unsafe { lut_assign_avx2_prebuilt(out, input, &lut.low, &lut.high, &lut.value) };
++        return;
++    }
+@@ -640,0 +686,79 @@
++
++#[cfg(test)]
++mod assignment_tests {
++    extern crate alloc;
++    use super::{lut_xor_prebuilt, mulgf8};
++    use alloc::{vec, vec::Vec};
++
++    #[test]
++    fn assignment_matches_all_field_values_for_every_coefficient() {
++        let tables = super::super::init_leopard_gf8_tables();
++        let input: Vec<u8> = (0u8..=u8::MAX).collect();
++        let mut out = vec![0u8; 256];
++        for log in 0u8..=u8::MAX {
++            mulgf8(&mut out, &input, log, tables);
++            assert_eq!(out.as_slice(), &tables.mul_luts[log as usize].value);
++        }
++    }
++
++    #[cfg(not(debug_assertions))]
++    #[test]
++    fn assignment_preserves_shorter_output_behavior_without_debug_assertions() {
++        let tables = super::super::init_leopard_gf8_tables();
++        let input: Vec<u8> = (0..100).map(|i| (i * 13) as u8).collect();
++        let mut out = vec![0u8; 70];
++        mulgf8(&mut out, &input, 17, tables);
++        for (actual, source) in out.iter().zip(&input) {
++            assert_eq!(*actual, tables.mul_luts[17].value[*source as usize]);
++        }
++        let mut longer = vec![0xa5; 100];
++        mulgf8(&mut longer, &input[..70], 17, tables);
++        for (actual, source) in longer[..70].iter().zip(&input) {
++            assert_eq!(*actual, tables.mul_luts[17].value[*source as usize]);
++        }
++        assert!(longer[70..].iter().all(|&byte| byte == 0xa5));
++    }
++
++    #[test]
++    fn assignment_and_xor_match_tables_for_all_coefficients_and_tails() {
++        let tables = super::super::init_leopard_gf8_tables();
++        for log in 0u8..=u8::MAX {
++            let lut = &tables.mul_luts[log as usize];
++            for len in [0usize, 1, 31, 32, 63, 64, 65, 95, 96, 127, 128, 129, 256] {
++                for offset in [0usize, 1, 7, 15] {
++                    let source: Vec<u8> = (0..len + offset + 32)
++                        .map(|i| (i * 37 + i / 7) as u8)
++                        .collect();
++                    let mut assigned = vec![0xa5; len + offset + 32];
++                    let mut expected = assigned.clone();
++                    for i in 0..len {
++                        expected[offset + i] = lut.value[source[offset + i] as usize];
++                    }
++                    mulgf8(
++                        &mut assigned[offset..offset + len],
++                        &source[offset..offset + len],
++                        log,
++                        tables,
++                    );
++                    assert_eq!(
++                        assigned, expected,
++                        "assignment log={log} len={len} offset={offset}"
++                    );
++                    let mut xored = vec![0x5a; len + offset + 32];
++                    let mut expected = xored.clone();
++                    for i in 0..len {
++                        expected[offset + i] ^= lut.value[source[offset + i] as usize];
++                    }
++                    lut_xor_prebuilt(
++                        &mut xored[offset..offset + len],
++                        &source[offset..offset + len],
++                        &lut.low,
++                        &lut.high,
++                        &lut.value,
++                    );
++                    assert_eq!(xored, expected, "xor log={log} len={len} offset={offset}");
++                }
++            }
++        }
++    }
++}
