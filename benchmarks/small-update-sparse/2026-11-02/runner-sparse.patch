@@ -1,0 +1,13 @@
+--- a/run_streaming.py
++++ b/run_streaming.py
+@@ -24 +24,6 @@
+-} | {"small_update/4x2/64/none", "small_update/4x1/64/fast"}
++} | {"small_update/4x2/64/none", "small_update/4x1/64/fast"} | {
++    f"small_update/{data}x{parity}/{length}/{condition}"
++    for data, parity in ((4, 2), (10, 4))
++    for length in (64, 256, 257)
++    for condition in ("dense", "identical")
++}
+@@ -58,0 +64,2 @@
++    if row.get("backend") != "rust-gfni-avx512":
++        raise GateError("unexpected backend")

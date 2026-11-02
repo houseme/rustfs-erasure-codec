@@ -35,11 +35,18 @@ baseline/candidate check-only run on the revised prototype passed the existing
 GF8 catalog; no timing comparison was performed. There is no native acceptance
 evidence for this proposal.
 
-The expanded `paired-probe.rs` and `runner.py` add dense and explicitly
-identical updates at 64, 256 and 257 elements for both 4+2 and 10+4. Their
+The expanded `paired-probe.rs` and `runner-sparse.patch` add dense and
+explicitly identical updates at 64, 256 and 257 elements for both 4+2 and 10+4. Their
 24-case check-only run passed locally. The runner retains the independent
 same-source preflight, resource monitoring and drift gates; a check-only pass
 does not indicate that any timing gate has passed.
+
+Reconstruct the measured runner from commit `70898c1` as described in the
+[small-update investigation](../../small-update/2026-11-02/README.md), applying
+`cross-arm-gate.patch`, `runner-small-cases.patch` and `runner-update.patch` in
+that order. Then apply `runner-sparse.patch` with `git apply --unidiff-zero`.
+The reconstructed file was verified byte-for-byte against the runner used for
+the native attempt; it remains outside the repository's executable sources.
 
 ## Native x86 check and incomplete performance preflight
 
