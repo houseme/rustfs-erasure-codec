@@ -10,6 +10,9 @@ use crate::errors::Error;
 #[cfg(feature = "std")]
 use std::sync::atomic::Ordering;
 
+#[cfg(all(feature = "std", target_arch = "x86_64"))]
+mod assign_avx2;
+
 pub(crate) mod decode;
 mod driver;
 mod encode;

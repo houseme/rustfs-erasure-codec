@@ -441,9 +441,16 @@ unsafe fn lut_xor_ssse3_prebuilt(
     }
 }
 
+#[cfg_attr(all(feature = "std", target_arch = "x86_64"), inline(never))]
 pub(super) fn mulgf8(out: &mut [u8], input: &[u8], log_m: u8, tables: &LeopardGf8Tables) {
     let lut = &tables.mul_luts[log_m as usize];
     debug_assert_eq!(input.len(), out.len());
+    #[cfg(all(feature = "std", target_arch = "x86_64"))]
+    if input.len() == out.len() && input.len() >= 64 && is_x86_feature_detected!("avx2") {
+        // SAFETY: AVX2 was detected; both slices are equal length and disjoint.
+        unsafe { super::assign_avx2::mul(out, input, &lut.low, &lut.high, &lut.value) };
+        return;
+    }
     for (src, dst) in input.iter().zip(out.iter_mut()) {
         *dst = lut.value[*src as usize];
     }
@@ -637,4 +644,83 @@ pub(super) fn get_pair_mut<T>(slice: &mut [T], i: usize, j: usize) -> Option<(&m
 pub(super) enum TransformDir {
     Forward,
     Inverse,
+}
+
+#[cfg(test)]
+mod assignment_tests {
+    extern crate alloc;
+    use super::{lut_xor_prebuilt, mulgf8};
+    use alloc::{vec, vec::Vec};
+
+    #[test]
+    fn assignment_matches_all_field_values_for_every_coefficient() {
+        let tables = super::super::init_leopard_gf8_tables();
+        let input: Vec<u8> = (0u8..=u8::MAX).collect();
+        let mut out = vec![0u8; 256];
+        for log in 0u8..=u8::MAX {
+            mulgf8(&mut out, &input, log, tables);
+            assert_eq!(out.as_slice(), &tables.mul_luts[log as usize].value);
+        }
+    }
+
+    #[cfg(not(debug_assertions))]
+    #[test]
+    fn assignment_preserves_shorter_output_behavior_without_debug_assertions() {
+        let tables = super::super::init_leopard_gf8_tables();
+        let input: Vec<u8> = (0..100).map(|i| (i * 13) as u8).collect();
+        let mut out = vec![0u8; 70];
+        mulgf8(&mut out, &input, 17, tables);
+        for (actual, source) in out.iter().zip(&input) {
+            assert_eq!(*actual, tables.mul_luts[17].value[*source as usize]);
+        }
+        let mut longer = vec![0xa5; 100];
+        mulgf8(&mut longer, &input[..70], 17, tables);
+        for (actual, source) in longer[..70].iter().zip(&input) {
+            assert_eq!(*actual, tables.mul_luts[17].value[*source as usize]);
+        }
+        assert!(longer[70..].iter().all(|&byte| byte == 0xa5));
+    }
+
+    #[test]
+    fn assignment_and_xor_match_tables_for_all_coefficients_and_tails() {
+        let tables = super::super::init_leopard_gf8_tables();
+        for log in 0u8..=u8::MAX {
+            let lut = &tables.mul_luts[log as usize];
+            for len in [0usize, 1, 31, 32, 63, 64, 65, 95, 96, 127, 128, 129, 256] {
+                for offset in [0usize, 1, 7, 15] {
+                    let source: Vec<u8> = (0..len + offset + 32)
+                        .map(|i| (i * 37 + i / 7) as u8)
+                        .collect();
+                    let mut assigned = vec![0xa5; len + offset + 32];
+                    let mut expected = assigned.clone();
+                    for i in 0..len {
+                        expected[offset + i] = lut.value[source[offset + i] as usize];
+                    }
+                    mulgf8(
+                        &mut assigned[offset..offset + len],
+                        &source[offset..offset + len],
+                        log,
+                        tables,
+                    );
+                    assert_eq!(
+                        assigned, expected,
+                        "assignment log={log} len={len} offset={offset}"
+                    );
+                    let mut xored = vec![0x5a; len + offset + 32];
+                    let mut expected = xored.clone();
+                    for i in 0..len {
+                        expected[offset + i] ^= lut.value[source[offset + i] as usize];
+                    }
+                    lut_xor_prebuilt(
+                        &mut xored[offset..offset + len],
+                        &source[offset..offset + len],
+                        &lut.low,
+                        &lut.high,
+                        &lut.value,
+                    );
+                    assert_eq!(xored, expected, "xor log={log} len={len} offset={offset}");
+                }
+            }
+        }
+    }
 }
