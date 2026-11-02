@@ -113,6 +113,65 @@ fn leopard_generic_preserves_missing_slot_bytes_when_decoder_fails_or_unwinds() 
     }
 }
 
+#[test]
+fn leopard_small_staging_publishes_original_storage_after_decoder_reborrows() {
+    let codec = galois_8::ReedSolomon::with_options(
+        4,
+        3,
+        CodecOptions::builder()
+            .codec_family(crate::CodecFamily::LeopardGF8)
+            .build(),
+    )
+    .unwrap();
+    let mut slots = vec![crate::ShardSlot::new_present(vec![7; 64]); 7];
+    slots[0] = crate::ShardSlot::new_missing(vec![0xa5; 64]);
+    slots[1] = crate::ShardSlot::new_missing(vec![0x5a; 64]);
+    codec
+        .reconstruct_leopard_impl(
+            &mut slots,
+            |index| index == 0,
+            |_, outputs, _, _, _| {
+                outputs[0].fill(0x31);
+                outputs[0] = &mut [];
+                Ok(())
+            },
+        )
+        .unwrap();
+    assert!(slots[0].is_present());
+    assert_eq!(slots[0].as_inner(), &vec![0x31; 64]);
+    assert!(!slots[1].is_present());
+    assert_eq!(slots[1].as_inner(), &vec![0x5a; 64]);
+}
+
+#[test]
+fn leopard_small_staging_preserves_sequential_publication_on_rejection() {
+    let codec = galois_8::ReedSolomon::with_options(
+        4,
+        3,
+        CodecOptions::builder()
+            .codec_family(crate::CodecFamily::LeopardGF8)
+            .build(),
+    )
+    .unwrap();
+    let mut slots = vec![crate::ShardSlot::new_present(vec![7; 64]); 7];
+    slots[0] = crate::ShardSlot::new_missing(vec![0xa5; 64]);
+    slots[1] = crate::ShardSlot::new_missing(vec![0x5a; 63]);
+    let result = codec.reconstruct_leopard_impl(
+        &mut slots,
+        |_| true,
+        |_, outputs, _, _, _| {
+            outputs[0].fill(0x31);
+            outputs[1].fill(0x42);
+            Ok(())
+        },
+    );
+    assert_eq!(result, Err(Error::IncorrectShardSize));
+    assert!(slots[0].is_present());
+    assert_eq!(slots[0].as_inner(), &vec![0x31; 64]);
+    assert!(!slots[1].is_present());
+    assert_eq!(slots[1].as_inner(), &vec![0x5a; 63]);
+}
+
 fn matches_full_inverse<F: Field>(codec: &crate::ReedSolomon<F>, valid: &[usize]) {
     let n = codec.data_shard_count();
     let mut selected = crate::matrix::Matrix::<F>::new(n, n);

@@ -37,7 +37,7 @@ fn complete_plans_bind_generated_bytes_and_every_written_member() {
         (
             // Current production source, including every systematic decode branch.
             "dynamic",
-            "2bcdcebd382e76fb234380ac250fb5827ab97d198d21fa8fdb4bea17ea47b958",
+            "ff842fb388abb93ad3d0305f3a3524024ff37fe7565dc8ebb289cb48cefc108f",
         ),
     ] {
         let original = original(root, variant);
@@ -272,6 +272,22 @@ fn generated_workers_keep_setup_and_owned_metadata_outside_measured_work() {
         crate::sampling_contract::protocol_value()["result_metadata_policy"],
         "bounded-inline-hotspot-patterns-deferred-formatting"
     );
+}
+
+#[test]
+fn leopard_observer_instruments_the_validated_heap_staging_helper() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
+    let original = source::read(root.join("src/core/reconstruct.rs")).unwrap();
+    let observed = dynamic::decode(&original).unwrap();
+    let staged = observed
+        .split_once("    fn reconstruct_leopard_staged<")
+        .unwrap()
+        .1
+        .split_once("    fn reconstruct_leopard_small<")
+        .unwrap()
+        .0;
+    assert!(staged.contains("buffers(\"leopard_decoded\",\"prepared\",&recovered)"));
+    assert!(staged.contains("buffers(\"leopard_decoded\",\"decoded\",&recovered)"));
 }
 
 #[test]

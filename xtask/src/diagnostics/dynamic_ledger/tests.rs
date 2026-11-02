@@ -444,3 +444,35 @@ fn unscoped_leopard_work_cannot_supply_iteration_evidence() {
             .contains("iteration lacks actual Leopard decode work")
     );
 }
+
+#[test]
+fn observed_leopard_catalog_stays_on_the_recorded_staging_path() {
+    // The observer records heap-backed Leopard staging. Small inline staging
+    // is outside the current decoder catalog and must not be silently added.
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap();
+    let runtime = std::fs::read_to_string(root.join("src/core/reconstruct.rs")).unwrap();
+    assert!(runtime.contains("slices.len() <= 32"));
+    assert!(runtime.contains("const LEOPARD_INLINE_RECOVERY_BYTES: usize = 2048;"));
+    assert!(runtime.contains("bytes <= LEOPARD_INLINE_RECOVERY_BYTES"));
+    let mut checked = 0;
+    for item in payload::SUPPLEMENTS
+        .iter()
+        .filter(|item| item.case.starts_with("leopard_"))
+    {
+        let parts: Vec<_> = item.case.split(':').collect();
+        assert_eq!(parts.len(), 4);
+        let data: usize = parts[1].parse().unwrap();
+        let parity: usize = parts[2].parse().unwrap();
+        let size: usize = parts[3].parse().unwrap();
+        let total = data.checked_add(parity).unwrap();
+        assert!(
+            total > 32 || total.checked_mul(size).unwrap() > 2048,
+            "{}",
+            item.case
+        );
+        checked += 1;
+    }
+    assert_eq!(checked, 4);
+}

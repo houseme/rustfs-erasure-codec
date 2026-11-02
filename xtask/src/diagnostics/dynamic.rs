@@ -107,49 +107,44 @@ pub fn decode(text: &str) -> Result<String> {
     })?;
     text = region(&text, declaration)?;
     if text.contains("    fn reconstruct_leopard_impl<") {
-        text = source::method(
-            &text,
-            "    fn reconstruct_leopard_impl<",
-            |original, edit| {
-                let (buffers, prepared, decoded, after) =
-                    if original.contains("let mut recovered: SmallVec<[Vec<u8>; 32]>") {
-                        (
-                            "recovered",
-                            "        let mut outputs: SmallVec<[&mut [u8]; 32]> =",
-                            "        drop(input_data);",
-                            true,
-                        )
-                    } else {
-                        (
-                            "output_bufs",
-                            "        let mut outputs: Vec<&mut [u8]> = output_bufs",
-                            "        for i in 0..total {\n            if present[i] {",
-                            false,
-                        )
-                    };
-                edit.before(
-                    prepared,
-                    &format!(
-                        "        {LIB}buffers(\"leopard_decoded\",\"prepared\",&{buffers});\n"
-                    ),
-                )?;
-                if after {
-                    edit.after(
-                        decoded,
-                        &format!(
-                            "\n        {LIB}buffers(\"leopard_decoded\",\"decoded\",&{buffers});"
-                        ),
+        let staging = if text.contains("    fn reconstruct_leopard_staged<") {
+            "    fn reconstruct_leopard_staged<"
+        } else {
+            "    fn reconstruct_leopard_impl<"
+        };
+        text = source::method(&text, staging, |original, edit| {
+            let (buffers, prepared, decoded, after) =
+                if original.contains("let mut recovered: SmallVec<[Vec<u8>; 32]>") {
+                    (
+                        "recovered",
+                        "        let mut outputs: SmallVec<[&mut [u8]; 32]> =",
+                        "        drop(input_data);",
+                        true,
                     )
                 } else {
-                    edit.before(
-                        decoded,
-                        &format!(
-                            "        {LIB}buffers(\"leopard_decoded\",\"decoded\",&{buffers});\n"
-                        ),
+                    (
+                        "output_bufs",
+                        "        let mut outputs: Vec<&mut [u8]> = output_bufs",
+                        "        for i in 0..total {\n            if present[i] {",
+                        false,
                     )
-                }
-            },
-        )?;
+                };
+            edit.before(
+                prepared,
+                &format!("        {LIB}buffers(\"leopard_decoded\",\"prepared\",&{buffers});\n"),
+            )?;
+            if after {
+                edit.after(
+                    decoded,
+                    &format!("\n        {LIB}buffers(\"leopard_decoded\",\"decoded\",&{buffers});"),
+                )
+            } else {
+                edit.before(
+                    decoded,
+                    &format!("        {LIB}buffers(\"leopard_decoded\",\"decoded\",&{buffers});\n"),
+                )
+            }
+        })?;
     }
     Ok(text)
 }
