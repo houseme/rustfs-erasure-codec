@@ -445,6 +445,7 @@ fn small_vec_verification_cases(config: &Config) -> usize {
     if std::env::var("RSE_SMALL_VERIFY_VEC_BENCH").as_deref() != Ok("1") {
         return 0;
     }
+    let include_corrupt = std::env::var("RSE_SMALL_VERIFY_CORRUPT_BENCH").as_deref() == Ok("1");
     let mut completed = 0;
     for (data, parity, size) in [
         (4, 2, 64),
@@ -456,7 +457,12 @@ fn small_vec_verification_cases(config: &Config) -> usize {
         (4, 1, 64),
         (4, 2, 4096),
     ] {
-        let cases = ["verify.small_vec_par", "verify.small_vec_opt"].map(|operation| Case {
+        let cases = [
+            "verify.small_vec_par",
+            "verify.small_vec_opt",
+            "verify.small_vec_opt_bad",
+        ]
+        .map(|operation| Case {
             operation,
             data_shards: data,
             parity_shards: parity,
@@ -465,7 +471,10 @@ fn small_vec_verification_cases(config: &Config) -> usize {
             missing_parity_shards: 0,
             stream_block_size: None,
         });
-        if !cases.iter().any(|case| config.includes(case)) {
+        if !cases.iter().any(|case| {
+            (include_corrupt || case.operation != "verify.small_vec_opt_bad")
+                && config.includes(case)
+        }) {
             continue;
         }
         let codec = ReedSolomon::with_options(
@@ -482,7 +491,9 @@ fn small_vec_verification_cases(config: &Config) -> usize {
         corrupt[data + parity - 1][size - 1] ^= 0x5a;
         let mut workspace = VerifyWorkspace::new(&codec, size);
         for case in cases {
-            if !config.includes(&case) {
+            if (!include_corrupt && case.operation == "verify.small_vec_opt_bad")
+                || !config.includes(&case)
+            {
                 continue;
             }
             let mut verify = |shards: &[Vec<u8>]| {
@@ -490,7 +501,7 @@ fn small_vec_verification_cases(config: &Config) -> usize {
                     "verify.small_vec_par" => {
                         codec.verify_with_workspace_par(shards, &mut workspace)
                     }
-                    "verify.small_vec_opt" => {
+                    "verify.small_vec_opt" | "verify.small_vec_opt_bad" => {
                         codec.verify_with_workspace_opt(shards, &mut workspace)
                     }
                     _ => unreachable!(),
@@ -499,9 +510,15 @@ fn small_vec_verification_cases(config: &Config) -> usize {
             };
             assert!(verify(&source));
             assert!(!verify(&corrupt));
-            let measurement = measure(config, || {
-                assert!(black_box(verify(black_box(&source))));
-            });
+            let measurement = if case.operation == "verify.small_vec_opt_bad" {
+                measure(config, || {
+                    assert!(!black_box(verify(black_box(&corrupt))));
+                })
+            } else {
+                measure(config, || {
+                    assert!(black_box(verify(black_box(&source))));
+                })
+            };
             assert!(verify(&source));
             assert!(!verify(&corrupt));
             report(config, &case, measurement);

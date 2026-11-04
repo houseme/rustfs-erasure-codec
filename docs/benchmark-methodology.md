@@ -1010,6 +1010,12 @@ the example also bounds the Rayon pool. The opt-in preserves the existing
 default case catalog. These samples alone do not perform baseline drift or
 A/B/B/A acceptance checks.
 
+Set `RSE_SMALL_VERIFY_CORRUPT_BENCH=1` as well to add eight
+`verify.small_vec_opt_bad` cases. These time verification of a damaged final
+parity byte and assert the expected `false` result. Both options are required
+for this supplemental catalog; without the second option the original 16
+small-Vec cases remain unchanged.
+
 `RSE_RECOVERY_SAMPLE_MS` is a positive per-sample duration in milliseconds
 (default 100). `RSE_RECOVERY_CASE_FILTER` optionally selects a substring of the
 reported `case_id`; a filter matching no cases fails. Each case performs 20
