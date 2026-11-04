@@ -1,0 +1,34 @@
+{
+  "baseline_self_percent": {
+    "byte_views_prepare": [
+      19.66,
+      19.84
+    ],
+    "dot_avx2": [
+      19.66,
+      19.94
+    ],
+    "scalar_tail": [
+      11.03,
+      11.74
+    ]
+  },
+  "candidate_self_percent": {
+    "byte_views_prepare": [
+      21.15,
+      21.02
+    ],
+    "dot_avx2": [
+      14.47,
+      14.56
+    ],
+    "scalar_tail": [
+      13.82,
+      12.98
+    ]
+  },
+  "case": "classic 4+2 257 bytes valid",
+  "event": "cpu-clock",
+  "frequency_hz": 499,
+  "note": "sample shares do not prove the latency cause; each range has two stages"
+}

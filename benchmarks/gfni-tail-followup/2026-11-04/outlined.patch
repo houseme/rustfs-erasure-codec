@@ -1,0 +1,46 @@
+--- a/src/galois_8/x86/gfni_rows.rs
++++ b/src/galois_8/x86/gfni_rows.rs
+@@ -101,0 +102,13 @@
++#[inline(never)]
++fn scalar_tail_one(row: &[u8], inputs: &[&[u8]], start: usize) -> u8 {
++    let mut value = 0;
++    for (&coefficient, input) in row.iter().zip(inputs) {
++        value ^= match coefficient {
++            0 => 0,
++            1 => input[start],
++            _ => super::super::mul(coefficient, input[start]),
++        };
++    }
++    value
++}
++
+@@ -102,0 +116,4 @@
++    if output.len() == 1 {
++        output[0] = scalar_tail_one(row, inputs, start);
++        return;
++    }
+@@ -288,0 +306,24 @@
++
++#[cfg(test)]
++mod scalar_tail_tests {
++    use super::scalar_tail;
++
++    #[test]
++    fn single_byte_tail_matches_field_sum_and_preserves_guards() {
++        for coefficient in 0u8..=u8::MAX {
++            for value in 0u8..=u8::MAX {
++                let a = [17, value, 29];
++                let b = [13, value.wrapping_mul(37), 19];
++                let c = [31, value ^ 0xa5, 41];
++                let inputs: [&[u8]; 3] = [&a, &b, &c];
++                let row = [coefficient, 1, 0];
++                let mut dst = [0xa5, 0x5a, 0xc3];
++                scalar_tail(&row, &inputs, &mut dst[1..2], 1);
++                assert_eq!(
++                    dst,
++                    [0xa5, crate::galois_8::mul(coefficient, value) ^ b[1], 0xc3]
++                );
++            }
++        }
++    }
++}
