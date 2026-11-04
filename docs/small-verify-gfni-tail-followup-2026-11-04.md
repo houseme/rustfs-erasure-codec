@@ -49,7 +49,17 @@ all-feature tests, `no_std` library tests and all-target all-feature Clippy
 passed; that architecture does not execute the x86 tail. Its performance run stopped
 when monitoring detected another CPU-intensive workload; the guest CPU partition
 and shared lease were restored. No performance conclusion is drawn from that
-incomplete run. Neither tail variant was integrated into production.
+incomplete run. In a later idle window, 40-sample GFNI and AVX2 comparisons
+completed under the same lease and resource checks. GFNI 10+4/257 B verification
+changed −2.89% valid and −4.19% corrupt, with baseline drift −5.81% and
+−4.06%. Its 64 B controls changed +0.39% for 4+2 and +2.34% for 10+4, with
+drift −3.39% and −6.35%. AVX2 4+2 encoding at 257 B and 258 B changed −8.21%
+and −8.31%, even though that selected backend does not call the changed GFNI
+tail. These shifts preclude attributing the observed GFNI gain to the tail
+change alone. In the measured builds, the GFNI scalar-tail body grew by 12
+bytes and the outlined helper occupied 155 bytes; the vector kernel size was
+unchanged, but its address moved. Neither tail variant was integrated into
+production. Physical host isolation was not established.
 
 ## Measurement scope
 
