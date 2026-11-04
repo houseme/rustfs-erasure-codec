@@ -1,0 +1,32 @@
+--- a/benches/recovery_paths.rs
++++ b/benches/recovery_paths.rs
+@@ -456,7 +456,7 @@
+         (4, 1, 64),
+         (4, 2, 4096),
+     ] {
+-        let cases = ["verify.small_vec_par", "verify.small_vec_opt"].map(|operation| Case {
++        let cases = ["verify.small_vec_par", "verify.small_vec_opt", "verify.small_vec_opt_bad"].map(|operation| Case {
+             operation,
+             data_shards: data,
+             parity_shards: parity,
+@@ -490,7 +490,7 @@
+                     "verify.small_vec_par" => {
+                         codec.verify_with_workspace_par(shards, &mut workspace)
+                     }
+-                    "verify.small_vec_opt" => {
++                    "verify.small_vec_opt" | "verify.small_vec_opt_bad" => {
+                         codec.verify_with_workspace_opt(shards, &mut workspace)
+                     }
+                     _ => unreachable!(),
+@@ -499,8 +499,10 @@
+             };
+             assert!(verify(&source));
+             assert!(!verify(&corrupt));
++            let expected = case.operation != "verify.small_vec_opt_bad";
++            let input = if expected { &source } else { &corrupt };
+             let measurement = measure(config, || {
+-                assert!(black_box(verify(black_box(&source))));
++                assert_eq!(black_box(verify(black_box(input))), expected);
+             });
+             assert!(verify(&source));
+             assert!(!verify(&corrupt));
