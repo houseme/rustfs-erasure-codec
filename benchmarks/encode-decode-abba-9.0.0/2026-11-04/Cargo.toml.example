@@ -1,0 +1,15 @@
+[workspace]
+
+[package]
+name = "rse-encode-decode-abba"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+# Keep exact pins: baseline is the published crate, candidate is this repository path.
+base_codec = { package = "rustfs-erasure-codec", version = "=9.0.0", features = ["simd-accel"] }
+next_codec = { package = "rustfs-erasure-codec", version = "=9.1.0", path = "../../..", features = ["simd-accel"] }
+
+[profile.release]
+debug = false

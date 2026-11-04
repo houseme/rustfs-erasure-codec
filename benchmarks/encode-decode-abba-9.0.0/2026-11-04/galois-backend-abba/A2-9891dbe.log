@@ -1,0 +1,76 @@
+   Compiling rustfs-erasure-codec v9.0.0 (/Users/zhi/Documents/code/rust/rustfs/reed-solomon-erasure)
+    Finished `bench` profile [optimized] target(s) in 2.10s
+     Running benches/galois_backend.rs (target/release/deps/galois_backend-3f218f4fb98dbba0)
+Gnuplot not found, using plotters backend
+Benchmarking galois_mul_slice_rust-neon_RustNeon_RustSimd_override_auto/len_65536
+Benchmarking galois_mul_slice_rust-neon_RustNeon_RustSimd_override_auto/len_65536: Warming up for 1.0000 s
+Benchmarking galois_mul_slice_rust-neon_RustNeon_RustSimd_override_auto/len_65536: Collecting 10 samples in estimated 1.0000 s (829k iterations)
+Benchmarking galois_mul_slice_rust-neon_RustNeon_RustSimd_override_auto/len_65536: Analyzing
+galois_mul_slice_rust-neon_RustNeon_RustSimd_override_auto/len_65536
+                        time:   [1.2044 µs 1.2059 µs 1.2083 µs]
+                        thrpt:  [50.513 GiB/s 50.613 GiB/s 50.678 GiB/s]
+                 change:
+                        time:   [−0.6362% −0.4835% −0.3131%] (p = 0.00 < 0.05)
+                        thrpt:  [+0.3141% +0.4858% +0.6402%]
+                        Change within noise threshold.
+Benchmarking galois_mul_slice_rust-neon_RustNeon_RustSimd_override_auto/len_1048576
+Benchmarking galois_mul_slice_rust-neon_RustNeon_RustSimd_override_auto/len_1048576: Warming up for 1.0000 s
+Benchmarking galois_mul_slice_rust-neon_RustNeon_RustSimd_override_auto/len_1048576: Collecting 10 samples in estimated 1.0011 s (51k iterations)
+Benchmarking galois_mul_slice_rust-neon_RustNeon_RustSimd_override_auto/len_1048576: Analyzing
+galois_mul_slice_rust-neon_RustNeon_RustSimd_override_auto/len_1048576
+                        time:   [19.274 µs 19.401 µs 19.656 µs]
+                        thrpt:  [49.683 GiB/s 50.335 GiB/s 50.667 GiB/s]
+                 change:
+                        time:   [−4.1776% −2.6774% −1.2066%] (p = 0.00 < 0.05)
+                        thrpt:  [+1.2213% +2.7510% +4.3597%]
+                        Performance has improved.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Benchmarking galois_mul_slice_rust-neon_RustNeon_RustSimd_override_auto/len_4194304
+Benchmarking galois_mul_slice_rust-neon_RustNeon_RustSimd_override_auto/len_4194304: Warming up for 1.0000 s
+Benchmarking galois_mul_slice_rust-neon_RustNeon_RustSimd_override_auto/len_4194304: Collecting 10 samples in estimated 1.0040 s (13k iterations)
+Benchmarking galois_mul_slice_rust-neon_RustNeon_RustSimd_override_auto/len_4194304: Analyzing
+galois_mul_slice_rust-neon_RustNeon_RustSimd_override_auto/len_4194304
+                        time:   [77.111 µs 77.145 µs 77.180 µs]
+                        thrpt:  [50.612 GiB/s 50.635 GiB/s 50.658 GiB/s]
+                 change:
+                        time:   [−3.9025% −2.2836% −1.0398%] (p = 0.00 < 0.05)
+                        thrpt:  [+1.0508% +2.3370% +4.0610%]
+                        Performance has improved.
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+
+Benchmarking galois_mul_slice_xor_rust-neon_RustNeon_RustSimd_override_auto/len_65536
+Benchmarking galois_mul_slice_xor_rust-neon_RustNeon_RustSimd_override_auto/len_65536: Warming up for 1.0000 s
+Benchmarking galois_mul_slice_xor_rust-neon_RustNeon_RustSimd_override_auto/len_65536: Collecting 10 samples in estimated 1.0000 s (811k iterations)
+Benchmarking galois_mul_slice_xor_rust-neon_RustNeon_RustSimd_override_auto/len_65536: Analyzing
+galois_mul_slice_xor_rust-neon_RustNeon_RustSimd_override_auto/len_65536
+                        time:   [1.2162 µs 1.2176 µs 1.2186 µs]
+                        thrpt:  [50.087 GiB/s 50.126 GiB/s 50.186 GiB/s]
+                 change:
+                        time:   [−0.9526% −0.5723% −0.2412%] (p = 0.00 < 0.05)
+                        thrpt:  [+0.2418% +0.5756% +0.9618%]
+                        Change within noise threshold.
+Benchmarking galois_mul_slice_xor_rust-neon_RustNeon_RustSimd_override_auto/len_1048576
+Benchmarking galois_mul_slice_xor_rust-neon_RustNeon_RustSimd_override_auto/len_1048576: Warming up for 1.0000 s
+Benchmarking galois_mul_slice_xor_rust-neon_RustNeon_RustSimd_override_auto/len_1048576: Collecting 10 samples in estimated 1.0010 s (49k iterations)
+Benchmarking galois_mul_slice_xor_rust-neon_RustNeon_RustSimd_override_auto/len_1048576: Analyzing
+galois_mul_slice_xor_rust-neon_RustNeon_RustSimd_override_auto/len_1048576
+                        time:   [20.243 µs 20.255 µs 20.274 µs]
+                        thrpt:  [48.167 GiB/s 48.212 GiB/s 48.243 GiB/s]
+                 change:
+                        time:   [−1.4149% −0.7054% −0.2657%] (p = 0.02 < 0.05)
+                        thrpt:  [+0.2664% +0.7104% +1.4353%]
+                        Change within noise threshold.
+Benchmarking galois_mul_slice_xor_rust-neon_RustNeon_RustSimd_override_auto/len_4194304
+Benchmarking galois_mul_slice_xor_rust-neon_RustNeon_RustSimd_override_auto/len_4194304: Warming up for 1.0000 s
+Benchmarking galois_mul_slice_xor_rust-neon_RustNeon_RustSimd_override_auto/len_4194304: Collecting 10 samples in estimated 1.0026 s (12k iterations)
+Benchmarking galois_mul_slice_xor_rust-neon_RustNeon_RustSimd_override_auto/len_4194304: Analyzing
+galois_mul_slice_xor_rust-neon_RustNeon_RustSimd_override_auto/len_4194304
+                        time:   [82.078 µs 82.131 µs 82.229 µs]
+                        thrpt:  [47.504 GiB/s 47.561 GiB/s 47.592 GiB/s]
+                 change:
+                        time:   [−0.1222% +0.2364% +0.5743%] (p = 0.22 > 0.05)
+                        thrpt:  [−0.5710% −0.2359% +0.1223%]
+                        No change in performance detected.
+
