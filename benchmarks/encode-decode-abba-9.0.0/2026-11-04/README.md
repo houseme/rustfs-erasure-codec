@@ -36,6 +36,19 @@ CPU resources were not reserved; drift refusals are retained rather than dropped
    Exit code 3 if any refusal occurred.
 6. Throughput GB/s uses payload `data_shards × shard_len` over the faster phase median.
 
+The historical reconstruct timer includes `prep()`: it clones every payload,
+then drops two clones before calling `reconstruct`. Its latency therefore
+includes that caller lifecycle and is not isolated reconstruction latency.
+The recorded `ratio_b_over_a` uses B1/A1, while `ratio_b2_over_a2` is reported
+separately; the throughput uses the faster phase from each version. The
+8% refusal flag covers encode and reconstruct drift, not verify-only drift.
+These details are retained as historical behavior; the screen does not meet
+the 5% controlled acceptance gate.
+
+The separate [lifecycle allocation investigation](../../../docs/reconstruction-lifecycle-allocation-2026-11-04.md)
+measures that preparation and a reusable-slot alternative without changing the
+historical probe or treating the two caller lifecycles as equivalent.
+
 Reproduce (from archive directory):
 
 ```bash
@@ -59,7 +72,7 @@ Summary line from `full-33case.jsonl`:
 
 Drift refusals (not attributed): `4x2_64k`, `8x4_1m`, `12x4_64k`.
 
-**Accepted (30 cases, drift ≤ 8%):**
+**Locally retained (30 cases, encode/reconstruct drift ≤ 8%):**
 
 | Metric | Mean Δ (candidate vs baseline) | Notes |
 | --- | --- | --- |
