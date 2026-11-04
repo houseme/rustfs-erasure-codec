@@ -34,6 +34,15 @@ cloning; including reconstruction yielded 17 / 1,360 and 15 / 1,232 bytes.
 The reusable-slot count was again zero. The three observations per case were
 identical in this environment.
 
+A separate native x86 Linux check used the same probe cross-compiled with
+locked dependencies and ran with `rust-avx2` and `rust-gfni-avx512` selected.
+Each backend produced 42 observations, checked cross-version parity and
+complete recovered buffers, and showed the same request counts and byte totals
+for the catalog. The [x86 observations](../benchmarks/encode-decode-abba-9.0.0/2026-11-04/reconstruction-lifecycle-x86.json)
+are retained. The 9.1.0 source revision used to compile the probe has identical
+runtime sources and Cargo inputs to `730d555`. This is native functional and
+allocation evidence, not an A/B latency comparison.
+
 These are allocator request counts and requested bytes, not latency, RSS,
 peak memory or a production-workload profile. Survivor-only cloning avoids
 creating copies that the historical fixture discards; it changes the measured
