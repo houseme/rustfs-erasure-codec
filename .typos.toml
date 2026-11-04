@@ -11,6 +11,9 @@ extend-ignore-re = [
 seh = "seh"
 flate = "flate"
 
+[default.extend-identifiers]
+"9891dbe" = "9891dbe"
+
 [files]
 # Literal AArch64 disassembly contains the `ands` instruction mnemonic.
 extend-exclude = ["benchmarks/gf8-small-verify/2026-11-01/stack-screen/prologues.txt"]
