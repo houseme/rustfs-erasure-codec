@@ -74,6 +74,22 @@ The no_std runtime backend selects the scalar fallback, so these checks do not
 establish runtime GFNI dispatch or GFNI performance. The [summary](../benchmarks/gfni-tail-followup/2026-11-05/nostd-summary.json)
 records the commands and scope.
 
+A separate [native cross-version probe](../benchmarks/gfni-tail-followup/2026-11-05/native-nostd-cross.rs)
+linked published 9.0.0 and the candidate 9.1.0 with default features disabled
+for both. Three builds ran with no extra features, `simd-gfni`, and `simd-accel`;
+each passed 84 cases: 48 Classic and 18 each for Leopard GF8 and GF16, across
+4+2, 10+4 and 16+8 shapes. The cases cover lengths from one byte to 1 MiB,
+including 256/257/258 and 1023/1024/1025 byte Classic tails. Both versions
+asserted the `scalar-rust` runtime backend, compared complete encoded shards,
+verified each other's parity, recovered a missing data and parity shard in
+both directions and rejected parity-tail corruption. Feature-tree checks
+confirmed neither codec enabled `std`. The standalone probe binary itself uses
+`std` as a test driver; the two codec dependencies do not. The [summary](../benchmarks/gfni-tail-followup/2026-11-05/native-nostd-cross-summary.json),
+[manifest template](../benchmarks/gfni-tail-followup/2026-11-05/native-nostd-cross.Cargo.toml.example)
+and [lockfile](../benchmarks/gfni-tail-followup/2026-11-05/native-nostd-cross.Cargo.lock)
+retain the reproduction inputs. This is functional compatibility evidence, not
+a no_std GFNI runtime dispatch or performance result.
+
 ## Large cross-version boundaries
 
 A native [cross-version probe](../benchmarks/gfni-tail-followup/2026-11-05/native-large-cross.rs)

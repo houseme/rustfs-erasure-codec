@@ -1,0 +1,67 @@
+{
+  "scalar": {
+    "cases": 84,
+    "families": {
+      "classic": 48,
+      "gf16": 18,
+      "gf8": 18
+    },
+    "new_backend": "scalar-rust",
+    "old_backend": "scalar-rust",
+    "resolved_codec_features": {
+      "9.0.0": [],
+      "9.1.0": []
+    },
+    "status": "passed"
+  },
+  "simd-accel": {
+    "cases": 84,
+    "families": {
+      "classic": 48,
+      "gf16": 18,
+      "gf8": 18
+    },
+    "new_backend": "scalar-rust",
+    "old_backend": "scalar-rust",
+    "resolved_codec_features": {
+      "9.0.0": [
+        "simd-accel",
+        "simd-avx2",
+        "simd-avx512",
+        "simd-gfni",
+        "simd-neon",
+        "simd-ssse3",
+        "simd-vsx"
+      ],
+      "9.1.0": [
+        "simd-accel",
+        "simd-avx2",
+        "simd-avx512",
+        "simd-gfni",
+        "simd-neon",
+        "simd-ssse3",
+        "simd-vsx"
+      ]
+    },
+    "status": "passed"
+  },
+  "simd-gfni": {
+    "cases": 84,
+    "families": {
+      "classic": 48,
+      "gf16": 18,
+      "gf8": 18
+    },
+    "new_backend": "scalar-rust",
+    "old_backend": "scalar-rust",
+    "resolved_codec_features": {
+      "9.0.0": [
+        "simd-gfni"
+      ],
+      "9.1.0": [
+        "simd-gfni"
+      ]
+    },
+    "status": "passed"
+  }
+}
