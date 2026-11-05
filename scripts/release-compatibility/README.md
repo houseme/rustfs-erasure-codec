@@ -32,6 +32,17 @@ tower-field arithmetic vectors. Addition, multiplication, division and inverse-X
 results run on both 9.0.0 and 9.1.0, using the existing GF(256) generator and
 extension polynomial; the obsolete Sage executable has been removed.
 
+The `leopard_high_fanout` integration test separately checks GF16 64+16 and
+128+32 layouts at 64 and 128 bytes per shard. It compares complete parity with
+9.0.0 and reconstructs two data and two parity shards in both directions. It
+initializes the current GF8 backend before constructing the GF16 codecs, so
+GF16 may select GFNI when both the CPU and selected backend support it. When
+`RSE_EXPECT_BACKEND` is set, the test also asserts the selected backend.
+
+```bash
+cargo test --locked -p rse-release-compatibility --test leopard_high_fanout
+```
+
 It additionally checks 36 Classic GF8 cases around the 32 KiB shard boundary:
 three generated-code shapes, four matrix modes including a valid custom matrix,
 and lengths 32767, 32768 and 32769. Complete parity must match between versions,
