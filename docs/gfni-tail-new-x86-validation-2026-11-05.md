@@ -279,6 +279,33 @@ show these values and the remaining controls. These observations do not isolate
 the tail algorithm from binary layout and shared-VM effects; the candidate
 remains unintegrated.
 
+## Further three-backend rerun
+
+Another native-compiled run repeated same-binary and candidate A/B/B/A
+comparisons on AVX2, GFNI/AVX2 and GFNI/AVX-512, in that order. Each of six
+cases had 40 Criterion samples per phase, a 1 s warmup and a requested 3 s
+measurement. The two benchmark binaries matched their saved build receipts
+before and after the run. The completed stages' process monitor detected no
+competing process over its threshold; CPU affinity was used without a guest
+CPU partition, existing services remained active, and physical-host
+exclusivity was not established. The initial controller launch did not start
+sampling because a local temporary script was unavailable; the server's prior
+controller was used to start the completed run.
+
+| Backend, 10+4/257 B valid verification | Same binary | Candidate | Candidate baseline drift |
+| --- | ---: | ---: | ---: |
+| AVX2 | +1.93% | +3.11% | −1.30% |
+| GFNI/AVX2 | +2.40% | +1.54% | −1.51% |
+| GFNI/AVX-512 | +2.19% | −10.66% | −4.99% |
+
+For AVX2 4+2/64 B valid verification, the same-binary comparison changed
++14.38% while the candidate comparison changed +0.73%. Other controls also
+moved; the [stage estimates and monitoring summaries](../benchmarks/gfni-tail-followup/2026-11-05/native-rerun-p.json)
+retain all six cases. Drift was reported without stopping the run. GFNI/AVX-512
+again showed lower candidate latency in the target case, but the observed
+same-binary variation and shared VM environment limit attribution. The
+candidate remains unintegrated.
+
 ## Native coverage-guided fuzz
 
 The existing `fuzz_codec_contracts` target ran in an isolated x86-64 container
