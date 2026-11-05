@@ -1,0 +1,12 @@
+{
+  "toolchain": "stable 1.99.1",
+  "platform": "native x86_64 Linux VM",
+  "command_common": "cargo test --locked -p rustfs-erasure-codec --no-default-features --lib",
+  "configurations": {
+    "no_extra_features": {"passed": 294, "failed": 0, "ignored": 0, "single_byte_tail_test_compiled": false},
+    "simd-gfni": {"passed": 299, "failed": 0, "ignored": 0, "single_byte_tail_test_passed": true},
+    "simd-accel": {"passed": 302, "failed": 0, "ignored": 0, "single_byte_tail_test_passed": true}
+  },
+  "nostd_runtime_backend": "scalar fallback",
+  "source_scope": "candidate outlined tail and temporary Classic contract length extension"
+}

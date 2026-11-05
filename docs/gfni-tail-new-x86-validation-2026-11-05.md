@@ -64,6 +64,31 @@ harness. The [summary](../benchmarks/gfni-tail-followup/2026-11-05/native-classi
 records the exact lengths and counts. This deterministic check is separate from
 the native coverage-guided fuzz campaign below.
 
+## Native no_std feature checks
+
+In an isolated native x86-64 container, library tests passed with
+`--no-default-features` in three configurations: 294 without extra features,
+299 with `simd-gfni`, and 302 with `simd-accel`; none were ignored or failed.
+The single-byte tail reference test executed in both SIMD-feature builds.
+The no_std runtime backend selects the scalar fallback, so these checks do not
+establish runtime GFNI dispatch or GFNI performance. The [summary](../benchmarks/gfni-tail-followup/2026-11-05/nostd-summary.json)
+records the commands and scope.
+
+## Large cross-version boundaries
+
+A native [cross-version probe](../benchmarks/gfni-tail-followup/2026-11-05/native-large-cross.rs)
+compared the published 9.0.0 codec and the candidate on all three x86 backends.
+For each backend, 30 cases passed: Classic 4+2, 10+4 and 16+8 at 65,535,
+65,536, 65,537, 1,048,575, 1,048,576 and 1,048,577 bytes; and Leopard GF8
+and GF16 at the aligned 65,536 and 1,048,576 byte sizes for the same shapes.
+Each case compared complete encoded shards, verified peer parity in both
+versions, recovered a missing data and parity shard in both directions, and
+checked detection of corruption at the parity tail. The [summary](../benchmarks/gfni-tail-followup/2026-11-05/large-cross-summary.json)
+records case counts by backend. To reproduce it, place the probe in the
+`examples` directory of `scripts/release-compatibility` in an isolated
+candidate checkout and run it with the desired backend override and matching
+`RSE_EXPECT_BACKEND`.
+
 ## Performance observations
 
 The initial screen compared A1/B1/B2/A2 with 20 Criterion samples, 0.5 s warmup
