@@ -14,6 +14,7 @@ pub(super) unsafe fn mul(
     };
     // SAFETY: both lookup tables contain 16 bytes.
     let low_tbl = _mm256_broadcastsi128_si256(unsafe { _mm_loadu_si128(low.as_ptr().cast()) });
+    // SAFETY: the high lookup table contains 16 bytes.
     let high_tbl = _mm256_broadcastsi128_si256(unsafe { _mm_loadu_si128(high.as_ptr().cast()) });
     let mask = _mm256_set1_epi8(0x0f);
     let (src32, src_tail) = src.as_chunks::<32>();
