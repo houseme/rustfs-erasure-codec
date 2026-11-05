@@ -1,0 +1,92 @@
+--- a/src/core/leopard_gf8/work.rs
++++ b/src/core/leopard_gf8/work.rs
+@@ -110,0 +111,25 @@
++    /// Borrow two ordered, non-overlapping contiguous groups of complete lanes.
++    pub(super) fn lane_groups_mut(
++        &mut self,
++        left: usize,
++        right: usize,
++        count: usize,
++    ) -> Option<(&mut [u8], &mut [u8])> {
++        let left_end = left.checked_add(count)?;
++        let right_end = right.checked_add(count)?;
++        if count == 0 || left_end > right || right_end > self.lanes {
++            return None;
++        }
++        let size = count.checked_mul(self.lane_len)?;
++        let left_offset = left.checked_mul(self.lane_len)?;
++        let right_offset = right.checked_mul(self.lane_len)?;
++        // SAFETY: both complete lane groups lie in this allocation and the
++        // ordered ranges are disjoint. The returned borrows are exclusive.
++        unsafe {
++            Some((
++                core::slice::from_raw_parts_mut(self.ptr.add(left_offset), size),
++                core::slice::from_raw_parts_mut(self.ptr.add(right_offset), size),
++            ))
++        }
++    }
++
+--- a/src/core/leopard_gf8/decode.rs
++++ b/src/core/leopard_gf8/decode.rs
+@@ -536,0 +537 @@
++#[cfg_attr(all(feature = "std", target_arch = "x86_64"), inline(never))]
+@@ -539,0 +541,7 @@
++        if width > 1 && size == work.lane_len() && n <= work.lanes() {
++            let count = core::cmp::min(width, n - i);
++            if let Some((dst, src)) = work.lane_groups_mut(i - width, i, count) {
++                slice_xor(src, dst);
++                continue;
++            }
++        }
+@@ -827,0 +836,51 @@
++
++#[cfg(test)]
++mod derivative_group_tests {
++    extern crate alloc;
++    use super::{FlatWork, compute_formal_derivative};
++    use alloc::vec::Vec;
++
++    #[test]
++    fn grouped_derivative_matches_ordered_reference_for_full_and_partial_lanes() {
++        for lanes in [1usize, 2, 3, 4, 7, 8, 15, 16, 31, 32, 33, 64, 65] {
++            for extra in [0usize, 7] {
++                for size in [1usize, 31, 32, 63, 64, 65, 256] {
++                    let lane_len = size + extra;
++                    for n in [0usize, lanes / 2, lanes, lanes + 1] {
++                        let mut expected: Vec<Vec<u8>> = (0..lanes)
++                            .map(|r| {
++                                (0..lane_len)
++                                    .map(|i| (r * 73 + i * 29 + i / 3) as u8)
++                                    .collect()
++                            })
++                            .collect();
++                        let mut work = FlatWork::new(lanes, lane_len);
++                        for (i, lane) in expected.iter().enumerate() {
++                            work.lane_mut(i).copy_from_slice(lane);
++                        }
++                        for i in 1..n {
++                            let width = ((i ^ (i - 1)) + 1) >> 1;
++                            for j in 0..width {
++                                let dst = i - width + j;
++                                let src = i + j;
++                                if src < n && dst < n && src < lanes && dst < lanes && src != dst {
++                                    for k in 0..size {
++                                        expected[dst][k] ^= expected[src][k];
++                                    }
++                                }
++                            }
++                        }
++                        compute_formal_derivative(&mut work, n, size);
++                        for (i, lane) in expected.iter().enumerate() {
++                            assert_eq!(
++                                work.lane(i),
++                                lane,
++                                "lanes={lanes} size={size} extra={extra} n={n} lane={i}"
++                            );
++                        }
++                    }
++                }
++            }
++        }
++    }
++}
