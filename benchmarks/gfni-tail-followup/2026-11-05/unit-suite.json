@@ -1,0 +1,41 @@
+{
+  "avx512_performance_attempt": {
+    "candidate_measurements": 0,
+    "reason": "competing CPU-intensive process detected",
+    "state": "interrupted_during_same_binary_A1"
+  },
+  "rust-avx2": {
+    "cpu_affinity_count": 8,
+    "failed": 0,
+    "ignored": 5,
+    "passed": 464,
+    "rayon_threads": 4,
+    "test_threads": 1
+  },
+  "rust-gfni-avx2": {
+    "cpu_affinity_count": 8,
+    "failed": 0,
+    "ignored": 5,
+    "passed": 464,
+    "rayon_threads": 4,
+    "test_threads": 1
+  },
+  "rust-gfni-avx512": {
+    "cpu_affinity_count": 8,
+    "failed": 0,
+    "ignored": 5,
+    "passed": 464,
+    "rayon_threads": 4,
+    "test_threads": 1
+  },
+  "single_cpu_diagnostic": {
+    "failed": 2,
+    "failed_tests": [
+      "test_encode_single_opt_matches_encode_single_for_large_shards",
+      "test_encode_single_sep_opt_matches_encode_single_sep_for_large_shards"
+    ],
+    "failure": "parallel policy assertion under single CPU affinity",
+    "ignored": 5,
+    "passed": 462
+  }
+}

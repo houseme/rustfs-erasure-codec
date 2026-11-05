@@ -32,6 +32,20 @@ small-block controls. [Validation summary](../benchmarks/gfni-tail-followup/2026
 records the case counts and monitoring observations. This was not a full native
 workspace test or a fuzz campaign.
 
+A follow-up ran the complete native library unit-test binary on eight guest
+CPUs with one test thread and four Rayon workers. With `simd-accel`, each of
+GFNI/AVX2, AVX2 and GFNI/AVX-512 passed 464 tests with five ignored. With all
+features, each passed 469 tests with five ignored. An earlier single-CPU run
+passed 462 and failed two tests that assert a parallel policy; both passed
+with the eight-CPU constraint. The [unit-test summary](../benchmarks/gfni-tail-followup/2026-11-05/unit-suite.json)
+and [all-feature summary](../benchmarks/gfni-tail-followup/2026-11-05/unit-allfeatures-summary.json)
+record these results. Fourteen selected all-feature integration test binaries
+covering encoding views and dispatch, AVX-512 interoperation, changed views,
+error handling, compatibility and Leopard recovery also passed 61 tests on
+each backend. The [integration summary](../benchmarks/gfni-tail-followup/2026-11-05/integration-allfeatures-summary.json)
+records each binary. This was not a complete native workspace test or a native
+fuzz campaign.
+
 ## Performance observations
 
 The initial screen compared A1/B1/B2/A2 with 20 Criterion samples, 0.5 s warmup
@@ -56,3 +70,23 @@ estimates. Some controls that cannot call the changed GFNI tail also moved.
 Together with the same-binary variation and unverified host isolation, these
 results do not establish a reliable performance gain. The prototype remains
 unintegrated; these observations apply only to this VM and workload.
+
+## GFNI/AVX-512 follow-up
+
+The first GFNI/AVX-512 performance attempt stopped during the same-binary A1
+phase when another CPU-intensive process appeared; it produced no candidate
+measurement. After that work exited, a fresh same-binary and candidate run
+completed with the same 40-sample settings and guest CPU binding. The process
+monitor reported no competing process over its threshold in the completed
+stages, without establishing physical-host isolation.
+
+| GFNI/AVX-512 case | Same-binary comparison | Candidate comparison | Candidate baseline drift |
+| --- | ---: | ---: | ---: |
+| 4+2, 257 B, valid verification | −2.39% | −4.48% | −0.28% |
+| 10+4, 257 B, valid verification | −1.64% | −4.88% | +5.19% |
+| 10+4, 257 B, damaged verification | −3.39% | −2.88% | +1.71% |
+| 4+2, 257 B, encoding | +5.46% | −2.75% | +2.40% |
+
+The same-binary encoding comparison itself changed +5.46%, and other controls
+showed variation. These observations do not establish the candidate's causal
+performance effect. All stage estimates are retained in the [AVX-512 results](../benchmarks/gfni-tail-followup/2026-11-05/repeat512.json).
