@@ -193,6 +193,37 @@ non-target controls, differing source-binary layouts and unverified physical
 host exclusivity prevent a confident general attribution. The candidate remains
 unintegrated.
 
+## Repeated native-compiled comparisons
+
+After the interrupted attempt, native-compiled baseline and candidate binaries
+completed same-binary A/B/B/A and candidate A/B/B/A comparisons on GFNI/AVX-512,
+GFNI/AVX2 and AVX2. Every phase collected 40 Criterion samples for each of six
+cases with a 1 s warmup and requested 3 s measurement. The binaries matched
+their build receipts before and after the runs. The process monitor reported no
+competing process above its threshold in the completed stages. Data is in the
+[three-backend results](../benchmarks/gfni-tail-followup/2026-11-05/native-rerun-g.json).
+As before, guest CPU affinity was used without guest partitioning; physical-host
+exclusivity was not established, and no drift gate stopped the runs.
+
+| Backend and case | Same binary | Candidate | Candidate baseline drift |
+| --- | ---: | ---: | ---: |
+| GFNI/AVX-512, 10+4/257 B valid verification | +2.37% | −9.98% | −5.94% |
+| GFNI/AVX-512, 4+2/64 B valid verification | +1.47% | +13.41% | −0.20% |
+| GFNI/AVX2, 10+4/257 B valid verification | +3.34% | −3.09% | −1.93% |
+| GFNI/AVX2, 4+2/64 B valid verification | −1.59% | +8.43% | +0.27% |
+| AVX2, 10+4/257 B valid verification | −1.43% | +0.92% | −5.68% |
+| AVX2, 10+4/257 B damaged verification | −3.01% | +7.35% | −4.68% |
+
+A fresh four-case, 40-sample control repeated the two GFNI backends using the
+same protocol. For GFNI/AVX-512, 4+2/64 B changed −1.10% in the same-binary
+comparison and +0.74% for the candidate; 10+4/257 B changed +5.74% and −5.43%.
+For GFNI/AVX2, the corresponding 4+2/64 B changes were −2.10% and −1.27%,
+and 10+4/257 B changed −1.84% and −2.53%. See the [independent controls](../benchmarks/gfni-tail-followup/2026-11-05/native-controls-h.json)
+for all stages and baseline drifts. The large 64 B changes in the first run did
+not repeat. GFNI/AVX-512 257 B remained faster in the candidate comparisons,
+but same-binary changes and the shared VM environment limit attribution. No
+production change is justified by these measurements alone.
+
 ## Native coverage-guided fuzz
 
 The existing `fuzz_codec_contracts` target ran in an isolated x86-64 container
