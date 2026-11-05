@@ -1,0 +1,48 @@
+{
+  "artifact_provenance": {
+    "candidate_matches_reported_cargo_output": true,
+    "current_executable_count": 1,
+    "same_cargo_output_path": true
+  },
+  "base": {
+    "binary_exists": true,
+    "reported_executable_count": 1
+  },
+  "next": {
+    "binary_exists": true,
+    "reported_executable_count": 1
+  },
+  "performance": {
+    "candidate_measurements": 0,
+    "phase": "same-binary A1",
+    "reason": "competing CPU-intensive process detected",
+    "status": "interrupted"
+  },
+  "smoke": {
+    "rust-avx2-base": {
+      "cases": 108,
+      "passed": 108
+    },
+    "rust-avx2-next": {
+      "cases": 108,
+      "passed": 108
+    },
+    "rust-gfni-avx2-base": {
+      "cases": 108,
+      "passed": 108
+    },
+    "rust-gfni-avx2-next": {
+      "cases": 108,
+      "passed": 108
+    },
+    "rust-gfni-avx512-base": {
+      "cases": 108,
+      "passed": 108
+    },
+    "rust-gfni-avx512-next": {
+      "cases": 108,
+      "passed": 108
+    }
+  },
+  "source_restored": true
+}

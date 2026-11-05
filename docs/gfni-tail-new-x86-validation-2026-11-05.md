@@ -150,6 +150,24 @@ The same-binary encoding comparison itself changed +5.46%, and other controls
 showed variation. These observations do not establish the candidate's causal
 performance effect. All stage estimates are retained in the [AVX-512 results](../benchmarks/gfni-tail-followup/2026-11-05/repeat512.json).
 
+## Native-compiled benchmark follow-up
+
+A later follow-up built the baseline and outlined candidate on the x86-64
+server itself using stable Rust, locked dependencies and `simd-accel`. Both
+were built sequentially from the same isolated source path and target
+directory. Cargo reported the same output path for both builds, and the saved
+candidate matched the reported artifact. The temporary codec source was
+restored after the builds. Under
+GFNI/AVX2, AVX2 and GFNI/AVX-512, each binary passed all 108 probe smoke cases.
+The [build and smoke summary](../benchmarks/gfni-tail-followup/2026-11-05/native-build-summary.json)
+records those outcomes.
+
+A planned same-binary performance control stopped during its first baseline
+phase after monitoring detected a competing CPU-intensive process. The test
+child was terminated; no candidate performance stage ran. No latency conclusion
+is drawn from that incomplete run. The VM continued to run existing services,
+and physical-host exclusivity was not established.
+
 ## Native coverage-guided fuzz
 
 The existing `fuzz_codec_contracts` target ran in an isolated x86-64 container
