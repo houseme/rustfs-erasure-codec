@@ -1,0 +1,29 @@
+--- a/src/core/leopard_gf16/mul_simd.rs
++++ b/src/core/leopard_gf16/mul_simd.rs
+@@ -342,6 +342,4 @@
+-                return cache.values[index].get();
+-            }
+-            let value = matrices(log_m, t);
+-            cache.values[index].set(value);
+-            cache.keys[index].set(key);
+-            value
++                cache.values[index].get()
++            } else {
++                cache_miss(cache, index, key, log_m, t)
++            }
+@@ -348,0 +347,15 @@
++    }
++
++    #[cold]
++    #[inline(never)]
++    fn cache_miss(
++        cache: &MatrixCache,
++        index: usize,
++        key: u32,
++        log_m: u16,
++        t: &LeopardGf16Tables,
++    ) -> [i64; 4] {
++        let value = matrices(log_m, t);
++        cache.values[index].set(value);
++        cache.keys[index].set(key);
++        value

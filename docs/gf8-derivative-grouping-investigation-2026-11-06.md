@@ -50,7 +50,11 @@ layout effect was identical.
 
 The baseline is commit `ba3893b`. Baseline and candidate used the same source
 path, locked dependencies, Rust stable 1.99.1, release build settings and
-probe sources. The retained [recovery probe](../benchmarks/gf8-decode-assign/2026-11-02/recovery-probe.rs),
+probe sources. The server source copy also retained an unrelated
+`gfni_tail_probe` bench declaration from an earlier investigation; the same
+manifest was used for A and B, and the runner temporarily added the two probe
+entries. Consequently these measurements use identical source and manifest
+for both sides, but not an untouched repository manifest. The retained [recovery probe](../benchmarks/gf8-decode-assign/2026-11-02/recovery-probe.rs),
 [GF8 encoding probe](../benchmarks/gf8-decode-assign/2026-11-02/encode-probe.rs)
 and [GF16 encoding probe](../benchmarks/gf8-butterfly-fusion/2026-11-02/encode-gf16-probe.rs)
 check their fixtures before timing.
