@@ -224,6 +224,33 @@ not repeat. GFNI/AVX-512 257 B remained faster in the candidate comparisons,
 but same-binary changes and the shared VM environment limit attribution. No
 production change is justified by these measurements alone.
 
+## Independent three-backend rerun
+
+A later independent run repeated the same-binary and candidate A/B/B/A
+comparisons on all three backends, with the backend order changed. Each of the
+six cases had 40 Criterion samples per phase, a 1 s warmup and a requested 3 s
+measurement. The binary receipts matched after the run; the process monitor
+reported no competing process above its threshold during the completed stages.
+The VM still had existing services, no guest CPU partition, and no established
+physical-host exclusivity. The [full stage estimates and monitor counts](../benchmarks/gfni-tail-followup/2026-11-05/native-rerun-j.json)
+are retained.
+
+| Backend, 10+4/257 B valid verification | Same binary | Candidate | Candidate baseline drift |
+| --- | ---: | ---: | ---: |
+| GFNI/AVX-512 | +0.12% | −10.73% | +1.38% |
+| GFNI/AVX2 | +1.57% | −2.90% | −3.55% |
+| AVX2 | −1.37% | +5.12% | −0.91% |
+
+GFNI/AVX-512's 4+2/64 B candidate control changed −1.52%, so the +13.41%
+observation in the preceding run did not repeat. On the GFNI/AVX-512 backend,
+the GF16 4+2/64 B control changed +5.26%, while the same-binary comparison
+changed +0.92%. The AVX2 10+4/257 B candidate changed +5.12% valid and
++5.52% damaged; an earlier independent run changed −4.30% and −5.85%.
+The AVX2 backend does not execute the changed GFNI tail. These observations
+show a recurring GFNI/AVX-512 target-case improvement alongside variable
+non-target controls; they do not establish the candidate's causal effect or
+justify integrating it. Drift was recorded and did not stop the tests.
+
 ## Native coverage-guided fuzz
 
 The existing `fuzz_codec_contracts` target ran in an isolated x86-64 container
