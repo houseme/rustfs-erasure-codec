@@ -1,0 +1,138 @@
+--- a/src/core/leopard_gf8/mod.rs
++++ b/src/core/leopard_gf8/mod.rs
+@@ -16,0 +17,2 @@
++#[cfg(all(feature = "std", target_arch = "x86_64"))]
++mod derivative;
+--- a/src/core/leopard_gf8/work.rs
++++ b/src/core/leopard_gf8/work.rs
+@@ -110,0 +111,26 @@
++    /// Borrow two ordered, non-overlapping contiguous groups of complete lanes.
++    #[cfg(all(feature = "std", target_arch = "x86_64"))]
++    pub(super) fn lane_groups_mut(
++        &mut self,
++        left: usize,
++        right: usize,
++        count: usize,
++    ) -> Option<(&mut [u8], &mut [u8])> {
++        let left_end = left.checked_add(count)?;
++        let right_end = right.checked_add(count)?;
++        if count == 0 || left_end > right || right_end > self.lanes {
++            return None;
++        }
++        let size = count.checked_mul(self.lane_len)?;
++        let left_offset = left.checked_mul(self.lane_len)?;
++        let right_offset = right.checked_mul(self.lane_len)?;
++        // SAFETY: both complete lane groups lie in this allocation and the
++        // ordered ranges are disjoint. The returned borrows are exclusive.
++        unsafe {
++            Some((
++                core::slice::from_raw_parts_mut(self.ptr.add(left_offset), size),
++                core::slice::from_raw_parts_mut(self.ptr.add(right_offset), size),
++            ))
++        }
++    }
++
+--- a/src/core/leopard_gf8/decode.rs
++++ b/src/core/leopard_gf8/decode.rs
+@@ -5,0 +6,2 @@
++#[cfg(not(all(feature = "std", target_arch = "x86_64")))]
++use super::ops::slice_xor;
+@@ -8 +10 @@
+-    ifft_dit4_full_lut_scratch, mulgf8, slice_xor,
++    ifft_dit4_full_lut_scratch, mulgf8,
+@@ -531,0 +534,4 @@
++#[cfg(all(feature = "std", target_arch = "x86_64"))]
++use super::derivative::compute_formal_derivative;
++
++#[cfg(not(all(feature = "std", target_arch = "x86_64")))]
+@@ -554 +560 @@
+-fn get_pair_mut_flat(
++pub(super) fn get_pair_mut_flat(
+--- /dev/null
++++ b/src/core/leopard_gf8/derivative.rs
+@@ -0,0 +1,85 @@
++use super::{decode::get_pair_mut_flat, ops::slice_xor, work::FlatWork};
++
++/// Compute the formal derivative of the polynomial represented by work slots.
++///
++/// For i in 1..n: XOR work[i..i+width] into work[i-width..i]
++/// where width = ((i ^ (i-1)) + 1) >> 1.
++/// Go: slicesXor(work[i-width:i], work[i:i+width]) → lower ^= higher
++#[cfg_attr(all(feature = "std", target_arch = "x86_64"), inline(never))]
++pub(super) fn compute_formal_derivative(work: &mut FlatWork, n: usize, size: usize) {
++    for i in 1..n {
++        let width = ((i ^ (i - 1)) + 1) >> 1;
++        #[cfg(all(feature = "std", target_arch = "x86_64"))]
++        if width > 1 && size == work.lane_len() && n <= work.lanes() {
++            let count = core::cmp::min(width, n - i);
++            if let Some((dst, src)) = work.lane_groups_mut(i - width, i, count) {
++                slice_xor(src, dst);
++                continue;
++            }
++        }
++        for j in 0..width {
++            let dst_idx = i - width + j;
++            let src_idx = i + j;
++            if src_idx < n
++                && dst_idx < n
++                && let Some((s, d)) = get_pair_mut_flat(work, src_idx, dst_idx, size)
++            {
++                slice_xor(s, d);
++            }
++        }
++    }
++}
++
++#[cfg(test)]
++mod derivative_group_tests {
++    extern crate alloc;
++    use super::{FlatWork, compute_formal_derivative};
++    use alloc::vec::Vec;
++
++    #[test]
++    fn grouped_derivative_matches_ordered_reference_for_full_and_partial_lanes() {
++        for lanes in [1usize, 2, 3, 4, 7, 8, 15, 16, 31, 32, 33, 64, 65] {
++            for extra in [0usize, 7] {
++                for size in [1usize, 31, 32, 63, 64, 65, 256] {
++                    let lane_len = size + extra;
++                    for n in [0usize, lanes / 2, lanes, lanes + 1] {
++                        let mut expected: Vec<Vec<u8>> = (0..lanes)
++                            .map(|r| {
++                                (0..lane_len)
++                                    .map(|i| (r * 73 + i * 29 + i / 3) as u8)
++                                    .collect()
++                            })
++                            .collect();
++                        let mut work = FlatWork::new(lanes, lane_len);
++                        for (i, lane) in expected.iter().enumerate() {
++                            work.lane_mut(i).copy_from_slice(lane);
++                        }
++                        for i in 1..n {
++                            let width = ((i ^ (i - 1)) + 1) >> 1;
++                            for j in 0..width {
++                                let dst = i - width + j;
++                                let src = i + j;
++                                if src < n && dst < n && src < lanes && dst < lanes && src != dst {
++                                    let (left, right) = expected.split_at_mut(src);
++                                    for (out, input) in
++                                        left[dst][..size].iter_mut().zip(&right[0][..size])
++                                    {
++                                        *out ^= *input;
++                                    }
++                                }
++                            }
++                        }
++                        compute_formal_derivative(&mut work, n, size);
++                        for (i, lane) in expected.iter().enumerate() {
++                            assert_eq!(
++                                work.lane(i),
++                                lane,
++                                "lanes={lanes} size={size} extra={extra} n={n} lane={i}"
++                            );
++                        }
++                    }
++                }
++            }
++        }
++    }
++}

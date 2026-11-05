@@ -1,0 +1,5 @@
+--- a/src/core/leopard_gf16/mul_simd.rs
++++ b/src/core/leopard_gf16/mul_simd.rs
+@@ -331,0 +332,2 @@
++    // This per-butterfly lookup is on the hot path for short GFNI lanes.
++    #[inline]

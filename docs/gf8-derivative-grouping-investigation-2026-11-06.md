@@ -151,3 +151,60 @@ and format behavior; they do not execute the x86 grouped kernel. The `xtask`
 diagnostic source fingerprints were refreshed only in the prototype after
 reviewing the source transformation; no production source or snapshot was
 changed by this investigation.
+
+## Interleaved follow-up
+
+A follow-up used four balanced blocks per case and backend. Each block ran
+A/B/B/A or B/A/A/B, alternating the order of the same-binary and candidate
+comparisons. Each phase used 30 samples, 0.5 seconds warmup and a requested
+1.2 seconds of measurement. The values below are the arithmetic means of the
+four block changes, each calculated as the mean of the two B stages divided
+by the mean of the two A stages minus one. All block values are retained in the
+[raw samples](../benchmarks/gf8-derivative-grouping/2026-11-06/interleaved-followup.json).
+The [runner](../benchmarks/gf8-derivative-grouping/2026-11-06/interleaved-runner.py)
+is the executed controller with its machine-specific root and CPU replaced by
+`RSE_BENCH_ROOT` and `RSE_BENCH_CPU`. It verifies binary receipts and stops its
+own workload if the guest process monitor detects a competing process using
+more than half a CPU; physical host isolation was not established.
+
+| Workload and public GF8 backend | Candidate | Same binary |
+| --- | ---: | ---: |
+| GF8 16+8/64 B recovery, AVX2 | −3.97% | +0.83% |
+| GF8 16+8/64 B recovery, GFNI/AVX2 | −7.48% | +0.83% |
+| GF16 16+8/128 B encoding, AVX2 | +1.47% | −0.08% |
+| GF16 16+8/128 B encoding, GFNI/AVX2 | −5.86% | +0.25% |
+
+A further [separate-module prototype](../benchmarks/gf8-derivative-grouping/2026-11-06/separate-module.patch)
+kept GF16 unchanged and moved the GF8 derivative into its own internal module.
+Its optimized x86 derivative equivalence test passed. In a 30-sample GFNI/AVX2
+screen, GF8 16+8/64 B recovery changed −11.87%, versus +1.22% in its
+same-binary control, while GF16 10+4/64 B recovery changed +17.78%, versus
+−0.55% in its control. The GF16 baseline butterfly inlined its matrix-cache
+lookup; the candidate called `cached_matrices` from the butterfly. That
+observation is consistent with the regression, but does not prove the call
+accounts for the whole change. The [screen](../benchmarks/gf8-derivative-grouping/2026-11-06/separate-module-screen.json)
+contains the samples and monitoring summaries. This variant is not retained.
+
+The GF16 regular-inline hint was also tested [on its own](../benchmarks/gf8-derivative-grouping/2026-11-06/gf16-inline-only.patch),
+without the GF8 grouping. In two interleaved blocks under AVX2, GF8 16+8/64 B
+recovery changed +9.46% and +8.53%; the same-binary control changed +5.55% and
+−4.32%. GFNI/AVX2 candidate blocks changed +0.90% and +2.92%, against +1.66%
+and −8.99% in the control. The [complete results](../benchmarks/gf8-derivative-grouping/2026-11-06/gf16-inline-only-interleaved.json)
+include GF16 encoding and recovery controls. GF8 hotspot function sizes stayed
+the same, but their addresses and cache-line alignment changed; that does not
+establish the cause of the measured changes.
+
+A/B/B/A software CPU-clock sampling at 499 Hz on the AVX2 GF8 workload yielded
+about 7,000 samples per 15-second phase and no reported sample loss. The probe
+also performs fixture setup. GF8 XOR and decode functions remained dominant,
+with no single sampled function explaining the latency difference; percentages
+are relative samples, not an absolute latency decomposition. The
+[summary](../benchmarks/gf8-derivative-grouping/2026-11-06/gf16-inline-only-profile.json)
+retains the selected self-sample percentages and monitor counts. The VM did not
+provide hardware cycle or cache-miss events.
+
+A forced-inline combination built from the same source and flags as the regular
+inline combination. For both recovery and encoding binaries, all checked
+allocated ELF code and data sections matched except the build-id note; complete
+files were different. This did not produce a distinct runtime code or data
+layout worth treating as a new optimization on this compiler.
