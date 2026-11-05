@@ -168,6 +168,31 @@ child was terminated; no candidate performance stage ran. No latency conclusion
 is drawn from that incomplete run. The VM continued to run existing services,
 and physical-host exclusivity was not established.
 
+The same-binary and candidate comparisons were later completed on GFNI/AVX2,
+AVX2 and GFNI/AVX-512 with 20 samples per case, 0.5 s warmup and a requested
+2 s measurement. An independent follow-up used 40 samples, 1 s warmup and a
+requested 3 s measurement. Each comparison used A1/B1/B2/A2 ordering and
+six verification or encoding controls. No drift threshold stopped the tests.
+AVX2 attempts interrupted by competing processes were discarded and restarted
+in new result directories. The [native comparisons](../benchmarks/gfni-tail-followup/2026-11-05/native-comparisons.json)
+retain all completed stage estimates and monitor counts.
+
+| 10+4, 257 B valid verification | Same binary, 20 / 40 samples | Candidate, 20 / 40 samples | Candidate baseline drift, 20 / 40 samples |
+| --- | ---: | ---: | ---: |
+| GFNI/AVX2 | +2.46% / +1.07% | −3.06% / −1.43% | +0.32% / +0.14% |
+| GFNI/AVX-512 | +0.75% / +0.07% | −10.41% / −10.15% | +3.13% / −7.48% |
+| AVX2 | −2.96% / +3.89% | +0.44% / +8.73% | −0.08% / +3.03% |
+
+An additional independent 40-sample AVX2 repeat measured the same case at
+−5.17% for the same binary and −4.30% for the candidate, with +4.16%
+candidate baseline drift; the damaged case changed from +8.74% in the first
+40-sample candidate comparison to −5.85% in the repeat. The selected AVX2
+backend does not execute the changed GFNI tail, so these changes cannot be
+attributed directly to that tail. The GFNI/AVX-512 reduction is promising, but
+non-target controls, differing source-binary layouts and unverified physical
+host exclusivity prevent a confident general attribution. The candidate remains
+unintegrated.
+
 ## Native coverage-guided fuzz
 
 The existing `fuzz_codec_contracts` target ran in an isolated x86-64 container
