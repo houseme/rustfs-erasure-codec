@@ -251,6 +251,34 @@ show a recurring GFNI/AVX-512 target-case improvement alongside variable
 non-target controls; they do not establish the candidate's causal effect or
 justify integrating it. Drift was recorded and did not stop the tests.
 
+## Additional repeated comparison
+
+A subsequent independent run repeated the six-case same-binary and candidate
+A/B/B/A comparisons at 40 samples per phase, with 1 s warmup and a requested
+3 s measurement. AVX2 ran first, followed by GFNI/AVX-512 and GFNI/AVX2 in
+separate completed windows. Two intermediate GFNI/AVX2 attempts stopped when
+other CPU-intensive processes appeared; their incomplete phases were excluded
+and the backend was rerun. The completed stages' monitor samples reported no
+process above the configured threshold. Binary receipts were checked before
+and after the runs. Guest CPU affinity was used without a guest CPU partition;
+physical-host exclusivity was not established. All drift was retained and did
+not stop the tests.
+
+| 10+4, 257 B valid verification | Same binary | Candidate | Candidate baseline drift |
+| --- | ---: | ---: | ---: |
+| AVX2 | −1.87% | −4.62% | +0.55% |
+| GFNI/AVX-512 | −1.71% | −4.48% | +4.51% |
+| GFNI/AVX2 | +3.89% | −5.58% | +4.93% |
+
+For the unrelated GF16 4+2/64 B valid verification control, the candidate
+changed +4.47% with GFNI/AVX-512 and +6.71% with GFNI/AVX2; corresponding
+same-binary changes were −4.58% and −0.04%. The AVX2 backend does not execute
+the changed GFNI tail, yet its candidate 10+4/257 B comparison changed −4.62%.
+The [full stage estimates and monitoring summaries](../benchmarks/gfni-tail-followup/2026-11-05/native-rerun-kmo.json)
+show these values and the remaining controls. These observations do not isolate
+the tail algorithm from binary layout and shared-VM effects; the candidate
+remains unintegrated.
+
 ## Native coverage-guided fuzz
 
 The existing `fuzz_codec_contracts` target ran in an isolated x86-64 container
