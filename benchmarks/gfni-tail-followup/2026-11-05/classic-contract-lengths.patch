@@ -1,0 +1,5 @@
+--- a/fuzz/codec_contracts.rs
++++ b/fuzz/codec_contracts.rs
+@@ -301 +301 @@
+-        [1, 63, 64, 65, 128, 192][usize::from(byte(input, 5) % 6)]
++        [1, 63, 64, 65, 128, 192, 256, 257, 258, 1023, 1024, 1025][usize::from(byte(input, 5) % 12)]

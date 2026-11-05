@@ -1,0 +1,51 @@
+{
+  "backend_assertion_applied_to": "backend_checked",
+  "cargo_fuzz": "0.13.2",
+  "corpus_retained_in_isolated_test_directory": true,
+  "crashes": 0,
+  "features": [
+    "rustfs-erasure-codec/simd-accel"
+  ],
+  "runs": {
+    "rust-avx2": {
+      "backend_checked": {
+        "peak_rss_mb": 486,
+        "runs": 158727,
+        "seconds": 21
+      },
+      "initial": {
+        "peak_rss_mb": 485,
+        "runs": 356034,
+        "seconds": 46
+      }
+    },
+    "rust-gfni-avx2": {
+      "backend_checked": {
+        "peak_rss_mb": 482,
+        "runs": 159278,
+        "seconds": 21
+      },
+      "initial": {
+        "peak_rss_mb": 484,
+        "runs": 366631,
+        "seconds": 46
+      }
+    },
+    "rust-gfni-avx512": {
+      "backend_checked": {
+        "peak_rss_mb": 488,
+        "runs": 157443,
+        "seconds": 21
+      },
+      "initial": {
+        "peak_rss_mb": 489,
+        "runs": 386150,
+        "seconds": 46
+      }
+    }
+  },
+  "sanitizer": "address",
+  "seed_count_per_run": 24,
+  "seed_description": "Classic GF8, data shards 4 or 8, parity shards 2 or 4, six extended length indexes",
+  "toolchain": "rustc 1.101.0-nightly (2d20b42b8 2026-11-04)"
+}

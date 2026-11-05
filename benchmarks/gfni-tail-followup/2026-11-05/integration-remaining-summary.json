@@ -1,0 +1,659 @@
+{
+  "rust-gfni-avx2": {
+    "binaries": 35,
+    "passed": 176,
+    "failed": 0,
+    "ignored": 38,
+    "zero_executed": 6,
+    "cases": {
+      "benchmark_small_files": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 1,
+        "status": "ok"
+      },
+      "benchmark_smoke": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 35,
+        "status": "ok"
+      },
+      "benchmark_stream_paths": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 1,
+        "status": "ok"
+      },
+      "classic_recovery_plan_regressions": {
+        "passed": 23,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "codec_construction_regressions": {
+        "passed": 3,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "comprehensive_x86_64_benchmark": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 1,
+        "status": "ok"
+      },
+      "decode_idx_allocation_regressions": {
+        "passed": 5,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "external_stream_recovery": {
+        "passed": 13,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "field_exponent_regressions": {
+        "passed": 4,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "incremental_update_regressions": {
+        "passed": 10,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_cache_lifecycle": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_destination_compatibility": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_encode_reuse_regressions": {
+        "passed": 7,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_gf8_decode_reuse": {
+        "passed": 3,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_option_allocation": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_option_direct": {
+        "passed": 4,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_small_staging": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "matrix_builder_allocation": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "matrix_builder_reference": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "parallel_policy_regressions": {
+        "passed": 6,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "parallel_verify_workspace": {
+        "passed": 9,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "payload_join_regressions": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "payload_split_regressions": {
+        "passed": 5,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "pr1_six_two": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "pr1_six_two_nostd": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "reconstruct_plan_bench": {
+        "passed": 3,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "reconstruct_workspace": {
+        "passed": 21,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "recovery_buffer_reuse": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "selftest": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "small_update_inline": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "small_verify_nostd": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "stream_plan_regressions": {
+        "passed": 11,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "stream_reuse_regressions": {
+        "passed": 17,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "wide_field_matrix": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "workspace_policy_regressions": {
+        "passed": 14,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      }
+    }
+  },
+  "rust-avx2": {
+    "binaries": 35,
+    "passed": 176,
+    "failed": 0,
+    "ignored": 38,
+    "zero_executed": 6,
+    "cases": {
+      "benchmark_small_files": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 1,
+        "status": "ok"
+      },
+      "benchmark_smoke": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 35,
+        "status": "ok"
+      },
+      "benchmark_stream_paths": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 1,
+        "status": "ok"
+      },
+      "classic_recovery_plan_regressions": {
+        "passed": 23,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "codec_construction_regressions": {
+        "passed": 3,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "comprehensive_x86_64_benchmark": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 1,
+        "status": "ok"
+      },
+      "decode_idx_allocation_regressions": {
+        "passed": 5,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "external_stream_recovery": {
+        "passed": 13,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "field_exponent_regressions": {
+        "passed": 4,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "incremental_update_regressions": {
+        "passed": 10,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_cache_lifecycle": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_destination_compatibility": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_encode_reuse_regressions": {
+        "passed": 7,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_gf8_decode_reuse": {
+        "passed": 3,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_option_allocation": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_option_direct": {
+        "passed": 4,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_small_staging": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "matrix_builder_allocation": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "matrix_builder_reference": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "parallel_policy_regressions": {
+        "passed": 6,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "parallel_verify_workspace": {
+        "passed": 9,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "payload_join_regressions": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "payload_split_regressions": {
+        "passed": 5,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "pr1_six_two": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "pr1_six_two_nostd": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "reconstruct_plan_bench": {
+        "passed": 3,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "reconstruct_workspace": {
+        "passed": 21,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "recovery_buffer_reuse": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "selftest": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "small_update_inline": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "small_verify_nostd": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "stream_plan_regressions": {
+        "passed": 11,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "stream_reuse_regressions": {
+        "passed": 17,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "wide_field_matrix": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "workspace_policy_regressions": {
+        "passed": 14,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      }
+    }
+  },
+  "rust-gfni-avx512": {
+    "binaries": 35,
+    "passed": 176,
+    "failed": 0,
+    "ignored": 38,
+    "zero_executed": 6,
+    "cases": {
+      "benchmark_small_files": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 1,
+        "status": "ok"
+      },
+      "benchmark_smoke": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 35,
+        "status": "ok"
+      },
+      "benchmark_stream_paths": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 1,
+        "status": "ok"
+      },
+      "classic_recovery_plan_regressions": {
+        "passed": 23,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "codec_construction_regressions": {
+        "passed": 3,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "comprehensive_x86_64_benchmark": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 1,
+        "status": "ok"
+      },
+      "decode_idx_allocation_regressions": {
+        "passed": 5,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "external_stream_recovery": {
+        "passed": 13,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "field_exponent_regressions": {
+        "passed": 4,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "incremental_update_regressions": {
+        "passed": 10,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_cache_lifecycle": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_destination_compatibility": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_encode_reuse_regressions": {
+        "passed": 7,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_gf8_decode_reuse": {
+        "passed": 3,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_option_allocation": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_option_direct": {
+        "passed": 4,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "leopard_small_staging": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "matrix_builder_allocation": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "matrix_builder_reference": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "parallel_policy_regressions": {
+        "passed": 6,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "parallel_verify_workspace": {
+        "passed": 9,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "payload_join_regressions": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "payload_split_regressions": {
+        "passed": 5,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "pr1_six_two": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "pr1_six_two_nostd": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "reconstruct_plan_bench": {
+        "passed": 3,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "reconstruct_workspace": {
+        "passed": 21,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "recovery_buffer_reuse": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "selftest": {
+        "passed": 2,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "small_update_inline": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "small_verify_nostd": {
+        "passed": 0,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "stream_plan_regressions": {
+        "passed": 11,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "stream_reuse_regressions": {
+        "passed": 17,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "wide_field_matrix": {
+        "passed": 1,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      },
+      "workspace_policy_regressions": {
+        "passed": 14,
+        "failed": 0,
+        "ignored": 0,
+        "status": "ok"
+      }
+    }
+  }
+}

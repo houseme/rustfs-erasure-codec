@@ -1,0 +1,49 @@
+{
+  "backend_asserted_in_target": false,
+  "budget_seconds": 20,
+  "cargo_fuzz": "0.13.2",
+  "crashes": 0,
+  "features": [
+    "rustfs-erasure-codec/simd-accel"
+  ],
+  "max_input_bytes": 4096,
+  "runs": {
+    "fuzz_encode_reconstruct": {
+      "rust-avx2": {
+        "executions": 43962,
+        "peak_rss_mb": 564,
+        "seconds": 21
+      },
+      "rust-gfni-avx2": {
+        "executions": 70692,
+        "peak_rss_mb": 656,
+        "seconds": 21
+      },
+      "rust-gfni-avx512": {
+        "executions": 116124,
+        "peak_rss_mb": 597,
+        "seconds": 21
+      }
+    },
+    "fuzz_encode_verify": {
+      "rust-avx2": {
+        "executions": 64440,
+        "peak_rss_mb": 888,
+        "seconds": 21
+      },
+      "rust-gfni-avx2": {
+        "executions": 55134,
+        "peak_rss_mb": 658,
+        "seconds": 21
+      },
+      "rust-gfni-avx512": {
+        "executions": 54049,
+        "peak_rss_mb": 569,
+        "seconds": 21
+      }
+    }
+  },
+  "sanitizer": "address",
+  "seed_count_per_run": 6,
+  "toolchain": "rustc 1.101.0-nightly (2d20b42b8 2026-11-04)"
+}

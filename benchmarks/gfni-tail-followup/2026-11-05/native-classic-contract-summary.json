@@ -1,0 +1,32 @@
+{
+  "backends": {
+    "rust-avx2": {
+      "cases": 20000,
+      "status": "passed"
+    },
+    "rust-gfni-avx2": {
+      "cases": 20000,
+      "status": "passed"
+    },
+    "rust-gfni-avx512": {
+      "cases": 20000,
+      "status": "passed"
+    }
+  },
+  "input_generation": "deterministic seeded contract harness; Classic GF8; 20,000 inputs per backend",
+  "lengths": [
+    1,
+    63,
+    64,
+    65,
+    128,
+    192,
+    256,
+    257,
+    258,
+    1023,
+    1024,
+    1025
+  ],
+  "native_coverage_guided_fuzz": false
+}

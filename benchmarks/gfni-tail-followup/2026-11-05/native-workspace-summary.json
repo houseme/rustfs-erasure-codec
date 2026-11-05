@@ -1,0 +1,16 @@
+{
+  "command": "cargo test --locked --workspace --all-features",
+  "status": "passed",
+  "toolchain": "stable 1.99.1",
+  "backend_override": "rust-gfni-avx2",
+  "cargo_build_jobs": 2,
+  "rayon_threads": 4,
+  "container_cpu_affinity_count": 8,
+  "container_cpu_quota": 4,
+  "container_memory_limit_gib": 12,
+  "candidate_patch": "../2026-11-04/outlined.patch",
+  "test_harness_length_extension": "classic-contract-lengths.patch",
+  "production_codec_source_changed_by_length_extension": false,
+  "doctests_passed": 13,
+  "ignored_tests_were_run": false
+}
