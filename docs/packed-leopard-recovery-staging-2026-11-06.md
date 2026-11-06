@@ -124,12 +124,13 @@ run natively, and performance on untested processors is not established.
 For reproduction, register [recovery-probe.rs](../benchmarks/packed-recovery-staging/2026-11-06/recovery-probe.rs)
 as a temporary Criterion bench named `packed_recovery` in otherwise identical
 baseline and candidate checkouts. Build each with the locked dependencies and
-`simd-accel`, place the resulting executables as `baseline` and `candidate`
-under `binaries-v5-native/packed_recovery`, and set `RSE_BENCH_ROOT` to the
-directory containing `binaries-v5-native` before running [native-screen.py](../benchmarks/packed-recovery-staging/2026-11-06/native-screen.py)
-[native-balanced-controls.py](../benchmarks/packed-recovery-staging/2026-11-06/native-balanced-controls.py),
-or [native-avx512-balanced.py](../benchmarks/packed-recovery-staging/2026-11-06/native-avx512-balanced.py).
-The probes assert the requested backend. The archived
+`simd-accel`. For the native screen, select the requested backend, pin a guest
+CPU, run baseline and candidate in A1/B1/B2/A2 order with 40 samples, a 0.5 s
+warmup and a requested 2 s measurement, and run a baseline-only control. The
+balanced controls alternate ABBA and BAAB order across four blocks and also
+reverse control/candidate order; they use 40 samples, a 1 s warmup and a
+requested 3 s measurement. These descriptions specify the measurement protocol;
+they are not an executable process-monitoring or isolation guarantee. The
 [container probe](../benchmarks/packed-recovery-staging/2026-11-06/container-probe.rs)
 can likewise be registered as a temporary Criterion bench. The
 [contract probe](../benchmarks/packed-recovery-staging/2026-11-06/contract-probe.rs)
