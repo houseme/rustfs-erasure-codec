@@ -322,6 +322,30 @@ impl crate::ReedSolomon<super::Field> {
         self.execute_classic_option_plan_serial(shards, &workspace.plan)
     }
 
+    /// Execute a prepared Classic plan with bounded parallel output batches.
+    ///
+    /// Validates the same format, missing pattern and lengths as
+    /// [`Self::reconstruct_opt_with_workspace`], then reuses the existing data
+    /// and parity reconstruction policies. Small shards use serial arithmetic.
+    /// Full, data-only and selective generic workspace preparers are accepted.
+    ///
+    /// `Option<Vec<u8>>` destinations have infallible length initialization,
+    /// allowing this entry point to batch multiple outputs in one stage. The
+    /// generic [`Self::reconstruct_with_workspace_par`] completes one fallible
+    /// destination at a time, parallelizing its byte chunks. Both APIs reuse
+    /// the prepared coefficients and perform no inversion-cache lookup.
+    #[cfg(feature = "std")]
+    pub fn reconstruct_opt_with_workspace_par(
+        &self,
+        shards: &mut [Option<Vec<u8>>],
+        workspace: &OptionVecReconstructWorkspace,
+    ) -> Result<(), crate::Error> {
+        self.validate_reconstruct_workspace(shards, workspace)?;
+        let (data_policy, parity_policy) =
+            self.reconstruct_stage_policies(workspace.plan.data_only);
+        self.execute_classic_plan_parallel(shards, &workspace.plan, data_policy, parity_policy)
+    }
+
     #[cfg(feature = "std")]
     #[doc(hidden)]
     pub fn execute_option_vec_reconstruct_plan_serial_for_bench(

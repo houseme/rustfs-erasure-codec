@@ -146,10 +146,8 @@ fn check_counter() {
     }
 }
 
-const POLICY: &str = "drop_smaller_cache";
+const POLICY: &str = "preserve_smaller_cache";
 const LEN: usize = 64 * 1024;
-// 16 FFT work lanes plus one conversion/scaling lane, each LEN bytes.
-const SMALL_WORK_BYTES: usize = 17 * LEN;
 const PHASES: [(bool, &str); 7] = [
     (false, "small_hit"),
     (true, "oversized_first"),
@@ -318,18 +316,14 @@ fn alternating_cache_sizes_report_live_retention_and_concurrent_peaks() {
                 state.1 = true;
                 assert_eq!(ready.2.notify_all(), threads);
             }
-            let mut previous_large = false;
             let mut valid = true;
             for (oversized, name) in PHASES {
                 let sample = measure(|| {
                     start.wait();
                     done.wait();
                 });
-                let retained = match (previous_large, oversized) {
-                    (false, true) => -(threads as i128 * SMALL_WORK_BYTES as i128),
-                    (true, false) => threads as i128 * SMALL_WORK_BYTES as i128,
-                    _ => 0,
-                };
+                // Every phase retains the original small per-thread workspace.
+                let retained = 0;
                 // Tiny per-thread synchronization metadata can be initialized
                 // on first contention. Keep a bounded allowance, not an exact
                 // process-wide peak target that depends on worker overlap.
@@ -338,9 +332,6 @@ fn alternating_cache_sizes_report_live_retention_and_concurrent_peaks() {
                 let payload = if oversized {
                     // 64 FFT lanes, one scratch lane and one temporary output.
                     threads * 66 * LEN
-                } else if previous_large {
-                    // Rebuild 16 work lanes and scratch; publish one output.
-                    threads * 18 * LEN
                 } else {
                     threads * LEN
                 };
@@ -357,7 +348,6 @@ fn alternating_cache_sizes_report_live_retention_and_concurrent_peaks() {
                     sample.calls,
                     sample.requested
                 );
-                previous_large = oversized;
                 release.wait();
             }
             for worker in workers {
@@ -441,29 +431,27 @@ fn broadcast_warms_every_worker_for_repeated_parallel_recovery() {
         }
     }
 
-    // Each oversized serial recovery discards the smaller worker-local buffer
-    // under the existing 4 MiB retention policy. Rewarming is required before
-    // the no-64-KiB-request observation applies again.
+    // Oversized serial recovery uses local work and preserves each worker's
+    // small cache. Both parallel job counts remain warm without another broadcast.
     let oversized = Arc::new(Encoded::new(40, 16));
     exercise_every_worker(&pool, &oversized);
-    let after_eviction = measure(|| assert!(pool.install(|| two_jobs.recover())));
-    assert!(
-        after_eviction.requests_of_64k >= 1,
-        "oversized recovery did not expose a cold worker workspace: {after_eviction:?}"
-    );
-    exercise_every_worker(&pool, &small);
-    let after_rewarm = measure(|| assert!(pool.install(|| four_jobs.recover())));
+    let after_oversized_two_jobs = measure(|| assert!(pool.install(|| two_jobs.recover())));
     assert_eq!(
-        after_rewarm.requests_of_64k, 0,
-        "worker rewarm did not restore the warm condition: {after_rewarm:?}"
+        after_oversized_two_jobs.requests_of_64k, 0,
+        "oversized recovery evicted a warm worker workspace: {after_oversized_two_jobs:?}"
+    );
+    let after_oversized_four_jobs = measure(|| assert!(pool.install(|| four_jobs.recover())));
+    assert_eq!(
+        after_oversized_four_jobs.requests_of_64k, 0,
+        "four-job recovery lost a warm workspace: {after_oversized_four_jobs:?}"
     );
     println!(
-        "GF16_WORKER_WARMUP workers={WORKERS} cold_64k_requests={} cold_requested_bytes={} cold_live_delta={} broadcast_live_delta={} subsequent_calls=16 after_eviction_64k_requests={} after_rewarm_64k_requests={}",
+        "GF16_WORKER_WARMUP workers={WORKERS} cold_64k_requests={} cold_requested_bytes={} cold_live_delta={} broadcast_live_delta={} subsequent_calls=16 after_oversized_two_jobs_64k_requests={} after_oversized_four_jobs_64k_requests={}",
         cold.requests_of_64k,
         cold.requested,
         cold.retained_delta(),
         live_after as i128 - live_before as i128,
-        after_eviction.requests_of_64k,
-        after_rewarm.requests_of_64k
+        after_oversized_two_jobs.requests_of_64k,
+        after_oversized_four_jobs.requests_of_64k
     );
 }

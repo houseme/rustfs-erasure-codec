@@ -106,6 +106,13 @@ static ACTIVE_BACKEND: Once<GaloisBackend> = Once::new();
 #[cfg(feature = "std")]
 static GENERATED_ENCODE_ALLOWED: Once<bool> = Once::new();
 
+#[cfg(all(
+    feature = "std",
+    feature = "experimental-parallel-multi-output",
+    rse_x86_gfni
+))]
+static PARALLEL_GFNI_ENCODE_ALLOWED: Once<bool> = Once::new();
+
 #[cfg(feature = "std")]
 #[derive(Copy, Clone)]
 enum BackendOverride {
@@ -203,6 +210,54 @@ pub(crate) fn generated_encode_allowed() -> bool {
 #[cfg(not(feature = "std"))]
 pub(crate) fn generated_encode_allowed() -> bool {
     true
+}
+
+// An unavailable explicit backend can resolve to automatic GFNI. Preserve its
+// generic parallel execution contract unless the caller requested automatic
+// dispatch or the exact GFNI backend that was selected. Unknown strings retain
+// automatic backend selection but do not opt in to this parallel adapter.
+#[cfg(all(
+    feature = "std",
+    feature = "experimental-parallel-multi-output",
+    rse_x86_gfni
+))]
+fn parallel_gfni_encode_allowed_for_backend(
+    requested: Option<&str>,
+    selected_backend: BackendId,
+) -> bool {
+    let Some(requested) = requested else {
+        return matches!(
+            selected_backend,
+            BackendId::RustGfniAvx2 | BackendId::RustGfniAvx512
+        );
+    };
+    matches!(
+        (parse_backend_override(requested.trim()), selected_backend),
+        (
+            Some(BackendOverride::Auto),
+            BackendId::RustGfniAvx2 | BackendId::RustGfniAvx512
+        ) | (Some(BackendOverride::RustGfniAvx2), BackendId::RustGfniAvx2)
+            | (
+                Some(BackendOverride::RustGfniAvx512),
+                BackendId::RustGfniAvx512
+            )
+    )
+}
+
+#[cfg(all(
+    feature = "std",
+    feature = "experimental-parallel-multi-output",
+    rse_x86_gfni
+))]
+pub(crate) fn parallel_gfni_encode_allowed() -> bool {
+    *PARALLEL_GFNI_ENCODE_ALLOWED.call_once(|| {
+        let requested = match std::env::var("RSE_BACKEND_OVERRIDE") {
+            Ok(value) => Some(value),
+            Err(std::env::VarError::NotPresent) => None,
+            Err(std::env::VarError::NotUnicode(_)) => return false,
+        };
+        parallel_gfni_encode_allowed_for_backend(requested.as_deref(), active_backend().id)
+    })
 }
 
 #[cfg(all(rse_x86_simd, feature = "std"))]
@@ -656,6 +711,60 @@ mod tests {
                 BackendId::RustAvx2
             ));
         }
+    }
+
+    #[cfg(all(
+        feature = "std",
+        feature = "experimental-parallel-multi-output",
+        rse_x86_gfni
+    ))]
+    #[test]
+    fn parallel_gfni_admission_preserves_explicit_override_intent() {
+        for backend in [BackendId::RustGfniAvx2, BackendId::RustGfniAvx512] {
+            for requested in [None, Some("auto"), Some(" auto ")] {
+                assert!(parallel_gfni_encode_allowed_for_backend(requested, backend));
+            }
+            for requested in [
+                "scalar",
+                "scalar-rust",
+                "rust-neon",
+                "rust-ssse3",
+                "rust-avx2",
+                "rust-avx512",
+                "rust-vsx",
+                "unknown",
+                "",
+            ] {
+                assert!(
+                    !parallel_gfni_encode_allowed_for_backend(Some(requested), backend),
+                    "requested={requested}, selected={backend:?}"
+                );
+            }
+        }
+        for (requested, expected) in [
+            ("rust-gfni-avx2", BackendId::RustGfniAvx2),
+            ("rust-gfni-avx512", BackendId::RustGfniAvx512),
+        ] {
+            for selected in [
+                BackendId::RustGfniAvx2,
+                BackendId::RustGfniAvx512,
+                BackendId::RustAvx2,
+                BackendId::ScalarRust,
+            ] {
+                assert_eq!(
+                    parallel_gfni_encode_allowed_for_backend(Some(requested), selected),
+                    selected == expected
+                );
+            }
+        }
+        assert!(!parallel_gfni_encode_allowed_for_backend(
+            None,
+            BackendId::RustAvx512
+        ));
+        assert!(!parallel_gfni_encode_allowed_for_backend(
+            Some("auto"),
+            BackendId::ScalarRust
+        ));
     }
 
     #[cfg(feature = "std")]

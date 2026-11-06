@@ -110,6 +110,13 @@ pub struct CodecOptions {
     /// Capacity of the inversion cache (LRU). `0` means automatic sizing based on
     /// shard counts. Default: `0`.
     pub inversion_cache_capacity: usize,
+    /// Maximum retained Classic inverse-matrix and erasure-key bytes.
+    /// `0` selects the default 8 MiB budget. The entry-count capacity also
+    /// applies. Oversized matrices remain usable for the current operation and
+    /// are omitted from the cache. The budget excludes LRU/allocator overhead
+    /// and matrices held by external reconstruction workspaces after eviction.
+    /// Set `usize::MAX` to allow any representable charged size. Default: `0`.
+    pub inversion_cache_max_bytes: usize,
     /// The codec algorithm family to use. Default: [`CodecFamily::Classic`].
     pub codec_family: CodecFamily,
     /// Optional automatic Leopard selection when `codec_family` is
@@ -130,6 +137,7 @@ impl Default for CodecOptions {
             fast_one_parity: false,
             inversion_cache: true,
             inversion_cache_capacity: 0,
+            inversion_cache_max_bytes: 0,
             codec_family: CodecFamily::Classic,
             leopard_mode: LeopardMode::Disabled,
             matrix_mode: MatrixMode::Vandermonde,
@@ -191,6 +199,13 @@ impl CodecOptionsBuilder {
     /// Set the inversion cache capacity. `0` for automatic sizing.
     pub fn inversion_cache_capacity(mut self, capacity: usize) -> Self {
         self.options.inversion_cache_capacity = capacity;
+        self
+    }
+
+    /// Set the Classic inverse-cache byte budget. `0` selects the default 8 MiB.
+    /// See [`CodecOptions::inversion_cache_max_bytes`] for accounting details.
+    pub fn inversion_cache_max_bytes(mut self, max_bytes: usize) -> Self {
+        self.options.inversion_cache_max_bytes = max_bytes;
         self
     }
 

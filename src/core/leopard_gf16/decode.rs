@@ -94,12 +94,17 @@ fn with_decode_buffers<R>(
     #[cfg(feature = "std")]
     let cacheable = cacheable_decode_size(lanes, chunk_len);
     #[cfg(feature = "std")]
-    let mut buffers = DECODE_BUFFER_CACHE.with(|cache| {
-        cache
-            .take()
-            .filter(|buffers| buffers.work.can_reuse(lanes, chunk_len))
-            .unwrap_or_else(|| DecodeBuffers::new(lanes, chunk_len))
-    });
+    let mut buffers = if cacheable {
+        DECODE_BUFFER_CACHE.with(|cache| {
+            cache
+                .take()
+                .filter(|buffers| buffers.work.can_reuse(lanes, chunk_len))
+                .unwrap_or_else(|| DecodeBuffers::new(lanes, chunk_len))
+        })
+    } else {
+        // An oversized operation must not evict a smaller warm workspace.
+        DecodeBuffers::new(lanes, chunk_len)
+    };
     #[cfg(not(feature = "std"))]
     let mut buffers = DecodeBuffers::new(lanes, chunk_len);
 
@@ -233,6 +238,81 @@ pub(crate) struct LeopardGf16DecodePlan {
     input_count: usize,
     ifft_plan: IfftDit16Plan,
     fft_plan: FftDit16Plan,
+}
+
+#[cfg(feature = "std")]
+impl LeopardGf16DecodePlan {
+    fn retained_bytes(&self) -> usize {
+        let locator_bytes = if self.err_locs.spilled() {
+            self.err_locs.capacity() * core::mem::size_of::<u16>()
+        } else {
+            0
+        };
+        core::mem::size_of::<Self>()
+            + locator_bytes
+            + (self.ifft_plan.initial_blocks.capacity()
+                + self.ifft_plan.later_blocks.capacity()
+                + self.fft_plan.stage4_blocks.capacity())
+                * core::mem::size_of::<super::Stage4Block>()
+            + self.fft_plan.final_stage.capacity() * core::mem::size_of::<super::Stage2Block>()
+    }
+}
+
+#[cfg(feature = "std")]
+type DecodePlanKey = (usize, usize, SmallVec<[bool; 256]>);
+
+/// Charge keys and plan-owned storage while keeping independent callers' Arc
+/// lifetimes outside the cache budget. LRU bookkeeping and allocator overhead
+/// are excluded, as with the Classic inverse-cache accounting.
+#[cfg(feature = "std")]
+struct DecodePlanCache {
+    entries: hashlink::LruCache<DecodePlanKey, (alloc::sync::Arc<LeopardGf16DecodePlan>, usize)>,
+    retained_bytes: usize,
+    max_bytes: usize,
+}
+
+#[cfg(feature = "std")]
+impl DecodePlanCache {
+    fn new(max_bytes: usize) -> Self {
+        Self {
+            entries: hashlink::LruCache::new(16),
+            retained_bytes: 0,
+            max_bytes,
+        }
+    }
+
+    fn get(&mut self, key: &DecodePlanKey) -> Option<alloc::sync::Arc<LeopardGf16DecodePlan>> {
+        self.entries.get(key).map(|(plan, _)| plan.clone())
+    }
+
+    fn insert(
+        &mut self,
+        key: DecodePlanKey,
+        plan: alloc::sync::Arc<LeopardGf16DecodePlan>,
+    ) -> alloc::sync::Arc<LeopardGf16DecodePlan> {
+        // Another caller may have completed the same plan while this one built
+        // outside the lock. Reuse its entry and account for it only once.
+        if let Some(existing) = self.get(&key) {
+            return existing;
+        }
+        let key_bytes = core::mem::size_of::<DecodePlanKey>()
+            + if key.2.spilled() { key.2.capacity() } else { 0 };
+        let Some(bytes) = plan.retained_bytes().checked_add(key_bytes) else {
+            return plan;
+        };
+        if bytes > self.max_bytes {
+            return plan;
+        }
+        while self.entries.len() >= self.entries.capacity()
+            || self.retained_bytes > self.max_bytes - bytes
+        {
+            let (_, (_, removed_bytes)) = self.entries.remove_lru().expect("cache contains a plan");
+            self.retained_bytes -= removed_bytes;
+        }
+        self.entries.insert(key, (plan.clone(), bytes));
+        self.retained_bytes += bytes;
+        plan
+    }
 }
 
 const SPARSE_LOCATOR_MAX_WORK_SIZE: usize = 256;
@@ -384,26 +464,21 @@ fn decode_plan_for(
     tables: &LeopardGf16Tables,
 ) -> alloc::sync::Arc<LeopardGf16DecodePlan> {
     use alloc::sync::Arc;
-    use hashlink::LruCache;
     use parking_lot::Mutex;
     use std::sync::OnceLock;
 
-    type Key = (usize, usize, SmallVec<[bool; 256]>);
-    // Bound the entry count, not total bytes: larger locators and FFT schedules
-    // can allocate based on the shard configuration.
-    // A handful of erasure patterns per configuration is typical.
-    const CACHE_CAPACITY: usize = 16;
-    static CACHE: OnceLock<Mutex<LruCache<Key, Arc<LeopardGf16DecodePlan>>>> = OnceLock::new();
+    const MAX_CACHED_PLAN_BYTES: usize = 8 * 1024 * 1024;
+    static CACHE: OnceLock<Mutex<DecodePlanCache>> = OnceLock::new();
 
     let key = (
         driver.data_shards,
         driver.parity_shards,
         present.iter().copied().collect::<SmallVec<[bool; 256]>>(),
     );
-    let cache = CACHE.get_or_init(|| Mutex::new(LruCache::new(CACHE_CAPACITY)));
+    let cache = CACHE.get_or_init(|| Mutex::new(DecodePlanCache::new(MAX_CACHED_PLAN_BYTES)));
 
     if let Some(plan) = cache.lock().get(&key) {
-        return plan.clone();
+        return plan;
     }
     // Build outside the lock (the FWHTs are the expensive part); a concurrent
     // duplicate build at most wastes work, never corrupts (the value is a pure
@@ -415,8 +490,7 @@ fn decode_plan_for(
         missing_data,
         tables,
     ));
-    cache.lock().insert(key, plan.clone());
-    plan
+    cache.lock().insert(key, plan)
 }
 
 #[cfg(test)]
@@ -1069,19 +1143,28 @@ mod decode_buffer_tests {
     use super::*;
 
     #[test]
-    fn decode_workspace_retention_counts_all_buffers_and_drops_oversized_entries() {
+    fn decode_workspace_retention_preserves_small_buffers_across_oversized_calls() {
         assert!(!cacheable_decode_size(usize::MAX, usize::MAX));
         assert!(!cacheable_decode_size(64, 32 * 1024));
         DECODE_BUFFER_CACHE.with(|cache| *cache.borrow_mut() = None);
         with_decode_buffers(16, 64, |buffers| {
             assert_eq!(buffers.retained_bytes(), (16 + 1) * 64 * 2);
         });
-        DECODE_BUFFER_CACHE.with(|cache| assert!(cache.borrow().is_some()));
+        let warmed = DECODE_BUFFER_CACHE
+            .with(|cache| cache.borrow().as_ref().unwrap().work.lane(0).as_ptr());
         // FlatWork alone fits exactly; conversion/scaling scratch puts it over cap.
         with_decode_buffers(64, 32 * 1024, |buffers| {
             assert!(buffers.retained_bytes() > MAX_CACHED_DECODE_BYTES);
         });
-        DECODE_BUFFER_CACHE.with(|cache| assert!(cache.borrow().is_none()));
+        DECODE_BUFFER_CACHE.with(|cache| {
+            let cache = cache.borrow();
+            let buffers = cache.as_ref().unwrap();
+            assert_eq!(buffers.work.lane(0).as_ptr(), warmed);
+            assert_eq!(buffers.retained_bytes(), (16 + 1) * 64 * 2);
+        });
+        with_decode_buffers(16, 64, |buffers| {
+            assert_eq!(buffers.work.lane(0).as_ptr(), warmed);
+        });
     }
 
     #[test]
@@ -1098,6 +1181,78 @@ mod decode_buffer_tests {
             assert!(buffers.retained_bytes() > MAX_CACHED_DECODE_BYTES);
         });
         DECODE_BUFFER_CACHE.with(|cache| assert!(cache.borrow().is_none()));
+    }
+}
+
+#[cfg(all(test, feature = "std"))]
+mod decode_plan_budget_tests {
+    use super::*;
+    use alloc::sync::Arc;
+
+    fn plan(data: usize, missing: usize) -> (DecodePlanKey, Arc<LeopardGf16DecodePlan>) {
+        let driver = build_leopard_gf16_decode_driver(data, 4, 64).unwrap();
+        let mut present = SmallVec::from_elem(true, data + 4);
+        present[missing] = false;
+        let plan = build_decode_plan(
+            &driver,
+            &present,
+            &[],
+            &[missing],
+            init_leopard_gf16_tables(),
+        );
+        ((data, 4, present), Arc::new(plan))
+    }
+
+    #[test]
+    fn plan_budget_evicts_lru_and_charges_duplicate_inserts_once() {
+        let (first_key, first) = plan(10, 0);
+        let (second_key, second) = plan(10, 1);
+        let (third_key, third) = plan(10, 2);
+        let entry_bytes = first.retained_bytes() + core::mem::size_of::<DecodePlanKey>();
+        assert_eq!(first.retained_bytes(), second.retained_bytes());
+        assert_eq!(first.retained_bytes(), third.retained_bytes());
+        let mut cache = DecodePlanCache::new(entry_bytes * 2);
+        cache.insert(first_key.clone(), first.clone());
+        cache.insert(second_key.clone(), second);
+        assert!(Arc::ptr_eq(&cache.get(&first_key).unwrap(), &first));
+        cache.insert(third_key.clone(), third);
+        assert!(cache.get(&second_key).is_none());
+        let (_, duplicate) = plan(10, 0);
+        assert!(Arc::ptr_eq(
+            &cache.insert(first_key.clone(), duplicate),
+            &first
+        ));
+        assert_eq!(cache.retained_bytes, entry_bytes * 2);
+        assert_eq!(cache.entries.len(), 2);
+        assert!(cache.get(&third_key).is_some());
+    }
+
+    #[test]
+    fn oversized_plan_preserves_hot_entries_and_spilled_keys_are_charged() {
+        let (small_key, small) = plan(10, 0);
+        let small_bytes = small.retained_bytes() + core::mem::size_of::<DecodePlanKey>();
+        let mut cache = DecodePlanCache::new(small_bytes);
+        cache.insert(small_key.clone(), small.clone());
+        let (large_key, large) = plan(300, 0);
+        assert!(large_key.2.spilled());
+        assert!(large.retained_bytes() > small_bytes);
+        assert!(Arc::ptr_eq(
+            &cache.insert(large_key.clone(), large.clone()),
+            &large
+        ));
+        assert!(cache.get(&large_key).is_none());
+        assert!(Arc::ptr_eq(&cache.get(&small_key).unwrap(), &small));
+        assert_eq!(cache.retained_bytes, small_bytes);
+
+        let exact_key = large_key.clone();
+        let large_bytes =
+            large.retained_bytes() + core::mem::size_of::<DecodePlanKey>() + exact_key.2.capacity();
+        let mut exact = DecodePlanCache::new(large_bytes);
+        exact.insert(exact_key, large.clone());
+        assert_eq!(exact.retained_bytes, large_bytes);
+        let mut short = DecodePlanCache::new(large_bytes - 1);
+        short.insert(large_key.clone(), large);
+        assert_eq!(short.retained_bytes, 0);
     }
 }
 

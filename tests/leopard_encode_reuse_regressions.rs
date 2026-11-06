@@ -242,6 +242,43 @@ mod allocations {
     }
 
     #[test]
+    fn alternating_warm_layouts_encode_without_allocating() {
+        for family in [CodecFamily::LeopardGF8, CodecFamily::LeopardGF16] {
+            let first_codec = codec(family, 10, 4);
+            let second_codec = codec(family, 16, 8);
+            for len in [32 * 1024, 64 * 1024 + 64] {
+                let first_data = data_shards(10, len, 31);
+                let second_data = data_shards(16, len, 79);
+                let mut first_parity = vec![vec![0; len]; 4];
+                let mut second_parity = vec![vec![0; len]; 8];
+                first_codec
+                    .encode_sep(&first_data, &mut first_parity)
+                    .unwrap();
+                second_codec
+                    .encode_sep(&second_data, &mut second_parity)
+                    .unwrap();
+                let first_expected = first_parity.clone();
+                let second_expected = second_parity.clone();
+
+                for _ in 0..4 {
+                    first_parity.iter_mut().for_each(|shard| shard.fill(0xa5));
+                    second_parity.iter_mut().for_each(|shard| shard.fill(0x5a));
+                    let (result, counts) =
+                        measure(|| first_codec.encode_sep(&first_data, &mut first_parity));
+                    result.unwrap();
+                    assert_eq!(counts, (0, 0), "{family:?}, 10+4, {len} bytes");
+                    assert_eq!(first_parity, first_expected);
+                    let (result, counts) =
+                        measure(|| second_codec.encode_sep(&second_data, &mut second_parity));
+                    result.unwrap();
+                    assert_eq!(counts, (0, 0), "{family:?}, 16+8, {len} bytes");
+                    assert_eq!(second_parity, second_expected);
+                }
+            }
+        }
+    }
+
+    #[test]
     fn gf16_encode_uses_only_active_work_storage_and_bounded_caches() {
         let mut within_budget = true;
         for repetition in 0..3 {

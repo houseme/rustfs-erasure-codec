@@ -85,6 +85,10 @@ rustfs-erasure-codec = { version = "9.1.0", features = ["simd-avx2", "experiment
 
 ## 快速开始
 
+`experimental-parallel-multi-output` 为并行编码启用更多生成式内核布局及 GFNI 行点积内核，
+需要同时启用受支持的 SIMD feature，并沿用已有内核检查、任务预算和后端选择。
+GFNI 任务在各输入间保留行累加结果，每个任务处理最多四个输出。原生吞吐验证仍在进行。
+
 ```rust
 use rustfs_erasure_codec::galois_8::ReedSolomon;
 use rustfs_erasure_codec::VerifyWorkspace;
@@ -150,6 +154,12 @@ payload，目标存储可由 `ShardSlot` 单独复用。GF8 原有
 详见 [英文使用示例](README.md)。
 
 ## 主要 API
+
+启用 `std` 后，`reconstruct_with_workspace_par(...)` 复用 Classic 计划，
+在每个目标内部按块并行，按顺序完成可能失败的目标初始化。
+字段元素需要满足 `Send + Sync`，分片容器留在调用线程。
+GF8 `Option<Vec<u8>>` 可通过 `reconstruct_opt_with_workspace_par(...)` 使用批量并行执行器。
+多个并发调用可以共享不可变计划，各自提供目标缓冲区。
 
 | 领域 | API |
 |---|---|
@@ -296,7 +306,18 @@ assert!(slots[5].is_present());
 - `fast_one_parity`
 - `inversion_cache`
 - `inversion_cache_capacity`
+- `inversion_cache_max_bytes`
 - `max_parallel_jobs`
+
+Classic 逆矩阵缓存同时受条目数和字节预算限制，每个 codec 默认预算为 8 MiB。
+`inversion_cache_max_bytes(0)` 选择默认预算，正数设置具体字节数。
+`reconstruction_cache_memory()` 返回保留条目数、计费字节数和预算。
+计费覆盖矩阵存储与 key 容量；LRU 管理结构、Arc 计数器、分配器开销和淘汰后仍被
+外部 workspace 持有的矩阵需单独计算。超预算条目在当前调用中使用，已有缓存条目继续保留。
+
+Leopard GF8/GF16 编码器每个调用线程最多保留两个布局，每个 family 的工作缓冲区
+合计预算为 4 MiB，计划合计预算另为 1 MiB。GF16 解码在超预算调用后保留已有工作缓存，
+共享解码计划缓存同时受 16 项和 8 MiB 的 key/plan 存储预算限制。
 
 并行策略环境变量：
 

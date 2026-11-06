@@ -5,7 +5,10 @@ pub(crate) mod cache_detect;
 mod codec;
 mod encode;
 mod format;
+mod inversion_cache;
 mod leopard;
+#[cfg(feature = "std")]
+mod leopard_cache;
 pub(crate) mod leopard_gf16;
 pub(crate) mod leopard_gf8;
 mod metrics;
@@ -20,19 +23,16 @@ pub mod stream;
 mod verify;
 mod workspace;
 
-use alloc::sync::Arc;
-use alloc::vec::Vec;
-
-use hashlink::LruCache;
 #[cfg(feature = "std")]
 use parking_lot::Mutex;
 #[cfg(not(feature = "std"))]
 use spin::Mutex;
 
 use crate::Field;
-use crate::matrix::Matrix;
+use inversion_cache::InversionCache;
 
 pub use format::{ENCODING_FORMAT_VERSION, EncodingFormat};
+pub use inversion_cache::ReconstructionCacheMemory;
 pub use leopard::{LEOPARD_SHARD_MULTIPLE, leopard_aligned_shard_len};
 #[cfg(feature = "std")]
 pub use leopard_gf8::LeopardGf8ProfileStats;
@@ -68,6 +68,7 @@ struct ExecutionOptions {
     fast_one_parity: bool,
     inversion_cache: bool,
     inversion_cache_capacity: usize,
+    inversion_cache_max_bytes: usize,
     max_parallel_jobs: usize,
 }
 
@@ -77,6 +78,7 @@ impl From<CodecOptions> for ExecutionOptions {
             fast_one_parity: options.fast_one_parity,
             inversion_cache: options.inversion_cache,
             inversion_cache_capacity: options.inversion_cache_capacity,
+            inversion_cache_max_bytes: options.inversion_cache_max_bytes,
             max_parallel_jobs: options.max_parallel_jobs,
         }
     }
@@ -88,7 +90,7 @@ pub struct ReedSolomon<F: Field> {
     options: ExecutionOptions,
     #[cfg(feature = "std")]
     pub(crate) policy_cache: RuntimeParallelPolicyCache,
-    data_decode_matrix_cache: Mutex<LruCache<Vec<usize>, Arc<Matrix<F>>>>,
+    data_decode_matrix_cache: Mutex<InversionCache<F>>,
     #[cfg(feature = "std")]
     reconstruction_cache_metrics: ReconstructionCacheMetrics,
     #[cfg(feature = "std")]
@@ -102,8 +104,9 @@ impl<F: Field> Clone for ReedSolomon<F> {
             options: self.options,
             #[cfg(feature = "std")]
             policy_cache: self.policy_cache,
-            data_decode_matrix_cache: Mutex::new(LruCache::new(
+            data_decode_matrix_cache: Mutex::new(InversionCache::new(
                 self.options.inversion_cache_capacity,
+                self.options.inversion_cache_max_bytes,
             )),
             #[cfg(feature = "std")]
             reconstruction_cache_metrics: ReconstructionCacheMetrics::default(),

@@ -286,13 +286,11 @@ impl<F: Field> ReedSolomon<F> {
         }
     }
 
-    fn reconstruct_classic_output<'a, T: ReconstructShard<F>>(
-        &self,
-        destination: &'a mut T,
-        row: &[F::Elem],
-        inputs: &[&[F::Elem]],
+    fn reconstruct_classic_output<T: ReconstructShard<F>>(
+        destination: &mut T,
         shard_len: usize,
-    ) -> Result<&'a [F::Elem], Error> {
+        compute: impl FnOnce(&mut [F::Elem]),
+    ) -> Result<&[F::Elem], Error> {
         let output = match destination.get_or_initialize(shard_len) {
             Ok(output) | Err(Ok(output)) => output,
             Err(Err(error)) => return Err(error),
@@ -300,10 +298,7 @@ impl<F: Field> ReedSolomon<F> {
         if output.len() != shard_len {
             return Err(Error::IncorrectShardSize);
         }
-        #[cfg(feature = "experimental-pr1-kernels")]
-        self.code_reconstruction_slices(&[row], inputs, &mut [&mut *output]);
-        #[cfg(not(feature = "experimental-pr1-kernels"))]
-        self.code_some_slices(&[row], inputs, &mut [&mut *output]);
+        compute(output);
         Ok(output)
     }
 
@@ -311,6 +306,20 @@ impl<F: Field> ReedSolomon<F> {
         &self,
         shards: &mut [T],
         plan: &ClassicReconstructPlan<F>,
+    ) -> Result<(), Error> {
+        self.execute_classic_plan_with(shards, plan, |_, row, inputs, output| {
+            #[cfg(feature = "experimental-pr1-kernels")]
+            self.code_reconstruction_slices(&[row], inputs, &mut [output]);
+            #[cfg(not(feature = "experimental-pr1-kernels"))]
+            self.code_some_slices(&[row], inputs, &mut [output]);
+        })
+    }
+
+    fn execute_classic_plan_with<T: ReconstructShard<F>>(
+        &self,
+        shards: &mut [T],
+        plan: &ClassicReconstructPlan<F>,
+        mut compute: impl FnMut(bool, &[F::Elem], &[&[F::Elem]], &mut [F::Elem]),
     ) -> Result<(), Error> {
         #[cfg(feature = "std")]
         self.runtime_profile_metrics.record_reconstruct(
@@ -367,22 +376,22 @@ impl<F: Field> ReedSolomon<F> {
             self.runtime_profile_metrics
                 .record_reconstruct_data_stage(plan.shape.shard_len, data_destinations.len());
         }
-        let mut data_outputs =
-            data_destinations
-                .iter_mut()
-                .zip(data_rows)
-                .map(|(destination, row)| {
-                    self.reconstruct_classic_output(
-                        &mut **destination,
-                        row,
-                        &inputs,
-                        plan.shape.shard_len,
-                    )
-                });
+        let data_outputs = data_destinations
+            .iter_mut()
+            .zip(data_rows)
+            .map(|(destination, row)| {
+                Self::reconstruct_classic_output(
+                    &mut **destination,
+                    plan.shape.shard_len,
+                    |output| compute(true, row, &inputs, output),
+                )
+            });
         if plan.direct_parity || parity_destinations.is_empty() {
             // Data-only and composed parity never read the recovered data again.
             // Consume the same checked executor without building a view list.
-            data_outputs.try_for_each(|output| output.map(|_| ()))?;
+            for output in data_outputs {
+                output?;
+            }
         } else {
             // Ordinary mixed recovery uses restored data to encode parity.
             for output in data_outputs {
@@ -399,12 +408,9 @@ impl<F: Field> ReedSolomon<F> {
             Self::use_recovered_data(&mut inputs, plan.data_targets(), &recovered_data);
         }
         for (destination, row) in parity_destinations.iter_mut().zip(plan.parity_rows(self)) {
-            self.reconstruct_classic_output(
-                &mut **destination,
-                row,
-                &inputs,
-                plan.shape.shard_len,
-            )?;
+            Self::reconstruct_classic_output(&mut **destination, plan.shape.shard_len, |output| {
+                compute(false, row, &inputs, output)
+            })?;
         }
         Ok(())
     }
@@ -629,6 +635,64 @@ impl<F: Field> ReedSolomon<F> {
     ) -> Result<(), Error> {
         self.validate_reconstruct_workspace(shards, workspace)?;
         self.execute_classic_plan_serial(shards, &workspace.plan)
+    }
+
+    /// Execute a prepared Classic plan with parallel work inside each output.
+    ///
+    /// Reuses the plan after the same format, length and missing-pattern checks
+    /// as [`Self::reconstruct_with_workspace`]. Each destination is initialized
+    /// and completed before the next is touched, preserving the serial API's
+    /// publication order when a later container rejects initialization. Only
+    /// element slices cross worker boundaries, so shard containers can remain
+    /// local to the calling thread.
+    ///
+    /// The existing reconstruction policies bound jobs and chunk sizes and
+    /// select serial arithmetic for small shards. Targets execute in sequence;
+    /// the GF8 [`crate::galois_8::ReedSolomon::reconstruct_opt_with_workspace_par`]
+    /// entry point also batches independent `Option<Vec<u8>>` outputs. Every
+    /// concurrent call needs its own shard storage and may share this immutable
+    /// plan. Execution performs no inversion-cache lookup or plan rebuild.
+    ///
+    /// ```
+    /// use rustfs_erasure_codec::{galois_16::ReedSolomon, ShardSlot};
+    /// let codec = ReedSolomon::new(4, 2)?;
+    /// let mut shards = vec![vec![[3u8, 7]; 512 * 1024]; 6];
+    /// codec.encode(&mut shards)?;
+    /// let mut slots: Vec<_> = shards.into_iter().map(ShardSlot::new_present).collect();
+    /// slots[0].mark_missing();
+    /// let workspace = codec.prepare_reconstruct_workspace(&slots)?;
+    /// codec.reconstruct_with_workspace_par(&mut slots, &workspace)?;
+    /// # Ok::<(), rustfs_erasure_codec::Error>(())
+    /// ```
+    #[cfg(feature = "std")]
+    pub fn reconstruct_with_workspace_par<T: ReconstructShard<F>>(
+        &self,
+        shards: &mut [T],
+        workspace: &ReconstructWorkspace<F>,
+    ) -> Result<(), Error>
+    where
+        F::Elem: Send + Sync,
+    {
+        self.validate_reconstruct_workspace(shards, workspace)?;
+        let (data_policy, parity_policy) = self
+            .policy_cache
+            .reconstruct_stage_policies(workspace.plan.data_only);
+        self.execute_classic_plan_with(
+            shards,
+            &workspace.plan,
+            |data_stage, row, inputs, output| {
+                self.code_some_slices_with_policy_raw(
+                    &[row],
+                    inputs,
+                    &mut [output],
+                    if data_stage {
+                        data_policy
+                    } else {
+                        parity_policy
+                    },
+                );
+            },
+        )
     }
 
     pub(crate) fn validate_reconstruct_workspace<T: ReconstructShard<F>>(
@@ -1136,26 +1200,20 @@ impl<F: Field> ReedSolomon<F> {
         if self.options.inversion_cache {
             let data_decode_matrix = data_decode_matrix.clone();
             let mut cache = self.data_decode_matrix_cache.lock();
+            let insertion = cache.insert(Vec::from(cache_erasures), data_decode_matrix);
             #[cfg(feature = "std")]
-            let before_len = cache.len();
-            #[cfg(feature = "std")]
-            let capacity = cache.capacity();
-            let previous = cache.insert(Vec::from(cache_erasures), data_decode_matrix);
-            #[cfg(feature = "std")]
-            let evicted = capacity > 0 && before_len >= capacity && previous.is_none();
-            // A concurrent miss may have inserted the same pattern while we
-            // inverted the matrix. Replacing that entry does not evict an LRU.
-            drop(previous);
-            #[cfg(feature = "std")]
-            if evicted {
+            {
                 self.reconstruction_cache_metrics
                     .evictions
-                    .fetch_add(1, Ordering::Relaxed);
+                    .fetch_add(insertion.evictions, Ordering::Relaxed);
+                if insertion.inserted {
+                    self.reconstruction_cache_metrics
+                        .inserts
+                        .fetch_add(1, Ordering::Relaxed);
+                }
             }
-            #[cfg(feature = "std")]
-            self.reconstruction_cache_metrics
-                .inserts
-                .fetch_add(1, Ordering::Relaxed);
+            #[cfg(not(feature = "std"))]
+            let _ = insertion;
         }
         Ok(data_decode_matrix)
     }
