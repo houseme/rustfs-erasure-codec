@@ -128,7 +128,7 @@ and monitor summaries are in [recovery](../benchmarks/gf8-derivative-grouping/20
 [GF16 repeat](../benchmarks/gf8-derivative-grouping/2026-11-06/final-gf16-repeat.json)
 and [default features](../benchmarks/gf8-derivative-grouping/2026-11-06/final-default-features.json).
 The same directory retains the earlier prototype patches and stage estimates.
-The [recovery runner](../benchmarks/gf8-derivative-grouping/2026-11-06/recovery-runner.py)
+The [recovery runner](https://github.com/houseme/rustfs-erasure-codec/blob/dc4c62e9f37a5bf848d58ab689237a95a3abbb27/benchmarks/gf8-derivative-grouping/2026-11-06/recovery-runner.py)
 is the executed controller with its machine-specific root and CPU replaced by
 `RSE_BENCH_ROOT` and `RSE_BENCH_CPU`. It expects the baseline and candidate
 recovery binaries under `derivative-binaries-v4/recovery/` in that root and a
@@ -165,7 +165,7 @@ comparisons. Each phase used 30 samples, 0.5 seconds warmup and a requested
 four block changes, each calculated as the mean of the two B stages divided
 by the mean of the two A stages minus one. All block values are retained in the
 [raw samples](../benchmarks/gf8-derivative-grouping/2026-11-06/interleaved-followup.json).
-The [runner](../benchmarks/gf8-derivative-grouping/2026-11-06/interleaved-runner.py)
+The [runner](https://github.com/houseme/rustfs-erasure-codec/blob/dc4c62e9f37a5bf848d58ab689237a95a3abbb27/benchmarks/gf8-derivative-grouping/2026-11-06/interleaved-runner.py)
 is the executed controller with its machine-specific root and CPU replaced by
 `RSE_BENCH_ROOT` and `RSE_BENCH_CPU`. It verifies binary receipts and stops its
 own workload if the guest process monitor detects a competing process using
@@ -212,3 +212,6 @@ inline combination. For both recovery and encoding binaries, all checked
 allocated ELF code and data sections matched except the build-id note; complete
 files were different. This did not produce a distinct runtime code or data
 layout worth treating as a new optimization on this compiler.
+
+The historical experiment controllers are preserved at the linked immutable
+Git revision; they are not dependencies of the current source tree.

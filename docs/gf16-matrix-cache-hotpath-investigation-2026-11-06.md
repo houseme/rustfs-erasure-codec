@@ -84,7 +84,7 @@ include all stage estimates, iteration/time samples and monitor summaries. The
 earlier [no-hint screen](../benchmarks/gf16-cache-hot-path/2026-11-06/nohint-screen.json)
 is retained for comparison; it was built from the server copy with the extra
 bench declaration described above.
-The [repeat runner](../benchmarks/gf16-cache-hot-path/2026-11-06/clean-repeat-runner.py)
+The [repeat runner](https://github.com/houseme/rustfs-erasure-codec/blob/dc4c62e9f37a5bf848d58ab689237a95a3abbb27/benchmarks/gf16-cache-hot-path/2026-11-06/clean-repeat-runner.py)
 is the executed controller with the machine-specific root and CPU replaced by
 `RSE_BENCH_ROOT` and `RSE_BENCH_CPU`. It expects the two baseline/candidate
 probe pairs as `baseline` and `candidate` under
@@ -121,3 +121,7 @@ not executed on ARM64. The current-source x86-64 cross-target strict Clippy
 check also passed after the independent GF8 safety-comment fix. High-fanout
 performance and a coverage-guided x86 fuzz run were not performed for the
 rejected prototype; they would be required before considering a future variant.
+
+The historical [screen controller](https://github.com/houseme/rustfs-erasure-codec/blob/dc4c62e9f37a5bf848d58ab689237a95a3abbb27/benchmarks/gf16-cache-hot-path/2026-11-06/screen-runner.py)
+and repeat controller are preserved at that immutable Git revision; they are
+not dependencies of the current source tree.
