@@ -603,3 +603,203 @@ fn recovered_input_merge_matches_systematic_order_for_every_small_erasure_mask()
     check::<galois_8::Field>();
     check::<galois_16::Field>();
 }
+
+#[cfg(all(feature = "std", panic = "unwind"))]
+#[test]
+fn packed_leopard_staging_preserves_errors_reborrows_and_publication_order() {
+    let codec = galois_8::ReedSolomon::with_options(
+        16,
+        8,
+        CodecOptions::builder()
+            .codec_family(crate::CodecFamily::LeopardGF8)
+            .build(),
+    )
+    .unwrap();
+    let make_slots = || {
+        let mut slots = vec![crate::ShardSlot::new_present(vec![7; 128]); 24];
+        slots[0] = crate::ShardSlot::new_missing(vec![0xa5; 128]);
+        slots[3] = crate::ShardSlot::new_missing(vec![0x5a; 128]);
+        slots[16] = crate::ShardSlot::new_missing(vec![0x3c; 128]);
+        slots
+    };
+    let mut slots = make_slots();
+    let before = slots.clone();
+    let result = codec.reconstruct_leopard_impl(
+        &mut slots,
+        |i| i != 3,
+        |_, outputs, _, _, _| {
+            assert!(outputs[3].is_empty());
+            outputs[0].fill(0x11);
+            outputs[16].fill(0x22);
+            Err(Error::IncorrectShardSize)
+        },
+    );
+    assert_eq!(result, Err(Error::IncorrectShardSize));
+    assert_eq!(slots, before);
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let _ = codec.reconstruct_leopard_impl(
+            &mut slots,
+            |i| i != 3,
+            |_, outputs, _, _, _| {
+                outputs[0].fill(0x11);
+                outputs[16].fill(0x22);
+                panic!("injected decoder panic");
+            },
+        );
+    }));
+    assert!(result.is_err());
+    assert_eq!(slots, before);
+
+    codec
+        .reconstruct_leopard_impl(
+            &mut slots,
+            |i| i != 3,
+            |_, outputs, _, _, _| {
+                outputs[0].fill(0x31);
+                outputs[16].fill(0x42);
+                outputs[0] = &mut [];
+                Ok(())
+            },
+        )
+        .unwrap();
+    assert!(slots[0].is_present() && slots[16].is_present());
+    assert_eq!(slots[0].as_inner(), &vec![0x31; 128]);
+    assert_eq!(slots[16].as_inner(), &vec![0x42; 128]);
+    assert!(!slots[3].is_present());
+    assert_eq!(slots[3].as_inner(), &vec![0x5a; 128]);
+
+    let mut slots = make_slots();
+    slots[3] = crate::ShardSlot::new_missing(vec![0x5a; 127]);
+    let result = codec.reconstruct_leopard_impl(
+        &mut slots,
+        |i| i != 16,
+        |_, outputs, _, _, _| {
+            outputs[0].fill(0x31);
+            outputs[3].fill(0x42);
+            Ok(())
+        },
+    );
+    assert_eq!(result, Err(Error::IncorrectShardSize));
+    assert!(slots[0].is_present());
+    assert_eq!(slots[0].as_inner(), &vec![0x31; 128]);
+    assert!(!slots[3].is_present() && !slots[16].is_present());
+}
+
+#[cfg(feature = "std")]
+#[test]
+fn packed_leopard_staging_handles_shards_that_change_state_during_binding() {
+    struct ChangingShard {
+        bytes: Vec<u8>,
+        initially_present: bool,
+        present_at_binding: bool,
+        reads: usize,
+        published: bool,
+    }
+    impl ReconstructShard<galois_8::Field> for ChangingShard {
+        fn len(&self) -> Option<usize> {
+            self.initially_present.then_some(self.bytes.len())
+        }
+        fn get(&mut self) -> Option<&mut [u8]> {
+            self.reads += 1;
+            let present = if self.reads == 1 {
+                self.initially_present
+            } else {
+                self.present_at_binding
+            };
+            present.then_some(self.bytes.as_mut_slice())
+        }
+        fn get_or_initialize(
+            &mut self,
+            len: usize,
+        ) -> crate::ReconstructInitResult<'_, galois_8::Field> {
+            if self.bytes.len() != len {
+                return Err(Err(Error::IncorrectShardSize));
+            }
+            self.published = true;
+            Err(Ok(self.bytes.as_mut_slice()))
+        }
+    }
+    let codec = galois_8::ReedSolomon::with_options(
+        4,
+        2,
+        CodecOptions::builder()
+            .codec_family(crate::CodecFamily::LeopardGF8)
+            .build(),
+    )
+    .unwrap();
+    let mut slots: Vec<_> = (0..6)
+        .map(|i| ChangingShard {
+            bytes: vec![0xa5; 512],
+            initially_present: i < 4,
+            present_at_binding: i == 3,
+            reads: 0,
+            published: false,
+        })
+        .collect();
+    codec
+        .reconstruct_leopard_impl(
+            &mut slots,
+            |_| true,
+            |present, outputs, _, _, _| {
+                assert_eq!(present, &[false, false, false, true, false, false]);
+                for (index, output) in outputs.iter_mut().enumerate() {
+                    if index == 3 {
+                        assert!(output.is_empty());
+                    } else {
+                        assert_eq!(output.len(), 512);
+                        output.fill(index as u8);
+                    }
+                }
+                Ok(())
+            },
+        )
+        .unwrap();
+    for (index, shard) in slots.iter().enumerate() {
+        if index == 3 {
+            assert!(!shard.published);
+            assert_eq!(shard.bytes, vec![0xa5; 512]);
+        } else {
+            assert!(shard.published);
+            assert_eq!(shard.bytes, vec![index as u8; 512]);
+        }
+    }
+
+    // Eight newly missing shards exceed both the two inline buffers and the
+    // inline capacity of the overflow metadata. A custom decoder still sees
+    // all requested outputs and publication keeps their order.
+    let codec = galois_8::ReedSolomon::with_options(
+        6,
+        2,
+        CodecOptions::builder()
+            .codec_family(crate::CodecFamily::LeopardGF8)
+            .build(),
+    )
+    .unwrap();
+    let mut slots: Vec<_> = (0..8)
+        .map(|i| ChangingShard {
+            bytes: vec![0xa5; 1024],
+            initially_present: i < 6,
+            present_at_binding: false,
+            reads: 0,
+            published: false,
+        })
+        .collect();
+    codec
+        .reconstruct_leopard_impl(
+            &mut slots,
+            |_| true,
+            |present, outputs, _, _, _| {
+                assert!(present.iter().all(|value| !value));
+                for (index, output) in outputs.iter_mut().enumerate() {
+                    assert_eq!(output.len(), 1024);
+                    output.fill(index as u8);
+                }
+                Ok(())
+            },
+        )
+        .unwrap();
+    for (index, shard) in slots.iter().enumerate() {
+        assert!(shard.published);
+        assert_eq!(shard.bytes, vec![index as u8; 1024]);
+    }
+}

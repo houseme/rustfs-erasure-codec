@@ -100,3 +100,63 @@ fn leopard_checks_actual_option_storage_after_initialization() {
         assert_eq!(shards[0].as_ref().unwrap().0.len(), 64);
     }
 }
+
+#[test]
+fn expanded_small_staging_preserves_fallible_tuple_and_option_destinations() {
+    let selected = rustfs_erasure_codec::galois_8::active_backend_name();
+    if let Ok(expected) = std::env::var("RSE_EXPECT_BACKEND") {
+        assert_eq!(selected, expected);
+    }
+    for &family in FAMILIES {
+        let (data, parity, len) = (16usize, 8usize, 128usize);
+        let codec = ReedSolomon::with_options(
+            data,
+            parity,
+            CodecOptions::builder()
+                .codec_family(family)
+                .max_parallel_jobs(1)
+                .build(),
+        )
+        .unwrap();
+        let mut original: Vec<Vec<u8>> = (0..data + parity)
+            .map(|i| (0..len).map(|j| (i * 31 + j * 17) as u8).collect())
+            .collect();
+        codec.encode(&mut original).unwrap();
+
+        let mut tuples: Vec<_> = original
+            .iter()
+            .map(|bytes| {
+                (
+                    DifferingViews {
+                        declared: bytes.clone(),
+                        writable: bytes.clone(),
+                    },
+                    true,
+                )
+            })
+            .collect();
+        tuples[0].1 = false;
+        tuples[0].0.writable.fill(0xa5);
+        tuples[3].1 = false;
+        tuples[3].0.writable.truncate(len - 1);
+        assert_eq!(
+            codec.reconstruct(&mut tuples),
+            Err(Error::IncorrectShardSize)
+        );
+        assert!(tuples[0].1);
+        assert_eq!(tuples[0].0.writable, original[0]);
+        assert!(!tuples[3].1);
+        assert_eq!(tuples[3].0.writable, original[3][..len - 1]);
+
+        let mut options: Vec<_> = original
+            .into_iter()
+            .map(|bytes| Some(ShortCollection(bytes)))
+            .collect();
+        options[0] = None;
+        assert_eq!(
+            codec.reconstruct(&mut options),
+            Err(Error::IncorrectShardSize)
+        );
+        assert_eq!(options[0].as_ref().unwrap().0.len(), 64);
+    }
+}

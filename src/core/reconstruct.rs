@@ -15,6 +15,25 @@ use crate::{Field, ReconstructShard};
 #[cfg(all(feature = "std", target_arch = "x86_64"))]
 const LEOPARD_INLINE_RECOVERY_BYTES: usize = 2048;
 
+// Keep publication and its error ordering identical for both stack layouts.
+#[cfg(all(feature = "std", target_arch = "x86_64"))]
+macro_rules! publish_leopard_staged_shard {
+    ($field:ident, $shard:ident, $bytes:ident, $shard_len:ident) => {{
+        let data = match $shard.get_or_initialize($shard_len) {
+            Ok(data) | Err(Ok(data)) => data,
+            Err(Err(error)) => return Err(error),
+        };
+        if data.len() != $shard_len {
+            return Err(Error::IncorrectShardSize);
+        }
+        let destination = $field::as_gf8_slice_mut(data).ok_or(Error::UnsupportedCodecFamily)?;
+        if destination.len() != $shard_len {
+            return Err(Error::IncorrectShardSize);
+        }
+        destination.copy_from_slice($bytes);
+    }};
+}
+
 #[cfg(feature = "std")]
 impl ReedSolomon<crate::galois_8::Field> {
     // Concrete Vec destinations cannot reject initialization. Keep the generic
@@ -806,6 +825,17 @@ impl<F: Field> ReedSolomon<F> {
                 bytes,
             );
         }
+        // A valid decode has at most one missing shard per parity shard.
+        // The packed path handles inconsistent user shards with overflow storage.
+        #[cfg(all(feature = "std", target_arch = "x86_64"))]
+        if slices.len() <= 32
+            && self
+                .parity_shard_count()
+                .checked_mul(shard_len)
+                .is_some_and(|bytes| bytes <= LEOPARD_INLINE_RECOVERY_BYTES)
+        {
+            return self.reconstruct_leopard_packed(slices, required, reconstruct_fn, shard_len);
+        }
 
         let mut present: SmallVec<[bool; 32]> = SmallVec::with_capacity(slices.len());
         let mut input_data: SmallVec<[Option<&[u8]>; 32]> = SmallVec::with_capacity(slices.len());
@@ -928,18 +958,7 @@ impl<F: Field> ReedSolomon<F> {
             if !is_required {
                 continue;
             }
-            let data = match shard.get_or_initialize(shard_len) {
-                Ok(data) | Err(Ok(data)) => data,
-                Err(Err(error)) => return Err(error),
-            };
-            if data.len() != shard_len {
-                return Err(Error::IncorrectShardSize);
-            }
-            let destination = F::as_gf8_slice_mut(data).ok_or(Error::UnsupportedCodecFamily)?;
-            if destination.len() != shard_len {
-                return Err(Error::IncorrectShardSize);
-            }
-            destination.copy_from_slice(bytes);
+            publish_leopard_staged_shard!(F, shard, bytes, shard_len);
         }
         Ok(())
     }
@@ -1156,6 +1175,9 @@ impl<F: Field> ReedSolomon<F> {
         })
     }
 }
+
+#[cfg(all(feature = "std", target_arch = "x86_64"))]
+mod packed;
 
 #[cfg(test)]
 mod tests;

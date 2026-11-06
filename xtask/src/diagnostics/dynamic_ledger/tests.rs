@@ -453,9 +453,18 @@ fn observed_leopard_catalog_stays_on_the_recorded_staging_path() {
         .parent()
         .unwrap();
     let runtime = std::fs::read_to_string(root.join("src/core/reconstruct.rs")).unwrap();
-    assert!(runtime.contains("slices.len() <= 32"));
+    let selection = runtime
+        .split_once("fn reconstruct_leopard_staged<")
+        .unwrap()
+        .1
+        .split_once("let mut present:")
+        .unwrap()
+        .0;
+    assert!(selection.contains("slices.len() <= 32"));
     assert!(runtime.contains("const LEOPARD_INLINE_RECOVERY_BYTES: usize = 2048;"));
-    assert!(runtime.contains("bytes <= LEOPARD_INLINE_RECOVERY_BYTES"));
+    assert!(selection.contains(".parity_shard_count()"));
+    assert!(selection.contains(".checked_mul(shard_len)"));
+    assert!(selection.contains("bytes <= LEOPARD_INLINE_RECOVERY_BYTES"));
     let mut checked = 0;
     for item in payload::SUPPLEMENTS
         .iter()
@@ -468,7 +477,7 @@ fn observed_leopard_catalog_stays_on_the_recorded_staging_path() {
         let size: usize = parts[3].parse().unwrap();
         let total = data.checked_add(parity).unwrap();
         assert!(
-            total > 32 || total.checked_mul(size).unwrap() > 2048,
+            total > 32 || parity.checked_mul(size).unwrap() > 2048,
             "{}",
             item.case
         );
