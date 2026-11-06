@@ -370,12 +370,12 @@ mod tests {
             );
         }
         // Unlike the frozen sampler snapshots above, this binds current production
-        // bodies, including reduced systematic equations, the direct single
-        // equation and dense fallback. The observer must preserve every branch.
+        // bodies, including bounded caches and parallel workspace execution.
+        // Review production-source changes before refreshing this digest.
         let original = dynamic_source_files(root);
         assert_eq!(
             digest(dynamic::patch(&original, root).unwrap(), root),
-            "08a33ceca0993deaba22283e084df713cd7dfb5c4b8515ef1b54b63b496411ba"
+            "d5962f91fae12d05c47eadd8abc28a0391ee7160ebb3318ba5b880bfeec74103"
         );
     }
 }
