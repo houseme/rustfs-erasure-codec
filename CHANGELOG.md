@@ -34,6 +34,10 @@ this entry is not a publication date or release approval.
 
 ### Detailed changes
 
+- Pack small generic Leopard recovery staging for eligible x86-64 `std`
+  configurations, avoiding per-output allocations while preserving delayed
+  publication, selective recovery and fallible-destination behavior.
+
 - Add repository-only frozen plan-benchmark build, functional stage capture and
   offline replay commands. Bind source/archive/binary/catalog inputs and raw
   logs to independent manifest/receipt pins, preserve failures and enforce

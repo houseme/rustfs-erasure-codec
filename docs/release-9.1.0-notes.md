@@ -15,6 +15,9 @@ preflight in the [checklist](release-9.1.0-checklist.md) pass.
 - **Encoding and work reuse:** reduce temporary Classic matrix/view construction,
   reuse bounded Leopard GF8/GF16 work and plans, and consolidate checked NEON/GFNI
   dispatch and row processing.
+- **Small Leopard recovery:** pack private staging for eligible x86-64 `std`
+  workloads, reducing allocation requests while preserving selective recovery
+  and destination error handling.
 - **Correctness:** fix single-parity entry consistency, custom matrix cloning and
   workspace compatibility, stream count/length handling, Leopard split alignment,
   bounded-prefix joins and finite-field edge cases.

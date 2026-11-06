@@ -1,5 +1,9 @@
 # 9.1.0 release preparation
 
+Preparation update (2026-11-06): the [current readiness record](release-9.1.0-readiness-2026-11-06.md)
+checks the recent package and compatibility results. Final-source controlled
+evidence and a successful strict preflight remain required.
+
 Preparation update (2026-10-27): merged main `6167745` has successful ordinary
 CI and the same complete tree as the locally validated `55bcf2b`. The
 [current preparation runbook](release-9.1.0-preparation-2026-10-27.md) consolidates
