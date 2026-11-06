@@ -94,6 +94,12 @@ rustfs-erasure-codec = { version = "9.1.0", features = ["simd-avx2", "experiment
 
 ## Quick Start
 
+`experimental-parallel-multi-output` opts into additional generated encoding
+shapes and GFNI dot-product rows for parallel jobs. It requires a supported SIMD
+feature and uses existing checked kernels, job limits and backend selection.
+GFNI jobs retain row accumulators across inputs and handle up to four outputs.
+Native throughput validation is ongoing.
+
 ```rust
 use rustfs_erasure_codec::galois_8::ReedSolomon;
 use rustfs_erasure_codec::VerifyWorkspace;
@@ -180,6 +186,13 @@ parity rows; later mask changes do not alter the plan. `data_targets()` and
 those targets while still validating all erasures. Leopard remains unsupported.
 
 ## Main APIs
+
+With `std`, `reconstruct_with_workspace_par(...)` reuses a Classic plan and
+parallelizes chunks within each target, preserving fallible target initialization
+order. Field elements require `Send + Sync`; shard containers stay on the calling
+thread. GF8 `Option<Vec<u8>>` callers can use
+`reconstruct_opt_with_workspace_par(...)` for the bulk parallel executor. Each
+concurrent call supplies its own destination buffers and may share an immutable plan.
 
 | Area | APIs |
 |---|---|
@@ -346,7 +359,21 @@ Useful `CodecOptions` knobs:
 - `fast_one_parity`
 - `inversion_cache`
 - `inversion_cache_capacity`
+- `inversion_cache_max_bytes`
 - `max_parallel_jobs`
+
+Classic inverse caches have an 8 MiB default accounting budget per codec in
+addition to their entry limit. `inversion_cache_max_bytes(0)` selects that default;
+positive values specify a byte budget. `reconstruction_cache_memory()` reports
+retained entries, charged bytes and the budget. Charges cover matrix storage and
+key capacity. LRU bookkeeping, Arc counters, allocator overhead and matrices held
+by external workspaces after eviction are outside this accounting. An entry that
+exceeds the budget is used locally while the cache retains its existing entries.
+
+Leopard GF8/GF16 encoders retain up to two layouts per calling thread within a
+combined 4 MiB work-buffer budget and a separate 1 MiB plan budget per family.
+GF16 decode preserves cached work across oversized calls. Its shared decode-plan
+cache has both a 16-entry limit and an 8 MiB key-and-plan accounting budget.
 
 Parallel-policy environment variables:
 

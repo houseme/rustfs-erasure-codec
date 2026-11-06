@@ -105,6 +105,19 @@ fn calc_matrix_row_start_end(col_count: usize, row: usize) -> (usize, usize) {
 }
 
 impl<F: Field> Matrix<F> {
+    /// Storage charged while the matrix value is retained behind an Arc.
+    /// Inline elements are part of Self even when the backing array spills.
+    pub(crate) fn retained_bytes(&self) -> usize {
+        let heap_bytes = if self.data.spilled() {
+            self.data
+                .capacity()
+                .saturating_mul(core::mem::size_of::<F::Elem>())
+        } else {
+            0
+        };
+        core::mem::size_of::<Self>().saturating_add(heap_bytes)
+    }
+
     fn calc_row_start_end(&self, row: usize) -> (usize, usize) {
         calc_matrix_row_start_end(self.col_count, row)
     }

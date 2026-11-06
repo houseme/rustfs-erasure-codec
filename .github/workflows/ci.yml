@@ -386,6 +386,12 @@ jobs:
           cargo test --locked -p rustfs-erasure-codec --features simd-accel --lib butterfly_tests -- --nocapture
           cargo test --locked -p rustfs-erasure-codec --features simd-accel --lib lane_order_tests -- --nocapture
 
+      - name: Test experimental parallel encoding
+        if: matrix.toolchain == 'stable'
+        run: >-
+          cargo test --locked -p rustfs-erasure-codec --all-features --lib
+          --test parallel_codegen_regressions --test parallel_gfni_rows
+
   test-linux-aarch64:
     name: Test Linux ARM64 (${{ matrix.toolchain }})
     runs-on: ubuntu-24.04-arm
@@ -418,6 +424,11 @@ jobs:
 
       - name: Test std + simd
         run: cargo test --verbose --workspace --exclude rustfs-erasure-codec-fuzz --features simd-accel
+
+      - name: Test experimental parallel encoding
+        run: >-
+          cargo test --locked -p rustfs-erasure-codec --all-features --lib
+          --test parallel_codegen_regressions --test parallel_gfni_rows
 
   test-windows-native:
     name: Test Windows Native (${{ matrix.toolchain }})

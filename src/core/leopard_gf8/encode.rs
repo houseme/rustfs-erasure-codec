@@ -4,7 +4,9 @@ use alloc::vec;
 use alloc::vec::Vec;
 
 #[cfg(feature = "std")]
-use crate::core::leopard::leopard_work_cache_fits;
+use crate::core::leopard::{LEOPARD_MAX_CACHED_WORK_BYTES, leopard_work_cache_fits};
+#[cfg(feature = "std")]
+use crate::core::leopard_cache::TwoEntryCache;
 use crate::errors::Error;
 
 #[cfg(feature = "std")]
@@ -16,21 +18,14 @@ use super::ops::{
 };
 use super::work::FlatWork;
 
-// Thread-local FlatWork cache to avoid repeated large heap allocations.
-// Reuses the buffer when the encode configuration (lanes × lane_len) matches.
+// Work and scratch share one budget across both retained layouts.
 #[cfg(feature = "std")]
-thread_local! {
-    static FLAT_WORK_CACHE: std::cell::RefCell<Option<FlatWork>> =
-        const { std::cell::RefCell::new(None) };
-}
+type EncodeBufferCache = TwoEntryCache<(usize, usize), (FlatWork, Vec<u8>)>;
 
-// Thread-local scratch buffer reused by allocation-free FFT butterflies.
-// Avoids per-butterfly `to_vec()` heap allocations by reusing a single buffer
-// across all radix-4 butterfly operations within an encode call.
 #[cfg(feature = "std")]
 thread_local! {
-    static SCRATCH_CACHE: std::cell::RefCell<Option<Vec<u8>>> =
-        const { std::cell::RefCell::new(None) };
+    static ENCODE_BUFFER_CACHE: std::cell::RefCell<EncodeBufferCache> =
+        const { std::cell::RefCell::new(TwoEntryCache::new(LEOPARD_MAX_CACHED_WORK_BYTES)) };
 }
 #[cfg(feature = "std")]
 use super::PROFILE8;
@@ -97,16 +92,12 @@ fn active_dit4_strategy(shard_size: usize) -> Dit4Strategy {
     }
 }
 
-// Keep only one immutable schedule per thread. Large configurations are built
-// locally instead of retaining unbounded plan memory in long-lived worker threads.
+// Two immutable schedules share this per-thread heap budget. Larger plans
+// stay local, preserving the previously warmed configurations.
 #[cfg(feature = "std")]
 const MAX_CACHED_PLAN_BYTES: usize = 1024 * 1024;
 
 struct EncodePlans {
-    #[cfg(feature = "std")]
-    data_shards: usize,
-    #[cfg(feature = "std")]
-    parity_shards: usize,
     first_ifft_plan: IfftDit8Plan,
     fft_plan: FftDit8Plan,
     later_ifft_plans: Vec<IfftDit8Plan>,
@@ -146,10 +137,6 @@ impl EncodePlans {
             }
         }
         Self {
-            #[cfg(feature = "std")]
-            data_shards,
-            #[cfg(feature = "std")]
-            parity_shards,
             first_ifft_plan,
             fft_plan,
             later_ifft_plans,
@@ -174,21 +161,17 @@ impl EncodePlans {
 
 #[cfg(feature = "std")]
 thread_local! {
-    static ENCODE_PLAN_CACHE: std::cell::RefCell<Option<EncodePlans>> =
-        const { std::cell::RefCell::new(None) };
+    static ENCODE_PLAN_CACHE: std::cell::RefCell<TwoEntryCache<(usize, usize), EncodePlans>> =
+        const { std::cell::RefCell::new(TwoEntryCache::new(MAX_CACHED_PLAN_BYTES)) };
 }
 
 // Reserve no memory for caching: account for the work allocation and the
 // scratch Vec's actual capacity after computation, then keep or drop both.
 #[cfg(feature = "std")]
 fn cache_encode_buffers(work: FlatWork, scratch: Vec<u8>) {
-    let scratch_bytes = scratch
-        .capacity()
-        .saturating_mul(core::mem::size_of::<u8>());
-    if leopard_work_cache_fits(work.allocated_bytes(), scratch_bytes) {
-        FLAT_WORK_CACHE.with(|cache| *cache.borrow_mut() = Some(work));
-        SCRATCH_CACHE.with(|cache| *cache.borrow_mut() = Some(scratch));
-    }
+    let bytes = work.allocated_bytes().saturating_add(scratch.capacity());
+    let key = (work.lanes(), work.lane_len());
+    ENCODE_BUFFER_CACHE.with(|cache| cache.borrow_mut().insert(key, (work, scratch), bytes));
 }
 
 pub(super) fn encode_skeleton<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
@@ -241,46 +224,33 @@ pub(super) fn encode_with_tables<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
 
     #[cfg(feature = "std")]
     let plans = if cacheable {
-        ENCODE_PLAN_CACHE.with(|cache| {
-            cache
-                .take()
-                .filter(|plan| {
-                    plan.data_shards == data_shards && plan.parity_shards == parity_shards
-                })
-                .unwrap_or_else(|| EncodePlans::new(data_shards, parity_shards, &driver, tables))
-        })
+        ENCODE_PLAN_CACHE
+            .with(|cache| cache.borrow_mut().take(&(data_shards, parity_shards)))
+            .unwrap_or_else(|| EncodePlans::new(data_shards, parity_shards, &driver, tables))
     } else {
         EncodePlans::new(data_shards, parity_shards, &driver, tables)
     };
     #[cfg(not(feature = "std"))]
     let plans = EncodePlans::new(data_shards, parity_shards, &driver, tables);
 
-    // Try to reuse cached FlatWork to avoid repeated large heap allocations.
+    // Check out both owners together and release the TLS borrow before any
+    // caller-provided shard views are read or written.
     #[cfg(feature = "std")]
-    let cached_work = if cacheable {
-        FLAT_WORK_CACHE.with(|cache| cache.take())
+    let cached_buffers = if cacheable {
+        ENCODE_BUFFER_CACHE.with(|cache| cache.borrow_mut().take(&(needed_lanes, needed_lane_len)))
     } else {
         None
     };
     #[cfg(feature = "std")]
-    let mut flat_work = cached_work
-        .filter(|work| work.can_reuse(needed_lanes, needed_lane_len))
-        .unwrap_or_else(|| {
-            // SAFETY: the encode path initializes every active lane before reading.
-            unsafe { FlatWork::new_uninit(needed_lanes, needed_lane_len) }
-        });
+    let (mut flat_work, mut scratch) = cached_buffers.unwrap_or_else(|| {
+        // SAFETY: the encode path initializes every active lane before reading.
+        (
+            unsafe { FlatWork::new_uninit(needed_lanes, needed_lane_len) },
+            Vec::new(),
+        )
+    });
     #[cfg(not(feature = "std"))]
     let mut flat_work = FlatWork::new(needed_lanes, needed_lane_len);
-
-    // Pre-allocate scratch buffer for allocation-free FFT butterflies.
-    // Reused across all chunks and encode calls (via thread-local on std).
-    // The scratch avoids per-butterfly `to_vec()` heap allocations.
-    #[cfg(feature = "std")]
-    let mut scratch = if cacheable {
-        SCRATCH_CACHE.with(|cache| cache.take().unwrap_or_default())
-    } else {
-        Vec::new()
-    };
     #[cfg(not(feature = "std"))]
     let mut scratch: Vec<u8> = Vec::new();
 
@@ -389,9 +359,12 @@ pub(super) fn encode_with_tables<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
     }
 
     #[cfg(feature = "std")]
-    if cacheable && plans.retained_bytes() <= MAX_CACHED_PLAN_BYTES {
+    if cacheable {
+        let bytes = plans.retained_bytes();
         ENCODE_PLAN_CACHE.with(|cache| {
-            *cache.borrow_mut() = Some(plans);
+            cache
+                .borrow_mut()
+                .insert((data_shards, parity_shards), plans, bytes);
         });
     }
 
@@ -927,27 +900,77 @@ mod encode_cache_budget_tests {
     use crate::core::leopard::LEOPARD_MAX_CACHED_WORK_BYTES;
 
     fn clear_caches() {
-        FLAT_WORK_CACHE.with(|cache| *cache.borrow_mut() = None);
-        SCRATCH_CACHE.with(|cache| *cache.borrow_mut() = None);
-        ENCODE_PLAN_CACHE.with(|cache| *cache.borrow_mut() = None);
+        ENCODE_BUFFER_CACHE
+            .with(|cache| *cache.borrow_mut() = TwoEntryCache::new(LEOPARD_MAX_CACHED_WORK_BYTES));
+        ENCODE_PLAN_CACHE
+            .with(|cache| *cache.borrow_mut() = TwoEntryCache::new(MAX_CACHED_PLAN_BYTES));
     }
 
     fn small_cache_pointers() -> (*const u8, *const u8, *const u8) {
-        let work = FLAT_WORK_CACHE.with(|cache| {
+        let (work, scratch) = ENCODE_BUFFER_CACHE.with(|cache| {
             let cache = cache.borrow();
-            let work = cache.as_ref().unwrap();
+            let (work, scratch) = cache.get(&(8, 64)).unwrap();
             assert!(work.can_reuse(8, 64));
-            work.lane(0).as_ptr().cast::<u8>()
+            (work.lane(0).as_ptr(), scratch.as_ptr())
         });
-        let scratch =
-            SCRATCH_CACHE.with(|cache| cache.borrow().as_ref().unwrap().as_ptr().cast::<u8>());
         let plan = ENCODE_PLAN_CACHE.with(|cache| {
             let cache = cache.borrow();
-            let plan = cache.as_ref().unwrap();
-            assert_eq!((plan.data_shards, plan.parity_shards), (10, 4));
+            let plan = cache.get(&(10, 4)).unwrap();
             plan.first_ifft_plan.initial_blocks.as_ptr().cast::<u8>()
         });
         (work, scratch, plan)
+    }
+
+    #[test]
+    fn nested_encode_and_unwind_release_checked_out_cache_owners() {
+        struct Input {
+            bytes: Vec<u8>,
+            accesses: std::cell::Cell<usize>,
+            panic_in_callback: bool,
+        }
+        impl AsRef<[u8]> for Input {
+            fn as_ref(&self) -> &[u8] {
+                let accesses = self.accesses.get();
+                self.accesses.set(accesses + 1);
+                // The first access determines shard length. The next runs from
+                // the transform, after the outer owners have left the cache.
+                if accesses == 1 {
+                    assert!(!self.panic_in_callback, "intentional shard callback panic");
+                    let data = vec![vec![7; 64]; 10];
+                    let mut parity = vec![vec![0; 64]; 4];
+                    encode_with_tables(10, 4, &data, &mut parity).unwrap();
+                }
+                &self.bytes
+            }
+        }
+
+        clear_caches();
+        let data: Vec<_> = (0..10).map(|index| vec![index as u8; 64]).collect();
+        let mut expected = vec![vec![0; 64]; 4];
+        encode_with_tables(10, 4, &data, &mut expected).unwrap();
+        for panic_in_callback in [false, true] {
+            let inputs: Vec<_> = data
+                .iter()
+                .map(|bytes| Input {
+                    bytes: bytes.clone(),
+                    accesses: std::cell::Cell::new(0),
+                    panic_in_callback,
+                })
+                .collect();
+            let mut parity = vec![vec![0; 64]; 4];
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                encode_with_tables(10, 4, &inputs, &mut parity).unwrap();
+            }));
+            assert!(inputs[0].accesses.get() >= 2);
+            assert_eq!(result.is_err(), panic_in_callback);
+            if !panic_in_callback {
+                assert_eq!(parity, expected);
+            }
+            // A subsequent call can safely recover after either nested use or
+            // unwinding, and fully overwrites any old transform contents.
+            encode_with_tables(10, 4, &data, &mut parity).unwrap();
+            assert_eq!(parity, expected);
+        }
     }
 
     #[test]
@@ -990,7 +1013,6 @@ mod encode_cache_budget_tests {
         scratch.push(0);
         assert_eq!(scratch.len(), 1);
         cache_encode_buffers(work, scratch);
-        FLAT_WORK_CACHE.with(|cache| assert!(cache.borrow().is_none()));
-        SCRATCH_CACHE.with(|cache| assert!(cache.borrow().is_none()));
+        ENCODE_BUFFER_CACHE.with(|cache| assert_eq!(cache.borrow().retained_bytes(), 0));
     }
 }

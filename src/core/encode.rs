@@ -189,7 +189,10 @@ impl<D: Array, P: Array> ByteShardViews<D, P> {
 #[derive(Clone, Copy)]
 enum NativeEncodeExecution {
     Serial,
-    #[cfg(all(feature = "std", rse_aarch64_neon))]
+    #[cfg(all(
+        feature = "std",
+        any(rse_aarch64_neon, feature = "experimental-parallel-multi-output")
+    ))]
     Parallel(super::ParallelDecision),
 }
 
@@ -204,8 +207,16 @@ impl NativeEncodeExecution {
         if !decision.use_parallel {
             return Some(Self::Serial);
         }
-        // Preserve the measured activation boundary. Other shapes, sizes,
-        // budgets, and architectures continue through the generic scheduler.
+        // Keep the measured default boundary. The opt-in extension reuses the
+        // same checked kernels and bounded transposed jobs for other shapes.
+        #[cfg(feature = "experimental-parallel-multi-output")]
+        if (2..=12).contains(&data_shards)
+            && (2..=4).contains(&parity_shards)
+            && shard_len >= 256 * 1024
+            && (2..=4).contains(&decision.jobs)
+        {
+            return Some(Self::Parallel(decision));
+        }
         #[cfg(rse_aarch64_neon)]
         if (data_shards, parity_shards) == (10, 4)
             && shard_len >= 1024 * 1024
@@ -243,11 +254,14 @@ impl PreparedNativeEncode<'_> {
                 kernel.execute(rows, data, parity, *shard_len)?;
                 Ok(*shard_len)
             }
-            #[cfg(all(feature = "std", rse_aarch64_neon))]
+            #[cfg(all(
+                feature = "std",
+                any(rse_aarch64_neon, feature = "experimental-parallel-multi-output")
+            ))]
             NativeEncodeExecution::Parallel(decision) => {
                 use rayon::prelude::*;
 
-                let mut jobs = split_neon_encode_jobs(parity, *shard_len, decision.jobs);
+                let mut jobs = split_native_encode_jobs(parity, *shard_len, decision.jobs);
                 let chunk_len = decision.chunk_len.max(1);
                 let effective_chunk_len = chunk_len.min(jobs[0].outputs[0].len());
                 jobs.par_iter_mut().try_for_each(|job| {
@@ -273,24 +287,30 @@ impl PreparedNativeEncode<'_> {
     }
 }
 
-#[cfg(all(feature = "std", rse_aarch64_neon))]
-struct NeonEncodeJob<'a> {
+#[cfg(all(
+    feature = "std",
+    any(rse_aarch64_neon, feature = "experimental-parallel-multi-output")
+))]
+struct NativeEncodeJob<'a> {
     start: usize,
     outputs: SmallVec<[&'a mut [u8]; 4]>,
 }
 
 // Native parallel eligibility permits at most four jobs and four outputs;
 // both dimensions stay on the stack without reserving unused 32-job storage.
-#[cfg(all(feature = "std", rse_aarch64_neon))]
-fn split_neon_encode_jobs<'a>(
+#[cfg(all(
+    feature = "std",
+    any(rse_aarch64_neon, feature = "experimental-parallel-multi-output")
+))]
+fn split_native_encode_jobs<'a>(
     parity: &'a mut [&mut [u8]],
     shard_len: usize,
     job_limit: usize,
-) -> SmallVec<[NeonEncodeJob<'a>; 4]> {
+) -> SmallVec<[NativeEncodeJob<'a>; 4]> {
     let group_len = shard_len.div_ceil(job_limit).div_ceil(64) * 64;
     let job_count = shard_len.div_ceil(group_len);
-    let mut jobs: SmallVec<[NeonEncodeJob<'a>; 4]> = (0..job_count)
-        .map(|index| NeonEncodeJob {
+    let mut jobs: SmallVec<[NativeEncodeJob<'a>; 4]> = (0..job_count)
+        .map(|index| NativeEncodeJob {
             start: index * group_len,
             outputs: SmallVec::new(),
         })
@@ -796,6 +816,59 @@ impl<F: Field> ReedSolomon<F> {
         Some(prepared.execute())
     }
 
+    /// Bind stable byte views once, then run the existing GFNI dot-product rows
+    /// over disjoint byte jobs. Each row keeps its sum in registers across all
+    /// inputs; the same task handles the selected output rows in sequence.
+    #[cfg(all(
+        feature = "std",
+        feature = "experimental-parallel-multi-output",
+        rse_x86_gfni
+    ))]
+    #[inline(never)]
+    fn try_gfni_encode_parallel<T, U>(
+        &self,
+        kernel: crate::galois_8::x86::gfni_rows::SelectedRowKernel,
+        data: &[T],
+        parity: &mut [U],
+        shard_len: usize,
+        decision: super::ParallelDecision,
+    ) -> Option<Result<usize, Error>>
+    where
+        T: AsRef<[F::Elem]>,
+        U: AsMut<[F::Elem]>,
+    {
+        use rayon::prelude::*;
+
+        let mut rows: SmallVec<[&[u8]; 4]> = SmallVec::new();
+        let matrix = self.encoding_format().matrix();
+        for index in self.data_shard_count()..self.total_shard_count() {
+            let bytes = F::as_gf8_slice(matrix.get_row(index))?;
+            if bytes.len() != data.len() {
+                return None;
+            }
+            rows.push(bytes);
+        }
+        let mut views = ByteShardViews::<[&[u8]; 32], [&mut [u8]; 4]>::prepare::<F, _, _>(
+            data, parity, shard_len,
+        )
+        .ok()?;
+        let mut jobs = split_native_encode_jobs(&mut views.parity, shard_len, decision.jobs);
+        let chunk_len = decision.chunk_len.max(1);
+        let effective_chunk_len = chunk_len.min(jobs[0].outputs[0].len());
+        let result = jobs.par_iter_mut().try_for_each(|job| {
+            let job_len = job.outputs[0].len();
+            let inputs: SmallVec<[&[u8]; 32]> = views
+                .data
+                .iter()
+                .map(|input| &input[job.start..job.start + job_len])
+                .collect();
+            kernel.execute(&rows, &inputs, &mut job.outputs, job_len, chunk_len)
+        });
+        // Once execution begins, propagate any error to the caller. A generic
+        // retry could overwrite output that another job has already completed.
+        Some(result.map(|()| effective_chunk_len))
+    }
+
     pub(crate) fn encode_fast_one_parity<
         T: AsRef<[F::Elem]>,
         U: AsRef<[F::Elem]> + AsMut<[F::Elem]>,
@@ -1125,6 +1198,32 @@ impl<F: Field> ReedSolomon<F> {
 
         let shard_len = data[0].as_ref().len();
         let decision = self.parallel_policy(shard_len, parity.len());
+        // GFNI row selection respects the active backend, including explicit
+        // overrides. Table-based generated-kernel eligibility stays separate.
+        #[cfg(all(feature = "experimental-parallel-multi-output", rse_x86_gfni))]
+        if decision.use_parallel
+            && shard_len >= 256 * 1024
+            && (2..=4).contains(&decision.jobs)
+            && F::ORDER == 256
+            && crate::galois_8::parallel_gfni_encode_allowed()
+            && let Some(kernel) = crate::galois_8::x86::gfni_rows::SelectedRowKernel::select(
+                data.len(),
+                parity.len(),
+                shard_len,
+            )
+            && let Some(result) =
+                self.try_gfni_encode_parallel(kernel, data, parity, shard_len, decision)
+        {
+            let chunk_len = result?;
+            self.runtime_profile_metrics.record_code_some(
+                true,
+                shard_len,
+                data.len(),
+                parity.len(),
+                chunk_len,
+            );
+            return Ok(());
+        }
         if (!cfg!(all(rse_x86_avx512, not(rse_x86_avx2)))
             || shard_len >= AVX512_CODEGEN_MIN_SHARD_BYTES)
             && let Some(execution) = NativeEncodeExecution::for_parallel_decision(
@@ -1334,10 +1433,15 @@ mod byte_view_storage_tests {
     }
 }
 
-#[cfg(all(test, feature = "std", rse_aarch64_neon))]
+#[cfg(all(
+    test,
+    feature = "std",
+    any(rse_aarch64_neon, feature = "experimental-parallel-multi-output")
+))]
 mod parallel_codegen_tests {
-    use super::split_neon_encode_jobs;
+    use super::split_native_encode_jobs;
 
+    #[cfg(all(rse_aarch64_neon, not(feature = "experimental-parallel-multi-output")))]
     #[test]
     fn native_parallel_selection_preserves_the_measured_boundary() {
         for (data, parity, shard_len, jobs, eligible) in [
@@ -1364,16 +1468,49 @@ mod parallel_codegen_tests {
         }
     }
 
+    #[cfg(feature = "experimental-parallel-multi-output")]
+    #[test]
+    fn experimental_parallel_selection_keeps_metadata_and_job_budgets() {
+        for (data, parity, len, jobs, eligible) in [
+            (4, 2, 256 * 1024, 2, true),
+            (8, 3, 512 * 1024, 3, true),
+            (12, 4, 1024 * 1024, 4, true),
+            (4, 2, 256 * 1024 - 1, 2, false),
+            (4, 2, 256 * 1024, 5, false),
+            (4, 1, 256 * 1024, 2, false),
+            (4, 5, 256 * 1024, 2, false),
+            (13, 4, 256 * 1024, 2, false),
+        ] {
+            let decision = crate::ParallelDecision {
+                use_parallel: true,
+                jobs,
+                chunk_len: 16 * 1024,
+            };
+            assert_eq!(
+                super::NativeEncodeExecution::for_parallel_decision(data, parity, len, decision)
+                    .is_some(),
+                eligible,
+                "data={data}, parity={parity}, len={len}, jobs={jobs}"
+            );
+        }
+    }
+
     #[test]
     fn transposed_jobs_are_bounded_disjoint_and_cover_all_bytes() {
         for shard_len in [65, 1024, 262_145, 1_048_639] {
-            for budget in [2, 3, 4] {
-                let mut parity = vec![vec![0_u8; shard_len]; 4];
+            for (output_count, budget) in [(2, 2), (2, 3), (3, 2), (3, 4), (4, 2), (4, 3), (4, 4)] {
+                let mut parity = vec![vec![0_u8; shard_len]; output_count];
                 let mut views: Vec<_> = parity.iter_mut().map(Vec::as_mut_slice).collect();
-                let mut jobs = split_neon_encode_jobs(&mut views, shard_len, budget);
+                let mut jobs = split_native_encode_jobs(&mut views, shard_len, budget);
                 assert!(jobs.len() <= budget);
                 assert!(!jobs.spilled());
-                for job in &mut jobs {
+                use rayon::prelude::*;
+                use std::sync::atomic::{AtomicUsize, Ordering};
+                let active = AtomicUsize::new(0);
+                let peak = AtomicUsize::new(0);
+                jobs.par_iter_mut().for_each(|job| {
+                    let count = active.fetch_add(1, Ordering::SeqCst) + 1;
+                    peak.fetch_max(count, Ordering::SeqCst);
                     assert!(!job.outputs.spilled());
                     assert_eq!(job.start % 64, 0);
                     for output in &mut job.outputs {
@@ -1381,7 +1518,10 @@ mod parallel_codegen_tests {
                             *value += 1;
                         }
                     }
-                }
+                    active.fetch_sub(1, Ordering::SeqCst);
+                });
+                assert_eq!(active.load(Ordering::SeqCst), 0);
+                assert!(peak.load(Ordering::SeqCst) <= budget);
                 drop(jobs);
                 assert!(parity.iter().flatten().all(|&value| value == 1));
             }

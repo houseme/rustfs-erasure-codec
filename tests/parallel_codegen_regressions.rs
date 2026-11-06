@@ -198,13 +198,14 @@ fn native_field_marker_does_not_need_sync() {
     assert_eq!(actual, expected);
 }
 
-#[cfg(all(feature = "std", rse_aarch64_neon))]
+#[cfg(any(rse_aarch64_neon, feature = "experimental-parallel-multi-output"))]
 #[test]
 fn native_marker_uses_generated_parallel_dispatch() {
     const CHILD: &str = "RSE_PARALLEL_CODEGEN_AUTO_CHILD";
     // The public policy deliberately chooses serial execution on single-core
     // hosts. The direct helper tests cover synthetic budgets independently.
     if std::thread::available_parallelism().unwrap().get() < 2 {
+        println!("SKIP native parallel dispatch: fewer than two available CPUs");
         return;
     }
     if std::env::var_os(CHILD).is_none() {
@@ -225,25 +226,99 @@ fn native_marker_uses_generated_parallel_dispatch() {
         return;
     }
 
-    let codec = rustfs_erasure_codec::ReedSolomon::<LocalNativeField>::with_options(
-        10,
-        4,
-        CodecOptions::builder().max_parallel_jobs(2).build(),
-    )
-    .unwrap();
-    let data = data_shards(10, 1024 * 1024 + 17);
-    let expected = reference_parity(&ReedSolomon::new(10, 4).unwrap(), &data, 4);
-    let decision = codec.parallel_policy(data[0].len(), 4);
-    assert!(decision.use_parallel);
-    assert_eq!(decision.jobs, 2);
-    let mut actual = vec![vec![0; data[0].len()]; 4];
-    MULTIPLICATION_CALLS.store(0, Ordering::Relaxed);
-    codec.encode_sep_par(&data, &mut actual).unwrap();
-    assert_eq!(actual, expected);
-    assert_eq!(
-        MULTIPLICATION_CALLS.load(Ordering::Relaxed),
-        0,
-        "eligible native encoding unexpectedly fell back to generic multiplication"
+    let backend = galois_8::active_backend_id();
+    if !matches!(
+        backend,
+        galois_8::BackendId::RustNeon
+            | galois_8::BackendId::RustAvx2
+            | galois_8::BackendId::RustAvx512
+    ) {
+        println!(
+            "SKIP generated parallel dispatch: automatic backend {backend:?} uses other kernels"
+        );
+        return;
+    }
+    // AVX-512-only builds have three baseline generated shapes. When AVX2 is
+    // also usable, the common selector can serve the other shapes through it.
+    #[cfg(rse_x86_avx2)]
+    let fallback_avx2_available = std::is_x86_feature_detected!("avx2");
+    #[cfg(not(rse_x86_avx2))]
+    let fallback_avx2_available = false;
+    let cases = [
+        (10, 4, 1024 * 1024 + 17),
+        #[cfg(feature = "experimental-parallel-multi-output")]
+        (4, 2, 256 * 1024 + 1),
+        #[cfg(feature = "experimental-parallel-multi-output")]
+        (6, 3, 256 * 1024 + 63),
+        #[cfg(feature = "experimental-parallel-multi-output")]
+        (8, 3, 256 * 1024 + 31),
+        #[cfg(feature = "experimental-parallel-multi-output")]
+        (8, 4, 512 * 1024 + 1),
+        #[cfg(feature = "experimental-parallel-multi-output")]
+        (12, 4, 512 * 1024 + 63),
+        #[cfg(all(
+            feature = "experimental-parallel-multi-output",
+            feature = "experimental-pr1-kernels"
+        ))]
+        (6, 2, 256 * 1024 + 17),
+    ];
+    let mut executed = 0;
+    for (data_count, parity_count, len) in cases {
+        if backend == galois_8::BackendId::RustAvx512
+            && !fallback_avx2_available
+            && !cfg!(feature = "experimental-pr1-kernels")
+            && !matches!((data_count, parity_count), (4, 2) | (10, 4) | (12, 4))
+        {
+            println!(
+                "SKIP {data_count}+{parity_count}: AVX-512 shape needs experimental-pr1-kernels"
+            );
+            continue;
+        }
+        let codec = rustfs_erasure_codec::ReedSolomon::<LocalNativeField>::with_options(
+            data_count,
+            parity_count,
+            CodecOptions::builder().max_parallel_jobs(2).build(),
+        )
+        .unwrap();
+        let storage = data_shards(data_count, len + 1);
+        let data: Vec<_> = storage.iter().map(|shard| shard[1..].to_vec()).collect();
+        let expected = reference_parity(
+            &ReedSolomon::new(data_count, parity_count).unwrap(),
+            &data,
+            parity_count,
+        );
+        let decision = codec.parallel_policy(len, parity_count);
+        assert!(decision.use_parallel);
+        assert_eq!(decision.jobs, 2);
+        let mut output_storage = vec![vec![0xa5; len + 1]; parity_count];
+        let mut actual: Vec<_> = output_storage
+            .iter_mut()
+            .map(|shard| &mut shard[1..])
+            .collect();
+        let input_views: Vec<_> = storage.iter().map(|shard| &shard[1..]).collect();
+        MULTIPLICATION_CALLS.store(0, Ordering::Relaxed);
+        codec.encode_sep_par(&input_views, &mut actual).unwrap();
+        assert!(
+            actual
+                .iter()
+                .zip(&expected)
+                .all(|(actual, expected)| *actual == expected.as_slice())
+        );
+        assert_eq!(
+            MULTIPLICATION_CALLS.load(Ordering::Relaxed),
+            0,
+            "{data_count}+{parity_count}, len={len} unexpectedly used generic multiplication"
+        );
+        assert!(output_storage.iter().all(|shard| shard[0] == 0xa5));
+        println!(
+            "NATIVE_PARALLEL_DISPATCH backend={backend:?} shape={data_count}+{parity_count} len={len} jobs={}",
+            decision.jobs
+        );
+        executed += 1;
+    }
+    assert!(
+        executed > 0,
+        "native backend must execute a supported generated shape"
     );
 }
 

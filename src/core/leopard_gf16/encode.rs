@@ -3,7 +3,9 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 #[cfg(feature = "std")]
-use crate::core::leopard::leopard_work_cache_fits;
+use crate::core::leopard::{LEOPARD_MAX_CACHED_WORK_BYTES, leopard_work_cache_fits};
+#[cfg(feature = "std")]
+use crate::core::leopard_cache::TwoEntryCache;
 use crate::errors::Error;
 
 use super::ops::{
@@ -18,20 +20,16 @@ use super::{
 
 #[cfg(feature = "std")]
 thread_local! {
-    static FLAT_WORK16_CACHE: std::cell::RefCell<Option<FlatWork16>> =
-        const { std::cell::RefCell::new(None) };
+    static FLAT_WORK16_CACHE: std::cell::RefCell<TwoEntryCache<(usize, usize), FlatWork16>> =
+        const { std::cell::RefCell::new(TwoEntryCache::new(LEOPARD_MAX_CACHED_WORK_BYTES)) };
 }
 
-// Keep only one immutable schedule per thread. Large configurations are built
-// locally instead of retaining unbounded plan memory in long-lived worker threads.
+// Two immutable schedules share this per-thread heap budget. Larger plans
+// stay local, preserving the previously warmed configurations.
 #[cfg(feature = "std")]
 const MAX_CACHED_PLAN_BYTES: usize = 1024 * 1024;
 
 struct EncodePlans {
-    #[cfg(feature = "std")]
-    data_shards: usize,
-    #[cfg(feature = "std")]
-    parity_shards: usize,
     first_ifft_plan: IfftDit16Plan,
     fft_plan: FftDit16Plan,
     later_ifft_plans: Vec<IfftDit16Plan>,
@@ -71,10 +69,6 @@ impl EncodePlans {
             }
         }
         Self {
-            #[cfg(feature = "std")]
-            data_shards,
-            #[cfg(feature = "std")]
-            parity_shards,
             first_ifft_plan,
             fft_plan,
             later_ifft_plans,
@@ -99,17 +93,17 @@ impl EncodePlans {
 
 #[cfg(feature = "std")]
 thread_local! {
-    static ENCODE_PLAN_CACHE: std::cell::RefCell<Option<EncodePlans>> =
-        const { std::cell::RefCell::new(None) };
+    static ENCODE_PLAN_CACHE: std::cell::RefCell<TwoEntryCache<(usize, usize), EncodePlans>> =
+        const { std::cell::RefCell::new(TwoEntryCache::new(MAX_CACHED_PLAN_BYTES)) };
 }
 
 // The u16 butterflies operate directly on work lanes and need no scratch.
 // Check the actual work allocation before returning it to the thread cache.
 #[cfg(feature = "std")]
-fn cache_encode_work(work: FlatWork16) {
-    if leopard_work_cache_fits(work.allocated_bytes(), 0) {
-        FLAT_WORK16_CACHE.with(|cache| *cache.borrow_mut() = Some(work));
-    }
+fn cache_encode_work(work: FlatWork16, lane_len: usize) {
+    let bytes = work.allocated_bytes();
+    let key = (work.lanes(), lane_len);
+    FLAT_WORK16_CACHE.with(|cache| cache.borrow_mut().insert(key, work, bytes));
 }
 
 pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>(
@@ -146,14 +140,9 @@ pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>
 
     #[cfg(feature = "std")]
     let plans = if cacheable {
-        ENCODE_PLAN_CACHE.with(|cache| {
-            cache
-                .take()
-                .filter(|plan| {
-                    plan.data_shards == data_shards && plan.parity_shards == parity_shards
-                })
-                .unwrap_or_else(|| EncodePlans::new(data_shards, parity_shards, &driver, tables))
-        })
+        ENCODE_PLAN_CACHE
+            .with(|cache| cache.borrow_mut().take(&(data_shards, parity_shards)))
+            .unwrap_or_else(|| EncodePlans::new(data_shards, parity_shards, &driver, tables))
     } else {
         EncodePlans::new(data_shards, parity_shards, &driver, tables)
     };
@@ -162,14 +151,13 @@ pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>
 
     #[cfg(feature = "std")]
     let cached_work = if cacheable {
-        FLAT_WORK16_CACHE.with(|cache| cache.take())
+        FLAT_WORK16_CACHE.with(|cache| cache.borrow_mut().take(&(needed_lanes, needed_lane_len)))
     } else {
         None
     };
     #[cfg(feature = "std")]
-    let mut flat_work = cached_work
-        .filter(|work| work.can_reuse(needed_lanes, needed_lane_len))
-        .unwrap_or_else(|| FlatWork16::new(needed_lanes, needed_lane_len));
+    let mut flat_work =
+        cached_work.unwrap_or_else(|| FlatWork16::new(needed_lanes, needed_lane_len));
     #[cfg(not(feature = "std"))]
     let mut flat_work = FlatWork16::new(needed_lanes, needed_lane_len);
 
@@ -247,13 +235,16 @@ pub(crate) fn encode_with_tables16<T: AsRef<[u8]>, U: AsRef<[u8]> + AsMut<[u8]>>
 
     #[cfg(feature = "std")]
     if cacheable {
-        cache_encode_work(flat_work);
+        cache_encode_work(flat_work, needed_lane_len);
     }
 
     #[cfg(feature = "std")]
-    if cacheable && plans.retained_bytes() <= MAX_CACHED_PLAN_BYTES {
+    if cacheable {
+        let bytes = plans.retained_bytes();
         ENCODE_PLAN_CACHE.with(|cache| {
-            *cache.borrow_mut() = Some(plans);
+            cache
+                .borrow_mut()
+                .insert((data_shards, parity_shards), plans, bytes);
         });
     }
 
@@ -497,24 +488,77 @@ mod encode_cache_budget_tests {
     use crate::core::leopard::LEOPARD_MAX_CACHED_WORK_BYTES;
 
     fn clear_caches() {
-        FLAT_WORK16_CACHE.with(|cache| *cache.borrow_mut() = None);
-        ENCODE_PLAN_CACHE.with(|cache| *cache.borrow_mut() = None);
+        FLAT_WORK16_CACHE
+            .with(|cache| *cache.borrow_mut() = TwoEntryCache::new(LEOPARD_MAX_CACHED_WORK_BYTES));
+        ENCODE_PLAN_CACHE
+            .with(|cache| *cache.borrow_mut() = TwoEntryCache::new(MAX_CACHED_PLAN_BYTES));
     }
 
     fn small_cache_pointers() -> (*const u8, *const u8) {
         let work = FLAT_WORK16_CACHE.with(|cache| {
             let cache = cache.borrow();
-            let work = cache.as_ref().unwrap();
+            let work = cache.get(&(8, 32)).unwrap();
             assert!(work.can_reuse(8, 32));
             work.lane(0).as_ptr().cast::<u8>()
         });
         let plan = ENCODE_PLAN_CACHE.with(|cache| {
             let cache = cache.borrow();
-            let plan = cache.as_ref().unwrap();
-            assert_eq!((plan.data_shards, plan.parity_shards), (10, 4));
+            let plan = cache.get(&(10, 4)).unwrap();
             plan.first_ifft_plan.initial_blocks.as_ptr().cast::<u8>()
         });
         (work, plan)
+    }
+
+    #[test]
+    fn nested_encode_and_unwind_release_checked_out_cache_owners() {
+        struct Input {
+            bytes: Vec<u8>,
+            accesses: std::cell::Cell<usize>,
+            panic_in_callback: bool,
+        }
+        impl AsRef<[u8]> for Input {
+            fn as_ref(&self) -> &[u8] {
+                let accesses = self.accesses.get();
+                self.accesses.set(accesses + 1);
+                // The first access determines shard length. The next runs from
+                // the transform, after the outer owners have left the cache.
+                if accesses == 1 {
+                    assert!(!self.panic_in_callback, "intentional shard callback panic");
+                    let data = vec![vec![7; 64]; 10];
+                    let mut parity = vec![vec![0; 64]; 4];
+                    encode_with_tables16(10, 4, &data, &mut parity).unwrap();
+                }
+                &self.bytes
+            }
+        }
+
+        clear_caches();
+        let data: Vec<_> = (0..10).map(|index| vec![index as u8; 64]).collect();
+        let mut expected = vec![vec![0; 64]; 4];
+        encode_with_tables16(10, 4, &data, &mut expected).unwrap();
+        for panic_in_callback in [false, true] {
+            let inputs: Vec<_> = data
+                .iter()
+                .map(|bytes| Input {
+                    bytes: bytes.clone(),
+                    accesses: std::cell::Cell::new(0),
+                    panic_in_callback,
+                })
+                .collect();
+            let mut parity = vec![vec![0; 64]; 4];
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                encode_with_tables16(10, 4, &inputs, &mut parity).unwrap();
+            }));
+            assert!(inputs[0].accesses.get() >= 2);
+            assert_eq!(result.is_err(), panic_in_callback);
+            if !panic_in_callback {
+                assert_eq!(parity, expected);
+            }
+            // A subsequent call can safely recover after either nested use or
+            // unwinding, and fully overwrites any old transform contents.
+            encode_with_tables16(10, 4, &data, &mut parity).unwrap();
+            assert_eq!(parity, expected);
+        }
     }
 
     #[test]
@@ -550,10 +594,14 @@ mod encode_cache_budget_tests {
         clear_caches();
         let exact = FlatWork16::new(64, 32 * 1024);
         assert_eq!(exact.allocated_bytes(), LEOPARD_MAX_CACHED_WORK_BYTES);
-        cache_encode_work(exact);
+        cache_encode_work(exact, 32 * 1024);
         FLAT_WORK16_CACHE.with(|cache| {
             assert_eq!(
-                cache.borrow().as_ref().unwrap().allocated_bytes(),
+                cache
+                    .borrow()
+                    .get(&(64, 32 * 1024))
+                    .unwrap()
+                    .allocated_bytes(),
                 LEOPARD_MAX_CACHED_WORK_BYTES
             );
         });
@@ -561,7 +609,7 @@ mod encode_cache_budget_tests {
         clear_caches();
         let oversized = FlatWork16::new(64, 32 * 1024 + 32);
         assert!(oversized.allocated_bytes() > LEOPARD_MAX_CACHED_WORK_BYTES);
-        cache_encode_work(oversized);
-        FLAT_WORK16_CACHE.with(|cache| assert!(cache.borrow().is_none()));
+        cache_encode_work(oversized, 32 * 1024 + 32);
+        FLAT_WORK16_CACHE.with(|cache| assert_eq!(cache.borrow().retained_bytes(), 0));
     }
 }

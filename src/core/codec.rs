@@ -4,7 +4,6 @@ use alloc::sync::Arc;
 use alloc::vec;
 use alloc::vec::Vec;
 
-use hashlink::LruCache;
 #[cfg(feature = "std")]
 use parking_lot::Mutex;
 #[cfg(not(feature = "std"))]
@@ -16,7 +15,8 @@ use crate::matrix::{Matrix, MatrixRowRange};
 
 use super::{
     CodecFamily, CodecOptions, DATA_DECODE_MATRIX_CACHE_MAX_CAPACITY,
-    DATA_DECODE_MATRIX_CACHE_MIN_CAPACITY, EncodingFormat, MatrixMode, ReedSolomon,
+    DATA_DECODE_MATRIX_CACHE_MIN_CAPACITY, EncodingFormat, InversionCache, MatrixMode,
+    ReconstructionCacheMemory, ReedSolomon,
 };
 #[cfg(feature = "std")]
 use super::{
@@ -25,6 +25,14 @@ use super::{
 };
 
 impl<F: Field> ReedSolomon<F> {
+    fn normalize_inversion_cache_max_bytes(requested_bytes: usize) -> usize {
+        if requested_bytes == 0 {
+            super::inversion_cache::DEFAULT_INVERSION_CACHE_MAX_BYTES
+        } else {
+            requested_bytes
+        }
+    }
+
     pub(crate) fn normalize_inversion_cache_capacity(
         data_shards: usize,
         parity_shards: usize,
@@ -309,6 +317,8 @@ impl<F: Field> ReedSolomon<F> {
             parity_shards,
             options.inversion_cache_capacity,
         );
+        options.inversion_cache_max_bytes =
+            Self::normalize_inversion_cache_max_bytes(options.inversion_cache_max_bytes);
 
         let matrix = match options.codec_family {
             CodecFamily::Classic => {
@@ -332,7 +342,10 @@ impl<F: Field> ReedSolomon<F> {
             options: options.into(),
             #[cfg(feature = "std")]
             policy_cache,
-            data_decode_matrix_cache: Mutex::new(LruCache::new(options.inversion_cache_capacity)),
+            data_decode_matrix_cache: Mutex::new(InversionCache::new(
+                options.inversion_cache_capacity,
+                options.inversion_cache_max_bytes,
+            )),
             #[cfg(feature = "std")]
             reconstruction_cache_metrics: ReconstructionCacheMetrics::default(),
             #[cfg(feature = "std")]
@@ -377,6 +390,21 @@ impl<F: Field> ReedSolomon<F> {
     /// Returns the inversion cache capacity.
     pub fn inversion_cache_capacity(&self) -> usize {
         self.options.inversion_cache_capacity
+    }
+
+    /// Returns the effective retained inverse-matrix and key byte budget.
+    /// A zero option is resolved to the default 8 MiB at construction time.
+    pub fn inversion_cache_max_bytes(&self) -> usize {
+        self.options.inversion_cache_max_bytes
+    }
+
+    /// Snapshot of retained Classic cache storage, independent of profiling flags.
+    ///
+    /// The cache mutex makes the entry count and byte charge one consistent
+    /// snapshot. Reconstruction workspaces may retain evicted matrices beyond
+    /// this cache's ownership. See [`ReconstructionCacheMemory`] for accounting.
+    pub fn reconstruction_cache_memory(&self) -> ReconstructionCacheMemory {
+        self.data_decode_matrix_cache.lock().memory()
     }
 
     /// Returns the recommended inversion cache capacity for the given shard counts.
@@ -553,6 +581,8 @@ impl<F: Field> ReedSolomon<F> {
             parity_shards,
             options.inversion_cache_capacity,
         );
+        options.inversion_cache_max_bytes =
+            Self::normalize_inversion_cache_max_bytes(options.inversion_cache_max_bytes);
 
         let matrix = Self::build_custom_matrix(data_shards, total_shards, custom_matrix)?;
         if options.fast_one_parity
@@ -577,7 +607,10 @@ impl<F: Field> ReedSolomon<F> {
             options: options.into(),
             #[cfg(feature = "std")]
             policy_cache,
-            data_decode_matrix_cache: Mutex::new(LruCache::new(options.inversion_cache_capacity)),
+            data_decode_matrix_cache: Mutex::new(InversionCache::new(
+                options.inversion_cache_capacity,
+                options.inversion_cache_max_bytes,
+            )),
             #[cfg(feature = "std")]
             reconstruction_cache_metrics: ReconstructionCacheMetrics::default(),
             #[cfg(feature = "std")]

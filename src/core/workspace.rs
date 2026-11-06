@@ -85,6 +85,10 @@ impl<F: Field> VerifyWorkspace<F> {
 /// allocating shard containers retain their normal initialization behavior.
 /// Leopard families are unsupported. The serial API is available in `no_std`
 /// and adds no `Send` or `Sync` bounds to the field or shard container.
+/// With `std`, `ReedSolomon::reconstruct_with_workspace_par` parallelizes each
+/// output's arithmetic while preserving fallible destination order. GF8's
+/// `reconstruct_opt_with_workspace_par` also batches concrete option-vector
+/// outputs. Both reuse this immutable plan with the same validation contract.
 pub struct ReconstructWorkspace<F: Field> {
     pub(crate) plan: ClassicReconstructPlan<F>,
     pub(crate) format: EncodingFormat<F>,
