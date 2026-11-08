@@ -1,0 +1,76 @@
+{
+  "cases": [
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "32x16-524288-2-opt_data",
+      "mode": "same",
+      "a_drift": 0.05281288386579941,
+      "b_drift": 0.025359190811628296,
+      "max_spread": 0.025246423131884466,
+      "valid": false,
+      "change": -0.012424184073807854
+    },
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "32x16-1048576-3-opt_data",
+      "mode": "same",
+      "a_drift": 0.03290276311698037,
+      "b_drift": 0.008623383732767387,
+      "max_spread": 0.09320043713387849,
+      "valid": true,
+      "change": 0.005076981298307803
+    },
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "32x16-524288-4-opt_data",
+      "mode": "same",
+      "a_drift": 2.4212057929684505e-05,
+      "b_drift": 0.0008681473353497893,
+      "max_spread": 0.015448770795855505,
+      "valid": true,
+      "change": 1.1508771122104022e-05
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "32x16-131072-2-opt_data",
+      "mode": "same",
+      "a_drift": 0.0027947568363382302,
+      "b_drift": 0.001894233334090667,
+      "max_spread": 0.07961584454293975,
+      "valid": true,
+      "change": 0.009806138308231738
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "32x16-524288-3-opt_data",
+      "mode": "same",
+      "a_drift": 0.0017907407950376042,
+      "b_drift": 0.0004916682223289337,
+      "max_spread": 0.014068230801884216,
+      "valid": true,
+      "change": 0.0028262743545108826
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "32x16-2097152-4-opt_data",
+      "mode": "same",
+      "a_drift": 0.0034554894854814666,
+      "b_drift": 0.00864260409045392,
+      "max_spread": 0.011570614510901984,
+      "valid": true,
+      "change": -0.0020094263222715236
+    }
+  ],
+  "stability_failures": [
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "32x16-524288-2-opt_data",
+      "mode": "same",
+      "a_drift": 0.05281288386579941,
+      "b_drift": 0.025359190811628296,
+      "max_spread": 0.025246423131884466,
+      "valid": false,
+      "change": -0.012424184073807854
+    }
+  ]
+}

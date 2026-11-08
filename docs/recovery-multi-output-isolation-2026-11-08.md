@@ -78,6 +78,46 @@ On this AMD guest, the experimental source passed the existing two focused gener
 
 No Intel processor was available. Neither a recovery size threshold nor a production dispatch change is justified by the failed calibration; the earlier broad-cutoff encoding regressions remain relevant. Validation on a stable AMD window and an independently supplied Intel host remains necessary.
 
+## Same-process drift diagnostic
+
+To investigate the failed boundary calibration, a [same-binary diagnostic](../benchmarks/classic-recovery-analysis/2026-11-08/results/recovery-process-variation-f120-09/) compared four separately launched processes with four sequential stages inside one process that retained the codec and present input buffers. Both modes used source `f120faa8`, the same [probe](../benchmarks/classic-recovery-analysis/2026-11-08/process-variation-probe.rs), 15 samples of at least 300 ms per stage, the same warmup before each stage and identical output byte checks. The probe's `PROBE_STAGES` is `1` for separate processes and `4` for one process. Mode order alternated across the six cases, which were selected from earlier failures; this is a targeted diagnostic rather than a representative sample or a candidate comparison. Reusing the process changes both setup and elapsed time, so the results cannot isolate allocation layout from CPU or host changes.
+
+Cells show maximum A1/A2 or B1/B2 median drift and maximum stage central spread. The previous 5% and 10% limits are shown only for evaluating the same-source controls; no release gate was changed.
+
+| Backend | Size / missing | Four processes | One process |
+| --- | --- | ---: | ---: |
+| rust-gfni-avx2 | 512 KiB / 2 | 1.31% / 7.16% | 0.18% / 1.35% |
+| rust-gfni-avx2 | 1 MiB / 3 | 0.96% / 4.03% | 1.91% / 3.33% |
+| rust-gfni-avx2 | 512 KiB / 4 | 2.46% / 3.48% | 4.07% / 5.66% |
+| rust-gfni-avx512 | 128 KiB / 2 | 18.10% / 4.66% (failed) | 2.16% / 5.28% |
+| rust-gfni-avx512 | 512 KiB / 3 | 10.63% / 4.52% (failed) | 4.53% / 6.19% |
+| rust-gfni-avx512 | 2 MiB / 4 | 1.70% / 2.66% | 1.05% / 12.11% (failed) |
+
+Two of six four-process groups exceeded the drift limit; one of six same-process groups exceeded the distribution limit. The latter included a stage with 12.11% central spread, so retaining the process and input buffers did not eliminate all instability. Both modes passed for some cases and failed for others; the small targeted set and time ordering do not prove a cause. The guest monitor recorded no sustained competing process and no change in reported pinned-vCPU steal ticks; the partition was restored. Physical-host isolation remains unverified.
+
+In the earlier failed 512 KiB, two-output GFNI/AVX2 cell, the median reconstruction time changed from approximately 1.024 ms in A1 to 0.844 ms in A2. The median per-iteration thread running-time estimate for the surrounding sample loop changed similarly, while the median reported thread waiting time was below 0.03 ms per roughly 300 ms sample. These counters cover different scopes and do not identify the cause; they make guest-thread queueing alone an insufficient explanation for that observation. A later same-process 2 MiB cell also had a slow sample with a corresponding increase in per-iteration thread running time. None of these results justifies removing failed samples or treating a stable subset as the full boundary result.
+
+A [second guest run](../benchmarks/classic-recovery-analysis/2026-11-08/results/recovery-process-variation-3c4-10/) used the same processor model, probe and protocol, with source `3c4d346e`; that revision adds only diagnostics and documentation relative to the first guest's source. This is an independent VM observation, not coverage of a different CPU model. Results use the same drift/spread format:
+
+| Backend | Size / missing | Four processes | One process |
+| --- | --- | ---: | ---: |
+| rust-gfni-avx2 | 512 KiB / 2 | 22.33% / 1.07% (failed) | 0.19% / 0.91% |
+| rust-gfni-avx2 | 1 MiB / 3 | 1.13% / 0.57% | 0.23% / 0.60% |
+| rust-gfni-avx2 | 512 KiB / 4 | 0.52% / 0.82% | 0.45% / 0.64% |
+| rust-gfni-avx512 | 128 KiB / 2 | 8.25% / 1.93% (failed) | 1.62% / 2.38% |
+| rust-gfni-avx512 | 512 KiB / 3 | 5.89% / 1.54% (failed) | 0.23% / 1.44% |
+| rust-gfni-avx512 | 2 MiB / 4 | 0.39% / 1.25% | 0.31% / 0.69% |
+
+Three of six four-process groups exceeded the drift limit and all six same-process groups were within both limits on this guest. The first guest's same-process failure remains part of the record. Combined, these observations make process and setup effects worth investigating, but they do not rule out timing, CPU state or host effects; no cause has been established. The pinned-vCPU steal counter did not change, no sustained competing guest process was observed, and the guest partition was restored.
+
+## Same-process paired prototype
+
+A [paired prototype](../benchmarks/classic-recovery-analysis/2026-11-08/paired-process-experiment/) links the baseline and recovery-only experimental implementation into one executable. To distinguish the same package and version in Cargo's lockfile, the experimental copy changes its package version to `9.1.0+recovery.ablation`; the source and that metadata change are experimental build differences and may affect code generation or binary layout. This executable is a diagnostic, not an equivalent replacement for the release build. The manifest is archived as `Cargo.toml.txt`; the relative `../base` and `../variant` paths require separate source directories outside the repository workspace. Apply the archived zero-context recovery patch to `variant`, change only that variant's package version metadata, copy the manifest and lockfile into the paired directory, and compile the probe with locked dependencies.
+
+Within each case, the probe validates that both implementations encode the same bytes, then shares the same present input buffers between four stages. Same-source calibration uses the baseline in all four stages; in the intended candidate phase only B1 and B2 would use the experimental implementation. Output recovery is byte-checked after every stage. This setup controls some process and input-layout variation but does not prove host isolation or replace separate-process qualification.
+
+On the second AMD guest, six targeted same-source controls ran before any candidate phase. [Raw results](../benchmarks/classic-recovery-analysis/2026-11-08/results/recovery-paired-control-3c4-11/) contain all 24 stages. One of six controls failed the unchanged gate: GFNI/AVX2, 32+16, 512 KiB, two missing data shards had 5.28% A1/A2 drift. The maximum central spread across the controls was 9.32%. The runner stopped before the experimental candidate phase, with no sustained competing guest task or change in reported vCPU steal ticks, and restored the partition. None of the passing controls is promoted to a candidate result; this does not establish a recovery crossover or justify changing the production selector.
+
 ## Compatibility coverage
 
 The [compatibility reports and output](../benchmarks/classic-recovery-analysis/2026-11-08/results/compatibility-11d/) cover the same two source revisions. The ARM logs are excerpts containing the final harness results; the JSON files record resource cases. On x86-64 the scalar, AVX2, AVX-512, GFNI/AVX2 and GFNI/AVX-512 backends each completed 200 exact parity and cross-decode cases, plus the harness's large GF8, 6+2 and small-block error-detection checks and 45 resource cases. On aarch64, scalar and NEON completed the same compatibility harness. The aarch64 checks were functional, not isolated performance measurements. All x86 tests used one AMD processor model; no Intel processor was tested.

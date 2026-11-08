@@ -1,0 +1,7 @@
+[package]
+name = "rse-paired-experiment"
+version = "0.0.0"
+edition = "2024"
+[dependencies]
+base = { package = "rustfs-erasure-codec", path = "../base", features = ["simd-accel"] }
+variant = { package = "rustfs-erasure-codec", path = "../variant", features = ["simd-accel"] }
