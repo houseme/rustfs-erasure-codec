@@ -1,0 +1,146 @@
+{
+  "cases": [
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "32x16-524288-2-opt_data",
+      "mode": "same",
+      "a_drift": 0.007763776117958643,
+      "b_drift": 0.007785152577228227,
+      "max_spread": 0.019373923734639056,
+      "valid": true,
+      "change": 0.00010853468415938927
+    },
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "32x16-1048576-3-opt_data",
+      "mode": "same",
+      "a_drift": 0.016331187191730878,
+      "b_drift": 0.007105112532842961,
+      "max_spread": 0.02617799904468392,
+      "valid": true,
+      "change": 0.0026698847309105656
+    },
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "32x16-524288-4-opt_data",
+      "mode": "same",
+      "a_drift": 0.0010004975485866652,
+      "b_drift": 0.0030365770784510637,
+      "max_spread": 0.02401924141060959,
+      "valid": true,
+      "change": 0.0016584759435178675
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "32x16-131072-2-opt_data",
+      "mode": "same",
+      "a_drift": 0.043602768823027604,
+      "b_drift": 0.04507334979302724,
+      "max_spread": 0.046097784760612576,
+      "valid": true,
+      "change": -0.0007338372681964245
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "32x16-524288-3-opt_data",
+      "mode": "same",
+      "a_drift": 0.0018952351892220776,
+      "b_drift": 0.0013345584611222927,
+      "max_spread": 0.021882513417507105,
+      "valid": true,
+      "change": -0.0024895311227929318
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "32x16-2097152-4-opt_data",
+      "mode": "same",
+      "a_drift": 0.006179455666950662,
+      "b_drift": 0.0017227536958031031,
+      "max_spread": 0.01654004766591928,
+      "valid": true,
+      "change": -0.00013924924712316322
+    },
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "32x16-524288-2-opt_data",
+      "mode": "candidate",
+      "a_drift": 0.01697931064691227,
+      "b_drift": 0.00023322047195994955,
+      "max_spread": 0.03180109119299436,
+      "valid": true,
+      "change": 0.1367702697733606
+    },
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "32x16-1048576-3-opt_data",
+      "mode": "candidate",
+      "a_drift": 0.00018249192964336913,
+      "b_drift": 0.00016398610103052214,
+      "max_spread": 0.00594624215009,
+      "valid": true,
+      "change": 0.26404771943386907
+    },
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "32x16-524288-4-opt_data",
+      "mode": "candidate",
+      "a_drift": 0.01739718748009622,
+      "b_drift": 0.15125073321727744,
+      "max_spread": 0.1374321297573231,
+      "valid": false,
+      "change": 0.3873896850660361
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "32x16-131072-2-opt_data",
+      "mode": "candidate",
+      "a_drift": 0.003964447370560231,
+      "b_drift": 0.001351057621893137,
+      "max_spread": 0.05099806927038477,
+      "valid": true,
+      "change": 0.4494690862587434
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "32x16-524288-3-opt_data",
+      "mode": "candidate",
+      "a_drift": 0.06717184335215753,
+      "b_drift": 0.0010630971395313438,
+      "max_spread": 0.034433855590374526,
+      "valid": false,
+      "change": 0.5104600528244061
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "32x16-2097152-4-opt_data",
+      "mode": "candidate",
+      "a_drift": 0.006185498450435256,
+      "b_drift": 0.0036211849932059614,
+      "max_spread": 0.013990370320359154,
+      "valid": true,
+      "change": 0.2738106310755877
+    }
+  ],
+  "stability_failures": [
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "32x16-524288-4-opt_data",
+      "mode": "candidate",
+      "a_drift": 0.01739718748009622,
+      "b_drift": 0.15125073321727744,
+      "max_spread": 0.1374321297573231,
+      "valid": false,
+      "change": 0.3873896850660361
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "32x16-524288-3-opt_data",
+      "mode": "candidate",
+      "a_drift": 0.06717184335215753,
+      "b_drift": 0.0010630971395313438,
+      "max_spread": 0.034433855590374526,
+      "valid": false,
+      "change": 0.5104600528244061
+    }
+  ]
+}
