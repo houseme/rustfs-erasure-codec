@@ -1,0 +1,53 @@
+diff --git a/src/core/encode.rs b/src/core/encode.rs
+index 68055262..22ad3dcf 100644
+--- a/src/core/encode.rs
++++ b/src/core/encode.rs
+@@ -421 +421 @@ impl<F: Field> ReedSolomon<F> {
+-        self.code_some_slices_with_outputs(
++        self.code_some_slices_with_outputs::<true>(
+@@ -427,0 +428,22 @@ impl<F: Field> ReedSolomon<F> {
++    // Experimental ablation: apply only to Classic recovery, and only where
++    // the bounded multi-output GFNI selector is otherwise eligible. This is
++    // a measurement mechanism, not a production threshold.
++    #[cfg(all(feature = "std", not(feature = "experimental-pr1-kernels")))]
++    pub(crate) fn code_recovery_slices<T: AsRef<[F::Elem]>, U: AsMut<[F::Elem]>>(
++        &self,
++        matrix_rows: &(impl MatrixRows<F::Elem> + ?Sized),
++        inputs: &[T],
++        outputs: &mut [U],
++    ) {
++        #[cfg(rse_x86_gfni)]
++        if inputs.len() == 32 && (2..=4).contains(&outputs.len()) {
++            self.code_some_slices_with_outputs::<false>(
++                matrix_rows,
++                inputs,
++                &mut SliceOutputs { shards: outputs },
++            );
++            return;
++        }
++        self.code_some_slices(matrix_rows, inputs, outputs);
++    }
++
+@@ -437 +459 @@ impl<F: Field> ReedSolomon<F> {
+-        self.code_some_slices_with_outputs(
++        self.code_some_slices_with_outputs::<true>(
+@@ -456 +478 @@ impl<F: Field> ReedSolomon<F> {
+-        self.code_some_slices_with_outputs(
++        self.code_some_slices_with_outputs::<true>(
+@@ -532 +554 @@ impl<F: Field> ReedSolomon<F> {
+-    fn code_some_slices_with_outputs(
++    fn code_some_slices_with_outputs<const ALLOW_GFNI: bool>(
+@@ -557 +579,2 @@ impl<F: Field> ReedSolomon<F> {
+-        if inputs.len() == self.data_shard_count()
++        if ALLOW_GFNI
++            && inputs.len() == self.data_shard_count()
+diff --git a/src/core/reconstruct.rs b/src/core/reconstruct.rs
+index 314cac3b..26210dd5 100644
+--- a/src/core/reconstruct.rs
++++ b/src/core/reconstruct.rs
+@@ -216 +216 @@ impl<F: Field> ReedSolomon<F> {
+-            self.code_some_slices_chunked(matrix_rows, inputs, outputs);
++            self.code_recovery_slices(matrix_rows, inputs, outputs);
+@@ -263 +263 @@ impl<F: Field> ReedSolomon<F> {
+-            self.code_some_slices(rows, inputs, outputs);
++            self.code_recovery_slices(rows, inputs, outputs);
