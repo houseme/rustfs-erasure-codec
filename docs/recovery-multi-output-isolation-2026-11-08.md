@@ -30,6 +30,24 @@ A further [independent calibration](../benchmarks/classic-recovery-analysis/2026
 
 The mandatory same-source generic calibration failed one of 10 cells: AVX2, 32+16, with 7.04% A1/A2 median drift, although the reservation and competing-process monitor reported no violation. Consequently the runner stopped before comparing the two APIs. The partition was restored and all 40 calibration stages are retained. An unobserved physical-host effect or another cause remains possible; the available counters do not establish a cause. Do not select the nine passing calibration cells or interpret this attempt as evidence for either API.
 
+## Completed same-version API comparison
+
+A subsequent independent [same-version run](../benchmarks/classic-recovery-analysis/2026-11-08/results/recovery-api-crossover-11d-04/) repeated the entire intended matrix. Both sides used the same freshly built `11d7d03c` binary, `Option<Vec<u8>>` inputs, one worker, 1 MiB shards and missing indices `[0, 2]`. A is generic `reconstruct_data`; B is `reconstruct_data_opt`. The probe checked reconstructed bytes, the active backend, source and binary consistency, and the guest partition; it used the same sample and stability rules described above. `opt` and generic differ in more than just dispatch or loop ordering, so this comparison does not by itself isolate either change.
+
+All 10 same-API calibration cells passed before any API comparison. All 10 API-comparison cells then passed; maximum drift and central spread were 3.55% and 5.26% in calibration, and 3.67% and 5.26% in comparison. The guest monitor recorded no sustained competing process and the partition was restored. Physical-host exclusivity and other processor models remain unverified. The earlier failed attempts remain part of the record and this later run does not explain their failures.
+
+The table reports all comparison cells as `(B1 median + B2 median) / (A1 median + A2 median) - 1`; negative values mean the `opt` API took less time than the generic API. This is a single-machine diagnostic, not a confidence interval or evidence of a generally optimal dispatch threshold.
+
+| Backend | 10+4, two data missing | 32+16, two data missing |
+| --- | ---: | ---: |
+| scalar-rust | +1.63% | -1.09% |
+| rust-avx2 | -1.73% | -28.13% |
+| rust-avx512 | -11.45% | -31.93% |
+| rust-gfni-avx2 | -42.15% | +67.98% |
+| rust-gfni-avx512 | -48.01% | +0.29% |
+
+The wide case responds differently to the API choice on AVX2, AVX-512 and GFNI/AVX2. This supports further isolating their execution paths; it is not enough to alter generic `ReconstructShard` publication semantics or the GFNI selector. No runtime implementation or release threshold was changed by this run.
+
 ## Compatibility coverage
 
 The [compatibility reports and output](../benchmarks/classic-recovery-analysis/2026-11-08/results/compatibility-11d/) cover the same two source revisions. The ARM logs are excerpts containing the final harness results; the JSON files record resource cases. On x86-64 the scalar, AVX2, AVX-512, GFNI/AVX2 and GFNI/AVX-512 backends each completed 200 exact parity and cross-decode cases, plus the harness's large GF8, 6+2 and small-block error-detection checks and 45 resource cases. On aarch64, scalar and NEON completed the same compatibility harness. The aarch64 checks were functional, not isolated performance measurements. All x86 tests used one AMD processor model; no Intel processor was tested.
