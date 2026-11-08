@@ -781,6 +781,8 @@ fn main() -> Result<(), String> {
         (4, 2, 16384, 2),
         (10, 4, 32768, 1),
         (10, 4, 32768, 2),
+        (10, 4, 1048576, 2),
+        (32, 16, 1048576, 2),
     ] {
         for retained in [false, true] {
             let case = Case {
@@ -808,9 +810,15 @@ fn main() -> Result<(), String> {
             )
             .expect("construct generic data recovery codec");
             let original = fixture(&codec, size);
+            // Match the wide missing-data hotspot rather than only adjacent
+            // erasures; coefficient rows depend on the missing indices.
+            let missing_indices: Vec<_> = if size == 1048576 && missing == 2 {
+                vec![0, 2]
+            } else {
+                (0..missing).collect()
+            };
             let measurement = if retained {
                 let mut slots = shards_to_slots(&original);
-                let missing_indices: Vec<_> = (0..missing).collect();
                 poison_missing(&mut slots, &missing_indices);
                 codec
                     .reconstruct_data(&mut slots)
@@ -826,16 +834,16 @@ fn main() -> Result<(), String> {
                 measurement
             } else {
                 let mut shards: Vec<_> = original.iter().cloned().map(Some).collect();
-                for shard in &mut shards[..missing] {
-                    drop(shard.take());
+                for &index in &missing_indices {
+                    drop(shards[index].take());
                 }
                 codec
                     .reconstruct_data(&mut shards)
                     .expect("generic vec preflight");
                 assert_complete_options(&shards, &original);
                 let measurement = measure(&config, || {
-                    for shard in &mut shards[..missing] {
-                        drop(shard.take());
+                    for &index in &missing_indices {
+                        drop(shards[index].take());
                     }
                     codec
                         .reconstruct_data(black_box(&mut shards))
@@ -848,11 +856,22 @@ fn main() -> Result<(), String> {
             completed += 1;
         }
     }
-    for (size, missing) in [(32768, 1), (32768, 2), (1048576, 1), (1048576, 2)] {
+    for (data, parity, size, missing, serial) in [
+        (10, 4, 32768, 1, false),
+        (10, 4, 32768, 2, false),
+        (10, 4, 1048576, 1, false),
+        (10, 4, 1048576, 2, false),
+        (10, 4, 1048576, 2, true),
+        (32, 16, 1048576, 2, true),
+    ] {
         let case = Case {
-            operation: "classic.reconstruct_data_opt",
-            data_shards: 10,
-            parity_shards: 4,
+            operation: if serial {
+                "classic.reconstruct_data_opt_serial"
+            } else {
+                "classic.reconstruct_data_opt"
+            },
+            data_shards: data,
+            parity_shards: parity,
             shard_size: size,
             missing_data_shards: missing,
             missing_parity_shards: 0,
@@ -861,15 +880,28 @@ fn main() -> Result<(), String> {
         if !config.includes(&case) {
             continue;
         }
-        let codec = ReedSolomon::new(case.data_shards, case.parity_shards)
-            .expect("construct option-vec data recovery codec");
+        let codec = ReedSolomon::with_options(
+            case.data_shards,
+            case.parity_shards,
+            if serial {
+                CodecOptions::builder().max_parallel_jobs(1).build()
+            } else {
+                CodecOptions::default()
+            },
+        )
+        .expect("construct option-vec data recovery codec");
         let original = fixture(&codec, size);
         let mut shards: Vec<_> = original.iter().cloned().map(Some).collect();
-        for shard in &mut shards[..missing] {
-            for byte in shard.as_mut().expect("present preflight data") {
+        let missing_indices: Vec<_> = if serial {
+            vec![0, 2]
+        } else {
+            (0..missing).collect()
+        };
+        for &index in &missing_indices {
+            for byte in shards[index].as_mut().expect("present preflight data") {
                 *byte ^= 0xff;
             }
-            drop(shard.take());
+            drop(shards[index].take());
         }
         codec
             .reconstruct_data_opt(&mut shards)
@@ -878,8 +910,8 @@ fn main() -> Result<(), String> {
         let measurement = measure(&config, || {
             // This API requires Option<Vec<u8>>: replacing missing data buffers
             // is part of its measured cost, unlike retained ShardSlot storage.
-            for shard in &mut shards[..missing] {
-                drop(shard.take());
+            for &index in &missing_indices {
+                drop(shards[index].take());
             }
             codec
                 .reconstruct_data_opt(black_box(&mut shards))
