@@ -1,0 +1,605 @@
+{
+  "cases": [
+    {
+      "backend": "scalar-rust",
+      "case": "10x4-65536-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.006619363067952633,
+      "b_drift": 0.00019372988222210452,
+      "max_spread": 0.0008930620298784831,
+      "change": 0.001958756598227085
+    },
+    {
+      "backend": "scalar-rust",
+      "case": "32x16-65536-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.0013524451730146936,
+      "b_drift": 0.00011381712081548478,
+      "max_spread": 0.0007104169282635206,
+      "change": 0.00043967657127219617
+    },
+    {
+      "backend": "scalar-rust",
+      "case": "10x4-1048576-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.0003505826448844118,
+      "b_drift": 0.00028609220684505665,
+      "max_spread": 0.0017567281270577822,
+      "change": -5.09467107905337e-05
+    },
+    {
+      "backend": "scalar-rust",
+      "case": "32x16-1048576-1-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.004100309761728371,
+      "b_drift": 0.00015517078438609389,
+      "max_spread": 0.0023199963298292897,
+      "change": -0.0029056454887442795
+    },
+    {
+      "backend": "scalar-rust",
+      "case": "32x16-1048576-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.0008602596415689945,
+      "b_drift": 0.0008551153411653356,
+      "max_spread": 0.0009423101009584926,
+      "change": 0.004301615994801722
+    },
+    {
+      "backend": "scalar-rust",
+      "case": "32x16-1048576-4-generic_some",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.0005275586293242984,
+      "b_drift": 0.0004042241175628014,
+      "max_spread": 0.001685782354145636,
+      "change": -0.00016329365847544963
+    },
+    {
+      "backend": "rust-avx2",
+      "case": "10x4-65536-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.003796602366983759,
+      "b_drift": 0.009104534005401677,
+      "max_spread": 0.007719966276693113,
+      "change": 0.00713808404527283
+    },
+    {
+      "backend": "rust-avx2",
+      "case": "32x16-65536-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.001210088498808215,
+      "b_drift": 0.005949418486635216,
+      "max_spread": 0.002308483676449627,
+      "change": 0.003533378935381082
+    },
+    {
+      "backend": "rust-avx2",
+      "case": "10x4-1048576-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.00029884506991495474,
+      "b_drift": 0.0010628190306372076,
+      "max_spread": 0.002254184711937167,
+      "change": -0.0015974199527483135
+    },
+    {
+      "backend": "rust-avx2",
+      "case": "32x16-1048576-1-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.025285889267637307,
+      "b_drift": 0.0203133371138966,
+      "max_spread": 0.06326373593689699,
+      "change": -0.00078104317131511
+    },
+    {
+      "backend": "rust-avx2",
+      "case": "32x16-1048576-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.01163126072146703,
+      "b_drift": 0.006719345392937948,
+      "max_spread": 0.02861372336194277,
+      "change": -0.004761081707048032
+    },
+    {
+      "backend": "rust-avx2",
+      "case": "32x16-1048576-4-generic_some",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.004695867536218201,
+      "b_drift": 0.006281310521831118,
+      "max_spread": 0.020586526370793817,
+      "change": -0.0023389615314692858
+    },
+    {
+      "backend": "rust-avx512",
+      "case": "10x4-65536-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.004304503411410199,
+      "b_drift": 0.005424046336893751,
+      "max_spread": 0.007091025008777255,
+      "change": 0.01021224045413982
+    },
+    {
+      "backend": "rust-avx512",
+      "case": "32x16-65536-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.007613806576004745,
+      "b_drift": 0.012693308404274184,
+      "max_spread": 0.00690608348187606,
+      "change": -0.010994507703568135
+    },
+    {
+      "backend": "rust-avx512",
+      "case": "10x4-1048576-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.003859632199065155,
+      "b_drift": 0.004247115282073222,
+      "max_spread": 0.005228361226242183,
+      "change": -9.787077618850226e-05
+    },
+    {
+      "backend": "rust-avx512",
+      "case": "32x16-1048576-1-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.011065918396043317,
+      "b_drift": 0.002750808544994765,
+      "max_spread": 0.03840732316378478,
+      "change": -0.0025257157598350677
+    },
+    {
+      "backend": "rust-avx512",
+      "case": "32x16-1048576-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.007442190593503151,
+      "b_drift": 0.015452582989340602,
+      "max_spread": 0.0234459583579487,
+      "change": -0.00418903538903137
+    },
+    {
+      "backend": "rust-avx512",
+      "case": "32x16-1048576-4-generic_some",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.0006385823716748007,
+      "b_drift": 0.0006262988413644477,
+      "max_spread": 0.011554650491077281,
+      "change": -0.004889641234922526
+    },
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "10x4-65536-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.0031257514427125432,
+      "b_drift": 0.008673358491295358,
+      "max_spread": 0.004787627180836392,
+      "change": 0.000552151011786961
+    },
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "32x16-65536-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.009762340612394005,
+      "b_drift": 0.008748504049115868,
+      "max_spread": 0.0025944100085721683,
+      "change": -0.01160849716072787
+    },
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "10x4-1048576-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.002788082335647646,
+      "b_drift": 0.001141639135501804,
+      "max_spread": 0.0026160522714674143,
+      "change": -0.0008871088825691542
+    },
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "32x16-1048576-1-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.014709098029231926,
+      "b_drift": 0.04031063340772656,
+      "max_spread": 0.03352404188535014,
+      "change": 0.011111486617252364
+    },
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "32x16-1048576-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.009299511797560944,
+      "b_drift": 0.0017184040931419453,
+      "max_spread": 0.0189768400236314,
+      "change": -0.0008574020428760987
+    },
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "32x16-1048576-4-generic_some",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.009099573231512004,
+      "b_drift": 0.010060614494207143,
+      "max_spread": 0.014659693568055585,
+      "change": -0.006080045920437982
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "10x4-65536-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.014940370877134956,
+      "b_drift": 0.004944472588585103,
+      "max_spread": 0.007698423824077451,
+      "change": -0.001964060015440028
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "32x16-65536-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.0020003593009289,
+      "b_drift": 0.003396131450540407,
+      "max_spread": 0.0010896017080083544,
+      "change": 0.028092463886078667
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "10x4-1048576-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.00018447589359738004,
+      "b_drift": 0.0009016692579351115,
+      "max_spread": 0.002806210698686177,
+      "change": 0.0037338700937898928
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "32x16-1048576-1-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.004377257223017628,
+      "b_drift": 0.022731605215536743,
+      "max_spread": 0.05851177393604902,
+      "change": 0.014249051641870514
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "32x16-1048576-2-generic_data",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.0023290057918511353,
+      "b_drift": 0.0043113869043551745,
+      "max_spread": 0.021369741158560086,
+      "change": 0.006858904985939551
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "32x16-1048576-4-generic_some",
+      "mode": "same",
+      "valid": true,
+      "a_drift": 0.007885260654275528,
+      "b_drift": 0.00422824435237612,
+      "max_spread": 0.01034155175617091,
+      "change": -0.004295896539018185
+    },
+    {
+      "backend": "scalar-rust",
+      "case": "10x4-65536-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.0012426772011071563,
+      "b_drift": 0.0006209928797469288,
+      "max_spread": 0.0014210290390479642,
+      "change": 0.03508296144043754
+    },
+    {
+      "backend": "scalar-rust",
+      "case": "32x16-65536-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.0005088171821254761,
+      "b_drift": 0.0002120354631374166,
+      "max_spread": 0.0008037150895495349,
+      "change": 0.042134669100583944
+    },
+    {
+      "backend": "scalar-rust",
+      "case": "10x4-1048576-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.0002745097764575988,
+      "b_drift": 0.00016401450181691146,
+      "max_spread": 0.0006060284751269677,
+      "change": 0.04577213035625549
+    },
+    {
+      "backend": "scalar-rust",
+      "case": "32x16-1048576-1-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.0011460570135983783,
+      "b_drift": 0.00011923619515630257,
+      "max_spread": 0.0037583263921737364,
+      "change": 0.045167387838555895
+    },
+    {
+      "backend": "scalar-rust",
+      "case": "32x16-1048576-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.0021286161794581426,
+      "b_drift": 0.002882578856870155,
+      "max_spread": 0.002115774374871403,
+      "change": 0.05342624325440615
+    },
+    {
+      "backend": "scalar-rust",
+      "case": "32x16-1048576-4-generic_some",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.000604758759883417,
+      "b_drift": 0.0007026537233103536,
+      "max_spread": 0.0029658930325195997,
+      "change": 0.011197089844998676
+    },
+    {
+      "backend": "rust-avx2",
+      "case": "10x4-65536-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.006284405388577996,
+      "b_drift": 0.002702057189207463,
+      "max_spread": 0.003427013589087449,
+      "change": 0.003683209968758483
+    },
+    {
+      "backend": "rust-avx2",
+      "case": "32x16-65536-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.001069622015965832,
+      "b_drift": 0.002240068315755628,
+      "max_spread": 0.008823931603831315,
+      "change": 0.019119515046972513
+    },
+    {
+      "backend": "rust-avx2",
+      "case": "10x4-1048576-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.008032986682844911,
+      "b_drift": 0.017671128391884672,
+      "max_spread": 0.0007449029219282612,
+      "change": 0.030106097538999954
+    },
+    {
+      "backend": "rust-avx2",
+      "case": "32x16-1048576-1-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.0029899731534432927,
+      "b_drift": 0.006836856498899646,
+      "max_spread": 0.0878264911011593,
+      "change": -0.0034508633459424676
+    },
+    {
+      "backend": "rust-avx2",
+      "case": "32x16-1048576-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.011550675857320059,
+      "b_drift": 0.03786955224030375,
+      "max_spread": 0.07429889433942394,
+      "change": 0.3971212271580822
+    },
+    {
+      "backend": "rust-avx2",
+      "case": "32x16-1048576-4-generic_some",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.013479042619880532,
+      "b_drift": 0.02117750098837179,
+      "max_spread": 0.04865772333255591,
+      "change": 0.012094371875480903
+    },
+    {
+      "backend": "rust-avx512",
+      "case": "10x4-65536-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.017383639688939967,
+      "b_drift": 0.014121930046738784,
+      "max_spread": 0.001966546885809357,
+      "change": -0.039759471617991426
+    },
+    {
+      "backend": "rust-avx512",
+      "case": "32x16-65536-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.001430976706811915,
+      "b_drift": 0.00384374368025564,
+      "max_spread": 0.006485921496326382,
+      "change": 0.06447228113889203
+    },
+    {
+      "backend": "rust-avx512",
+      "case": "10x4-1048576-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.004235685278551227,
+      "b_drift": 0.0006255274096522712,
+      "max_spread": 0.006879870676864848,
+      "change": 0.1143455922446186
+    },
+    {
+      "backend": "rust-avx512",
+      "case": "32x16-1048576-1-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.03261728794131802,
+      "b_drift": 0.010163368620200175,
+      "max_spread": 0.03951354516136856,
+      "change": 0.0018941699981374072
+    },
+    {
+      "backend": "rust-avx512",
+      "case": "32x16-1048576-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.004849548698436568,
+      "b_drift": 0.045612874283835536,
+      "max_spread": 0.030136921289212897,
+      "change": 0.5328077898291756
+    },
+    {
+      "backend": "rust-avx512",
+      "case": "32x16-1048576-4-generic_some",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.005046606927843644,
+      "b_drift": 0.009862186588933453,
+      "max_spread": 0.03718308118477056,
+      "change": 0.0368217203157688
+    },
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "10x4-65536-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.010855183388476464,
+      "b_drift": 0.024727248080806286,
+      "max_spread": 0.0021975589044978313,
+      "change": -0.09081730803534926
+    },
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "32x16-65536-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.007742518057997527,
+      "b_drift": 0.007493816425411914,
+      "max_spread": 0.005005584602406945,
+      "change": -0.07031895063265914
+    },
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "10x4-1048576-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.0004512245008840843,
+      "b_drift": 0.0005155731361206062,
+      "max_spread": 0.0007608845717577385,
+      "change": 0.026230893595632132
+    },
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "32x16-1048576-1-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.007485693751940081,
+      "b_drift": 0.01782769568987841,
+      "max_spread": 0.03903009955750261,
+      "change": -0.09974579476699319
+    },
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "32x16-1048576-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.01673218746395455,
+      "b_drift": 0.010900412527079961,
+      "max_spread": 0.02901288899513382,
+      "change": 0.21964398609758695
+    },
+    {
+      "backend": "rust-gfni-avx2",
+      "case": "32x16-1048576-4-generic_some",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.004430882998397667,
+      "b_drift": 0.044764439069086004,
+      "max_spread": 0.04874975268232954,
+      "change": -0.07394553008035376
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "10x4-65536-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.006814499587997069,
+      "b_drift": 0.012871524519187827,
+      "max_spread": 0.004264552176513505,
+      "change": -0.002041666498751593
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "32x16-65536-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.03541920833823431,
+      "b_drift": 0.0008529282857537845,
+      "max_spread": 0.0007945340671691115,
+      "change": 0.08848494172939136
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "10x4-1048576-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.0008495059875379685,
+      "b_drift": 0.005340886136132594,
+      "max_spread": 0.002656913887809791,
+      "change": 0.1710202739588702
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "32x16-1048576-1-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.007984969705330691,
+      "b_drift": 0.002173242740324821,
+      "max_spread": 0.034258518414011806,
+      "change": -0.021062419519838005
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "32x16-1048576-2-generic_data",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.00809179292142248,
+      "b_drift": 0.009239403837648208,
+      "max_spread": 0.014221579793675249,
+      "change": 0.5133932118551967
+    },
+    {
+      "backend": "rust-gfni-avx512",
+      "case": "32x16-1048576-4-generic_some",
+      "mode": "candidate",
+      "valid": true,
+      "a_drift": 0.010534291670135199,
+      "b_drift": 0.014171801563444442,
+      "max_spread": 0.00924242601607504,
+      "change": 0.01622789364679056
+    }
+  ],
+  "stability_failures": []
+}
