@@ -1,0 +1,131 @@
+diff --git a/src/galois_8/x86/gfni_rows.rs b/src/galois_8/x86/gfni_rows.rs
+index 63763caa..9520b3ac 100644
+--- a/src/galois_8/x86/gfni_rows.rs
++++ b/src/galois_8/x86/gfni_rows.rs
+@@ -11,0 +12 @@ type DotFn = unsafe fn(&[u8], &[&[u8]], &mut [u8], usize);
++type DotPairFn = unsafe fn(&[u8], &[u8], &[&[u8]], &mut [u8], &mut [u8], usize);
+@@ -16,0 +18 @@ pub(crate) struct SelectedRowKernel {
++    pair: DotPairFn,
+@@ -24,0 +27 @@ impl SelectedRowKernel {
++                pair: dot_pair_avx2,
+@@ -28,0 +32 @@ impl SelectedRowKernel {
++                pair: dot_pair_avx512,
+@@ -81,0 +86,16 @@ impl SelectedRowKernel {
++            if outputs.len() == 2 {
++                let (left, right) = outputs.split_at_mut(1);
++                // SAFETY: all dimensions and bounds were validated above; the
++                // split guarantees disjoint output slices and selection ensures ISA.
++                unsafe {
++                    (self.pair)(
++                        rows[0],
++                        rows[1],
++                        inputs,
++                        &mut left[0][start..end],
++                        &mut right[0][start..end],
++                        start,
++                    )
++                };
++                continue;
++            }
+@@ -263,0 +284,78 @@ macro_rules! dot_kernel {
++macro_rules! dot_pair_kernel {
++    ($name:ident, $features:literal, $width:literal, $zero:ident, $load:ident,
++     $broadcast:ident, $affine:ident, $xor:ident, $store:ident) => {
++        /// # Safety
++        /// The declared ISA is available; both rows match the inputs, input
++        /// ranges cover the output span and the output slices are disjoint.
++        #[target_feature(enable = $features)]
++        unsafe fn $name(
++            row0: &[u8],
++            row1: &[u8],
++            inputs: &[&[u8]],
++            out0: &mut [u8],
++            out1: &mut [u8],
++            start: usize,
++        ) {
++            let done = out0.len() / $width * $width;
++            for offset in (0..done).step_by($width) {
++                let mut a = $zero();
++                let mut b = $zero();
++                for ((&c0, &c1), input) in row0.iter().zip(row1).zip(inputs) {
++                    if c0 == 0 && c1 == 0 {
++                        continue;
++                    }
++                    // SAFETY: caller validated the input range and target ISA.
++                    let x = unsafe { $load(input.as_ptr().add(start + offset).cast()) };
++                    if c0 != 0 {
++                        let y = if c0 == 1 {
++                            x
++                        } else {
++                            $affine::<0>(x, $broadcast(GFNI_MULTIPLY_MATRICES[c0 as usize]))
++                        };
++                        a = $xor(a, y);
++                    }
++                    if c1 != 0 {
++                        let y = if c1 == 1 {
++                            x
++                        } else {
++                            $affine::<0>(x, $broadcast(GFNI_MULTIPLY_MATRICES[c1 as usize]))
++                        };
++                        b = $xor(b, y);
++                    }
++                }
++                // SAFETY: each store is inside its disjoint validated output.
++                unsafe {
++                    $store(out0.as_mut_ptr().add(offset).cast(), a);
++                    $store(out1.as_mut_ptr().add(offset).cast(), b);
++                }
++            }
++            if done < out0.len() {
++                scalar_tail(row0, inputs, &mut out0[done..], start + done);
++                scalar_tail(row1, inputs, &mut out1[done..], start + done);
++            }
++        }
++    };
++}
++dot_pair_kernel!(
++    dot_pair_avx2,
++    "gfni,avx2",
++    32,
++    _mm256_setzero_si256,
++    _mm256_loadu_si256,
++    _mm256_set1_epi64x,
++    _mm256_gf2p8affine_epi64_epi8,
++    _mm256_xor_si256,
++    _mm256_storeu_si256
++);
++dot_pair_kernel!(
++    dot_pair_avx512,
++    "gfni,avx512f,avx512bw",
++    64,
++    _mm512_setzero_si512,
++    _mm512_loadu_si512,
++    _mm512_set1_epi64,
++    _mm512_gf2p8affine_epi64_epi8,
++    _mm512_xor_si512,
++    _mm512_storeu_si512
++);
++
+diff --git a/src/galois_8/x86/gfni_rows/tests.rs b/src/galois_8/x86/gfni_rows/tests.rs
+index 6f9f73c5..b1073113 100644
+--- a/src/galois_8/x86/gfni_rows/tests.rs
++++ b/src/galois_8/x86/gfni_rows/tests.rs
+@@ -103 +103 @@ fn native_gfni_rows_match_scalar_across_coefficients_groups_offsets_and_tails()
+-            for p in [1, 4] {
++            for p in [1, 2, 4] {
+@@ -116,0 +117 @@ fn native_gfni_rows_match_scalar_across_coefficients_groups_offsets_and_tails()
++            compare(kernel, 4, 2, 257, true, 64, c);
+@@ -186,0 +188,11 @@ fn row_execution_rejects_complete_invalid_views_before_any_write() {
++    unsafe fn overwrite_pair(
++        _: &[u8],
++        _: &[u8],
++        _: &[&[u8]],
++        a: &mut [u8],
++        b: &mut [u8],
++        _: usize,
++    ) {
++        a.fill(0);
++        b.fill(0);
++    }
+@@ -188,0 +201 @@ fn row_execution_rejects_complete_invalid_views_before_any_write() {
++        pair: overwrite_pair,
