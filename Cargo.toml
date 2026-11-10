@@ -28,10 +28,10 @@ rustfs-erasure-codec = { version = "9.1.0", path = "." }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = { version = "1.0.154", features = ["float_roundtrip"] }
 sha2 = "0.11.1"
-smallvec = "1.16.4"
+smallvec = "1.16.5"
 spin = { version = "0.12.3", default-features = false, features = ["once", "spin_mutex"] }
-toml = "1.1.8"
-wasm-bindgen = "0.2.129"
+toml = "1.2.1"
+wasm-bindgen = "0.2.130"
 
 # CI lint baseline (rustfs/backlog#1237, #1243). Members opt in via `[lints] workspace = true`.
 # `undocumented_unsafe_blocks` is enabled (#1243); `missing_docs` is still staged.
