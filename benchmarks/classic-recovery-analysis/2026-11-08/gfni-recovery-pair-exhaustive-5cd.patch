@@ -1,0 +1,392 @@
+diff --git a/src/core/encode.rs b/src/core/encode.rs
+index 68055262..b03617f9 100644
+--- a/src/core/encode.rs
++++ b/src/core/encode.rs
+@@ -346,0 +347,20 @@ impl<F: Field> ReedSolomon<F> {
++    ) -> bool {
++        Self::try_gfni_rows_inner::<false, _, _>(
++            kernel,
++            matrix_rows,
++            inputs,
++            outputs,
++            shard_len,
++            chunk_len,
++        )
++    }
++
++    #[cfg(rse_x86_gfni)]
++    #[inline(never)]
++    fn try_gfni_rows_inner<const RECOVERY: bool, T: AsRef<[F::Elem]>, U: AsMut<[F::Elem]>>(
++        kernel: crate::galois_8::x86::gfni_rows::SelectedRowKernel,
++        matrix_rows: &(impl MatrixRows<F::Elem> + ?Sized),
++        inputs: &[T],
++        outputs: &mut [U],
++        shard_len: usize,
++        chunk_len: usize,
+@@ -363,3 +383,9 @@ impl<F: Field> ReedSolomon<F> {
+-        kernel
+-            .execute(&rows, &views.data, &mut views.parity, shard_len, chunk_len)
+-            .is_ok()
++        if RECOVERY {
++            kernel
++                .execute_recovery(&rows, &views.data, &mut views.parity, shard_len, chunk_len)
++                .is_ok()
++        } else {
++            kernel
++                .execute(&rows, &views.data, &mut views.parity, shard_len, chunk_len)
++                .is_ok()
++        }
+@@ -427,0 +454,43 @@ impl<F: Field> ReedSolomon<F> {
++    // Experimental recovery-only route; the shared encoder keeps its original
++    // row-by-row path. Restricted to the validated two-output GFNI shape.
++    #[cfg(all(feature = "std", not(feature = "experimental-pr1-kernels")))]
++    pub(crate) fn code_recovery_pair<T: AsRef<[F::Elem]>, U: AsMut<[F::Elem]>>(
++        &self,
++        matrix_rows: &(impl MatrixRows<F::Elem> + ?Sized),
++        inputs: &[T],
++        outputs: &mut [U],
++    ) {
++        #[cfg(rse_x86_gfni)]
++        {
++            let shard_len = inputs.first().map_or(0, |input| input.as_ref().len());
++            if F::ORDER == 256
++                && inputs.len() == self.data_shard_count()
++                && outputs.len() == 2
++                && matrix_rows.len() == 2
++                && let Some(kernel) = crate::galois_8::x86::gfni_rows::SelectedRowKernel::select(
++                    inputs.len(),
++                    2,
++                    shard_len,
++                )
++                && Self::try_gfni_rows_inner::<true, _, _>(
++                    kernel,
++                    matrix_rows,
++                    inputs,
++                    outputs,
++                    shard_len,
++                    self.code_chunk_len(shard_len),
++                )
++            {
++                self.runtime_profile_metrics.record_code_some(
++                    false,
++                    shard_len,
++                    inputs.len(),
++                    outputs.len(),
++                    self.code_chunk_len(shard_len),
++                );
++                return;
++            }
++        }
++        self.code_some_slices(matrix_rows, inputs, outputs);
++    }
++
+diff --git a/src/core/reconstruct.rs b/src/core/reconstruct.rs
+index 314cac3b..a3eacb7e 100644
+--- a/src/core/reconstruct.rs
++++ b/src/core/reconstruct.rs
+@@ -216 +216 @@ impl<F: Field> ReedSolomon<F> {
+-            self.code_some_slices_chunked(matrix_rows, inputs, outputs);
++            self.code_recovery_pair(matrix_rows, inputs, outputs);
+@@ -263 +263 @@ impl<F: Field> ReedSolomon<F> {
+-            self.code_some_slices(rows, inputs, outputs);
++            self.code_recovery_pair(rows, inputs, outputs);
+diff --git a/src/galois_8/x86/gfni_rows.rs b/src/galois_8/x86/gfni_rows.rs
+index 63763caa..e7ff6596 100644
+--- a/src/galois_8/x86/gfni_rows.rs
++++ b/src/galois_8/x86/gfni_rows.rs
+@@ -11,0 +12 @@ type DotFn = unsafe fn(&[u8], &[&[u8]], &mut [u8], usize);
++type DotPairFn = unsafe fn(&[u8], &[u8], &[&[u8]], &mut [u8], &mut [u8], usize);
+@@ -16,0 +18 @@ pub(crate) struct SelectedRowKernel {
++    pair: DotPairFn,
+@@ -24,0 +27 @@ impl SelectedRowKernel {
++                pair: dot_pair_avx2,
+@@ -28,0 +32 @@ impl SelectedRowKernel {
++                pair: dot_pair_avx512,
+@@ -57,0 +62,24 @@ impl SelectedRowKernel {
++    ) -> Result<(), Error> {
++        self.execute_inner(rows, inputs, outputs, shard_len, chunk_len, false)
++    }
++
++    pub(crate) fn execute_recovery(
++        self,
++        rows: &[&[u8]],
++        inputs: &[&[u8]],
++        outputs: &mut [&mut [u8]],
++        shard_len: usize,
++        chunk_len: usize,
++    ) -> Result<(), Error> {
++        self.execute_inner(rows, inputs, outputs, shard_len, chunk_len, true)
++    }
++
++    #[inline]
++    fn execute_inner(
++        self,
++        rows: &[&[u8]],
++        inputs: &[&[u8]],
++        outputs: &mut [&mut [u8]],
++        shard_len: usize,
++        chunk_len: usize,
++        recovery: bool,
+@@ -81,0 +110,16 @@ impl SelectedRowKernel {
++            if recovery && outputs.len() == 2 {
++                let (left, right) = outputs.split_at_mut(1);
++                // SAFETY: all dimensions and bounds were validated above; the
++                // split guarantees disjoint output slices and selection ensures ISA.
++                unsafe {
++                    (self.pair)(
++                        rows[0],
++                        rows[1],
++                        inputs,
++                        &mut left[0][start..end],
++                        &mut right[0][start..end],
++                        start,
++                    )
++                };
++                continue;
++            }
+@@ -263,0 +308,78 @@ macro_rules! dot_kernel {
++macro_rules! dot_pair_kernel {
++    ($name:ident, $features:literal, $width:literal, $zero:ident, $load:ident,
++     $broadcast:ident, $affine:ident, $xor:ident, $store:ident) => {
++        /// # Safety
++        /// The declared ISA is available; both rows match the inputs, input
++        /// ranges cover the output span and the output slices are disjoint.
++        #[target_feature(enable = $features)]
++        unsafe fn $name(
++            row0: &[u8],
++            row1: &[u8],
++            inputs: &[&[u8]],
++            out0: &mut [u8],
++            out1: &mut [u8],
++            start: usize,
++        ) {
++            let done = out0.len() / $width * $width;
++            for offset in (0..done).step_by($width) {
++                let mut a = $zero();
++                let mut b = $zero();
++                for ((&c0, &c1), input) in row0.iter().zip(row1).zip(inputs) {
++                    if c0 == 0 && c1 == 0 {
++                        continue;
++                    }
++                    // SAFETY: caller validated the input range and target ISA.
++                    let x = unsafe { $load(input.as_ptr().add(start + offset).cast()) };
++                    if c0 != 0 {
++                        let y = if c0 == 1 {
++                            x
++                        } else {
++                            $affine::<0>(x, $broadcast(GFNI_MULTIPLY_MATRICES[c0 as usize]))
++                        };
++                        a = $xor(a, y);
++                    }
++                    if c1 != 0 {
++                        let y = if c1 == 1 {
++                            x
++                        } else {
++                            $affine::<0>(x, $broadcast(GFNI_MULTIPLY_MATRICES[c1 as usize]))
++                        };
++                        b = $xor(b, y);
++                    }
++                }
++                // SAFETY: each store is inside its disjoint validated output.
++                unsafe {
++                    $store(out0.as_mut_ptr().add(offset).cast(), a);
++                    $store(out1.as_mut_ptr().add(offset).cast(), b);
++                }
++            }
++            if done < out0.len() {
++                scalar_tail(row0, inputs, &mut out0[done..], start + done);
++                scalar_tail(row1, inputs, &mut out1[done..], start + done);
++            }
++        }
++    };
++}
++dot_pair_kernel!(
++    dot_pair_avx2,
++    "gfni,avx2",
++    32,
++    _mm256_setzero_si256,
++    _mm256_loadu_si256,
++    _mm256_set1_epi64x,
++    _mm256_gf2p8affine_epi64_epi8,
++    _mm256_xor_si256,
++    _mm256_storeu_si256
++);
++dot_pair_kernel!(
++    dot_pair_avx512,
++    "gfni,avx512f,avx512bw",
++    64,
++    _mm512_setzero_si512,
++    _mm512_loadu_si512,
++    _mm512_set1_epi64,
++    _mm512_gf2p8affine_epi64_epi8,
++    _mm512_xor_si512,
++    _mm512_storeu_si512
++);
++
+diff --git a/src/galois_8/x86/gfni_rows/tests.rs b/src/galois_8/x86/gfni_rows/tests.rs
+index 6f9f73c5..4b1f40d3 100644
+--- a/src/galois_8/x86/gfni_rows/tests.rs
++++ b/src/galois_8/x86/gfni_rows/tests.rs
+@@ -53 +53 @@ fn compare(
+-        .execute(&row_refs, &inputs, &mut views, len, chunk)
++        .execute_recovery(&row_refs, &inputs, &mut views, len, chunk)
+@@ -103 +103 @@ fn native_gfni_rows_match_scalar_across_coefficients_groups_offsets_and_tails()
+-            for p in [1, 4] {
++            for p in [1, 2, 4] {
+@@ -116,0 +117 @@ fn native_gfni_rows_match_scalar_across_coefficients_groups_offsets_and_tails()
++            compare(kernel, 4, 2, 257, true, 64, c);
+@@ -186,0 +188,11 @@ fn row_execution_rejects_complete_invalid_views_before_any_write() {
++    unsafe fn overwrite_pair(
++        _: &[u8],
++        _: &[u8],
++        _: &[&[u8]],
++        a: &mut [u8],
++        b: &mut [u8],
++        _: usize,
++    ) {
++        a.fill(0);
++        b.fill(0);
++    }
+@@ -188,0 +201 @@ fn row_execution_rejects_complete_invalid_views_before_any_write() {
++        pair: overwrite_pair,
+@@ -237,0 +251,140 @@ fn row_execution_rejects_complete_invalid_views_before_any_write() {
++
++#[test]
++fn paired_kernel_is_restricted_to_recovery() {
++    unsafe fn row(_: &[u8], _: &[&[u8]], output: &mut [u8], _: usize) {
++        output.fill(0x11);
++    }
++    unsafe fn pair(_: &[u8], _: &[u8], _: &[&[u8]], first: &mut [u8], second: &mut [u8], _: usize) {
++        first.fill(0x22);
++        second.fill(0x33);
++    }
++    let kernel = SelectedRowKernel {
++        code: row,
++        pair,
++        width: 1,
++    };
++    let input = [0u8; 16];
++    let inputs = [&input[..]; 4];
++    let row_data = [1u8; 4];
++    let rows = [&row_data[..]; 2];
++    let mut first = [0u8; 16];
++    let mut second = [0u8; 16];
++    kernel
++        .execute(&rows, &inputs, &mut [&mut first, &mut second], 16, 8)
++        .unwrap();
++    assert_eq!(first, [0x11; 16]);
++    assert_eq!(second, [0x11; 16]);
++    kernel
++        .execute_recovery(&rows, &inputs, &mut [&mut first, &mut second], 16, 8)
++        .unwrap();
++    assert_eq!(first, [0x22; 16]);
++    assert_eq!(second, [0x33; 16]);
++}
++
++#[test]
++fn paired_recovery_rejects_invalid_input_before_writing() {
++    unsafe fn row(_: &[u8], _: &[&[u8]], output: &mut [u8], _: usize) {
++        output.fill(0);
++    }
++    unsafe fn pair(_: &[u8], _: &[u8], _: &[&[u8]], first: &mut [u8], second: &mut [u8], _: usize) {
++        first.fill(0);
++        second.fill(0);
++    }
++    let kernel = SelectedRowKernel {
++        code: row,
++        pair,
++        width: 1,
++    };
++    let good = [1u8; 16];
++    let short = [1u8; 15];
++    let inputs = [&good[..], &good[..], &good[..], &short[..]];
++    let row_data = [1u8; 4];
++    let rows = [&row_data[..]; 2];
++    let mut a = [0xa5; 16];
++    let mut b = [0xa5; 16];
++    assert!(
++        kernel
++            .execute_recovery(&rows, &inputs, &mut [&mut a, &mut b], 16, 8)
++            .is_err()
++    );
++    assert_eq!(a, [0xa5; 16]);
++    assert_eq!(b, [0xa5; 16]);
++}
++
++#[cfg(feature = "std")]
++#[test]
++fn paired_recovery_matches_scalar_for_all_coefficient_pairs() {
++    let data: Vec<Vec<u8>> = (0..4)
++        .map(|j| (0..67).map(|i| (j * 67 + i * 31 + 13) as u8).collect())
++        .collect();
++    let inputs: Vec<&[u8]> = data.iter().map(|v| &v[1..66]).collect();
++    let rows0: Vec<Vec<u8>> = (0..=u8::MAX).map(|c| vec![c, 1, 0x9a, 0]).collect();
++    let rows1: Vec<Vec<u8>> = (0..=u8::MAX).map(|c| vec![0, c, 1, 0x9a]).collect();
++    let oracle = |rows: &[Vec<u8>]| -> Vec<Vec<u8>> {
++        rows.iter()
++            .map(|row| {
++                (0..65)
++                    .map(|index| {
++                        row.iter()
++                            .zip(&inputs)
++                            .fold(0, |sum, (&coefficient, input)| {
++                                sum ^ super::super::super::mul(coefficient, input[index])
++                            })
++                    })
++                    .collect()
++            })
++            .collect()
++    };
++    let expected0 = oracle(&rows0);
++    let expected1 = oracle(&rows1);
++    let mut exercised = 0;
++    for (supported, backend) in [
++        (
++            std::is_x86_feature_detected!("gfni") && std::is_x86_feature_detected!("avx2"),
++            BackendId::RustGfniAvx2,
++        ),
++        (
++            std::is_x86_feature_detected!("gfni")
++                && std::is_x86_feature_detected!("avx512f")
++                && std::is_x86_feature_detected!("avx512bw"),
++            BackendId::RustGfniAvx512,
++        ),
++    ] {
++        if !supported {
++            continue;
++        }
++        exercised += 1;
++        let kernel = SelectedRowKernel::from_backend(backend).unwrap();
++        let mut out0 = [0xa5; 67];
++        let mut out1 = [0xa5; 67];
++        for c0 in 0..=u8::MAX {
++            for c1 in 0..=u8::MAX {
++                let rows = [rows0[c0 as usize].as_slice(), rows1[c1 as usize].as_slice()];
++                kernel
++                    .execute_recovery(
++                        &rows,
++                        &inputs,
++                        &mut [&mut out0[1..66], &mut out1[1..66]],
++                        65,
++                        65,
++                    )
++                    .unwrap();
++                assert_eq!(
++                    &out0[1..66],
++                    expected0[c0 as usize],
++                    "{backend:?} c0={c0} c1={c1}"
++                );
++                assert_eq!(
++                    &out1[1..66],
++                    expected1[c1 as usize],
++                    "{backend:?} c0={c0} c1={c1}"
++                );
++                assert_eq!(
++                    (out0[0], out0[66], out1[0], out1[66]),
++                    (0xa5, 0xa5, 0xa5, 0xa5)
++                );
++            }
++        }
++    }
++    eprintln!("GFNI paired coefficient test executed on {exercised} supported backends");
++}
