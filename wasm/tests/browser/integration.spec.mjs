@@ -45,10 +45,18 @@ test("real browser matches the complete fixed 4+2 parity vector", async ({ page 
     });
 });
 
+test("real browser alternating layouts survive eviction and invalid calls", async ({ page }) => {
+    await page.evaluate(async () => {
+        const { ReedSolomonErasure } = await import("/dist/src/index.js");
+        const { exerciseAlternatingLayouts } = await import("/tests/scenarios.mjs");
+        exerciseAlternatingLayouts(await ReedSolomonErasure.fromCurrentDirectory());
+    });
+});
+
 test("real browser factories isolate concurrent initialization and failed later inputs", async ({ page }) => {
     await page.evaluate(async () => {
         const { ReedSolomonErasure } = await import("/dist/src/index.js");
-        const { check, codecMemory, exerciseRoundTrip } = await import("/tests/scenarios.mjs");
+        const { check, codecMemory, exerciseAlternatingLayouts, exerciseRoundTrip } = await import("/tests/scenarios.mjs");
         const url = "/dist/generated/rustfs_erasure_codec_bg.wasm";
         const bytes = await (await fetch(url)).arrayBuffer();
         const codecs = [ReedSolomonErasure.fromBytes(bytes), ...await Promise.all([
@@ -71,6 +79,9 @@ test("real browser factories isolate concurrent initialization and failed later 
         } catch { rejected = true; }
         check(rejected, "asynchronous invalid module must reject");
         codecs.forEach((codec, seed) => exerciseRoundTrip(codec, { seed }));
+        exerciseAlternatingLayouts(codecs[0]);
+        exerciseAlternatingLayouts(codecs[1]);
+        codecs.forEach((codec, seed) => exerciseRoundTrip(codec, { seed: seed + 10 }));
     });
 });
 

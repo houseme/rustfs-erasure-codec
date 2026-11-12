@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { ReedSolomonErasure } from "../dist/src/index.js";
-import { codecMemory, exerciseGoldenVector, exerciseInputValidation, exerciseInvalidInputs, exerciseMemoryGrowth, exerciseRepeatedCalls, exerciseRoundTrip } from "./scenarios.mjs";
+import { codecMemory, exerciseAlternatingLayouts, exerciseGoldenVector, exerciseInputValidation, exerciseInvalidInputs, exerciseMemoryGrowth, exerciseRepeatedCalls, exerciseRoundTrip } from "./scenarios.mjs";
 
 const bytes = await readFile(new URL("../dist/generated/rustfs_erasure_codec_bg.wasm", import.meta.url));
 const response = () => new Response(bytes, { headers: { "Content-Type": "application/wasm" } });
@@ -56,6 +56,10 @@ test("repeated calls and valid maximum total shard count", () => {
     assert.ok(shards.every((byte) => byte === 19));
 });
 
+test("real WASM reuses alternating layouts and recovers after layout eviction and invalid calls", () => {
+    exerciseAlternatingLayouts(ReedSolomonErasure.fromBytes(bytes));
+});
+
 test("generated memory views refresh after explicit and allocator-driven growth", () => {
     exerciseMemoryGrowth(ReedSolomonErasure.fromBytes(bytes), bytes);
 });
@@ -71,6 +75,9 @@ test("synchronous and concurrent asynchronous factories own independent instance
     memories[0].grow(3);
     assert.equal(memories[1].buffer.byteLength, otherSize);
     codecs.forEach((codec, seed) => exerciseRoundTrip(codec, { seed }));
+    exerciseAlternatingLayouts(codecs[0]);
+    exerciseAlternatingLayouts(codecs[1]);
+    codecs.forEach((codec, seed) => exerciseRoundTrip(codec, { seed: seed + 10 }));
 });
 
 test("later invalid or incompatible modules cannot reuse a previous good instance", async () => {
