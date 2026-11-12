@@ -19,6 +19,11 @@ test("real WASM matches the complete fixed 4+2 parity vector", () => {
     exerciseGoldenVector(ReedSolomonErasure.fromBytes(bytes));
 });
 
+test("real WASM recovers wide sparse and dense erasure patterns", async () => {
+    const { exerciseWideRecovery } = await import("./scenarios.mjs");
+    exerciseWideRecovery(ReedSolomonErasure.fromBytes(bytes));
+});
+
 test("the independent oracle catches corruption in the last parity shard", () => {
     const codec = ReedSolomonErasure.fromBytes(bytes);
     const encode = codec.encode.bind(codec);

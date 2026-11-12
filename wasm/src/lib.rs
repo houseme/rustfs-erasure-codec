@@ -281,7 +281,8 @@ mod tests {
             assert!(memory.retained_bytes <= INVERSION_CACHE_BYTES);
         }
         let memory = codec.reconstruction_cache_memory();
-        assert!(memory.entries > 0 && memory.entries < INVERSION_CACHE_ENTRIES);
+        // Compact rows let all 64 sparse patterns fit within the byte budget.
+        assert_eq!(memory.entries, INVERSION_CACHE_ENTRIES);
     }
 
     #[test]
