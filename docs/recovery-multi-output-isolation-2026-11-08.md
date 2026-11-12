@@ -174,6 +174,14 @@ On an ARM64 host, `cargo test --locked --offline --all-features` completed with 
 
 Both previously authorized AMD servers timed out during this audit. No performance experiment or Intel test ran, no candidate performance conclusion was obtained, and no production dispatch was changed. Before adoption, run the exhaustive test on supported GFNI/AVX2 and GFNI/AVX-512 hardware, complete cross-version compatibility and encoding guards, and satisfy stable performance controls on the required processor coverage.
 
+## Current-lockfile recheck
+
+On 2026-11-12, main was `d991fecf663999a7a63a7f41461c405126af5984`. The recovery and GFNI source files touched by the exhaustive prototype were unchanged since its original base, and the archived zero-context patch still applied cleanly. The dependency manifest and lockfile had changed, including `smallvec`, `toml` and `wasm-bindgen`; previous binary and performance results therefore do not qualify the new build.
+
+In a separate clone of `d991fecf` with the complete prototype patch applied, Rust 1.99.1 `cargo test --locked --offline --all-features` completed on ARM64 with 736 passed, 43 ignored and 45 filtered across 77 result summaries, including doc tests. This does not execute x86 GFNI code. The x86-64 Linux test targets passed `cargo check --locked --offline -p rustfs-erasure-codec --tests --target x86_64-unknown-linux-gnu --features simd-accel` using Zig as the C cross-compiler; the x86-64 library also passed the same-target check with `--no-default-features --features simd-accel`. These are compile checks, not x86 executions. The host could not launch the x86-64 Darwin feature probe, so it did not supply substitute GFNI execution.
+
+Both previously authorized AMD servers timed out over SSH. The exhaustive two-row coefficient test was not executed on GFNI hardware, and no new performance comparison or Intel validation was performed. This recheck changes no production code and does not approve a release or a dispatch strategy.
+
 ## Compatibility coverage
 
 The [compatibility reports and output](../benchmarks/classic-recovery-analysis/2026-11-08/results/compatibility-11d/) cover the same two source revisions. The ARM logs are excerpts containing the final harness results; the JSON files record resource cases. On x86-64 the scalar, AVX2, AVX-512, GFNI/AVX2 and GFNI/AVX-512 backends each completed 200 exact parity and cross-decode cases, plus the harness's large GF8, 6+2 and small-block error-detection checks and 45 resource cases. On aarch64, scalar and NEON completed the same compatibility harness. The aarch64 checks were functional, not isolated performance measurements. All x86 tests used one AMD processor model; no Intel processor was tested.
