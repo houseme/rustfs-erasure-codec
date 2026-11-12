@@ -355,7 +355,7 @@ fn shapes(kind: Kind, data: &Value) -> Result<BTreeSet<String>> {
     }
     Ok(shapes)
 }
-fn source_unchanged(root: &Path, plan: &Value, names: &[&str]) -> Result<()> {
+fn source_unchanged(root: &Path, plan: &Value) -> Result<()> {
     let files = plan["files"].as_object().ok_or("invalid source plan")?;
     for (name, text) in files {
         if !fs::symlink_metadata(root.join(name))?.is_file()
@@ -365,7 +365,16 @@ fn source_unchanged(root: &Path, plan: &Value, names: &[&str]) -> Result<()> {
             return Err("diagnostic source changed during observation".into());
         }
     }
-    let names: BTreeSet<_> = names.iter().copied().collect();
+    let bindings = plan["bindings"]
+        .as_object()
+        .ok_or("invalid source bindings")?;
+    // Original bindings identify the tracked members for this source version.
+    // Generated observer modules have no original digest and remain untracked.
+    let names: BTreeSet<_> = bindings
+        .iter()
+        .filter(|(_, binding)| binding["original_sha256"].is_string())
+        .map(|(name, _)| name.as_str())
+        .collect();
     let changed = io::output(root, "git", &["diff", "--name-only"])?;
     if changed.lines().collect::<BTreeSet<_>>() != names {
         return Err("foreign tracked diagnostic source change".into());
@@ -464,7 +473,7 @@ pub(super) fn check(
             )?;
             let overlay = Overlay::generated(context, &root, files)?;
             if kind == Kind::Dynamic {
-                source_unchanged(&root, &plan, &kind.names())?;
+                source_unchanged(&root, &plan)?;
             }
             context.logged(
                 sampling::command(&root, &environment, &["--no-run"])?,
@@ -481,7 +490,7 @@ pub(super) fn check(
             }
             for step in steps.iter().filter(|s| s["role"] == role) {
                 if kind == Kind::Dynamic {
-                    source_unchanged(&root, &plan, &kind.names())?;
+                    source_unchanged(&root, &plan)?;
                     if env::source(repository)? != tool_source
                         || dynamic_context(repository, &environment)? != dynamic
                     {
@@ -918,6 +927,72 @@ fn declaration(name: &str, member: &Path, numeric: &Path, log: &Path) -> Result<
 mod tests {
     use super::*;
     use crate::artifact::snapshot::tests::Directory;
+
+    #[test]
+    fn dynamic_source_guard_accepts_every_bound_member_and_rejects_foreign_edits() {
+        let directory = Directory::new();
+        let root = &directory.0;
+        let original: BTreeMap<String, String> = Kind::Dynamic
+            .names()
+            .into_iter()
+            .chain([crate::diagnostics::dynamic::DECODE_MATRIX_SOURCE])
+            .map(|name| {
+                (
+                    name.into(),
+                    crate::diagnostics::source::read(tool().join(name)).unwrap(),
+                )
+            })
+            .collect();
+        for (name, text) in &original {
+            fs::create_dir_all(root.join(name).parent().unwrap()).unwrap();
+            fs::write(root.join(name), text).unwrap();
+        }
+        fs::write(root.join("foreign.txt"), "original\n").unwrap();
+        io::output(root, "git", &["init", "--quiet"]).unwrap();
+        io::output(root, "git", &["config", "core.autocrlf", "false"]).unwrap();
+        io::output(root, "git", &["add", "--force", "."]).unwrap();
+
+        let plan = source_plan(Kind::Dynamic, &original).unwrap();
+        let flag = std::sync::atomic::AtomicBool::new(false);
+        let context = Context::new(&flag);
+        let overlay = Overlay::source(
+            &context,
+            root,
+            original,
+            serde_json::from_value(plan["files"].clone()).unwrap(),
+        )
+        .unwrap();
+        source_unchanged(root, &plan).unwrap();
+
+        fs::write(root.join("foreign.txt"), "edited\n").unwrap();
+        assert!(source_unchanged(root, &plan).is_err());
+        fs::write(root.join("foreign.txt"), "original\n").unwrap();
+
+        let member = crate::diagnostics::dynamic::DECODE_MATRIX_SOURCE;
+        let mut stale = plan.clone();
+        stale["bindings"].as_object_mut().unwrap().remove(member);
+        assert!(source_unchanged(root, &stale).is_err());
+        fs::write(root.join(member), "edited observer\n").unwrap();
+        assert!(source_unchanged(root, &plan).is_err());
+        fs::write(root.join(member), plan["files"][member].as_str().unwrap()).unwrap();
+
+        let generated = "src/__rse_dynamic_buffers.rs";
+        fs::remove_file(root.join(generated)).unwrap();
+        assert!(source_unchanged(root, &plan).is_err());
+        fs::write(
+            root.join(generated),
+            plan["files"][generated].as_str().unwrap(),
+        )
+        .unwrap();
+        source_unchanged(root, &plan).unwrap();
+        overlay.finish().unwrap();
+        assert!(
+            io::output(root, "git", &["diff", "--name-only"])
+                .unwrap()
+                .is_empty()
+        );
+    }
+
     #[test]
     fn diagnostic_declarations_use_portable_relative_strings() {
         let directory = Directory::new();
