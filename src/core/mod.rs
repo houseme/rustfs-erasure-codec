@@ -3,6 +3,7 @@ extern crate alloc;
 #[cfg(feature = "std")]
 pub(crate) mod cache_detect;
 mod codec;
+mod decode_matrix;
 mod encode;
 mod format;
 mod inversion_cache;

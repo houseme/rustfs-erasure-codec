@@ -1,17 +1,18 @@
 extern crate alloc;
 
-use alloc::{sync::Arc, vec::Vec};
+use alloc::vec::Vec;
 
 use hashlink::LruCache;
 
-use crate::{Field, matrix::Matrix};
+use super::decode_matrix::DecodeMatrix;
+use crate::Field;
 
 pub(crate) const DEFAULT_INVERSION_CACHE_MAX_BYTES: usize = 8 * 1024 * 1024;
 
 /// Snapshot of Classic inverse-cache storage retained by one codec.
 ///
-/// `retained_bytes` accounts for matrix values (including inline storage),
-/// spilled matrix capacity and erasure-key capacity. It excludes the LRU's
+/// `retained_bytes` accounts for dense or compact inverse values (including
+/// inline storage), owned coefficient/index capacity and erasure-key capacity. It excludes the LRU's
 /// bookkeeping, Arc counters, allocator overhead and matrices kept alive by
 /// external reconstruction workspaces after eviction. The budget bounds this
 /// accounted storage; peak live memory can include those additional owners.
@@ -28,7 +29,7 @@ pub struct ReconstructionCacheMemory {
 
 #[derive(Debug)]
 struct CachedMatrix<F: Field> {
-    matrix: Arc<Matrix<F>>,
+    matrix: DecodeMatrix<F>,
     bytes: usize,
 }
 
@@ -54,11 +55,11 @@ impl<F: Field> InversionCache<F> {
         }
     }
 
-    pub(crate) fn get(&mut self, key: &[usize]) -> Option<&Arc<Matrix<F>>> {
+    pub(crate) fn get(&mut self, key: &[usize]) -> Option<&DecodeMatrix<F>> {
         self.entries.get(key).map(|entry| &entry.matrix)
     }
 
-    pub(crate) fn insert(&mut self, key: Vec<usize>, matrix: Arc<Matrix<F>>) -> CacheInsertion {
+    pub(crate) fn insert(&mut self, key: Vec<usize>, matrix: DecodeMatrix<F>) -> CacheInsertion {
         // Reject oversized entries before changing recency or dropping a useful
         // working set. Saturated accounting must also reject arithmetic overflow.
         let bytes = key
@@ -117,14 +118,14 @@ impl<F: Field> InversionCache<F> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::galois_8;
+    use crate::{galois_8, matrix::Matrix};
     use alloc::vec;
 
-    fn matrix(rows: usize) -> Arc<Matrix<galois_8::Field>> {
-        Arc::new(Matrix::new(rows, rows))
+    fn matrix(rows: usize) -> DecodeMatrix<galois_8::Field> {
+        DecodeMatrix::dense(Matrix::new(rows, rows))
     }
 
-    fn entry_bytes(matrix: &Matrix<galois_8::Field>, key: &Vec<usize>) -> usize {
+    fn entry_bytes(matrix: &DecodeMatrix<galois_8::Field>, key: &Vec<usize>) -> usize {
         matrix.retained_bytes() + key.capacity() * core::mem::size_of::<usize>()
     }
 
@@ -154,7 +155,7 @@ mod tests {
         let result = cache.insert(vec![1], matrix(64));
         assert!(!result.inserted);
         assert_eq!(result.evictions, 0);
-        assert!(Arc::ptr_eq(cache.get(&[0]).unwrap(), &small));
+        assert!(cache.get(&[0]).unwrap().ptr_eq(&small));
         assert_eq!(cache.memory().retained_bytes, bytes);
     }
 
@@ -172,7 +173,7 @@ mod tests {
         assert_eq!(result.evictions, 0);
         assert_eq!(cache.memory().entries, 1);
         assert_eq!(cache.memory().retained_bytes, new_bytes);
-        assert!(Arc::ptr_eq(cache.get(&[0]).unwrap(), &new));
+        assert!(cache.get(&[0]).unwrap().ptr_eq(&new));
     }
 
     #[test]
@@ -182,5 +183,29 @@ mod tests {
         assert_eq!(cache.insert(vec![1], matrix(4)).evictions, 1);
         assert_eq!(cache.memory().entries, 1);
         assert!(cache.get(&[0]).is_none());
+    }
+
+    #[test]
+    fn compact_storage_charges_capacity_and_keeps_cloned_owners_alive_after_eviction() {
+        let mut coefficients = Vec::with_capacity(256);
+        coefficients.resize(64, 7u8);
+        let compact = DecodeMatrix::<galois_8::Field>::compact(64, &[0], coefficients);
+        let bytes = entry_bytes(&compact, &vec![0]);
+        let mut smaller = Vec::with_capacity(64);
+        smaller.resize(64, 7u8);
+        let exact = DecodeMatrix::<galois_8::Field>::compact(64, &[0], smaller);
+        assert_eq!(compact.retained_bytes() - exact.retained_bytes(), 192);
+        assert!(compact.retained_bytes() < matrix(64).retained_bytes());
+
+        let mut cache = InversionCache::new(1, bytes);
+        cache.insert(vec![0], compact.clone());
+        assert_eq!(cache.memory().retained_bytes, bytes);
+        let replacement = DecodeMatrix::<galois_8::Field>::compact(64, &[1], vec![9; 64]);
+        assert_eq!(cache.insert(vec![1], replacement).evictions, 1);
+        assert!(cache.get(&[0]).is_none());
+        assert_eq!(compact.missing_row(0), &[7; 64]);
+        assert_eq!(compact.get(1, 0), 1);
+        assert_eq!(compact.get(1, 1), 0);
+        assert_eq!(cache.memory().retained_bytes, entry_bytes(&exact, &vec![1]));
     }
 }

@@ -187,6 +187,8 @@ impl Event {
         if !matches!(
             self.role.as_str(),
             "matrix"
+                | "decode_coefficients"
+                | "decode_missing"
                 | "source"
                 | "scratch"
                 | "dynamic"
@@ -375,8 +377,16 @@ impl Ledger {
                 }
                 Kind::View => {
                     v.view(&contract, &mut faults[thread], native)?;
-                    payload_views += u64::from(v.role != "matrix");
-                    matrix_views += u64::from(v.role == "matrix" && v.region == Region::Decode);
+                    payload_views += u64::from(!matches!(
+                        v.role.as_str(),
+                        "matrix" | "decode_coefficients" | "decode_missing"
+                    ));
+                    // A compact coefficient span represents one logical decode
+                    // matrix; its accompanying indices are checked as metadata.
+                    matrix_views += u64::from(
+                        matches!(v.role.as_str(), "matrix" | "decode_coefficients")
+                            && v.region == Region::Decode,
+                    );
                     if let Some(ident) = v.allocation {
                         let old = live
                             .get(&ident)

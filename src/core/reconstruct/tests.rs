@@ -183,17 +183,116 @@ fn matches_full_inverse<F: Field>(codec: &crate::ReedSolomon<F>, valid: &[usize]
     let expected = selected.invert().map_err(|_| Error::InvalidCustomMatrix);
     match (codec.build_data_decode_matrix(valid), expected) {
         (Ok(actual), Ok(expected)) => {
+            assert_eq!(actual.row_count(), n);
             for row in 0..n {
-                assert_eq!(
-                    actual.get_row(row),
-                    expected.get_row(row),
-                    "survivors {valid:?}"
-                );
+                for column in 0..n {
+                    assert_eq!(
+                        actual.get(row, column),
+                        expected.get(row, column),
+                        "survivors {valid:?}, row {row}, column {column}"
+                    );
+                }
             }
         }
         (Err(actual), Err(expected)) => assert_eq!(actual, expected),
         _ => panic!("different singularity result for survivors {valid:?}"),
     }
+}
+
+#[test]
+fn wide_sparse_inverse_matches_dense_reference_at_storage_boundaries() {
+    fn check<F: Field>() {
+        for data in [63, 64, 65, 128, 240] {
+            let codec = crate::ReedSolomon::<F>::with_options(
+                data,
+                8,
+                CodecOptions::builder()
+                    .matrix_mode(MatrixMode::Cauchy)
+                    .build(),
+            )
+            .unwrap();
+            for count in [0, 1, 2, 4, 5] {
+                for at_end in [false, true] {
+                    let start = if at_end { data - count } else { 0 };
+                    let missing = start..start + count;
+                    let valid: Vec<_> = (0..data + 8)
+                        .filter(|index| !missing.contains(index))
+                        .take(data)
+                        .collect();
+                    let inverse = codec.build_data_decode_matrix(&valid).unwrap();
+                    assert_eq!(
+                        matches!(inverse, DecodeMatrix::Compact(_)),
+                        data >= 64 && (1..=4).contains(&count),
+                        "data={data} missing={count} at_end={at_end}"
+                    );
+                    for index in missing {
+                        let row = inverse.missing_row(index);
+                        assert_eq!(row.len(), data);
+                        for (column, &value) in row.iter().enumerate() {
+                            assert_eq!(value, inverse.get(index, column));
+                        }
+                    }
+                    matches_full_inverse(&codec, &valid);
+                }
+            }
+        }
+    }
+    check::<galois_8::Field>();
+    check::<galois_16::Field>();
+}
+
+#[test]
+fn compact_custom_inverse_keeps_singularity_and_nonadjacent_unit_columns() {
+    fn check<F: Field>() {
+        let data = 64;
+        let codec = crate::ReedSolomon::<F>::with_custom_matrix(
+            data,
+            4,
+            &vec![vec![F::one(); data]; 4],
+            CodecOptions::default(),
+        )
+        .unwrap();
+        for missing in [vec![0], vec![31], vec![63], vec![0, 63], vec![11, 32, 63]] {
+            let valid: Vec<_> = (0..68)
+                .filter(|index| !missing.contains(index))
+                .take(data)
+                .collect();
+            matches_full_inverse(&codec, &valid);
+        }
+
+        let codec = crate::ReedSolomon::<F>::with_options(
+            data,
+            8,
+            CodecOptions::builder()
+                .matrix_mode(MatrixMode::Cauchy)
+                .build(),
+        )
+        .unwrap();
+        let missing = [1, 17, 32, 62];
+        let valid: Vec<_> = (0..72)
+            .filter(|index| !missing.contains(index))
+            .take(data)
+            .collect();
+        matches_full_inverse(&codec, &valid);
+    }
+    check::<galois_8::Field>();
+    check::<galois_16::Field>();
+}
+
+#[test]
+fn compact_cached_inverse_shares_only_equivalent_selected_survivors() {
+    let codec = galois_8::ReedSolomon::new(64, 8).unwrap();
+    let valid: Vec<_> = (1..=64).collect();
+    let first = codec.get_data_decode_matrix(&valid, &[0]).unwrap();
+    assert!(matches!(first, DecodeMatrix::Compact(_)));
+    let trailing = codec.get_data_decode_matrix(&valid, &[0, 67, 69]).unwrap();
+    assert!(first.ptr_eq(&trailing));
+    let second_inputs: Vec<_> = (1..64).chain([65]).collect();
+    let second = codec
+        .get_data_decode_matrix(&second_inputs, &[0, 64])
+        .unwrap();
+    assert!(!first.ptr_eq(&second));
+    matches_full_inverse(&codec, &second_inputs);
 }
 
 fn all_small_survivors<F: Field>() {
@@ -441,7 +540,9 @@ mod reduced_work {
                     "systematic decode byte_rows={BYTE_ROWS} missing_start={start} products={products} dense_products={dense_products}"
                 );
                 for row in 0..32 {
-                    assert_eq!(actual.get_row(row), expected.get_row(row));
+                    for column in 0..32 {
+                        assert_eq!(actual.get(row, column), expected.get(row, column));
+                    }
                 }
             }
         }
@@ -466,7 +567,7 @@ fn cache_by_selected_survivors<F: Field>() {
                 .build(),
         )
         .unwrap();
-        let mut by_inputs = BTreeMap::<Vec<usize>, Arc<crate::matrix::Matrix<F>>>::new();
+        let mut by_inputs = BTreeMap::<Vec<usize>, DecodeMatrix<F>>::new();
         let mut patterns = 0;
         for mask in 0u16..256 {
             if mask.count_ones() < 4 {
@@ -493,19 +594,14 @@ fn cache_by_selected_survivors<F: Field>() {
             ) {
                 (Ok(actual), Ok(expected)) => {
                     for row in 0..4 {
-                        assert_eq!(actual.get_row(row), expected.get_row(row));
+                        for column in 0..4 {
+                            assert_eq!(actual.get(row, column), expected.get(row, column));
+                        }
                     }
                     if let Some(previous) = by_inputs.get(&valid) {
-                        assert!(
-                            Arc::ptr_eq(previous, &actual),
-                            "same inputs rebuilt: {valid:?}"
-                        );
+                        assert!(previous.ptr_eq(&actual), "same inputs rebuilt: {valid:?}");
                     } else {
-                        assert!(
-                            by_inputs
-                                .values()
-                                .all(|previous| !Arc::ptr_eq(previous, &actual))
-                        );
+                        assert!(by_inputs.values().all(|previous| !previous.ptr_eq(&actual)));
                         by_inputs.insert(valid, actual);
                     }
                 }
@@ -557,7 +653,7 @@ fn cached_survivors_do_not_hide_a_singular_custom_replacement() {
     let repeated = codec
         .get_data_decode_matrix(&[1, 2, 3, 4], &[0, 5, 6, 7])
         .unwrap();
-    assert!(Arc::ptr_eq(&warm, &repeated));
+    assert!(warm.ptr_eq(&repeated));
     let uncached = galois_8::ReedSolomon::with_options(
         4,
         4,
@@ -570,7 +666,7 @@ fn cached_survivors_do_not_hide_a_singular_custom_replacement() {
     let second = uncached
         .get_data_decode_matrix(&[1, 2, 3, 4], &[0, 5])
         .unwrap();
-    assert!(!Arc::ptr_eq(&first, &second));
+    assert!(!first.ptr_eq(&second));
 }
 
 #[test]

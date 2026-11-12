@@ -13,6 +13,7 @@ fn original(root: &Path, variant: &str) -> BTreeMap<String, String> {
             "src/galois_8/policy.rs",
         ]
         .into_iter()
+        .chain([dynamic::DECODE_MATRIX_SOURCE])
         .chain(super::super::leopard::FILES)
         .collect(),
     };
@@ -37,7 +38,7 @@ fn complete_plans_bind_generated_bytes_and_every_written_member() {
         (
             // Current production source, including bounded caches and parallel workspaces.
             "dynamic",
-            "d5962f91fae12d05c47eadd8abc28a0391ee7160ebb3318ba5b880bfeec74103",
+            "b077917cfc0ec35adffc75273fe0cb2dc679555b5132d593db7d408d60fead85",
         ),
     ] {
         let original = original(root, variant);
@@ -97,6 +98,48 @@ fn matrix_observer_accepts_one_known_scratch_shape_and_rejects_ambiguity() {
         super::super::dynamic::matrix(&current.replace(direct, &format!("{direct}\n{legacy}")))
             .is_err()
     );
+}
+
+#[test]
+fn compact_observer_binds_actual_stores_and_requires_its_original_member() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
+    let mut original = original(root, "dynamic");
+    let plan = Request {
+        variant: Variant::Dynamic,
+        original: original.clone(),
+        tool: root.into(),
+        output: Output::Plan,
+    }
+    .execute()
+    .unwrap();
+    let name = dynamic::DECODE_MATRIX_SOURCE;
+    let generated = plan["files"][name].as_str().unwrap();
+    assert!(generated.contains("matrix.coefficients.as_ptr(),matrix.coefficients.len()"));
+    assert!(generated.contains("matrix.missing.as_ptr(),matrix.missing.len()"));
+    assert!(generated.contains("Self::Dense(matrix) => matrix.__rse_buffer_view(stage)"));
+    assert_eq!(
+        plan["bindings"][name]["original_sha256"],
+        digest(original[name].as_bytes())
+    );
+
+    original.remove(name);
+    assert!(
+        Request {
+            variant: Variant::Dynamic,
+            original,
+            tool: root.into(),
+            output: Output::Plan,
+        }
+        .execute()
+        .is_err()
+    );
+
+    let current = source::read(root.join("src/core/reconstruct.rs")).unwrap();
+    let unknown = current.replace(
+        "Result<DecodeMatrix<F>, Error>",
+        "Result<UnknownInverse<F>, Error>",
+    );
+    assert!(dynamic::decode(&unknown).is_err());
 }
 
 #[test]
@@ -213,7 +256,16 @@ fn observer_source_adapters_leave_other_apis_initialization_and_publication_unch
         restored, original,
         "observer must preserve every production statement"
     );
-    assert!(dynamic::decode(&original.replace("selected.invert()", "selected.other()")).is_err());
+    let current = "selected\n            .invert()";
+    let changed = original.replace(current, "selected\n            .other()");
+    assert_ne!(
+        changed, original,
+        "negative control must change the inversion"
+    );
+    assert!(dynamic::decode(&changed).is_err());
+    let legacy = original.replace(current, "selected.invert()");
+    assert!(dynamic::decode(&legacy).is_ok());
+    assert!(dynamic::decode(&legacy.replace("selected.invert()", "selected.other()")).is_err());
 }
 
 #[test]

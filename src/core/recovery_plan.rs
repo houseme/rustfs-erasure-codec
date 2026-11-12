@@ -1,13 +1,12 @@
 extern crate alloc;
 
-use alloc::sync::Arc;
-
 use smallvec::SmallVec;
 
 use crate::matrix::Matrix;
 use crate::{Error, Field, ReconstructShard};
 
 use super::ReedSolomon;
+use super::decode_matrix::DecodeMatrix;
 
 #[derive(Clone, Copy)]
 pub(crate) enum ReconstructionGoal<'a> {
@@ -84,7 +83,7 @@ pub(crate) struct ClassicReconstructPlan<F: Field> {
     data_target_count: usize,
     pub(crate) data_only: bool,
     pub(crate) direct_parity: bool,
-    decode_matrix: Option<Arc<Matrix<F>>>,
+    decode_matrix: Option<DecodeMatrix<F>>,
     parity_decode_rows: SmallVec<[SmallVec<[F::Elem; 32]>; 4]>,
 }
 
@@ -133,7 +132,7 @@ impl<F: Field> crate::matrix::MatrixRows<F::Elem> for ClassicReconstructRows<'_,
                 .decode_matrix
                 .as_ref()
                 .expect("requested missing data requires an inverse")
-                .get_row(data_targets[index]);
+                .missing_row(data_targets[index]);
         }
         let index = index - data_targets.len();
         if self.plan.direct_parity {
@@ -204,7 +203,7 @@ impl<F: Field> ClassicReconstructPlan<F> {
             self.decode_matrix
                 .as_ref()
                 .expect("requested missing data requires an inverse")
-                .get_row(index)
+                .missing_row(index)
         })
     }
 
