@@ -389,6 +389,12 @@ combined 4 MiB work-buffer budget and a separate 1 MiB plan budget per family.
 GF16 decode preserves cached work across oversized calls. Its shared decode-plan
 cache has both a 16-entry limit and an 8 MiB key-and-plan accounting budget.
 
+With `std`, concurrent GF16 decode-plan misses for the same layout and erasure
+mask share one in-flight build. Weak registrations are limited to 16 keys and
+128 KiB of accounted key storage. When either limit is reached, new keys build
+independently. Oversized plans can be shared by the current callers, with their
+storage released when those callers finish using them.
+
 Parallel-policy environment variables:
 
 - `RS_PARALLEL_POLICY_MIN_PARALLEL_SHARD_BYTES`
