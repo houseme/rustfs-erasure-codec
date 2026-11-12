@@ -312,6 +312,14 @@ Main entry points:
 - `reconstruct_stream_from(...)`: independent `Option<Read>` / `Option<Write>` endpoints
 - `reconstruct_stream(...)`: compatible `Cursor<Vec<u8>>` adapter
 
+For repeated operations, create `stream::StreamWorkspace::new()` and pass it as
+the last argument to `encode_stream_with_workspace`,
+`verify_stream_with_workspace`, `reconstruct_stream_from_with_workspace` or
+`reconstruct_stream_with_workspace`. The workspace reuses buffers across calls
+and recovery coefficients across compatible formats and missing patterns.
+It adapts to block sizes and stream lengths, retaining high-water buffer
+capacities until `clear()`. Concurrent operations each supply their own workspace.
+
 Current scope:
 
 - implemented on the Classic `galois_8` path

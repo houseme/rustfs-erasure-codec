@@ -271,6 +271,13 @@ assert!(slots[5].is_present());
 - `reconstruct_stream_from(...)`：独立 `Option<Read>` / `Option<Write>` 输入输出
 - `reconstruct_stream(...)`：兼容原有 `Cursor<Vec<u8>>` 调用
 
+重复处理时，可创建 `stream::StreamWorkspace::new()`，作为最后一个参数传给
+`encode_stream_with_workspace`、`verify_stream_with_workspace`、
+`reconstruct_stream_from_with_workspace` 或 `reconstruct_stream_with_workspace`。
+工作区跨调用复用缓冲区，并在编码格式及缺失模式兼容时复用恢复系数。
+块长和流长度可变化，缓冲区保留高水位容量，调用 `clear()` 释放工作区存储。
+每个并发操作使用独立的工作区。
+
 当前范围：
 
 - 实现在 Classic `galois_8` 路径上

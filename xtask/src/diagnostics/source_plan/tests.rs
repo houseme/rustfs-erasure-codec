@@ -32,7 +32,7 @@ fn complete_plans_bind_generated_bytes_and_every_written_member() {
         ),
         (
             "stream-core",
-            "5c766026bcbedb9edea44cc9e218bb1209dd2fef6fc9dd17531134a098b2d5c3",
+            "ff8b115ea2d0131beea0df816c79c25d81a8b1f16fdc824449b986f12595ebeb",
         ),
         (
             // Current production source, including bounded caches and parallel workspaces.
