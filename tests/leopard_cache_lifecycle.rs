@@ -14,6 +14,7 @@ static PEAK: AtomicUsize = AtomicUsize::new(0);
 static CALLS: AtomicUsize = AtomicUsize::new(0);
 static REQUESTED: AtomicUsize = AtomicUsize::new(0);
 static REQUESTS_OF_64K: AtomicUsize = AtomicUsize::new(0);
+static REQUESTS_OF_512: AtomicUsize = AtomicUsize::new(0);
 
 struct Counter;
 #[global_allocator]
@@ -31,6 +32,9 @@ fn request(bytes: usize) {
         REQUESTED.fetch_add(bytes, SeqCst);
         if bytes == 64 * 1024 {
             REQUESTS_OF_64K.fetch_add(1, SeqCst);
+        }
+        if bytes == 512 {
+            REQUESTS_OF_512.fetch_add(1, SeqCst);
         }
     }
 }
@@ -84,6 +88,7 @@ struct Sample {
     calls: usize,
     requested: usize,
     requests_of_64k: usize,
+    requests_of_512: usize,
 }
 impl Sample {
     fn retained_delta(&self) -> i128 {
@@ -100,6 +105,7 @@ fn measure(run: impl FnOnce()) -> Sample {
     CALLS.store(0, SeqCst);
     REQUESTED.store(0, SeqCst);
     REQUESTS_OF_64K.store(0, SeqCst);
+    REQUESTS_OF_512.store(0, SeqCst);
     struct Stop;
     impl Drop for Stop {
         fn drop(&mut self) {
@@ -117,6 +123,7 @@ fn measure(run: impl FnOnce()) -> Sample {
         calls: CALLS.load(SeqCst),
         requested: REQUESTED.load(SeqCst),
         requests_of_64k: REQUESTS_OF_64K.load(SeqCst),
+        requests_of_512: REQUESTS_OF_512.load(SeqCst),
     }
 }
 
@@ -191,6 +198,42 @@ impl Encoded {
 struct Recovery {
     expected: Arc<Encoded>,
     slots: Vec<ShardSlot<Vec<u8>>>,
+}
+
+#[test]
+fn wide_warm_plan_lookup_avoids_owned_mask_requests() {
+    const CHILD: &str = "RSE_GF16_BORROWED_LOOKUP_CHILD";
+    if std::env::var_os(CHILD).is_none() {
+        let status = std::process::Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "wide_warm_plan_lookup_avoids_owned_mask_requests",
+                "--test-threads=1",
+                "--nocapture",
+            ])
+            .env(CHILD, "1")
+            .status()
+            .unwrap();
+        assert!(status.success(), "isolated borrowed plan lookup failed");
+        return;
+    }
+    let mut samples = Vec::new();
+    for data in [252, 253, 300] {
+        let fixture = Arc::new(Encoded::with_shape(data, 4, 64, 1));
+        let mut recovery = Recovery::new(&fixture);
+        for _ in 0..3 {
+            assert!(recovery.recover());
+        }
+        let sample = measure(|| assert!(recovery.recover()));
+        println!(
+            "GF16_WARM_PLAN_KEY data={data} calls={} requested={} mask_requests={}",
+            sample.calls, sample.requested, sample.requests_of_512
+        );
+        samples.push((data, sample));
+    }
+    for (data, sample) in samples {
+        assert_eq!(sample.requests_of_512, 0, "{data}+4 {sample:?}");
+    }
 }
 impl Recovery {
     fn new(expected: &Arc<Encoded>) -> Self {

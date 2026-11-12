@@ -293,21 +293,57 @@ struct DecodePlanCache {
     retained_bytes: usize,
     max_bytes: usize,
     pending: Vec<PendingPlan>,
+    #[cfg(test)]
+    hash_builder: hashlink::DefaultHashBuilder,
+}
+
+#[cfg(feature = "std")]
+struct SharedDecodePlanCache {
+    hash_builder: hashlink::DefaultHashBuilder,
+    cache: parking_lot::Mutex<DecodePlanCache>,
 }
 
 #[cfg(feature = "std")]
 impl DecodePlanCache {
+    #[cfg(test)]
     fn new(max_bytes: usize) -> Self {
+        Self::with_hasher(max_bytes, hashlink::DefaultHashBuilder::default())
+    }
+
+    fn with_hasher(max_bytes: usize, hash_builder: hashlink::DefaultHashBuilder) -> Self {
         Self {
-            entries: hashlink::LruCache::new(16),
+            entries: hashlink::LruCache::with_hasher(16, hash_builder.clone()),
             retained_bytes: 0,
             max_bytes,
             pending: Vec::new(),
+            #[cfg(test)]
+            hash_builder,
         }
     }
 
+    #[cfg(test)]
     fn get(&mut self, key: &DecodePlanKey) -> Option<alloc::sync::Arc<LeopardGf16DecodePlan>> {
         self.entries.get(key).map(|(plan, _)| plan.clone())
+    }
+
+    fn get_hashed(
+        &mut self,
+        hash: u64,
+        data: usize,
+        parity: usize,
+        present: &[bool],
+    ) -> Option<alloc::sync::Arc<LeopardGf16DecodePlan>> {
+        use hashlink::linked_hash_map::RawEntryMut;
+
+        match self.entries.raw_entry_mut().from_hash(hash, |key| {
+            key.0 == data && key.1 == parity && key.2.as_slice() == present
+        }) {
+            RawEntryMut::Occupied(mut entry) => {
+                entry.to_back();
+                Some(entry.get().0.clone())
+            }
+            RawEntryMut::Vacant(_) => None,
+        }
     }
 
     fn pending_for(&mut self, key: &DecodePlanKey) -> Option<alloc::sync::Arc<PendingDecodePlan>> {
@@ -353,14 +389,29 @@ impl DecodePlanCache {
             .retain(|entry| entry.value.as_ptr() != alloc::sync::Arc::as_ptr(value));
     }
 
+    #[cfg(test)]
     fn insert(
         &mut self,
         key: DecodePlanKey,
         plan: alloc::sync::Arc<LeopardGf16DecodePlan>,
     ) -> alloc::sync::Arc<LeopardGf16DecodePlan> {
+        use core::hash::BuildHasher;
+
+        let hash = self.hash_builder.hash_one(&key);
+        self.insert_hashed(hash, key, plan)
+    }
+
+    fn insert_hashed(
+        &mut self,
+        hash: u64,
+        key: DecodePlanKey,
+        plan: alloc::sync::Arc<LeopardGf16DecodePlan>,
+    ) -> alloc::sync::Arc<LeopardGf16DecodePlan> {
+        use hashlink::linked_hash_map::RawEntryMut;
+
         // Another caller may have completed the same plan while this one built
         // outside the lock. Reuse its entry and account for it only once.
-        if let Some(existing) = self.get(&key) {
+        if let Some(existing) = self.get_hashed(hash, key.0, key.1, &key.2) {
             return existing;
         }
         let key_bytes = decode_key_bytes(&key);
@@ -376,7 +427,19 @@ impl DecodePlanCache {
             let (_, (_, removed_bytes)) = self.entries.remove_lru().expect("cache contains a plan");
             self.retained_bytes -= removed_bytes;
         }
-        self.entries.insert(key, (plan.clone(), bytes));
+        match self
+            .entries
+            .raw_entry_mut()
+            .from_key_hashed_nocheck(hash, &key)
+        {
+            RawEntryMut::Vacant(entry) => {
+                entry.insert_hashed_nocheck(hash, key, (plan.clone(), bytes));
+            }
+            RawEntryMut::Occupied(mut entry) => {
+                entry.to_back();
+                return entry.get().0.clone();
+            }
+        }
         self.retained_bytes += bytes;
         plan
     }
@@ -520,16 +583,17 @@ fn build_decode_plan(
 
 /// Share a cold build with callers of the same internal, non-recursive builder.
 #[cfg(feature = "std")]
-fn with_cached_decode_plan(
+fn with_cached_decode_plan_hashed(
     cache: &parking_lot::Mutex<DecodePlanCache>,
     key: DecodePlanKey,
+    hash: u64,
     build: impl FnOnce() -> LeopardGf16DecodePlan,
 ) -> alloc::sync::Arc<LeopardGf16DecodePlan> {
     use alloc::sync::Arc;
 
     let pending = {
         let mut cache = cache.lock();
-        if let Some(plan) = cache.get(&key) {
+        if let Some(plan) = cache.get_hashed(hash, key.0, key.1, &key.2) {
             return plan;
         }
         cache.pending_for(&key)
@@ -538,7 +602,7 @@ fn with_cached_decode_plan(
         // The internal plan builder is non-recursive. Neither computation nor
         // waiting holds the shared cache mutex, so other keys remain available.
         let plan = Arc::new(build());
-        cache.lock().insert(key, plan)
+        cache.lock().insert_hashed(hash, key, plan)
     };
     if let Some(pending) = pending {
         // Only callers in this wave own the cell and its result. Oversized
@@ -551,6 +615,18 @@ fn with_cached_decode_plan(
     }
 }
 
+#[cfg(all(test, feature = "std"))]
+fn with_cached_decode_plan(
+    cache: &parking_lot::Mutex<DecodePlanCache>,
+    key: DecodePlanKey,
+    build: impl FnOnce() -> LeopardGf16DecodePlan,
+) -> alloc::sync::Arc<LeopardGf16DecodePlan> {
+    use core::hash::BuildHasher;
+
+    let hash = cache.lock().hash_builder.hash_one(&key);
+    with_cached_decode_plan_hashed(cache, key, hash, build)
+}
+
 /// Memoise plans by `(data_shards, parity_shards, present)` and coalesce misses.
 #[cfg(feature = "std")]
 fn decode_plan_for(
@@ -560,20 +636,42 @@ fn decode_plan_for(
     missing_data: &[usize],
     tables: &LeopardGf16Tables,
 ) -> alloc::sync::Arc<LeopardGf16DecodePlan> {
+    use core::hash::BuildHasher;
     use parking_lot::Mutex;
     use std::sync::OnceLock;
 
     const MAX_CACHED_PLAN_BYTES: usize = 8 * 1024 * 1024;
-    static CACHE: OnceLock<Mutex<DecodePlanCache>> = OnceLock::new();
+    static CACHE: OnceLock<SharedDecodePlanCache> = OnceLock::new();
+
+    let shared = CACHE.get_or_init(|| {
+        let hash_builder = hashlink::DefaultHashBuilder::default();
+        let cache = DecodePlanCache::with_hasher(MAX_CACHED_PLAN_BYTES, hash_builder.clone());
+        SharedDecodePlanCache {
+            hash_builder,
+            cache: Mutex::new(cache),
+        }
+    });
+    // SmallVec hashes its slice, so the borrowed tuple has the same hash as an
+    // owned key. Lookup hashing runs outside the mutex and warm hits borrow the
+    // caller's presence mask directly.
+    let hash = shared
+        .hash_builder
+        .hash_one((driver.data_shards, driver.parity_shards, present));
+    if let Some(plan) =
+        shared
+            .cache
+            .lock()
+            .get_hashed(hash, driver.data_shards, driver.parity_shards, present)
+    {
+        return plan;
+    }
 
     let key = (
         driver.data_shards,
         driver.parity_shards,
         present.iter().copied().collect::<SmallVec<[bool; 256]>>(),
     );
-    let cache = CACHE.get_or_init(|| Mutex::new(DecodePlanCache::new(MAX_CACHED_PLAN_BYTES)));
-
-    with_cached_decode_plan(cache, key, || {
+    with_cached_decode_plan_hashed(&shared.cache, key, hash, || {
         build_decode_plan(driver, present, missing_parity, missing_data, tables)
     })
 }
