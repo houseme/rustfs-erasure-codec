@@ -6,6 +6,24 @@ use std::{collections::BTreeMap, path::Path};
 pub const MODULE: &str = "__rse_dynamic_buffers";
 const API: &str = "rustfs_erasure_codec::__rse_dynamic_buffers::";
 const LIB: &str = "crate::__rse_dynamic_buffers::";
+pub const DECODE_MATRIX_SOURCE: &str = "src/core/decode_matrix.rs";
+
+pub fn compact_decode_source(text: &str) -> bool {
+    text.contains("Result<DecodeMatrix<F>, Error>")
+}
+
+fn decode_matrix(text: &str) -> Result<String> {
+    let marker = "impl<F: Field> DecodeMatrix<F> {";
+    let helper = format!(
+        "\n    pub(crate) fn __rse_buffer_view(&self, stage: &'static str) {{\n        match self {{\n            Self::Dense(matrix) => matrix.__rse_buffer_view(stage),\n            Self::Compact(matrix) => {{\n                {LIB}span(\"decode_coefficients\",stage,0,matrix.coefficients.as_ptr(),matrix.coefficients.len(),Some(matrix.coefficients.capacity()),\"heap\",true);\n                {LIB}span(\"decode_missing\",stage,0,matrix.missing.as_ptr(),matrix.missing.len(),Some(matrix.missing.capacity()),if matrix.missing.spilled() {{\"heap\"}} else {{\"inline\"}},true);\n            }}\n        }}\n    }}\n"
+    );
+    source::replace_once(
+        text,
+        marker,
+        &(marker.to_owned() + &helper),
+        "decode matrix implementation changed",
+    )
+}
 
 pub fn matrix(text: &str) -> Result<String> {
     let heap = if text.contains("data: SmallVec<") {
@@ -57,6 +75,9 @@ pub fn region(text: &str, declaration: &str) -> Result<String> {
 }
 
 pub fn decode(text: &str) -> Result<String> {
+    if text.contains("DecodeMatrix::") && !compact_decode_source(text) {
+        return Err("decode matrix handle signature changed".into());
+    }
     let mut text = text.to_owned();
     for declaration in [
         "    pub fn reconstruct<",
@@ -71,9 +92,20 @@ pub fn decode(text: &str) -> Result<String> {
         // The direct single-data branch creates the final decode matrix; it
         // has no selected submatrix or inversion scratch to observe. Record
         // the full-inverse submatrix only in the unchanged fallback branch.
-        text = source::method(&text, builder, |_, edit| {
-            edit.before(
+        text = source::method(&text, builder, |original, edit| {
+            let candidates = [
                 "        selected.invert()",
+                "        selected\n            .invert()",
+            ];
+            let matches: Vec<_> = candidates
+                .into_iter()
+                .filter(|marker| original.contains(marker))
+                .collect();
+            if matches.len() != 1 {
+                return Err("decode submatrix inversion changed or is ambiguous".into());
+            }
+            edit.before(
+                matches[0],
                 "        selected.__rse_buffer_view(\"decode_submatrix\");\n",
             )
         })?;
@@ -157,6 +189,12 @@ pub fn patch(original: &BTreeMap<String, String>, tool: &Path) -> Result<BTreeMa
             .ok_or_else(|| format!("missing dynamic source: {name}"))
     };
     let mut result = leopard::patch(original)?;
+    if compact_decode_source(get("src/core/reconstruct.rs")?) {
+        result.insert(
+            DECODE_MATRIX_SOURCE.into(),
+            decode_matrix(get(DECODE_MATRIX_SOURCE)?)?,
+        );
+    }
     result.extend([
         (
             "src/lib.rs".into(),

@@ -378,6 +378,12 @@ key capacity. LRU bookkeeping, Arc counters, allocator overhead and matrices hel
 by external workspaces after eviction are outside this accounting. An entry that
 exceeds the budget is used locally while the cache retains its existing entries.
 
+For Classic layouts with at least 64 data shards and one to four missing data
+shards, cached inverses retain the missing coefficient rows and represent the
+surviving systematic rows implicitly. `reconstruction_cache_memory()` charges
+the owned coefficients and missing-row metadata. Prepared recovery plans and
+progressive decoding use the same logical inverse coefficients.
+
 Leopard GF8/GF16 encoders retain up to two layouts per calling thread within a
 combined 4 MiB work-buffer budget and a separate 1 MiB plan budget per family.
 GF16 decode preserves cached work across oversized calls. Its shared decode-plan

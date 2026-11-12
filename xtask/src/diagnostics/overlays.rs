@@ -273,6 +273,7 @@ mod tests {
             "src/galois_8/policy.rs",
         ]
         .into_iter()
+        .chain([dynamic::DECODE_MATRIX_SOURCE])
         .chain(super::super::leopard::FILES)
         .map(|name| (name.into(), source::read(root.join(name)).unwrap()))
         .collect()
@@ -375,7 +376,7 @@ mod tests {
         let original = dynamic_source_files(root);
         assert_eq!(
             digest(dynamic::patch(&original, root).unwrap(), root),
-            "d5962f91fae12d05c47eadd8abc28a0391ee7160ebb3318ba5b880bfeec74103"
+            "b077917cfc0ec35adffc75273fe0cb2dc679555b5132d593db7d408d60fead85"
         );
     }
 }

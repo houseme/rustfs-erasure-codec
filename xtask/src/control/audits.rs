@@ -100,7 +100,8 @@ pub(super) fn original(
     repository: &Path,
     source: &Value,
 ) -> Result<BTreeMap<String, String>> {
-    kind.names()
+    let mut original: BTreeMap<String, String> = kind
+        .names()
         .into_iter()
         .map(|name| {
             Ok((
@@ -116,7 +117,18 @@ pub(super) fn original(
                 .replace('\r', "\n"),
             ))
         })
-        .collect()
+        .collect::<Result<_>>()?;
+    if matches!(kind, Kind::Dynamic)
+        && crate::diagnostics::dynamic::compact_decode_source(&original["src/core/reconstruct.rs"])
+    {
+        let name = crate::diagnostics::dynamic::DECODE_MATRIX_SOURCE;
+        let commit = source["commit"].as_str().ok_or("missing original commit")?;
+        let text = String::from_utf8(io::git_bytes(repository, &format!("{commit}:{name}"))?)?
+            .replace("\r\n", "\n")
+            .replace('\r', "\n");
+        original.insert(name.into(), text);
+    }
+    Ok(original)
 }
 pub(super) fn source_plan(kind: Kind, original: &BTreeMap<String, String>) -> Result<Value> {
     crate::bridge::evaluate(

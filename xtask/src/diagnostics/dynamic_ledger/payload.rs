@@ -333,8 +333,73 @@ impl Contract {
         {
             return Err("wrong decoder matrix storage/dimensions".into());
         }
+        if matches!(role, "decode_coefficients" | "decode_missing") {
+            if self.legacy
+                || self.leopard
+                || self.data < 64
+                || !matches!(v.stage.as_str(), "decode_ready" | "decode_cached")
+                || v.index != 0
+                || !v.occupied
+                || v.present.is_some()
+            {
+                return Err("invalid compact decoder metadata".into());
+            }
+            let valid = if role == "decode_coefficients" {
+                v.len.is_multiple_of(self.data)
+                    && (1..=4).contains(&(v.len / self.data))
+                    && v.capacity.is_some_and(|cap| cap >= v.len)
+                    && v.element_size == self.width
+                    && v.storage == "heap"
+            } else {
+                (1..=4).contains(&v.len)
+                    && v.capacity == Some(4)
+                    && matches!(v.element_size, 4 | 8)
+                    && v.storage == "inline"
+            };
+            if !valid {
+                return Err("wrong compact decoder storage/dimensions".into());
+            }
+        }
         Ok(())
     }
+
+    fn decoder_witness(&self, events: &[Event]) -> Result<bool> {
+        let mut pending: BTreeMap<(u64, u64, &str), &Event> = BTreeMap::new();
+        let mut witnessed = false;
+        for view in events.iter().filter(|v| v.kind == Kind::View) {
+            if view.role == "matrix" {
+                witnessed |= view.call > 0
+                    && matches!(view.stage.as_str(), "decode_ready" | "decode_cached")
+                    && view.region == Region::Decode;
+            } else if matches!(view.role.as_str(), "decode_coefficients" | "decode_missing") {
+                self.internal(view)?;
+                let key = (view.call, view.thread, view.stage.as_str());
+                if view.role == "decode_coefficients" {
+                    if pending.insert(key, view).is_some() {
+                        return Err("duplicate compact decoder coefficients before indices".into());
+                    }
+                } else {
+                    let coefficients = pending
+                        .remove(&key)
+                        .ok_or("compact decoder indices lack matching coefficients")?;
+                    if coefficients.len / self.data != view.len
+                        || coefficients.observation != view.observation
+                        || coefficients.region != view.region
+                    {
+                        return Err("compact decoder coefficients/indices disagree".into());
+                    }
+                    witnessed |= view.call > 0
+                        && view.observation.is_some()
+                        && view.region == Region::Decode;
+                }
+            }
+        }
+        if !pending.is_empty() {
+            return Err("compact decoder coefficients lack matching indices".into());
+        }
+        Ok(witnessed)
+    }
+
     pub(super) fn iteration<'a>(
         &self,
         events: &'a [Event],
@@ -353,15 +418,7 @@ impl Contract {
             }) {
                 return Err("iteration lacks actual Leopard decode work".into());
             }
-        } else if self.recovery()
-            && !events.iter().any(|v| {
-                v.kind == Kind::View
-                    && v.call > 0
-                    && v.role == "matrix"
-                    && matches!(v.stage.as_str(), "decode_ready" | "decode_cached")
-                    && v.region == Region::Decode
-            })
-        {
+        } else if self.recovery() && !self.decoder_witness(events)? {
             return Err("iteration lacks actual decoder matrix storage".into());
         }
         let views: Vec<_> = events.iter().filter(|v| v.payload()).collect();
@@ -495,5 +552,209 @@ impl Contract {
             }
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod compact_tests {
+    use super::*;
+    use serde_json::{Value, json};
+
+    // Exercise the representation contract independently of the frozen case
+    // catalog, whose current layouts all select dense decoding.
+    fn contract(width: u64) -> Contract {
+        Contract {
+            data: 64,
+            parity: 4,
+            size: 65,
+            width,
+            lane_width: width,
+            missing: 3,
+            wanted: u64::MAX,
+            baseline_data_only: false,
+            operation: "reconstruct".to_owned(),
+            profile: "compact-contract-test".to_owned(),
+            legacy: false,
+            leopard: false,
+            groups: Vec::new(),
+        }
+    }
+
+    fn view(role: &str, rows: u64, width: u64, stage: &str) -> Event {
+        let coefficients = role == "decode_coefficients";
+        let (len, capacity, element_size, storage) = if coefficients {
+            (64 * rows, 64 * rows, width, "heap")
+        } else {
+            (rows, 4, width, "inline")
+        };
+        serde_json::from_value(json!({
+            "kind":"view", "observation":0, "call":1, "thread":0, "region":"decode",
+            "allocation":if coefficients {Some(1)} else {None},
+            "allocation_offset":if coefficients {Some(0)} else {None},
+            "previous":null, "role":role, "stage":stage, "index":0,
+            "len":len, "capacity":capacity, "element_size":element_size,
+            "shape":null, "storage":storage, "occupied":true, "present":null,
+            "bytes":capacity * element_size, "align":0, "offsets":[0,0,0],
+            "elapsed_ns":0, "faults":null,
+            "snapshot":{"status":"unsupported", "pages":null, "resident_pages":null, "errno":null}
+        }))
+        .unwrap()
+    }
+
+    fn pair(rows: u64, width: u64, index_width: u64, stage: &str) -> Vec<Event> {
+        vec![
+            view("decode_coefficients", rows, width, stage),
+            view("decode_missing", rows, index_width, stage),
+        ]
+    }
+
+    fn validate(contract: &Contract, events: &[Event]) -> Result<()> {
+        for event in events {
+            event.view(contract, &mut None, false)?;
+        }
+        contract.iteration(events, &BTreeMap::new(), &mut BTreeMap::new())
+    }
+
+    #[test]
+    fn compact_coefficients_and_indices_witness_complete_typed_decode_storage() {
+        for width in [1, 2] {
+            for index_width in [4, 8] {
+                for rows in 1..=4 {
+                    for stage in ["decode_ready", "decode_cached"] {
+                        validate(&contract(width), &pair(rows, width, index_width, stage)).unwrap();
+                    }
+                }
+            }
+        }
+        let mut events = pair(2, 1, 8, "decode_ready");
+        events[0].capacity = Some(192);
+        events[0].bytes = 192;
+        validate(&contract(1), &events).unwrap();
+
+        let mut interleaved = pair(1, 1, 8, "decode_ready");
+        let mut other = pair(4, 1, 8, "decode_ready");
+        for event in &mut other {
+            event.thread = 1;
+        }
+        interleaved.insert(1, other.remove(0));
+        interleaved.push(other.remove(0));
+        validate(&contract(1), &interleaved).unwrap();
+        let mut repeated = pair(1, 1, 8, "decode_cached");
+        repeated.extend(pair(4, 1, 8, "decode_cached"));
+        validate(&contract(1), &repeated).unwrap();
+    }
+
+    #[test]
+    fn compact_roles_reject_bad_lengths_widths_stages_and_owner_metadata() {
+        for role in ["decode_coefficients", "decode_missing"] {
+            let width = if role == "decode_coefficients" { 1 } else { 8 };
+            let original = serde_json::to_value(view(role, 2, width, "decode_ready")).unwrap();
+            for (key, value) in [
+                ("len", json!(0)),
+                ("capacity", Value::Null),
+                ("element_size", json!(3)),
+                ("stage", json!("constructed")),
+                ("stage", json!("decode_submatrix")),
+                ("storage", json!("borrowed")),
+                ("index", json!(1)),
+                ("occupied", json!(false)),
+                ("present", json!(true)),
+                ("shape", json!([1, 2, 3])),
+            ] {
+                let mut invalid = original.clone();
+                invalid[key] = value;
+                let invalid: Event = serde_json::from_value(invalid).unwrap();
+                assert!(contract(1).internal(&invalid).is_err(), "{role}/{key}");
+            }
+        }
+        for (len, capacity) in [(63, 64), (65, 128), (320, 320), (128, 127)] {
+            let mut invalid = view("decode_coefficients", 2, 1, "decode_ready");
+            invalid.len = len;
+            invalid.capacity = Some(capacity);
+            assert!(contract(1).internal(&invalid).is_err());
+        }
+        for (len, capacity) in [(5, 8), (2, 2), (2, 8)] {
+            let mut invalid = view("decode_missing", 2, 8, "decode_ready");
+            invalid.len = len;
+            invalid.capacity = Some(capacity);
+            assert!(contract(1).internal(&invalid).is_err());
+        }
+        let mut wrong_width = view("decode_coefficients", 2, 2, "decode_ready");
+        assert!(contract(1).internal(&wrong_width).is_err());
+        wrong_width.element_size = 1;
+        wrong_width.storage = "inline".to_owned();
+        assert!(contract(1).internal(&wrong_width).is_err());
+        let mut indices = view("decode_missing", 2, 8, "decode_ready");
+        indices.storage = "heap".to_owned();
+        assert!(contract(1).internal(&indices).is_err());
+    }
+
+    #[test]
+    fn compact_witness_requires_matching_indices_for_every_coefficient_span() {
+        let contract = contract(1);
+        for omitted in 0..2 {
+            let mut events = pair(2, 1, 8, "decode_ready");
+            events.remove(omitted);
+            assert!(validate(&contract, &events).is_err());
+        }
+        for (key, value) in [
+            ("len", json!(1)),
+            ("call", json!(2)),
+            ("thread", json!(1)),
+            ("stage", json!("decode_cached")),
+            ("observation", json!(1)),
+            ("region", json!("caller")),
+        ] {
+            let mut events = pair(2, 1, 8, "decode_ready");
+            let mut invalid = serde_json::to_value(&events[1]).unwrap();
+            invalid[key] = value;
+            events[1] = serde_json::from_value(invalid).unwrap();
+            assert!(validate(&contract, &events).is_err(), "{key}");
+        }
+        let mut reversed = pair(2, 1, 8, "decode_ready");
+        reversed.reverse();
+        assert!(validate(&contract, &reversed).is_err());
+        let mut duplicate = pair(2, 1, 8, "decode_ready");
+        duplicate.insert(1, view("decode_coefficients", 2, 1, "decode_ready"));
+        assert!(validate(&contract, &duplicate).is_err());
+
+        for unscoped in ["call", "observation", "region"] {
+            let mut events = pair(2, 1, 8, "decode_ready");
+            for event in &mut events {
+                match unscoped {
+                    "call" => event.call = 0,
+                    "observation" => event.observation = None,
+                    _ => event.region = Region::Caller,
+                }
+            }
+            assert!(validate(&contract, &events).is_err(), "{unscoped}");
+        }
+    }
+
+    #[test]
+    fn compact_representation_keeps_dense_dimensions_and_frozen_catalog_rules() {
+        let mut dense = view("decode_coefficients", 1, 1, "decode_ready");
+        dense.role = "matrix".to_owned();
+        assert!(contract(1).internal(&dense).is_err());
+        dense.len = 64 * 64;
+        dense.capacity = Some(dense.len);
+        dense.bytes = dense.len;
+        let mut dense_events = vec![dense];
+        validate(&contract(1), &dense_events).unwrap();
+        dense_events.push(view("decode_coefficients", 1, 1, "decode_ready"));
+        assert!(validate(&contract(1), &dense_events).is_err());
+
+        let events = pair(1, 1, 8, "decode_ready");
+        let mut narrow = contract(1);
+        narrow.data = 32;
+        assert!(validate(&narrow, &events).is_err());
+        let mut legacy = contract(1);
+        legacy.legacy = true;
+        assert!(validate(&legacy, &events).is_err());
+        let mut leopard = contract(1);
+        leopard.leopard = true;
+        assert!(validate(&leopard, &events).is_err());
+        assert!(Contract::parse("smoke", "reconstruct:64:4:65", false).is_err());
+        assert!(Contract::parse("decoder", "classic_uncached:64:4:65", false).is_err());
     }
 }

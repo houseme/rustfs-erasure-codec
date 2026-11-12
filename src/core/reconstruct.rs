@@ -1,11 +1,11 @@
 extern crate alloc;
 
-use alloc::sync::Arc;
 use alloc::vec;
 use alloc::vec::Vec;
 
 use smallvec::SmallVec;
 
+use super::decode_matrix::DecodeMatrix;
 #[cfg(feature = "std")]
 use super::recovery_plan::ClassicReconstructRows;
 use super::{ClassicReconstructPlan, ReconstructWorkspace, ReconstructionGoal};
@@ -1062,12 +1062,10 @@ impl<F: Field> ReedSolomon<F> {
 
     /// Substitute surviving systematic data before solving parity equations.
     /// All Classic constructors, including custom matrices, have identity data
-    /// rows. Only the missing-data coefficients need pivot elimination; survivor
-    /// order and the complete inverse representation remain unchanged.
-    fn build_data_decode_matrix(
-        &self,
-        valid_indices: &[usize],
-    ) -> Result<crate::matrix::Matrix<F>, Error> {
+    /// rows. Only the missing-data coefficients need pivot elimination. Wide
+    /// layouts with at most four missing data rows retain those rows explicitly
+    /// and represent surviving systematic rows by their unit coefficients.
+    fn build_data_decode_matrix(&self, valid_indices: &[usize]) -> Result<DecodeMatrix<F>, Error> {
         use crate::matrix::Matrix;
 
         let data_count = self.data_shard_count();
@@ -1087,6 +1085,16 @@ impl<F: Field> ReedSolomon<F> {
                 return Err(Error::InvalidCustomMatrix);
             }
             let reciprocal = F::div(F::one(), pivot);
+            if data_count >= 64 {
+                let mut coefficients = Vec::with_capacity(data_count);
+                coefficients.extend(
+                    valid_indices[..present_count]
+                        .iter()
+                        .map(|&index| F::mul(reciprocal, parity_row[index])),
+                );
+                coefficients.push(reciprocal);
+                return Ok(DecodeMatrix::compact(data_count, &[missing], coefficients));
+            }
             let mut decode = Matrix::new(data_count, data_count);
             for (column, &index) in valid_indices[..present_count].iter().enumerate() {
                 decode.set(index, column, F::one());
@@ -1095,7 +1103,7 @@ impl<F: Field> ReedSolomon<F> {
                 decode.set(missing, column, F::mul(reciprocal, parity_row[index]));
             }
             decode.set(missing, present_count, reciprocal);
-            return Ok(decode);
+            return Ok(DecodeMatrix::dense(decode));
         }
 
         let missing_count = data_count - present_count;
@@ -1130,6 +1138,14 @@ impl<F: Field> ReedSolomon<F> {
                 .gaussian_elim()
                 .map_err(|_| Error::InvalidCustomMatrix)?;
 
+            if data_count >= 64 && missing_count <= 4 {
+                let mut coefficients = Vec::with_capacity(missing_count * data_count);
+                for row in 0..missing_count {
+                    coefficients.extend_from_slice(&equations.get_row(row)[missing_count..]);
+                }
+                return Ok(DecodeMatrix::compact(data_count, &missing, coefficients));
+            }
+
             let mut decode = Matrix::new(data_count, data_count);
             for (column, &index) in valid_indices[..present_count].iter().enumerate() {
                 decode.set(index, column, F::one());
@@ -1139,7 +1155,7 @@ impl<F: Field> ReedSolomon<F> {
                     decode.set(index, column, value);
                 }
             }
-            return Ok(decode);
+            return Ok(DecodeMatrix::dense(decode));
         }
 
         // With no surviving systematic data, every equation is unknown: keep
@@ -1151,14 +1167,17 @@ impl<F: Field> ReedSolomon<F> {
                 selected.set(row, column, matrix.get(index, column));
             }
         }
-        selected.invert().map_err(|_| Error::InvalidCustomMatrix)
+        selected
+            .invert()
+            .map(DecodeMatrix::dense)
+            .map_err(|_| Error::InvalidCustomMatrix)
     }
 
     pub(crate) fn get_data_decode_matrix(
         &self,
         valid_indices: &[usize],
         invalid_indices: &[usize],
-    ) -> Result<Arc<crate::matrix::Matrix<F>>, Error> {
+    ) -> Result<DecodeMatrix<F>, Error> {
         if valid_indices.len() != self.data_shard_count() {
             return Err(Error::TooFewShardsPresent);
         }
@@ -1196,7 +1215,7 @@ impl<F: Field> ReedSolomon<F> {
                 .misses
                 .fetch_add(1, Ordering::Relaxed);
         }
-        let data_decode_matrix = Arc::new(self.build_data_decode_matrix(valid_indices)?);
+        let data_decode_matrix = self.build_data_decode_matrix(valid_indices)?;
         if self.options.inversion_cache {
             let data_decode_matrix = data_decode_matrix.clone();
             let mut cache = self.data_decode_matrix_cache.lock();
