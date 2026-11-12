@@ -82,6 +82,21 @@ synchronous. A failed later initializer never falls back to an earlier instance.
 | `encode(shards, dataShards, parityShards)` | Encode parity shards in-place. Returns a result code. |
 | `reconstruct(shards, dataShards, parityShards, shardsAvailable)` | Reconstruct data shards in-place. `shardsAvailable` is a `boolean[]` indicating which shards are valid. |
 
+Repeated `encode` and `reconstruct` calls automatically reuse the two most
+recently used `(dataShards, parityShards)` codecs within their WASM instance.
+This retains each codec's encoding matrix and inverse cache across calls,
+including calls with different shard lengths. A third layout evicts the least
+recently used codec; revisiting an evicted layout constructs it again.
+
+Each retained codec allows up to 64 inverse matrices and 256 KiB of accounted
+inverse-matrix/key storage, giving the two entries a combined 512 KiB budget.
+The encoding matrices are bounded separately by the GF8 limit of 256 total
+shards, with at most 65,280 coefficients per matrix. These bounds cover retained
+codec storage; LRU/allocator overhead, active operation owners and generated
+bridge input/output buffers also consume memory. Native Rust host calls keep
+their cache per thread. Each separately initialized WASM instance owns its cache
+in its own linear memory.
+
 ### Result Codes
 
 | Code | Constant | Meaning |
@@ -178,7 +193,9 @@ the raw WASM ABI and is not counted as integration evidence.
 They cover synchronous and asynchronous initialization, module-relative loading,
 isolated/concurrent instances, invalid later modules, HTTP errors and MIME
 fallback, data-only recovery, malformed counts/buffers/flags, repeated calls,
-subarray boundaries, and explicit plus allocation-driven `memory.grow`.
+alternating layouts and eviction, subarray boundaries, and explicit plus
+allocation-driven `memory.grow`. Rust host tests additionally check codec identity,
+inverse retention, byte budgets, error precedence and per-thread isolation.
 Both environments check every 3+2 parity byte against an independent scalar
 GF8 oracle and check the fixed 4+2 vector from the Rust golden-vector tests.
 Memory-growth tests inspect the real generated instance's memory; the facade

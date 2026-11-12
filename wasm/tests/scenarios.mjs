@@ -133,3 +133,37 @@ export function exerciseRepeatedCalls(codec) {
         exerciseRoundTrip(codec, { seed: iteration, subarray: iteration % 2 === 0 });
     }
 }
+
+export function exerciseAlternatingLayouts(codec) {
+    for (let iteration = 0; iteration < 12; iteration += 1) {
+        exerciseRoundTrip(codec, { shardSize: 17 + iteration, seed: iteration, subarray: true });
+        exerciseGoldenVector(codec);
+    }
+    // A third layout replaces the least-recently-used retained codec. Check its
+    // independently known one-data-shard parity, then revisit both old layouts.
+    const shards = new Uint8Array([3, 7, 19, 31, 0, 0, 0, 0]);
+    check(codec.encode(shards, 1, 1) === 0, "third layout encode must succeed");
+    equalBytes(shards.subarray(4), shards.subarray(0, 4), "one-data-shard parity");
+    shards.fill(0, 0, 4);
+    check(codec.reconstruct(shards, 1, 1, [false, true]) === 0, "third layout recovery must succeed");
+    equalBytes(shards.subarray(0, 4), shards.subarray(4), "one-data-shard recovery");
+    exerciseRoundTrip(codec, { seed: 17 });
+    exerciseGoldenVector(codec);
+
+    // Exercise the generated bridge directly as well as facade validation.
+    const raw = Reflect.get(codec, "bindings");
+    for (const [length, data, parity, flags, expected] of [
+        [0, 0, 0, [], 3], [0, 1, 0, [], 5], [0, 256, 1, [], 2],
+        [0, 2, 1, [], 11], [5, 2, 1, [], 9],
+        [12, 2, 1, [], 12], [12, 2, 1, [1, 2, 1], 12],
+        [12, 2, 1, [0, 0, 1], 10],
+    ]) {
+        const invalid = new Uint8Array(length).fill(7);
+        check(raw.reconstruct(invalid, data, parity, Uint8Array.from(flags)) === expected,
+            "cached raw reconstruction error precedence");
+        check(invalid.every((value) => value === 7), "raw invalid input preserves bytes");
+    }
+    exerciseInvalidInputs(codec);
+    exerciseRoundTrip(codec, { seed: 29 });
+    exerciseGoldenVector(codec);
+}
