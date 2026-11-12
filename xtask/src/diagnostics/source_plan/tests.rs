@@ -38,7 +38,7 @@ fn complete_plans_bind_generated_bytes_and_every_written_member() {
         (
             // Current production source, including bounded caches and parallel workspaces.
             "dynamic",
-            "74cff190b32c16be3937d8a6f70e2d6e525232e6905576a70489106f5f3f9ad5",
+            "4a9df680420293278c716ff222e1f5c3218eccb2d33518c4ec6c4500efff4ec5",
         ),
     ] {
         let original = original(root, variant);

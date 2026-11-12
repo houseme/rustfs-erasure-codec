@@ -242,11 +242,13 @@ fn registration_limits_allow_existing_waiters_and_independent_overflow_builds() 
 fn registration_key_bytes_are_bounded_and_reclaimed_after_owners_drop() {
     let mut cache = DecodePlanCache::new(8 * 1024 * 1024);
     let mut owners = Vec::new();
-    for pattern in 0..3 {
+    let slots = MAX_PENDING_DECODE_KEY_BYTES / decode_key_bytes(&key(20000, 0).clone());
+    assert!(slots > 0 && slots < MAX_PENDING_DECODE_PLANS);
+    for pattern in 0..slots {
         let key = key(20000, pattern);
         owners.push(cache.pending_for(&key).unwrap());
     }
-    let extra = key(20000, 4);
+    let extra = key(20000, slots);
     assert!(cache.pending_for(&extra).is_none());
     let bytes: usize = cache
         .pending
@@ -280,4 +282,79 @@ fn completion_of_an_older_wave_preserves_a_new_registration_for_the_same_key() {
     assert!(Arc::ptr_eq(&cache.pending_for(&key).unwrap(), &second));
     cache.finish_pending(&second);
     assert!(cache.pending.is_empty());
+}
+
+#[test]
+fn borrowed_presence_hash_matches_owned_keys_across_inline_and_heap_boundaries() {
+    use core::hash::BuildHasher;
+
+    let hash_builder = hashlink::DefaultHashBuilder::default();
+    for len in [14, 256, 257, 304, 512, 65536] {
+        let mut present = SmallVec::from_elem(true, len);
+        present[0] = false;
+        present[len - 1] = false;
+        let owned: DecodePlanKey = (len - 4, 4, present);
+        assert_eq!(
+            hash_builder.hash_one(&owned),
+            hash_builder.hash_one((owned.0, owned.1, owned.2.as_slice())),
+            "{len} shards"
+        );
+    }
+}
+
+#[test]
+fn borrowed_lookup_checks_every_key_component_when_hashes_collide() {
+    use core::hash::BuildHasher;
+
+    let hash_builder = hashlink::DefaultHashBuilder::default();
+    let mut cache = DecodePlanCache::with_hasher(8 * 1024 * 1024, hash_builder.clone());
+    let key = key(300, 0);
+    let plan = Arc::new(build(&key));
+    let hash = hash_builder.hash_one(&key);
+    cache.insert(key.clone(), plan.clone());
+    let bytes = cache.retained_bytes;
+    assert!(Arc::ptr_eq(
+        &cache.get_hashed(hash, key.0, key.1, &key.2).unwrap(),
+        &plan
+    ));
+    assert!(cache.get_hashed(hash, key.0 + 1, key.1, &key.2).is_none());
+    assert!(cache.get_hashed(hash, key.0, key.1 + 1, &key.2).is_none());
+    assert!(
+        cache
+            .get_hashed(hash, key.0, key.1, &key.2[..key.2.len() - 1])
+            .is_none()
+    );
+    let mut other = key.2.clone();
+    *other.last_mut().unwrap() = false;
+    assert!(cache.get_hashed(hash, key.0, key.1, &other).is_none());
+    assert_eq!(cache.retained_bytes, bytes);
+}
+
+#[test]
+fn borrowed_hits_refresh_recency_before_byte_budget_eviction() {
+    use core::hash::BuildHasher;
+
+    let first_key = key(10, 0);
+    let second_key = key(10, 1);
+    let third_key = key(10, 2);
+    let first = Arc::new(build(&first_key));
+    let second = Arc::new(build(&second_key));
+    let third = Arc::new(build(&third_key));
+    let bytes = first.retained_bytes() + decode_key_bytes(&first_key);
+    let hash_builder = hashlink::DefaultHashBuilder::default();
+    let mut cache = DecodePlanCache::with_hasher(bytes * 2, hash_builder.clone());
+    cache.insert(first_key.clone(), first.clone());
+    cache.insert(second_key.clone(), second);
+    let hash = hash_builder.hash_one(&first_key);
+    assert!(Arc::ptr_eq(
+        &cache
+            .get_hashed(hash, first_key.0, first_key.1, &first_key.2)
+            .unwrap(),
+        &first
+    ));
+    cache.insert(third_key.clone(), third);
+    assert!(cache.get(&second_key).is_none());
+    assert!(Arc::ptr_eq(&cache.get(&first_key).unwrap(), &first));
+    assert!(cache.get(&third_key).is_some());
+    assert_eq!(cache.retained_bytes, bytes * 2);
 }

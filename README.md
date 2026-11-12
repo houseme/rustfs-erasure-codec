@@ -395,6 +395,10 @@ mask share one in-flight build. Weak registrations are limited to 16 keys and
 independently. Oversized plans can be shared by the current callers, with their
 storage released when those callers finish using them.
 
+Warm GF16 plan lookups borrow the caller's presence mask and compute its hash
+before taking the shared cache mutex. Misses reuse that hash for rechecks and
+insertion. Owned masks are allocated when a plan is missing.
+
 Parallel-policy environment variables:
 
 - `RS_PARALLEL_POLICY_MIN_PARALLEL_SHARD_BYTES`
