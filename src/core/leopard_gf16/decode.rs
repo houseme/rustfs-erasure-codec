@@ -261,6 +261,29 @@ impl LeopardGf16DecodePlan {
 #[cfg(feature = "std")]
 type DecodePlanKey = (usize, usize, SmallVec<[bool; 256]>);
 
+#[cfg(feature = "std")]
+type PendingDecodePlan = std::sync::OnceLock<alloc::sync::Arc<LeopardGf16DecodePlan>>;
+
+#[cfg(feature = "std")]
+const MAX_PENDING_DECODE_PLANS: usize = 16;
+#[cfg(feature = "std")]
+const MAX_PENDING_DECODE_KEY_BYTES: usize = 128 * 1024;
+
+#[cfg(feature = "std")]
+struct PendingPlan {
+    key: DecodePlanKey,
+    value: alloc::sync::Weak<PendingDecodePlan>,
+}
+
+#[cfg(feature = "std")]
+fn decode_key_bytes(key: &DecodePlanKey) -> usize {
+    core::mem::size_of::<DecodePlanKey>().saturating_add(if key.2.spilled() {
+        key.2.capacity()
+    } else {
+        0
+    })
+}
+
 /// Charge keys and plan-owned storage while keeping independent callers' Arc
 /// lifetimes outside the cache budget. LRU bookkeeping and allocator overhead
 /// are excluded, as with the Classic inverse-cache accounting.
@@ -269,6 +292,7 @@ struct DecodePlanCache {
     entries: hashlink::LruCache<DecodePlanKey, (alloc::sync::Arc<LeopardGf16DecodePlan>, usize)>,
     retained_bytes: usize,
     max_bytes: usize,
+    pending: Vec<PendingPlan>,
 }
 
 #[cfg(feature = "std")]
@@ -278,11 +302,55 @@ impl DecodePlanCache {
             entries: hashlink::LruCache::new(16),
             retained_bytes: 0,
             max_bytes,
+            pending: Vec::new(),
         }
     }
 
     fn get(&mut self, key: &DecodePlanKey) -> Option<alloc::sync::Arc<LeopardGf16DecodePlan>> {
         self.entries.get(key).map(|(plan, _)| plan.clone())
+    }
+
+    fn pending_for(&mut self, key: &DecodePlanKey) -> Option<alloc::sync::Arc<PendingDecodePlan>> {
+        use alloc::sync::Arc;
+
+        // A panicking initializer drops its strong reference. Existing waiters
+        // can retry the same cell. Abandoned weak registrations are pruned here.
+        self.pending.retain(|entry| entry.value.strong_count() != 0);
+        if let Some(value) = self
+            .pending
+            .iter()
+            .find(|entry| entry.key == *key)
+            .and_then(|entry| entry.value.upgrade())
+        {
+            return Some(value);
+        }
+        let used: usize = self
+            .pending
+            .iter()
+            .map(|entry| decode_key_bytes(&entry.key))
+            .sum();
+        if self.pending.len() >= MAX_PENDING_DECODE_PLANS
+            || used.saturating_add(decode_key_bytes(key)) > MAX_PENDING_DECODE_KEY_BYTES
+        {
+            return None;
+        }
+        let key = key.clone();
+        // SmallVec cloning can grow spilled capacity. Charge the owned key
+        // before installing its registration, including that actual capacity.
+        if used.saturating_add(decode_key_bytes(&key)) > MAX_PENDING_DECODE_KEY_BYTES {
+            return None;
+        }
+        let value = Arc::new(PendingDecodePlan::new());
+        self.pending.push(PendingPlan {
+            key,
+            value: Arc::downgrade(&value),
+        });
+        Some(value)
+    }
+
+    fn finish_pending(&mut self, value: &alloc::sync::Arc<PendingDecodePlan>) {
+        self.pending
+            .retain(|entry| entry.value.as_ptr() != alloc::sync::Arc::as_ptr(value));
     }
 
     fn insert(
@@ -295,8 +363,7 @@ impl DecodePlanCache {
         if let Some(existing) = self.get(&key) {
             return existing;
         }
-        let key_bytes = core::mem::size_of::<DecodePlanKey>()
-            + if key.2.spilled() { key.2.capacity() } else { 0 };
+        let key_bytes = decode_key_bytes(&key);
         let Some(bytes) = plan.retained_bytes().checked_add(key_bytes) else {
             return plan;
         };
@@ -451,10 +518,40 @@ fn build_decode_plan(
     }
 }
 
-/// Memoising wrapper over [`build_decode_plan`], keyed by
-/// `(data_shards, parity_shards, present)`. `std` only — `no_std` builds the plan
-/// fresh each call (no global allocator/mutex assumptions, and reconstruct is
-/// cold there).
+/// Share a cold build with callers of the same internal, non-recursive builder.
+#[cfg(feature = "std")]
+fn with_cached_decode_plan(
+    cache: &parking_lot::Mutex<DecodePlanCache>,
+    key: DecodePlanKey,
+    build: impl FnOnce() -> LeopardGf16DecodePlan,
+) -> alloc::sync::Arc<LeopardGf16DecodePlan> {
+    use alloc::sync::Arc;
+
+    let pending = {
+        let mut cache = cache.lock();
+        if let Some(plan) = cache.get(&key) {
+            return plan;
+        }
+        cache.pending_for(&key)
+    };
+    let build_and_insert = || {
+        // The internal plan builder is non-recursive. Neither computation nor
+        // waiting holds the shared cache mutex, so other keys remain available.
+        let plan = Arc::new(build());
+        cache.lock().insert(key, plan)
+    };
+    if let Some(pending) = pending {
+        // Only callers in this wave own the cell and its result. Oversized
+        // results are shared with waiters and released when those calls finish.
+        let plan = pending.get_or_init(build_and_insert).clone();
+        cache.lock().finish_pending(&pending);
+        plan
+    } else {
+        build_and_insert()
+    }
+}
+
+/// Memoise plans by `(data_shards, parity_shards, present)` and coalesce misses.
 #[cfg(feature = "std")]
 fn decode_plan_for(
     driver: &LeopardGf16DecodeDriver,
@@ -463,7 +560,6 @@ fn decode_plan_for(
     missing_data: &[usize],
     tables: &LeopardGf16Tables,
 ) -> alloc::sync::Arc<LeopardGf16DecodePlan> {
-    use alloc::sync::Arc;
     use parking_lot::Mutex;
     use std::sync::OnceLock;
 
@@ -477,21 +573,14 @@ fn decode_plan_for(
     );
     let cache = CACHE.get_or_init(|| Mutex::new(DecodePlanCache::new(MAX_CACHED_PLAN_BYTES)));
 
-    if let Some(plan) = cache.lock().get(&key) {
-        return plan;
-    }
-    // Build outside the lock (the FWHTs are the expensive part); a concurrent
-    // duplicate build at most wastes work, never corrupts (the value is a pure
-    // function of the key).
-    let plan = Arc::new(build_decode_plan(
-        driver,
-        present,
-        missing_parity,
-        missing_data,
-        tables,
-    ));
-    cache.lock().insert(key, plan)
+    with_cached_decode_plan(cache, key, || {
+        build_decode_plan(driver, present, missing_parity, missing_data, tables)
+    })
 }
+
+#[cfg(all(test, feature = "std"))]
+#[path = "decode_plan_concurrency_tests.rs"]
+mod decode_plan_concurrency_tests;
 
 #[cfg(test)]
 pub(crate) fn reconstruct_with_tables16(
