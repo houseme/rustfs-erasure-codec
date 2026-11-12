@@ -35,6 +35,9 @@ use smallvec::SmallVec;
 use super::recovery_plan::ClassicReconstructRows;
 use super::{ClassicReconstructPlan, ReconstructionGoal};
 
+mod workspace;
+pub use workspace::StreamWorkspace;
+
 /// Lower bound for the read/write block size (1 KiB).
 const MIN_BLOCK_SIZE_BYTES: usize = 1024;
 /// Upper bound for the read/write block size (16 MiB).
@@ -557,9 +560,9 @@ fn write_block_par<W: std::io::Write + Send>(
 /// A stream has a fixed missing-shard layout and codec, so only its byte views
 /// change between blocks. Keep the decode matrix alive independently of the
 /// codec's LRU cache, including when that cache is disabled or evicts entries.
-struct StreamReconstructPlan<'codec> {
+struct StreamReconstructPlan<'codec, P = ClassicReconstructPlan<crate::galois_8::Field>> {
     codec: &'codec super::ReedSolomon<crate::galois_8::Field>,
-    plan: ClassicReconstructPlan<crate::galois_8::Field>,
+    plan: P,
 }
 
 impl<'codec> StreamReconstructPlan<'codec> {
@@ -581,7 +584,11 @@ impl<'codec> StreamReconstructPlan<'codec> {
         let plan = codec.prepare_classic_reconstruct_plan(shape, ReconstructionGoal::All)?;
         Ok(Self { codec, plan })
     }
+}
 
+impl<P: std::borrow::Borrow<ClassicReconstructPlan<crate::galois_8::Field>>>
+    StreamReconstructPlan<'_, P>
+{
     /// All present buffers have already passed the equal-length read check,
     /// and missing buffers have been resized to the same block length.
     fn reconstruct_block(
@@ -592,8 +599,9 @@ impl<'codec> StreamReconstructPlan<'codec> {
         parity_rows: &ClassicReconstructRows<'_, crate::galois_8::Field>,
         data_outputs: &mut SmallVec<[Vec<u8>; 32]>,
     ) {
-        let missing_data = self.plan.data_targets().len();
-        let missing_parity = self.plan.parity_targets().len();
+        let plan = self.plan.borrow();
+        let missing_data = plan.data_targets().len();
+        let missing_parity = plan.parity_targets().len();
         self.codec.record_reconstruct_runtime(
             false,
             missing_data,
@@ -605,7 +613,7 @@ impl<'codec> StreamReconstructPlan<'codec> {
             debug_assert!(data_outputs.is_empty());
             // Move only missing owners out so survivors can be borrowed directly.
             // Vec moves transfer metadata, without copying payloads or aliases.
-            for &index in self.plan.data_targets() {
+            for &index in plan.data_targets() {
                 data_outputs.push(core::mem::take(&mut buffers[index]));
             }
             self.codec
@@ -613,11 +621,11 @@ impl<'codec> StreamReconstructPlan<'codec> {
             self.codec.code_selected_inputs(
                 data_rows,
                 buffers,
-                &self.plan.shape.valid_indices,
+                &plan.shape.valid_indices,
                 data_outputs.as_mut_slice(),
             );
             // Restore canonical ownership before parity reads, I/O or probes.
-            for (&index, output) in self.plan.data_targets().iter().zip(data_outputs.drain(..)) {
+            for (&index, output) in plan.data_targets().iter().zip(data_outputs.drain(..)) {
                 buffers[index] = output;
             }
         }
@@ -632,7 +640,7 @@ impl<'codec> StreamReconstructPlan<'codec> {
                 parity_rows,
                 data,
                 parity,
-                self.plan.parity_targets(),
+                plan.parity_targets(),
                 self.codec.data_shard_count(),
             );
         }
