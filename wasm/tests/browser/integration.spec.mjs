@@ -4,6 +4,15 @@ test.beforeEach(async ({ page }) => {
     await page.goto("/");
 });
 
+test("real browser recovers wide sparse and dense erasure patterns", async ({ page }) => {
+    await page.evaluate(async () => {
+        const { ReedSolomonErasure } = await import("/dist/src/index.js");
+        const { exerciseWideRecovery } = await import("/tests/scenarios.mjs");
+        const codec = await ReedSolomonErasure.fromCurrentDirectory();
+        exerciseWideRecovery(codec);
+    });
+});
+
 for (const initialization of ["bytes", "response", "promise", "current-directory"]) {
     test(`real browser ${initialization} initialization, roundtrip and input errors`, async ({ page }) => {
         await page.evaluate(async (initialization) => {

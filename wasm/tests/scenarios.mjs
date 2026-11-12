@@ -167,3 +167,33 @@ export function exerciseAlternatingLayouts(codec) {
     exerciseRoundTrip(codec, { seed: 29 });
     exerciseGoldenVector(codec);
 }
+
+export function exerciseWideRecovery(codec) {
+    const data = 64;
+    const parity = 8;
+    const length = 65;
+    const original = new Uint8Array((data + parity) * length);
+    for (let index = 0; index < data * length; index++) {
+        original[index] = ((index * 29) ^ (index >>> 4) ^ 31) & 255;
+    }
+    check(codec.encode(original, data, parity) === 0, "wide encoding succeeds");
+    for (const missing of [[0], [0, 31], [0, 21, 42, 63], [0, 12, 24, 36, 48]]) {
+        const shards = original.slice();
+        const flags = Array(data + parity).fill(true);
+        for (const index of missing) {
+            shards.fill(0, index * length, (index + 1) * length);
+            flags[index] = false;
+        }
+        check(codec.reconstruct(shards, data, parity, flags) === 0, "wide recovery succeeds");
+        equalBytes(shards, original, "wide recovered bytes");
+    }
+    const shards = original.slice();
+    const flags = Array(data + parity).fill(true);
+    for (const index of [0, 31, data]) {
+        shards.fill(0, index * length, (index + 1) * length);
+        flags[index] = false;
+    }
+    check(codec.reconstruct(shards, data, parity, flags) === 0, "wide recovery with missing parity succeeds");
+    equalBytes(shards.subarray(0, data * length), original.subarray(0, data * length), "wide data-only recovery");
+    check(shards.subarray(data * length, (data + 1) * length).every((value) => value === 0), "missing parity is preserved");
+}
