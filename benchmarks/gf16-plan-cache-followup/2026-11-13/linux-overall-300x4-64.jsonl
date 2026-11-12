@@ -1,0 +1,16 @@
+{"kind":"settings","rounds":3,"warm_ms":1000,"phase_warm_ms":100,"sample_ms":250,"warm_batch":32,"pinned_cpus":2,"drift_limit":0.05}
+{"kind":"phase","case":"concurrent/8/300x4/64/cold","round":0,"index":0,"role":"baseline","calls":1248,"wall_ns":200885.68509615384,"cpu_ns":200888.1201923077,"switches":4945,"minor_faults":0}
+{"kind":"phase","case":"concurrent/8/300x4/64/cold","round":0,"index":1,"role":"candidate","calls":1400,"wall_ns":178692.85642857142,"cpu_ns":178699.07642857142,"switches":5628,"minor_faults":2}
+{"kind":"phase","case":"concurrent/8/300x4/64/cold","round":0,"index":2,"role":"candidate","calls":1472,"wall_ns":169999.65964673914,"cpu_ns":170001.75407608695,"switches":5727,"minor_faults":5}
+{"kind":"phase","case":"concurrent/8/300x4/64/cold","round":0,"index":3,"role":"baseline","calls":1312,"wall_ns":191127.70045731709,"cpu_ns":191130.81097560975,"switches":5195,"minor_faults":5}
+{"kind":"comparison","case":"concurrent/8/300x4/64/cold","round":0,"wall_delta_pct":-11.050864861922271,"cpu_delta_pct":-11.050002236933853,"base_drift":0.04978393594932876,"next_drift":0.04986167687037329,"base_cpu_drift":0.04977978582630483,"next_cpu_drift":0.049884150490248344,"over_limit":false}
+{"kind":"phase","case":"concurrent/8/300x4/64/cold","round":1,"index":0,"role":"candidate","calls":1144,"wall_ns":218629.62412587414,"cpu_ns":218633.52185314684,"switches":4539,"minor_faults":2}
+{"kind":"phase","case":"concurrent/8/300x4/64/cold","round":1,"index":1,"role":"baseline","calls":1192,"wall_ns":210247.93875838927,"cpu_ns":210251.43204697987,"switches":4724,"minor_faults":10}
+{"kind":"phase","case":"concurrent/8/300x4/64/cold","round":1,"index":2,"role":"baseline","calls":1192,"wall_ns":210477.45553691275,"cpu_ns":210480.5989932886,"switches":4858,"minor_faults":0}
+{"kind":"phase","case":"concurrent/8/300x4/64/cold","round":1,"index":3,"role":"candidate","calls":1400,"wall_ns":178688.6,"cpu_ns":178690.6542857143,"switches":5609,"minor_faults":0}
+{"kind":"comparison","case":"concurrent/8/300x4/64/cold","round":1,"wall_delta_pct":-5.563526824577336,"cpu_delta_pct":-5.563601811711594,"base_drift":0.0010910526516133502,"next_drift":0.20105306880270582,"base_cpu_drift":0.0010893724717944413,"next_cpu_drift":0.20105933626084152,"over_limit":true}
+{"kind":"phase","case":"concurrent/8/300x4/64/cold","round":2,"index":0,"role":"baseline","calls":1152,"wall_ns":217544.34375,"cpu_ns":217547.05555555556,"switches":4649,"minor_faults":4}
+{"kind":"phase","case":"concurrent/8/300x4/64/cold","round":2,"index":1,"role":"candidate","calls":1328,"wall_ns":188501.2861445783,"cpu_ns":188503.5768072289,"switches":5384,"minor_faults":0}
+{"kind":"phase","case":"concurrent/8/300x4/64/cold","round":2,"index":2,"role":"candidate","calls":1200,"wall_ns":209030.55666666667,"cpu_ns":209033.12416666668,"switches":4685,"minor_faults":0}
+{"kind":"phase","case":"concurrent/8/300x4/64/cold","round":2,"index":3,"role":"baseline","calls":1320,"wall_ns":190081.59848484848,"cpu_ns":190084.09015151515,"switches":5231,"minor_faults":5}
+{"kind":"comparison","case":"concurrent/8/300x4/64/cold","round":2,"wall_delta_pct":-2.47631428173134,"cpu_delta_pct":-2.4763673824936605,"base_drift":0.1347448354959175,"next_drift":0.10328365333911638,"base_cpu_drift":0.13474419554670475,"next_cpu_drift":0.10328378390797105,"over_limit":true}

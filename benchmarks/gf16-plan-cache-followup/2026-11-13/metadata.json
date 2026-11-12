@@ -1,0 +1,201 @@
+{
+  "schema": "gf16-plan-cache-followup-v1",
+  "started": "2026-11-12",
+  "completed": "2026-11-13",
+  "original_main": "a0333d3d9916f27d4706cf983b85f6763416cbe1",
+  "baseline": "59347ca5107297e66148a47edcc79ae877d1d5bc",
+  "runtime_candidate": "8781e8de6c21559c0158811ddd77d00719af2417",
+  "merged_main": "f090a809a9d9374686a1741c6d8c0384ef0c8c38",
+  "compiler": "rustc 1.99.1",
+  "features": [
+    "std",
+    "simd-accel"
+  ],
+  "host_platform": "macOS ARM64",
+  "container_platform": "Linux ARM64",
+  "container_cpu_quota": 2,
+  "serial_affinity_cpu_count": 1,
+  "concurrent_affinity_cpu_count": 2,
+  "probe": "scripts/paired_gf16_decode_probe.rs",
+  "drift_handling": "record and continue",
+  "formal_performance_approval": false,
+  "files": [
+    {
+      "path": "allocations.json",
+      "sha256": "44dc581e24eddb1c992c10f65a36a4011ae8c10e0f1e4acc1e5ad3525903f9f2"
+    },
+    {
+      "path": "clock-check-rust.json",
+      "sha256": "a77e017359bcf6398bc64342fc92e2431c67e0746f619784c8b2deaddae4534c"
+    },
+    {
+      "path": "clock-check.json",
+      "sha256": "85c036e3580a7d0dc984be76c7102f25665e296f5399040f4e6b517b406678d5"
+    },
+    {
+      "path": "host-aa.jsonl",
+      "sha256": "8e3b03cc1b32e9983406e8671e6867745b6d1ad45b74d1d312a5057bf5152a31"
+    },
+    {
+      "path": "host-per-call.jsonl",
+      "sha256": "c198980f0ab00270e9fdb97a6d1f037700d87953368565fc0fef89a400d08e37"
+    },
+    {
+      "path": "initial-serial-probe.rs",
+      "sha256": "7005ef05802e62b9780434b090de8ba9b3512fbcf82582ee78c1abde79ceccf4"
+    },
+    {
+      "path": "initial-serial.jsonl",
+      "sha256": "6496347ad1f60c9e6e0305a4288a1f322e06a65963a6a93684bbe21e31ab3420"
+    },
+    {
+      "path": "linux-aa-concurrent.jsonl",
+      "sha256": "42fa743218e877766e8528835015f9f59834f87f26d0b1e5eee2f5d3090e9122"
+    },
+    {
+      "path": "linux-aa-serial.jsonl",
+      "sha256": "473687aa593e4d53a8c1d377ffb02247df2b9b183953ac5d5b49510af05a01da"
+    },
+    {
+      "path": "linux-concurrent.jsonl",
+      "sha256": "293c236104f29c293887d9c06af8eac7c7b4e04a64cd1edf5389b8043d72fc31"
+    },
+    {
+      "path": "linux-focused-aa-concurrent.jsonl",
+      "sha256": "71c3726d26e11188ebda20ed5401265aff1a3941185ecae819e25eed42fd5c18"
+    },
+    {
+      "path": "linux-focused-aa-serial.jsonl",
+      "sha256": "ed631b98bc51fec6ffa780564de503702c1b5a2729f3594bd0506d3e2c48080b"
+    },
+    {
+      "path": "linux-focused-concurrent.jsonl",
+      "sha256": "2090f7c2d3f04dfda1fec5a49aa1f51189cbe4493e68ab4b54342aec3903abd3"
+    },
+    {
+      "path": "linux-focused-serial.jsonl",
+      "sha256": "0b034989e349b01a904a2f6452ef5998d12af87f21cdd885184c707dc1d0d187"
+    },
+    {
+      "path": "linux-micro-aa-concurrent.jsonl",
+      "sha256": "5a4d0776a4e55eb29c3fe11c3ccb1889562ccc0c16ab9ab17412cf8aa29a67cc"
+    },
+    {
+      "path": "linux-micro-aa-serial.jsonl",
+      "sha256": "53178740ca549bc7ef954aa878ffac0101946d18271259d2fd356083160dd1f1"
+    },
+    {
+      "path": "linux-micro-concurrent.jsonl",
+      "sha256": "df02415f688db6f174abf5b1e945d11cfc40b42e4cbc58ed1f99720855e5b3b1"
+    },
+    {
+      "path": "linux-micro-serial.jsonl",
+      "sha256": "ab0a2e64e67137dc47931754c2c236a8f5c0c63b78859abfd4468dcd2b741b80"
+    },
+    {
+      "path": "linux-overall-10x4-64.jsonl",
+      "sha256": "7ced96ebc0411e57d3300c5adb3bf4027fed241cd11244e14f7a1cb5d41c0e7c"
+    },
+    {
+      "path": "linux-overall-300x4-4096.jsonl",
+      "sha256": "d4abedf3df4cd72f4651abc536403909698942c92114d833465785ea498c11b0"
+    },
+    {
+      "path": "linux-overall-300x4-64.jsonl",
+      "sha256": "79069f3b446c34c51e4307b46530a76a571298ccc61c176cfa23a4cfb315ea7c"
+    },
+    {
+      "path": "linux-serial.jsonl",
+      "sha256": "e73d9ddf3003e36689a5ac62b1ffa13299a98c75058fc94cb517e048dc067592"
+    },
+    {
+      "path": "original-short-probe.rs",
+      "sha256": "b9eed0e56d0583100ef1a22c7599bbb927d32e189260f6e3d22354484932c095"
+    },
+    {
+      "path": "original-short.jsonl",
+      "sha256": "da06bb5eb09b669faba8b1f65f9a52b272bb90713df73c9391a5e790eb815f42"
+    },
+    {
+      "path": "probe-before-batching.rs",
+      "sha256": "b4da13c850e67ae8396919e36f0222fedd3c651b7fd9e70dd5b05732a5419e56"
+    }
+  ],
+  "probe_source_sha256": "6676871c22bc9634b3b42109dc2c6cecc7fb60e0231a690d857866fe3a5cc871",
+  "validation": {
+    "runtime_commit": "8781e8de6c21559c0158811ddd77d00719af2417",
+    "dynamic_workers": 516,
+    "observations": 6192,
+    "storage_events": 1540602,
+    "matching_independent_replay": true,
+    "github_success": 31,
+    "github_conditional_skips": 3
+  },
+  "comparators": {
+    "historical_short": {
+      "baseline": "a0333d3d9916f27d4706cf983b85f6763416cbe1",
+      "candidate": "59347ca5107297e66148a47edcc79ae877d1d5bc",
+      "probe": "original-short-probe.rs",
+      "files": [
+        "original-short.jsonl"
+      ]
+    },
+    "initial_serial": {
+      "baseline": "a0333d3d9916f27d4706cf983b85f6763416cbe1",
+      "candidate": "59347ca5107297e66148a47edcc79ae877d1d5bc",
+      "probe": "initial-serial-probe.rs",
+      "files": [
+        "initial-serial.jsonl"
+      ]
+    },
+    "host_per_call": {
+      "baseline": "59347ca5107297e66148a47edcc79ae877d1d5bc",
+      "candidate": "8781e8de6c21559c0158811ddd77d00719af2417",
+      "probe": "probe-before-batching.rs",
+      "files": [
+        "host-per-call.jsonl"
+      ]
+    },
+    "host_control": {
+      "baseline": "59347ca5107297e66148a47edcc79ae877d1d5bc",
+      "candidate": "59347ca5107297e66148a47edcc79ae877d1d5bc",
+      "same_codec_instance": false,
+      "files": [
+        "host-aa.jsonl"
+      ]
+    },
+    "linux_incremental": {
+      "baseline": "59347ca5107297e66148a47edcc79ae877d1d5bc",
+      "candidate": "8781e8de6c21559c0158811ddd77d00719af2417",
+      "files": [
+        "linux-concurrent.jsonl",
+        "linux-focused-concurrent.jsonl",
+        "linux-focused-serial.jsonl",
+        "linux-micro-concurrent.jsonl",
+        "linux-micro-serial.jsonl",
+        "linux-serial.jsonl"
+      ]
+    },
+    "linux_overall": {
+      "baseline": "a0333d3d9916f27d4706cf983b85f6763416cbe1",
+      "candidate": "8781e8de6c21559c0158811ddd77d00719af2417",
+      "files": [
+        "linux-overall-10x4-64.jsonl",
+        "linux-overall-300x4-4096.jsonl",
+        "linux-overall-300x4-64.jsonl"
+      ]
+    },
+    "linux_controls": {
+      "baseline": "59347ca5107297e66148a47edcc79ae877d1d5bc",
+      "candidate": "59347ca5107297e66148a47edcc79ae877d1d5bc",
+      "files": [
+        "linux-aa-concurrent.jsonl",
+        "linux-aa-serial.jsonl",
+        "linux-focused-aa-concurrent.jsonl",
+        "linux-focused-aa-serial.jsonl",
+        "linux-micro-aa-concurrent.jsonl",
+        "linux-micro-aa-serial.jsonl"
+      ]
+    }
+  }
+}

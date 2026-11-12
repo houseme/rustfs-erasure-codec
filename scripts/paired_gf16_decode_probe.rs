@@ -54,6 +54,7 @@ struct Settings {
     warm_ms: u64,
     phase_warm_ms: u64,
     sample_ms: u64,
+    same_codec: bool,
 }
 
 #[derive(Clone, Copy)]
@@ -339,14 +340,19 @@ fn main() {
         warm_ms: setting("RSE_CACHE_WARM_MS", 1000),
         phase_warm_ms: setting("RSE_CACHE_PHASE_WARM_MS", 100),
         sample_ms: setting("RSE_CACHE_SAMPLE_MS", 250),
+        same_codec: setting("RSE_CACHE_SAME_CODEC", 0) != 0,
     };
     assert!(settings.rounds > 0 && settings.sample_ms > 0);
     let filter = std::env::var("RSE_CACHE_FILTER").unwrap_or_default();
     let warm_batch = setting("RSE_CACHE_WARM_BATCH", 32) as usize;
     assert!(warm_batch > 0);
     println!(
-        "{{\"kind\":\"settings\",\"rounds\":{},\"warm_ms\":{},\"phase_warm_ms\":{},\"sample_ms\":{},\"warm_batch\":{warm_batch},\"pinned_cpus\":{pinned},\"drift_limit\":0.05}}",
-        settings.rounds, settings.warm_ms, settings.phase_warm_ms, settings.sample_ms
+        "{{\"kind\":\"settings\",\"rounds\":{},\"warm_ms\":{},\"phase_warm_ms\":{},\"sample_ms\":{},\"same_codec\":{},\"warm_batch\":{warm_batch},\"pinned_cpus\":{pinned},\"drift_limit\":0.05}}",
+        settings.rounds,
+        settings.warm_ms,
+        settings.phase_warm_ms,
+        settings.sample_ms,
+        settings.same_codec
     );
     let mut completed = 0usize;
     for callers in [1usize, 8] {
@@ -401,7 +407,7 @@ fn main() {
                                 assert!(correct(&shards, &expected));
                             } else {
                                 case.prepare(&mut shards, iteration);
-                                if baseline {
+                                if baseline || settings.same_codec {
                                     base.reconstruct(&mut shards).unwrap();
                                 } else {
                                     next.reconstruct(&mut shards).unwrap();
@@ -414,7 +420,13 @@ fn main() {
                             settings,
                             &expected,
                             |shards| base.reconstruct(shards).is_ok(),
-                            |shards| next.reconstruct(shards).is_ok(),
+                            |shards| {
+                                if settings.same_codec {
+                                    base.reconstruct(shards).is_ok()
+                                } else {
+                                    next.reconstruct(shards).is_ok()
+                                }
+                            },
                         );
                     }
                     completed += 1;

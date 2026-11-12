@@ -1,0 +1,48 @@
+{
+  "schema": "gf16-warm-allocation-requests-v1",
+  "parity": 4,
+  "shard_bytes": 64,
+  "max_parallel_jobs": 1,
+  "baseline": "59347ca5107297e66148a47edcc79ae877d1d5bc",
+  "candidate": "8781e8de6c21559c0158811ddd77d00719af2417",
+  "before": [
+    {
+      "data": 252,
+      "calls": 5,
+      "requested_bytes": 14656,
+      "mask_requests": 0
+    },
+    {
+      "data": 253,
+      "calls": 6,
+      "requested_bytes": 19305,
+      "mask_requests": 1
+    },
+    {
+      "data": 300,
+      "calls": 6,
+      "requested_bytes": 21232,
+      "mask_requests": 1
+    }
+  ],
+  "after": [
+    {
+      "data": 252,
+      "calls": 5,
+      "requested_bytes": 14656,
+      "mask_requests": 0
+    },
+    {
+      "data": 253,
+      "calls": 5,
+      "requested_bytes": 18793,
+      "mask_requests": 0
+    },
+    {
+      "data": 300,
+      "calls": 5,
+      "requested_bytes": 20720,
+      "mask_requests": 0
+    }
+  ]
+}
