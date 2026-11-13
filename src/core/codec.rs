@@ -4,11 +4,6 @@ use alloc::sync::Arc;
 use alloc::vec;
 use alloc::vec::Vec;
 
-#[cfg(feature = "std")]
-use parking_lot::Mutex;
-#[cfg(not(feature = "std"))]
-use spin::Mutex;
-
 use crate::Field;
 use crate::errors::Error;
 use crate::matrix::{Matrix, MatrixRowRange};
@@ -342,10 +337,10 @@ impl<F: Field> ReedSolomon<F> {
             options: options.into(),
             #[cfg(feature = "std")]
             policy_cache,
-            data_decode_matrix_cache: Mutex::new(InversionCache::new(
+            data_decode_matrix_cache: InversionCache::new(
                 options.inversion_cache_capacity,
                 options.inversion_cache_max_bytes,
-            )),
+            ),
             #[cfg(feature = "std")]
             reconstruction_cache_metrics: ReconstructionCacheMetrics::default(),
             #[cfg(feature = "std")]
@@ -404,7 +399,7 @@ impl<F: Field> ReedSolomon<F> {
     /// snapshot. Reconstruction workspaces may retain evicted matrices beyond
     /// this cache's ownership. See [`ReconstructionCacheMemory`] for accounting.
     pub fn reconstruction_cache_memory(&self) -> ReconstructionCacheMemory {
-        self.data_decode_matrix_cache.lock().memory()
+        self.data_decode_matrix_cache.memory()
     }
 
     /// Returns the recommended inversion cache capacity for the given shard counts.
@@ -607,10 +602,10 @@ impl<F: Field> ReedSolomon<F> {
             options: options.into(),
             #[cfg(feature = "std")]
             policy_cache,
-            data_decode_matrix_cache: Mutex::new(InversionCache::new(
+            data_decode_matrix_cache: InversionCache::new(
                 options.inversion_cache_capacity,
                 options.inversion_cache_max_bytes,
-            )),
+            ),
             #[cfg(feature = "std")]
             reconstruction_cache_metrics: ReconstructionCacheMetrics::default(),
             #[cfg(feature = "std")]

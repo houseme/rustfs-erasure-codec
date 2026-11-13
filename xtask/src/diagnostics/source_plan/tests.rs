@@ -38,7 +38,7 @@ fn complete_plans_bind_generated_bytes_and_every_written_member() {
         (
             // Current production source, including bounded caches and parallel workspaces.
             "dynamic",
-            "4a9df680420293278c716ff222e1f5c3218eccb2d33518c4ec6c4500efff4ec5",
+            "ebc7046bd4807348ae2dd126f23de315deeae40c7237190b1fcd77acce5c39fe",
         ),
     ] {
         let original = original(root, variant);
@@ -343,12 +343,17 @@ fn leopard_observer_instruments_the_validated_heap_staging_helper() {
 }
 
 #[test]
-fn cache_observer_preserves_both_known_lookup_bodies() {
+fn cache_observer_preserves_all_known_lookup_bodies() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
     let original = source::read(root.join("src/core/reconstruct.rs")).unwrap();
-    assert_eq!(original.matches("cache.get(cache_erasures)").count(), 1);
-    for lookup in ["invalid_indices", "cache_erasures"] {
-        let source = original.replace("cache.get(cache_erasures)", &format!("cache.get({lookup})"));
+    let current = "            if let Some(entry) = self\n                .data_decode_matrix_cache\n                .get_hashed(hash, cache_erasures)\n            {";
+    assert_eq!(original.matches(current).count(), 1);
+    for lookup in [
+        current,
+        "            if let Some(entry) = cache.get(invalid_indices) {",
+        "            if let Some(entry) = cache.get(cache_erasures) {",
+    ] {
+        let source = original.replace(current, lookup);
         let observed = dynamic::decode(&source).unwrap();
         let restored = observed
             .split_inclusive('\n')
@@ -362,14 +367,16 @@ fn cache_observer_preserves_both_known_lookup_bodies() {
 fn cache_observer_refuses_unknown_or_ambiguous_lookups() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
     let original = source::read(root.join("src/core/reconstruct.rs")).unwrap();
-    assert!(
-        dynamic::decode(&original.replace("cache.get(cache_erasures)", "cache.get(other)"))
-            .is_err()
+    let changed = original.replace(
+        ".get_hashed(hash, cache_erasures)",
+        ".get_prepared(hash, cache_erasures)",
     );
-    let marker = "            if let Some(entry) = cache.get(cache_erasures) {";
+    assert_ne!(changed, original);
+    assert!(dynamic::decode(&changed).is_err());
+    let marker = "                .get_hashed(hash, cache_erasures)\n            {";
     let ambiguous = original.replace(
         marker,
-        &format!("            if let Some(entry) = cache.get(invalid_indices) {{}}\n{marker}"),
+        &format!("{marker}\n            if let Some(entry) = cache.get(invalid_indices) {{}}"),
     );
     assert!(dynamic::decode(&ambiguous).is_err());
 }

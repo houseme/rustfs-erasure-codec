@@ -378,6 +378,10 @@ key capacity. LRU bookkeeping, Arc counters, allocator overhead and matrices hel
 by external workspaces after eviction are outside this accounting. An entry that
 exceeds the budget is used locally while the cache retains its existing entries.
 
+Classic cache requests hash borrowed erasure indices before acquiring the cache
+mutex. Lookups, replacements and insertion reuse that hash. Memory snapshots
+read entry counts and charged bytes under the same state guard.
+
 For Classic layouts with at least 64 data shards and one to four missing data
 shards, cached inverses retain the missing coefficient rows and represent the
 surviving systematic rows implicitly. `reconstruction_cache_memory()` charges
