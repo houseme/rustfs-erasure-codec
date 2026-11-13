@@ -1,5 +1,10 @@
 # Controlled release evidence
 
+Publication update (2026-11-13): the maintainer selected functional and
+compatibility acceptance for the 9.1.0 publication. This document records the
+controlled performance-evidence procedure, which remains a separate workstream.
+[9.1.0 publication record](release-9.1.0-publication-2026-11-13.md)
+
 Release 9.1.0 uses published **9.0.0** (`9891dbe4cfc0b8aaf46b1011bfe9d8de334b51b6`)
 as its baseline. No accepted snapshot has been configured merely by adding this
 workflow. Ordinary CI and mocked tooling tests do not establish performance.

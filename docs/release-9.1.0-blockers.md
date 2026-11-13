@@ -1,5 +1,10 @@
 # 9.1.0 publication blockers and completion criteria
 
+Publication update (2026-11-13): 9.1.0 uses the maintainer-approved functional
+and compatibility acceptance. Performance acceptance continues as a separate
+workstream. The selected publication procedure is documented in the
+[publication record](release-9.1.0-publication-2026-11-13.md).
+
 Preparation update (2026-10-27): merged main `6167745` has successful ordinary
 CI and the same complete tree as the locally validated `55bcf2b`. The
 [current preparation runbook](release-9.1.0-preparation-2026-10-27.md) consolidates
