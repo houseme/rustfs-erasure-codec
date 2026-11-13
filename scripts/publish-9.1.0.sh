@@ -29,6 +29,8 @@ else
 fi
 
 cargo publish --dry-run --locked --registry crates-io --package "$package"
+# Materialize the archive independently of Cargo's publish staging directory.
+cargo package --locked --registry crates-io --package "$package"
 archive="${CARGO_TARGET_DIR:-target}/package/$package-$version.crate"
 [[ "$(tar -xOf "$archive" "$package-$version/.cargo_vcs_info.json" | jq -er '.git.sha1')" == "$GITHUB_SHA" ]] || exit 1
 

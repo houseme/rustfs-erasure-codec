@@ -114,7 +114,8 @@ git)
 cargo)
   case "$*" in
     'xtask check-release --tag 9.1.0') [ "${FAIL_VERSION:-0}" = 0 ] ;;
-    'publish --dry-run'*) cp "$FIXTURE" "$CARGO_TARGET_DIR/package/rustfs-erasure-codec-9.1.0.crate" ;;
+    'publish --dry-run'*) mkdir -p "$CARGO_TARGET_DIR/package/tmp-crate"; cp "$FIXTURE" "$CARGO_TARGET_DIR/package/tmp-crate/rustfs-erasure-codec-9.1.0.crate" ;;
+    'package --locked'*) cp "$FIXTURE" "$CARGO_TARGET_DIR/package/rustfs-erasure-codec-9.1.0.crate" ;;
     'publish --locked'*) [ "${FAIL_UPLOAD:-0}" = 0 ]; touch "$STATE/published" ;;
     *) exit 91 ;;
   esac ;;
