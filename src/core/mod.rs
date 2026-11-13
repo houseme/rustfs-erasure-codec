@@ -91,7 +91,7 @@ pub struct ReedSolomon<F: Field> {
     options: ExecutionOptions,
     #[cfg(feature = "std")]
     pub(crate) policy_cache: RuntimeParallelPolicyCache,
-    data_decode_matrix_cache: Mutex<InversionCache<F>>,
+    data_decode_matrix_cache: InversionCache<F>,
     #[cfg(feature = "std")]
     reconstruction_cache_metrics: ReconstructionCacheMetrics,
     #[cfg(feature = "std")]
@@ -105,10 +105,10 @@ impl<F: Field> Clone for ReedSolomon<F> {
             options: self.options,
             #[cfg(feature = "std")]
             policy_cache: self.policy_cache,
-            data_decode_matrix_cache: Mutex::new(InversionCache::new(
+            data_decode_matrix_cache: InversionCache::new(
                 self.options.inversion_cache_capacity,
                 self.options.inversion_cache_max_bytes,
-            )),
+            ),
             #[cfg(feature = "std")]
             reconstruction_cache_metrics: ReconstructionCacheMetrics::default(),
             #[cfg(feature = "std")]

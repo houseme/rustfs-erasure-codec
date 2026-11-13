@@ -64,6 +64,7 @@ struct Case {
     cold: bool,
     callers: usize,
     batch: usize,
+    classic: bool,
 }
 
 impl Case {
@@ -74,10 +75,15 @@ impl Case {
             "concurrent"
         };
         let mode = if self.cold { "cold" } else { "warm" };
-        format!(
+        let id = format!(
             "{execution}/{}/{}x4/{}/{mode}",
             self.callers, self.data, self.bytes
-        )
+        );
+        if self.classic {
+            format!("classic/{id}")
+        } else {
+            id
+        }
     }
 
     fn prepare(self, shards: &mut Shards, iteration: usize) {
@@ -344,10 +350,16 @@ fn main() {
     };
     assert!(settings.rounds > 0 && settings.sample_ms > 0);
     let filter = std::env::var("RSE_CACHE_FILTER").unwrap_or_default();
+    let family = std::env::var("RSE_CACHE_FAMILY").unwrap_or_else(|_| "gf16".into());
+    assert!(
+        family == "gf16" || family == "classic",
+        "unknown cache probe family"
+    );
+    let classic = family == "classic";
     let warm_batch = setting("RSE_CACHE_WARM_BATCH", 32) as usize;
     assert!(warm_batch > 0);
     println!(
-        "{{\"kind\":\"settings\",\"rounds\":{},\"warm_ms\":{},\"phase_warm_ms\":{},\"sample_ms\":{},\"same_codec\":{},\"warm_batch\":{warm_batch},\"pinned_cpus\":{pinned},\"drift_limit\":0.05}}",
+        "{{\"kind\":\"settings\",\"family\":\"{family}\",\"rounds\":{},\"warm_ms\":{},\"phase_warm_ms\":{},\"sample_ms\":{},\"same_codec\":{},\"warm_batch\":{warm_batch},\"pinned_cpus\":{pinned},\"drift_limit\":0.05}}",
         settings.rounds,
         settings.warm_ms,
         settings.phase_warm_ms,
@@ -356,7 +368,11 @@ fn main() {
     );
     let mut completed = 0usize;
     for callers in [1usize, 8] {
-        for data in [10usize, 252, 253, 300] {
+        for data in if classic {
+            [10usize, 64, 128, 240]
+        } else {
+            [10usize, 252, 253, 300]
+        } {
             for bytes in [64usize, 4096] {
                 for cold in [false, true] {
                     let case = Case {
@@ -365,6 +381,7 @@ fn main() {
                         cold,
                         callers,
                         batch: if callers > 1 && !cold { warm_batch } else { 1 },
+                        classic,
                     };
                     if !case.id().contains(&filter) {
                         continue;
@@ -373,7 +390,13 @@ fn main() {
                         data,
                         4,
                         base_codec::CodecOptions::builder()
-                            .codec_family(base_codec::CodecFamily::LeopardGF16)
+                            .codec_family(if classic {
+                                base_codec::CodecFamily::Classic
+                            } else {
+                                base_codec::CodecFamily::LeopardGF16
+                            })
+                            .leopard_mode(base_codec::LeopardMode::Disabled)
+                            .inversion_cache_capacity(if classic { 16 } else { 0 })
                             .max_parallel_jobs(1)
                             .build(),
                     )
@@ -382,7 +405,13 @@ fn main() {
                         data,
                         4,
                         next_codec::CodecOptions::builder()
-                            .codec_family(next_codec::CodecFamily::LeopardGF16)
+                            .codec_family(if classic {
+                                next_codec::CodecFamily::Classic
+                            } else {
+                                next_codec::CodecFamily::LeopardGF16
+                            })
+                            .leopard_mode(next_codec::LeopardMode::Disabled)
+                            .inversion_cache_capacity(if classic { 16 } else { 0 })
                             .max_parallel_jobs(1)
                             .build(),
                     )

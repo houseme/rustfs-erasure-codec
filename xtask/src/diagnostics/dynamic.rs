@@ -114,14 +114,15 @@ pub fn decode(text: &str) -> Result<String> {
     text = source::method(&text, declaration, |original, edit| {
         let legacy = "            if let Some(entry) = cache.get(invalid_indices) {";
         let selected = "            if let Some(entry) = cache.get(cache_erasures) {";
-        let marker = match (
-            original.matches(legacy).count(),
-            original.matches(selected).count(),
-        ) {
-            (1, 0) => legacy,
-            (0, 1) => selected,
-            _ => return Err("decode cache lookup boundary changed or is ambiguous".into()),
-        };
+        let hashed = "                .get_hashed(hash, cache_erasures)\n            {";
+        let matches: Vec<_> = [legacy, selected, hashed]
+            .into_iter()
+            .filter(|marker| original.contains(marker))
+            .collect();
+        if matches.len() != 1 || original.matches(matches[0]).count() != 1 {
+            return Err("decode cache lookup boundary changed or is ambiguous".into());
+        }
+        let marker = matches[0];
         edit.after(
             marker,
             "\n                entry.__rse_buffer_view(\"decode_cached\");",

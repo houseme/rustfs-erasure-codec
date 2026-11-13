@@ -1195,19 +1195,25 @@ impl<F: Field> ReedSolomon<F> {
             _ => invalid_indices,
         };
 
-        if self.options.inversion_cache {
+        let cache_hash = self
+            .options
+            .inversion_cache
+            .then(|| self.data_decode_matrix_cache.hash_key(cache_erasures));
+        if let Some(hash) = cache_hash {
             #[cfg(feature = "std")]
             self.reconstruction_cache_metrics
                 .requests
                 .fetch_add(1, Ordering::Relaxed);
 
-            let mut cache = self.data_decode_matrix_cache.lock();
-            if let Some(entry) = cache.get(cache_erasures) {
+            if let Some(entry) = self
+                .data_decode_matrix_cache
+                .get_hashed(hash, cache_erasures)
+            {
                 #[cfg(feature = "std")]
                 self.reconstruction_cache_metrics
                     .hits
                     .fetch_add(1, Ordering::Relaxed);
-                return Ok(entry.clone());
+                return Ok(entry);
             }
 
             #[cfg(feature = "std")]
@@ -1216,10 +1222,13 @@ impl<F: Field> ReedSolomon<F> {
                 .fetch_add(1, Ordering::Relaxed);
         }
         let data_decode_matrix = self.build_data_decode_matrix(valid_indices)?;
-        if self.options.inversion_cache {
+        if let Some(hash) = cache_hash {
             let data_decode_matrix = data_decode_matrix.clone();
-            let mut cache = self.data_decode_matrix_cache.lock();
-            let insertion = cache.insert(Vec::from(cache_erasures), data_decode_matrix);
+            let insertion = self.data_decode_matrix_cache.insert_hashed(
+                hash,
+                Vec::from(cache_erasures),
+                data_decode_matrix,
+            );
             #[cfg(feature = "std")]
             {
                 self.reconstruction_cache_metrics
