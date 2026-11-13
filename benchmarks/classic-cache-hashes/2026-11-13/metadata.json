@@ -1,0 +1,54 @@
+{
+  "schema": "classic-cache-hash-diagnostic-v1",
+  "baseline": "0b19c1a9f0db8cd1c434c12eea37dd4d67e69836",
+  "candidate": "fbc41cb2d0bf0ad1c125ab22548e9bb4c60fce45",
+  "compiler": "rustc 1.99.1",
+  "features": [
+    "std",
+    "simd-accel"
+  ],
+  "host": "macOS ARM64",
+  "container": "Linux ARM64",
+  "container_cpu_quota": 2,
+  "host_screen_variant": "candidate with host-screen-variant.patch applied",
+  "probe": "scripts/paired_gf16_decode_probe.rs",
+  "family": "classic",
+  "cache_entry_limit": 16,
+  "drift_handling": "record and continue",
+  "formal_performance_approval": false,
+  "files": [
+    {
+      "path": "host-aa.jsonl",
+      "sha256": "6be68bb872f1f42622a390305420dbd5e5abd86c4591a9fe361472542234f50b"
+    },
+    {
+      "path": "host-focused.jsonl",
+      "sha256": "5f7507b01fe54abc9b2a0b02d504e1442dc3694dfa95586bcfa78302c7ee787f"
+    },
+    {
+      "path": "host-screen-variant.patch",
+      "sha256": "df333881706d3c3e16170fb0a2a830de4eb563327581a5807a3c1acca90f2afa"
+    },
+    {
+      "path": "host-screen.jsonl",
+      "sha256": "42d6a5caa31bde4643fb4245e853331a9f46d56f5aa15d39a85f980284fa9dbf"
+    },
+    {
+      "path": "linux-aa.jsonl",
+      "sha256": "f75fa6c7aa65799f9182a01c66cd303482376e887929af199e18d661e9ae9431"
+    },
+    {
+      "path": "linux-concurrent.jsonl",
+      "sha256": "532f9dfa5945416043544f1f6a2d5a5fca9f6bd1e7dd548c4ef094e1597aeecc"
+    },
+    {
+      "path": "linux-focused.jsonl",
+      "sha256": "010e46684d38fdf29b150c9c11506a55732ea1f8ffb285769caeeb4219278f32"
+    },
+    {
+      "path": "linux-serial.jsonl",
+      "sha256": "2553e93ec2761344d2e63e41c1dd4902319c544eaf422fb73d4bfdd8cfb5510c"
+    }
+  ],
+  "probe_sha256": "cf36c9adde28bb2a78fa1892b580055e14045a76af4fa9cd1f66aab532a2fb39"
+}

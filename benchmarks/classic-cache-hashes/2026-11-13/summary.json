@@ -1,0 +1,600 @@
+{
+  "aggregation": "median of all rounds",
+  "runs": [
+    {
+      "file": "host-aa.jsonl",
+      "settings": {
+        "kind": "settings",
+        "family": "classic",
+        "rounds": 6,
+        "warm_ms": 1000,
+        "phase_warm_ms": 100,
+        "sample_ms": 500,
+        "same_codec": true,
+        "warm_batch": 32,
+        "pinned_cpus": null,
+        "drift_limit": 0.05
+      },
+      "cases": [
+        {
+          "case": "classic/serial/1/64x4/64/cold",
+          "rounds": 6,
+          "drift_flags": 2,
+          "wall_median_pct": -0.7706626362274038,
+          "cpu_median_pct": -0.6661339018348589
+        }
+      ]
+    },
+    {
+      "file": "host-focused.jsonl",
+      "settings": {
+        "kind": "settings",
+        "family": "classic",
+        "rounds": 6,
+        "warm_ms": 1000,
+        "phase_warm_ms": 100,
+        "sample_ms": 500,
+        "same_codec": false,
+        "warm_batch": 32,
+        "pinned_cpus": null,
+        "drift_limit": 0.05
+      },
+      "cases": [
+        {
+          "case": "classic/serial/1/64x4/64/cold",
+          "rounds": 6,
+          "drift_flags": 5,
+          "wall_median_pct": -1.6777032892294486,
+          "cpu_median_pct": -0.6549894054715844
+        }
+      ]
+    },
+    {
+      "file": "host-screen.jsonl",
+      "settings": {
+        "kind": "settings",
+        "family": "classic",
+        "rounds": 3,
+        "warm_ms": 1000,
+        "phase_warm_ms": 100,
+        "sample_ms": 250,
+        "same_codec": false,
+        "warm_batch": 32,
+        "pinned_cpus": null,
+        "drift_limit": 0.05
+      },
+      "cases": [
+        {
+          "case": "classic/serial/1/10x4/64/warm",
+          "rounds": 3,
+          "drift_flags": 0,
+          "wall_median_pct": 1.3333107708949576,
+          "cpu_median_pct": 1.1563212468441497
+        },
+        {
+          "case": "classic/serial/1/10x4/64/cold",
+          "rounds": 3,
+          "drift_flags": 3,
+          "wall_median_pct": 1.3086374943463985,
+          "cpu_median_pct": 1.1820355447447417
+        },
+        {
+          "case": "classic/serial/1/10x4/4096/warm",
+          "rounds": 3,
+          "drift_flags": 2,
+          "wall_median_pct": 1.0828587006106671,
+          "cpu_median_pct": 1.1321490832623127
+        },
+        {
+          "case": "classic/serial/1/10x4/4096/cold",
+          "rounds": 3,
+          "drift_flags": 2,
+          "wall_median_pct": -2.831759780567611,
+          "cpu_median_pct": -2.336383885776905
+        },
+        {
+          "case": "classic/serial/1/64x4/64/warm",
+          "rounds": 3,
+          "drift_flags": 2,
+          "wall_median_pct": 3.067929153829674,
+          "cpu_median_pct": 3.2555724256850826
+        },
+        {
+          "case": "classic/serial/1/64x4/64/cold",
+          "rounds": 3,
+          "drift_flags": 0,
+          "wall_median_pct": 6.863102347717986,
+          "cpu_median_pct": 5.766119066831332
+        },
+        {
+          "case": "classic/serial/1/64x4/4096/warm",
+          "rounds": 3,
+          "drift_flags": 0,
+          "wall_median_pct": 2.286049283425795,
+          "cpu_median_pct": 1.617661978868834
+        },
+        {
+          "case": "classic/serial/1/64x4/4096/cold",
+          "rounds": 3,
+          "drift_flags": 2,
+          "wall_median_pct": -0.9727821348244681,
+          "cpu_median_pct": -1.4694271544175797
+        },
+        {
+          "case": "classic/serial/1/128x4/64/warm",
+          "rounds": 3,
+          "drift_flags": 0,
+          "wall_median_pct": 0.1223084143820552,
+          "cpu_median_pct": 0.7922107060814199
+        },
+        {
+          "case": "classic/serial/1/128x4/64/cold",
+          "rounds": 3,
+          "drift_flags": 0,
+          "wall_median_pct": 4.65243662274053,
+          "cpu_median_pct": 4.991199563905946
+        },
+        {
+          "case": "classic/serial/1/128x4/4096/warm",
+          "rounds": 3,
+          "drift_flags": 2,
+          "wall_median_pct": 0.8972783651142402,
+          "cpu_median_pct": 0.9139450632160928
+        },
+        {
+          "case": "classic/serial/1/128x4/4096/cold",
+          "rounds": 3,
+          "drift_flags": 0,
+          "wall_median_pct": 2.575248484795889,
+          "cpu_median_pct": 2.249621333803953
+        },
+        {
+          "case": "classic/serial/1/240x4/64/warm",
+          "rounds": 3,
+          "drift_flags": 1,
+          "wall_median_pct": 2.7831587210572772,
+          "cpu_median_pct": 2.359701003018322
+        },
+        {
+          "case": "classic/serial/1/240x4/64/cold",
+          "rounds": 3,
+          "drift_flags": 0,
+          "wall_median_pct": -2.313597860244676,
+          "cpu_median_pct": -1.0262752402543374
+        },
+        {
+          "case": "classic/serial/1/240x4/4096/warm",
+          "rounds": 3,
+          "drift_flags": 1,
+          "wall_median_pct": 0.2669728225741297,
+          "cpu_median_pct": 0.4699785151149882
+        },
+        {
+          "case": "classic/serial/1/240x4/4096/cold",
+          "rounds": 3,
+          "drift_flags": 2,
+          "wall_median_pct": 0.9575371476896688,
+          "cpu_median_pct": 0.9240103970612923
+        },
+        {
+          "case": "classic/concurrent/8/10x4/64/warm",
+          "rounds": 3,
+          "drift_flags": 0,
+          "wall_median_pct": -8.053948381736909,
+          "cpu_median_pct": -22.778647532067275
+        },
+        {
+          "case": "classic/concurrent/8/10x4/64/cold",
+          "rounds": 3,
+          "drift_flags": 3,
+          "wall_median_pct": 3.954166428493,
+          "cpu_median_pct": 8.368590228514726
+        },
+        {
+          "case": "classic/concurrent/8/10x4/4096/warm",
+          "rounds": 3,
+          "drift_flags": 2,
+          "wall_median_pct": -9.969825981438628,
+          "cpu_median_pct": -6.38263653637935
+        },
+        {
+          "case": "classic/concurrent/8/10x4/4096/cold",
+          "rounds": 3,
+          "drift_flags": 1,
+          "wall_median_pct": -6.603217222115032,
+          "cpu_median_pct": -8.210605799983206
+        },
+        {
+          "case": "classic/concurrent/8/64x4/64/warm",
+          "rounds": 3,
+          "drift_flags": 1,
+          "wall_median_pct": -8.772778435037566,
+          "cpu_median_pct": -6.196391385843258
+        },
+        {
+          "case": "classic/concurrent/8/64x4/64/cold",
+          "rounds": 3,
+          "drift_flags": 2,
+          "wall_median_pct": -2.9542301422939232,
+          "cpu_median_pct": 5.523431453459016
+        },
+        {
+          "case": "classic/concurrent/8/64x4/4096/warm",
+          "rounds": 3,
+          "drift_flags": 0,
+          "wall_median_pct": -3.220958056698442,
+          "cpu_median_pct": -3.4682561404364987
+        },
+        {
+          "case": "classic/concurrent/8/64x4/4096/cold",
+          "rounds": 3,
+          "drift_flags": 1,
+          "wall_median_pct": -6.017828865116814,
+          "cpu_median_pct": 3.1473871442182055
+        },
+        {
+          "case": "classic/concurrent/8/128x4/64/warm",
+          "rounds": 3,
+          "drift_flags": 0,
+          "wall_median_pct": -5.818042669795953,
+          "cpu_median_pct": -4.845734864654672
+        },
+        {
+          "case": "classic/concurrent/8/128x4/64/cold",
+          "rounds": 3,
+          "drift_flags": 0,
+          "wall_median_pct": -1.1682639152600927,
+          "cpu_median_pct": 2.4676446624358306
+        },
+        {
+          "case": "classic/concurrent/8/128x4/4096/warm",
+          "rounds": 3,
+          "drift_flags": 1,
+          "wall_median_pct": -3.6782627093482123,
+          "cpu_median_pct": -4.944384942905167
+        },
+        {
+          "case": "classic/concurrent/8/128x4/4096/cold",
+          "rounds": 3,
+          "drift_flags": 2,
+          "wall_median_pct": 1.0174321404329278,
+          "cpu_median_pct": 0.8061348628551679
+        },
+        {
+          "case": "classic/concurrent/8/240x4/64/warm",
+          "rounds": 3,
+          "drift_flags": 1,
+          "wall_median_pct": -7.485581536857067,
+          "cpu_median_pct": 2.5459623365165607
+        },
+        {
+          "case": "classic/concurrent/8/240x4/64/cold",
+          "rounds": 3,
+          "drift_flags": 3,
+          "wall_median_pct": -6.255106166375257,
+          "cpu_median_pct": -12.99226363065431
+        },
+        {
+          "case": "classic/concurrent/8/240x4/4096/warm",
+          "rounds": 3,
+          "drift_flags": 2,
+          "wall_median_pct": 1.6118525205579992,
+          "cpu_median_pct": -2.4480410201382363
+        },
+        {
+          "case": "classic/concurrent/8/240x4/4096/cold",
+          "rounds": 3,
+          "drift_flags": 3,
+          "wall_median_pct": 4.594440011751111,
+          "cpu_median_pct": 2.1363952563920874
+        }
+      ]
+    },
+    {
+      "file": "linux-aa.jsonl",
+      "settings": {
+        "kind": "settings",
+        "family": "classic",
+        "rounds": 6,
+        "warm_ms": 1000,
+        "phase_warm_ms": 100,
+        "sample_ms": 500,
+        "same_codec": true,
+        "warm_batch": 32,
+        "pinned_cpus": 1,
+        "drift_limit": 0.05
+      },
+      "cases": [
+        {
+          "case": "classic/serial/1/64x4/64/cold",
+          "rounds": 6,
+          "drift_flags": 0,
+          "wall_median_pct": -0.16897971205612206,
+          "cpu_median_pct": -0.1696190525040886
+        }
+      ]
+    },
+    {
+      "file": "linux-concurrent.jsonl",
+      "settings": {
+        "kind": "settings",
+        "family": "classic",
+        "rounds": 24,
+        "warm_ms": 1000,
+        "phase_warm_ms": 0,
+        "sample_ms": 20,
+        "same_codec": false,
+        "warm_batch": 32,
+        "pinned_cpus": 2,
+        "drift_limit": 0.05
+      },
+      "cases": [
+        {
+          "case": "classic/concurrent/8/10x4/64/warm",
+          "rounds": 24,
+          "drift_flags": 3,
+          "wall_median_pct": 0.21796759291080603,
+          "cpu_median_pct": 0.2181772477585331
+        },
+        {
+          "case": "classic/concurrent/8/10x4/64/cold",
+          "rounds": 24,
+          "drift_flags": 1,
+          "wall_median_pct": 0.325579017006139,
+          "cpu_median_pct": 0.3259428379840168
+        },
+        {
+          "case": "classic/concurrent/8/10x4/4096/warm",
+          "rounds": 24,
+          "drift_flags": 5,
+          "wall_median_pct": 0.03141165437607896,
+          "cpu_median_pct": 0.031941270300150926
+        },
+        {
+          "case": "classic/concurrent/8/10x4/4096/cold",
+          "rounds": 24,
+          "drift_flags": 0,
+          "wall_median_pct": 0.12635836770785724,
+          "cpu_median_pct": 0.12510132605461077
+        },
+        {
+          "case": "classic/concurrent/8/64x4/64/warm",
+          "rounds": 24,
+          "drift_flags": 6,
+          "wall_median_pct": 0.5556803692874035,
+          "cpu_median_pct": 0.561261067155483
+        },
+        {
+          "case": "classic/concurrent/8/64x4/64/cold",
+          "rounds": 24,
+          "drift_flags": 0,
+          "wall_median_pct": -0.2778477343761021,
+          "cpu_median_pct": -0.278154847179779
+        },
+        {
+          "case": "classic/concurrent/8/64x4/4096/warm",
+          "rounds": 24,
+          "drift_flags": 5,
+          "wall_median_pct": 0.06089538151748397,
+          "cpu_median_pct": 0.06027904263492534
+        },
+        {
+          "case": "classic/concurrent/8/64x4/4096/cold",
+          "rounds": 24,
+          "drift_flags": 3,
+          "wall_median_pct": -0.7091863466634096,
+          "cpu_median_pct": -0.7072909912619829
+        },
+        {
+          "case": "classic/concurrent/8/128x4/64/warm",
+          "rounds": 24,
+          "drift_flags": 1,
+          "wall_median_pct": 0.6040398830689409,
+          "cpu_median_pct": 0.6044797383272682
+        },
+        {
+          "case": "classic/concurrent/8/128x4/64/cold",
+          "rounds": 24,
+          "drift_flags": 1,
+          "wall_median_pct": 0.225656184651446,
+          "cpu_median_pct": 0.22753722611122962
+        },
+        {
+          "case": "classic/concurrent/8/128x4/4096/warm",
+          "rounds": 24,
+          "drift_flags": 11,
+          "wall_median_pct": -0.11719955278925998,
+          "cpu_median_pct": -0.11675739454479195
+        },
+        {
+          "case": "classic/concurrent/8/128x4/4096/cold",
+          "rounds": 24,
+          "drift_flags": 13,
+          "wall_median_pct": -0.0702165331258442,
+          "cpu_median_pct": -0.07090771122367223
+        },
+        {
+          "case": "classic/concurrent/8/240x4/64/warm",
+          "rounds": 24,
+          "drift_flags": 13,
+          "wall_median_pct": -0.01691323627228125,
+          "cpu_median_pct": -0.022032910925495752
+        },
+        {
+          "case": "classic/concurrent/8/240x4/64/cold",
+          "rounds": 24,
+          "drift_flags": 6,
+          "wall_median_pct": 0.12141840555026095,
+          "cpu_median_pct": 0.12067389706321707
+        },
+        {
+          "case": "classic/concurrent/8/240x4/4096/warm",
+          "rounds": 24,
+          "drift_flags": 15,
+          "wall_median_pct": 0.4213112343622649,
+          "cpu_median_pct": 0.4217618110986643
+        },
+        {
+          "case": "classic/concurrent/8/240x4/4096/cold",
+          "rounds": 24,
+          "drift_flags": 7,
+          "wall_median_pct": 0.7096080774635305,
+          "cpu_median_pct": 0.7101458846687003
+        }
+      ]
+    },
+    {
+      "file": "linux-focused.jsonl",
+      "settings": {
+        "kind": "settings",
+        "family": "classic",
+        "rounds": 6,
+        "warm_ms": 1000,
+        "phase_warm_ms": 100,
+        "sample_ms": 500,
+        "same_codec": false,
+        "warm_batch": 32,
+        "pinned_cpus": 1,
+        "drift_limit": 0.05
+      },
+      "cases": [
+        {
+          "case": "classic/serial/1/64x4/64/cold",
+          "rounds": 6,
+          "drift_flags": 0,
+          "wall_median_pct": -0.4666794583998157,
+          "cpu_median_pct": -0.46659850918620016
+        }
+      ]
+    },
+    {
+      "file": "linux-serial.jsonl",
+      "settings": {
+        "kind": "settings",
+        "family": "classic",
+        "rounds": 24,
+        "warm_ms": 1000,
+        "phase_warm_ms": 0,
+        "sample_ms": 20,
+        "same_codec": false,
+        "warm_batch": 32,
+        "pinned_cpus": 1,
+        "drift_limit": 0.05
+      },
+      "cases": [
+        {
+          "case": "classic/serial/1/10x4/64/warm",
+          "rounds": 24,
+          "drift_flags": 3,
+          "wall_median_pct": -0.623094650707845,
+          "cpu_median_pct": -0.6220163107214904
+        },
+        {
+          "case": "classic/serial/1/10x4/64/cold",
+          "rounds": 24,
+          "drift_flags": 0,
+          "wall_median_pct": -3.9356239741611896,
+          "cpu_median_pct": -3.9346655068722702
+        },
+        {
+          "case": "classic/serial/1/10x4/4096/warm",
+          "rounds": 24,
+          "drift_flags": 7,
+          "wall_median_pct": 0.23058928481348717,
+          "cpu_median_pct": 0.2473170573700889
+        },
+        {
+          "case": "classic/serial/1/10x4/4096/cold",
+          "rounds": 24,
+          "drift_flags": 3,
+          "wall_median_pct": -0.9277323801094417,
+          "cpu_median_pct": -0.9278240932047543
+        },
+        {
+          "case": "classic/serial/1/64x4/64/warm",
+          "rounds": 24,
+          "drift_flags": 2,
+          "wall_median_pct": 0.6372563560328448,
+          "cpu_median_pct": 0.6466250058224321
+        },
+        {
+          "case": "classic/serial/1/64x4/64/cold",
+          "rounds": 24,
+          "drift_flags": 5,
+          "wall_median_pct": -5.181543451121879,
+          "cpu_median_pct": -5.184161716248747
+        },
+        {
+          "case": "classic/serial/1/64x4/4096/warm",
+          "rounds": 24,
+          "drift_flags": 7,
+          "wall_median_pct": 0.8728231041891132,
+          "cpu_median_pct": 0.8733684286622356
+        },
+        {
+          "case": "classic/serial/1/64x4/4096/cold",
+          "rounds": 24,
+          "drift_flags": 7,
+          "wall_median_pct": -0.3292485080231,
+          "cpu_median_pct": -0.3283995105524573
+        },
+        {
+          "case": "classic/serial/1/128x4/64/warm",
+          "rounds": 24,
+          "drift_flags": 5,
+          "wall_median_pct": 0.2193489460410536,
+          "cpu_median_pct": 0.21814769038580595
+        },
+        {
+          "case": "classic/serial/1/128x4/64/cold",
+          "rounds": 24,
+          "drift_flags": 5,
+          "wall_median_pct": -0.7619934391412397,
+          "cpu_median_pct": -0.7616206612689802
+        },
+        {
+          "case": "classic/serial/1/128x4/4096/warm",
+          "rounds": 24,
+          "drift_flags": 7,
+          "wall_median_pct": 0.12816540408422394,
+          "cpu_median_pct": 0.1280994301901317
+        },
+        {
+          "case": "classic/serial/1/128x4/4096/cold",
+          "rounds": 24,
+          "drift_flags": 3,
+          "wall_median_pct": -0.6659852709629599,
+          "cpu_median_pct": -0.6656165126890989
+        },
+        {
+          "case": "classic/serial/1/240x4/64/warm",
+          "rounds": 24,
+          "drift_flags": 6,
+          "wall_median_pct": 0.47703871413598,
+          "cpu_median_pct": 0.474419897344347
+        },
+        {
+          "case": "classic/serial/1/240x4/64/cold",
+          "rounds": 24,
+          "drift_flags": 5,
+          "wall_median_pct": -0.5599722503239368,
+          "cpu_median_pct": -0.5585661913323381
+        },
+        {
+          "case": "classic/serial/1/240x4/4096/warm",
+          "rounds": 24,
+          "drift_flags": 6,
+          "wall_median_pct": -1.0389895413474681,
+          "cpu_median_pct": -1.041105149449334
+        },
+        {
+          "case": "classic/serial/1/240x4/4096/cold",
+          "rounds": 24,
+          "drift_flags": 5,
+          "wall_median_pct": -0.3093025705815544,
+          "cpu_median_pct": -0.31167641320283823
+        }
+      ]
+    }
+  ]
+}
