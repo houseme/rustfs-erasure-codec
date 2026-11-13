@@ -1,0 +1,18 @@
+--- a/src/core/inversion_cache.rs
++++ b/src/core/inversion_cache.rs
+@@ -66,7 +66,6 @@
+         }
+     }
+ 
+-    #[inline]
+     pub(crate) fn hash_key(&self, key: &[usize]) -> u64 {
+         self.hash_builder.hash_one(key)
+     }
+@@ -76,7 +75,6 @@
+         self.get_hashed(self.hash_key(key), key)
+     }
+ 
+-    #[inline]
+     pub(crate) fn get_hashed(&self, hash: u64, key: &[usize]) -> Option<DecodeMatrix<F>> {
+         let mut state = self.state.lock();
+         match state
