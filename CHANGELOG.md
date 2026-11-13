@@ -10,7 +10,7 @@ All notable changes to this project are documented in this file.
 
 ## Unreleased
 
-## 9.1.0 (unreleased)
+## 9.1.0 - 2026-11-13
 
 ### Release highlights
 
@@ -28,11 +28,19 @@ All notable changes to this project are documented in this file.
 - Strengthen repository-only capture, immutable raw bindings, replay and release
   preflight. Allocation/work-count evidence does not establish a throughput gain.
 
-Release notes are prepared in [the 9.1.0 draft](docs/release-9.1.0-notes.md).
-Formal performance acceptance and strict positive preflight remain outstanding;
-this entry is not a publication date or release approval.
+Release notes describe the approved functional and compatibility qualification
+and the scope of retained performance diagnostics.
+[9.1.0 release notes](docs/release-9.1.0-notes.md)
 
 ### Detailed changes
+
+- Add bounded Classic inverse-cache byte accounting and compact coefficient
+  storage for wide sparse recovery. Compute borrowed-key lookup hashes outside
+  the mutex and reuse them through replacement and insertion.
+- Share concurrent Leopard GF16 plan construction through bounded registrations,
+  retain warm work across oversized operations, and reuse two encoding layouts.
+- Add caller-owned streaming workspaces, prepared parallel recovery and bounded
+  WASM codec reuse across repeated calls.
 
 - Pack small generic Leopard recovery staging for eligible x86-64 `std`
   configurations, avoiding per-output allocations while preserving delayed

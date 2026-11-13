@@ -46,6 +46,240 @@ const SWITCHES: [&str; 7] = [
     "RUN_X86_SIMD_OVERRIDE_MATRIX",
     "RUN_AARCH64_SIMD_OVERRIDE_MATRIX",
 ];
+
+#[cfg(unix)]
+mod publication_tests {
+    use super::*;
+    use std::os::unix::fs::PermissionsExt;
+
+    const SOURCE: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+
+    struct Publication {
+        directory: Directory,
+        environment: BTreeMap<String, String>,
+    }
+
+    impl Publication {
+        fn new() -> Self {
+            let directory = Directory::new();
+            let base = &directory.0;
+            fs::create_dir(base.join("bin")).unwrap();
+            fs::create_dir(base.join("state")).unwrap();
+            fs::create_dir_all(base.join("target/package")).unwrap();
+            let package = base.join("fixture/rustfs-erasure-codec-9.1.0");
+            fs::create_dir_all(&package).unwrap();
+            fs::write(
+                package.join(".cargo_vcs_info.json"),
+                format!("{{\"git\":{{\"sha1\":\"{SOURCE}\"}}}}\n"),
+            )
+            .unwrap();
+            let archive = base.join("fixture.crate");
+            assert!(
+                Command::new("tar")
+                    .args(["-czf"])
+                    .arg(&archive)
+                    .arg("-C")
+                    .arg(base.join("fixture"))
+                    .arg("rustfs-erasure-codec-9.1.0")
+                    .status()
+                    .unwrap()
+                    .success()
+            );
+            let checksum = Command::new("shasum")
+                .args(["-a", "256"])
+                .arg(&archive)
+                .output()
+                .unwrap();
+            assert!(checksum.status.success());
+            let checksum = String::from_utf8(checksum.stdout)
+                .unwrap()
+                .split_whitespace()
+                .next()
+                .unwrap()
+                .to_owned();
+            let stub = r#"#!/bin/bash
+set -eu
+name=${0##*/}
+printf '%s %s\n' "$name" "$*" >> "$TRACE"
+case "$name" in
+git)
+  case "$1 $2" in
+    'rev-parse HEAD') printf '%s\n' "$GITHUB_SHA" ;;
+    'rev-parse FETCH_HEAD^{commit}') printf '%s\n' "${TAG_SOURCE:-$GITHUB_SHA}" ;;
+    'status --porcelain') ;;
+    'ls-remote --exit-code') [ -f "$STATE/tag" ] || exit 2 ;;
+    'fetch --quiet') ;;
+    *) exit 90 ;;
+  esac ;;
+cargo)
+  case "$*" in
+    'xtask check-release --tag 9.1.0') [ "${FAIL_VERSION:-0}" = 0 ] ;;
+    'publish --dry-run'*) cp "$FIXTURE" "$CARGO_TARGET_DIR/package/rustfs-erasure-codec-9.1.0.crate" ;;
+    'publish --locked'*) [ "${FAIL_UPLOAD:-0}" = 0 ]; touch "$STATE/published" ;;
+    *) exit 91 ;;
+  esac ;;
+curl)
+  output= url=
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+      --output) output=$2; shift 2 ;;
+      --retry|--retry-delay|--user-agent|--write-out) shift 2 ;;
+      --*) shift ;;
+      *) url=$1; shift ;;
+    esac
+  done
+  case "$url" in
+    */download) cp "$FIXTURE" "$output" ;;
+    *)
+      if [ -f "$STATE/published" ]; then
+        printf '{"version":{"checksum":"%s"}}\n' "$REGISTRY_CHECKSUM" > "$output"
+        printf '200'
+      else
+        printf '{}\n' > "$output"
+        printf '404'
+      fi ;;
+  esac ;;
+sha256sum) exec shasum -a 256 "$@" ;;
+gh)
+  case "$1 $2" in
+    'api --method') touch "$STATE/tag" ;;
+    'release view')
+      [ -f "$STATE/release" ] || exit 1
+      printf '{"isDraft":false,"isPrerelease":false,"tagName":"9.1.0","url":"https://example.test/release"}\n' ;;
+    'release create'|'release edit') touch "$STATE/release" ;;
+    *) exit 92 ;;
+  esac ;;
+*) exit 93 ;;
+esac
+"#;
+            for name in ["git", "cargo", "curl", "sha256sum", "gh"] {
+                let path = base.join("bin").join(name);
+                fs::write(&path, stub).unwrap();
+                fs::set_permissions(path, fs::Permissions::from_mode(0o755)).unwrap();
+            }
+            let mut environment: BTreeMap<String, String> = std::env::vars().collect();
+            for (key, value) in [
+                ("GITHUB_SHA", SOURCE.to_owned()),
+                ("GITHUB_REPOSITORY", "example/codec".into()),
+                ("GITHUB_REF", "refs/heads/main".into()),
+                ("CARGO_REGISTRY_TOKEN", "test-token".into()),
+                ("GH_TOKEN", "test-token".into()),
+                ("TRACE", base.join("trace").display().to_string()),
+                ("STATE", base.join("state").display().to_string()),
+                ("FIXTURE", archive.display().to_string()),
+                ("REGISTRY_CHECKSUM", checksum),
+                (
+                    "CARGO_TARGET_DIR",
+                    base.join("target").display().to_string(),
+                ),
+                (
+                    "GITHUB_STEP_SUMMARY",
+                    base.join("summary").display().to_string(),
+                ),
+                (
+                    "PATH",
+                    format!(
+                        "{}:{}",
+                        base.join("bin").display(),
+                        std::env::var("PATH").unwrap()
+                    ),
+                ),
+            ] {
+                environment.insert(key.into(), value);
+            }
+            Self {
+                directory,
+                environment,
+            }
+        }
+
+        fn run(&self) -> Output {
+            Command::new("bash")
+                .arg(root().join("scripts/publish-9.1.0.sh"))
+                .current_dir(&self.directory.0)
+                .env_clear()
+                .envs(&self.environment)
+                .output()
+                .unwrap()
+        }
+
+        fn trace(&self) -> String {
+            fs::read_to_string(self.directory.0.join("trace")).unwrap()
+        }
+    }
+
+    #[test]
+    fn publication_verifies_registry_before_tagging_and_retries_without_upload() {
+        let fixture = Publication::new();
+        let first = fixture.run();
+        assert!(
+            first.status.success(),
+            "{}",
+            String::from_utf8_lossy(&first.stderr)
+        );
+        let trace = fixture.trace();
+        assert!(
+            trace.find("cargo publish --locked").unwrap()
+                < trace.find("gh api --method POST").unwrap()
+        );
+        let receipt: serde_json::Value = serde_json::from_slice(
+            &fs::read(fixture.directory.0.join("target/publication/receipt.json")).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(receipt["source_commit"], SOURCE);
+        assert_eq!(receipt["registry_verified"], true);
+        let retry = fixture.run();
+        assert!(
+            retry.status.success(),
+            "{}",
+            String::from_utf8_lossy(&retry.stderr)
+        );
+        assert_eq!(fixture.trace().matches("cargo publish --locked").count(), 1);
+        assert_eq!(fixture.trace().matches("gh api --method POST").count(), 1);
+    }
+
+    #[test]
+    fn conflicting_tag_refuses_upload() {
+        let mut fixture = Publication::new();
+        fs::write(fixture.directory.0.join("state/tag"), "").unwrap();
+        fixture.environment.insert(
+            "TAG_SOURCE".into(),
+            "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb".into(),
+        );
+        assert!(!fixture.run().status.success());
+        assert!(!fixture.trace().contains("cargo publish"));
+    }
+
+    #[test]
+    fn registry_checksum_failure_refuses_tag_and_release() {
+        let mut fixture = Publication::new();
+        fs::write(fixture.directory.0.join("state/published"), "").unwrap();
+        fixture
+            .environment
+            .insert("REGISTRY_CHECKSUM".into(), "0".repeat(64));
+        let result = fixture.run();
+        assert!(
+            !result.status.success(),
+            "stdout={} stderr={} trace={}",
+            String::from_utf8_lossy(&result.stdout),
+            String::from_utf8_lossy(&result.stderr),
+            fixture.trace()
+        );
+        let trace = fixture.trace();
+        assert!(!trace.contains("cargo publish --locked"));
+        assert!(!trace.contains("gh api --method POST"));
+        assert!(!trace.contains("gh release create"));
+    }
+
+    #[test]
+    fn failed_upload_refuses_tag_and_release() {
+        let mut fixture = Publication::new();
+        fixture.environment.insert("FAIL_UPLOAD".into(), "1".into());
+        assert!(!fixture.run().status.success());
+        assert!(!fixture.trace().contains("gh api --method POST"));
+        assert!(!fixture.trace().contains("gh release create"));
+    }
+}
 #[cfg(unix)]
 fn checks(
     profile: &str,

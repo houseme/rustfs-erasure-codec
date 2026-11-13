@@ -1,5 +1,10 @@
 # 9.1.0 release preparation
 
+Publication update (2026-11-13): the maintainer approved functional and
+compatibility acceptance for 9.1.0, with performance acceptance tracked
+separately. The current publication procedure and registry verification are
+recorded in the [publication record](release-9.1.0-publication-2026-11-13.md).
+
 Preparation update (2026-11-06): the [current readiness record](release-9.1.0-readiness-2026-11-06.md)
 checks the recent package and compatibility results. Final-source controlled
 evidence and a successful strict preflight remain required.

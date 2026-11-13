@@ -32,6 +32,10 @@ on:
         description: Full commit of the controlled evidence snapshot (defaults to repository variable)
         type: string
         required: false
+      publish_9_1_0_functional:
+        description: Publish 9.1.0 using the approved functional and compatibility qualification
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -655,3 +659,47 @@ jobs:
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
         run: cargo publish --locked --registry crates-io --package rustfs-erasure-codec
+
+  publish-9-1-functional:
+    name: Publish 9.1.0 (functional qualification)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_9_1_0_functional && github.ref == 'refs/heads/main'
+    needs:
+      - typos
+      - security
+      - wasm-integration
+      - release-tooling
+      - build-linux
+      - build-windows-native
+      - build-windows-gnu-targets
+      - build-ppc64le-vsx
+      - test-linux
+      - test-linux-aarch64
+      - test-windows-native
+      - test-macos-arm64
+    permissions:
+      contents: write
+    env:
+      RUSTFLAGS: ""
+      CARGO_TARGET_DIR: target/release-9.1.0
+    steps:
+      - name: Checkout the tested release source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2.9.1
+      - name: Publish and verify 9.1.0
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/publish-9.1.0.sh
+      - name: Preserve registry verification
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: publication-9.1.0-${{ github.run_id }}
+          path: target/release-9.1.0/publication/
+          if-no-files-found: warn
