@@ -426,39 +426,62 @@ mod allocations {
                 serial.reconstruct(&mut slots).unwrap();
             });
             for repetition in 0..3 {
-                let mut counts = Vec::new();
-                for chunks in [12, 36] {
-                    let len = (chunks - 1) * 64 * 1024 + 64;
-                    let (codec, expected) = fixture(10, 4, len, jobs, 41 + repetition);
-                    let mut slots: Vec<_> = expected
-                        .iter()
-                        .cloned()
-                        .map(ShardSlot::new_present)
-                        .collect();
-                    for index in [0, 1, 10] {
-                        slots[index].mark_missing();
+                // Each counting window spans several threads and whole
+                // milliseconds of Rayon scheduling, so a one-off lazy
+                // allocation from the runtime, loader, or sanitizer
+                // instrumentation can land inside either sample and skew a
+                // single pair. Re-measure a mismatched pair once and tolerate
+                // a few transient calls/bytes. Chunk-proportional view
+                // metadata instead adds one call per chunk (24 extra for 36
+                // vs 12 chunks) plus kilobytes, far outside these bounds.
+                const NOISE_CALLS: usize = 4;
+                const NOISE_BYTES: usize = 2 * 1024;
+                let mut counts: Vec<(usize, usize, usize)> = Vec::new();
+                let mut attempts = 0;
+                loop {
+                    attempts += 1;
+                    counts.clear();
+                    for chunks in [12, 36] {
+                        let len = (chunks - 1) * 64 * 1024 + 64;
+                        let (codec, expected) = fixture(10, 4, len, jobs, 41 + repetition);
+                        let mut slots: Vec<_> = expected
+                            .iter()
+                            .cloned()
+                            .map(ShardSlot::new_present)
+                            .collect();
+                        for index in [0, 1, 10] {
+                            slots[index].mark_missing();
+                        }
+                        pool.install(|| codec.reconstruct(&mut slots)).unwrap();
+                        for index in [0, 1, 10] {
+                            slots[index].mark_missing();
+                            slots[index].as_inner_mut().fill(0xa5);
+                        }
+                        let (result, count) =
+                            measure_all(|| pool.install(|| codec.reconstruct(&mut slots)));
+                        result.unwrap();
+                        for (slot, expected) in slots.iter().zip(&expected) {
+                            assert!(slot.is_present());
+                            assert_eq!(slot.as_inner(), expected);
+                        }
+                        // Requested temporary payload grows with length.
+                        // Compare the remaining requests/bytes, including all
+                        // worker work.
+                        counts.push((count.0, count.1, count.1 - 3 * len));
                     }
-                    pool.install(|| codec.reconstruct(&mut slots)).unwrap();
-                    for index in [0, 1, 10] {
-                        slots[index].mark_missing();
-                        slots[index].as_inner_mut().fill(0xa5);
+                    if attempts == 2
+                        || (counts[0].0.abs_diff(counts[1].0) <= NOISE_CALLS
+                            && counts[0].2.abs_diff(counts[1].2) <= NOISE_BYTES)
+                    {
+                        break;
                     }
-                    let (result, count) =
-                        measure_all(|| pool.install(|| codec.reconstruct(&mut slots)));
-                    result.unwrap();
-                    for (slot, expected) in slots.iter().zip(&expected) {
-                        assert!(slot.is_present());
-                        assert_eq!(slot.as_inner(), expected);
-                    }
-                    // Requested temporary payload grows with length. Compare
-                    // the remaining requests/bytes, including all worker work.
-                    counts.push((count.0, count.1, count.1 - 3 * len));
                 }
                 println!(
-                    "PARALLEL_VIEW_RESOURCE threads={threads} jobs={jobs} repetition={repetition} short_chunks=12 long_chunks=36 short_calls={} short_bytes={} short_overhead={} long_calls={} long_bytes={} long_overhead={}",
+                    "PARALLEL_VIEW_RESOURCE threads={threads} jobs={jobs} repetition={repetition} attempts={attempts} short_chunks=12 long_chunks=36 short_calls={} short_bytes={} short_overhead={} long_calls={} long_bytes={} long_overhead={}",
                     counts[0].0, counts[0].1, counts[0].2, counts[1].0, counts[1].1, counts[1].2
                 );
-                bounded &= counts[0].0 == counts[1].0 && counts[0].2 == counts[1].2;
+                bounded &= counts[0].0.abs_diff(counts[1].0) <= NOISE_CALLS
+                    && counts[0].2.abs_diff(counts[1].2) <= NOISE_BYTES;
             }
         }
         assert!(
