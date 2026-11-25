@@ -30,7 +30,7 @@ serde_json = { version = "1.0.154", features = ["float_roundtrip"] }
 sha2 = "0.11.1"
 smallvec = "1.16.6"
 spin = { version = "0.12.3", default-features = false, features = ["once", "spin_mutex"] }
-toml = "1.2.2"
+toml = "1.2.3"
 wasm-bindgen = "0.2.130"
 
 # CI lint baseline (rustfs/backlog#1237, #1243). Members opt in via `[lints] workspace = true`.
